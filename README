@@ -1,0 +1,54 @@
+Wall-E Project
+--------------
+
+Introduction
+-------------
+
+Wall-E -project studies robots and controllers for them.
+It is based on Adruino Pirate 4WD car, which carries Raprberry-PI to control it.
+Remote controller is mobile phone like Android one or Maemo one or E7 ...
+All parts are cheap and we use everything we allready own.
+
+All devices are programmed with their own native programming language.
+
+Arduino Pirate 4WD car
+----------------------
+
+Rore as Robot device, its "muscles"
+
+This device is run by Romeo. Romea is Microcontroller and runs programs that are originally
+written in C, compiled in host computer and uploaded by USB to the device. On this project we want
+control Arduino by Parberry PI computer, which native programming language is Python, so we load
+pyfirmata sketch 1) to it.
+
+Raspberry PI
+------------
+
+Rore as Robot logic, it's "brains".
+
+Raspberry PI computer is very small and very cheap. But is real computer running Linux.
+We connect Raspberry PI and Arduino Romeo board by USB and set up Python server listening command
+that come from WLAN from remote controller. We need a cheap WLAN USB-stich.
+Python has fine libraries to read WLAN connections and handle serial line devices
+that Romeo is seen in USB connection. Raspberry PI has two USB connection and we use them both, but we don't need
+USB-HUB.
+
+N900
+----
+
+Role as remote controller
+
+N900 is maemo mobile phone which runs Linux. It's native programming language is Qt C++, which is ideal to make
+applicatyions with graphical UI and WLAN-client. We study fancy logics how to control devices, so this as fine
+platform to make them.
+
+Android Phone
+-------------
+
+Role as remote controller
+
+Android Phone's role is same than N900, we can use it as remote controller. Android is programmed by Java and it has fine graphic libraries
+and it can use WLAN connectios. Unfortunately nothing is programmed fot Android yet, that time I haven't got yet.
+
+
+
