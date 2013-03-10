@@ -247,8 +247,8 @@ class Romeo:
 #                self.m2.write(0)
             elif command.getLeftPower() <= -0.25:
                 print "Romeo.processCommand Command.CommandTypes.Drive -1 Left " + str(-command.getLeftPower())
-                self.e2.write(-command.getLeftPower())
-                self.m2.write(-1)
+                self.e1write(-command.getLeftPower())
+                self.m1.write(-1)
 #                self.m2.write(0)
             else:
                 print "Romeo.processCommand Command.CommandTypes.Drive Left 0 0"
@@ -262,8 +262,8 @@ class Romeo:
 #                self.m1.write(0)
             elif command.getRightPower() <= -0.25:
                 print "Romeo.processCommand Command.CommandTypes.Drive -1 Right " + str(-command.getRightPower())
-                self.e1.write(-command.getRightPower())
-                self.m1.write(-1)
+                self.e2.write(-command.getRightPower())
+                self.m2.write(-1)
 #                self.m1.write(0)
             else:
                 print "Romeo.processCommand Command.CommandTypes.Drive 0 Right 0"

@@ -50,12 +50,14 @@ class WalleRequestHandler(SocketServer.BaseRequestHandler):
 
 
 if __name__ == "__main__":
+    print "main: create romeo"
     romeo = Romeo()
     #romeo.test2()
 
     #HOST, PORT = "localhost", 2000
 
     # Create the server, binding to localhost on port 9999
+    print "main: create SocketServer.TCPServer " + HOST + " " + str(PORT)
     server = SocketServer.TCPServer((HOST, PORT), WalleRequestHandler)
 
     # Activate the server; this will keep running until you
