@@ -104,5 +104,6 @@ void SliderTunerFrame::handleDirectionChange( double direction )
 void SliderTunerFrame::handleSpeedChange( double speed )
 {
     qDebug() << "SliderTunerFrame.handleSpeedChange";
+    qDebug() << "SliderTunerFrame.handleSpeedChange _EMIT speedChanged " << speed/100.0;
     Q_EMIT speedChanged(speed/100.0) ;
 }

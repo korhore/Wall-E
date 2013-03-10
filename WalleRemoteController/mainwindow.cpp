@@ -195,12 +195,12 @@ mTargetPicture = new QLabel(mBackGround);
     qDebug() << "mainwindow.connectmPowerTunerFrame,powerChanged";
     connect(mPowerTunerFrame,SIGNAL(powerChanged(double,double)),mTunerManager,SLOT(setPower(double,double)));
 
-    qDebug() << "mainwindow.connect(mSliderTunerFrame,directionChanged";
-    connect(mSliderTunerFrame,SIGNAL(directionChanged(double)),mPointerTunerFrame,SLOT(setDirection(double)));
-    qDebug() << "mainwindow.connect(mSliderTunerFrame,speedChanged";
-    connect(mSliderTunerFrame,SIGNAL(speedChanged(double)),mPointerTunerFrame,SLOT(setSpeed(double)));
+    qDebug() << "mainwindow.connect(mSliderTunerFrame.directionChanged, mTunerManager.setDirection";
+    connect(mSliderTunerFrame,SIGNAL(directionChanged(double)),mTunerManager,SLOT(setDirection(double)));
+    qDebug() << "mainwindow.connect((mSliderTunerFrame,speedChanged, mTunerManager.setSpeed";
+    connect(mSliderTunerFrame,SIGNAL(speedChanged(double)),mTunerManager,SLOT(setSpeed(double)));
 
-    qDebug() << "mainwindow.connect(,mTunerManager,powerChanged";
+    qDebug() << "mainwindow.connect(mTunerManager,powerChanged";
     //connect(mTunerManager,SIGNAL(powerChanged(bool,double,double)),mPowerTunerFrame,SLOT(setpower(bool,double,double)));
     connect(mTunerManager, SIGNAL(commandProsessed(Command)), mPowerTunerFrame, SLOT(setCommand(Command)));
 
