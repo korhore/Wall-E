@@ -1,1 +1,2 @@
-qDrawShadePanel: Invalid parameters
+- Move Wallew pixture more left
+- Get pictures tansparent
