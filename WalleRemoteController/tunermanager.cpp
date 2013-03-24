@@ -73,23 +73,27 @@ void TunerManager::handleCommandProsessed(Command command)
 
 
 
-void TunerManager::setDirection( double direction )
+void TunerManager::setSpeedDirection( double speed, double direction )
 {
-    qDebug() << "TunerManager.setDirection";
+    qDebug() << "TunerManager.setSpeedDirection";
+    mSpeed = speed;
+    Q_EMIT speedChanged(speed) ;
     mDirection = direction;
     Q_EMIT directionChanged(direction);
     calculatePower();
 }
 
-void TunerManager::setSpeed( double speed )
-{
-    qDebug() << "TunerManager.setSpeed";
-    mSpeed = speed;
-    Q_EMIT speedChanged(speed) ;
-    calculatePower();
-}
 
+/*
 
+  Speed or direction is changeed
+  Canculate left and right power
+
+  TODO allow only one method for setSpeedDirection(double speed, double direction)
+  to make thing easier
+  TODO emit powerChanged
+
+  */
 
 void TunerManager::calculatePower()
 {
@@ -159,6 +163,15 @@ void TunerManager::calculatePower()
         qDebug() << "TunerManager:calculatePower NO Change mSpeed" << mSpeed << " mDirection " << mDirection <<" mLeftPower " << mLeftPower <<" mRightPower " << mRightPower;
     }
 }
+
+/*
+
+  Left and right power are changeed
+  Canculate Speed and direction left and right power
+
+  TODO emit speedDirectionChanged
+
+  */
 
 void TunerManager::setPower( double leftPower, double rightPower )
 {

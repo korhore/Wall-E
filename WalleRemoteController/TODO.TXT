@@ -1,2 +1,5 @@
-- Move Wallew pixture more left
-- Get pictures tansparent
+- Move Wallew picture more left
+- Get pictures transparent
+- Make device status output "screen"
+
+- setPower

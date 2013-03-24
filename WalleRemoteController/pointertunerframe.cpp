@@ -117,20 +117,9 @@ int PointerTunerFrame::backGroundMiddleY() {
 }
 */
 
-void PointerTunerFrame::setDirection( double direction )
+void PointerTunerFrame::setSpeedDirection( double speed, double direction )
 {
-    qDebug() << "PointerTunerFrame::setDirection speed" << mSpeed << "direction"  << direction;
-    mDirection = direction;
-    QMatrix matrix;
-    matrix.rotate(direction);
-    QPixmap rotatedControlledPixmap = mOriginalWallePixmap->transformed(matrix);
-    mControlledWallePicture->setPixmap(rotatedControlledPixmap);
-    setSpeed( mSpeed );
-}
-
-void PointerTunerFrame::setSpeed( double speed )
-{
-    qDebug() << "PointerTunerFrame::setSpeed speed" << speed << "direction"  << mDirection;
+    qDebug() << "PointerTunerFrame::setSpeedDirection speed" << speed << "direction"  << direction;
     mSpeed = speed;
     // scale targed
     int size = (50 + (1.0 - speed)*100.0);
@@ -142,7 +131,23 @@ void PointerTunerFrame::setSpeed( double speed )
     qDebug() << "PointerTunerFrame::setSpeed x" << x << " y " << y;
 
     mTargetPicture->move(x,y);
+
+    mDirection = direction;
+    QMatrix matrix;
+    matrix.rotate(direction);
+    QPixmap rotatedControlledPixmap = mOriginalWallePixmap->transformed(matrix);
+    mControlledWallePicture->setPixmap(rotatedControlledPixmap);
+    //setSpeed( mSpeed );
+
 }
+
+void PointerTunerFrame::setPower( double leftPower, double rightPower )
+{
+    qDebug() << "PointerTunerFrame::setSpeedDirection leftPower " << leftPower << " rightPower "  << rightPower;
+    // TODO
+    // set powers to direction and speed
+}
+
 
 void PointerTunerFrame::handleDirectionChange( double direction )
 {
@@ -183,8 +188,7 @@ void PointerTunerFrame::setTarget(QPoint p)
         mTargetPicture->resize(size, size);
         qDebug() << "PointerTunerFrame::setTarget speed " << mSpeed;
 
-        emit directionChanged(mDirection );
-        emit speedChanged( mSpeed );
+        emit directionSpeedChanged(mSpeed, mDirection);
     }
     /**/
 }

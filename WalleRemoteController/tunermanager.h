@@ -27,11 +27,9 @@
 
 /*
 
-Converrsion from one controllerr to other and power controlling output
+Conversion from one controllerr to other and power controlling output
 
-
-
-  */
+*/
 
 #include <QObject>
 #include "command.h"
@@ -47,14 +45,13 @@ public:
 Q_SIGNALS:
     void directionChanged( double direction );
     void speedChanged( double speed );
- //   void powerChanged( bool running, double leftPower, double rightPower );
+    void powerChanged( double leftPower, double rightPower );
 
     void commandProsessed(Command command);
 
 
 public Q_SLOTS:
-    virtual void setDirection( double direction );
-    virtual void setSpeed( double speed );
+    virtual void setSpeedDirection( double speed, double direction );
     void setPower( double leftPower, double rightPower );
     void setHost( QString ipAddress, int port);
 

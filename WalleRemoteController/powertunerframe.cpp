@@ -175,8 +175,18 @@ void PowerTunerFrame::setCommand(Command command)
         mLeftPowerSlider->setValue(mLeftPower);
         mRightPowerSlider->setValue(mRightPower);
     }
+}
+
+void PowerTunerFrame::setPower( double leftPower, double rightPower )
+{
+    mLeftPower = leftPower;
+    mRightPower = rightPower;
+
+    mLeftPowerSlider->setValue(mLeftPower);
+    mRightPowerSlider->setValue(mRightPower);
 
 }
+
 
 
 void PowerTunerFrame::handleSettings()

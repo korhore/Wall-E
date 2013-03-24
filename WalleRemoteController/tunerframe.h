@@ -37,12 +37,11 @@ public:
     TunerFrame( QWidget *p );
 
 Q_SIGNALS:
-    void directionChanged( double direction );
-    void speedChanged( double speed );
+    void speedDirectionChanged( double speed, double direction );
 
 public Q_SLOTS:
-    virtual void setDirection( double direction ) = 0;
-    virtual void setSpeed( double speed ) = 0;
+    virtual void setSpeedDirection( double speed, double direction ) = 0;
+    virtual void setPower( double leftPower, double rightPower ) = 0;
 };
 
 #endif // TUNERFRAME_H

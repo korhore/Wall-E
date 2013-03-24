@@ -66,7 +66,7 @@ SliderTunerFrame::SliderTunerFrame( QWidget *parent ):
     QWidget *speed = new QWidget(this);
     qDebug() << "mSliderSpeed";
     mSliderSpeed = new QwtSlider( speed, Qt::Vertical, QwtSlider::LeftScale );
-    mSliderSpeed->setRange( 0.0, 100.0, 0.1, 10 );
+    mSliderSpeed->setRange( -1.0, 1.0 );
     mSliderSpeed->setScaleMaxMinor( 3 );
     mSliderSpeed->setScaleMaxMajor( 5 );
     mSliderSpeed->setHandleSize( 80, 40 );
@@ -105,27 +105,31 @@ SliderTunerFrame::SliderTunerFrame( QWidget *parent ):
 }
 
 
-void SliderTunerFrame::setDirection( double direction )
+void SliderTunerFrame::setSpeedDirection( double speed, double direction )
 {
-    qDebug() << "SliderTunerFrame.setDirection";
+    qDebug() << "SliderTunerFrame.setSpeedDirection";
+    mSliderSpeed->setValue( speed );
     mSliderDirection->setValue( direction );
 }
 
-void SliderTunerFrame::setSpeed( double speed )
+void SliderTunerFrame::setPower( double leftPower, double rightPower )
 {
-    qDebug() << "SliderTunerFrame.setSpeed";
-    mSliderSpeed->setValue( 100.0 * speed );
+    qDebug() << "SliderTunerFrame::setSpeedDirection leftPower " << leftPower << " rightPower "  << rightPower;
+    // TODO
+    // set powers to direction and speed
 }
 
 void SliderTunerFrame::handleDirectionChange( double direction )
 {
     qDebug() << "SliderTunerFrame.handleDirectionChange";
-    Q_EMIT directionChanged(direction) ;
+    mDirection = direction;
+    emit directionSpeedChanged(mSpeed, mDirection);
+
 }
 
 void SliderTunerFrame::handleSpeedChange( double speed )
 {
     qDebug() << "SliderTunerFrame.handleSpeedChange";
-    qDebug() << "SliderTunerFrame.handleSpeedChange _EMIT speedChanged " << speed/100.0;
-    Q_EMIT speedChanged(speed/100.0) ;
+    mSpeed = speed;
+    emit directionSpeedChanged(mSpeed, mDirection);
 }

@@ -36,12 +36,10 @@ public:
     SliderTunerFrame( QWidget *p=NULL );
 
 Q_SIGNALS:
-    void directionChanged( double speed );
-    void speedChanged( double speed );
-
+    void directionSpeedChanged( double speed, double direction);
 public Q_SLOTS:
-    virtual void setDirection( double direction );
-    virtual void setSpeed( double speed );
+    virtual void setSpeedDirection( double speed, double direction );
+    virtual void setPower( double leftPower, double rightPower );
 
 private Q_SLOTS:
     void handleDirectionChange( double direction );
@@ -51,6 +49,9 @@ private Q_SLOTS:
 private:
     QwtSlider *mSliderDirection;
     QwtSlider *mSliderSpeed;
+
+    double mDirection;
+    double mSpeed;
 };
 
 #endif // SLIDERTUNERFRAME_H

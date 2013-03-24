@@ -42,6 +42,7 @@ signals:
 public Q_SLOTS:
     //void setpower( bool running, double leftPower, double rightPower );
     void setCommand(Command command);
+    virtual void setPower( double leftPower, double rightPower );
 
 private Q_SLOTS:
     void handleSettings();

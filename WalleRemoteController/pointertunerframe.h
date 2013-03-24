@@ -50,12 +50,12 @@ signals:
 
 
 Q_SIGNALS:
-    void directionChanged( double direction );
-    void speedChanged( double speed );
+    void directionSpeedChanged( double speed, double direction );
 
 public Q_SLOTS:
-    virtual void setDirection( double direction );
-    virtual void setSpeed( double speed );
+    virtual void setSpeedDirection( double speed, double direction );
+    virtual void setPower( double leftPower, double rightPower );
+
 
 private Q_SLOTS:
     void handleDirectionChange( double direction );
