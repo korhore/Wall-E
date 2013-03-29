@@ -40,7 +40,7 @@ SliderTunerFrame::SliderTunerFrame( QWidget *parent ):
     QWidget *direction = new QWidget(this);
     qDebug() << "mSliderDirection";
     mSliderDirection = new QwtSlider( direction, Qt::Horizontal, QwtSlider::TopScale );
-    mSliderDirection->setRange( -180.0, 180.0, 0.1, 45 );
+    mSliderDirection->setRange( -90.0, 90.0, 0.1, 45 );
     mSliderDirection->setScaleMaxMinor( 3 );
     mSliderDirection->setScaleMaxMajor( 5 );
     mSliderDirection->setHandleSize( 40, 80 );
@@ -108,6 +108,35 @@ SliderTunerFrame::SliderTunerFrame( QWidget *parent ):
 void SliderTunerFrame::setSpeedDirection( double speed, double direction )
 {
     qDebug() << "SliderTunerFrame.setSpeedDirection";
+    // convert values to
+    // -90.0 <= direction <= 90.0
+    // -1.0 <= speed <= 1.0
+
+    if (direction > 180.0)  { // value range
+        direction = 180.0;
+    } else
+    if (direction < -180.0) {
+        direction = -180.0;
+    };
+
+    if (speed > 1.0) {  // value range
+        speed = 1.0;
+    } else
+    if (speed < -1.0) {
+        speed = -1.0;
+    };
+
+    if (direction > 90.0) { // turnning right, backward
+        direction -= 90.0;
+        speed = -speed;
+    } else
+    if (direction < -90.0) { // turnning left, backward
+        direction += 90.0;
+        speed = -speed;
+    };
+
+    Q_ASSERT((-90.0 <= direction) && (direction <= 90.0) && (-1.0 <= speed) && (speed <= 1.0));
+
     mSliderSpeed->setValue( speed );
     mSliderDirection->setValue( direction );
 }

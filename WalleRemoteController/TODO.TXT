@@ -3,3 +3,4 @@
 - Make device status output "screen"
 
 - setPower
+- Still controlling device motors is working only with pointertuner, needs some refactoring with other tuners

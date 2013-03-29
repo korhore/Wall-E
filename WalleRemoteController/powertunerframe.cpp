@@ -187,6 +187,43 @@ void PowerTunerFrame::setPower( double leftPower, double rightPower )
 
 }
 
+/*
+void PowerTunerFrame::setSpeedDirection( double speed, double direction )
+{
+    qDebug() << "SliderTunerFrame.setSpeedDirection";
+    // convert values to
+    // -90.0 <= direction <= 90.0
+    // -1.0 <= speed <= 1.0
+
+    if (direction > 180.0)  { // value range
+        direction = 180.0;
+    } else
+    if (direction < -180.0) {
+        direction = -180.0;
+    };
+
+    if (speed > 1.0) {  // value range
+        speed = 1.0;
+    } else
+    if (speed < -1.0) {
+        speed = -1.0;
+    };
+
+    if (direction > 90.0) { // turnning right, backward
+        direction -= 90.0;
+        speed = -speed;
+    } else
+    if (direction < -90.0) { // turnning left, backward
+        direction += 90.0;
+        speed = -speed;
+    };
+
+    Q_ASSERT((-90.0 <= direction) && (direction <= 90.0) && (-1.0 <= speed) && (speed <= 1.0));
+
+    mSliderSpeed->setValue( speed );
+    mSliderDirection->setValue( direction );
+}
+*/
 
 
 void PowerTunerFrame::handleSettings()

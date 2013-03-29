@@ -207,7 +207,7 @@ mTargetPicture = new QLabel(mBackGround);
     connect(mPointerTunerFrame,SIGNAL(directionSpeedChanged(double, double)), mTunerManager,SLOT(setSpeedDirection(double,double)));
     // Let other tuners handle change
     connect(mPointerTunerFrame,SIGNAL(directionSpeedChanged(double, double)), mSliderTunerFrame,SLOT(setSpeedDirection(double,double)));
-    connect(mPointerTunerFrame,SIGNAL(directionSpeedChanged(double, double)), mPowerTunerFrame,SLOT(setSpeedDirection(double,double)));
+    //connect(mPointerTunerFrame,SIGNAL(directionSpeedChanged(double, double)), mPowerTunerFrame,SLOT(setSpeedDirection(double,double)));
 
     qDebug() << "mainwindow.connect(mSliderTunerFrame,directionSpeedChanged";
     // Slider tuner
@@ -215,7 +215,7 @@ mTargetPicture = new QLabel(mBackGround);
     connect(mSliderTunerFrame,SIGNAL(directionSpeedChanged(double, double)), mTunerManager,SLOT(setSpeedDirection(double,double)));
     // Let other tuners handle change
     connect(mSliderTunerFrame,SIGNAL(directionSpeedChanged(double, double)), mPointerTunerFrame,SLOT(setSpeedDirection(double,double)));
-    connect(mSliderTunerFrame,SIGNAL(directionSpeedChanged(double, double)), mPowerTunerFrame,SLOT(setSpeedDirection(double,double)));
+    //connect(mSliderTunerFrame,SIGNAL(directionSpeedChanged(double, double)), mPowerTunerFrame,SLOT(setSpeedDirection(double,double)));
 
     qDebug() << "mainwindow.connectmPowerTunerFrame,powerChanged";
     // Power tuner
@@ -227,7 +227,7 @@ mTargetPicture = new QLabel(mBackGround);
 
 
     qDebug() << "mainwindow.connect(mTunerManager, commandProsessed";
-    //connect(mTunerManager,SIGNAL(powerChanged(bool,double,double)),mPowerTunerFrame,SLOT(setpower(bool,double,double)));
+    connect(mTunerManager,SIGNAL(powerChanged(double,double)),mPowerTunerFrame,SLOT(setPower(double,double)));
     connect(mTunerManager, SIGNAL(commandProsessed(Command)), mPowerTunerFrame, SLOT(setCommand(Command)));
 
     qDebug() << "mainwindow end";

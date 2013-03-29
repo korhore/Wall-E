@@ -77,9 +77,9 @@ void TunerManager::setSpeedDirection( double speed, double direction )
 {
     qDebug() << "TunerManager.setSpeedDirection";
     mSpeed = speed;
-    Q_EMIT speedChanged(speed) ;
+    //Q_EMIT speedChanged(speed) ;
     mDirection = direction;
-    Q_EMIT directionChanged(direction);
+    //Q_EMIT directionChanged(direction);
     calculatePower();
 }
 
@@ -98,6 +98,34 @@ void TunerManager::setSpeedDirection( double speed, double direction )
 void TunerManager::calculatePower()
 {
     qDebug() << "TunerManager.calculatePower";
+
+    // handle two range cases
+    // 1) -180 <=  direcction <= 180, 0.0 <= power <= 1.0
+    // 2) -90 <=  direcction <= 90, -1.0 <= power <= 1.0
+
+    if (mDirection > 180.0)  { // value range
+        mDirection = 180.0;
+    } else
+    if (mDirection < -180.0) {
+        mDirection = -180.0;
+    };
+
+    // if 2) range case, convert it to 1)
+
+    if (mSpeed < 0.0) {
+        mSpeed = -mSpeed;
+        if (mDirection >= 0.0) {
+            mDirection += 90.0;
+        } else {
+            mDirection -= 90.0;
+        }
+    }
+
+    if (mSpeed > 1.0) {  // value range
+        mSpeed = 1.0;
+    }
+
+    // value rage 1)
     // turning left if direction is 0 - -180
     // forward if -90 -> 90
     //
@@ -153,7 +181,7 @@ void TunerManager::calculatePower()
     mCandidateCommand.setLeftPower(mLeftPower);
     mCandidateCommand.setRightPower(mRightPower);
     if (mLastComand.isDifferent(mCandidateCommand)) {
-//       Q_EMIT powerChanged( true, mLeftPower, mRightPower );
+       Q_EMIT powerChanged( mLeftPower, mRightPower );
        qDebug() << "TunerManager:calculatePower Change mSpeed" << mSpeed << " mDirection " << mDirection <<" mLeftPower " << mLeftPower <<" mRightPower " << mRightPower;
        mLastComand =  mCandidateCommand;
        mFtpClient->sendCommand(mLastComand);

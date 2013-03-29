@@ -43,8 +43,8 @@ public:
     virtual ~TunerManager();
 
 Q_SIGNALS:
-    void directionChanged( double direction );
-    void speedChanged( double speed );
+    //void directionChanged( double direction );
+    //void speedChanged( double speed );
     void powerChanged( double leftPower, double rightPower );
 
     void commandProsessed(Command command);

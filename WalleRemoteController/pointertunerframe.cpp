@@ -50,8 +50,8 @@ PointerTunerFrame::PointerTunerFrame( QWidget *parent ):
     //mBackGroundWidthPer2 = mBackGround->width()/2;
     mBackGroundWidthPer2 = width()/2;
     qDebug() << "mBackGroundWidthPer2 " << mBackGroundWidthPer2;
-    mBackGroundWidthPer2 = 150;
-    mBackGroundWidth = 2*150;
+    mBackGroundWidthPer2 = 130;
+    mBackGroundWidth = 2*130;
     qDebug() << "mBackGroundWidthPer2 " << mBackGroundWidthPer2;
     //mBackGroundHightPer2 = mBackGround->height()/2;
     mBackGroundHightPer2 = height()/2;
@@ -121,8 +121,37 @@ void PointerTunerFrame::setSpeedDirection( double speed, double direction )
 {
     qDebug() << "PointerTunerFrame::setSpeedDirection speed" << speed << "direction"  << direction;
     mSpeed = speed;
+    mDirection = direction;
+
+    // handle two range cases
+    // 1) -180 <=  direcction <= 180, 0.0 <= power <= 1.0
+    // 2) -90 <=  direcction <= 90, -1.0 <= power <= 1.0
+
+    if (mDirection > 180.0)  { // value range
+        mDirection = 180.0;
+    } else
+    if (mDirection < -180.0) {
+        mDirection = -180.0;
+    };
+
+    // if 2) range case, convert it to 1)
+
+    if (mSpeed < 0.0) {
+        mSpeed = -mSpeed;
+        if (mDirection >= 0.0) {
+            mDirection += 180.0;
+
+        } else {
+            mDirection -= 180.0;
+        }
+    }
+
+    if (mSpeed > 1.0) {  // value range
+        mSpeed = 1.0;
+    }
+
     // scale targed
-    int size = (50 + (1.0 - speed)*100.0);
+    int size = (50 + (1.0 - mSpeed)*100.0);
     mTargetPicture->resize(size, size);
 
     int x =  mBackGroundMiddleX  - (size/2) + ((sin(mDirection * PI/180.0) *  mSpeed * mBackGroundMiddleX));
@@ -143,7 +172,7 @@ void PointerTunerFrame::setSpeedDirection( double speed, double direction )
 
 void PointerTunerFrame::setPower( double leftPower, double rightPower )
 {
-    qDebug() << "PointerTunerFrame::setSpeedDirection leftPower " << leftPower << " rightPower "  << rightPower;
+    qDebug() << "PointerTunerFrame::setPower leftPower " << leftPower << " rightPower "  << rightPower;
     // TODO
     // set powers to direction and speed
 }
