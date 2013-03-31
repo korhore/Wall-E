@@ -2,7 +2,7 @@
 
     WalleRemoteContoller is an educational application to control a robot or other device using WLAN
 
-    Copyright (C) 2013 Reijo Korhonen, reijo korhonen@gmail.com
+    Copyright (C) 2013 Reijo Korhonen, reijo.korhonen@gmail.com
     All rights reserved.
 
     This program is free software: you can redistribute it and/or modify

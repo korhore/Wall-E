@@ -2,7 +2,7 @@
 
     WalleRemoteContoller is an educational application to control a robot or other device using WLAN
 
-    Copyright (C) 2013 Reijo Korhonen, reijo korhonen@gmail.com
+    Copyright (C) 2013 Reijo Korhonen, reijo.korhonen@gmail.com
     All rights reserved.
 
     This program is free software: you can redistribute it and/or modify
@@ -39,8 +39,22 @@ class TunerManager : public QObject
 {
     Q_OBJECT
 public:
+
+    enum Scale {SCALE_POSITIVE_SPEED_PLUS_DEGREES, SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES};
     explicit TunerManager( QWidget *p );
     virtual ~TunerManager();
+
+    /* conversions between different scales od speed + direction
+       from speed to power and opposite */
+
+    bool static convert(Scale aSourceScale, double aSourceSpeed, double aSourceDirection,
+                        Scale aDestinationScale, double& aDestinationSpeed, double& aDestinationeDirection);
+    bool static convert(Scale aSourceScale, double aSourceSpeed, double aSourceDirection,
+                        double& aDestinationeLeftPower, double& aDestinationeRightPower );
+    bool static convert(double aSourceLeftPower, double& aDSourceRightPower,
+                        Scale aDestinationScale, double& aDestinationSpeed, double& aDestinationeDirection );
+
+    bool test();
 
 Q_SIGNALS:
     //void directionChanged( double direction );
@@ -51,16 +65,13 @@ Q_SIGNALS:
 
 
 public Q_SLOTS:
-    virtual void setSpeedDirection( double speed, double direction );
+    virtual void setSpeedDirection( TunerManager::Scale scale, double speed, double direction );
     void setPower( double leftPower, double rightPower );
     void setHost( QString ipAddress, int port);
 
 private Q_SLOTS:
     void handleCommandProsessed(Command command);
 
-
-    //virtual void setPoint(QPoint point);
-    //virtual void setSize(QSize size);
 
 private:
     void calculatePower();
@@ -71,10 +82,6 @@ private:
     double mDirection;
     double mSpeed;
 
-    // pointer tiner
-    // member variable to store click position
-    //QPoint mPoint;
-    //QSize mSize;
 
     // Power
     double mLeftPower;

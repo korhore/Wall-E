@@ -2,7 +2,7 @@
 
     WalleRemoteContoller is an educational application to control a robot or other device using WLAN
 
-    Copyright (C) 2013 Reijo Korhonen, reijo korhonen@gmail.com
+    Copyright (C) 2013 Reijo Korhonen, reijo.korhonen@gmail.com
     All rights reserved.
 
     This program is free software: you can redistribute it and/or modify
@@ -50,16 +50,16 @@ signals:
 
 
 Q_SIGNALS:
-    void directionSpeedChanged( double speed, double direction );
+    void speedDirectionChanged(TunerManager::Scale scale, double speed, double direction );
 
 public Q_SLOTS:
-    virtual void setSpeedDirection( double speed, double direction );
+    virtual void setSpeedDirection( TunerManager::Scale scale, double speed, double direction );
     virtual void setPower( double leftPower, double rightPower );
 
 
 private Q_SLOTS:
-    void handleDirectionChange( double direction );
-    void handleSpeedChange( double speed );
+    //void handleDirectionChange( double direction );
+    //void handleSpeedChange( double speed );
 
 private slots:
     void setTarget(QPoint);

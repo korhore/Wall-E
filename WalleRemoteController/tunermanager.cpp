@@ -2,7 +2,7 @@
 
     WalleRemoteContoller is an educational application to control a robot or other device using WLAN
 
-    Copyright (C) 2013 Reijo Korhonen, reijo korhonen@gmail.com
+    Copyright (C) 2013 Reijo Korhonen, reijo.korhonen@gmail.com
     All rights reserved.
 
     This program is free software: you can redistribute it and/or modify
@@ -23,6 +23,7 @@
 #include <QWidget>
 #include <QSettings>
 #include <QDebug>
+#include <math.h>
 #include "tunermanager.h"
 #include "ftpclient.h"
 
@@ -42,6 +43,8 @@ TunerManager::TunerManager( QWidget *parent ):
 
     mFtpClient  = new FtpClient(this, ipAddress, port);
     connect( mFtpClient, SIGNAL(commandProsessed(Command)), this, SLOT(handleCommandProsessed(Command)));
+
+    test();
 
 }
 
@@ -73,13 +76,18 @@ void TunerManager::handleCommandProsessed(Command command)
 
 
 
-void TunerManager::setSpeedDirection( double speed, double direction )
+void TunerManager::setSpeedDirection( TunerManager::Scale scale, double speed, double direction )
 {
     qDebug() << "TunerManager.setSpeedDirection";
+    // convert values to right scale for us
+    TunerManager::convert(scale, speed, direction,
+                          TunerManager::SCALE_POSITIVE_SPEED_PLUS_DEGREES, mSpeed, mDirection);
+/*
     mSpeed = speed;
     //Q_EMIT speedChanged(speed) ;
     mDirection = direction;
     //Q_EMIT directionChanged(direction);
+    */
     calculatePower();
 }
 
@@ -90,16 +98,7 @@ void TunerManager::setSpeedDirection( double speed, double direction )
   Canculate left and right power
 
   TODO allow only one method for setSpeedDirection(double speed, double direction)
-  to make thing easier
-  TODO emit powerChanged
-
-  */
-
-void TunerManager::calculatePower()
-{
-    qDebug() << "TunerManager.calculatePower";
-
-    // handle two range cases
+  to make thing easier    // handle two range cases
     // 1) -180 <=  direcction <= 180, 0.0 <= power <= 1.0
     // 2) -90 <=  direcction <= 90, -1.0 <= power <= 1.0
 
@@ -125,7 +124,16 @@ void TunerManager::calculatePower()
         mSpeed = 1.0;
     }
 
-    // value rage 1)
+  TODO emit powerChanged
+
+  */
+
+void TunerManager::calculatePower()
+{
+    qDebug() << "TunerManager.calculatePower";
+
+
+    // value range TunerManager::SCALE_POSITIVE_SPEED_PLUS_DEGREES
     // turning left if direction is 0 - -180
     // forward if -90 -> 90
     //
@@ -170,14 +178,7 @@ void TunerManager::calculatePower()
         mRightPower = -1.0;
     if (mRightPower > 1.0)
         mRightPower = 1.0;
-    //Q_EMIT powerChanged( true, mLeftPower, mRightPower );
-    //qDebug() << "TunerManager:calculatePower mSpeed" << mSpeed << " mDirection " << mDirection <<" mLeftPower " << mLeftPower <<" mRightPower " << mRightPower;
 
-    //mFtpClient->request(REQUEST_CONTROL.arg(mLeftPower).arg(mRightPower));
-    // TODO
-//    mFtpClient->request(QString(REQUEST_CONTROL).arg(QString::number(mLeftPower), QString::number(mRightPower)));
-//    mFtpClient->command(true, mLeftPower, mRightPower);
-//    qDebug() << QString("%1/%3-%2.txt").arg("~", mLeftPower, mRightPower);
     mCandidateCommand.setLeftPower(mLeftPower);
     mCandidateCommand.setRightPower(mRightPower);
     if (mLastComand.isDifferent(mCandidateCommand)) {
@@ -215,8 +216,211 @@ void TunerManager::setPower( double leftPower, double rightPower )
        mFtpClient->sendCommand(mLastComand);
     }
 
-    // TODO calculate durection and pointer tuners
+    // TODO calculate direction and pointer tuners
 
 
 }
+
+bool TunerManager::convert(Scale aSourceScale, double aSourceSpeed, double aSourceDirection,
+                           Scale aDestinationScale, double& aDestinationSpeed, double& aDestinationDirection)
+{
+    switch (aSourceScale)
+    {
+        case SCALE_POSITIVE_SPEED_PLUS_DEGREES:
+            if (aSourceDirection > 180.0)  { // value range
+                aSourceDirection = 180.0;
+            } else
+            if (aSourceDirection < -180.0) {
+                aSourceDirection = -180.0;
+            };
+
+            if (aSourceSpeed > 1.0) {  // value range
+                aSourceSpeed = 1.0;
+            }
+            if (aSourceSpeed < 0.0) {  // value range
+                aSourceSpeed = 0.0;
+            }
+
+            if (aDestinationScale == SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES) {   // if conversion
+                if (aSourceDirection < -90.0) {
+                    aDestinationSpeed = -aSourceSpeed;
+                    aDestinationDirection = -180.0 - aSourceDirection;
+                }
+                else if (aSourceDirection > 90.0) {
+                        aDestinationSpeed = -aSourceSpeed;
+                        aDestinationDirection = 180 - aSourceDirection;
+                }
+                else {
+                    aDestinationSpeed = aSourceSpeed;
+                    aDestinationDirection = aSourceDirection;
+                }
+            }
+            else {
+                aDestinationSpeed = aSourceSpeed;
+                aDestinationDirection = aSourceDirection;
+            }
+
+            qDebug() << "TunerManager::convert aSourceScale " << aSourceScale << " aSourceSpeed " << aSourceSpeed << " aSourceDirection "  << aSourceDirection << " aDestinationScale " << aDestinationScale << " aDestinationSpeed " << aDestinationSpeed << " aDestinationDirection "  << aDestinationDirection;
+
+            break;
+        case SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES:
+            if (aSourceDirection > 90.0)  { // value range
+                aSourceDirection = 90.0;
+            } else
+            if (aSourceDirection < -90.0) {
+                aSourceDirection = -90.0;
+            };
+
+            if (aSourceSpeed > 1.0) {  // value range
+                aSourceSpeed = 1.0;
+            }
+            if (aSourceSpeed < -1.0) {  // value range
+                aSourceSpeed = -1.0;
+            }
+
+            if (aDestinationScale == SCALE_POSITIVE_SPEED_PLUS_DEGREES) {   // if conversion
+                if (aSourceSpeed < 0.0) {
+                    aDestinationSpeed = -aSourceSpeed;
+                    if (aSourceDirection < 0.0) {
+                        aDestinationDirection = -aSourceDirection - 180.0;
+                    }
+                    else {
+                        aDestinationDirection = 180.0 - aSourceDirection;
+                    }
+                }
+                else {
+                    aDestinationSpeed = aSourceSpeed;
+                    aDestinationDirection = aSourceDirection;
+                }
+            }
+            else {
+                aDestinationSpeed = aSourceSpeed;
+                aDestinationDirection = aSourceDirection;
+            }
+
+            qDebug() << "TunerManager::convert aSourceScale " << aSourceScale << " aSourceSpeed " << aSourceSpeed << " aSourceDirection "  << aSourceDirection << " aDestinationScale " << aDestinationScale << " aDestinationSpeed " << aDestinationSpeed << " aDestinationDirection "  << aDestinationDirection;
+
+            break;
+        default:
+            Q_ASSERT(false);
+    }
+
+    return true;
+
+}
+
+bool TunerManager::convert(Scale aSourceScale, double aSourceSpeed, double aSourceDirection,
+             double& aDestinationeLeftPower, double& aDestinationeRightPower )
+{
+    return false;
+}
+
+bool TunerManager::convert(double aSourceLeftPower, double& aDSourceRightPower,
+             Scale aDestinationScale, double& aDestinationSpeed, double& aDestinationeDirection )
+{
+    return false;
+}
+
+
+bool TunerManager::test()
+{
+    bool ret;
+    double sourceSpeed = 0.5;
+    double sourceDirection = 45.0;
+    double destinationSpeed;
+    double destinationDirection;
+
+    // positive case SCALE_POSITIVE_SPEED_PLUS_DEGREES -> SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES
+    // forward
+    int i;
+    for (i=-90; i <= 90; i++) {
+        sourceSpeed = abs(double(i)/90.0);
+        sourceDirection = i;
+        ret = convert(SCALE_POSITIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection,
+                      SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, destinationSpeed, destinationDirection);
+        qDebug() << "TunerManager::test" << " sourceSpeed " << sourceSpeed << " sourceDirection "  << sourceDirection << " destinationSpeed " << destinationSpeed << " destinationDirection "  << destinationDirection;
+        Q_ASSERT(ret);
+        // destination == source
+        qDebug() << "TunerManager::test (fabs(sourceSpeed-destinationSpeed)) " << (fabs(sourceSpeed-destinationSpeed));
+
+        Q_ASSERT((fabs(sourceSpeed-destinationSpeed) < 0.1));
+        Q_ASSERT(fabs(sourceDirection-destinationDirection) < 0.1);
+    }
+
+    // positive case
+    // backward
+    for (i=-91; i >= -180; i--) {
+        sourceSpeed = abs(double(i)/180.0);
+        sourceDirection = i;
+        ret = convert(SCALE_POSITIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection,
+                      SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, destinationSpeed, destinationDirection);
+        Q_ASSERT(ret);
+        // destination == source
+        Q_ASSERT(fabs(sourceSpeed+destinationSpeed) < 0.1);
+        Q_ASSERT(fabs(-180.0 - sourceDirection -destinationDirection) < 0.1);
+    }
+    for (i=91; i <= 180; i++) {
+        sourceSpeed = abs(double(i)/180.0);
+        sourceDirection = i;
+        ret = convert(SCALE_POSITIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection,
+                      SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, destinationSpeed, destinationDirection);
+        Q_ASSERT(ret);
+        // destination == source
+        Q_ASSERT(fabs(sourceSpeed+destinationSpeed) < 0.1);
+        Q_ASSERT(fabs(180.0 - sourceDirection -destinationDirection)  < 0.1);
+    }
+
+    // positive case SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES -> SCALE_POSITIVE_SPEED_PLUS_DEGREES
+    // forward
+    for (i=-90; i <= 90; i++) {
+        sourceSpeed = abs(double(i)/90.0);
+        sourceDirection = i;
+        ret = convert(SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection,
+                      SCALE_POSITIVE_SPEED_PLUS_DEGREES, destinationSpeed, destinationDirection);
+        qDebug() << "TunerManager::test" << " sourceSpeed " << sourceSpeed << " sourceDirection "  << sourceDirection << " destinationSpeed " << destinationSpeed << " destinationDirection "  << destinationDirection;
+        Q_ASSERT(ret);
+        // destination == source
+        qDebug() << "TunerManager::test (fabs(sourceSpeed-destinationSpeed)) " << (fabs(sourceSpeed-destinationSpeed));
+
+        Q_ASSERT((fabs(sourceSpeed-destinationSpeed) < 0.1));
+        Q_ASSERT(fabs(sourceDirection-destinationDirection) < 0.1);
+    }
+
+    // positive case
+    // backward
+    for (i=-90; i < 0; i++) {
+        sourceSpeed = double(i)/90.0;
+        sourceDirection = i;
+        ret = convert(SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection,
+                      SCALE_POSITIVE_SPEED_PLUS_DEGREES, destinationSpeed, destinationDirection);
+        Q_ASSERT(ret);
+        // destination == source
+        Q_ASSERT(fabs(sourceSpeed+destinationSpeed) < 0.1);
+        Q_ASSERT(fabs(-sourceDirection-180.0-destinationDirection) < 0.1);
+    }
+    for (i=0; i <= 90; i++) {
+        sourceSpeed = -double(i+0.001)/90.0;
+        sourceDirection = i;
+        ret = convert(SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection,
+                      SCALE_POSITIVE_SPEED_PLUS_DEGREES, destinationSpeed, destinationDirection);
+        Q_ASSERT(ret);
+        // destination == source
+        Q_ASSERT(fabs(sourceSpeed+destinationSpeed) < 0.1);
+        Q_ASSERT(fabs(180.0-sourceDirection-destinationDirection) < 0.1);
+    }
+
+
+    sourceSpeed = 0.5;
+    sourceDirection = 135.0;
+    ret = convert(SCALE_POSITIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection,
+                  SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, destinationSpeed, destinationDirection);
+    Q_ASSERT(ret);
+    // destination == source
+    Q_ASSERT(sourceSpeed == -destinationSpeed);
+    Q_ASSERT(sourceDirection == destinationDirection + 90.0);
+
+
+    return ret;
+}
+
 

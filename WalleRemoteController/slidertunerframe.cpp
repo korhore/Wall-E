@@ -2,7 +2,7 @@
 
     WalleRemoteContoller is an educational application to control a robot or other device using WLAN
 
-    Copyright (C) 2013 Reijo Korhonen, reijo korhonen@gmail.com
+    Copyright (C) 2013 Reijo Korhonen, reijo.korhonen@gmail.com
     All rights reserved.
 
     This program is free software: you can redistribute it and/or modify
@@ -27,6 +27,7 @@
 #include <qwt_thermo.h>
 #include <qwt_math.h>
 #include "slidertunerframe.h"
+#include "tunermanager.h"
 
 #if QT_VERSION < 0x040600
 #define qFastSin(x) ::sin(x)
@@ -105,37 +106,14 @@ SliderTunerFrame::SliderTunerFrame( QWidget *parent ):
 }
 
 
-void SliderTunerFrame::setSpeedDirection( double speed, double direction )
+void SliderTunerFrame::setSpeedDirection( TunerManager::Scale scale, double speed, double direction )
 {
     qDebug() << "SliderTunerFrame.setSpeedDirection";
-    // convert values to
-    // -90.0 <= direction <= 90.0
-    // -1.0 <= speed <= 1.0
 
-    if (direction > 180.0)  { // value range
-        direction = 180.0;
-    } else
-    if (direction < -180.0) {
-        direction = -180.0;
-    };
+    // convert values to right scale for us
 
-    if (speed > 1.0) {  // value range
-        speed = 1.0;
-    } else
-    if (speed < -1.0) {
-        speed = -1.0;
-    };
-
-    if (direction > 90.0) { // turnning right, backward
-        direction -= 90.0;
-        speed = -speed;
-    } else
-    if (direction < -90.0) { // turnning left, backward
-        direction += 90.0;
-        speed = -speed;
-    };
-
-    Q_ASSERT((-90.0 <= direction) && (direction <= 90.0) && (-1.0 <= speed) && (speed <= 1.0));
+    TunerManager::convert(scale, speed, direction,
+                          TunerManager::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, speed, direction);
 
     mSliderSpeed->setValue( speed );
     mSliderDirection->setValue( direction );
@@ -152,7 +130,7 @@ void SliderTunerFrame::handleDirectionChange( double direction )
 {
     qDebug() << "SliderTunerFrame.handleDirectionChange";
     mDirection = direction;
-    emit directionSpeedChanged(mSpeed, mDirection);
+    emit speedDirectionChanged(TunerManager::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, mSpeed, mDirection);
 
 }
 
@@ -160,5 +138,5 @@ void SliderTunerFrame::handleSpeedChange( double speed )
 {
     qDebug() << "SliderTunerFrame.handleSpeedChange";
     mSpeed = speed;
-    emit directionSpeedChanged(mSpeed, mDirection);
+    emit speedDirectionChanged(TunerManager::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, mSpeed, mDirection);
 }

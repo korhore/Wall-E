@@ -2,7 +2,7 @@
 
     WalleRemoteContoller is an educational application to control a robot or other device using WLAN
 
-    Copyright (C) 2013 Reijo Korhonen, reijo korhonen@gmail.com
+    Copyright (C) 2013 Reijo Korhonen, reijo.korhonen@gmail.com
     All rights reserved.
 
     This program is free software: you can redistribute it and/or modify
@@ -40,10 +40,6 @@
 PointerTunerFrame::PointerTunerFrame( QWidget *parent ):
    TunerFrame( parent )
 {
-    //mBackGround = new BackGround(this);
-    //mBackGround ->setAutoFillBackground(true);
-    //mBackGround->setStyleSheet("QLabel { background-color : gray; color : blue; }");
-
     setAutoFillBackground(true);
     setStyleSheet("QLabel { background-color : gray; color : blue; }");
 
@@ -53,7 +49,6 @@ PointerTunerFrame::PointerTunerFrame( QWidget *parent ):
     mBackGroundWidthPer2 = 130;
     mBackGroundWidth = 2*130;
     qDebug() << "mBackGroundWidthPer2 " << mBackGroundWidthPer2;
-    //mBackGroundHightPer2 = mBackGround->height()/2;
     mBackGroundHightPer2 = height()/2;
     qDebug() << "mBackGroundHightPer2 " << mBackGroundHightPer2;
     mBackGroundHightPer2 = 200;
@@ -62,23 +57,16 @@ PointerTunerFrame::PointerTunerFrame( QWidget *parent ):
 
     mOriginalWallePixmap = new QPixmap(":pictures/wall-e-200x200.png");
 
-    /**/
-    //mControlledWallePicture = new QLabel(mBackGround);
     mControlledWallePicture = new QLabel(this);
     mControlledWallePicture->setPixmap(*mOriginalWallePixmap);
-//    mControlledWallePicture->setPixmap(QPixmap(":/pictures/pirate-300x300.png"));
-    //mControlledWallePictureWidthPer2 = mControlledWallePicture->width()/2;
     mControlledWallePictureWidthPer2 = 100;
     qDebug() << "mControlledWallePictureWidthPer2 " << mControlledWallePictureWidthPer2;
-    //mControlledWallePictureHightPer2 = mControlledWallePicture->height()/2;
     mControlledWallePictureHightPer2 = 100;
     mControlledWallePictureSize = 200;
     qDebug() << "mControlledWallePictureHightPer2 " << mControlledWallePictureHightPer2;
     setFrameRect(QRect(0,mControlledWallePictureWidthPer2 *2, 0,mControlledWallePictureWidthPer2*2));
     mControlledWallePicture->move(mBackGroundWidthPer2-mControlledWallePictureWidthPer2,mBackGroundHightPer2-mControlledWallePictureHightPer2);
 
-
-    //mTargetPicture = new QLabel(mBackGround);
 
     mTargetPicture = new QLabel(this);
     mOriginalEwaPixmap = new QPixmap(":pictures/eva-50x50.png");
@@ -87,68 +75,24 @@ PointerTunerFrame::PointerTunerFrame( QWidget *parent ):
     mTargetPicture->setMinimumSize (50, 50);
 
 
-//    mTargetPicture = new QPixmap(":pictures/eva-50x50.png");
-    //mTargetPictureWidthPer2 = mOriginalEwaPixmap->width()/2;
-    //mTargetPictureWidthPer2 = 25;
-    //qDebug() << "mTargetPictureWidthPer2 " << mTargetPictureWidthPer2;
-    //mTargetPictureHightPer2 = mOriginalEwaPixmap->height()/2;
-    //mTargetPictureHightPer2 = 25;
-    //mTargetPictureSize = mOriginalEwaPixmap->width();//50;
-    //mTargetPictureSizePer2 = mOriginalEwaPixmap->width()/2;//25;
-    //qDebug() << "mTargetPictureHightPer2 " << mTargetPictureHightPer2;
     mBackGroundMiddleX = mBackGroundWidth/2;
     mBackGroundMiddleY = mBackGroundHight/2;
 
     mTargetPicture->move(mBackGroundWidthPer2-mTargetPicture->width()/2,0);
 
-    //connect(mBackGround,SIGNAL(mouseClickEvent(QPoint)),this,SLOT(setTarget(QPoint)));
-    // TODO
     connect(this,SIGNAL(mouseClickEvent(QPoint)),this,SLOT(setTarget(QPoint)));
 
 }
 
-/*
-int PointerTunerFrame::backGroundMiddleX() {
-    return mBackGroundWidth - mTargetPicture->width()/2;
-}
 
-int PointerTunerFrame::backGroundMiddleY() {
-    return mBackGroundHight - mTargetPicture->height()/2;
-}
-*/
-
-void PointerTunerFrame::setSpeedDirection( double speed, double direction )
+void PointerTunerFrame::setSpeedDirection( TunerManager::Scale scale, double speed, double direction )
 {
     qDebug() << "PointerTunerFrame::setSpeedDirection speed" << speed << "direction"  << direction;
-    mSpeed = speed;
-    mDirection = direction;
 
-    // handle two range cases
-    // 1) -180 <=  direcction <= 180, 0.0 <= power <= 1.0
-    // 2) -90 <=  direcction <= 90, -1.0 <= power <= 1.0
+    // convert values to right scale for us
+    TunerManager::convert(scale, speed, direction,
+                          TunerManager::SCALE_POSITIVE_SPEED_PLUS_DEGREES, mSpeed, mDirection);
 
-    if (mDirection > 180.0)  { // value range
-        mDirection = 180.0;
-    } else
-    if (mDirection < -180.0) {
-        mDirection = -180.0;
-    };
-
-    // if 2) range case, convert it to 1)
-
-    if (mSpeed < 0.0) {
-        mSpeed = -mSpeed;
-        if (mDirection >= 0.0) {
-            mDirection += 180.0;
-
-        } else {
-            mDirection -= 180.0;
-        }
-    }
-
-    if (mSpeed > 1.0) {  // value range
-        mSpeed = 1.0;
-    }
 
     // scale targed
     int size = (50 + (1.0 - mSpeed)*100.0);
@@ -166,7 +110,6 @@ void PointerTunerFrame::setSpeedDirection( double speed, double direction )
     matrix.rotate(direction);
     QPixmap rotatedControlledPixmap = mOriginalWallePixmap->transformed(matrix);
     mControlledWallePicture->setPixmap(rotatedControlledPixmap);
-    //setSpeed( mSpeed );
 
 }
 
@@ -178,25 +121,13 @@ void PointerTunerFrame::setPower( double leftPower, double rightPower )
 }
 
 
-void PointerTunerFrame::handleDirectionChange( double direction )
-{
-    qDebug() << "PointerTunerFrame.handleDirectionChange";
-    //Q_EMIT directionChanged(direction) ;
-}
 
-void PointerTunerFrame::handleSpeedChange( double speed )
-{
-    qDebug() << "PointerTunerFrame.handleSpeedChange";
-    //Q_EMIT speedChanged(speed) ;
-}
 
 void PointerTunerFrame::setTarget(QPoint p)
 {
     qDebug() << "PointerTunerFrame::setTarget" << endl;
-    //mTargetPicture->move(p.x()-mBackGroundWidthPer2-(mTargetPicture->width()/2),p.y()-(mTargetPicture->height()/2));
     mTargetPicture->move(p.x()-(mTargetPicture->width()/2),p.y()-(mTargetPicture->height()/2));
 
-/**/
     int x = p.x() - mBackGroundWidthPer2;
     int y = p.y() - mBackGroundHightPer2;
     if (false /*x == 0*/) {
@@ -217,9 +148,8 @@ void PointerTunerFrame::setTarget(QPoint p)
         mTargetPicture->resize(size, size);
         qDebug() << "PointerTunerFrame::setTarget speed " << mSpeed;
 
-        emit directionSpeedChanged(mSpeed, mDirection);
+        emit speedDirectionChanged(TunerManager::SCALE_POSITIVE_SPEED_PLUS_DEGREES, mSpeed, mDirection);
     }
-    /**/
 }
 
 void PointerTunerFrame::mousePressEvent ( QMouseEvent * e )

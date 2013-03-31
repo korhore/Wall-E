@@ -4,3 +4,4 @@
 
 - setPower
 - Still controlling device motors is working only with pointertuner, needs some refactoring with other tuners
+- Make only one scale for power+degree: Main will be power 0-1.0, degree -180.0 - 180.0
