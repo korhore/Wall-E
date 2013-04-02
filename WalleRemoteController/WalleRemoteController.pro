@@ -143,6 +143,7 @@ SOURCES += main.cpp mainwindow.cpp \
     pointertunerframe.cpp \
     powertunerframe.cpp \
     tunermanager.cpp \
+    tunerbean.cpp \
     ftpserver.cpp \
     ftpserverthread.cpp \
     ftpclient.cpp
@@ -154,6 +155,7 @@ HEADERS += mainwindow.h \
     pointertunerframe.h \
     powertunerframe.h \
     tunermanager.h \
+    tunerbean.h \
     ftpserver.h \
     ftpserverthread.h \
     ftpclient.h
