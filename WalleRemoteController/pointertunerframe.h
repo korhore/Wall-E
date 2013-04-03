@@ -50,10 +50,12 @@ signals:
 
 
 Q_SIGNALS:
-    void speedDirectionChanged(TunerManager::Scale scale, double speed, double direction );
+    //void speedDirectionChanged(TunerManager::Scale scale, double speed, double direction );
+    virtual void tuningChanged(TuningBean* aTuningBean );
 
 public Q_SLOTS:
-    virtual void setSpeedDirection( TunerManager::Scale scale, double speed, double direction );
+    //virtual void setSpeedDirection( TunerManager::Scale scale, double speed, double direction );
+    virtual void setTuning(TuningBean* aTuningBean );
     virtual void setPower( double leftPower, double rightPower );
 
 

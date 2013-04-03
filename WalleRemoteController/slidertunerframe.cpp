@@ -106,6 +106,7 @@ SliderTunerFrame::SliderTunerFrame( QWidget *parent ):
 }
 
 
+#ifdef old
 void SliderTunerFrame::setSpeedDirection( TunerManager::Scale scale, double speed, double direction )
 {
     qDebug() << "SliderTunerFrame.setSpeedDirection";
@@ -118,6 +119,16 @@ void SliderTunerFrame::setSpeedDirection( TunerManager::Scale scale, double spee
     mSliderSpeed->setValue( speed );
     mSliderDirection->setValue( direction );
 }
+#endif
+
+void SliderTunerFrame::setTuning( TuningBean* aTuningBean )
+{
+    qDebug() << "SliderTunerFrame.setTuning";
+
+    mSliderSpeed->setValue( aTuningBean->getSpeed(TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES) );
+    mSliderDirection->setValue( aTuningBean->getDirection(TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES) );
+}
+
 
 void SliderTunerFrame::setPower( double leftPower, double rightPower )
 {
@@ -130,7 +141,8 @@ void SliderTunerFrame::handleDirectionChange( double direction )
 {
     qDebug() << "SliderTunerFrame.handleDirectionChange";
     mDirection = direction;
-    emit speedDirectionChanged(TunerManager::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, mSpeed, mDirection);
+    //emit speedDirectionChanged(TunerManager::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, mSpeed, mDirection);
+    emit tuningChanged(new TuningBean(TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, mSpeed, mDirection, this));
 
 }
 
@@ -138,5 +150,6 @@ void SliderTunerFrame::handleSpeedChange( double speed )
 {
     qDebug() << "SliderTunerFrame.handleSpeedChange";
     mSpeed = speed;
-    emit speedDirectionChanged(TunerManager::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, mSpeed, mDirection);
+    //emit speedDirectionChanged(TunerManager::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, mSpeed, mDirection);
+    emit tuningChanged(new TuningBean(TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, mSpeed, mDirection, this));
 }

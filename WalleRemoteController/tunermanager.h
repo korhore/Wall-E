@@ -34,6 +34,7 @@ Conversion from one controllerr to other and power controlling output
 #include <QObject>
 #include "command.h"
 class FtpClient;
+class TuningBean;
 
 class TunerManager : public QObject
 {
@@ -65,7 +66,8 @@ Q_SIGNALS:
 
 
 public Q_SLOTS:
-    virtual void setSpeedDirection( TunerManager::Scale scale, double speed, double direction );
+//    virtual void setSpeedDirection( TunerManager::Scale scale, double speed, double direction );
+    virtual void setTuning(TuningBean* aTuningBean );
     void setPower( double leftPower, double rightPower );
     void setHost( QString ipAddress, int port);
 

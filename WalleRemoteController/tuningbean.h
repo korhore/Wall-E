@@ -21,8 +21,8 @@
 --------------------------------------------- */
 
 
-#ifndef TUNERBEAN_H
-#define TUNERBEAN_H
+#ifndef TUNINGBEAN_H
+#define TUNINGBEAN_H
 
 
 /*
@@ -35,19 +35,19 @@ Bean class, that handles tuning value
 #include "command.h"
 class FtpClient;
 
-class TunerBean : public QObject
+class TuningBean : public QObject
 {
     Q_OBJECT
 public:
 
     enum Scale {SCALE_POSITIVE_SPEED_PLUS_DEGREES, SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, SCALE_POWERS};
-    explicit TunerBean(Scale aScale, double aValue1, double aValue2, QObject *parent=NULL);
-//    explicit TunerBean( double aLeftPower, double aRightPower, QObject *parent=NULL );
-    virtual ~TunerBean();
+    explicit TuningBean(Scale aScale, double aValue1, double aValue2, QObject *parent=NULL);
+//    explicit TuningBean( double aLeftPower, double aRightPower, QObject *parent=NULL );
+    virtual ~TuningBean();
 
     // getters
-    double getSpeed(TunerBean::Scale aScale);
-    double getDirection(TunerBean::Scale aScale);
+    double getSpeed(TuningBean::Scale aScale);
+    double getDirection(TuningBean::Scale aScale);
     double getLeftPower();
     double getRightPower();
 
@@ -64,7 +64,7 @@ Q_SIGNALS:
 
 
 public Q_SLOTS:
-//    virtual void setSpeedDirection( TunerBean::Scale scale, double speed, double direction );
+//    virtual void setSpeedDirection( TuningBean::Scale scale, double speed, double direction );
 //    void setPower( double leftPower, double rightPower );
 //    void setHost( QString ipAddress, int port);
 
@@ -106,7 +106,7 @@ private:
 
 };
 
-#endif // TUNERBEAN_H
+#endif // TUNINGBEAN_H
 
 
 

@@ -26,6 +26,7 @@
 
 #include <QFrame>
 #include "tunermanager.h"
+#include "tuningbean.h"
 
 class QwtWheel;
 class QwtSlider;
@@ -38,10 +39,13 @@ public:
     TunerFrame( QWidget *p );
 
 Q_SIGNALS:
-    virtual void speedDirectionChanged(TunerManager::Scale scale, double speed, double direction ) = 0;
+    //virtual void speedDirectionChanged(TunerManager::Scale scale, double speed, double direction ) = 0;
+    virtual void tuningChanged(TuningBean* aTuningBean ) = 0;
+
 
 public Q_SLOTS:
-    virtual void setSpeedDirection(TunerManager::Scale scale, double speed, double direction ) = 0;
+    //virtual void setSpeedDirection(TunerManager::Scale scale, double speed, double direction ) = 0;
+    virtual void setTuning(TuningBean* aTuningBean ) = 0;
     virtual void setPower( double leftPower, double rightPower ) = 0;
 };
 

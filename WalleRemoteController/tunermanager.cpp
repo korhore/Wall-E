@@ -25,7 +25,7 @@
 #include <QDebug>
 #include <math.h>
 #include "tunermanager.h"
-#include "tunerbean.h"
+#include "tuningbean.h"
 #include "ftpclient.h"
 
 
@@ -76,7 +76,7 @@ void TunerManager::handleCommandProsessed(Command command)
 }
 
 
-
+#ifdef old
 void TunerManager::setSpeedDirection( TunerManager::Scale scale, double speed, double direction )
 {
     qDebug() << "TunerManager.setSpeedDirection";
@@ -91,6 +91,30 @@ void TunerManager::setSpeedDirection( TunerManager::Scale scale, double speed, d
     */
     calculatePower();
 }
+#endif
+
+void TunerManager::setTuning(TuningBean* aTuningBean)
+{
+    mRightPower = aTuningBean->getRightPower();
+    mLeftPower = aTuningBean->getLeftPower();
+
+    mCandidateCommand.setLeftPower(mLeftPower);
+    mCandidateCommand.setRightPower(mRightPower);
+    if (mLastComand.isDifferent(mCandidateCommand)) {
+       Q_EMIT powerChanged( mLeftPower, mRightPower );
+       qDebug() << "TunerManager:setTuning Change mSpeed" << mSpeed << " mDirection " << mDirection <<" mLeftPower " << mLeftPower <<" mRightPower " << mRightPower;
+       mLastComand =  mCandidateCommand;
+       mFtpClient->sendCommand(mLastComand);
+    }
+    else
+    {
+        qDebug() << "TunerManager:setTuning NO Change mSpeed" << mSpeed << " mDirection " << mDirection <<" mLeftPower " << mLeftPower <<" mRightPower " << mRightPower;
+    }
+
+    aTuningBean->deleteLater();
+
+}
+
 
 
 /*
@@ -347,11 +371,11 @@ bool TunerManager::test()
         Q_ASSERT((fabs(sourceSpeed-destinationSpeed) < 0.1));
         Q_ASSERT(fabs(sourceDirection-destinationDirection) < 0.1);
 
-        TunerBean* tunerbean = new TunerBean (TunerBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection, this);
+        TuningBean* tuningbean = new TuningBean (TuningBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection, this);
         // destination == source
-        Q_ASSERT((fabs(sourceSpeed-tunerbean->getSpeed(TunerBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES)) < 0.1));
-        Q_ASSERT(fabs(sourceDirection-tunerbean->getDirection(TunerBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES)) < 0.1);
-        delete tunerbean;
+        Q_ASSERT((fabs(sourceSpeed-tuningbean->getSpeed(TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES)) < 0.1));
+        Q_ASSERT(fabs(sourceDirection-tuningbean->getDirection(TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES)) < 0.1);
+        delete tuningbean;
     }
 
     // positive case
@@ -366,11 +390,11 @@ bool TunerManager::test()
         Q_ASSERT(fabs(sourceSpeed+destinationSpeed) < 0.1);
         Q_ASSERT(fabs(-180.0 - sourceDirection -destinationDirection) < 0.1);
 
-        TunerBean* tunerbean = new TunerBean (TunerBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection, this);
+        TuningBean* tuningbean = new TuningBean (TuningBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection, this);
         // destination == source
-        Q_ASSERT(fabs(sourceSpeed+tunerbean->getSpeed(TunerBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES)) < 0.1);
-        Q_ASSERT(fabs(-180.0 - sourceDirection - tunerbean->getDirection(TunerBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES)) < 0.1);
-        delete tunerbean;
+        Q_ASSERT(fabs(sourceSpeed+tuningbean->getSpeed(TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES)) < 0.1);
+        Q_ASSERT(fabs(-180.0 - sourceDirection - tuningbean->getDirection(TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES)) < 0.1);
+        delete tuningbean;
     }
     for (i=91; i <= 180; i++) {
         sourceSpeed = abs(double(i)/180.0);
@@ -382,11 +406,11 @@ bool TunerManager::test()
         Q_ASSERT(fabs(sourceSpeed+destinationSpeed) < 0.1);
         Q_ASSERT(fabs(180.0 - sourceDirection -destinationDirection)  < 0.1);
 
-        TunerBean* tunerbean = new TunerBean (TunerBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection, this);
+        TuningBean* tuningbean = new TuningBean (TuningBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection, this);
         // destination == source
-        Q_ASSERT(fabs(sourceSpeed+tunerbean->getSpeed(TunerBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES)) < 0.1);
-        Q_ASSERT(fabs(180.0 - sourceDirection -tunerbean->getDirection(TunerBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES))  < 0.1);
-        delete tunerbean;
+        Q_ASSERT(fabs(sourceSpeed+tuningbean->getSpeed(TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES)) < 0.1);
+        Q_ASSERT(fabs(180.0 - sourceDirection -tuningbean->getDirection(TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES))  < 0.1);
+        delete tuningbean;
     }
 
     // positive case SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES -> SCALE_POSITIVE_SPEED_PLUS_DEGREES
@@ -404,11 +428,11 @@ bool TunerManager::test()
         Q_ASSERT((fabs(sourceSpeed-destinationSpeed) < 0.1));
         Q_ASSERT(fabs(sourceDirection-destinationDirection) < 0.1);
 
-        TunerBean* tunerbean = new TunerBean (TunerBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection, this);
+        TuningBean* tuningbean = new TuningBean (TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection, this);
         // destination == source
-        Q_ASSERT((fabs(sourceSpeed-tunerbean->getSpeed(TunerBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES)) < 0.1));
-        Q_ASSERT(fabs(sourceDirection-tunerbean->getDirection(TunerBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES)) < 0.1);
-        delete tunerbean;
+        Q_ASSERT((fabs(sourceSpeed-tuningbean->getSpeed(TuningBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES)) < 0.1));
+        Q_ASSERT(fabs(sourceDirection-tuningbean->getDirection(TuningBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES)) < 0.1);
+        delete tuningbean;
     }
 
     // positive case
@@ -423,11 +447,11 @@ bool TunerManager::test()
         Q_ASSERT(fabs(sourceSpeed+destinationSpeed) < 0.1);
         Q_ASSERT(fabs(-sourceDirection-180.0-destinationDirection) < 0.1);
 
-        TunerBean* tunerbean = new TunerBean (TunerBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection, this);
+        TuningBean* tuningbean = new TuningBean (TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection, this);
         // destination == source
-        Q_ASSERT(fabs(sourceSpeed+tunerbean->getSpeed(TunerBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES)) < 0.1);
-        Q_ASSERT(fabs(-sourceDirection-180.0-tunerbean->getDirection(TunerBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES)) < 0.1);
-        delete tunerbean;
+        Q_ASSERT(fabs(sourceSpeed+tuningbean->getSpeed(TuningBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES)) < 0.1);
+        Q_ASSERT(fabs(-sourceDirection-180.0-tuningbean->getDirection(TuningBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES)) < 0.1);
+        delete tuningbean;
     }
     for (i=0; i <= 90; i++) {
         sourceSpeed = -double(i+0.001)/90.0;
@@ -439,11 +463,11 @@ bool TunerManager::test()
         Q_ASSERT(fabs(sourceSpeed+destinationSpeed) < 0.1);
         Q_ASSERT(fabs(180.0-sourceDirection-destinationDirection) < 0.1);
 
-        TunerBean* tunerbean = new TunerBean (TunerBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection, this);
+        TuningBean* tuningbean = new TuningBean (TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection, this);
         // destination == source
-        Q_ASSERT(fabs(sourceSpeed+tunerbean->getSpeed(TunerBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES)) < 0.1);
-        Q_ASSERT(fabs(180.0-sourceDirection-tunerbean->getDirection(TunerBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES)) < 0.1);
-        delete tunerbean;
+        Q_ASSERT(fabs(sourceSpeed+tuningbean->getSpeed(TuningBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES)) < 0.1);
+        Q_ASSERT(fabs(180.0-sourceDirection-tuningbean->getDirection(TuningBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES)) < 0.1);
+        delete tuningbean;
 
     }
 
@@ -457,11 +481,11 @@ bool TunerManager::test()
     Q_ASSERT(sourceSpeed == -destinationSpeed);
     Q_ASSERT(sourceDirection == destinationDirection + 90.0);
 
-    TunerBean* tunerbean = new TunerBean (TunerBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection, this);
+    TuningBean* tuningbean = new TuningBean (TuningBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection, this);
     // destination == source
-    Q_ASSERT(sourceSpeed == -tunerbean->getSpeed(TunerBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES));
-    Q_ASSERT(sourceDirection == tunerbean->getDirection(TunerBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES) + 90.0);
-    delete tunerbean;
+    Q_ASSERT(sourceSpeed == -tuningbean->getSpeed(TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES));
+    Q_ASSERT(sourceDirection == tuningbean->getDirection(TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES) + 90.0);
+    delete tuningbean;
 
     return ret;
 }
