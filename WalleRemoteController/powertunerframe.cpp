@@ -33,11 +33,12 @@
 #include "settingsdialog.h"
 #include "ftpclient.h"
 
+/*
 #if QT_VERSION < 0x040600
 #define qFastSin(x) ::sin(x)
 #define qFastCos(x) ::cos(x)
 #endif
-
+*/
 
 PowerTunerFrame::PowerTunerFrame( QWidget *parent ):
    QFrame( parent )

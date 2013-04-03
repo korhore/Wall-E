@@ -40,10 +40,6 @@
 PointerTunerFrame::PointerTunerFrame( QWidget *parent ):
    TunerFrame( parent )
 {
-    setAutoFillBackground(true);
-    setStyleSheet("QLabel { background-color : gray; color : blue; }");
-
-    //mBackGroundWidthPer2 = mBackGround->width()/2;
     mBackGroundWidthPer2 = width()/2;
     qDebug() << "mBackGroundWidthPer2 " << mBackGroundWidthPer2;
     mBackGroundWidthPer2 = 130;
@@ -84,35 +80,7 @@ PointerTunerFrame::PointerTunerFrame( QWidget *parent ):
 
 }
 
-#ifdef old
-void PointerTunerFrame::setSpeedDirection( TunerManager::Scale scale, double speed, double direction )
-{
-    qDebug() << "PointerTunerFrame::setSpeedDirection speed" << speed << "direction"  << direction;
 
-    // convert values to right scale for us
-    TunerManager::convert(scale, speed, direction,
-                          TunerManager::SCALE_POSITIVE_SPEED_PLUS_DEGREES, mSpeed, mDirection);
-
-
-    // scale targed
-    int size = (50 + (1.0 - mSpeed)*100.0);
-    mTargetPicture->resize(size, size);
-
-    int x =  mBackGroundMiddleX  - (size/2) + ((sin(mDirection * PI/180.0) *  mSpeed * mBackGroundMiddleX));
-//    qDebug() << "backGroundMiddleX()" << backGroundMiddleX();
-    int y =  mBackGroundMiddleY - (size/2) - ((cos(mDirection * PI/180.0) *  mSpeed * mBackGroundMiddleX));
-    qDebug() << "PointerTunerFrame::setSpeed x" << x << " y " << y;
-
-    mTargetPicture->move(x,y);
-
-    mDirection = direction;
-    QMatrix matrix;
-    matrix.rotate(direction);
-    QPixmap rotatedControlledPixmap = mOriginalWallePixmap->transformed(matrix);
-    mControlledWallePicture->setPixmap(rotatedControlledPixmap);
-
-}
-#endif
 
 void PointerTunerFrame::setTuning( TuningBean* aTuningBean )
 {
@@ -126,7 +94,6 @@ void PointerTunerFrame::setTuning( TuningBean* aTuningBean )
     mTargetPicture->resize(size, size);
 
     int x =  mBackGroundMiddleX  - (size/2) + ((sin(mDirection * PI/180.0) *  mSpeed * mBackGroundMiddleX));
-//    qDebug() << "backGroundMiddleX()" << backGroundMiddleX();
     int y =  mBackGroundMiddleY - (size/2) - ((cos(mDirection * PI/180.0) *  mSpeed * mBackGroundMiddleX));
     qDebug() << "PointerTunerFrame::setSpeed x" << x << " y " << y;
 
@@ -156,27 +123,22 @@ void PointerTunerFrame::setTarget(QPoint p)
 
     int x = p.x() - mBackGroundWidthPer2;
     int y = p.y() - mBackGroundHightPer2;
-    if (false /*x == 0*/) {
-        mControlledWallePicture->setPixmap(*mOriginalWallePixmap);
-    } else {
-        QMatrix matrix;
-        mDirection = atan2 (x,-y) * 180.0 / PI;
-        qDebug() << "PointerTunerFrame::setTarget direction " << mDirection;
+    QMatrix matrix;
+    mDirection = atan2 (x,-y) * 180.0 / PI;
+    qDebug() << "PointerTunerFrame::setTarget direction " << mDirection;
 
-        // rotate Waller
-        matrix.rotate(mDirection);
-        QPixmap rotatedControlledPixmap = mOriginalWallePixmap->transformed(matrix);
-        mControlledWallePicture->setPixmap(rotatedControlledPixmap);
+    // rotate Walle
+    matrix.rotate(mDirection);
+    QPixmap rotatedControlledPixmap = mOriginalWallePixmap->transformed(matrix);
+    mControlledWallePicture->setPixmap(rotatedControlledPixmap);
 
-        mSpeed = sqrt((x*x) + (y*y))/mBackGroundWidthPer2;
-        // scale Ewa target
-        int size = (50 + (1.0 - mSpeed)*100.0);
-        mTargetPicture->resize(size, size);
-        qDebug() << "PointerTunerFrame::setTarget speed " << mSpeed;
+    mSpeed = sqrt((x*x) + (y*y))/mBackGroundWidthPer2;
+    // scale Ewa target
+    int size = (50 + (1.0 - mSpeed)*100.0);
+    mTargetPicture->resize(size, size);
+    qDebug() << "PointerTunerFrame::setTarget speed " << mSpeed;
 
-        //emit speedDirectionChanged(TunerManager::SCALE_POSITIVE_SPEED_PLUS_DEGREES, mSpeed, mDirection);
-        emit tuningChanged(new TuningBean(TuningBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES, mSpeed, mDirection, this));
-    }
+    emit tuningChanged(new TuningBean(TuningBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES, mSpeed, mDirection, this));
 }
 
 void PointerTunerFrame::mousePressEvent ( QMouseEvent * e )

@@ -36,11 +36,9 @@ public:
     SliderTunerFrame( QWidget *p=NULL );
 
 Q_SIGNALS:
-    //void speedDirectionChanged(TunerManager::Scale scale, double speed, double direction );
     virtual void tuningChanged(TuningBean* aTuningBean );
 
 public Q_SLOTS:
-    //virtual void setSpeedDirection( TunerManager::Scale scale, double speed, double direction );
     virtual void setTuning(TuningBean* aTuningBean);
     virtual void setPower( double leftPower, double rightPower );
 
@@ -50,11 +48,11 @@ private Q_SLOTS:
 
 
 private:
-    QwtSlider *mSliderDirection;
     QwtSlider *mSliderSpeed;
+    QwtSlider *mSliderDirection;
 
-    double mDirection;
     double mSpeed;
+    double mDirection;
 };
 
 #endif // SLIDERTUNERFRAME_H

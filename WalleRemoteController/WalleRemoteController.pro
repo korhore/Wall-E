@@ -22,8 +22,8 @@ symbian:TARGET.CAPABILITY += NetworkServices
 # CONFIG += mobility
 # MOBILITY +=
 
-CONFIG += mobility
-MOBILITY = sensors
+#CONFIG += mobility
+#MOBILITY = sensors
 QT     += network
 
 
@@ -145,8 +145,8 @@ SOURCES += main.cpp mainwindow.cpp \
     pointertunerframe.cpp \
     powertunerframe.cpp \
     tunermanager.cpp \
-    ftpserver.cpp \
-    ftpserverthread.cpp \
+    #ftpserver.cpp \
+    #ftpserverthread.cpp \
     ftpclient.cpp
 
 HEADERS += mainwindow.h \
@@ -156,8 +156,8 @@ HEADERS += mainwindow.h \
     pointertunerframe.h \
     powertunerframe.h \
     tunermanager.h \
-    ftpserver.h \
-    ftpserverthread.h \
+    #ftpserver.h \
+    #ftpserverthread.h \
     ftpclient.h
 
 # FORMS += mainwindow.ui
@@ -174,8 +174,8 @@ OTHER_FILES += \
     qtc_packaging/debian_fremantle/control \
     qtc_packaging/debian_fremantle/compat \
     qtc_packaging/debian_fremantle/changelog \
-    pictures/pirate-600x600.png \
-    pictures/target.png \
+    #pictures/pirate-600x600.png \
+    #pictures/target.png \
     TODO.TXT
 
 RESOURCES += \

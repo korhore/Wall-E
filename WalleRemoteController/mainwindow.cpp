@@ -21,9 +21,6 @@
 --------------------------------------------- */
 
 #include "mainwindow.h"
-#include "qwt_slider.h"
-#include "qwt_compass.h"
-#include "qwt_wheel.h"
 #include "pointertunerframe.h"
 #include "slidertunerframe.h"
 #include "powertunerframe.h"
@@ -31,7 +28,6 @@
 #include <QDebug>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
-#include <math.h>
 
 
 #include <QtCore/QCoreApplication>
@@ -53,7 +49,7 @@ MainWindow::MainWindow(QWidget *parent)
     mMainLayout->addWidget(mPointerTunerFrame, 200 /*Qt::AlignCenter*/);
     mSliderTunerFrame = new SliderTunerFrame(background);
     mSliderTunerFrame->setFrameStyle( QFrame::Panel | QFrame::Raised );
-    mMainLayout->addWidget(mSliderTunerFrame/*, 400 /*Qt::AlignCenter*/);
+    mMainLayout->addWidget(mSliderTunerFrame/*, 400 Qt::AlignCenter*/);
 
     TuningBean* tuningbean = new TuningBean (TuningBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES, 0.0, 0.0, this);
     mSliderTunerFrame->setTuning( tuningbean );
@@ -74,19 +70,15 @@ MainWindow::MainWindow(QWidget *parent)
     qDebug() << "mainwindow.connect(mPointerTunerFrame,directionSpeedChanged";
     // Pointer tuner
     // Control device
-    //connect(mPointerTunerFrame,SIGNAL(speedDirectionChanged(TunerManager::Scale,double,double)), mTunerManager,SLOT(setSpeedDirection(TunerManager::Scale,double,double)));
     connect(mPointerTunerFrame,SIGNAL(tuningChanged(TuningBean*)), mTunerManager,SLOT(setTuning(TuningBean*)));
     // Let other tuners handle change
-    //connect(mPointerTunerFrame,SIGNAL(speedDirectionChanged(TunerManager::Scale,double,double)), mSliderTunerFrame,SLOT(setSpeedDirection(TunerManager::Scale,double,double)));
     connect(mPointerTunerFrame,SIGNAL(tuningChanged(TuningBean*)), mSliderTunerFrame,SLOT(setTuning(TuningBean*)));
 
     qDebug() << "mainwindow.connect(mSliderTunerFrame,directionSpeedChanged";
     // Slider tuner
     // Control device
-    //connect(mSliderTunerFrame,SIGNAL(speedDirectionChanged(TunerManager::Scale,double,double)), mTunerManager,SLOT(setSpeedDirection(TunerManager::Scale,double,double)));
     connect(mSliderTunerFrame,SIGNAL(tuningChanged(TuningBean*)), mTunerManager,SLOT(setTuning(TuningBean*)));
     // Let other tuners handle change
-    //connect(mSliderTunerFrame,SIGNAL(speedDirectionChanged(TunerManager::Scale,double,double)), mPointerTunerFrame,SLOT(setSpeedDirection(TunerManager::Scale,double,double)));
     connect(mSliderTunerFrame,SIGNAL(tuningChanged(TuningBean*)), mPointerTunerFrame,SLOT(setTuning(TuningBean*)));
 
     qDebug() << "mainwindow.connectmPowerTunerFrame,powerChanged";

@@ -1,7 +1,9 @@
-- Move Wallew picture more left
-- Get pictures transparent
+- Move Wallew picture more left OK
+- Get pictures transparent OK
 - Make device status output "screen"
 
 - setPower
-- Still controlling device motors is working only with pointertuner, needs some refactoring with other tuners
-- Make only one scale for power+degree: Main will be power 0-1.0, degree -180.0 - 180.0
+- Still controlling device motors is working only with pointertuner, needs some refactoring with other tuners OK
+- Make only one scale for power+degree: Main will be power 0-1.0, degree -180.0 - 180.0 OK, replace with bean achitecture supporting many scales
+- done bean achirecture
+. MVC architecture would be nice, but it's quite obvious how to make it from mainwindow,

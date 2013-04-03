@@ -29,11 +29,12 @@
 #include "slidertunerframe.h"
 #include "tunermanager.h"
 
+/*
 #if QT_VERSION < 0x040600
 #define qFastSin(x) ::sin(x)
 #define qFastCos(x) ::cos(x)
 #endif
-
+*/
 
 SliderTunerFrame::SliderTunerFrame( QWidget *parent ):
    TunerFrame( parent )
@@ -106,27 +107,16 @@ SliderTunerFrame::SliderTunerFrame( QWidget *parent ):
 }
 
 
-#ifdef old
-void SliderTunerFrame::setSpeedDirection( TunerManager::Scale scale, double speed, double direction )
-{
-    qDebug() << "SliderTunerFrame.setSpeedDirection";
-
-    // convert values to right scale for us
-
-    TunerManager::convert(scale, speed, direction,
-                          TunerManager::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, speed, direction);
-
-    mSliderSpeed->setValue( speed );
-    mSliderDirection->setValue( direction );
-}
-#endif
 
 void SliderTunerFrame::setTuning( TuningBean* aTuningBean )
 {
     qDebug() << "SliderTunerFrame.setTuning";
 
-    mSliderSpeed->setValue( aTuningBean->getSpeed(TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES) );
-    mSliderDirection->setValue( aTuningBean->getDirection(TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES) );
+    mSpeed = aTuningBean->getSpeed(TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES);
+    mDirection = aTuningBean->getDirection(TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES);
+
+    mSliderSpeed->setValue( mSpeed );
+    mSliderDirection->setValue( mDirection );
 }
 
 
@@ -141,7 +131,6 @@ void SliderTunerFrame::handleDirectionChange( double direction )
 {
     qDebug() << "SliderTunerFrame.handleDirectionChange";
     mDirection = direction;
-    //emit speedDirectionChanged(TunerManager::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, mSpeed, mDirection);
     emit tuningChanged(new TuningBean(TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, mSpeed, mDirection, this));
 
 }
@@ -150,6 +139,5 @@ void SliderTunerFrame::handleSpeedChange( double speed )
 {
     qDebug() << "SliderTunerFrame.handleSpeedChange";
     mSpeed = speed;
-    //emit speedDirectionChanged(TunerManager::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, mSpeed, mDirection);
     emit tuningChanged(new TuningBean(TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, mSpeed, mDirection, this));
 }

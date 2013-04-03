@@ -52,9 +52,7 @@ class FtpClient : public QObject
     Q_OBJECT
 
 public:
-    FtpClient(QObject* parent = 0, QString ipAddr="localhost", int p=2000);
-//    void request(QString request);
-    //void command(bool aRunning, double aLeftPower, double aRightPower);
+    FtpClient(QObject* parent = 0, QString ipAddr="192.168.1.7", int p=2000);
     void sendCommand(Command command);
 
 signals:

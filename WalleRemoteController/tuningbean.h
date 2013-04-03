@@ -27,17 +27,15 @@
 
 /*
 
-Bean class, that handles tuning value
+Bean class that handles tuning value
 
 */
 
 #include <QObject>
-#include "command.h"
-class FtpClient;
 
 class TuningBean : public QObject
 {
-    Q_OBJECT
+    //Q_OBJECT
 public:
 
     enum Scale {SCALE_POSITIVE_SPEED_PLUS_DEGREES, SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, SCALE_POWERS};
@@ -55,21 +53,7 @@ public:
 
     bool test();
 
-Q_SIGNALS:
-    //void directionChanged( double direction );
-    //void speedChanged( double speed );
-//    void powerChanged( double leftPower, double rightPower );
 
-//    void commandProsessed(Command command);
-
-
-public Q_SLOTS:
-//    virtual void setSpeedDirection( TuningBean::Scale scale, double speed, double direction );
-//    void setPower( double leftPower, double rightPower );
-//    void setHost( QString ipAddress, int port);
-
-private Q_SLOTS:
-//    void handleCommandProsessed(Command command);
 
 
 private:
@@ -80,9 +64,6 @@ private:
                         Scale aDestinationScale, double& aDestinationSpeed, double& aDestinationeDirection);
     bool static convert(Scale aSourceScale, double aSourceSpeed, double aSourceDirection,
                         double& aDestinationeLeftPower, double& aDestinationeRightPower );
-    //bool static convert(double aSourceLeftPower, double& aDSourceRightPower,
-    //                    Scale aDestinationScale, double& aDestinationSpeed, double& aDestinationeDirection );
-    //void calculatePower();
 
 
 private:

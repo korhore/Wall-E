@@ -50,18 +50,13 @@ signals:
 
 
 Q_SIGNALS:
-    //void speedDirectionChanged(TunerManager::Scale scale, double speed, double direction );
     virtual void tuningChanged(TuningBean* aTuningBean );
 
 public Q_SLOTS:
-    //virtual void setSpeedDirection( TunerManager::Scale scale, double speed, double direction );
     virtual void setTuning(TuningBean* aTuningBean );
     virtual void setPower( double leftPower, double rightPower );
 
 
-private Q_SLOTS:
-    //void handleDirectionChange( double direction );
-    //void handleSpeedChange( double speed );
 
 private slots:
     void setTarget(QPoint);
@@ -69,8 +64,6 @@ private slots:
 
 
 private:
-    //int backGroundMiddleX();
-    //int backGroundMiddleY();
 
     BackGround* mBackGround;
     QLabel* mControlledWallePicture;
@@ -94,10 +87,6 @@ private:
     int mControlledWallePictureWidthPer2;
     int mControlledWallePictureHightPer2;
 
-    //int mTargetPictureSize;
-    //int mTargetPictureSizePer2;
-    //int mTargetPictureWidthPer2;
-    //int mTargetPictureHightPer2;
 
     // member variable to store click position
     QPoint m_lastPoint;

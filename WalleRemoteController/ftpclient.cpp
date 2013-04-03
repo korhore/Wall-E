@@ -98,15 +98,6 @@ void FtpClient::init()
     } else {
         qDebug() << "tcpSocket->connectToHost())" << " ipAddress " << ipAddress << " port " << port;
         tcpSocket->connectToHost(QHostAddress(ipAddress),  port);
-
- /*       qDebug() << "FtpClient::Init new QNetworkSession()";
-        networkSession = new QNetworkSession();
-        qDebug() << "FtpClient::Init connect(networkSession, SIGNAL(opened()), this, SLOT(handleSessionOpened()))";
-        connect(networkSession, SIGNAL(opened()), this, SLOT(handleSessionOpened()));
-
-        qDebug() << "FtpClient::Init networkSession->open()";
-        networkSession->open();
-        */
     }
 
     mInitiated = true;
@@ -123,7 +114,6 @@ void FtpClient::connectServer()
     qDebug() << "FtpClient::connectServer NetworkConfigurationManager manager";
     QNetworkConfigurationManager manager;
     if (manager.capabilities() & QNetworkConfigurationManager::NetworkSessionRequired) {
-//    if (false) {
         qDebug() << "FtpClient::Init QNetworkConfigurationManager::NetworkSessionRequired";
         // Get saved network configuration
         QSettings settings(QSettings::UserScope, QLatin1String("Wall-E"));
@@ -149,14 +139,6 @@ void FtpClient::connectServer()
         qDebug() << "FtpClient::connectServer tcpSocket->connectToHost())" << " ipAddress " << ipAddress << " port " << port;
         tcpSocket->connectToHost(ipAddress,  port);
 
- /*       qDebug() << "FtpClient::Init new QNetworkSession()";
-        networkSession = new QNetworkSession();
-        qDebug() << "FtpClient::Init connect(networkSession, SIGNAL(opened()), this, SLOT(handleSessionOpened()))";
-        connect(networkSession, SIGNAL(opened()), this, SLOT(handleSessionOpened()));
-
-        qDebug() << "FtpClient::Init networkSession->open()";
-        networkSession->open();
-        */
     }
 }
 
@@ -229,25 +211,6 @@ void FtpClient::handleError(QAbstractSocket::SocketError socketError)
 void FtpClient::handleSessionOpened()
 {
     qDebug() << "FtpClient::sessionOpened()";
-    /*
-    // Save the used configuration
-    QNetworkConfiguration config = networkSession->configuration();
-    QString id;
-    if (config.type() == QNetworkConfiguration::UserChoice)
-        id = networkSession->sessionProperty(QLatin1String("UserChoiceConfiguration")).toString();
-    else
-        id = config.identifier();
-
-    QSettings settings(QSettings::UserScope, QLatin1String("Trolltech"));
-    settings.beginGroup(QLatin1String("QtNetwork"));
-    settings.setValue(QLatin1String("DefaultNetworkConfiguration"), id);
-    settings.endGroup();
-
-    statusLabel->setText(tr("This examples requires that you run the "
-                            "Fortune Server example as well."));
-
-    enableGetFortuneButton();
-*/
     tcpSocket->connectToHost(QHostAddress(ipAddress), port);
 
 }
@@ -326,12 +289,6 @@ void FtpClient::request(QString request)
     handleRequests();
 }
 
-/*
-void FtpClient::command(bool aRunning, double aLeftPower, double aRightPower)
-{
-    request(QString(REQUEST_CONTROL).arg(QString::number(mOutCommandNumber++), QString::number(aLeftPower), QString::number(aRightPower)));
-}
-*/
 
 void FtpClient::sendCommand(Command command)
 {
@@ -346,24 +303,6 @@ void FtpClient::sendCommand(Command command)
 void FtpClient::handleRequests()
 {
     qDebug() << "FtpClient::handleRequests";
-    /*
-    while ((!mRequests.isEmpty()) && mInitiated && mConnected)
-    {
-        QString request = mRequests.takeFirst();
-        qDebug() << "FtpClient::handleRequests";
-        qDebug() << "FtpClient::handleRequests " << request;
-        QByteArray block;
-        QDataStream out(&block, QIODevice::WriteOnly);
-        out.setVersion(QDataStream::Qt_4_0);
-        out << (quint16)0;
-        out << request;
-        out.device()->seek(0);
-        out << (quint16)(block.size() - sizeof(quint16));
-
-        qDebug() << "FtpClient::handleRequests write(block) " << block.size();
-        tcpSocket->write(block);
-    }
-*/
 
     if (!mInitiated)
         init();
