@@ -24,7 +24,7 @@
 
 #include <QtGui/QApplication>
 #include <QDebug>
-#include "command.h"
+#include "tunercontroller.h"
 
 int main(int argc, char *argv[])
 {
@@ -37,13 +37,21 @@ int main(int argc, char *argv[])
     qDebug() << Command(Command("", 99, Command::Drive,  0.77, 0.55).toString()).toString();
 
     QApplication app(argc, argv);
-
-    MainWindow mainWindow;
+                            // Use MVC-architecture
+#ifdef old
+    MainWindow mainWindow;  // Visual class
+                            // Controller class
+                            // Model class
     qDebug() << "main mainWindow.setOrientation";
     mainWindow.setOrientation(MainWindow::ScreenOrientationLockLandscape);
     qDebug() << "main mainWindow.showExpanded()";
     //mainWindow.showExpanded();
     mainWindow.show();
+#endif
+
+    // MVC architecture
+    // Create only Controller and let it create its Visual and Model workers and set them up to work
+    TunerController tunerController;
 
     qDebug() << "main app.exec()";
     return app.exec();

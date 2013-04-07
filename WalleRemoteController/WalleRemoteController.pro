@@ -64,7 +64,8 @@ HEADERS += \
     ipnumberwidged.h \
     settingsdialog.h \
     command.h \
-    tuningbean.h
+    tuningbean.h \
+    devicemanager.h
 
 SOURCES += \
     ../qwt/src/qwt_abstract_scale_draw.cpp \
@@ -98,7 +99,8 @@ SOURCES += \
     ipnumberwidged.cpp \
     settingsdialog.cpp \
     command.cpp \
-    tuningbean.cpp
+    tuningbean.cpp \
+    devicemanager.cpp
 
 ## qwt widgets
 
@@ -144,10 +146,10 @@ SOURCES += main.cpp mainwindow.cpp \
     slidertunerframe.cpp \
     pointertunerframe.cpp \
     powertunerframe.cpp \
-    tunermanager.cpp \
     #ftpserver.cpp \
     #ftpserverthread.cpp \
-    ftpclient.cpp
+    ftpclient.cpp \
+    tunercontroller.cpp
 
 HEADERS += mainwindow.h \
     background.h \
@@ -155,11 +157,10 @@ HEADERS += mainwindow.h \
     slidertunerframe.h \
     pointertunerframe.h \
     powertunerframe.h \
-    tunermanager.h \
     #ftpserver.h \
     #ftpserverthread.h \
-    ftpclient.h
-
+    ftpclient.h \
+    tunercontroller.h
 # FORMS += mainwindow.ui
 
 

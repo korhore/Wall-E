@@ -21,35 +21,45 @@
 --------------------------------------------- */
 
 
-#ifndef TUNERFRAME_H
-#define TUNERFRAME_H
+#ifndef TUNERCONTROLLER_H
+#define TUNERCONTROLLER_H
 
-#include <QFrame>
-#include "devicemanager.h"
-#include "tuningbean.h"
 
-class QwtWheel;
-class QwtSlider;
-class TuningThermo;
+/*
 
-class TunerFrame : public QFrame
+Controller class that handles Visual and Model classes  and
+knows their capabilities, but not how they implement it.
+
+*/
+
+#include <QWidget>
+#include "command.h"
+class FtpClient;
+class TuningBean;
+class MainWindow;
+class PointerTunerFrame;
+class SliderTunerFrame;
+class PowerTunerFrame;
+class DeviceManager;
+
+class TunerController : public QWidget
 {
     Q_OBJECT
 public:
-    TunerFrame( QWidget *p );
 
-Q_SIGNALS:
-    //virtual void speedDirectionChanged(DeviceManager::Scale scale, double speed, double direction ) = 0;
-    virtual void tuningChanged(TuningBean* aTuningBean ) = 0;
+    explicit TunerController(QWidget *p=NULL );
+    virtual ~TunerController();
 
+private:
+    MainWindow* mMainWindow;
+    SliderTunerFrame* mSliderTunerFrame;
+    PointerTunerFrame* mPointerTunerFrame;
+    PowerTunerFrame* mPowerTunerFrame;
+    DeviceManager* mDeviceManager;
 
-public Q_SLOTS:
-    //virtual void setSpeedDirection(DeviceManager::Scale scale, double speed, double direction ) = 0;
-    virtual void setTuning(TuningBean* aTuningBean ) = 0;
-    virtual void setPower( double leftPower, double rightPower ) = 0;
 };
 
-#endif // TUNERFRAME_H
+#endif // TUNERCONTROLLER_H
 
 
 

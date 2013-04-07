@@ -25,12 +25,15 @@
 #define MAINWINDOW_H
 
 #include <QtGui/QMainWindow>
+#include <QtGui/QMainWindow>
+#include "devicemanager.h"
 
 class QHBoxLayout;
 class SliderTunerFrame;
 class PointerTunerFrame;
 class PowerTunerFrame;
-class TunerManager;
+//class DeviceManager;
+class TuningBean;
 
 
 class MainWindow : public QMainWindow
@@ -51,13 +54,30 @@ public:
 
     void showExpanded();
 
+    // Getters for Visual classes
+
+    SliderTunerFrame* getSliderTunerFrame() { return mSliderTunerFrame; };
+    PointerTunerFrame* getPointerTunerFrame() { return mPointerTunerFrame; };
+    PowerTunerFrame* getPowerTunerFrame() { return mPowerTunerFrame; };
+
+Q_SIGNALS:
+    void tuningChanged(TuningBean* aTuningBean);
+    void hostChanged(QString ipAddress, int port);
+public Q_SLOTS:
+    void setDeviceState(TuningBean* aTuningBean);
+    void setDeviceState(DeviceManager::DeviceState aDeviceState);
+
+
+private Q_SLOTS:
+    void setTuning(TuningBean* aTuningBean);
+
 
 private:
     QHBoxLayout* mMainLayout;
     SliderTunerFrame* mSliderTunerFrame;
     PointerTunerFrame* mPointerTunerFrame;
     PowerTunerFrame* mPowerTunerFrame;
-    TunerManager* mTunerManager;
+//    DeviceManager* mTunerManager;
 };
 
 #endif // MAINWINDOW_H

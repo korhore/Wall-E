@@ -27,6 +27,7 @@
 #include <QDebug>
 #include "ftpclient.h"
 #include "command.h"
+#include "devicemanager.h"
 
 
 
@@ -205,6 +206,11 @@ void FtpClient::handleError(QAbstractSocket::SocketError socketError)
         qDebug() << tr("The following error occurred: %1.")
                                  .arg(tcpSocket->errorString());
     }
+
+    // emit error
+    emit deviceStateChanged(DeviceManager::ErrorState);
+    emit deviceError(socketError);
+
 }
 
 

@@ -27,7 +27,7 @@
 #include <qwt_thermo.h>
 #include <qwt_math.h>
 #include "slidertunerframe.h"
-#include "tunermanager.h"
+#include "devicemanager.h"
 
 /*
 #if QT_VERSION < 0x040600

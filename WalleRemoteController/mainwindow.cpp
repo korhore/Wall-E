@@ -24,7 +24,7 @@
 #include "pointertunerframe.h"
 #include "slidertunerframe.h"
 #include "powertunerframe.h"
-#include "tunermanager.h"
+//#include "devicemanager.h"
 #include <QDebug>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -63,39 +63,74 @@ MainWindow::MainWindow(QWidget *parent)
     qDebug() << "mainwindow.setPalette";
     setPalette( QPalette( QColor( 192, 192, 192 ) ) );
 
+// TODO Connect visual thing together here
+// and let tunings to be signaled out
 
-
-    mTunerManager = new  TunerManager(this);
+//#ifdef old
+//    mTunerManager = new  DeviceManager(this);
 
     qDebug() << "mainwindow.connect(mPointerTunerFrame,directionSpeedChanged";
     // Pointer tuner
     // Control device
-    connect(mPointerTunerFrame,SIGNAL(tuningChanged(TuningBean*)), mTunerManager,SLOT(setTuning(TuningBean*)));
+    connect(mPointerTunerFrame,SIGNAL(tuningChanged(TuningBean*)), this,SLOT(setTuning(TuningBean*)));
     // Let other tuners handle change
     connect(mPointerTunerFrame,SIGNAL(tuningChanged(TuningBean*)), mSliderTunerFrame,SLOT(setTuning(TuningBean*)));
+    connect(mPointerTunerFrame,SIGNAL(tuningChanged(TuningBean*)), mPowerTunerFrame,SLOT(setTuning(TuningBean*)));
 
     qDebug() << "mainwindow.connect(mSliderTunerFrame,directionSpeedChanged";
     // Slider tuner
     // Control device
-    connect(mSliderTunerFrame,SIGNAL(tuningChanged(TuningBean*)), mTunerManager,SLOT(setTuning(TuningBean*)));
+    connect(mSliderTunerFrame,SIGNAL(tuningChanged(TuningBean*)), this,SLOT(setTuning(TuningBean*)));
     // Let other tuners handle change
     connect(mSliderTunerFrame,SIGNAL(tuningChanged(TuningBean*)), mPointerTunerFrame,SLOT(setTuning(TuningBean*)));
+    connect(mSliderTunerFrame,SIGNAL(tuningChanged(TuningBean*)), mPowerTunerFrame,SLOT(setTuning(TuningBean*)));
 
     qDebug() << "mainwindow.connectmPowerTunerFrame,powerChanged";
     // Power tuner
     // Control device
-    connect(mPowerTunerFrame,SIGNAL(powerChanged(double,double)),mTunerManager,SLOT(setPower(double,double)));
+    // TODO
+    //connect(mPowerTunerFrame,SIGNAL(tuningChanged(TuningBean*)), this,SLOT(setTuning(TuningBean*)));
+    //connect(mPowerTunerFrame,SIGNAL(powerChanged(double,double)),mTunerManager,SLOT(setPower(double,double)));
     // Let other tuners handle change
-    connect(mPowerTunerFrame,SIGNAL(powerChanged(double,double)), mPointerTunerFrame,SLOT(setPower(double,double)));
-    connect(mPowerTunerFrame,SIGNAL(powerChanged(double,double)), mSliderTunerFrame,SLOT(setPower(double,double)));
+    //connect(mPowerTunerFrame,SIGNAL(powerChanged(double,double)), mPointerTunerFrame,SLOT(setPower(double,double)));
+    //connect(mPowerTunerFrame,SIGNAL(powerChanged(double,double)), mSliderTunerFrame,SLOT(setPower(double,double)));
+
+    // Control device
+    connect(mPowerTunerFrame,SIGNAL(tuningChanged(TuningBean*)), this,SLOT(setTuning(TuningBean*)));
+    // Let other tuners handle change
+    connect(mPowerTunerFrame,SIGNAL(tuningChanged(TuningBean*)), mPointerTunerFrame,SLOT(setTuning(TuningBean*)));
+    connect(mPowerTunerFrame,SIGNAL(tuningChanged(TuningBean*)), mSliderTunerFrame,SLOT(setTuning(TuningBean*)));
+
 
 
     qDebug() << "mainwindow.connect(mTunerManager, commandProsessed";
-    connect(mTunerManager,SIGNAL(powerChanged(double,double)),mPowerTunerFrame,SLOT(setPower(double,double)));
-    connect(mTunerManager, SIGNAL(commandProsessed(Command)), mPowerTunerFrame, SLOT(setCommand(Command)));
+//    connect(mTunerManager,SIGNAL(powerChanged(double,double)),mPowerTunerFrame,SLOT(setPower(double,double)));
+//    connect(mTunerManager, SIGNAL(commandProsessed(Command)), mPowerTunerFrame, SLOT(setCommand(Command)));
+//#endif
 
     qDebug() << "mainwindow end";
 }
+
+void MainWindow::setTuning(TuningBean* aTuningBean)
+{
+    // export private tuningt signaling it
+    emit tuningChanged(aTuningBean);
+}
+
+// visualize device state
+void MainWindow::setDeviceState(DeviceManager::DeviceState aDeviceState)
+{
+    qDebug() << "MainWindow::setDeviceState " << aDeviceState;
+    // TODO
+}
+
+// visualize device state
+void MainWindow::setDeviceState(TuningBean* aTuningBean)
+{
+    qDebug() << "MainWindow::setDeviceState";
+    // TODO
+}
+
 
 MainWindow::~MainWindow()
 {

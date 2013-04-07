@@ -28,6 +28,7 @@
 #include <QList>
 #include <QString>
 #include "command.h"
+#include "devicemanager.h"
 
 
 
@@ -52,10 +53,13 @@ class FtpClient : public QObject
     Q_OBJECT
 
 public:
+
     FtpClient(QObject* parent = 0, QString ipAddr="192.168.1.7", int p=2000);
     void sendCommand(Command command);
 
 signals:
+    void deviceStateChanged(DeviceManager::DeviceState aDeviceState);
+    void deviceError(QAbstractSocket::SocketError socketError);
     void commandProsessed(Command command);
 
 private:

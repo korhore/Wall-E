@@ -21,62 +21,64 @@
 --------------------------------------------- */
 
 
-#ifndef TUNERMANAGER_H
-#define TUNERMANAGER_H
+#ifndef DEVICEMANAGER_H
+#define DEVICEMANAGER_H
 
 
 /*
 
-Conversion from one controllerr to other and power controlling output
+Model class that controls device, is this case Ealle-E robot.
+Takes tuning as input and produces command that it sends using wlan
+to the device
 
 */
 
 #include <QObject>
+#include <QAbstractSocket>
 #include "command.h"
 class FtpClient;
 class TuningBean;
 
-class TunerManager : public QObject
+class DeviceManager : public QObject
 {
     Q_OBJECT
 public:
 
-    enum Scale {SCALE_POSITIVE_SPEED_PLUS_DEGREES, SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES};
-    explicit TunerManager( QWidget *p );
-    virtual ~TunerManager();
+    // Devices State
+    enum DeviceState { UnconnectedState, // The socket is not connected
+                       HostLookupState,  // The socket is performing a host name lookup
+                       ConnectingState,  // The socket has started establishing a connection
+                       ConnectedState,   // A connection is established
+                       WritingState,     // A connection is wrting
+                       WrittenState,     // A connection has written all
+                       ReadingState,     // A connection has something to read
+                       ReadState,        // A connection has read all
+                       ErrorState,       // Error in connection
+                       ClosingState      // The socket is about to close (data may still be waiting to be written).
+                     };
 
-    /* conversions between different scales od speed + direction
-       from speed to power and opposite */
 
-    bool static convert(Scale aSourceScale, double aSourceSpeed, double aSourceDirection,
-                        Scale aDestinationScale, double& aDestinationSpeed, double& aDestinationeDirection);
-    bool static convert(Scale aSourceScale, double aSourceSpeed, double aSourceDirection,
-                        double& aDestinationeLeftPower, double& aDestinationeRightPower );
-    bool static convert(double aSourceLeftPower, double& aDSourceRightPower,
-                        Scale aDestinationScale, double& aDestinationSpeed, double& aDestinationeDirection );
+    explicit DeviceManager( QObject *p );
+    virtual ~DeviceManager();
+
 
     bool test();
 
 Q_SIGNALS:
-    //void directionChanged( double direction );
-    //void speedChanged( double speed );
     void powerChanged( double leftPower, double rightPower );
-
     void commandProsessed(Command command);
+    void deviceStateChanged(TuningBean* aTuningBean);
+    void deviceStateChanged(DeviceState aDeviceState);
+    void deviceError(QAbstractSocket::SocketError socketError);
 
 
 public Q_SLOTS:
-//    virtual void setSpeedDirection( TunerManager::Scale scale, double speed, double direction );
     virtual void setTuning(TuningBean* aTuningBean );
-    void setPower( double leftPower, double rightPower );
-    void setHost( QString ipAddress, int port);
+    void setHost(QString ipAddress, int port);
 
 private Q_SLOTS:
     void handleCommandProsessed(Command command);
 
-
-private:
-    void calculatePower();
 
 
 private:
@@ -88,7 +90,7 @@ private:
     // Power
     double mLeftPower;
     double mRightPower;
-    bool mRunning;      // is car moving or topped
+    //bool mRunning;      // is car moving or topped
 
     FtpClient* mFtpClient;
     QString ipAddress;
@@ -99,7 +101,7 @@ private:
 
 };
 
-#endif // TUNERMANAGER_H
+#endif // DEVICEMANAGER_H
 
 
 

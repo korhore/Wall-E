@@ -26,6 +26,7 @@
 
 #include <QFrame>
 #include "command.h"
+#include "tuningbean.h"
 
 class QwtThermo;
 class QwtSlider;
@@ -37,12 +38,14 @@ public:
     PowerTunerFrame( QWidget *p=NULL );
 
 signals:
-    void powerChanged( double leftPower, double rightPower );
+    //void powerChanged( double leftPower, double rightPower );
+    virtual void tuningChanged(TuningBean* aTuningBean );
 
 public Q_SLOTS:
     //void setpower( bool running, double leftPower, double rightPower );
     void setCommand(Command command);
-    virtual void setPower( double leftPower, double rightPower );
+    //virtual void setPower( double leftPower, double rightPower );
+    virtual void setTuning(TuningBean* aTuningBean);
     //virtual void setSpeedDirection( double speed, double direction );
 
 private Q_SLOTS:

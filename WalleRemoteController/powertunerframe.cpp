@@ -32,6 +32,7 @@
 #include "powertunerframe.h"
 #include "settingsdialog.h"
 #include "ftpclient.h"
+#include "tuningbean.h"
 
 /*
 #if QT_VERSION < 0x040600
@@ -140,7 +141,8 @@ void PowerTunerFrame::handleLeftPowerChange( double leftPower )
 {
     qDebug() << "PowerTunerFrame::handleLeftPowerChange leftPower " << leftPower;
     mLeftPower = leftPower;
-    emit powerChanged( mLeftPower, mRightPower );
+    //emit powerChanged( mLeftPower, mRightPower );
+    emit tuningChanged(new TuningBean(TuningBean::SCALE_POWERS, mLeftPower, mRightPower, this));
 
 }
 
@@ -148,7 +150,9 @@ void PowerTunerFrame::handleRightPowerChange( double rightPower )
 {
     qDebug() << "PowerTunerFrame::handleRightPowerChangee rightPower " << rightPower;
     mRightPower = rightPower;
-    emit powerChanged( mLeftPower, mRightPower );
+    //emit powerChanged( mLeftPower, mRightPower );
+    emit tuningChanged(new TuningBean(TuningBean::SCALE_POWERS, mLeftPower, mRightPower, this));
+
 }
 
 
@@ -178,6 +182,7 @@ void PowerTunerFrame::setCommand(Command command)
     }
 }
 
+/*
 void PowerTunerFrame::setPower( double leftPower, double rightPower )
 {
     mLeftPower = leftPower;
@@ -187,6 +192,19 @@ void PowerTunerFrame::setPower( double leftPower, double rightPower )
     mRightPowerSlider->setValue(mRightPower);
 
 }
+*/
+
+void PowerTunerFrame::setTuning( TuningBean* aTuningBean )
+{
+    qDebug() << "PowerTunerFrame::setTuning";
+
+    mLeftPower = aTuningBean->getLeftPower();
+    mRightPower = aTuningBean->getRightPower();
+
+    mLeftPowerSlider->setValue(mLeftPower);
+    mRightPowerSlider->setValue(mRightPower);
+}
+
 
 /*
 void PowerTunerFrame::setSpeedDirection( double speed, double direction )

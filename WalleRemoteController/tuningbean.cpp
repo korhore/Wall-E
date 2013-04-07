@@ -89,6 +89,7 @@ TuningBean::TuningBean( Scale aScale, double aValue1, double aValue2, QObject *p
             if (mValue2 < -1.0) {
                 mValue2 = -1.0;
             }
+            break;
         default:
             Q_ASSERT(false);
     }
@@ -185,8 +186,8 @@ double TuningBean::getDirection(TuningBean::Scale aScale)
             return *SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES_mDirection;
 
         default:
-            Q_ASSERT(false);    // parameter error
-            break;
+                Q_ASSERT(false);    // parameter error
+                break;
     };
 
     return 0.0;
@@ -257,7 +258,7 @@ bool TuningBean::convert(Scale aSourceScale, double aSourceSpeed, double aSource
                     }
                     else if (aSourceDirection > 90.0) {
                             aDestinationSpeed = -aSourceSpeed;
-                            aDestinationDirection = 180 - aSourceDirection;
+                            aDestinationDirection = 180.0 - aSourceDirection;
                     }
                     else {
                         aDestinationSpeed = aSourceSpeed;
@@ -265,7 +266,45 @@ bool TuningBean::convert(Scale aSourceScale, double aSourceSpeed, double aSource
                     }
                     break;
                 default:            // no conversion from SCALE_POWERS to SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES
-                    Q_ASSERT(false);// can be made, but not needed this application yet
+                //Q_ASSERT(false);// can be made, but not needed this application yet
+                // use right names
+                    double aLeftPower = aSourceSpeed;
+                    double aRightPower = aSourceDirection;
+                    if (fabs(aLeftPower) >= fabs(aRightPower)) { // motor that is running faster, mean direction and angle comes fron slower motor
+                        qDebug() << "TuningBean::convert turning right (fabs(aLeftPower) >= fabs(aRightPower) " << (fabs(aLeftPower) >= fabs(aRightPower));
+                        aDestinationSpeed = aLeftPower;
+                        if (aLeftPower >= 0)
+                        {
+                            qDebug() << "TuningBean::convert pos. power direction 0 - 90";
+                            if (aLeftPower == 0) {
+                                aDestinationDirection = 0.0;
+                            }
+                            else {
+                                aDestinationDirection  = 45.0 - (45.0 * aRightPower)/aLeftPower;
+                            }
+                        } else { // backward, convert pos. power direction 0 - 90";
+                            qDebug() << "TuningBean::convert direction 90 - 180";
+                            aDestinationDirection  = 45.0 + (45.0 * aRightPower)/aLeftPower;
+                        }
+                    }
+                    else { // turning left
+                        qDebug() << "TuningBean::convert turning left";
+                        aDestinationSpeed = aRightPower;
+                        if (aRightPower >= 0)
+                        {
+                            qDebug() << "TuningBean::convert pos. power direction -0 - -90";
+                            if (aRightPower == 0) {
+                                aDestinationDirection = -90.0;
+                            }
+                            else {
+                                aDestinationDirection  = - 45.0 + (45.0 * aLeftPower)/aRightPower;
+                            }
+                        } else { // backward, convert direction -90 - -180";
+                            qDebug() << "TuningBean::convert pos. power direction -0 - -90";
+                            aDestinationDirection  = -45.0 - (45.0 * aLeftPower)/aRightPower;
+                        }
+                    }
+
                     break;
             }
             break;
@@ -308,7 +347,45 @@ bool TuningBean::convert(Scale aSourceScale, double aSourceSpeed, double aSource
                     break;
 
                 default:            // no conversion from SCALE_POWERS to SCALE_POSITIVE_SPEED_PLUS_DEGREES
-                    Q_ASSERT(false);// can be made, but not needed this application yet
+                    //Q_ASSERT(false);// can be made, but not needed this application yet
+                    // use right names
+                    double aLeftPower = aSourceSpeed;
+                    double aRightPower = aSourceDirection;
+                    if (fabs(aLeftPower) >= fabs(aRightPower)) { // motor that is running faster, mean direction and angle comes fron slower motor
+                        qDebug() << "TuningBean::convert turning right";
+                        aDestinationSpeed = fabs(aLeftPower);
+                        if (aLeftPower >= 0)
+                        {
+                            qDebug() << "TuningBean::convert direction 0 - 90";
+                            if (aLeftPower == 0) {
+                                aDestinationDirection = 0.0;
+                            }
+                            else {
+                                aDestinationDirection  = 45.0 - (45.0 * aRightPower)/aLeftPower;
+                            }
+                        } else { // backward, convert direction 90 - 180";
+                            qDebug() << "TuningBean::convert direction 90 - 180";
+                            aDestinationDirection  = 135.0 + (45.0 * aRightPower)/aLeftPower;
+                        }
+                    }
+                    else { // turning left
+                        qDebug() << "TuningBean::convert turning left";
+                        aDestinationSpeed = fabs(aRightPower);
+                        if (aRightPower >= 0)
+                        {
+                            qDebug() << "TuningBean::convert direction -0 - -90";
+                            if (aRightPower == 0) {
+                                aDestinationDirection = -90.0;
+                            }
+                            else {
+                                aDestinationDirection  = - 45.0 + (45.0 * aLeftPower)/aRightPower;
+                            }
+                        } else { // backward, convert direction -90 - -180";
+                            qDebug() << "TuningBean::convert direction -90 - -180";
+                            aDestinationDirection  = -135.0 - (45.0 * aLeftPower)/aRightPower;
+                        }
+                    }
+
                     break;
             }
             break;
@@ -322,6 +399,8 @@ bool TuningBean::convert(Scale aSourceScale, double aSourceSpeed, double aSource
         default:
             Q_ASSERT(false);
     }
+
+    qDebug() << "TuningBean::convert(aSourceScale " << aSourceScale << " aSourceSpeed " << aSourceSpeed << " aSourceDirection " << aSourceDirection << " aDestinationScale " << aDestinationScale << " aDestinationSpeed " << aDestinationSpeed << " aDestinationDirection " << aDestinationDirection;
 
     return true;
 
@@ -426,7 +505,7 @@ bool TuningBean::test()
     // forward
     int i;
     for (i=-90; i <= 90; i++) {
-        sourceSpeed = abs(double(i)/90.0);
+        sourceSpeed = fabs(double(i)/90.0);
         sourceDirection = i;
         ret = convert(SCALE_POSITIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection,
                       SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, destinationSpeed, destinationDirection);
@@ -442,7 +521,7 @@ bool TuningBean::test()
     // positive case
     // backward
     for (i=-91; i >= -180; i--) {
-        sourceSpeed = abs(double(i)/180.0);
+        sourceSpeed = fabs(double(i)/180.0);
         sourceDirection = i;
         ret = convert(SCALE_POSITIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection,
                       SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, destinationSpeed, destinationDirection);
@@ -452,7 +531,7 @@ bool TuningBean::test()
         Q_ASSERT(fabs(-180.0 - sourceDirection -destinationDirection) < 0.1);
     }
     for (i=91; i <= 180; i++) {
-        sourceSpeed = abs(double(i)/180.0);
+        sourceSpeed = fabs(double(i)/180.0);
         sourceDirection = i;
         ret = convert(SCALE_POSITIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection,
                       SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, destinationSpeed, destinationDirection);
@@ -465,7 +544,7 @@ bool TuningBean::test()
     // positive case SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES -> SCALE_POSITIVE_SPEED_PLUS_DEGREES
     // forward
     for (i=-90; i <= 90; i++) {
-        sourceSpeed = abs(double(i)/90.0);
+        sourceSpeed = fabs(double(i)/90.0);
         sourceDirection = i;
         ret = convert(SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, sourceSpeed, sourceDirection,
                       SCALE_POSITIVE_SPEED_PLUS_DEGREES, destinationSpeed, destinationDirection);
