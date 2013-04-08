@@ -20,36 +20,40 @@
 
 --------------------------------------------- */
 
+#ifndef DEVICESTATEWIDGET_H
+#define DEVICESTATEWIDGET_H
 
-#ifndef DEVICESTATUSFRAME_H
-#define DEVICESTATUSFRAME_H
-
-#include <QFrame>
+#include <QWidget>
 #include "command.h"
-#include "tuningbean.h"
 #include "devicemanager.h"
 
-class QwtSlider;
-class DeviceStateWidget;
+class TuningBean;
 
-class DeviceStatusFrame : public QFrame
+class DeviceStateWidget : public QWidget
 {
     Q_OBJECT
+
+#define PowerChangedColor QColor(Qt::green)
+#define UnconnectedStateColor QColor(Qt::gray)
+#define HostLookupStateColor QColor(Qt::magenta)
+#define ConnectingStateColor QColor(Qt::darkMagenta)
+#define ConnectedStateColor QColor(Qt::darkYellow)
+#define WritingStateColor QColor(Qt::blue)
+#define WrittenStateColor QColor(Qt::darkBlue)
+#define ReadingStateColor QColor(Qt::cyan)
+#define ReadStateColor QColor(Qt::darkCyan)
+#define ErrorStateColor QColor(Qt::red)
+#define ClosingStateColor QColor(Qt::darkGray)
+
 public:
-    DeviceStatusFrame( QWidget *p=NULL );
+    explicit DeviceStateWidget(QWidget *parent = 0);
 
+    void paintEvent(QPaintEvent *);
+
+    
 signals:
-    //void powerChanged( double leftPower, double rightPower );
-    virtual void tuningChanged(TuningBean* aTuningBean );
-
-public Q_SLOTS:
-    //void setpower( bool running, double leftPower, double rightPower );
-    void setCommand(Command command);
-    //virtual void setPower( double leftPower, double rightPower );
-    virtual void setTuning(TuningBean* aTuningBean);
-    //virtual void setSpeedDirection( double speed, double direction );
-
-    // show device state
+    
+public slots:
     // tries to change power and send comand to device
     void showPowerChanged( double leftPower, double rightPower );
     // device has processed command and set it to this status
@@ -61,26 +65,11 @@ public Q_SLOTS:
     // if device state error, also error is emitted
     void showDeviceError(QAbstractSocket::SocketError socketError);
 
-
-private Q_SLOTS:
-    void handleSettings();
-    void handleLeftPowerChange( double leftPower );
-    void handleRightPowerChange( double rightPower );
-
-
 private:
-    QwtSlider *mLeftPowerSlider;
-    DeviceStateWidget *mDeviceStateWidget;
-    QwtSlider *mRightPowerSlider;
+    bool mPowerChanged;
+    QAbstractSocket::SocketError mSocketError;
+    DeviceManager::DeviceState mDeviceState;
 
-    bool mRunning;
-    double mLeftPower;
-    double mRightPower;
 };
 
-#endif // DEVICESTATUSFRAME_H
-
-
-
-
-
+#endif // DEVICESTATEWIDGET_H

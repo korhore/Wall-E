@@ -33,6 +33,7 @@
 #include "settingsdialog.h"
 #include "ftpclient.h"
 #include "tuningbean.h"
+#include "devicestatewidget.h"
 
 /*
 #if QT_VERSION < 0x040600
@@ -44,7 +45,7 @@
 DeviceStatusFrame::DeviceStatusFrame( QWidget *parent ):
    QFrame( parent )
 {
-    setBaseSize(50,50);
+    //setBaseSize(50,50);
     QWidget *leftWidget = new QWidget(this);
     qDebug() << "mLeftPowerSlider";
     mLeftPowerSlider = new  QwtSlider( leftWidget, Qt::Vertical, QwtSlider::LeftScale );
@@ -62,9 +63,23 @@ DeviceStatusFrame::DeviceStatusFrame( QWidget *parent ):
     QVBoxLayout *leftLayout = new QVBoxLayout( leftWidget );
     leftLayout->setMargin( 2 );
     leftLayout->setSpacing( 1 );
-    leftLayout->addWidget( mLeftPowerSlider, 40 );
-    leftLayout->addStretch( 3);
+    leftLayout->addWidget( mLeftPowerSlider, 30 );
+    leftLayout->addStretch(3);
     leftLayout->addWidget( leftLabel );
+
+    // in the middle device state
+
+    QWidget *deviceWidget = new QWidget(this);
+    QVBoxLayout *deviceLayout = new QVBoxLayout( deviceWidget );
+    deviceLayout->setMargin( 2 );
+    deviceLayout->setSpacing( 1 );
+    mDeviceStateWidget = new DeviceStateWidget(deviceWidget);
+    //mDeviceStateWidget->setAlignment( Qt::AlignCenter );
+    deviceLayout->addWidget(mDeviceStateWidget);
+    QLabel *devLabel = new QLabel( tr("D"), deviceWidget );
+    devLabel->setAlignment( Qt::AlignCenter );
+    deviceLayout->addWidget( devLabel );
+
 
     // right
 
@@ -77,6 +92,7 @@ DeviceStatusFrame::DeviceStatusFrame( QWidget *parent ):
     mRightPowerSlider->setScaleMaxMajor( 3 );
     mRightPowerSlider->setBorderWidth( 1 );
 
+
     qDebug() << "rightLabel";
     QLabel *rightLabel = new QLabel( tr("Right"), rightWidget );
     rightLabel->setAlignment( Qt::AlignCenter );
@@ -85,8 +101,8 @@ DeviceStatusFrame::DeviceStatusFrame( QWidget *parent ):
     QVBoxLayout *rightLayout = new QVBoxLayout( rightWidget );
     rightLayout->setMargin( 2 );
     rightLayout->setSpacing( 1 );
-    rightLayout->addWidget( mRightPowerSlider, 40 );
-    rightLayout->addStretch( 3 );
+    rightLayout->addWidget( mRightPowerSlider, 30 );
+    rightLayout->addStretch( 1 );
     rightLayout->addWidget( rightLabel );
 
 
@@ -97,8 +113,9 @@ DeviceStatusFrame::DeviceStatusFrame( QWidget *parent ):
     QHBoxLayout *powerLayout = new QHBoxLayout( power );
     powerLayout->setMargin( 1 );
     powerLayout->setSpacing( 1 );
-    powerLayout->addWidget( leftWidget );
-    powerLayout->addWidget( rightWidget );
+    powerLayout->addWidget( leftWidget, 40 );
+    powerLayout->addWidget( deviceWidget, 30 );
+    powerLayout->addWidget( rightWidget, 40 );
 
     qDebug() << "mainLayout";
     QVBoxLayout *mainLayout = new QVBoxLayout( this );
@@ -234,4 +251,36 @@ void DeviceStatusFrame::handleSettings()
     settingsDialog.exec();
 
 }
+
+// tries to change power and send comand to device
+void DeviceStatusFrame::showPowerChanged( double leftPower, double rightPower )
+{
+    mDeviceStateWidget->showPowerChanged( leftPower, rightPower );
+}
+
+// device has processed command and set it to this status
+void DeviceStatusFrame::showCommandProsessed(Command command)
+{
+    mDeviceStateWidget->showCommandProsessed(command);
+}
+
+// device has processed command and set it to this tuning
+void DeviceStatusFrame::showDeviceStateChanged(TuningBean* aTuningBean)
+{
+    mDeviceStateWidget->showDeviceStateChanged(aTuningBean);
+}
+
+// device state has changed
+void DeviceStatusFrame::showDeviceStateChanged(DeviceManager::DeviceState aDeviceState)
+{
+    qDebug() << "DeviceStatusFrame::showDeviceStateChanged";
+    mDeviceStateWidget->showDeviceStateChanged(aDeviceState);
+}
+
+// if device state error, also error is emitted
+void DeviceStatusFrame::showDeviceError(QAbstractSocket::SocketError socketError)
+{
+    mDeviceStateWidget->showDeviceError(socketError);
+}
+
 
