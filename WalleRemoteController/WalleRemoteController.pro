@@ -146,6 +146,7 @@ SOURCES += main.cpp mainwindow.cpp \
     slidertunerframe.cpp \
     pointertunerframe.cpp \
     powertunerframe.cpp \
+    devicestatusframe.cpp \
     #ftpserver.cpp \
     #ftpserverthread.cpp \
     ftpclient.cpp \
@@ -157,6 +158,7 @@ HEADERS += mainwindow.h \
     slidertunerframe.h \
     pointertunerframe.h \
     powertunerframe.h \
+    devicestatusframe.h \
     #ftpserver.h \
     #ftpserverthread.h \
     ftpclient.h \

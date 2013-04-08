@@ -76,6 +76,7 @@ PointerTunerFrame::PointerTunerFrame( QWidget *parent ):
 
     mTargetPicture->move(mBackGroundWidthPer2-mTargetPicture->width()/2,0);
 
+
     connect(this,SIGNAL(mouseClickEvent(QPoint)),this,SLOT(setTarget(QPoint)));
 
 }

@@ -66,6 +66,7 @@ Q_SIGNALS:
 public Q_SLOTS:
     void setDeviceState(TuningBean* aTuningBean);
     void setDeviceState(DeviceManager::DeviceState aDeviceState);
+    void setCommand(Command command);
 
 
 private Q_SLOTS:

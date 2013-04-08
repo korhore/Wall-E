@@ -237,19 +237,18 @@ class Romeo:
         print "Romeo.processCommand number " + str(command.getNumber()) + " Command " + command.getCommand() + " getLeftPower " + str(command.getLeftPower()) + " getRightPower " + str(command.getRightPower())
         if command.getCommand() == Command.CommandTypes.Drive:
             print "Romeo.processCommand Command.CommandTypes.Drive"
-            #TODO Can't get anytihing else to worh, than motor is 1.0
+            #TODO Can't get anything else to worh, than motor is 1.0
             # other way it is stopped
             if command.getLeftPower() >= 0.25:
                 print "Romeo.processCommand Command.CommandTypes.Drive 1 Left " + str(command.getLeftPower())
                 self.e2.write(command.getLeftPower())
                 self.m2.write(1)
                 print "Romeo.processCommand Command.CommandTypes.Drive self.e2.read() " + str(self.e2.read())
-#                self.m2.write(0)
             elif command.getLeftPower() <= -0.25:
                 print "Romeo.processCommand Command.CommandTypes.Drive -1 Left " + str(-command.getLeftPower())
-                self.e1write(-command.getLeftPower())
-                self.m1.write(-1)
-#                self.m2.write(0)
+                self.e2.write(-command.getLeftPower())
+                self.m2.write(-1)
+                print "Romeo.processCommand Command.CommandTypes.Drive self.e2.read() " + str(self.e2.read())
             else:
                 print "Romeo.processCommand Command.CommandTypes.Drive Left 0 0"
                 self.e2.write(0.0)
@@ -259,12 +258,12 @@ class Romeo:
                 print "Romeo.processCommand Command.CommandTypes.Drive 1 Right " + str(command.getRightPower())
                 self.e1.write(command.getRightPower())
                 self.m1.write(1)
-#                self.m1.write(0)
+                print "Romeo.processCommand Command.CommandTypes.Drive self.e2.read() " + str(self.e2.read())
             elif command.getRightPower() <= -0.25:
                 print "Romeo.processCommand Command.CommandTypes.Drive -1 Right " + str(-command.getRightPower())
-                self.e2.write(-command.getRightPower())
-                self.m2.write(-1)
-#                self.m1.write(0)
+                self.e1.write(-command.getRightPower())
+                self.m1.write(-1)
+                print "Romeo.processCommand Command.CommandTypes.Drive self.e2.read() " + str(self.e2.read())
             else:
                 print "Romeo.processCommand Command.CommandTypes.Drive 0 Right 0"
                 self.e1.write(0.0)

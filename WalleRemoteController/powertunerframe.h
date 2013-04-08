@@ -28,7 +28,6 @@
 #include "command.h"
 #include "tuningbean.h"
 
-class QwtThermo;
 class QwtSlider;
 
 class PowerTunerFrame : public QFrame

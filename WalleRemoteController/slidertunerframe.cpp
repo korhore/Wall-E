@@ -27,6 +27,7 @@
 #include <qwt_thermo.h>
 #include <qwt_math.h>
 #include "slidertunerframe.h"
+#include "devicestatusframe.h"
 #include "devicemanager.h"
 
 /*
@@ -53,14 +54,16 @@ SliderTunerFrame::SliderTunerFrame( QWidget *parent ):
     directionLabel->setAlignment( Qt::AlignCenter );
     direction->setFixedWidth( 5 * directionLabel->sizeHint().width()/3 );
 
+    mDeviceStatusFrame = new DeviceStatusFrame(direction);
 
     qDebug() << "directionLayout";
     QVBoxLayout *directionLayout = new QVBoxLayout( direction );
     directionLayout->setMargin( 3 );
     directionLayout->setSpacing( 2 );
     directionLayout->addWidget( mSliderDirection, 500 );
-    directionLayout->addStretch( 5 );
     directionLayout->addWidget( directionLabel );
+    directionLayout->addStretch( 5 );
+    directionLayout->addWidget( mDeviceStatusFrame );
 
     connect(mSliderDirection, SIGNAL(sliderMoved(double)), this, SLOT(handleDirectionChange(double)));
 
@@ -125,6 +128,11 @@ void SliderTunerFrame::setPower( double leftPower, double rightPower )
     qDebug() << "SliderTunerFrame::setSpeedDirection leftPower " << leftPower << " rightPower "  << rightPower;
     // TODO
     // set powers to direction and speed
+}
+
+void SliderTunerFrame::setCommand(Command command)
+{
+    mDeviceStatusFrame->setCommand(command);
 }
 
 void SliderTunerFrame::handleDirectionChange( double direction )

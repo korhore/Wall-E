@@ -131,6 +131,12 @@ void MainWindow::setDeviceState(TuningBean* aTuningBean)
     // TODO
 }
 
+void MainWindow::setCommand(Command command)
+{
+    mSliderTunerFrame->setCommand(command);
+}
+
+
 
 MainWindow::~MainWindow()
 {

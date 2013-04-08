@@ -61,6 +61,7 @@ TunerController::TunerController(QWidget *parent /*=NULL*/)
 //#ifdef newcode
     connect(mMainWindow,SIGNAL(tuningChanged(TuningBean*)), mDeviceManager,SLOT(setTuning(TuningBean*)));
     connect(mMainWindow,SIGNAL(hostChanged(QString, int)), mDeviceManager,SLOT(setHost(QString, int)));
+    connect(mDeviceManager, SIGNAL(commandProsessed(Command)), mMainWindow, SLOT(setCommand(Command)));
 
 //#endif
 #ifdef oldcode

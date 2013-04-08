@@ -28,6 +28,7 @@
 #include "tunerframe.h"
 
 class QwtSlider;
+class DeviceStatusFrame;
 
 class SliderTunerFrame : public TunerFrame
 {
@@ -41,6 +42,7 @@ Q_SIGNALS:
 public Q_SLOTS:
     virtual void setTuning(TuningBean* aTuningBean);
     virtual void setPower( double leftPower, double rightPower );
+    void setCommand(Command command);
 
 private Q_SLOTS:
     void handleDirectionChange( double direction );
@@ -48,6 +50,8 @@ private Q_SLOTS:
 
 
 private:
+    DeviceStatusFrame* mDeviceStatusFrame;
+
     QwtSlider *mSliderSpeed;
     QwtSlider *mSliderDirection;
 
