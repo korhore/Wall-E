@@ -65,10 +65,15 @@ public:
     bool test();
 
 Q_SIGNALS:
+    // tries to change power and send comand to device
     void powerChanged( double leftPower, double rightPower );
+    // device has processed command and set it to this status
     void commandProsessed(Command command);
+    // device has processed command and set it to this tuning
     void deviceStateChanged(TuningBean* aTuningBean);
-    void deviceStateChanged(DeviceState aDeviceState);
+    // device state has changed
+    void deviceStateChanged(DeviceManager::DeviceState aDeviceState);
+    // if device state error, also error is emitted
     void deviceError(QAbstractSocket::SocketError socketError);
 
 
@@ -78,6 +83,7 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void handleCommandProsessed(Command command);
+    void handleDeviceStateChanged(DeviceManager::DeviceState aDeviceState);
 
 
 

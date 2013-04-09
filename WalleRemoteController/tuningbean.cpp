@@ -427,24 +427,14 @@ bool TuningBean::convert(Scale aSourceScale, double aSourceSpeed, double aSource
                 aSourceSpeed = -1.0;
             }
 
-            if (aSourceSpeed >= 0.0) {    // forward, turning right
-                if (aSourceDirection >= 0.0){
-                    aDestinationLeftPower = aSourceSpeed;
-                    aDestinationRightPower = aSourceSpeed * (45.0 - aSourceDirection)/45.0;
-                } else {
-                    aDestinationRightPower = aSourceSpeed;
-                    aDestinationLeftPower  = -aSourceSpeed * (-45.0 - aSourceDirection)/45.0;
-                }
-            } else {    // turning right backward
-                if (aSourceDirection >= 0.0) {
-                    aDestinationRightPower = aSourceSpeed;
-                    aDestinationLeftPower = -aSourceSpeed * (45.0 - aSourceDirection)/45.0;
-                    // turning left backward
-                } else {
-                    aDestinationLeftPower = aSourceSpeed;
-                    aDestinationRightPower = aSourceSpeed * (-45.0 - aSourceDirection)/45.0;
-                }
+            if (aSourceDirection >= 0.0){     // turning right
+                aDestinationLeftPower = aSourceSpeed;
+                aDestinationRightPower = aSourceSpeed * (45.0 - aSourceDirection)/45.0;
+            } else {                          // turning left
+                aDestinationRightPower = aSourceSpeed;
+                aDestinationLeftPower  = -aSourceSpeed * (-45.0 - aSourceDirection)/45.0;
             }
+
             break;
         case SCALE_POSITIVE_SPEED_PLUS_DEGREES:
             if (aSourceDirection > 180.0)  { // value range

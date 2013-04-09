@@ -26,6 +26,7 @@
 #include "slidertunerframe.h"
 #include "powertunerframe.h"
 #include "devicemanager.h"
+#include "command.h"
 #include <QDebug>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -62,6 +63,17 @@ TunerController::TunerController(QWidget *parent /*=NULL*/)
     connect(mMainWindow,SIGNAL(tuningChanged(TuningBean*)), mDeviceManager,SLOT(setTuning(TuningBean*)));
     connect(mMainWindow,SIGNAL(hostChanged(QString, int)), mDeviceManager,SLOT(setHost(QString, int)));
     connect(mDeviceManager, SIGNAL(commandProsessed(Command)), mMainWindow, SLOT(setCommand(Command)));
+
+    connect(mDeviceManager, SIGNAL(powerChanged(double,double)), mMainWindow, SLOT(showPowerChanged(double,double)));
+    // device has processed command and set it to this status
+    connect(mDeviceManager, SIGNAL(commandProsessed(Command)),  mMainWindow, SLOT(showCommandProsessed(Command)));
+    // device has processed command and set it to this tuning
+    connect(mDeviceManager, SIGNAL(deviceStateChanged(TuningBean*)), mMainWindow, SLOT(showDeviceStateChanged(TuningBean*)));
+    // device state has changed
+    connect(mDeviceManager, SIGNAL(deviceStateChanged(DeviceManager::DeviceState)), mMainWindow, SLOT(showDeviceStateChanged(DeviceManager::DeviceState)));
+    // if device state error, also error is emitted
+    connect(mDeviceManager, SIGNAL(deviceError(QAbstractSocket::SocketError)), mMainWindow, SLOT(showDeviceError(QAbstractSocket::SocketError)));
+
 
 //#endif
 #ifdef oldcode
@@ -114,8 +126,11 @@ TunerController::TunerController(QWidget *parent /*=NULL*/)
     //qDebug() << "main mainWindow.showExpanded()";
     //mMainWindow->showExpanded();
     qDebug() << "mMainWindow->show()";
+#if defined(Q_WS_S60)
+    mMainWindow->showMaximized();
+#else
     mMainWindow->show();
-
+#endif
 
 
     // Thats it, that is boss job

@@ -65,7 +65,8 @@ HEADERS += \
     settingsdialog.h \
     command.h \
     tuningbean.h \
-    devicemanager.h
+    devicemanager.h \
+    devicestatewidget.h
 
 SOURCES += \
     ../qwt/src/qwt_abstract_scale_draw.cpp \
@@ -100,7 +101,8 @@ SOURCES += \
     settingsdialog.cpp \
     command.cpp \
     tuningbean.cpp \
-    devicemanager.cpp
+    devicemanager.cpp \
+    devicestatewidget.cpp
 
 ## qwt widgets
 

@@ -41,6 +41,11 @@
 #define qFastCos(x) ::cos(x)
 #endif
 */
+#if defined(Q_WS_S60)
+#define WIDTH     20
+#else
+#define WIDTH     30
+#endif
 
 DeviceStatusFrame::DeviceStatusFrame( QWidget *parent ):
    QFrame( parent )
@@ -49,9 +54,14 @@ DeviceStatusFrame::DeviceStatusFrame( QWidget *parent ):
     // ans setting button
 
     mDeviceStateWidget = new DeviceStateWidget(this);
+#if defined(Q_WS_S60)
+    QPushButton* mSettingsButton = new QPushButton(tr("Set"), this);
+    mSettingsButton->setPalette( QPalette( QColor( 128, 128, 128 ) ) );
+#else
     QPushButton* mSettingsButton = new QPushButton(tr("Sett."), this);
+#endif
     mSettingsButton->setIcon(QIcon(QPixmap(":pictures/settings.png")));
-    mSettingsButton->setIconSize(QSize(30,30));
+    mSettingsButton->setIconSize(QSize(WIDTH,WIDTH));
     connect(mSettingsButton, SIGNAL(clicked(bool)), this, SLOT(handleSettings()));
 
     QWidget *device = new QWidget(this);
@@ -85,7 +95,7 @@ DeviceStatusFrame::DeviceStatusFrame( QWidget *parent ):
     QVBoxLayout *leftLayout = new QVBoxLayout( leftWidget );
     leftLayout->setMargin( 2 );
     leftLayout->setSpacing( 1 );
-    leftLayout->addWidget( mLeftPowerSlider, 30 );
+    leftLayout->addWidget( mLeftPowerSlider, WIDTH );
     leftLayout->addStretch(3);
     leftLayout->addWidget( leftLabel );
 
@@ -111,7 +121,7 @@ DeviceStatusFrame::DeviceStatusFrame( QWidget *parent ):
     QVBoxLayout *rightLayout = new QVBoxLayout( rightWidget );
     rightLayout->setMargin( 2 );
     rightLayout->setSpacing( 1 );
-    rightLayout->addWidget( mRightPowerSlider, 30 );
+    rightLayout->addWidget( mRightPowerSlider, WIDTH );
     rightLayout->addStretch( 1 );
     rightLayout->addWidget( rightLabel );
 
@@ -130,7 +140,7 @@ DeviceStatusFrame::DeviceStatusFrame( QWidget *parent ):
     qDebug() << "mainLayout";
     QVBoxLayout *mainLayout = new QVBoxLayout( this );
     mainLayout->setMargin( 2 );
-    mainLayout->addWidget(device/*mDeviceStateWidget /*, 30 , 0, Qt::AlignCenter*/);
+    mainLayout->addWidget(device/*mDeviceStateWidget /*, WIDTH , 0, Qt::AlignCenter*/);
     mainLayout->addWidget(power);
 
     qDebug() << "DeviceLabel";

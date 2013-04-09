@@ -32,42 +32,49 @@
 
 #include <QtCore/QCoreApplication>
 
+#if defined(Q_WS_S60)
+#define POINTER_TUNER_WIDTH         250
+#define SLIDER_TUNER_WIDTH          250
+#else
+#define POINTER_TUNER_WIDTH         400
+#define SLIDER_TUNER_WIDTH          250
+#endif
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-
-
-
-    setWindowTitle(tr("Walle Remote Controller"));
+#if defined(Q_WS_S60)
+    setAttribute( Qt::WA_LockLandscapeOrientation, true );
+#endif
+    setWindowTitle(tr("Wall-E Remote Controller"));
     QWidget* background = new QWidget(this);
     setCentralWidget(background);
     mMainLayout = new QHBoxLayout(background);
 
     mPointerTunerFrame = new PointerTunerFrame( background );
     mPointerTunerFrame->setFrameStyle( QFrame::Panel | QFrame::Raised );
-    mMainLayout->addWidget(mPointerTunerFrame, 200 /*Qt::AlignCenter*/);
+    mMainLayout->addWidget(mPointerTunerFrame, POINTER_TUNER_WIDTH /*Qt::AlignCenter*/);
+
     mSliderTunerFrame = new SliderTunerFrame(background);
     mSliderTunerFrame->setFrameStyle( QFrame::Panel | QFrame::Raised );
-    mMainLayout->addWidget(mSliderTunerFrame/*, 400 Qt::AlignCenter*/);
-
-    TuningBean* tuningbean = new TuningBean (TuningBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES, 0.0, 0.0, this);
-    mSliderTunerFrame->setTuning( tuningbean );
-    mPointerTunerFrame->setTuning( tuningbean );
-    tuningbean->deleteLater();
+    mMainLayout->addWidget(mSliderTunerFrame, SLIDER_TUNER_WIDTH /*Qt::AlignCenter*/);
 
     mPowerTunerFrame = new PowerTunerFrame(background);
     mPowerTunerFrame->setFrameStyle( QFrame::Panel | QFrame::Raised );
     mMainLayout->addWidget(mPowerTunerFrame);
+
+    TuningBean* tuningbean = new TuningBean (TuningBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES, 0.0, 0.0, this);
+    mSliderTunerFrame->setTuning( tuningbean );
+    mPointerTunerFrame->setTuning( tuningbean );
+    mPowerTunerFrame->setTuning( tuningbean );
+    tuningbean->deleteLater();
+
 
     qDebug() << "mainwindow.setPalette";
     setPalette( QPalette( QColor( 192, 192, 192 ) ) );
 
 // TODO Connect visual thing together here
 // and let tunings to be signaled out
-
-//#ifdef old
-//    mTunerManager = new  DeviceManager(this);
 
     qDebug() << "mainwindow.connect(mPointerTunerFrame,directionSpeedChanged";
     // Pointer tuner
@@ -87,26 +94,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     qDebug() << "mainwindow.connectmPowerTunerFrame,powerChanged";
     // Power tuner
-    // Control device
-    // TODO
-    //connect(mPowerTunerFrame,SIGNAL(tuningChanged(TuningBean*)), this,SLOT(setTuning(TuningBean*)));
-    //connect(mPowerTunerFrame,SIGNAL(powerChanged(double,double)),mTunerManager,SLOT(setPower(double,double)));
-    // Let other tuners handle change
-    //connect(mPowerTunerFrame,SIGNAL(powerChanged(double,double)), mPointerTunerFrame,SLOT(setPower(double,double)));
-    //connect(mPowerTunerFrame,SIGNAL(powerChanged(double,double)), mSliderTunerFrame,SLOT(setPower(double,double)));
-
-    // Control device
+     // Control device
     connect(mPowerTunerFrame,SIGNAL(tuningChanged(TuningBean*)), this,SLOT(setTuning(TuningBean*)));
     // Let other tuners handle change
     connect(mPowerTunerFrame,SIGNAL(tuningChanged(TuningBean*)), mPointerTunerFrame,SLOT(setTuning(TuningBean*)));
     connect(mPowerTunerFrame,SIGNAL(tuningChanged(TuningBean*)), mSliderTunerFrame,SLOT(setTuning(TuningBean*)));
-
-
-
-    qDebug() << "mainwindow.connect(mTunerManager, commandProsessed";
-//    connect(mTunerManager,SIGNAL(powerChanged(double,double)),mPowerTunerFrame,SLOT(setPower(double,double)));
-//    connect(mTunerManager, SIGNAL(commandProsessed(Command)), mPowerTunerFrame, SLOT(setCommand(Command)));
-//#endif
 
     qDebug() << "mainwindow end";
 }
@@ -197,4 +189,37 @@ void MainWindow::showExpanded()
     show();
 #endif
 }
+
+// tries to change power and send comand to device
+void MainWindow::showPowerChanged( double leftPower, double rightPower )
+{
+    mSliderTunerFrame->showPowerChanged( leftPower, rightPower );
+}
+
+// device has processed command and set it to this status
+void MainWindow::showCommandProsessed(Command command)
+{
+    mSliderTunerFrame->showCommandProsessed(command);
+}
+
+// device has processed command and set it to this tuning
+void MainWindow::showDeviceStateChanged(TuningBean* aTuningBean)
+{
+    mSliderTunerFrame->showDeviceStateChanged(aTuningBean);
+}
+
+// device state has changed
+void MainWindow::showDeviceStateChanged(DeviceManager::DeviceState aDeviceState)
+{
+    qDebug() << "MainWindow::showDeviceStateChanged";
+    mSliderTunerFrame->showDeviceStateChanged(aDeviceState);
+}
+
+// if device state error, also error is emitted
+void MainWindow::showDeviceError(QAbstractSocket::SocketError socketError)
+{
+    mSliderTunerFrame->showDeviceError(socketError);
+}
+
+
 

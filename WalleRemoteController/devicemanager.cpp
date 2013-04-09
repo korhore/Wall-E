@@ -44,6 +44,7 @@ DeviceManager::DeviceManager( QObject *parent ):
 
     mFtpClient  = new FtpClient(this, ipAddress, port);
     connect( mFtpClient, SIGNAL(commandProsessed(Command)), this, SLOT(handleCommandProsessed(Command)));
+    connect( mFtpClient, SIGNAL(deviceStateChanged(DeviceManager::DeviceState)), this, SLOT(handleDeviceStateChanged(DeviceManager::DeviceState)));
 
     test();
 
@@ -58,6 +59,8 @@ DeviceManager::~DeviceManager(){
 
 void DeviceManager::setHost( QString ipAddr, int p)
 {
+    qDebug() << "DeviceManager::setHost";
+
     ipAddress = ipAddr;
     port = p;
 
@@ -72,7 +75,16 @@ void DeviceManager::setHost( QString ipAddr, int p)
 
 void DeviceManager::handleCommandProsessed(Command command)
 {
+    qDebug() << "DeviceManager::handleCommandProsessed";
+
     emit commandProsessed(command);
+}
+
+void DeviceManager::handleDeviceStateChanged(DeviceManager::DeviceState aDeviceState)
+{
+    qDebug() << "DeviceManager::handleDeviceStateChanged";
+
+    emit deviceStateChanged(aDeviceState);
 }
 
 

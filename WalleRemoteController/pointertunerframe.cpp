@@ -23,10 +23,11 @@
 #include <qlayout.h>
 #include <qlabel.h>
 #include <QMouseEvent>
-#include <qwt_wheel.h>
-#include <qwt_slider.h>
-#include <qwt_thermo.h>
-#include <qwt_math.h>
+//#include <qwt_wheel.h>
+//#include <qwt_slider.h>
+//#include <qwt_thermo.h>
+//#include <qwt_math.h>
+#include <math.h>
 #include "pointertunerframe.h"
 
 #if QT_VERSION < 0x040600
@@ -36,29 +37,43 @@
 
 #define PI 3.14159265
 
+#if defined(Q_WS_S60)
+#define TARGET_SIZE                 50
+#define WALLE_WIDTH                 100
+#define WALLE_WIDTH_DOUBLE          100.0
+#define BACKGROUND_WIDTH_PER_2      100
+#define BACKGROUND_HEIGHT_PER_2     150
+#else
+#define TARGET_SIZE                 50
+#define WALLE_WIDTH                 100
+#define WALLE_WIDTH_DOUBLE          100.0
+#define BACKGROUND_WIDTH_PER_2      130
+#define BACKGROUND_HEIGHT_PER_2     200
+#endif
+
 
 PointerTunerFrame::PointerTunerFrame( QWidget *parent ):
    TunerFrame( parent )
 {
     mBackGroundWidthPer2 = width()/2;
     qDebug() << "mBackGroundWidthPer2 " << mBackGroundWidthPer2;
-    mBackGroundWidthPer2 = 130;
-    mBackGroundWidth = 2*130;
+    mBackGroundWidthPer2 = BACKGROUND_WIDTH_PER_2;
+    mBackGroundWidth = 2*BACKGROUND_WIDTH_PER_2;
     qDebug() << "mBackGroundWidthPer2 " << mBackGroundWidthPer2;
     mBackGroundHightPer2 = height()/2;
     qDebug() << "mBackGroundHightPer2 " << mBackGroundHightPer2;
-    mBackGroundHightPer2 = 200;
-    mBackGroundHight = 2*200;
+    mBackGroundHightPer2 = BACKGROUND_HEIGHT_PER_2;
+    mBackGroundHight = 2*BACKGROUND_HEIGHT_PER_2;
     qDebug() << "mBackGroundHightPer2 " << mBackGroundHightPer2;
 
     mOriginalWallePixmap = new QPixmap(":pictures/wall-e-200x200.png");
 
     mControlledWallePicture = new QLabel(this);
     mControlledWallePicture->setPixmap(*mOriginalWallePixmap);
-    mControlledWallePictureWidthPer2 = 100;
+    mControlledWallePictureWidthPer2 = WALLE_WIDTH;
     qDebug() << "mControlledWallePictureWidthPer2 " << mControlledWallePictureWidthPer2;
-    mControlledWallePictureHightPer2 = 100;
-    mControlledWallePictureSize = 200;
+    mControlledWallePictureHightPer2 = WALLE_WIDTH;
+    mControlledWallePictureSize = BACKGROUND_HEIGHT_PER_2;
     qDebug() << "mControlledWallePictureHightPer2 " << mControlledWallePictureHightPer2;
     setFrameRect(QRect(0,mControlledWallePictureWidthPer2 *2, 0,mControlledWallePictureWidthPer2*2));
     mControlledWallePicture->move(mBackGroundWidthPer2-mControlledWallePictureWidthPer2,mBackGroundHightPer2-mControlledWallePictureHightPer2);
@@ -68,7 +83,7 @@ PointerTunerFrame::PointerTunerFrame( QWidget *parent ):
     mOriginalEwaPixmap = new QPixmap(":pictures/eva-50x50.png");
     mTargetPicture->setPixmap(*mOriginalEwaPixmap);
     mTargetPicture->setScaledContents(true);
-    mTargetPicture->setMinimumSize (50, 50);
+    mTargetPicture->setMinimumSize (TARGET_SIZE, TARGET_SIZE);
 
 
     mBackGroundMiddleX = mBackGroundWidth/2;
@@ -91,7 +106,7 @@ void PointerTunerFrame::setTuning( TuningBean* aTuningBean )
     mDirection =  aTuningBean->getDirection(TuningBean::SCALE_POSITIVE_SPEED_PLUS_DEGREES);
 
     // scale targed
-    int size = (50 + (1.0 - mSpeed)*100.0);
+    int size = (TARGET_SIZE + (1.0 - mSpeed)*WALLE_WIDTH_DOUBLE);
     mTargetPicture->resize(size, size);
 
     int x =  mBackGroundMiddleX  - (size/2) + ((sin(mDirection * PI/180.0) *  mSpeed * mBackGroundMiddleX));
@@ -125,7 +140,7 @@ void PointerTunerFrame::setTarget(QPoint p)
     int x = p.x() - mBackGroundWidthPer2;
     int y = p.y() - mBackGroundHightPer2;
     QMatrix matrix;
-    mDirection = atan2 (x,-y) * 180.0 / PI;
+    mDirection = atan2 ((double)x,(double)-y) * 180.0 / PI;
     qDebug() << "PointerTunerFrame::setTarget direction " << mDirection;
 
     // rotate Walle
@@ -133,9 +148,9 @@ void PointerTunerFrame::setTarget(QPoint p)
     QPixmap rotatedControlledPixmap = mOriginalWallePixmap->transformed(matrix);
     mControlledWallePicture->setPixmap(rotatedControlledPixmap);
 
-    mSpeed = sqrt((x*x) + (y*y))/mBackGroundWidthPer2;
+    mSpeed = sqrt((double)(x*x) + (double)(y*y))/(double)mBackGroundWidthPer2;
     // scale Ewa target
-    int size = (50 + (1.0 - mSpeed)*100.0);
+    int size = (TARGET_SIZE + (1.0 - mSpeed)*WALLE_WIDTH_DOUBLE);
     mTargetPicture->resize(size, size);
     qDebug() << "PointerTunerFrame::setTarget speed " << mSpeed;
 

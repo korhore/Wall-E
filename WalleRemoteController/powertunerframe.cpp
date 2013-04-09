@@ -41,6 +41,16 @@
 #endif
 */
 
+#if defined(Q_WS_S60)
+#define SLIDERHIGHT     300
+#define HANDLE_HEIGHT   50
+#define HANDLE_WIDTH    30
+#else
+#define SLIDERHIGHT     400
+#define HANDLE_HEIGHT   60
+#define HANDLE_WIDTH    40
+#endif
+
 PowerTunerFrame::PowerTunerFrame( QWidget *parent ):
    QFrame( parent )
 {
@@ -58,6 +68,7 @@ PowerTunerFrame::PowerTunerFrame( QWidget *parent ):
     mLeftPowerSlider->setScaleMaxMinor( 3 );
     mLeftPowerSlider->setScaleMaxMajor( 5 );
     mLeftPowerSlider->setBorderWidth( 2 );
+    mLeftPowerSlider->setHandleSize( HANDLE_WIDTH, HANDLE_HEIGHT );
 
     qDebug() << "leftLabel";
     QLabel *leftLabel = new QLabel( "Left", leftWidget );
@@ -67,7 +78,7 @@ PowerTunerFrame::PowerTunerFrame( QWidget *parent ):
     QVBoxLayout *leftLayout = new QVBoxLayout( leftWidget );
     leftLayout->setMargin( 3 );
     leftLayout->setSpacing( 2 );
-    leftLayout->addWidget( mLeftPowerSlider, 400 );
+    leftLayout->addWidget( mLeftPowerSlider, SLIDERHIGHT );
     leftLayout->addStretch( 5 );
     leftLayout->addWidget( leftLabel );
 
@@ -87,6 +98,7 @@ PowerTunerFrame::PowerTunerFrame( QWidget *parent ):
     mRightPowerSlider->setScaleMaxMinor( 3 );
     mRightPowerSlider->setScaleMaxMajor( 5 );
     mRightPowerSlider->setBorderWidth( 2 );
+    mRightPowerSlider->setHandleSize( HANDLE_WIDTH, HANDLE_HEIGHT );
 
     qDebug() << "rightLabel";
     QLabel *rightLabel = new QLabel( tr("Right"), rightWidget );
@@ -96,7 +108,7 @@ PowerTunerFrame::PowerTunerFrame( QWidget *parent ):
     QVBoxLayout *rightLayout = new QVBoxLayout( rightWidget );
     rightLayout->setMargin( 3 );
     rightLayout->setSpacing( 2 );
-    rightLayout->addWidget( mRightPowerSlider, 400 );
+    rightLayout->addWidget( mRightPowerSlider, SLIDERHIGHT );
     rightLayout->addStretch( 5 );
     rightLayout->addWidget( rightLabel );
 
@@ -116,7 +128,7 @@ PowerTunerFrame::PowerTunerFrame( QWidget *parent ):
     mainLayout->setMargin( 3 );
     mainLayout->setSpacing( 2 );
      //mainLayout->addStretch(20);
-    mainLayout->addWidget(power, 300);
+    mainLayout->addWidget(power, SLIDERHIGHT);
 
     setLayout(mainLayout);
 

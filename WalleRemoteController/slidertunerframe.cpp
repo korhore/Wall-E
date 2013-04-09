@@ -36,7 +36,23 @@
 #define qFastCos(x) ::cos(x)
 #endif
 */
-
+#if defined(Q_WS_S60)
+#define SLIDERHIGHT     400
+#define SLIDERWIDTH     20
+#define HANDLE_HEIGHT   50
+#define HANDLE_WIDTH    30
+#define SPEED_WIDTH     30
+#define DIRECTION_WIDTH 50
+#define STRECH          5
+#else
+#define SLIDERHIGHT     500
+#define SLIDERWIDTH     350
+#define HANDLE_HEIGHT   60
+#define HANDLE_WIDTH    40
+#define SPEED_WIDTH     40
+#define DIRECTION_WIDTH 200
+#define STRECH          20
+#endif
 SliderTunerFrame::SliderTunerFrame( QWidget *parent ):
    TunerFrame( parent )
 {
@@ -46,7 +62,7 @@ SliderTunerFrame::SliderTunerFrame( QWidget *parent ):
     mSliderDirection->setRange( -90.0, 90.0, 0.1, 45 );
     mSliderDirection->setScaleMaxMinor( 3 );
     mSliderDirection->setScaleMaxMajor( 5 );
-    mSliderDirection->setHandleSize( 40, 80 );
+    mSliderDirection->setHandleSize( HANDLE_HEIGHT, HANDLE_WIDTH );
     mSliderDirection->setBorderWidth( 2 );
 
     qDebug() << "directionLabel";
@@ -61,8 +77,8 @@ SliderTunerFrame::SliderTunerFrame( QWidget *parent ):
     directionLayout->setMargin( 3 );
     directionLayout->setSpacing( 2 );
     directionLayout->addWidget( mDeviceStatusFrame );
-    directionLayout->addStretch( 20 );
-    directionLayout->addWidget( mSliderDirection, 500 );
+    directionLayout->addStretch( STRECH );
+    directionLayout->addWidget( mSliderDirection, SLIDERWIDTH );
     directionLayout->addWidget( directionLabel );
 
     connect(mSliderDirection, SIGNAL(sliderMoved(double)), this, SLOT(handleDirectionChange(double)));
@@ -74,7 +90,7 @@ SliderTunerFrame::SliderTunerFrame( QWidget *parent ):
     mSliderSpeed->setRange( -1.0, 1.0 );
     mSliderSpeed->setScaleMaxMinor( 3 );
     mSliderSpeed->setScaleMaxMajor( 5 );
-    mSliderSpeed->setHandleSize( 80, 40 );
+    mSliderSpeed->setHandleSize( HANDLE_WIDTH, HANDLE_HEIGHT );
     mSliderSpeed->setBorderWidth( 2 );
 
     qDebug() << "speedLabel";
@@ -85,7 +101,7 @@ SliderTunerFrame::SliderTunerFrame( QWidget *parent ):
     QVBoxLayout *speedLayout = new QVBoxLayout( speed );
     speedLayout->setMargin( 3 );
     speedLayout->setSpacing( 2 );
-    speedLayout->addWidget( mSliderSpeed, 350 );
+    speedLayout->addWidget( mSliderSpeed, SLIDERHIGHT );
     speedLayout->addStretch( 5 );
     speedLayout->addWidget( speedLabel );
 
@@ -98,9 +114,9 @@ SliderTunerFrame::SliderTunerFrame( QWidget *parent ):
     qDebug() << "mainLayout2";
     mainLayout->setSpacing( 2 );
     qDebug() << "mainLayout3";
-    mainLayout->addWidget( speed, 50 );
+    mainLayout->addWidget( speed/*, SPEED_WIDTH*/ );
     qDebug() << "mainLayout4";
-    mainLayout->addWidget( direction, 200 );
+    mainLayout->addWidget( direction/*, DIRECTION_WIDTH*/ );
     qDebug() << "mainLayout5";
 
     setLayout(mainLayout);
