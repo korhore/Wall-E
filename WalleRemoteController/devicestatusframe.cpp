@@ -45,7 +45,28 @@
 DeviceStatusFrame::DeviceStatusFrame( QWidget *parent ):
    QFrame( parent )
 {
-    //setBaseSize(50,50);
+    // in the top "led" that shows devices state
+    // ans setting button
+
+    mDeviceStateWidget = new DeviceStateWidget(this);
+    QPushButton* mSettingsButton = new QPushButton(tr("Sett."), this);
+    mSettingsButton->setIcon(QIcon(QPixmap(":pictures/settings.png")));
+    mSettingsButton->setIconSize(QSize(30,30));
+    connect(mSettingsButton, SIGNAL(clicked(bool)), this, SLOT(handleSettings()));
+
+    QWidget *device = new QWidget(this);
+    QHBoxLayout *deviceLayout = new QHBoxLayout( device );
+    deviceLayout->setMargin( 1 );
+    deviceLayout->setSpacing( 1 );
+    deviceLayout->addWidget( mDeviceStateWidget );
+    deviceLayout->addWidget( mSettingsButton );
+
+
+
+    // below devices power
+
+    // Left power
+
     QWidget *leftWidget = new QWidget(this);
     qDebug() << "mLeftPowerSlider";
     mLeftPowerSlider = new  QwtSlider( leftWidget, Qt::Vertical, QwtSlider::LeftScale );
@@ -54,6 +75,7 @@ DeviceStatusFrame::DeviceStatusFrame( QWidget *parent ):
     mLeftPowerSlider->setScaleMaxMinor( 2 );
     mLeftPowerSlider->setScaleMaxMajor( 3 );
     mLeftPowerSlider->setBorderWidth( 1 );
+    mLeftPowerSlider->setEnabled(false);
 
     qDebug() << "leftLabel";
     QLabel *leftLabel = new QLabel( "Left", leftWidget );
@@ -67,21 +89,7 @@ DeviceStatusFrame::DeviceStatusFrame( QWidget *parent ):
     leftLayout->addStretch(3);
     leftLayout->addWidget( leftLabel );
 
-    // in the middle device state
-
-    QWidget *deviceWidget = new QWidget(this);
-    QVBoxLayout *deviceLayout = new QVBoxLayout( deviceWidget );
-    deviceLayout->setMargin( 2 );
-    deviceLayout->setSpacing( 1 );
-    mDeviceStateWidget = new DeviceStateWidget(deviceWidget);
-    //mDeviceStateWidget->setAlignment( Qt::AlignCenter );
-    deviceLayout->addWidget(mDeviceStateWidget);
-    QLabel *devLabel = new QLabel( tr("D"), deviceWidget );
-    devLabel->setAlignment( Qt::AlignCenter );
-    deviceLayout->addWidget( devLabel );
-
-
-    // right
+    // Right Power
 
     QWidget *rightWidget = new QWidget(this);
     qDebug() << "mRightPowerSlider";
@@ -91,6 +99,8 @@ DeviceStatusFrame::DeviceStatusFrame( QWidget *parent ):
     mRightPowerSlider->setScaleMaxMinor( 2 );
     mRightPowerSlider->setScaleMaxMajor( 3 );
     mRightPowerSlider->setBorderWidth( 1 );
+    mRightPowerSlider->setEnabled(false);
+
 
 
     qDebug() << "rightLabel";
@@ -106,31 +116,30 @@ DeviceStatusFrame::DeviceStatusFrame( QWidget *parent ):
     rightLayout->addWidget( rightLabel );
 
 
-
     qDebug() << "powerLayout";
     QWidget *power = new QWidget(this);
 
     QHBoxLayout *powerLayout = new QHBoxLayout( power );
     powerLayout->setMargin( 1 );
     powerLayout->setSpacing( 1 );
-    powerLayout->addWidget( leftWidget, 40 );
-    powerLayout->addWidget( deviceWidget, 30 );
-    powerLayout->addWidget( rightWidget, 40 );
+    powerLayout->addWidget( leftWidget );
+    powerLayout->addWidget( rightWidget );
+
+    // Combine all to main layout
 
     qDebug() << "mainLayout";
     QVBoxLayout *mainLayout = new QVBoxLayout( this );
     mainLayout->setMargin( 2 );
-    //mainLayout->addStretch(20);
-    mainLayout->addWidget(power, 30);
+    mainLayout->addWidget(device/*mDeviceStateWidget /*, 30 , 0, Qt::AlignCenter*/);
+    mainLayout->addWidget(power);
 
     qDebug() << "DeviceLabel";
-    QLabel *deviceLabel = new QLabel( "Device Status", leftWidget );
+    QLabel *deviceLabel = new QLabel( "Device Status", this );
     deviceLabel->setAlignment( Qt::AlignCenter );
-    mainLayout->addWidget(deviceLabel, 30);
+    mainLayout->addWidget(deviceLabel);
+    mainLayout->addStretch(20);
 
     setLayout(mainLayout);
-
-    setEnabled(false);
 
 
     qDebug() << "end";
@@ -206,43 +215,6 @@ void DeviceStatusFrame::setTuning( TuningBean* aTuningBean )
 }
 
 
-/*
-void DeviceStatusFrame::setSpeedDirection( double speed, double direction )
-{
-    qDebug() << "SliderTunerFrame.setSpeedDirection";
-    // convert values to
-    // -90.0 <= direction <= 90.0
-    // -1.0 <= speed <= 1.0
-
-    if (direction > 180.0)  { // value range
-        direction = 180.0;
-    } else
-    if (direction < -180.0) {
-        direction = -180.0;
-    };
-
-    if (speed > 1.0) {  // value range
-        speed = 1.0;
-    } else
-    if (speed < -1.0) {
-        speed = -1.0;
-    };
-
-    if (direction > 90.0) { // turnning right, backward
-        direction -= 90.0;
-        speed = -speed;
-    } else
-    if (direction < -90.0) { // turnning left, backward
-        direction += 90.0;
-        speed = -speed;
-    };
-
-    Q_ASSERT((-90.0 <= direction) && (direction <= 90.0) && (-1.0 <= speed) && (speed <= 1.0));
-
-    mSliderSpeed->setValue( speed );
-    mSliderDirection->setValue( direction );
-}
-*/
 
 
 void DeviceStatusFrame::handleSettings()

@@ -44,6 +44,19 @@ public Q_SLOTS:
     virtual void setPower( double leftPower, double rightPower );
     void setCommand(Command command);
 
+    // show device state
+    // tries to change power and send comand to device
+    void showPowerChanged( double leftPower, double rightPower );
+    // device has processed command and set it to this status
+    void showCommandProsessed(Command command);
+    // device has processed command and set it to this tuning
+    void showDeviceStateChanged(TuningBean* aTuningBean);
+    // device state has changed
+    void showDeviceStateChanged(DeviceManager::DeviceState aDeviceState);
+    // if device state error, also error is emitted
+    void showDeviceError(QAbstractSocket::SocketError socketError);
+
+
 private Q_SLOTS:
     void handleDirectionChange( double direction );
     void handleSpeedChange( double speed );

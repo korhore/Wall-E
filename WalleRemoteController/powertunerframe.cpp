@@ -44,14 +44,6 @@
 PowerTunerFrame::PowerTunerFrame( QWidget *parent ):
    QFrame( parent )
 {
-    // Setrting buttun
-
-    QPushButton* mSettingsButton = new QPushButton(tr("Settings"), this);
-    mSettingsButton->setIcon(QIcon(QPixmap(":pictures/settings.png")));
-    mSettingsButton->setIconSize(QSize(50,50));
-    // left
-    connect(mSettingsButton, SIGNAL(clicked(bool)), this, SLOT(handleSettings()));
-
     QWidget *leftWidget = new QWidget(this);
     qDebug() << "mLeftPowerSlider";
     mLeftPowerSlider = new  QwtSlider( leftWidget, Qt::Vertical, QwtSlider::LeftScale );
@@ -123,8 +115,7 @@ PowerTunerFrame::PowerTunerFrame( QWidget *parent ):
     QVBoxLayout *mainLayout = new QVBoxLayout( this );
     mainLayout->setMargin( 3 );
     mainLayout->setSpacing( 2 );
-    mainLayout->addWidget(mSettingsButton, 20);
-    //mainLayout->addStretch(20);
+     //mainLayout->addStretch(20);
     mainLayout->addWidget(power, 300);
 
     setLayout(mainLayout);

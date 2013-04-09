@@ -30,12 +30,13 @@
 #include "devicemanager.h"
 
 DeviceStateWidget::DeviceStateWidget(QWidget *parent) :
-    QWidget(parent),
+    QLabel(parent),
     mPowerChanged(false),
     mDeviceState(DeviceManager::UnconnectedState )
 
 {
-    //drawState();
+    setBaseSize(30, 30);
+    setGeometry ( 0, 0, 30, 30 );
 }
 
 // tries to change power and send comand to device
@@ -80,9 +81,8 @@ void DeviceStateWidget::paintEvent(QPaintEvent *)
     QPainter painter(this);
 
 
-    QLinearGradient myGradient(0.0, 0.0, 12.0, 15.0);
     QPen myPen;
-    QRectF boundingRectangle(0.0, 0.0,  12.0, 30.0);
+    QRectF boundingRectangle(0.0, 0.0,  30.0, 30.0);
 
     QPainterPath myPath;
     myPath.addEllipse(boundingRectangle);
@@ -132,21 +132,5 @@ void DeviceStateWidget::paintEvent(QPaintEvent *)
 
     painter.setPen(myPen);
     painter.drawPath(myPath);
-#ifdef old
-    QPainterPath path;
-    path.addRect(20, 20, 60, 60);
-
-    path.moveTo(0, 0);
-    path.cubicTo(99, 0,  50, 50,  99, 99);
-    path.cubicTo(0, 99,  50, 50,  0, 0);
-
-    painter.fillRect(0, 0, 100, 100, Qt::white);
-    painter.setPen(QPen(QColor(79, 106, 25), 1, Qt::SolidLine,
-                        Qt::FlatCap, Qt::MiterJoin));
-    painter.setBrush(QColor(122, 163, 39));
-
-    painter.drawPath(path);
-#endif
-
 }
 

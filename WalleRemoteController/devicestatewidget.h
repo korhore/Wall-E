@@ -24,12 +24,13 @@
 #define DEVICESTATEWIDGET_H
 
 #include <QWidget>
+#include <QLabel>
 #include "command.h"
 #include "devicemanager.h"
 
 class TuningBean;
 
-class DeviceStateWidget : public QWidget
+class DeviceStateWidget : public QLabel
 {
     Q_OBJECT
 

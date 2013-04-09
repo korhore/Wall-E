@@ -60,10 +60,10 @@ SliderTunerFrame::SliderTunerFrame( QWidget *parent ):
     QVBoxLayout *directionLayout = new QVBoxLayout( direction );
     directionLayout->setMargin( 3 );
     directionLayout->setSpacing( 2 );
+    directionLayout->addWidget( mDeviceStatusFrame );
+    directionLayout->addStretch( 20 );
     directionLayout->addWidget( mSliderDirection, 500 );
     directionLayout->addWidget( directionLabel );
-    directionLayout->addStretch( 5 );
-    directionLayout->addWidget( mDeviceStatusFrame );
 
     connect(mSliderDirection, SIGNAL(sliderMoved(double)), this, SLOT(handleDirectionChange(double)));
 
@@ -149,3 +149,37 @@ void SliderTunerFrame::handleSpeedChange( double speed )
     mSpeed = speed;
     emit tuningChanged(new TuningBean(TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, mSpeed, mDirection, this));
 }
+
+// tries to change power and send comand to device
+void SliderTunerFrame::showPowerChanged( double leftPower, double rightPower )
+{
+    mDeviceStatusFrame->showPowerChanged( leftPower, rightPower );
+}
+
+// device has processed command and set it to this status
+void SliderTunerFrame::showCommandProsessed(Command command)
+{
+    mDeviceStatusFrame->showCommandProsessed(command);
+}
+
+// device has processed command and set it to this tuning
+void SliderTunerFrame::showDeviceStateChanged(TuningBean* aTuningBean)
+{
+    qDebug() << "SliderTunerFrame::showDeviceStateChanged";
+    mDeviceStatusFrame->showDeviceStateChanged(aTuningBean);
+}
+
+// device state has changed
+void SliderTunerFrame::showDeviceStateChanged(DeviceManager::DeviceState aDeviceState)
+{
+    qDebug() << "SliderTunerFrame::showDeviceStateChanged";
+    mDeviceStatusFrame->showDeviceStateChanged(aDeviceState);
+}
+
+// if device state error, also error is emitted
+void SliderTunerFrame::showDeviceError(QAbstractSocket::SocketError socketError)
+{
+    mDeviceStatusFrame->showDeviceError(socketError);
+}
+
+

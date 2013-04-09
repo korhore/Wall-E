@@ -150,7 +150,9 @@ void FtpClient::connectServer()
 void FtpClient::handleReadyRead()
 {
     qDebug() << "FtpClient::handleReadyRead " << tcpSocket->bytesAvailable();
+    emit deviceStateChanged(DeviceManager::ReadingState);
     mInBuffer = tcpSocket->readAll();
+    emit deviceStateChanged(DeviceManager::ReadState);
 
     qDebug() << "FtpClient::handleReadyRead " << mInBuffer;
     mProsesedCommand = Command(mInBuffer);
@@ -171,9 +173,10 @@ void FtpClient::handleBytesWritten( qint64 bytes )
     else
         mOutBuffer.clear();
 
-    if (mOutBuffer.isEmpty())
+    if (mOutBuffer.isEmpty()) {
         mTransferring = false;
-    else
+        emit deviceStateChanged(DeviceManager::WrittenState);
+     } else
         handleRequests();
 }
 
@@ -202,9 +205,12 @@ void FtpClient::handleError(QAbstractSocket::SocketError socketError)
                                     "and check that the host name and port "
                                     "settings are correct.");
         break;
+    case QAbstractSocket::NetworkError:
+        qDebug() << tr("An error occurred with the network. "
+                                     "Host unreachable.");
     default:
-        qDebug() << tr("The following error occurred: %1.")
-                                 .arg(tcpSocket->errorString());
+        qDebug() << tr("The following error occurred: %1 %2.")
+                                 .arg(tcpSocket->errorString(), QString::number(socketError));
     }
 
     // emit error
@@ -217,12 +223,14 @@ void FtpClient::handleError(QAbstractSocket::SocketError socketError)
 void FtpClient::handleSessionOpened()
 {
     qDebug() << "FtpClient::sessionOpened()";
+    emit deviceStateChanged(DeviceManager::ConnectingState);
     tcpSocket->connectToHost(QHostAddress(ipAddress), port);
 
 }
 
 void FtpClient::handleConnected()
 {
+    emit deviceStateChanged(DeviceManager::ConnectedState);
 
     mConnected = true;
     mConnecting = false;
@@ -234,6 +242,7 @@ void FtpClient::handleConnected()
 
 void FtpClient::handleDisconnected()
 {
+    emit deviceStateChanged(DeviceManager::UnconnectedState);
     mConnected = false;
     mConnecting = false;
     qDebug() << "FtpClient::handleDisconnected";
@@ -242,11 +251,15 @@ void FtpClient::handleDisconnected()
 void FtpClient::handleHostFound()
 {
     qDebug() << "FtpClient::handleHostFound";
+    emit deviceStateChanged(DeviceManager::ErrorState);
+    emit deviceError(QAbstractSocket::HostNotFoundError);
 };
 
 void FtpClient::handleProxyAuthenticationRequired ( const QNetworkProxy & proxy, QAuthenticator * authenticator )
 {
     qDebug() << "FtpClient::handleProxyAuthenticationRequired";
+    emit deviceStateChanged(DeviceManager::ErrorState);
+    emit deviceError(QAbstractSocket::ProxyAuthenticationRequiredError);
 };
 
 void FtpClient::handleStateChanged ( QAbstractSocket::SocketState socketState )
@@ -255,21 +268,26 @@ void FtpClient::handleStateChanged ( QAbstractSocket::SocketState socketState )
     switch (socketState) {
     case QAbstractSocket::UnconnectedState:
         qDebug() << tr("UnconnectedState: The socket is not connected.");
+        emit deviceStateChanged(DeviceManager::UnconnectedState);
         break;
     case QAbstractSocket::HostLookupState:
         qDebug() << tr("HostLookupState: The socket is performing a host name lookup.");
+        emit deviceStateChanged(DeviceManager::UnconnectedState);
         break;
     case QAbstractSocket::ConnectingState:
         qDebug() << tr("ConnectingState: The socket has started establishing a connection.");
+        emit deviceStateChanged(DeviceManager::ConnectingState);
         break;
     case QAbstractSocket::ConnectedState:
         qDebug() << tr("ConnectedState: A connection is established.");
+        emit deviceStateChanged(DeviceManager::ConnectedState);
         break;
     case QAbstractSocket::BoundState:
         qDebug() << tr("BoundState: The socket is bound to an address and port (for servers).");
         break;
     case QAbstractSocket::ClosingState:
         qDebug() << tr("ClosingState: The socket is about to close (data may still be waiting to be written).");
+        emit deviceStateChanged(DeviceManager::ClosingState);
         break;
     case QAbstractSocket::ListeningState:
         qDebug() << tr("ListeningState (For internal use only.)");
@@ -319,6 +337,7 @@ void FtpClient::handleRequests()
     {
         qDebug() << "FtpClient::handleRequests size" << mOutBuffer.size() << " " << mOutBuffer;
         mTransferring = true;
+        emit deviceStateChanged(DeviceManager::WritingState);
         tcpSocket->write(mOutBuffer);
     }
 }
