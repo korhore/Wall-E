@@ -14,7 +14,7 @@ All devices are programmed with their own native programming language.
 Arduino Pirate 4WD car
 ----------------------
 
-Rore as Robot device, its "muscles"
+Role as Robot device, its "muscles"
 
 This device is run by Romeo. Romea is Microcontroller and runs programs that are originally
 written in C, compiled in host computer and uploaded by USB to the device. On this project we want
@@ -24,7 +24,7 @@ pyfirmata sketch 1) to it.
 Raspberry PI
 ------------
 
-Rore as Robot logic, it's "brains".
+Role as Robot logic, it's "brains".
 
 Raspberry PI computer is very small and very cheap. But is real computer running Linux.
 We connect Raspberry PI and Arduino Romeo board by USB and set up Python server listening command
@@ -33,14 +33,24 @@ Python has fine libraries to read WLAN connections and handle serial line device
 that Romeo is seen in USB connection. Raspberry PI has two USB connection and we use them both, but we don't need
 USB-HUB.
 
+
 N900
 ----
 
 Role as remote controller
 
 N900 is maemo mobile phone which runs Linux. It's native programming language is Qt C++, which is ideal to make
-applicatyions with graphical UI and WLAN-client. We study fancy logics how to control devices, so this as fine
+applications with graphical UI and WLAN-client. We study fancy logics how to control devices, so this as fine
 platform to make them.
+
+
+E7 or other Qt Phone
+--------------------
+
+Role as remote controller
+
+E7 is mobile phone which runs Qt above Symbian. It runs same source code as N900 does.
+
 
 Android Phone
 -------------
@@ -48,7 +58,7 @@ Android Phone
 Role as remote controller
 
 Android Phone's role is same than N900, we can use it as remote controller. Android is programmed by Java and it has fine graphic libraries
-and it can use WLAN connectios. Unfortunately nothing is programmed fot Android yet, that time I haven't got yet.
+and it can use WLAN connections. Unfortunately nothing is programmed for Android yet, that time I haven't got yet.
 
 
 
