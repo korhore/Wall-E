@@ -7,6 +7,8 @@ Created on Feb 24, 2013
 import SocketServer
 from Command import Command
 from Romeo import Romeo
+from subprocess import call
+
 
 HOST = '0.0.0.0'
 PORT = 2000
@@ -35,8 +37,25 @@ class WalleRequestHandler(SocketServer.BaseRequestHandler):
             if len(string) > 0:
                 command=Command(string)
                 print command
-                command = romeo.processCommand(command)
+                command, imageData = self.processCommand(command)
         self.request.sendall(str(command))
+        print "WalleRequestHandler.handle command " + str(command)
+        if command.getCommand() == Command.CommandTypes.Picture:
+            self.request.sendall(imageData)
+        print "WalleRequestHandler.handle command imagedata " + str(len(imageData))
+           
+    def processCommand(self, command):
+        if command.getCommand() == Command.CommandTypes.Picture:
+            print "WalleServer.processCommand Command.CommandTypes.Picture"
+            # take a picture
+            call(["raspistill", "-vf", "-ex", "night", "-o", "/tmp/image.jpg"])
+            f = open("/tmp/image.jpg", 'r')
+            imageData=f.read()
+            command.setImageSize(len(imageData))
+            return command, imageData
+        else:
+            return romeo.processCommand(command)
+            
         
 #    def handle(self):
 #        # self.rfile is a file-like object created by the handler;

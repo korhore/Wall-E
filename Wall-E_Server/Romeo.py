@@ -271,7 +271,7 @@ class Romeo:
 
  
         
-        return command
+        return command, ""
 
     def test(self):
         print "Romeo.test 1"
