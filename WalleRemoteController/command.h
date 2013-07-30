@@ -25,15 +25,17 @@
 #define COMMAND_H
 
 #include <QObject>
+#include <QByteArray>
 
 class Command
 {
 public:
-    enum CommandType {Drive='D', Stop='S', Who='W', Unknown='U'};
+    enum CommandType {Drive='D', Stop='S', Who='W', Picture='P', Unknown='U'};
 
     explicit Command(QString string="",
                      unsigned int number=-1, CommandType command = Unknown,
-                     double leftPower = 0.0, double rightPower = 0.0);
+                     double leftPower = 0.0, double rightPower = 0.0,
+                     unsigned int imageSize = 0);
     Command(const Command& other);
 
     QString toString();
@@ -49,6 +51,14 @@ public:
 
     void setRightPower(double rightPower);
     double getRightPower() const;
+
+    void setImageSize(unsigned int imageSize);
+    unsigned int getImageSize() const;
+
+    void setImageData(const QByteArray& aImageData);
+    void addImageData(const QByteArray& aImageData);
+    const QByteArray& getImageData() const;
+
 
     /*
       Is command enough different than other
@@ -68,6 +78,8 @@ private:
     CommandType mCommand;
     double mLeftPower;
     double mRightPower;
+    unsigned int mImageSize;
+    QByteArray mImageData;
     
 };
 

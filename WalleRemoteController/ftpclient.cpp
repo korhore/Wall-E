@@ -154,10 +154,20 @@ void FtpClient::handleReadyRead()
     mInBuffer = tcpSocket->readAll();
     emit deviceStateChanged(DeviceManager::ReadState);
 
-    qDebug() << "FtpClient::handleReadyRead " << mInBuffer;
-    mProsesedCommand = Command(mInBuffer);
-    qDebug() << "FtpClient::handleReadyRead Command" << mProsesedCommand.toString();
-    emit commandProsessed(mProsesedCommand);
+    if ((mProsesedCommand.getCommand() == Command::Picture) &&                              // if we are waiting for pisture data
+            (mProsesedCommand.getImageSize() > mProsesedCommand.getImageData().size())) {  // and size of inbuffer is what we wait
+        mProsesedCommand.addImageData(mInBuffer);
+        qDebug() << "FtpClient::handleReadyRead Command" << mProsesedCommand.toString();
+        if (mProsesedCommand.getImageSize() <= mProsesedCommand.getImageData().size())
+            emit commandProsessed(mProsesedCommand);
+
+    }
+    else {
+        qDebug() << "FtpClient::handleReadyRead " << mInBuffer;
+        mProsesedCommand = Command(mInBuffer);
+        qDebug() << "FtpClient::handleReadyRead Command" << mProsesedCommand.toString();
+        emit commandProsessed(mProsesedCommand);
+    }
 }
 
 void FtpClient::handleAboutToClose()
@@ -237,6 +247,8 @@ void FtpClient::handleConnected()
     mTransferring = false;
     qDebug() << "FtpClient::handleConnected()";
     //request(QString(REQUEST_WHO).arg(QString::number(mOutCommandNumber++)));
+    // ask picture
+    sendCommand(Command("", -1, Command::Picture));
     handleRequests();
 }
 

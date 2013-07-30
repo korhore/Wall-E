@@ -28,9 +28,8 @@
 #include <QDebug>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
-
-
 #include <QtCore/QCoreApplication>
+#include <QDir>
 
 #if defined(Q_WS_S60)
 #define POINTER_TUNER_WIDTH         250
@@ -40,6 +39,14 @@
 #define SLIDER_TUNER_WIDTH          250
 #endif
 
+#if defined(Q_WS_S60)
+#define SCREEN_WIDTH                640
+#define SCREEN_HIGHT                360
+#else
+#define SCREEN_WIDTH                800
+#define SCREEN_HIGHT                480
+#endif
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -47,19 +54,35 @@ MainWindow::MainWindow(QWidget *parent)
     setAttribute( Qt::WA_LockLandscapeOrientation, true );
 #endif
     setWindowTitle(tr("Wall-E Remote Controller"));
-    QWidget* background = new QWidget(this);
-    setCentralWidget(background);
-    mMainLayout = new QHBoxLayout(background);
+    mBackground = new QLabel(this);
+    mBackground->setScaledContents(true);
+    mBackground->setMinimumSize (SCREEN_WIDTH, SCREEN_HIGHT);
+    mBackground->setMaximumSize (SCREEN_WIDTH, SCREEN_HIGHT);
 
-    mPointerTunerFrame = new PointerTunerFrame( background );
+
+    QFile f(QDir::tempPath () + "/image.jpg");
+    if (f.open(QIODevice::ReadOnly)) {
+        qDebug() << "file size " << f.size() << endl;
+
+        QByteArray imageData = f.readAll();
+        qDebug() << "MainWindow::MainWindow; read " << imageData.size() << " bytes";
+        setBackgroundImage(imageData);
+
+    }
+
+
+    setCentralWidget(mBackground);
+    mMainLayout = new QHBoxLayout(mBackground);
+
+    mPointerTunerFrame = new PointerTunerFrame( mBackground );
     mPointerTunerFrame->setFrameStyle( QFrame::Panel | QFrame::Raised );
     mMainLayout->addWidget(mPointerTunerFrame, POINTER_TUNER_WIDTH /*Qt::AlignCenter*/);
 
-    mSliderTunerFrame = new SliderTunerFrame(background);
+    mSliderTunerFrame = new SliderTunerFrame(mBackground);
     mSliderTunerFrame->setFrameStyle( QFrame::Panel | QFrame::Raised );
     mMainLayout->addWidget(mSliderTunerFrame, SLIDER_TUNER_WIDTH /*Qt::AlignCenter*/);
 
-    mPowerTunerFrame = new PowerTunerFrame(background);
+    mPowerTunerFrame = new PowerTunerFrame(mBackground);
     mPowerTunerFrame->setFrameStyle( QFrame::Panel | QFrame::Raised );
     mMainLayout->addWidget(mPowerTunerFrame);
 
@@ -101,6 +124,22 @@ MainWindow::MainWindow(QWidget *parent)
     connect(mPowerTunerFrame,SIGNAL(tuningChanged(TuningBean*)), mSliderTunerFrame,SLOT(setTuning(TuningBean*)));
 
     qDebug() << "mainwindow end";
+}
+
+void MainWindow::setBackgroundImage(const QByteArray& aImageData)
+{
+    qDebug() << "MainWindow::setBackgroundImage read " << aImageData.size() << " bytes";
+
+    QImage image;
+    QPixmap mBackGroundPixmax;
+    if (image.loadFromData ( aImageData, "JPG" )) {
+        qDebug() << "MainWindow::setBackgroundImage load image from data succeeded, load pixmax  from that image";
+        mBackGroundPixmax = QPixmap::fromImage(image);
+        mBackground->setPixmap(mBackGroundPixmax);
+    } else {
+        qDebug() << "MainWindow::setBackgroundImage load image failed";
+    }
+
 }
 
 void MainWindow::setTuning(TuningBean* aTuningBean)
@@ -199,8 +238,22 @@ void MainWindow::showPowerChanged( double leftPower, double rightPower )
 // device has processed command and set it to this status
 void MainWindow::showCommandProsessed(Command command)
 {
-    mSliderTunerFrame->showCommandProsessed(command);
+    if (command.getCommand() == Command::Picture)
+    {
+        showPicture(command);
+    }
+    else
+    {
+        mSliderTunerFrame->showCommandProsessed(command);
+    }
 }
+
+void MainWindow::showPicture(Command command)
+{
+    if (command.getImageSize() == command.getImageData().size()) // if we have right size imagedata
+        setBackgroundImage(command.getImageData());
+}
+
 
 // device has processed command and set it to this tuning
 void MainWindow::showDeviceStateChanged(TuningBean* aTuningBean)

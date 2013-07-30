@@ -35,6 +35,8 @@ int main(int argc, char *argv[])
     qDebug() << Command("hupsis oli").toString();
     qDebug() << Command("", 99, Command::Drive,  0.77, 0.55).toString();
     qDebug() << Command(Command("", 99, Command::Drive,  0.77, 0.55).toString()).toString();
+    qDebug() << Command("100 P 12205").toString();
+
 
     QApplication app(argc, argv);
                             // Use MVC-architecture

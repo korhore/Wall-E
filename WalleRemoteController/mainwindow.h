@@ -32,6 +32,7 @@ class QHBoxLayout;
 class SliderTunerFrame;
 class PointerTunerFrame;
 class PowerTunerFrame;
+class QLabel;
 //class DeviceManager;
 class TuningBean;
 
@@ -85,8 +86,12 @@ public Q_SLOTS:
 private Q_SLOTS:
     void setTuning(TuningBean* aTuningBean);
 
+private:
+    void setBackgroundImage(const QByteArray& aImageData);
+    void showPicture(Command command);
 
 private:
+    QLabel* mBackground;
     QHBoxLayout* mMainLayout;
     SliderTunerFrame* mSliderTunerFrame;
     PointerTunerFrame* mPointerTunerFrame;

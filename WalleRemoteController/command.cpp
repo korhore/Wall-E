@@ -29,11 +29,13 @@
 
 Command::Command(QString string/*=""*/,
                  unsigned int number/*=-1*/, CommandType command/* = Unknown*/,
-                 double leftPower /* = 0.0*/, double rightPower/* = 0.0*/) :
+                 double leftPower /* = 0.0*/, double rightPower/* = 0.0*/,
+                 unsigned int imageSize /*= 0*/) :
     mNumber(number),
     mCommand(command),
     mLeftPower(leftPower),
-    mRightPower(rightPower)
+    mRightPower(rightPower),
+    mImageSize(imageSize)
 {
     QList<QString> params = string.split(' ');
     qDebug()  << "Command::Command params " << params;
@@ -80,7 +82,18 @@ Command::Command(QString string/*=""*/,
                     }
                     else
                     {
-                        mCommand = Unknown;
+                        if (ch == ( char ) Picture)
+                        {
+                            mCommand = Picture;
+                            if (params.count() >= 3)
+                            {
+                                mImageSize = params[2].toUInt();
+                            }
+                        }
+                        else
+                        {
+                            mCommand = Unknown;
+                        }
                     }
                 }
             }
@@ -96,6 +109,8 @@ Command::Command(const Command& other)
     mCommand = other.getCommand();
     mLeftPower = other.getLeftPower();
     mRightPower = other.getRightPower();
+    mImageSize = other.getImageSize();
+    mImageData = other.getImageData();
 }
 
 
@@ -112,6 +127,9 @@ QString Command::toString()
         break;
     case Who:
         s = QString(QString::number(mNumber) + ' ' + char(Who));
+        break;
+    case Picture:
+        s = QString(QString::number(mNumber) + ' ' + char(Picture) + ' ' + QString::number(mImageSize));
         break;
     default:
         s = QString(QString::number(mNumber) + ' ' + (char) Unknown);
@@ -163,6 +181,35 @@ double Command::getRightPower() const
 {
     return mRightPower;
 }
+
+void Command::setImageSize(unsigned int imageSize)
+{
+   mImageSize = imageSize;
+}
+
+unsigned int Command::getImageSize() const
+{
+    return mImageSize;
+}
+
+
+void Command::setImageData(const QByteArray& aImageData)
+{
+    mCommand=Command::Picture;
+    mImageData = aImageData;
+}
+
+void Command::addImageData(const QByteArray& aImageData)
+{
+    mCommand=Command::Picture;
+    mImageData.append(aImageData);
+}
+
+const QByteArray& Command::getImageData() const
+{
+ return mImageData;
+}
+
 
 bool Command::isDifferent(const Command other)
 {
