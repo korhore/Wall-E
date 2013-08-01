@@ -85,6 +85,8 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void setTuning(TuningBean* aTuningBean);
+    void handleCamaraToggled(bool checked);
+
 
 private:
     void setBackgroundImage(const QByteArray& aImageData);

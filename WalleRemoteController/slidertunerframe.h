@@ -36,8 +36,10 @@ class SliderTunerFrame : public TunerFrame
 public:
     SliderTunerFrame( QWidget *p=NULL );
 
+
 Q_SIGNALS:
     virtual void tuningChanged(TuningBean* aTuningBean );
+    void camaraToggled(bool checked);
 
 public Q_SLOTS:
     virtual void setTuning(TuningBean* aTuningBean);
@@ -60,7 +62,7 @@ public Q_SLOTS:
 private Q_SLOTS:
     void handleDirectionChange( double direction );
     void handleSpeedChange( double speed );
-
+    void handleCamaraToggled(bool checked);
 
 private:
     DeviceStatusFrame* mDeviceStatusFrame;

@@ -75,14 +75,20 @@ MainWindow::MainWindow(QWidget *parent)
     mMainLayout = new QHBoxLayout(mBackground);
 
     mPointerTunerFrame = new PointerTunerFrame( mBackground );
+    // Test
+    //mPointerTunerFrame->setOpacity(0.20);
     mPointerTunerFrame->setFrameStyle( QFrame::Panel | QFrame::Raised );
     mMainLayout->addWidget(mPointerTunerFrame, POINTER_TUNER_WIDTH /*Qt::AlignCenter*/);
 
     mSliderTunerFrame = new SliderTunerFrame(mBackground);
+    // Test
+    //mSliderTunerFrame->setOpacity(0.20);
     mSliderTunerFrame->setFrameStyle( QFrame::Panel | QFrame::Raised );
     mMainLayout->addWidget(mSliderTunerFrame, SLIDER_TUNER_WIDTH /*Qt::AlignCenter*/);
 
     mPowerTunerFrame = new PowerTunerFrame(mBackground);
+    // Test
+    //mPowerTunerFrame->setOpacity(1.0);
     mPowerTunerFrame->setFrameStyle( QFrame::Panel | QFrame::Raised );
     mMainLayout->addWidget(mPowerTunerFrame);
 
@@ -115,6 +121,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(mSliderTunerFrame,SIGNAL(tuningChanged(TuningBean*)), mPointerTunerFrame,SLOT(setTuning(TuningBean*)));
     connect(mSliderTunerFrame,SIGNAL(tuningChanged(TuningBean*)), mPowerTunerFrame,SLOT(setTuning(TuningBean*)));
 
+    connect(mSliderTunerFrame,SIGNAL(camaraToggled(bool)), this, SLOT(handleCamaraToggled(bool)));
+
     qDebug() << "mainwindow.connectmPowerTunerFrame,powerChanged";
     // Power tuner
      // Control device
@@ -146,6 +154,15 @@ void MainWindow::setTuning(TuningBean* aTuningBean)
 {
     // export private tuningt signaling it
     emit tuningChanged(aTuningBean);
+}
+
+void MainWindow::handleCamaraToggled(bool checked)
+{
+    qreal opacity= checked ? 0.20 : 1.0;
+
+    mPointerTunerFrame->setOpacity(opacity);
+    mSliderTunerFrame->setOpacity(opacity);
+    mPowerTunerFrame->setOpacity(opacity);
 }
 
 // visualize device state

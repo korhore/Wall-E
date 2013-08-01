@@ -98,6 +98,7 @@ PointerTunerFrame::PointerTunerFrame( QWidget *parent ):
 
 
 
+
 void PointerTunerFrame::setTuning( TuningBean* aTuningBean )
 {
     qDebug() << "SliderTunerFrame.setTuning";

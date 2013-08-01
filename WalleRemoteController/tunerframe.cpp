@@ -22,9 +22,20 @@
 
 
 #include "tunerframe.h"
+#include <QGraphicsOpacityEffect>
 
 
 TunerFrame::TunerFrame( QWidget *parent ):
-    QFrame( parent )
+    QFrame( parent ),
+    mOpacity(1.0)
 {
+    mGraphicsOpacityEffect = new QGraphicsOpacityEffect(this);
 }
+
+void TunerFrame::setOpacity(qreal aOpacity)
+{
+    mOpacity = aOpacity;
+    mGraphicsOpacityEffect->setOpacity(mOpacity);
+    setGraphicsEffect(mGraphicsOpacityEffect);
+}
+

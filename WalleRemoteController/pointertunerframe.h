@@ -44,6 +44,7 @@ protected:
 
 
 public:
+
 signals:
     // define mouseClick signal
     void mouseClickEvent(QPoint);

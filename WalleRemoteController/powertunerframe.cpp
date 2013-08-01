@@ -24,6 +24,7 @@
 #include <qlabel.h>
 #include <QPushButton>
 #include <QPixmap>
+#include <QGraphicsOpacityEffect>
 
 #include <qwt_wheel.h>
 #include <qwt_slider.h>
@@ -52,8 +53,11 @@
 #endif
 
 PowerTunerFrame::PowerTunerFrame( QWidget *parent ):
-   QFrame( parent )
+   QFrame( parent ),
+   mOpacity(1.0)
 {
+    mGraphicsOpacityEffect = new QGraphicsOpacityEffect(this);
+
     QWidget *leftWidget = new QWidget(this);
     qDebug() << "mLeftPowerSlider";
     mLeftPowerSlider = new  QwtSlider( leftWidget, Qt::Vertical, QwtSlider::LeftScale );
@@ -69,6 +73,8 @@ PowerTunerFrame::PowerTunerFrame( QWidget *parent ):
     mLeftPowerSlider->setScaleMaxMajor( 5 );
     mLeftPowerSlider->setBorderWidth( 2 );
     mLeftPowerSlider->setHandleSize( HANDLE_WIDTH, HANDLE_HEIGHT );
+    mLeftPowerSlider->setMass(0.5);
+    //mLeftPowerSlider->setTrough(true);
 
     qDebug() << "leftLabel";
     QLabel *leftLabel = new QLabel( "Left", leftWidget );
@@ -138,6 +144,29 @@ PowerTunerFrame::PowerTunerFrame( QWidget *parent ):
 
     qDebug() << "end";
 
+}
+
+void PowerTunerFrame::setOpacity(qreal aOpacity /* = 1.0*/)
+{
+    mOpacity = aOpacity;
+    mGraphicsOpacityEffect->setOpacity(mOpacity);
+    setGraphicsEffect(mGraphicsOpacityEffect);
+}
+
+QString PowerTunerFrame::getTransparencyStyleSheetString(int aTransparency/* = 255*/)
+{
+    QString s;
+    s="background-color: rgba(255,255,255,";
+    s.append(QString::number(aTransparency));
+    s.append(");");
+
+    s.append("color: rgba(255,255,255,");
+    s.append(QString::number(2*aTransparency));
+    s.append(");");
+
+
+    qDebug() << "PowerTunerFrame::getTransparencyStyleSheetString "  << s;
+    return s;
 }
 
 void PowerTunerFrame::handleLeftPowerChange( double leftPower )

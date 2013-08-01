@@ -54,6 +54,7 @@ DeviceStatusFrame::DeviceStatusFrame( QWidget *parent ):
     // ans setting button
 
     mDeviceStateWidget = new DeviceStateWidget(this);
+
 #if defined(Q_WS_S60)
     QPushButton* mSettingsButton = new QPushButton(tr("Set"), this);
     mSettingsButton->setPalette( QPalette( QColor( 128, 128, 128 ) ) );
@@ -72,8 +73,16 @@ DeviceStatusFrame::DeviceStatusFrame( QWidget *parent ):
     deviceLayout->addWidget( mSettingsButton );
 
 
+    // below camera state button
 
-    // below devices power
+    QPushButton* mCameraButton = new QPushButton(this);
+    mCameraButton->setIcon(QIcon(QPixmap(":pictures/settings.png")));
+    mCameraButton->setIconSize(QSize(WIDTH,WIDTH));
+    mCameraButton->setCheckable ( true );
+    mCameraButton->setChecked ( true );
+    mCameraButton->setPalette( QPalette( QColor( 128, 128, 128 ) ) );
+    connect(mCameraButton, SIGNAL(toggled(bool)), this, SLOT(handleCamaraToggled(bool)));
+
 
     // Left power
 
@@ -141,6 +150,9 @@ DeviceStatusFrame::DeviceStatusFrame( QWidget *parent ):
     QVBoxLayout *mainLayout = new QVBoxLayout( this );
     mainLayout->setMargin( 2 );
     mainLayout->addWidget(device/*mDeviceStateWidget /*, WIDTH , 0, Qt::AlignCenter*/);
+
+    mainLayout->addWidget(mCameraButton );
+
     mainLayout->addWidget(power);
 
     qDebug() << "DeviceLabel";
@@ -232,6 +244,11 @@ void DeviceStatusFrame::handleSettings()
     SettingsDialog settingsDialog(this, QString(SERVERNAME), SERVERPORT);
     settingsDialog.exec();
 
+}
+
+void DeviceStatusFrame::handleCamaraToggled(bool checked)
+{
+    emit camaraToggled(checked);
 }
 
 // tries to change power and send comand to device

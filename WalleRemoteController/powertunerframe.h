@@ -29,12 +29,14 @@
 #include "tuningbean.h"
 
 class QwtSlider;
+class QGraphicsOpacityEffect;
 
 class PowerTunerFrame : public QFrame
 {
     Q_OBJECT
 public:
     PowerTunerFrame( QWidget *p=NULL );
+    virtual void setOpacity(qreal aOpacity);
 
 signals:
     //void powerChanged( double leftPower, double rightPower );
@@ -46,6 +48,10 @@ public Q_SLOTS:
     //virtual void setPower( double leftPower, double rightPower );
     virtual void setTuning(TuningBean* aTuningBean);
     //virtual void setSpeedDirection( double speed, double direction );
+
+private:
+    QString getTransparencyStyleSheetString(int aTransparency = 255);
+
 
 private Q_SLOTS:
     void handleSettings();
@@ -65,6 +71,9 @@ private:
     bool mRunning;
     double mLeftPower;
     double mRightPower;
+
+    QGraphicsOpacityEffect*  mGraphicsOpacityEffect;
+    qreal mOpacity;
 };
 
 #endif // POWERTUNERFRAME_H

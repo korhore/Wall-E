@@ -31,12 +31,14 @@
 class QwtWheel;
 class QwtSlider;
 class TuningThermo;
+class QGraphicsOpacityEffect;
 
 class TunerFrame : public QFrame
 {
     Q_OBJECT
 public:
     TunerFrame( QWidget *p );
+    virtual void setOpacity(qreal aOpacity);
 
 Q_SIGNALS:
     //virtual void speedDirectionChanged(DeviceManager::Scale scale, double speed, double direction ) = 0;
@@ -47,6 +49,10 @@ public Q_SLOTS:
     //virtual void setSpeedDirection(DeviceManager::Scale scale, double speed, double direction ) = 0;
     virtual void setTuning(TuningBean* aTuningBean ) = 0;
     virtual void setPower( double leftPower, double rightPower ) = 0;
+
+private:
+    QGraphicsOpacityEffect*  mGraphicsOpacityEffect;
+    qreal mOpacity;
 };
 
 #endif // TUNERFRAME_H

@@ -82,6 +82,7 @@ SliderTunerFrame::SliderTunerFrame( QWidget *parent ):
     directionLayout->addWidget( directionLabel );
 
     connect(mSliderDirection, SIGNAL(sliderMoved(double)), this, SLOT(handleDirectionChange(double)));
+    connect(mDeviceStatusFrame, SIGNAL(camaraToggled(bool)), this, SLOT(handleCamaraToggled(bool)));
 
 
     QWidget *speed = new QWidget(this);
@@ -127,6 +128,7 @@ SliderTunerFrame::SliderTunerFrame( QWidget *parent ):
 
 
 
+
 void SliderTunerFrame::setTuning( TuningBean* aTuningBean )
 {
     qDebug() << "SliderTunerFrame.setTuning";
@@ -165,6 +167,12 @@ void SliderTunerFrame::handleSpeedChange( double speed )
     mSpeed = speed;
     emit tuningChanged(new TuningBean(TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, mSpeed, mDirection, this));
 }
+
+void SliderTunerFrame::handleCamaraToggled(bool checked)
+{
+    emit camaraToggled(checked);
+}
+
 
 // tries to change power and send comand to device
 void SliderTunerFrame::showPowerChanged( double leftPower, double rightPower )

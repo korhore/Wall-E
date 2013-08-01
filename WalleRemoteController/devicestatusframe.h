@@ -41,6 +41,7 @@ public:
 signals:
     //void powerChanged( double leftPower, double rightPower );
     virtual void tuningChanged(TuningBean* aTuningBean );
+    void camaraToggled(bool checked);
 
 public Q_SLOTS:
     //void setpower( bool running, double leftPower, double rightPower );
@@ -64,6 +65,7 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void handleSettings();
+    void handleCamaraToggled(bool checked);
     void handleLeftPowerChange( double leftPower );
     void handleRightPowerChange( double rightPower );
 
