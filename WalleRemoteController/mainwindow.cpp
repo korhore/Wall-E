@@ -121,7 +121,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(mSliderTunerFrame,SIGNAL(tuningChanged(TuningBean*)), mPointerTunerFrame,SLOT(setTuning(TuningBean*)));
     connect(mSliderTunerFrame,SIGNAL(tuningChanged(TuningBean*)), mPowerTunerFrame,SLOT(setTuning(TuningBean*)));
 
-    connect(mSliderTunerFrame,SIGNAL(camaraToggled(bool)), this, SLOT(handleCamaraToggled(bool)));
+    connect(mSliderTunerFrame,SIGNAL(cameraToggled(bool)), this, SLOT(handleCameraToggled(bool)));
 
     qDebug() << "mainwindow.connectmPowerTunerFrame,powerChanged";
     // Power tuner
@@ -156,13 +156,16 @@ void MainWindow::setTuning(TuningBean* aTuningBean)
     emit tuningChanged(aTuningBean);
 }
 
-void MainWindow::handleCamaraToggled(bool checked)
+void MainWindow::handleCameraToggled(bool checked)
 {
+    qDebug() << "MainWindow::handleCameraToggled " << checked;
     qreal opacity= checked ? 0.20 : 1.0;
 
     mPointerTunerFrame->setOpacity(opacity);
     mSliderTunerFrame->setOpacity(opacity);
     mPowerTunerFrame->setOpacity(opacity);
+
+    emit cameraToggled(checked);
 }
 
 // visualize device state
@@ -265,6 +268,19 @@ void MainWindow::showCommandProsessed(Command command)
     }
 }
 
+// show camera state
+// camera device has taken a picture and it should be shown
+void MainWindow::showCameraCommandProsessed(Command command)
+{
+    if (command.getCommand() == Command::Picture)
+    {
+        showPicture(command);
+    }
+
+}
+
+
+
 void MainWindow::showPicture(Command command)
 {
     if (command.getImageSize() == command.getImageData().size()) // if we have right size imagedata
@@ -288,8 +304,24 @@ void MainWindow::showDeviceStateChanged(DeviceManager::DeviceState aDeviceState)
 // if device state error, also error is emitted
 void MainWindow::showDeviceError(QAbstractSocket::SocketError socketError)
 {
+    qDebug() << "MainWindow::showDeviceError";
     mSliderTunerFrame->showDeviceError(socketError);
 }
+
+// camera device state has changed
+void MainWindow::showCameraStateChanged(DeviceManager::DeviceState aDeviceState)
+{
+    qDebug() << "MainWindow::showCameraStateChanged";
+    mSliderTunerFrame->showCameraStateChanged(aDeviceState);
+}
+
+// if camera device state error, also error is emitted
+void MainWindow::showCameraError(QAbstractSocket::SocketError socketError)
+{
+    qDebug() << "MainWindow::showCameraError";
+    mSliderTunerFrame->showCameraError(socketError);
+}
+
 
 
 

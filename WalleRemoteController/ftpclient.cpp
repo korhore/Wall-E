@@ -51,12 +51,12 @@ FtpClient::FtpClient(QObject *parent, QString ipAddr, int p)
 
 void FtpClient::init()
 {
-    qDebug() << "FtpClient::Init";
+    qDebug() << "FtpClient:: " << port << " Init";
     // if we did not find one, use IPv4 localhost
     if (ipAddress.isEmpty())
         ipAddress = QHostAddress(QHostAddress::LocalHost).toString();
 
-    qDebug() << "FtpClient::Init connect";
+    qDebug() << "FtpClient:: " << port << " Init connect";
     // from abtractsocket
     connect(tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)),
             this, SLOT(handleError(QAbstractSocket::SocketError)));
@@ -72,7 +72,7 @@ void FtpClient::init()
     connect(tcpSocket, SIGNAL(readyRead()), this, SLOT(handleReadyRead()));
 
 
-    qDebug() << "FtpClient::Init NetworkConfigurationManager manager";
+    qDebug() << "FtpClient:: " << port << " Init NetworkConfigurationManager manager";
     QNetworkConfigurationManager manager;
     if (manager.capabilities() & QNetworkConfigurationManager::NetworkSessionRequired) {
         qDebug() << "FtpClient::Init QNetworkConfigurationManager::NetworkSessionRequired";
@@ -89,15 +89,15 @@ void FtpClient::init()
             config = manager.defaultConfiguration();
         }
 
-        qDebug() << "FtpClient::Init new QNetworkSession(config, this)";
+        qDebug() << "FtpClient:: " << port << " Init new QNetworkSession(config, this)";
         networkSession = new QNetworkSession(config, this);
-        qDebug() << "FtpClient::Init connect(networkSession, SIGNAL(opened()), this, SLOT(handleSessionOpened()))";
+        qDebug() << "FtpClient:: " << port << " Init connect(networkSession, SIGNAL(opened()), this, SLOT(handleSessionOpened()))";
         connect(networkSession, SIGNAL(opened()), this, SLOT(handleSessionOpened()));
 
-        qDebug() << "FtpClient::Init networkSession->open()";
+        qDebug() << "FtpClient:: " << port << " Init networkSession->open()";
         networkSession->open();
     } else {
-        qDebug() << "tcpSocket->connectToHost())" << " ipAddress " << ipAddress << " port " << port;
+        qDebug() << "FtpClient:: Init " << port << " tcpSocket->connectToHost())" << " ipAddress " << ipAddress << " port " << port;
         tcpSocket->connectToHost(QHostAddress(ipAddress),  port);
     }
 
@@ -106,16 +106,16 @@ void FtpClient::init()
 
 void FtpClient::connectServer()
 {
-    qDebug() << "FtpClient::connectServer";
+    qDebug() << "FtpClient:: " << port << " connectServer";
     mConnecting = true;
     // if we did not find one, use IPv4 localhost
     if (ipAddress.isEmpty())
         ipAddress = QHostAddress(QHostAddress::LocalHost).toString();
 
-    qDebug() << "FtpClient::connectServer NetworkConfigurationManager manager";
+    qDebug() << "FtpClient:: " << port << " connectServer NetworkConfigurationManager manager";
     QNetworkConfigurationManager manager;
     if (manager.capabilities() & QNetworkConfigurationManager::NetworkSessionRequired) {
-        qDebug() << "FtpClient::Init QNetworkConfigurationManager::NetworkSessionRequired";
+        qDebug() << "FtpClient:: " << port << " connectServer QNetworkConfigurationManager::NetworkSessionRequired";
         // Get saved network configuration
         QSettings settings(QSettings::UserScope, QLatin1String("Wall-E"));
         settings.beginGroup(QLatin1String("QtNetwork"));
@@ -129,15 +129,15 @@ void FtpClient::connectServer()
             config = manager.defaultConfiguration();
         }
 
-        qDebug() << "FtpClient::connectServer new QNetworkSession(config, this)";
+        qDebug() << "FtpClient:: " << port << " connectServer new QNetworkSession(config, this)";
         networkSession = new QNetworkSession(config, this);
-        qDebug() << "FtpClient::Init connect(networkSession, SIGNAL(opened()), this, SLOT(handleSessionOpened()))";
+        qDebug() << "FtpClient:: " << port << " connect(networkSession, SIGNAL(opened()), this, SLOT(handleSessionOpened()))";
         connect(networkSession, SIGNAL(opened()), this, SLOT(handleSessionOpened()));
 
-        qDebug() << "FtpClient::connectServer networkSession->open()";
+        qDebug() << "FtpClient:: " << port << " connectServer networkSession->open()";
         networkSession->open();
     } else {
-        qDebug() << "FtpClient::connectServer tcpSocket->connectToHost())" << " ipAddress " << ipAddress << " port " << port;
+        qDebug() << "FtpClient:: " << port << "connectServer tcpSocket->connectToHost())" << " ipAddress " << ipAddress << " port " << port;
         tcpSocket->connectToHost(ipAddress,  port);
 
     }
@@ -145,39 +145,40 @@ void FtpClient::connectServer()
 
 
 
-
+// TODO
 
 void FtpClient::handleReadyRead()
 {
-    qDebug() << "FtpClient::handleReadyRead " << tcpSocket->bytesAvailable();
+    qDebug() << "FtpClient:: " << port << " handleReadyRead, available bytes" << tcpSocket->bytesAvailable();
     emit deviceStateChanged(DeviceManager::ReadingState);
     mInBuffer = tcpSocket->readAll();
     emit deviceStateChanged(DeviceManager::ReadState);
 
     if ((mProsesedCommand.getCommand() == Command::Picture) &&                              // if we are waiting for pisture data
             (mProsesedCommand.getImageSize() > mProsesedCommand.getImageData().size())) {  // and size of inbuffer is what we wait
+        qDebug() << "FtpClient:: " << port << " handleReadyRead, reading picture data";
         mProsesedCommand.addImageData(mInBuffer);
-        qDebug() << "FtpClient::handleReadyRead Command" << mProsesedCommand.toString();
+        qDebug() << "FtpClient:: " << port << " handleReadyRead picture Command" << mProsesedCommand.toString();
         if (mProsesedCommand.getImageSize() <= mProsesedCommand.getImageData().size())
             emit commandProsessed(mProsesedCommand);
 
     }
     else {
-        qDebug() << "FtpClient::handleReadyRead " << mInBuffer;
+        qDebug() << "FtpClient:: " << port << " handleReadyRead reading normal command: " << mInBuffer;
         mProsesedCommand = Command(mInBuffer);
-        qDebug() << "FtpClient::handleReadyRead Command" << mProsesedCommand.toString();
+        qDebug() << "FtpClient:: " << port << " handleReadyRead Command" << mProsesedCommand.toString();
         emit commandProsessed(mProsesedCommand);
     }
 }
 
 void FtpClient::handleAboutToClose()
 {
-    qDebug() << "FtpClient::handleAboutToClose";
+    qDebug() << "FtpClient:: " << port << " handleAboutToClose";
 }
 
 void FtpClient::handleBytesWritten( qint64 bytes )
 {
-     qDebug() << "FtpClient::handleBytesWritten bytes " << bytes << "mOutBuffer.size() " << mOutBuffer.size();
+     qDebug() << "FtpClient:: " << port << " handleBytesWritten bytes " << bytes << "mOutBuffer.size() " << mOutBuffer.size();
     if (bytes <= mOutBuffer.size())
         mOutBuffer.remove(0,bytes);
     else
@@ -192,7 +193,7 @@ void FtpClient::handleBytesWritten( qint64 bytes )
 
 void FtpClient::handleReadChannelFinished()
 {
-    qDebug() << "FtpClient::handleReadChannelFinished";
+    qDebug() << "FtpClient:: " << port << " handleReadChannelFinished";
 }
 
 
@@ -200,7 +201,7 @@ void FtpClient::handleReadChannelFinished()
 
 void FtpClient::handleError(QAbstractSocket::SocketError socketError)
 {
-    qDebug() << "FtpClient::handleError()";
+    qDebug() << "FtpClient:: " << port << " handleError()";
     switch (socketError) {
     case QAbstractSocket::RemoteHostClosedError:
         qDebug() << tr("RemoteHostClosedError");
@@ -232,7 +233,7 @@ void FtpClient::handleError(QAbstractSocket::SocketError socketError)
 
 void FtpClient::handleSessionOpened()
 {
-    qDebug() << "FtpClient::sessionOpened()";
+    qDebug() << "FtpClient:: " << port << " sessionOpened()";
     emit deviceStateChanged(DeviceManager::ConnectingState);
     tcpSocket->connectToHost(QHostAddress(ipAddress), port);
 
@@ -245,11 +246,12 @@ void FtpClient::handleConnected()
     mConnected = true;
     mConnecting = false;
     mTransferring = false;
-    qDebug() << "FtpClient::handleConnected()";
+    qDebug() << "FtpClient:: " << port << " handleConnected()";
     //request(QString(REQUEST_WHO).arg(QString::number(mOutCommandNumber++)));
     // ask picture
-    sendCommand(Command("", -1, Command::Picture));
-    handleRequests();
+    // Nope
+    //sendCommand(Command("", -1, Command::Picture));
+    //handleRequests();
 }
 
 void FtpClient::handleDisconnected()
@@ -257,26 +259,26 @@ void FtpClient::handleDisconnected()
     emit deviceStateChanged(DeviceManager::UnconnectedState);
     mConnected = false;
     mConnecting = false;
-    qDebug() << "FtpClient::handleDisconnected";
+    qDebug() << "FtpClient:: " << port << " handleDisconnected";
 };
 
 void FtpClient::handleHostFound()
 {
-    qDebug() << "FtpClient::handleHostFound";
+    qDebug() << "FtpClient:: " << port << " handleHostFound";
     emit deviceStateChanged(DeviceManager::ErrorState);
     emit deviceError(QAbstractSocket::HostNotFoundError);
 };
 
 void FtpClient::handleProxyAuthenticationRequired ( const QNetworkProxy & proxy, QAuthenticator * authenticator )
 {
-    qDebug() << "FtpClient::handleProxyAuthenticationRequired";
+    qDebug() << "FtpClient:: " << port << " handleProxyAuthenticationRequired";
     emit deviceStateChanged(DeviceManager::ErrorState);
     emit deviceError(QAbstractSocket::ProxyAuthenticationRequiredError);
 };
 
 void FtpClient::handleStateChanged ( QAbstractSocket::SocketState socketState )
 {
-    qDebug() << "FtpClient::handleStateChanged";
+    qDebug() << "FtpClient:: " << port << " handleStateChanged";
     switch (socketState) {
     case QAbstractSocket::UnconnectedState:
         qDebug() << tr("UnconnectedState: The socket is not connected.");
@@ -313,7 +315,7 @@ void FtpClient::handleStateChanged ( QAbstractSocket::SocketState socketState )
 
 void FtpClient::request(QString request)
 {
-    qDebug() << "FtpClient::request " << request;
+    qDebug() << "FtpClient:: " << port << " request " << request;
     //mRequests.append(request);
 
     // If we are trandferring. we must add this to outbuffer
@@ -328,6 +330,7 @@ void FtpClient::request(QString request)
 
 void FtpClient::sendCommand(Command command)
 {
+    qDebug() << "FtpClient:: " << port << " sendCommand";
     mCommand = command;
     mCommand.setNumber(mOutCommandNumber++);
     request(QString(REQUEST_COMMAND).arg(mCommand.toString()));
@@ -338,7 +341,7 @@ void FtpClient::sendCommand(Command command)
 
 void FtpClient::handleRequests()
 {
-    qDebug() << "FtpClient::handleRequests";
+    qDebug() << "FtpClient:: " << port << " handleRequests";
 
     if (!mInitiated)
         init();
@@ -347,7 +350,7 @@ void FtpClient::handleRequests()
 
     if (!(mTransferring && !mOutBuffer.isEmpty()) && mInitiated && mConnected)
     {
-        qDebug() << "FtpClient::handleRequests size" << mOutBuffer.size() << " " << mOutBuffer;
+        qDebug() << "FtpClient:: " << port << " handleRequests size" << mOutBuffer.size() << " " << mOutBuffer;
         mTransferring = true;
         emit deviceStateChanged(DeviceManager::WritingState);
         tcpSocket->write(mOutBuffer);

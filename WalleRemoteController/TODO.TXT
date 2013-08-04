@@ -8,3 +8,12 @@
 - done bean achirecture
 - MVC architecture
 - Video Dreeaming from device
+
+FtpClient::handleReadyRead Command "5 P 2827220"
+DeviceManager::handleCommandProsessed
+MainWindow::setBackgroundImage read  2827220  bytes
+MainWindow::setBackgroundImage load image from data succeeded, load pixmax  from that image
+
+void FtpClient::handleReadyRead()
+void FtpClient::handleReadyRead()
+

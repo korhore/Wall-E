@@ -39,7 +39,7 @@ public:
 
 Q_SIGNALS:
     virtual void tuningChanged(TuningBean* aTuningBean );
-    void camaraToggled(bool checked);
+    void cameraToggled(bool checked);
 
 public Q_SLOTS:
     virtual void setTuning(TuningBean* aTuningBean);
@@ -58,11 +58,17 @@ public Q_SLOTS:
     // if device state error, also error is emitted
     void showDeviceError(QAbstractSocket::SocketError socketError);
 
+    // Camera
+    void showCameraStateChanged(DeviceManager::DeviceState aDeviceState);
+    // if device state error, also error is emitted
+    void showCameraError(QAbstractSocket::SocketError socketError);
+
+
 
 private Q_SLOTS:
     void handleDirectionChange( double direction );
     void handleSpeedChange( double speed );
-    void handleCamaraToggled(bool checked);
+    void handleCameraToggled(bool checked);
 
 private:
     DeviceStatusFrame* mDeviceStatusFrame;

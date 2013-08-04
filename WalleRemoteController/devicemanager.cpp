@@ -31,42 +31,59 @@
 
 DeviceManager::DeviceManager( QObject *parent ):
     QObject( parent ),
-    mLastComand("",-1,Command::Drive),
-    mCandidateCommand("",-1,Command::Drive)
+    mLastCommand("",-1,Command::Drive),
+    mCandidateCommand("",-1,Command::Drive),
+    mPictureCommand("",-1,Command::Picture),
+    mCameraOn(false)
 {
     // Get saved network configuration
     QSettings settings(QSettings::UserScope, QLatin1String("Wall-E"));
     settings.beginGroup(QLatin1String("Host"));
-    ipAddress = settings.value(QLatin1String("IP"), SERVERNAME).toString();
-    port = settings.value(QLatin1String("PORT"), SERVERPORT).toInt();
+    mIPAddress = settings.value(QLatin1String("IP"), SERVERNAME).toString();
+    mIPPort = settings.value(QLatin1String("PORT"), SERVERPORT).toInt();
+    mCameraIPPort = settings.value(QLatin1String("PORT_FOR_PICTURE"), SERVERPORT_FOR_PICTURE).toInt();
     settings.endGroup();
 
 
-    mFtpClient  = new FtpClient(this, ipAddress, port);
+    mFtpClient  = new FtpClient(this, mIPAddress, mIPPort);
     connect( mFtpClient, SIGNAL(commandProsessed(Command)), this, SLOT(handleCommandProsessed(Command)));
     connect( mFtpClient, SIGNAL(deviceStateChanged(DeviceManager::DeviceState)), this, SLOT(handleDeviceStateChanged(DeviceManager::DeviceState)));
 
     test();
+
+    mFtpCameraClient  = new FtpClient(this, mIPAddress, mCameraIPPort);
+    // cameras device has taken as picture and it should be shown
+    connect( mFtpCameraClient, SIGNAL(commandProsessed(Command)), this, SLOT(handleCameraCommandProsessed(Command)));
+    // camera device state is handled separately
+    connect( mFtpCameraClient, SIGNAL(deviceStateChanged(DeviceManager::DeviceState)), this, SLOT(handleCameraStateChanged(DeviceManager::DeviceState)));
+
 
 }
 
 DeviceManager::~DeviceManager(){
 
     disconnect( mFtpClient, SIGNAL(commandProsessed(Command)), this, SLOT(handleCommandProsessed(Command)));
+    disconnect( mFtpClient, SIGNAL(deviceStateChanged(DeviceManager::DeviceState)), this, SLOT(handleDeviceStateChanged(DeviceManager::DeviceState)));
     delete mFtpClient;
     mFtpClient = NULL;
+
+    disconnect( mFtpCameraClient, SIGNAL(commandProsessed(Command)), this, SLOT(handleCamaraCommandProsessed(Command)));
+    disconnect( mFtpCameraClient, SIGNAL(deviceStateChanged(DeviceManager::DeviceState)), this, SLOT(handleCameraStateChanged(DeviceManager::DeviceState)));
+    delete mFtpCameraClient;
+    mFtpCameraClient = NULL;
+
 }
 
 void DeviceManager::setHost( QString ipAddr, int p)
 {
     qDebug() << "DeviceManager::setHost";
 
-    ipAddress = ipAddr;
-    port = p;
+    mIPAddress = ipAddr;
+    mIPPort = p;
 
     disconnect( mFtpClient, SIGNAL(commandProsessed(Command)), this, SLOT(handleCommandProsessed(Command)));
     delete mFtpClient;
-    mFtpClient  = new FtpClient(this, ipAddress, port);
+    mFtpClient  = new FtpClient(this, mIPAddress, mIPPort);
     connect( mFtpClient, SIGNAL(commandProsessed(Command)), this, SLOT(handleCommandProsessed(Command)));
 
 
@@ -96,11 +113,11 @@ void DeviceManager::setTuning(TuningBean* aTuningBean)
 
     mCandidateCommand.setLeftPower(mLeftPower);
     mCandidateCommand.setRightPower(mRightPower);
-    if (mLastComand.isDifferent(mCandidateCommand)) {
+    if (mLastCommand.isDifferent(mCandidateCommand)) {
        Q_EMIT powerChanged( mLeftPower, mRightPower );
        qDebug() << "DeviceManager:setTuning Change mSpeed" << mSpeed << " mDirection " << mDirection <<" mLeftPower " << mLeftPower <<" mRightPower " << mRightPower;
-       mLastComand =  mCandidateCommand;
-       mFtpClient->sendCommand(mLastComand);
+       mLastCommand =  mCandidateCommand;
+       mFtpClient->sendCommand(mLastCommand);
     }
     else
     {
@@ -136,7 +153,6 @@ bool DeviceManager::test()
         Q_ASSERT(fabs(sourceDirection-tuningbean->getDirection(TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES)) < 0.1);
         delete tuningbean;
     }
-
     // positive case
     // backward
     for (i=-91; i >= -180; i--) {
@@ -208,5 +224,40 @@ bool DeviceManager::test()
 
     return ret;
 }
+
+void DeviceManager::handleCamara(bool on)
+{
+    mCameraOn = on;
+    // if camera is set on, then ask picture
+    // if camera is set off, then we don't ask more pictures in handlePictureCommandProsessed method
+    if (mCameraOn)
+    {
+        mFtpCameraClient->sendCommand(mPictureCommand);
+    }
+}
+
+void DeviceManager::handleCameraCommandProsessed(Command command)
+{
+    qDebug() << "DeviceManager::handleCommandProsessed";
+
+    // tell that we have got picture, it is in the command
+    emit cameraCommandProsessed(command);
+    // if camera is set on, then ask next picture
+    // otherwise this is last one
+    if (mCameraOn)
+    {
+        mFtpCameraClient->sendCommand(mPictureCommand);
+    }
+
+}
+
+void DeviceManager::handleCameraStateChanged(DeviceManager::DeviceState aDeviceState)
+{
+    qDebug() << "DeviceManager::handleDeviceStateChanged";
+
+    emit cameraStateChanged(aDeviceState);
+}
+
+
 
 

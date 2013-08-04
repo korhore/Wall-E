@@ -41,7 +41,7 @@ public:
 signals:
     //void powerChanged( double leftPower, double rightPower );
     virtual void tuningChanged(TuningBean* aTuningBean );
-    void camaraToggled(bool checked);
+    void cameraToggled(bool checked);
 
 public Q_SLOTS:
     //void setpower( bool running, double leftPower, double rightPower );
@@ -62,17 +62,31 @@ public Q_SLOTS:
     // if device state error, also error is emitted
     void showDeviceError(QAbstractSocket::SocketError socketError);
 
+    // show camera state
+    // tries to change power and send comand to device
+    void showCameraPowerChanged( double leftPower, double rightPower );
+    // device has processed command and set it to this status
+    void showCameraCommandProsessed(Command command);
+    // device has processed command and set it to this tuning
+    void showCameraStateChanged(TuningBean* aTuningBean);
+    // device state has changed
+    void showCameraStateChanged(DeviceManager::DeviceState aDeviceState);
+    // if device state error, also error is emitted
+    void showCameraError(QAbstractSocket::SocketError socketError);
+
+
 
 private Q_SLOTS:
     void handleSettings();
-    void handleCamaraToggled(bool checked);
+    void handleCameraToggled(bool checked);
     void handleLeftPowerChange( double leftPower );
     void handleRightPowerChange( double rightPower );
 
 
 private:
-    QwtSlider *mLeftPowerSlider;
     DeviceStateWidget *mDeviceStateWidget;
+    DeviceStateWidget *mCameraStateWidget;
+    QwtSlider *mLeftPowerSlider;
     QwtSlider *mRightPowerSlider;
 
     bool mRunning;

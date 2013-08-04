@@ -75,13 +75,28 @@ DeviceStatusFrame::DeviceStatusFrame( QWidget *parent ):
 
     // below camera state button
 
-    QPushButton* mCameraButton = new QPushButton(this);
-    mCameraButton->setIcon(QIcon(QPixmap(":pictures/settings.png")));
+    mCameraStateWidget = new DeviceStateWidget(this);
+
+#if defined(Q_WS_S60)
+    QPushButton* mCameraButton = new QPushButton(tr("Cam"), this);
+    mCameraButton->setPalette( QPalette( QColor( 128, 128, 128 ) ) );
+#else
+    QPushButton* mCameraButton = new QPushButton(tr("Cam."), this);
+#endif
+    mCameraButton->setIcon(QIcon(QPixmap(":pictures/camera_64x64.png")));
     mCameraButton->setIconSize(QSize(WIDTH,WIDTH));
     mCameraButton->setCheckable ( true );
-    mCameraButton->setChecked ( true );
+    mCameraButton->setChecked ( false );
     mCameraButton->setPalette( QPalette( QColor( 128, 128, 128 ) ) );
-    connect(mCameraButton, SIGNAL(toggled(bool)), this, SLOT(handleCamaraToggled(bool)));
+    connect(mCameraButton, SIGNAL(toggled(bool)), this, SLOT(handleCameraToggled(bool)));
+
+    QWidget *camera = new QWidget(this);
+    QHBoxLayout *cameraLayout = new QHBoxLayout( camera );
+    cameraLayout->setMargin( 1 );
+    cameraLayout->setSpacing( 1 );
+    cameraLayout->addWidget( mCameraStateWidget );
+    cameraLayout->addWidget( mCameraButton );
+
 
 
     // Left power
@@ -151,7 +166,7 @@ DeviceStatusFrame::DeviceStatusFrame( QWidget *parent ):
     mainLayout->setMargin( 2 );
     mainLayout->addWidget(device/*mDeviceStateWidget /*, WIDTH , 0, Qt::AlignCenter*/);
 
-    mainLayout->addWidget(mCameraButton );
+    mainLayout->addWidget(camera );
 
     mainLayout->addWidget(power);
 
@@ -246,10 +261,13 @@ void DeviceStatusFrame::handleSettings()
 
 }
 
-void DeviceStatusFrame::handleCamaraToggled(bool checked)
+void DeviceStatusFrame::handleCameraToggled(bool checked)
 {
-    emit camaraToggled(checked);
+    qDebug() << "DeviceStatusFrame::handleCameraToggled" << checked;
+    emit cameraToggled(checked);
 }
+
+// Device state feedback
 
 // tries to change power and send comand to device
 void DeviceStatusFrame::showPowerChanged( double leftPower, double rightPower )
@@ -281,5 +299,39 @@ void DeviceStatusFrame::showDeviceError(QAbstractSocket::SocketError socketError
 {
     mDeviceStateWidget->showDeviceError(socketError);
 }
+
+// Camera state feedback
+
+// tries to change power and send comand to device
+void DeviceStatusFrame::showCameraPowerChanged( double leftPower, double rightPower )
+{
+    mCameraStateWidget->showPowerChanged( leftPower, rightPower );
+}
+
+// device has processed command and set it to this status
+void DeviceStatusFrame::showCameraCommandProsessed(Command command)
+{
+    mCameraStateWidget->showCommandProsessed(command);
+}
+
+// device has processed command and set it to this tuning
+void DeviceStatusFrame::showCameraStateChanged(TuningBean* aTuningBean)
+{
+    mCameraStateWidget->showDeviceStateChanged(aTuningBean);
+}
+
+// device state has changed
+void DeviceStatusFrame::showCameraStateChanged(DeviceManager::DeviceState aDeviceState)
+{
+    qDebug() << "DeviceStatusFrame::showDeviceStateChanged";
+    mCameraStateWidget->showDeviceStateChanged(aDeviceState);
+}
+
+// if device state error, also error is emitted
+void DeviceStatusFrame::showCameraError(QAbstractSocket::SocketError socketError)
+{
+    mCameraStateWidget->showDeviceError(socketError);
+}
+
 
 

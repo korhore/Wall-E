@@ -62,10 +62,13 @@ TunerController::TunerController(QWidget *parent /*=NULL*/)
 //#ifdef newcode
     connect(mMainWindow,SIGNAL(tuningChanged(TuningBean*)), mDeviceManager,SLOT(setTuning(TuningBean*)));
     connect(mMainWindow,SIGNAL(hostChanged(QString, int)), mDeviceManager,SLOT(setHost(QString, int)));
+    connect(mMainWindow,SIGNAL(cameraToggled(bool)), mDeviceManager,SLOT(handleCamara(bool)));
+
+    // device
     connect(mDeviceManager, SIGNAL(commandProsessed(Command)), mMainWindow, SLOT(setCommand(Command)));
 
     connect(mDeviceManager, SIGNAL(powerChanged(double,double)), mMainWindow, SLOT(showPowerChanged(double,double)));
-    // device has processed command and set it to this status
+    // device has processed command and set it to this command
     connect(mDeviceManager, SIGNAL(commandProsessed(Command)),  mMainWindow, SLOT(showCommandProsessed(Command)));
     // device has processed command and set it to this tuning
     connect(mDeviceManager, SIGNAL(deviceStateChanged(TuningBean*)), mMainWindow, SLOT(showDeviceStateChanged(TuningBean*)));
@@ -73,6 +76,14 @@ TunerController::TunerController(QWidget *parent /*=NULL*/)
     connect(mDeviceManager, SIGNAL(deviceStateChanged(DeviceManager::DeviceState)), mMainWindow, SLOT(showDeviceStateChanged(DeviceManager::DeviceState)));
     // if device state error, also error is emitted
     connect(mDeviceManager, SIGNAL(deviceError(QAbstractSocket::SocketError)), mMainWindow, SLOT(showDeviceError(QAbstractSocket::SocketError)));
+
+    // camera
+    // camera device has taken set it to this command, we should show it
+    connect(mDeviceManager, SIGNAL(cameraCommandProsessed(Command)),  mMainWindow, SLOT(showCameraCommandProsessed(Command)));
+    // device state has changed
+    connect(mDeviceManager, SIGNAL(cameraStateChanged(DeviceManager::DeviceState)), mMainWindow, SLOT(showCameraStateChanged(DeviceManager::DeviceState)));
+    // if device state error, also error is emitted
+    connect(mDeviceManager, SIGNAL(cameraError(QAbstractSocket::SocketError)), mMainWindow, SLOT(showCameraError(QAbstractSocket::SocketError)));
 
 
 //#endif

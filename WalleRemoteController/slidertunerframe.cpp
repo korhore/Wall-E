@@ -82,7 +82,7 @@ SliderTunerFrame::SliderTunerFrame( QWidget *parent ):
     directionLayout->addWidget( directionLabel );
 
     connect(mSliderDirection, SIGNAL(sliderMoved(double)), this, SLOT(handleDirectionChange(double)));
-    connect(mDeviceStatusFrame, SIGNAL(camaraToggled(bool)), this, SLOT(handleCamaraToggled(bool)));
+    connect(mDeviceStatusFrame, SIGNAL(cameraToggled(bool)), this, SLOT(handleCameraToggled(bool)));
 
 
     QWidget *speed = new QWidget(this);
@@ -168,9 +168,10 @@ void SliderTunerFrame::handleSpeedChange( double speed )
     emit tuningChanged(new TuningBean(TuningBean::SCALE_POSITIVE_NEGATIVE_SPEED_PLUS_DEGREES, mSpeed, mDirection, this));
 }
 
-void SliderTunerFrame::handleCamaraToggled(bool checked)
+void SliderTunerFrame::handleCameraToggled(bool checked)
 {
-    emit camaraToggled(checked);
+    qDebug() << "SliderTunerFrame::handleCameraToggled " << checked;
+    emit cameraToggled(checked);
 }
 
 
@@ -206,4 +207,17 @@ void SliderTunerFrame::showDeviceError(QAbstractSocket::SocketError socketError)
     mDeviceStatusFrame->showDeviceError(socketError);
 }
 
+// Camera
+void SliderTunerFrame::showCameraStateChanged(DeviceManager::DeviceState aDeviceState)
+{
+    qDebug() << "SliderTunerFrame::showCameraStateChanged";
+    mDeviceStatusFrame->showCameraStateChanged(aDeviceState);
+}
+
+// if device state error, also error is emitted
+void SliderTunerFrame::showCameraError(QAbstractSocket::SocketError socketError)
+{
+    mDeviceStatusFrame->showCameraError(socketError);
+
+}
 

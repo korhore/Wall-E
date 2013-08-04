@@ -64,6 +64,7 @@ public:
 Q_SIGNALS:
     void tuningChanged(TuningBean* aTuningBean);
     void hostChanged(QString ipAddress, int port);
+    void cameraToggled(bool checked);
 public Q_SLOTS:
     void setDeviceState(TuningBean* aTuningBean);
     void setDeviceState(DeviceManager::DeviceState aDeviceState);
@@ -81,11 +82,21 @@ public Q_SLOTS:
     // if device state error, also error is emitted
     void showDeviceError(QAbstractSocket::SocketError socketError);
 
+    // show camera state
+    // camera device has taken a picture and it should be shown
+    void showCameraCommandProsessed(Command command);
+    // camera device state has changed
+    void showCameraStateChanged(DeviceManager::DeviceState aDeviceState);
+    // if camera device state error, also error is emitted
+    void showCameraError(QAbstractSocket::SocketError socketError);
+
+
+
 
 
 private Q_SLOTS:
     void setTuning(TuningBean* aTuningBean);
-    void handleCamaraToggled(bool checked);
+    void handleCameraToggled(bool checked);
 
 
 private:

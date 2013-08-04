@@ -65,6 +65,7 @@ public:
     bool test();
 
 Q_SIGNALS:
+    // device
     // tries to change power and send comand to device
     void powerChanged( double leftPower, double rightPower );
     // device has processed command and set it to this status
@@ -76,6 +77,17 @@ Q_SIGNALS:
     // if device state error, also error is emitted
     void deviceError(QAbstractSocket::SocketError socketError);
 
+    // Camera
+    // device has processed picture command and set it to this status
+    void cameraCommandProsessed(Command command);
+    // device has processed command and set it to this tuning
+    void cameraStateChanged(TuningBean* aTuningBean);
+    // device state has changed
+    void cameraStateChanged(DeviceManager::DeviceState aDeviceState);
+    // if device state error, also error is emitted
+    void cameraError(QAbstractSocket::SocketError socketError);
+
+
 
 public Q_SLOTS:
     virtual void setTuning(TuningBean* aTuningBean );
@@ -84,6 +96,10 @@ public Q_SLOTS:
 private Q_SLOTS:
     void handleCommandProsessed(Command command);
     void handleDeviceStateChanged(DeviceManager::DeviceState aDeviceState);
+
+    void handleCamara(bool on);
+    void handleCameraCommandProsessed(Command command);
+    void handleCameraStateChanged(DeviceManager::DeviceState aDeviceState);
 
 
 
@@ -99,10 +115,16 @@ private:
     //bool mRunning;      // is car moving or topped
 
     FtpClient* mFtpClient;
-    QString ipAddress;
-    int port;
-    Command mLastComand;
+    QString mIPAddress;
+    int mIPPort;
+    FtpClient* mFtpCameraClient;
+    int mCameraIPPort;
+
+    Command mLastCommand;
     Command mCandidateCommand;
+    Command mPictureCommand;
+
+    bool mCameraOn;
 
 
 };

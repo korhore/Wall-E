@@ -55,7 +55,7 @@ public:
 signals:
     
 public slots:
-    // tries to change power and send comand to device
+    // tries to change power and send command to device
     void showPowerChanged( double leftPower, double rightPower );
     // device has processed command and set it to this status
     void showCommandProsessed(Command command);
@@ -66,10 +66,13 @@ public slots:
     // if device state error, also error is emitted
     void showDeviceError(QAbstractSocket::SocketError socketError);
 
+
 private:
     bool mPowerChanged;
     QAbstractSocket::SocketError mSocketError;
     DeviceManager::DeviceState mDeviceState;
+
+
 
 };
 
