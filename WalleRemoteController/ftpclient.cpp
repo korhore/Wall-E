@@ -39,8 +39,11 @@ FtpClient::FtpClient(QObject *parent, QString ipAddr, int p)
     mInitiated(false),
     mConnected(false),
     mTransferring(false),
+    mCameraOn(false),
+    mReceivingPicture(false),
     mOutCommandNumber(0),
-    mInCommandNumber(0)
+    mInCommandNumber(0),
+    mPictureCommand("",-1,Command::Picture)
 {
     qDebug() << "FtpClient::FtpClient";
 
@@ -154,20 +157,50 @@ void FtpClient::handleReadyRead()
     mInBuffer = tcpSocket->readAll();
     emit deviceStateChanged(DeviceManager::ReadState);
 
-    if ((mProsesedCommand.getCommand() == Command::Picture) &&                              // if we are waiting for pisture data
-            (mProsesedCommand.getImageSize() > mProsesedCommand.getImageData().size())) {  // and size of inbuffer is what we wait
-        qDebug() << "FtpClient:: " << port << " handleReadyRead, reading picture data";
-        mProsesedCommand.addImageData(mInBuffer);
-        qDebug() << "FtpClient:: " << port << " handleReadyRead picture Command" << mProsesedCommand.toString();
-        if (mProsesedCommand.getImageSize() <= mProsesedCommand.getImageData().size())
+    if (mReceivingPicture)                             // if we are waiting for pisture data
+    {
+        qDebug() << "FtpClient:: " << port << " handleReadyRead, receiving picture data";
+        if (mProsesedCommand.getImageSize() > mProsesedCommand.getImageData().size())
+        {                                               // and size of inbuffer is what we wait
+            qDebug() << "FtpClient:: " << port << " handleReadyRead, missing before read" << mProsesedCommand.getImageSize() - mProsesedCommand.getImageData().size();
+            mProsesedCommand.addImageData(mInBuffer);
+            if (mProsesedCommand.getImageSize() <= mProsesedCommand.getImageData().size())
+            {
+                qDebug() << "FtpClient:: " << port << " handleReadyRead, all picture data read";
+                emit commandProsessed(mProsesedCommand);
+                mReceivingPicture = false;
+                if (mCameraOn)
+                {
+                    qDebug() << "FtpClient:: " << port << " handleReadyRead, ask next picture";
+                    sendCommand(mPictureCommand);
+                }
+            }
+            else
+            {
+                qDebug() << "FtpClient:: " << port << " handleReadyRead, missing after read" << mProsesedCommand.getImageSize() - mProsesedCommand.getImageData().size();
+            }
+        }
+        else
+        {
+            qDebug() << "FtpClient:: " << port << " handleReadyRead, error in reading picture data, too much data got";
             emit commandProsessed(mProsesedCommand);
+            mReceivingPicture = false;
+        }
 
     }
-    else {
+    else
+    {
         qDebug() << "FtpClient:: " << port << " handleReadyRead reading normal command: " << mInBuffer;
         mProsesedCommand = Command(mInBuffer);
-        qDebug() << "FtpClient:: " << port << " handleReadyRead Command" << mProsesedCommand.toString();
-        emit commandProsessed(mProsesedCommand);
+        if (mProsesedCommand.getCommand() == Command::Picture)
+        {
+            qDebug() << "FtpClient:: " << port << " handleReadyRead  started receiving picture";
+            mReceivingPicture = true;
+        } else
+        {
+            qDebug() << "FtpClient:: " << port << " handleReadyRead Command" << mProsesedCommand.toString();
+            emit commandProsessed(mProsesedCommand);
+        }
     }
 }
 
@@ -178,17 +211,20 @@ void FtpClient::handleAboutToClose()
 
 void FtpClient::handleBytesWritten( qint64 bytes )
 {
-     qDebug() << "FtpClient:: " << port << " handleBytesWritten bytes " << bytes << "mOutBuffer.size() " << mOutBuffer.size();
+    qDebug() << "FtpClient:: " << port << " handleBytesWritten bytes " << bytes << "mOutBuffer.size() " << mOutBuffer.size();
     if (bytes <= mOutBuffer.size())
         mOutBuffer.remove(0,bytes);
     else
         mOutBuffer.clear();
 
-    if (mOutBuffer.isEmpty()) {
+    if (mOutBuffer.size() == 0) {
         mTransferring = false;
+        qDebug() << "FtpClient:: " << port << " handleBytesWritten mTransferring " << mTransferring;
         emit deviceStateChanged(DeviceManager::WrittenState);
-     } else
+    } else
+    {
         handleRequests();
+    }
 }
 
 void FtpClient::handleReadChannelFinished()
@@ -246,12 +282,16 @@ void FtpClient::handleConnected()
     mConnected = true;
     mConnecting = false;
     mTransferring = false;
-    qDebug() << "FtpClient:: " << port << " handleConnected()";
+    qDebug() << "FtpClient:: " << port << " handleConnected mTransferring " << mTransferring;
     //request(QString(REQUEST_WHO).arg(QString::number(mOutCommandNumber++)));
-    // ask picture
-    // Nope
-    //sendCommand(Command("", -1, Command::Picture));
-    //handleRequests();
+    // ask picture if camera is on, and output buffer is empty
+    if (mCameraOn && (mOutBuffer.size() == 0))
+    {
+        sendCommand(Command("", -1, Command::Picture));
+    } else  // else handle requests we have
+    {
+        handleRequests();
+    }
 }
 
 void FtpClient::handleDisconnected()
@@ -283,6 +323,11 @@ void FtpClient::handleStateChanged ( QAbstractSocket::SocketState socketState )
     case QAbstractSocket::UnconnectedState:
         qDebug() << tr("UnconnectedState: The socket is not connected.");
         emit deviceStateChanged(DeviceManager::UnconnectedState);
+        qDebug() << tr("UnconnectedState: handleRequests()");
+        mConnected = false;
+        mTransferring = false;
+        qDebug() << "FtpClient:: " << port << " handleStateChanged mTransferring " << mTransferring;
+        handleRequests();   // reconnect if we have something to send
         break;
     case QAbstractSocket::HostLookupState:
         qDebug() << tr("HostLookupState: The socket is performing a host name lookup.");
@@ -336,23 +381,34 @@ void FtpClient::sendCommand(Command command)
     request(QString(REQUEST_COMMAND).arg(mCommand.toString()));
 }
 
+void FtpClient::setCameraOn(bool aOn)
+{
+    qDebug() << "FtpClient:: " << port << " setCameraOn " << aOn;
+    mCameraOn = aOn;
+    if (mCameraOn) {
+        sendCommand(mPictureCommand);
+    }
+}
+
+
 
 
 
 void FtpClient::handleRequests()
 {
-    qDebug() << "FtpClient:: " << port << " handleRequests";
+    qDebug() << "FtpClient:: " << port << " handleRequests mInitiated" << mInitiated << " mConnected " << mConnected << " mConnecting " << mConnecting << " mTransferring " << mTransferring << " mOutBuffer.size() " << mOutBuffer.size();
 
     if (!mInitiated)
         init();
     if ((!mConnected) && (!mConnecting))
         connectServer();
 
-    if (!(mTransferring && !mOutBuffer.isEmpty()) && mInitiated && mConnected)
+    if (!mTransferring && (mOutBuffer.size() > 0) && mInitiated && mConnected)
     {
         qDebug() << "FtpClient:: " << port << " handleRequests size" << mOutBuffer.size() << " " << mOutBuffer;
-        mTransferring = true;
         emit deviceStateChanged(DeviceManager::WritingState);
+        mTransferring = true;
+        qDebug() << "FtpClient:: " << port << " handleRequests mTransferring " << mTransferring;
         tcpSocket->write(mOutBuffer);
     }
 }

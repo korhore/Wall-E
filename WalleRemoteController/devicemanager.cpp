@@ -33,7 +33,7 @@ DeviceManager::DeviceManager( QObject *parent ):
     QObject( parent ),
     mLastCommand("",-1,Command::Drive),
     mCandidateCommand("",-1,Command::Drive),
-    mPictureCommand("",-1,Command::Picture),
+    //mPictureCommand("",-1,Command::Picture),
     mCameraOn(false)
 {
     // Get saved network configuration
@@ -227,27 +227,28 @@ bool DeviceManager::test()
 
 void DeviceManager::handleCamara(bool on)
 {
+    qDebug() << "DeviceManager::handleCamara " << on;
     mCameraOn = on;
     // if camera is set on, then ask picture
     // if camera is set off, then we don't ask more pictures in handlePictureCommandProsessed method
-    if (mCameraOn)
-    {
-        mFtpCameraClient->sendCommand(mPictureCommand);
-    }
+    mFtpCameraClient->setCameraOn(on);
+    //mFtpCameraClient->sendCommand(mPictureCommand);
 }
 
 void DeviceManager::handleCameraCommandProsessed(Command command)
 {
-    qDebug() << "DeviceManager::handleCommandProsessed";
+    qDebug() << "DeviceManager::handleCameraCommandProsessed";
 
     // tell that we have got picture, it is in the command
     emit cameraCommandProsessed(command);
     // if camera is set on, then ask next picture
     // otherwise this is last one
-    if (mCameraOn)
+    /* if (mCameraOn)
     {
+        qDebug() << "DeviceManager::handleCameraCommandProsessed mFtpCameraClient->sendCommand(mPictureCommand)";
         mFtpCameraClient->sendCommand(mPictureCommand);
     }
+    */
 
 }
 

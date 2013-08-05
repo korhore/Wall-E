@@ -34,6 +34,7 @@
 
 #define SERVERNAME "192.168.1.7"
 #define SERVERPORT 2000
+#define SERVERPORT_FOR_PICTURE 2001
 
 #define REQUEST_WHO "%1 W |"
 #define ANSWER_WHO_WALLE "Wall-E |"
@@ -56,6 +57,7 @@ public:
 
     FtpClient(QObject* parent = 0, QString ipAddr="192.168.1.7", int p=2000);
     void sendCommand(Command command);
+    void setCameraOn(bool aOn);
 
 signals:
     void deviceStateChanged(DeviceManager::DeviceState aDeviceState);
@@ -91,6 +93,8 @@ private:
     bool mConnected;
     bool mConnecting;
     bool mTransferring;
+    bool mCameraOn;
+    bool mReceivingPicture;
     QString ipAddress;
     int port;
     QTcpSocket *tcpSocket;
@@ -106,6 +110,7 @@ private:
     unsigned int mOutCommandNumber;
     QByteArray mInBuffer;
     unsigned int mInCommandNumber;
+    Command mPictureCommand;
 };
 //! [0]
 
