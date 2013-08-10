@@ -27,6 +27,7 @@
 #include "devicemanager.h"
 #include "tuningbean.h"
 #include "ftpclient.h"
+#include "settingsdialog.h"
 
 
 DeviceManager::DeviceManager( QObject *parent ):
@@ -37,11 +38,11 @@ DeviceManager::DeviceManager( QObject *parent ):
     mCameraOn(false)
 {
     // Get saved network configuration
-    QSettings settings(QSettings::UserScope, QLatin1String("Wall-E"));
+    QSettings settings(QSettings::UserScope, QLatin1String(SETTING_STR));
     settings.beginGroup(QLatin1String("Host"));
-    mIPAddress = settings.value(QLatin1String("IP"), SERVERNAME).toString();
-    mIPPort = settings.value(QLatin1String("PORT"), SERVERPORT).toInt();
-    mCameraIPPort = settings.value(QLatin1String("PORT_FOR_PICTURE"), SERVERPORT_FOR_PICTURE).toInt();
+    mIPAddress = settings.value(QLatin1String(SETTING_HOST_IP_STR), SERVERNAME).toString();
+    mIPPort = settings.value(QLatin1String(SETTING_PORT_STR), SERVERPORT).toInt();
+    mCameraIPPort = settings.value(QLatin1String(SETTING_CAMERA_PORT_STR), SERVERCAMERAPORT).toInt();
     settings.endGroup();
 
 
@@ -67,7 +68,7 @@ DeviceManager::~DeviceManager(){
     delete mFtpClient;
     mFtpClient = NULL;
 
-    disconnect( mFtpCameraClient, SIGNAL(commandProsessed(Command)), this, SLOT(handleCamaraCommandProsessed(Command)));
+    disconnect( mFtpCameraClient, SIGNAL(commandProsessed(Command)), this, SLOT(handleCameraCommandProsessed(Command)));
     disconnect( mFtpCameraClient, SIGNAL(deviceStateChanged(DeviceManager::DeviceState)), this, SLOT(handleCameraStateChanged(DeviceManager::DeviceState)));
     delete mFtpCameraClient;
     mFtpCameraClient = NULL;

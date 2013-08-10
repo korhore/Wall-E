@@ -29,8 +29,7 @@
 #include "ipnumberwidged.h"
 
 
-
-SettingsDialog::SettingsDialog(QWidget *parent, QString hostIP/*=""*/, int port/*=0*/) :
+SettingsDialog::SettingsDialog(QWidget *parent, QString hostIP/*=SERVERNAME*/, int port/*=SERVERPORT*/, int camera_port/*=SERVERCAMERAPORT*/) :
     QDialog(parent)
 {
      QPushButton *closeButton = new QPushButton(tr("Close"));
@@ -40,14 +39,16 @@ SettingsDialog::SettingsDialog(QWidget *parent, QString hostIP/*=""*/, int port/
      QLabel* hostLabel = new QLabel(tr("IP of the Wall-E Host"), this);
 
      // Get saved network configuration
-     QSettings settings(QSettings::UserScope, QLatin1String("Wall-E"));
+     QSettings settings(QSettings::UserScope, QLatin1String(SETTING_STR));
      settings.beginGroup(QLatin1String("Host"));
-     hostIP = settings.value(QLatin1String("IP"), hostIP).toString();
-     port = settings.value(QLatin1String("PORT"), port).toInt();
+     hostIP = settings.value(QLatin1String(SETTING_HOST_IP_STR), hostIP).toString();
+     port = settings.value(QLatin1String(SETTING_PORT_STR), port).toInt();
+     camera_port = settings.value(QLatin1String(SETTING_CAMERA_PORT_STR), camera_port).toInt();
      settings.endGroup();
 
      mIPNumberWidget = new IPNumberWidget(this, hostIP);
      connect(mIPNumberWidget, SIGNAL(signalTextChanged(QString)), this, SLOT(hostIPChanged(QString)));
+
 
      QWidget *hostWidget= new QWidget(this);
      QHBoxLayout *hostlLayout = new QHBoxLayout(hostWidget);
@@ -59,43 +60,62 @@ SettingsDialog::SettingsDialog(QWidget *parent, QString hostIP/*=""*/, int port/
      mPortNumber->setText(QString::number(port));
      connect(mPortNumber, SIGNAL(textEdited (const QString)), this, SLOT(portChanged(const QString)));
 
+     QLabel* cameraPortLabel = new QLabel(tr("Camera Port"), this);
+     mCameraPortNumber = new QLineEdit(this);
+     mCameraPortNumber->setText(QString::number(camera_port));
+     connect(mCameraPortNumber, SIGNAL(textEdited (const QString)), this, SLOT(cameraPortChanged(const QString)));
+
+
      QWidget *portWidget= new QWidget(this);
      QHBoxLayout *portlLayout = new QHBoxLayout(portWidget);
      portlLayout->addWidget(portLabel);
      portlLayout->addWidget(mPortNumber, 200, Qt::AlignRight );
+
+     QWidget *cameraPortWidget= new QWidget(this);
+     QHBoxLayout *cameraPortLayout = new QHBoxLayout(cameraPortWidget);
+     cameraPortLayout->addWidget(cameraPortLabel);
+     cameraPortLayout->addWidget(mCameraPortNumber, 200, Qt::AlignRight );
 
      QVBoxLayout *mainLayout = new QVBoxLayout;
      mainLayout->addWidget(hostWidget);
      //mainLayout->addStretch(1);
      //mainLayout->addSpacing(12);
      mainLayout->addWidget(portWidget);
+     mainLayout->addWidget(cameraPortWidget);
 
      mainLayout->addWidget(closeButton, 20, Qt::AlignRight);
      setLayout(mainLayout);
 
      setWindowTitle(tr("Settings"));
-
 }
 
 void SettingsDialog::hostIPChanged(QString hostIP)
 {
     // Saved network configuration
     qDebug() << "SettingsDialog::hostIPChanged " << hostIP;
-    QSettings settings(QSettings::UserScope, QLatin1String("Wall-E"));
+    QSettings settings(QSettings::UserScope, QLatin1String(SETTING_STR));
     settings.beginGroup(QLatin1String("Host"));
-    settings.setValue(QLatin1String("IP"), hostIP);
+    settings.setValue(QLatin1String(SETTING_HOST_IP_STR), hostIP);
     settings.endGroup();
-
 }
 
 void SettingsDialog::portChanged(const QString port)
 {
     // Saved network configuration
     qDebug() << "SettingsDialog::portChanged " << port;
-    QSettings settings(QSettings::UserScope, QLatin1String("Wall-E"));
+    QSettings settings(QSettings::UserScope, QLatin1String(SETTING_STR));
     settings.beginGroup(QLatin1String("Host"));
-    settings.setValue(QLatin1String("PORT"), port.toInt());
+    settings.setValue(QLatin1String(SETTING_PORT_STR), port.toInt());
     settings.endGroup();
+}
 
+void SettingsDialog::cameraPortChanged(const QString port)
+{
+    // Saved network configuration
+    qDebug() << "SettingsDialog::cameraPortChanged " << port;
+    QSettings settings(QSettings::UserScope, QLatin1String(SETTING_STR));
+    settings.beginGroup(QLatin1String("Host"));
+    settings.setValue(QLatin1String(SETTING_CAMERA_PORT_STR), port.toInt());
+    settings.endGroup();
 }
 

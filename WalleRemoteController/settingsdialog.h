@@ -25,6 +25,13 @@
 #define SETTINGSDIALOG_H
 
 #include <QDialog>
+#include "ftpclient.h"
+
+#define SETTING_STR             "Wall-E"
+#define SETTING_HOST_IP_STR     "IP"
+#define SETTING_PORT_STR        "PORT"
+#define SETTING_CAMERA_PORT_STR "CAMERA_PORT"
+
 class IPNumberWidget;
 class QLineEdit;
 
@@ -32,7 +39,7 @@ class SettingsDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit SettingsDialog(QWidget *parent, QString hostIP="", int port=0);
+    explicit SettingsDialog(QWidget *parent, QString hostIP=SERVERNAME, int port=SERVERPORT, int cameraPort=SERVERCAMERAPORT);
     
 signals:
     
@@ -41,11 +48,13 @@ public slots:
 private slots:
     void hostIPChanged(QString hostIP);
     void portChanged(const QString port);
+    void cameraPortChanged(const QString port);
 
 private:
     IPNumberWidget* mIPNumberWidget;
     QLineEdit* mPortNumber;
-    
+    QLineEdit* mCameraPortNumber;
+
 };
 
 #endif // SETTINGSDIALOG_H

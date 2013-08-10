@@ -256,7 +256,7 @@ void DeviceStatusFrame::setTuning( TuningBean* aTuningBean )
 
 void DeviceStatusFrame::handleSettings()
 {
-    SettingsDialog settingsDialog(this, QString(SERVERNAME), SERVERPORT);
+    SettingsDialog settingsDialog(this, QString(SERVERNAME), SERVERPORT, SERVERCAMERAPORT);
     settingsDialog.exec();
 
 }

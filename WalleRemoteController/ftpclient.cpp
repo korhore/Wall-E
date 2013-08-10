@@ -28,6 +28,7 @@
 #include "ftpclient.h"
 #include "command.h"
 #include "devicemanager.h"
+#include "settingsdialog.h"
 
 
 
@@ -80,7 +81,7 @@ void FtpClient::init()
     if (manager.capabilities() & QNetworkConfigurationManager::NetworkSessionRequired) {
         qDebug() << "FtpClient::Init QNetworkConfigurationManager::NetworkSessionRequired";
         // Get saved network configuration
-        QSettings settings(QSettings::UserScope, QLatin1String("Wall-E"));
+        QSettings settings(QSettings::UserScope, QLatin1String(SETTING_STR));
         settings.beginGroup(QLatin1String("QtNetwork"));
         const QString id = settings.value(QLatin1String("DefaultNetworkConfiguration")).toString();
         settings.endGroup();
@@ -120,7 +121,7 @@ void FtpClient::connectServer()
     if (manager.capabilities() & QNetworkConfigurationManager::NetworkSessionRequired) {
         qDebug() << "FtpClient:: " << port << " connectServer QNetworkConfigurationManager::NetworkSessionRequired";
         // Get saved network configuration
-        QSettings settings(QSettings::UserScope, QLatin1String("Wall-E"));
+        QSettings settings(QSettings::UserScope, QLatin1String(SETTING_STR));
         settings.beginGroup(QLatin1String("QtNetwork"));
         const QString id = settings.value(QLatin1String("DefaultNetworkConfiguration")).toString();
         settings.endGroup();

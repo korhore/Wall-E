@@ -279,7 +279,7 @@ void PowerTunerFrame::setSpeedDirection( double speed, double direction )
 
 void PowerTunerFrame::handleSettings()
 {
-    SettingsDialog settingsDialog(this, QString(SERVERNAME), SERVERPORT);
+    SettingsDialog settingsDialog(this, QString(SERVERNAME), SERVERPORT, SERVERCAMERAPORT);
     settingsDialog.exec();
 
 }
