@@ -1,0 +1,24 @@
+#! /bin/sh
+# /etc/init.d/Wall-E_server
+#
+
+# Some things that run always
+touch /var/lock/Wall-E_server
+
+# Carry out specific functions when asked to by the system
+case "$1" in
+  start)
+    echo "Starting script Wall-E_server "
+    echo "Could do more here"
+    ;;
+  stop)
+    echo "Stopping script Wall-E_server"
+    echo "Could do more here"
+    ;;
+  *)
+    echo "Usage: /etc/init.d/Wall-E_server {start|stop}"
+    exit 1
+    ;;
+esac
+
+exit 0
