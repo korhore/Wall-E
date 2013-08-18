@@ -13,11 +13,15 @@ import signal
 import sys
 
 import daemon
+import lockfile
+
 
 
 HOST = '0.0.0.0'
 PORT = 2000
 PICTURE_PORT = 2001
+
+DAEMON=False
 
 
 
@@ -33,6 +37,7 @@ class WalleRequestHandler(SocketServer.BaseRequestHandler):
     def handle(self):
         print "WalleRequestHandler.handle"
         # self.request is the TCP socket connected to the client
+        print "WalleRequestHandler.handle lf.request.recv(1024).strip()"
         self.data = self.request.recv(1024).strip()
         #print "{} wrote:".format(self.client_address[0])
         print "WalleRequestHandler.handle Client wrote " + self.data
@@ -99,8 +104,8 @@ def signal_handler(signal, frame):
    
 
 def do_server():
-    print "do_server: create romeo"
-    romeo = Romeo()
+#    print "do_server: create romeo"
+#    romeo = Romeo()
     #romeo.test2()
 
     #HOST, PORT = "localhost", 2000
@@ -184,8 +189,25 @@ def main():
 
 
 if __name__ == "__main__":
-    with daemon.DaemonContext():
-        do_server()
+
+# Create globals needed by servers
+# before damonnize is done
+    print "__main__: create romeo"
+    romeo = Romeo()
+
+# TODO DAEMON, it gets errors
+    if DAEMON:
+        print "daemon.__file__ " +  daemon.__file__
+        stdout=open('/tmp/Wall-E_Server.stdout', 'w+')
+        stderr=open('/tmp/Wall-E_Server.stderr', 'w+')
+        pidfile=lockfile.FileLock('/var/run/Wall-E_Server.pid')
+    #   d = daemon.DaemonContext()
+        with daemon.DaemonContext(stdout=stdout,
+                                  stderr=stderr,
+                                  pidfile=pidfile):
+            do_server()
+    else:
+       do_server() 
 
 
 
