@@ -21,8 +21,22 @@ HOST = '0.0.0.0'
 PORT = 2000
 PICTURE_PORT = 2001
 
-DAEMON=False
+DAEMON=True
 
+
+class WalleServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+    pause = 0.25
+    allow_reuse_address = True
+
+    def __init__(self, server_address, RequestHandlerClass):
+        SocketServer.TCPServer.__init__(self, server_address,
+                                        RequestHandlerClass)
+        self.socket.settimeout(self.pause)
+        self.serving =True
+
+    def serve_forever(self):
+        while self.serving:
+            self.handle_request()
 
 
 class WalleRequestHandler(SocketServer.BaseRequestHandler):
@@ -33,6 +47,7 @@ class WalleRequestHandler(SocketServer.BaseRequestHandler):
     override the handle() method to implement communication to the
     client.
     """
+    
 
     def handle(self):
         print "WalleRequestHandler.handle"
@@ -49,13 +64,27 @@ class WalleRequestHandler(SocketServer.BaseRequestHandler):
             if len(string) > 0:
                 command=Command(string)
                 print command
-                command, imageData = self.processCommand(command)
-                
-                self.request.sendall(str(command))
-                print "WalleRequestHandler.handle command " + str(command)
-                if command.getCommand() == Command.CommandTypes.Picture:
-                    self.request.sendall(imageData)
-                print "WalleRequestHandler.handle command imagedata " + str(len(imageData))
+                if command.getCommand() == Command.CommandTypes.Stop:
+                    self.request.sendall(str(command))
+                    print "WalleRequestHandler.handle command " + str(command) + " Shutdown"
+                    if not WalleRequestHandler.romeo is None:
+                        print "_WalleRequestHandler.handle del WalleRequestHandler.romeo"
+                        del WalleRequestHandler.romeo
+                        WalleRequestHandler.romeo = None
+                        
+                    print "WalleRequestHandler.handle command pictureServer.shutdown()"
+                    WalleRequestHandler.pictureServer.serving =False
+                    
+                    print "WalleRequestHandler.handle command " + str(command) + " server.shutdown()"
+                    WalleRequestHandler.server.serving =False
+                else:
+                    command, imageData = self.processCommand(command)
+                    
+                    self.request.sendall(str(command))
+                    print "WalleRequestHandler.handle command " + str(command)
+                    if command.getCommand() == Command.CommandTypes.Picture:
+                        self.request.sendall(imageData)
+                    print "WalleRequestHandler.handle command imagedata " + str(len(imageData))
            
     def processCommand(self, command):
         if command.getCommand() == Command.CommandTypes.Picture:
@@ -67,7 +96,7 @@ class WalleRequestHandler(SocketServer.BaseRequestHandler):
             command.setImageSize(len(imageData))
             return command, imageData
         else:
-            return romeo.processCommand(command)
+            return WalleRequestHandler.romeo.processCommand(command)
             
         
 #    def handle(self):
@@ -83,66 +112,72 @@ class WalleRequestHandler(SocketServer.BaseRequestHandler):
 def threaded_server(arg):
     # Activate the server; this will keep running until you
     # interrupt the program with Ctrl-C
-    print "starting server"
+    print "threaded_server: starting server"
     arg.serve_forever()
-#    print arg, len(arg)
-#    for server in range(arg):
-#        print server
-#        print "starting server"
-#        server.serve_forever()
+    print "threaded_server: arg.serve_forever() ended"
 
 def signal_handler(signal, frame):
     print 'signal_handler: You pressed Ctrl+C!'
     
     print 'signal_handler: Shutting down command server ...'
-    server.shutdown
+    WalleRequestHandler.server.serving =False
     print 'signal_handler: command server is down OK'
     
     print 'signal_handler: Shutting down picture server...'
-    pictureServer.shutdown()
+    WalleRequestHandler.pictureServer.serving =False
     print 'signal_handler: picture server is down OK'
    
 
 def do_server():
-#    print "do_server: create romeo"
-#    romeo = Romeo()
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGHUP, signal_handler)
+
+    print "do_server: create romeo"
+    WalleRequestHandler.romeo = Romeo()
     #romeo.test2()
 
-    #HOST, PORT = "localhost", 2000
 
-    # Create the server, binding to localhost on port 2000
-    print "do_server: create SocketServer.TCPServer " + HOST + " " + str(PORT)
-    server = SocketServer.TCPServer((HOST, PORT), WalleRequestHandler)
-    
-    print "do_server: create SocketServer.TCPServer " + HOST + " " + str(PICTURE_PORT)
-    pictureServer = SocketServer.TCPServer((HOST, PICTURE_PORT), WalleRequestHandler)
-
-    # Activate the server; this will keep running until you
+    succeeded=True
+    try:
+        # Create the server, binding to localhost on port 2000
+        print "do_server: create SocketServer.TCPServer " + HOST + " " + str(PORT)
+        #server = SocketServer.TCPServer((HOST, PORT), WalleRequestHandler)
+        server = WalleServer((HOST, PORT), WalleRequestHandler)
+        WalleRequestHandler.server = server
+        
+        print "do_server: create SocketServer.TCPServer " + HOST + " " + str(PICTURE_PORT)
+        #pictureServer = SocketServer.TCPServer((HOST, PICTURE_PORT), WalleRequestHandler)
+        pictureServer = WalleServer((HOST, PICTURE_PORT), WalleRequestHandler)
+        WalleRequestHandler.pictureServer = pictureServer
+    except Exception: 
+        print "do_server: socket error, exiting"
+        succeeded=False
+   # Activate the server; this will keep running until you
     # interrupt the program with Ctrl-C
     #threaded_server(pictureServer)
     #threaded_server(server)
+    if succeeded:
+        print 'do_server: Press Ctrl+C to Stop'
+        
+        print 'do_server: Creating serverThread'
+        serverThread = Thread(target = threaded_server, args = (server, ))
+        print 'do_server: Starting  serverThread'
+        serverThread.start()
+        
+        print 'do_server: Creating pictureServerThread'
+        pictureServerThread = Thread(target = threaded_server, args = (pictureServer, ))
+        print 'do_server: Starting  pictureServerThread'
+        pictureServerThread.start()
+        
+        print 'do_server: Waiting pictureServerThread to stop'
+        pictureServerThread.join()
+        print 'do_server: Waiting serverThread to stop'
+        serverThread.join()
+        
+        print 'do_server: Servers stoppped OK'
     
-    print 'do_server: Press Ctrl+C to Stop'
-    
-    print 'do_server: Creating serverThread'
-    serverThread = Thread(target = threaded_server, args = (server, ))
-    print 'do_server: Starting  serverThread'
-    serverThread.start()
-    
-    print 'do_server: Creating pictureServerThread'
-    pictureServerThread = Thread(target = threaded_server, args = (pictureServer, ))
-    print 'do_server: Starting  pictureServerThread'
-    pictureServerThread.start()
-    
-    print 'do_server: Waiting serverThread to stop'
-    serverThread.join()
-    print 'do_server: Waiting pictureServerThread to stop'
-    pictureServerThread.join()
-    
-    print 'do_server: Servers soppped OK'
-    
-    sys.exit(0)
-
+    print "do_server exit"
+ 
 def main():
     signal.signal(signal.SIGINT, signal_handler)
      
@@ -182,32 +217,34 @@ def main():
     print 'main: Waiting pictureServerThread to stop'
     pictureServerThread.join()
     
-    print 'main: Servers soppped OK'
+    print 'main: Servers stoppped OK'
     
     sys.exit(0)
 
 
 
 if __name__ == "__main__":
+    # TODO parameters --start --stop --restart
 
-# Create globals needed by servers
-# before damonnize is done
-    print "__main__: create romeo"
-    romeo = Romeo()
-
-# TODO DAEMON, it gets errors
     if DAEMON:
         print "daemon.__file__ " +  daemon.__file__
         stdout=open('/tmp/Wall-E_Server.stdout', 'w+')
         stderr=open('/tmp/Wall-E_Server.stderr', 'w+')
+        #remove('/var/run/Wall-E_Server.pid.lock')
         pidfile=lockfile.FileLock('/var/run/Wall-E_Server.pid')
-    #   d = daemon.DaemonContext()
         with daemon.DaemonContext(stdout=stdout,
                                   stderr=stderr,
                                   pidfile=pidfile):
             do_server()
     else:
-       do_server() 
+       do_server()
+
+    if not WalleRequestHandler.romeo is None:
+        print "_main__ del WalleRequestHandler.romeo"
+        del WalleRequestHandler.romeo
+        WalleRequestHandler.romeo = None
+    print "__main__ exit"
+    exit()
 
 
 
