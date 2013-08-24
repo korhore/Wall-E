@@ -1,0 +1,30 @@
+#! /bin/sh
+# /etc/init.d/Wall-E_server
+#
+
+SERVER='/usr/local/lib/python2.7/dist-packages/Wall-E_Server/WalleServer.py'
+
+# Some things that run always
+touch /var/lock/Wall-E_server
+
+# Carry out specific functions when asked to by the system
+case "$1" in
+  start)
+    echo "Starting script Wall-E_server"
+    /usr/bin/env python $SERVER --start --daemon
+    ;;
+  stop)
+    echo "Stopping script Wall-E_server"
+    /usr/bin/env python $SERVER --stop
+    ;;
+  restart)
+    echo "Starting script Wall-E_server"
+    /usr/bin/env python $SERVER --restart --daemon
+    ;;
+  *)
+    echo "Usage: /etc/init.d/Wall-E_server {start|stop|restart}"
+    exit 1
+    ;;
+esac
+
+exit 0
