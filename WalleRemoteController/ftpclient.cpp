@@ -286,6 +286,10 @@ void FtpClient::handleConnected()
     qDebug() << "FtpClient:: " << port << " handleConnected mTransferring " << mTransferring;
     //request(QString(REQUEST_WHO).arg(QString::number(mOutCommandNumber++)));
     // ask picture if camera is on, and output buffer is empty
+
+    // test
+    //sendCommand(Command("", -1, Command::Stop));
+
     if (mCameraOn && (mOutBuffer.size() == 0))
     {
         sendCommand(Command("", -1, Command::Picture));
