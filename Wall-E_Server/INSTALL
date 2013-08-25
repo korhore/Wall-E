@@ -1,0 +1,40 @@
+Intsllatation
+--------------
+
+Install dependencies first
+--------------------------
+
+sudo pip install pyserial
+sudo pip install pyFirmata
+sudo pip install python-daemon
+
+Clone this project's source code
+--------------------------------
+
+git clone https://github.com/korhore/Wall-E
+
+Or download it as a zip from github <https://github.com/korhore/Wall-E>
+and unzip it
+
+tar -zxvf Wall-E-master.zip
+
+install
+-------
+
+cd Wall-E-master/Wall-E_Server
+
+sudo python setup.py install
+
+Now server is installed. Set is as a service , and it will be started automatically
+when you raspberry is started.
+
+sudo /usr/local/bin/setup_service
+
+You are now ready and you can start WalleRemotecontroller in you controller device, N900 maybe,
+and start using you Wall-E. In a raspberry,
+you can start and stop Wall-E_Server as normal service,
+for instance
+
+sudo service Wall-E_Server start
+
+and you can study Wall-E_Server's log output from /tmp directory
