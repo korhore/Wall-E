@@ -1,1 +1,1 @@
-__all__ = ['Command','Romeo','WalleServer']
+#__all__ = ['Command','Romeo','WalleServer']
