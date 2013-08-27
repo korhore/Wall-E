@@ -1,4 +1,10 @@
-from distutils.core import setup, Extension
+#!/usr/bin/env python
+
+from distutils.core import setup
+#with open('README') as f:
+#    long_description = f.read()
+
+
 setup(name='Wall-E_Server',
       version='1.0',
       description='Wall-E Robot controlling server',
@@ -12,6 +18,26 @@ setup(name='Wall-E_Server',
       package_dir={'Wall-E_Server': 'Wall-E_Server'},
       #package_data={'Wall-E_Server': ['init/Wall-E_Server']},
       #package_dir={'init.d': 'init.d'},
-      #data_files=[('/etc/init.d', ['init/Wall-E_Server'])],
+      #data_files=[('/etc/init.d', ['etc/Wall-E_Server'])],
+      package_data={'Wall-E_Server': ['../etc/Wall-E_Server',]},
+      #package_data={'mypkg': ['data/*.dat']},
+      include_package_data=True,
+      install_requires=['pyserial', 'pyFirmata', 'python-daemon'],
+      url='https://github.com/korhore/Wall-E',
+      classifiers=[
+        'Development Status :: 4 - Beta',
+        'Environment :: Other Environment',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Topic :: Utilities',
+        'Topic :: Home Automation',
+        'Topic :: Software Development :: Embedded Systems'
+      ],
+
       scripts=['scripts/setup_service','scripts/Wall-E_Server']
+      
       )

@@ -1,5 +1,10 @@
+walleremotecontroller (1.0.0) unstable; urgency=low
+  * First public realease
+
+ -- Reijo Korhonen <reijo.korhonen@gmail.com>  Tue, 27 Aug 2013 22:34:56 +0300
+
 walleremotecontroller (0.0.1) unstable; urgency=low
 
   * Initial Release.
 
- -- Reijo Korhonen <reijo@reijo2.reijo.local>  Thu, 14 Feb 2013 22:18:31 +0200
+ -- Reijo Korhonen <reijo.korhonen@gmail.com>  Thu, 14 Feb 2013 22:18:31 +0200
