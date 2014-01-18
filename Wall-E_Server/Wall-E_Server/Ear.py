@@ -9,6 +9,7 @@ import time
 import getopt
 import alsaaudio
 import numpy
+import math
 
 import SocketServer
 from Command import Command
@@ -65,10 +66,11 @@ class Ear(Thread):
             aaa = numpy.fromstring(data, dtype='<i2')
         except (ValueError):
             return "ValueError"
-
+# TODO floating root mean square neliöjuuri ((n-1) * avererage*average + a*a)
         for a in aaa:
-            self.average = ((self.average * (self.average_devider - 1.0)) + float(abs(a)))/self.average_devider
-            self.short_average = ((self.short_average * (self.short_average_devider - 1.0)) + float(abs(a)))/self.short_average_devider
+            squrare_a = float(a) * float(a)
+            self.average = math.sqrt(((self.average * self.average * (self.average_devider - 1.0)) + (squrare_a/self.average_devider))
+            self.short_average = math.sqrt(((self.short_average * self.short_average * (self.short_average_devider - 1.0)) + (squrare_a/self.short_average_devider))
             if a > maxim:
                 maxim = a
             if a < minim:
