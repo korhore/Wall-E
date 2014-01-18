@@ -66,11 +66,11 @@ class Ear(Thread):
             aaa = numpy.fromstring(data, dtype='<i2')
         except (ValueError):
             return "ValueError"
-# TODO floating root mean square neliöjuuri ((n-1) * avererage*average + a*a)
+# TODO floating root mean square neliojuuri ((n-1) * avererage*average + a*a)
         for a in aaa:
             squrare_a = float(a) * float(a)
-            self.average = math.sqrt(((self.average * self.average * (self.average_devider - 1.0)) + (squrare_a/self.average_devider))
-            self.short_average = math.sqrt(((self.short_average * self.short_average * (self.short_average_devider - 1.0)) + (squrare_a/self.short_average_devider))
+            self.average = math.sqrt(( (self.average * self.average * (self.average_devider - 1.0))  + squrare_a)/self.average_devider)
+            self.short_average = math.sqrt(( (self.short_average * self.short_average * (self.short_average_devider - 1.0))  + squrare_a)/self.short_average_devider)
             if a > maxim:
                 maxim = a
             if a < minim:
@@ -91,7 +91,7 @@ class Ear(Thread):
                    sum=self.short_average
                    n=1.0
 
-        #print self.card + " averages " + str(self.short_average) + ' ' + str(self.average)
+        print self.card + " averages " + str(self.short_average) + ' ' + str(self.average)
  
         return str(minim) + ' - ' + str(maxim) + ' ' + str(self.average)
     
@@ -145,7 +145,7 @@ if __name__ == "__main__":
         ear2.start()
         
 
-        t = Timer(120.0, stop)
+        t = Timer(12.0, stop)
         t.start() # after 30 seconds, "hello, world" will be printed
         
         print "__main__ exit"
