@@ -17,6 +17,7 @@ from Romeo import Romeo
 from subprocess import call
 from threading import Thread
 from threading import Timer
+from Queue import Queue
 import signal
 import socket
 
@@ -24,13 +25,16 @@ import socket
 import daemon
 import lockfile
 
+from Sound import *
 
 class Ear(Thread):
     
 
-    def __init__(self, card='default', channels=1, rate=44100, format=alsaaudio.PCM_FORMAT_S16_LE, average=0.0):
+    def __init__(self, name, queue, card='default', channels=1, rate=44100, format=alsaaudio.PCM_FORMAT_S16_LE, average=0.0, sensitivity=2.0):
         Thread.__init__(self)
         self.card=card
+        self.name=name
+        self.sensitivity=sensitivity
         print 'str(alsaaudio.cards())' + str(alsaaudio.cards())
         self.inp = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NONBLOCK, card)
         print self.inp.cardname()
@@ -42,6 +46,8 @@ class Ear(Thread):
         self.inp.setformat(format)
         self.inp.setperiodsize(32) #160
         
+        self.queue=queue
+        
         self.average=average;
         self.average_devider = float(rate) * 10.0
         self.short_average=average;
@@ -49,7 +55,7 @@ class Ear(Thread):
         self.voice = False
         self.start_time=0.0
         self.stop_time=0.0
-
+        
         self.running=True
         
     def stop(self):
@@ -59,8 +65,9 @@ class Ear(Thread):
     def values_bytes(self, data, dtype):
         minim=9999
         maxim=-9999
-        sum=0.0
-        n=1.0
+        # todo remove
+        #self.sum=0.0
+        #self.n=1.0
         
         try:
             aaa = numpy.fromstring(data, dtype='<i2')
@@ -68,32 +75,39 @@ class Ear(Thread):
             return "ValueError"
 # TODO floating root mean square neliojuuri ((n-1) * avererage*average + a*a)
         for a in aaa:
-            squrare_a = float(a) * float(a)
-            self.average = math.sqrt(( (self.average * self.average * (self.average_devider - 1.0))  + squrare_a)/self.average_devider)
-            self.short_average = math.sqrt(( (self.short_average * self.short_average * (self.short_average_devider - 1.0))  + squrare_a)/self.short_average_devider)
+            square_a = float(a) * float(a)
+            self.average = math.sqrt(( (self.average * self.average * (self.average_devider - 1.0))  + square_a)/self.average_devider)
+            self.short_average = math.sqrt(( (self.short_average * self.short_average * (self.short_average_devider - 1.0))  + square_a)/self.short_average_devider)
             if a > maxim:
                 maxim = a
             if a < minim:
                 minim = a
             if self.voice:
-                if self.short_average <= 2.0 * self.average:
+                if self.short_average <= self.sensitivity * self.average:
                    self.stop_time =time.time()
-                   print self.card + " voice stopped at " + time.ctime() + ' ' + str(self.stop_time) +  ' ' + str(self.stop_time-self.start_time) + ' ' + str(sum/n/self.average) + ' ' + str(self.short_average) + ' ' + str(self.average)
+                   self.sound.set_duration(time.time() - self.sound.get_start_time())
+                   self.sound.set_volume_level(math.sqrt(self.square_sum/self.n)/self.average)
+                   self.queue.put(self.sound)
+                   #print self.card + " voice stopped at " + time.ctime() + ' ' + str(self.stop_time) +  ' ' + str(self.stop_time-self.start_time) + ' ' + str(self.sum/self.n/self.average) + ' ' + str(self.short_average) + ' ' + str(self.average)
                    self.voice = False
                 else:
-                   sum += self.short_average
-                   n+=1.0
+                   self.sum += self.short_average
+                   self.square_sum += square_a
+                   self.n+=1.0
             else:
-                if self.short_average > 2.0 * self.average:
+                if self.short_average > self.sensitivity * self.average:
                    self.start_time = time.time()
-                   print self.card + " voice started at " + time.ctime() + ' ' + str(self.start_time) + ' ' + str(self.short_average) + ' ' + str(self.average)
+                   self.sound = Sound(name=self.name, start_time=time.time())
+                   self.queue.put(self.sound)
+                   #print self.card + " voice started at " + time.ctime() + ' ' + str(self.start_time) + ' ' + str(self.short_average) + ' ' + str(self.average)
                    self.voice = True
-                   sum=self.short_average
-                   n=1.0
+                   self.sum=self.short_average
+                   self.n=1.0
+                   self.square_sum = square_a
 
-        print self.card + " averages " + str(self.short_average) + ' ' + str(self.average)
+        #print self.card + " averages " + str(self.short_average) + ' ' + str(self.average)
  
-        return str(minim) + ' - ' + str(maxim) + ' ' + str(self.average)
+        #return str(minim) + ' - ' + str(maxim) + ' ' + str(self.average)
     
     def run(self):
         print "Starting " + self.name
@@ -139,14 +153,20 @@ def main():
 
 if __name__ == "__main__":
         #main()
-        ear1=Ear(card=alsaaudio.cards()[0], average=55.0) #'Set') # card=alsaaudio.cards()[1]
+        queue=Queue()
+
+        ear1=Ear(card=alsaaudio.cards()[0], average=55.0, queue=queue) #'Set') # card=alsaaudio.cards()[1]
         ear1.start()
-        ear2=Ear(card=alsaaudio.cards()[1],  average=680.0) # card=alsaaudio.cards()[1]
+        ear2=Ear(card=alsaaudio.cards()[1],  average=680.0 , queue=queue) # card=alsaaudio.cards()[1]
         ear2.start()
         
 
         t = Timer(12.0, stop)
         t.start() # after 30 seconds, "hello, world" will be printed
+        
+        while(True):
+            sound=queue.get()
+            print "Got sound from queue"
         
         print "__main__ exit"
         exit()
