@@ -37,7 +37,7 @@ class Ear(Thread):
         self.sensitivity=sensitivity
         self.rate = float(rate)
         print 'str(alsaaudio.cards())' + str(alsaaudio.cards())
-        self.inp = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NONBLOCK, card)
+        self.inp = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NORMAL, card)
         print self.inp.cardname()
         #self.inp = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NONBLOCK)
 
@@ -86,9 +86,11 @@ class Ear(Thread):
                 minim = a
             if self.voice:
                 if self.short_average <= self.sensitivity * self.average:
-                   self.stop_time = time.time() - (float(i)/(self.rate))
-                   self.sound.set_duration(time.time() - self.sound.get_start_time())
+                   duration=self.n/self.rate
+                   self.stop_time = self.start_time + duration
+                   self.sound.set_duration(duration)
                    self.sound.set_volume_level(math.sqrt(self.square_sum/self.n)/self.average)
+                   self.sound.set_state(Sound.STOP)
                    self.queue.put(self.sound)
                    #print self.card + " voice stopped at " + time.ctime() + ' ' + str(self.stop_time) +  ' ' + str(self.stop_time-self.start_time) + ' ' + str(self.sum/self.n/self.average) + ' ' + str(self.short_average) + ' ' + str(self.average)
                    self.voice = False
@@ -98,8 +100,9 @@ class Ear(Thread):
                    self.n+=1.0
             else:
                 if self.short_average > self.sensitivity * self.average:
-                   self.start_time = time.time() - (float(i)/(self.rate)) # sound's start time is when we got sound data minus slots that are not in the sound
-                   self.sound = Sound(name=self.name, start_time=self.start_time)
+                   self.stop_time = time.time()
+                   self.start_time = self.stop_time - (float(len(aaa)-i)/self.rate) # sound's start time is when we got sound data minus slots that are not in the sound
+                   self.sound = Sound(name=self.name, state=Sound.START, start_time=self.start_time)
                    self.queue.put(self.sound)
                    #print self.card + " voice started at " + time.ctime() + ' ' + str(self.start_time) + ' ' + str(self.short_average) + ' ' + str(self.average)
                    self.voice = True
@@ -108,6 +111,15 @@ class Ear(Thread):
                    self.square_sum = square_a
                    
             i += 1
+            
+        if self.voice:
+            duration=self.n/self.rate
+            self.stop_time = self.start_time + duration
+            self.sound.set_duration(duration)
+            self.sound.set_volume_level(math.sqrt(self.square_sum/self.n)/self.average)
+            self.sound.set_state(Sound.CONTINUE)
+            self.queue.put(self.sound)
+
 
         #print self.card + " averages " + str(self.short_average) + ' ' + str(self.average)
  
@@ -131,7 +143,7 @@ class Ear(Thread):
                 #print "Card:" + self.card + ' min and max: ' +  self.values_bytes(data, '<i2')
                 ##has_data = True
                 loops -= 1
-                time.sleep(.001)
+                #time.sleep(.001)    # No seep, we can block in thread
 
 
         print "Exiting " + self.name

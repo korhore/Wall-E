@@ -45,10 +45,11 @@ class Hearing(Thread):
 
         while self.running:
             sound=self.queue.get()
-            print "Got sound from queue " + sound.get_name()  + " start_time " + str(sound.get_start_time())  + " duration " + str(sound.get_duration())  + " volume_level " + str(sound.get_volume_level())
+            print "Got sound from queue " + sound.get_name()  + " State " +  sound.get_str_state() + " start_time " + str(sound.get_start_time())  + " duration " + str(sound.get_duration())  + " volume_level " + str(sound.get_volume_level())
             # TODO process which ear hears sounds first
             self.process(sound)
-            
+ 
+    # TODO Logic           
     def process(self, sound):
         if sound.get_name() == Hearing.left:
             self.left_sound=sound
