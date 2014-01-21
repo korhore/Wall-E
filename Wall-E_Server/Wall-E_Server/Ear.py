@@ -35,6 +35,7 @@ class Ear(Thread):
         self.card=card
         self.name=name
         self.sensitivity=sensitivity
+        self.rate = float(rate)
         print 'str(alsaaudio.cards())' + str(alsaaudio.cards())
         self.inp = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NONBLOCK, card)
         print self.inp.cardname()
@@ -74,6 +75,7 @@ class Ear(Thread):
         except (ValueError):
             return "ValueError"
 # TODO floating root mean square neliojuuri ((n-1) * avererage*average + a*a)
+        i=0
         for a in aaa:
             square_a = float(a) * float(a)
             self.average = math.sqrt(( (self.average * self.average * (self.average_devider - 1.0))  + square_a)/self.average_devider)
@@ -84,7 +86,7 @@ class Ear(Thread):
                 minim = a
             if self.voice:
                 if self.short_average <= self.sensitivity * self.average:
-                   self.stop_time =time.time()
+                   self.stop_time = time.time() - (float(i)/(self.rate))
                    self.sound.set_duration(time.time() - self.sound.get_start_time())
                    self.sound.set_volume_level(math.sqrt(self.square_sum/self.n)/self.average)
                    self.queue.put(self.sound)
@@ -96,14 +98,16 @@ class Ear(Thread):
                    self.n+=1.0
             else:
                 if self.short_average > self.sensitivity * self.average:
-                   self.start_time = time.time()
-                   self.sound = Sound(name=self.name, start_time=time.time())
+                   self.start_time = time.time() - (float(i)/(self.rate)) # sound's start time is when we got sound data minus slots that are not in the sound
+                   self.sound = Sound(name=self.name, start_time=self.start_time)
                    self.queue.put(self.sound)
                    #print self.card + " voice started at " + time.ctime() + ' ' + str(self.start_time) + ' ' + str(self.short_average) + ' ' + str(self.average)
                    self.voice = True
                    self.sum=self.short_average
                    self.n=1.0
                    self.square_sum = square_a
+                   
+            i += 1
 
         #print self.card + " averages " + str(self.short_average) + ' ' + str(self.average)
  
