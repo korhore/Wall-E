@@ -13,18 +13,18 @@ class Sound():
     CONTINUE=1
     STOP=2
     
-
-    def __init__(self, name, state, start_time=0.0, duration=0.0, volume_level=0.0):
-        self.name=name
+    # Sound.START cant be used in init
+    def __init__(self, id, state=0, start_time=0.0, duration=0.0, volume_level=0.0):
+        self.id=id
         self.state=state
         self.start_time=start_time
         self.duration=duration
         self.volume_level=volume_level
         
-    def get_name(self):
-        return self.name
-    def set_name(self, name):
-        self.name = name
+    def get_id(self):
+        return self.id
+    def set_id(self, id):
+        self.id = id
         
     def get_state(self):
         return self.state
@@ -48,6 +48,9 @@ class Sound():
     def set_duration(self, duration):
         self.duration=duration
         
+    def get_stop_time(self):
+        return self.start_time+self.duration
+
     def get_volume_level(self):
         return self.volume_level
     def set_volume_level(self, volume_level):
