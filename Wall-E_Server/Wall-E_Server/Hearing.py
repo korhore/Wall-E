@@ -36,8 +36,8 @@ class Hearing(Thread):
        
         self.ear = [None]*Hearing.LEN_EARS
 
-        self.ear[Hearing.LEFT] = Ear(id=Hearing.LEFT, name=Hearing.ear_names[Hearing.LEFT], card=alsaaudio.cards()[0], average=55.0, sensitivity=1.5, queue=self.queue) #'Set') # card=alsaaudio.cards()[1]
-        self.ear[Hearing.RIGHT] = Ear(id=Hearing.RIGHT, name=Hearing.ear_names[Hearing.RIGHT], card=alsaaudio.cards()[1], average=680.0, sensitivity=1.5, queue=self.queue) #'Set') # card=alsaaudio.cards()[1]
+        self.ear[Hearing.LEFT] = Ear(id=Hearing.LEFT, name=Hearing.ear_names[Hearing.LEFT], card='Set', average=55.0, sensitivity=1.5, queue=self.queue) #'Set') # card=alsaaudio.cards()[1]
+        self.ear[Hearing.RIGHT] = Ear(id=Hearing.RIGHT, name=Hearing.ear_names[Hearing.RIGHT], card='U0x46d0x8b2', average=680.0, sensitivity=1.5, queue=self.queue) #'Set') # card=alsaaudio.cards()[2]
         
         self.sound_ear_id = Hearing.LEFT
         self.sound = [None]*Hearing.LEN_EARS
@@ -112,6 +112,8 @@ class Hearing(Thread):
       
 if __name__ == "__main__":
         #main()
+        
+        print str(alsaaudio.cards())
 
         hearing=Hearing()
         hearing.start()
