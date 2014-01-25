@@ -15,6 +15,9 @@ from Sound import Sound
 
 class Hearing(Thread):
     
+    debug = False
+    log = True
+    
     SOUND_LIMIT=0.2
     
     left = 'left'
@@ -59,7 +62,8 @@ class Hearing(Thread):
 
         while self.running:
             sound=self.queue.get()
-            print "Got sound from queue " + Hearing.ear_names[sound.get_id()]  + " State " +  sound.get_str_state() + " start_time " + str(sound.get_start_time())  + " duration " + str(sound.get_duration())  + " volume_level " + str(sound.get_volume_level())
+            if debug:
+                print "Got sound from queue " + Hearing.ear_names[sound.get_id()]  + " State " +  sound.get_str_state() + " start_time " + str(sound.get_start_time())  + " duration " + str(sound.get_duration())  + " volume_level " + str(sound.get_volume_level())
             # TODO process which ear hears sounds first
             self.process(sound)
  
@@ -72,7 +76,8 @@ class Hearing(Thread):
         change=False
         if not self.is_sound:
             if sound.get_state() == Sound.START:
-                print "process START sound from " + Hearing.ear_names[id]
+                if debug:
+                    print "process START sound from " + Hearing.ear_names[id]
                 if other_sound.get_start_time() > sound.get_start_time():
                     print "process sound other has later start time"
                     if other_sound.get_start_time() - sound.get_start_time() < Hearing.SOUND_LIMIT:
@@ -80,7 +85,8 @@ class Hearing(Thread):
                     else:
                         print "Too old sound, not with other, sound state keeps same"
                 else:
-                    print "process this sound was later"
+                    if debug:
+                        print "process this sound was later"
                     if sound.get_start_time() - other_sound.get_stop_time() < Hearing.SOUND_LIMIT:
                         print "This sound start is close to other sound stop, continue previous sounds"
                         self.is_sound = True
