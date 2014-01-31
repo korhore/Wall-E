@@ -106,8 +106,8 @@ class Hearing(Thread):
         if sound.get_state() == Sound.STOP or (sound.get_state() == Sound.CONTINUE and sound.get_duration() > Hearing.SOUND_LIMIT):
             other=self.other(id)
             other_sound=self.sound[other]
-            left_sound = self.sound[LEFT]
-            right_sound = self.sound[RIGHT]
+            left_sound = self.sound[Hearing.LEFT]
+            right_sound = self.sound[Hearing.RIGHT]
             change=False
             
             # if there is no sound in another ear, sound comes from this ear's direction
@@ -116,42 +116,57 @@ class Hearing(Thread):
                 #print "Sound from " + Hearing.ear_names[id] + " No other sound, no direction, other sound stopped " + str( sound.get_start_time() - other_sound.get_stop_time())
                 if sound.get_start_time() - other_sound.get_stop_time() < Hearing.SOUND_LIMIT:
                     print "Sound from " + Hearing.ear_names[id] + " No other sound, but other sound just stopped " + str( sound.get_start_time() - other_sound.get_stop_time())
-                    if other_sound.get_volume_level() > 0.0:
-                        a = math.degrees(math.acos(left_sound.get_volume_level() - right_sound.get_volume_level()))
-                        print "Sound from " + Hearing.ear_names[id] + " direction by volume level " + str(sound.get_volume_level()/other_sound.get_volume_level()) + " degrees " + str (a)
-                    else:
-                        print "Sound from " + Hearing.ear_names[id] + " direction by volume level, but other level is zero, this direction"
+                    a = self.level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
+                    print "Sound from " + Hearing.ear_names[id] + " direction by volume level " + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (a)
                 else:  
                     print "Sound from " + Hearing.ear_names[id] + " No other sound, no direction, other sound stopped " + str( sound.get_start_time() - other_sound.get_stop_time())
-            elif sound.get_start_time() <  other_sound.get_start_time():
-                print "Sound from " + Hearing.ear_names[id] + " This sound started before the other one, we can calculate direction"
-                if other_sound.get_start_time() - sound.get_start_time() < Hearing.SOUND_LIMIT:
-                    # cos(a) = sound difference * sound speed/ microphone distance
-                    a = math.degrees(math.acos((left_sound.get_start_time() - right_sound.get_start_time())*SOUND_SPEED/EAR_DISTANCE))
-                    print "Sound from " + Hearing.ear_names[id] + " direction by timing " + str(other_sound.get_start_time() - sound.get_start_time()) + " degrees " + str (a)
+                    a = self.single_sound_to_degrees(self.is_sound[Hearing.LEFT], self.is_sound[Hearing.RIGHT])
+                    print "Sound from " + Hearing.ear_names[id] + " single " + str(self.is_sound[Hearing.LEFT]) + ' ' + str(self.is_sound[Hearing.RIGHT]) + " degrees " + str (a)
+            elif math.fabs(other_sound.get_start_time() - sound.get_start_time()) < Hearing.SOUND_LIMIT:
+                a = self.timing_to_degrees(left_sound.get_start_time(), right_sound.get_start_time())
+                print "Sound from " + Hearing.ear_names[id] + " has other sound, direction by timing " + str(other_sound.get_start_time() - sound.get_start_time()) + " degrees " + str (a)
 
-
-                else:
-                    if other_sound.get_volume_level() > 0.0:
-                        a = math.degrees(math.acos(left_sound.get_volume_level() - right_sound.get_volume_level()))
-                        print "Sound from " + Hearing.ear_names[id] + " direction by volume level " + str(sound.get_volume_level()/other_sound.get_volume_level()) + " degrees " + str (a)
-                    else:
-                        print "Sound from " + Hearing.ear_names[id] + " direction by volume level, but other level is zero, this direction"
-                    
-            else:        
-                print "Sound from " + Hearing.ear_names[id] + " Other sound started after than this, we can calculate direction"
-                if sound.get_start_time() - other_sound.get_start_time() < Hearing.SOUND_LIMIT:
-                    print "Sound from " + Hearing.ear_names[other] + " direction by timing " + str(sound.get_start_time() - other_sound.get_start_time())
-                    a = math.degrees(math.acos((left_sound.get_start_time() - right_sound.get_start_time())*SOUND_SPEED/EAR_DISTANCE))
-                    print "Sound from " + Hearing.ear_names[other] + " direction by timing " + str(other_sound.get_start_time() - sound.get_start_time()) + " degrees " + str (a)
-                else:
-                    if sound.get_volume_level() > 0.0:
-                        print "Sound from " + Hearing.ear_names[other] + " direction by volume level " + str(other_sound.get_volume_level()/sound.get_volume_level())
-                    else:
-                        print "Sound from " + Hearing.ear_names[other] + " direction by volume level, but this level is zero, other direction"
+            else:
+                print "Sound from " + Hearing.ear_names[id] + " has other sound, direction by volume level" + str( sound.get_start_time() - other_sound.get_stop_time())
+                a = self.level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
+                print "Sound from " + Hearing.ear_names[id] + " direction by volume level " + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (a)
                     
         if sound.get_state() == Sound.STOP:
             self.is_sound[id] = False
+            
+    def level_to_degrees(self, leftlevel, rightlevel):
+        if leftlevel == 0.0:
+            return 45.0
+        if rightlevel == 0.0:
+            return -45.0
+
+        t = (leftlevel - rightlevel)/max(leftlevel,rightlevel)
+        if t < -1.0:
+            t = -1.0
+        if t > 1.0:
+            t = 1.0
+            
+        return math.degrees(math.acos(t))
+
+    def timing_to_degrees(self, lefttime, righttime):
+        t = ((lefttime - righttime)*Hearing.SOUND_SPEED)/Hearing.EAR_DISTANCE
+        if t < -1.0:
+            t = -1.0
+        if t > 1.0:
+            t = 1.0
+            
+        return math.degrees(math.acos(t))
+    
+    def single_sound_to_degrees(self, is_left_sound, is_right_sound):
+        if is_left_sound and is_right_sound:
+            return 0.0
+        if (not is_left_sound) and (not is_right_sound):
+            return 0.0
+        if is_left_sound:
+            return -45.0
+        return 45.0
+
+
 
  
     def analyse(self, sound):
