@@ -56,7 +56,7 @@ class Ear(Thread):
         self.short_average_devider = 2000.0
         self.voice = False
         self.start_time=0.0
-        self.stop_time=0.0
+        #self.stop_time=0.0
         
         self.running=True
         
@@ -84,9 +84,9 @@ class Ear(Thread):
                 minim = a
             if self.voice:
                 if self.short_average <= self.sensitivity * self.average:
-                   duration=self.n/self.rate
-                   self.stop_time = self.start_time + duration
-                   self.sound.set_duration(duration)
+                   #duration=self.n/self.rate
+                   #self.stop_time = self.start_time + duration
+                   self.sound.set_duration(self.n/self.rate)
                    self.sound.set_volume_level(math.sqrt(self.square_sum/self.n)/self.average)
                    self.sound.set_state(Sound.STOP)
                    self.queue.put(self.sound)
@@ -98,8 +98,7 @@ class Ear(Thread):
                    self.n+=1.0
             else:
                 if self.short_average > self.sensitivity * self.average:
-                   self.stop_time = time.time()
-                   self.start_time = self.stop_time - (float(len(aaa)-i)/self.rate) # sound's start time is when we got sound data minus slots that are not in the sound
+                   self.start_time = time.time() - (float(len(aaa)-i)/self.rate) # sound's start time is when we got sound data minus slots that are not in the sound
                    self.sound = Sound(id=self.id, state=Sound.START, start_time=self.start_time)
                    self.queue.put(self.sound)
                    #print self.card + " voice started at " + time.ctime() + ' ' + str(self.start_time) + ' ' + str(self.short_average) + ' ' + str(self.average)
@@ -111,9 +110,9 @@ class Ear(Thread):
             i += 1
             
         if self.voice:
-            duration=self.n/self.rate
-            self.stop_time = self.start_time + duration
-            self.sound.set_duration(duration)
+            #duration=self.n/self.rate
+#            self.stop_time = self.start_time + duration
+            self.sound.set_duration(self.n/self.rate)
             self.sound.set_volume_level(math.sqrt(self.square_sum/self.n)/self.average)
             self.sound.set_state(Sound.CONTINUE)
             self.queue.put(self.sound)
@@ -152,7 +151,7 @@ def main():
         
 
         t = Timer(60.0, stop)
-        t.start() # after 30 seconds, "hello, world" will be printed
+        t.start() # after 30 seconds, Ear will be stopped
 
 if __name__ == "__main__":
         #main()
@@ -165,7 +164,7 @@ if __name__ == "__main__":
         
 
         t = Timer(12.0, stop)
-        t.start() # after 30 seconds, "hello, world" will be printed
+        t.start() # after 30 seconds,Ear will be stopped
         
         while(True):
             sound=queue.get()

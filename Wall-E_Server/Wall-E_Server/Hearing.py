@@ -8,6 +8,7 @@ import alsaaudio
 from threading import Thread
 from Queue import Queue
 import math
+import time
 
 from Ear import Ear
 from Sound import Sound
@@ -46,13 +47,15 @@ class Hearing(Thread):
     SOUND_STOPPED = 0
     SOUND_ONE_EAR = 1
     SOUND_TWO_EAR = 2
+    
+    SOUND_ONE_EAR_REPORT_LIMIT = 60.0
 
     
-    SOUND_LIMIT=0.5 # 0.2
-    
-    EAR_DISTANCE = 0.20
-    SOUND_SPEED = 340.0
-    
+     
+    EAR_DISTANCE = 0.20 # 0.2 m
+    SOUND_SPEED = 340.0 # 340 m/s in ear
+    SOUND_LIMIT=EAR_DISTANCE/SOUND_SPEED # time of sound to travel distance of ears
+   
     left = 'left'
     right = 'right'
     
@@ -71,6 +74,13 @@ class Hearing(Thread):
         self.sound_queue = Queue()
         self.running = False
         self.sound_status = Hearing.SOUND_STOPPED
+        self.reported = False
+        self.reported_timing = False
+        self.reported_level = False
+        self.reported_single = False
+        self.report_time=time.time()
+        self.angle = 0.0
+        self.id=Hearing.LEFT
         #self.is_sound = False
         self.is_sound = [False]*Hearing.LEN_EARS
        
@@ -107,44 +117,95 @@ class Hearing(Thread):
     # TODO Logic           
     def process(self, sound):
         id=sound.get_id()
-        self.sound[id]=sound
-       
+        other=self.other(id)
+      
         if sound.get_state() == Sound.START:
+            self.sound[id]=sound
+            self.reported = False       # report after sound start
+            self.reported_timing = False
+            self.reported_level = False
+            self.reported_single = False
             self.is_sound[id] = True
+            if  self.is_sound[other]:
+                self.sound_status = Hearing.SOUND_TWO_EAR
+                print "Sound status two ear sound"
+            else:
+                self.sound_status = Hearing.SOUND_ONE_EAR
+                self.id = id        # remember initial ear hears sound first
+                print "Sound status one ear sound"
        # if stop or continue and sound has lasted SOUND_LIMIT
         if sound.get_state() == Sound.STOP or (sound.get_state() == Sound.CONTINUE and sound.get_duration() > Hearing.SOUND_LIMIT):
-            other=self.other(id)
             other_sound=self.sound[other]
             left_sound = self.sound[Hearing.LEFT]
             right_sound = self.sound[Hearing.RIGHT]
             change=False
             
-            # if there is no sound in another ear, sound comes from this ear's direction
+            # if there is not yet sound from another ear, sound comes from this ear's direction
+            # but we can't be sure, that another sound comes, so we must wait
+            #
             # TODO Only got Sound from left/Right  No other sound, no direction
-            if not self.is_sound[other]:
+            if self.sound_status == Hearing.SOUND_ONE_EAR:
                 #print "Sound from " + Hearing.ear_names[id] + " No other sound, no direction, other sound stopped " + str( sound.get_start_time() - other_sound.get_stop_time())
                 if sound.get_start_time() - other_sound.get_stop_time() < Hearing.SOUND_LIMIT:
-                    print "Sound from " + Hearing.ear_names[id] + " No other sound, but other sound just stopped " + str( sound.get_start_time() - other_sound.get_stop_time())
-                    a = self.level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
-                    print "Sound from " + Hearing.ear_names[id] + " direction by volume level " + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (a)
-                    self.report_queue.put(SoundPosition(a))
+                    if self.debug:
+                        print "Sound from " + Hearing.ear_names[id] + " No other sound, but other sound just stopped " + str( sound.get_start_time() - other_sound.get_stop_time())
+                    if self.debug:
+                        print "Sound status two ear sound"
+                    self.angle = self.level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
+                    if self.debug:
+                        print "Sound from " + Hearing.ear_names[id] + " direction by volume level " + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (self.angle)
+                    self.report_queue.put(SoundPosition(time=self.sound[self.id].get_start_time(), angle=self.angle, type=Hearing.SOUND_TWO_EAR))
+                    self.reported = True
+                    self.reported_level = True
+                    self.report_time=time.time()
                 else:  
-                    print "Sound from " + Hearing.ear_names[id] + " No other sound, no direction, other sound stopped " + str( sound.get_start_time() - other_sound.get_stop_time())
-                    a = self.single_sound_to_degrees(self.is_sound[Hearing.LEFT], self.is_sound[Hearing.RIGHT])
-                    print "Sound from " + Hearing.ear_names[id] + " single " + str(self.is_sound[Hearing.LEFT]) + ' ' + str(self.is_sound[Hearing.RIGHT]) + " degrees " + str (a)
-                    self.report_queue.put(SoundPosition(a))
+                    if self.debug:
+                        print "Sound from " + Hearing.ear_names[id] + " No other sound, no direction, other sound stopped " + str( sound.get_start_time() - other_sound.get_stop_time())
+                    self.angle = self.single_sound_to_degrees(self.is_sound[Hearing.LEFT], self.is_sound[Hearing.RIGHT])
+                    if self.debug:
+                        print "Sound from " + Hearing.ear_names[id] + " single " + str(self.is_sound[Hearing.LEFT]) + ' ' + str(self.is_sound[Hearing.RIGHT]) + " degrees " + str (self.angle)
+                    #self.report_queue.put(SoundPosition(self.angle))
             elif math.fabs(other_sound.get_start_time() - sound.get_start_time()) < Hearing.SOUND_LIMIT:
-                a = self.timing_to_degrees(left_sound.get_start_time(), right_sound.get_start_time())
-                print "Sound from " + Hearing.ear_names[id] + " has other sound, direction by timing " + str(other_sound.get_start_time() - sound.get_start_time()) + " degrees " + str (a)
-                self.report_queue.put(SoundPosition(a))
+                if not self.reported_timing: # ting is repoted always once per sound, even if by level is reported
+                    self.angle = self.timing_to_degrees(left_sound.get_start_time(), right_sound.get_start_time())
+                    self.report_queue.put(SoundPosition(time=self.sound[self.id].get_start_time(), angle=self.angle, type=Hearing.SOUND_TWO_EAR))
+                    self.reported = True
+                    self.reported_timing = True
+                    self.report_time=time.time()
+                    if self.debug:
+                        print "Sound direction by timing reported from " + Hearing.ear_names[id] + " has other sound, direction by timing " + str(other_sound.get_start_time() - sound.get_start_time()) + " degrees " + str (self.angle)
+                else:
+                    if self.debug:
+                        print "Sound direction by timing already reported from " + Hearing.ear_names[id] + " has other sound, direction by timing " + str(other_sound.get_start_time() - sound.get_start_time()) + " degrees " + str (self.angle)
+
             else:
-                print "Sound from " + Hearing.ear_names[id] + " has other sound, direction by volume level" + str( sound.get_start_time() - other_sound.get_stop_time())
-                a = self.level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
-                print "Sound from " + Hearing.ear_names[id] + " direction by volume level " + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (a)
-                self.report_queue.put(SoundPosition(a))
-                    
+                self.angle = self.level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
+                print "Sound direction by volume level no reported yet from " + Hearing.ear_names[id] + ' ' + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (self.angle)
+                #self.report_queue.put(SoundPosition(self.angle))
+                #self.reported = True
+                   
         if sound.get_state() == Sound.STOP:
+            # report one ear sound only rarely, wait better two ear sounds to come
+            if (not self.reported) and ((self.sound_status == Hearing.SOUND_TWO_EAR) or ((time.time() - self.report_time) > Hearing.SOUND_ONE_EAR_REPORT_LIMIT)):
+                print "Sound reported delayed from " + Hearing.ear_names[id] + ' ' + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (self.angle)
+                self.report_queue.put(SoundPosition(time=self.sound[self.id].get_start_time(), angle=self.angle, type=self.sound_status))
+                self.reported = True
+                self.reported_level = True
+                self.report_time=time.time()
+            else:
+                print "Sound stopped self.reported " + str(self.reported) + " self.sound_status " + str(self.sound_status) + " (time.time() - self.report_time) " + str((time.time() - self.report_time))
+                   
+                
             self.is_sound[id] = False
+            
+            if self.sound_status == Hearing.SOUND_TWO_EAR:
+                self.sound_status = Hearing.SOUND_ONE_EAR
+                print "Sound status one ear sound"
+            else:
+                self.sound_status = Hearing.SOUND_STOPPED
+                print "Sound status stopped sound"
+
+
             
     def level_to_degrees(self, leftlevel, rightlevel):
         if leftlevel == 0.0:
@@ -152,20 +213,20 @@ class Hearing(Thread):
         if rightlevel == 0.0:
             return -45.0
 
-        t = (leftlevel - rightlevel)/max(leftlevel,rightlevel)
+        t = (rightlevel-  leftlevel)/max(leftlevel,rightlevel)
         if t < -1.0:
             t = -1.0
         if t > 1.0:
             t = 1.0
             
-        return math.degrees(math.acos(t))
+        return math.degrees(math.asin(t))
 
     def timing_to_degrees(self, lefttime, righttime):
         t = ((lefttime - righttime)*Hearing.SOUND_SPEED)/Hearing.EAR_DISTANCE
-        if t < -1.0:
-            t = -1.0
-        if t > 1.0:
-            t = 1.0
+        if t < -0.5:
+            t = -0.5
+        if t > 0.5:
+            t = 0.5
             
         return math.degrees(math.acos(t))
     
@@ -235,12 +296,12 @@ if __name__ == "__main__":
         report_queue = Queue()
 
 
-        hearing=Hearing()
-        hearing.start(report_queue)
+        hearing=Hearing(report_queue)
+        hearing.start()
         while True:
-            sound_position=self.report_queue.get()
-            if Hearing.debug:
-                print "Got sound_position from report_queue, angle " + str(sound_position.get_angle())
+            sound_position=report_queue.get()
+            #if Hearing.debug:
+            print "--> Got sound_position from report_queue, time " + time.ctime(sound_position.get_time()) + " angle " + str(sound_position.get_angle()) + " type " + str(sound_position.get_type())
  
         print "__main__ exit"
         exit()
