@@ -1,5 +1,6 @@
 '''
 Created on Feb 24, 2013
+Updated on Feb 3, 2014
 
 @author: reijo
 '''
@@ -23,6 +24,7 @@ import lockfile
 HOST = '0.0.0.0'
 PORT = 2000
 PICTURE_PORT = 2001
+CAPABILITIES_PORT = 2002
 
 DAEMON=False
 START=False
@@ -77,6 +79,9 @@ class WalleRequestHandler(SocketServer.BaseRequestHandler):
                         del WalleRequestHandler.romeo
                         WalleRequestHandler.romeo = None
                         
+                    print "WalleRequestHandler.handle command capabilitiesServer.shutdown()"
+                    WalleRequestHandler.capabilitiesServer.serving =False
+
                     print "WalleRequestHandler.handle command pictureServer.shutdown()"
                     WalleRequestHandler.pictureServer.serving =False
                     
@@ -101,8 +106,11 @@ class WalleRequestHandler(SocketServer.BaseRequestHandler):
             command.setImageSize(len(imageData))
             return command, imageData
         else:
-            return WalleRequestHandler.romeo.processCommand(command)
-            
+            if not WalleRequestHandler.romeo == None:
+                return WalleRequestHandler.romeo.processCommand(command)
+            else:
+                return command, ""
+           
         
 #    def handle(self):
 #        # self.rfile is a file-like object created by the handler;
@@ -131,14 +139,24 @@ def signal_handler(signal, frame):
     print 'signal_handler: Shutting down picture server...'
     WalleRequestHandler.pictureServer.serving =False
     print 'signal_handler: picture server is down OK'
+
+    print 'signal_handler: Shutting down capabilities server...'
+    WalleRequestHandler.capabilitiesServer.serving =False
+    print 'signal_handler: capabilities server is down OK'
    
 
 def do_server():
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGHUP, signal_handler)
 
-    print "do_server: create romeo"
-    WalleRequestHandler.romeo = Romeo()
+# TODO remove # after test
+#    print "do_server: create romeo"
+#    try:
+#        WalleRequestHandler.romeo = Romeo()
+#    except AttributeError:
+#        print "do_server: Romeo error, only tests wuthout it are possible"
+#        WalleRequestHandler.romeo = None
+ 
     #romeo.test2()
 
 
@@ -150,10 +168,14 @@ def do_server():
         server = WalleServer((HOST, PORT), WalleRequestHandler)
         WalleRequestHandler.server = server
         
-        print "do_server: create SocketServer.TCPServer " + HOST + " " + str(PICTURE_PORT)
+        print "do_server: create SocketServer.TCPServer " + HOST + " " + str(PICTURE_PORT) + " " + str(CAPABILITIES_PORT)
         #pictureServer = SocketServer.TCPServer((HOST, PICTURE_PORT), WalleRequestHandler)
         pictureServer = WalleServer((HOST, PICTURE_PORT), WalleRequestHandler)
         WalleRequestHandler.pictureServer = pictureServer
+        
+        capabilitiesServer = WalleServer((HOST, CAPABILITIES_PORT), WalleRequestHandler)
+        WalleRequestHandler.capabilitiesServer = capabilitiesServer
+
     except Exception: 
         print "do_server: socket error, exiting"
         succeeded=False
@@ -173,9 +195,18 @@ def do_server():
         pictureServerThread = Thread(target = threaded_server, args = (pictureServer, ))
         print 'do_server: Starting  pictureServerThread'
         pictureServerThread.start()
-        
+          
+        print 'do_server: Creating capabilitiesServerThread'
+        capabilitiesServerThread = Thread(target = threaded_server, args = (capabilitiesServer, ))
+        print 'do_server: Starting  capabilitiesServerThread'
+        capabilitiesServerThread.start()
+      
+        print 'do_server: Waiting capabilitiesServerThread to stop'
+        capabilitiesServerThread.join()
+       
         print 'do_server: Waiting pictureServerThread to stop'
         pictureServerThread.join()
+
         print 'do_server: Waiting serverThread to stop'
         serverThread.join()
         
@@ -241,8 +272,10 @@ def main():
     print "main: create SocketServer.TCPServer " + HOST + " " + str(PORT)
     server = SocketServer.TCPServer((HOST, PORT), WalleRequestHandler)
     
-    print "main: create SocketServer.TCPServer " + HOST + " " + str(PICTURE_PORT)
+    print "main: create SocketServer.TCPServer " + HOST + " " + str(PICTURE_PORT) + + " " + str(CAPABILITIES_PORT)
     pictureServer = SocketServer.TCPServer((HOST, PICTURE_PORT), WalleRequestHandler)
+
+    capabilitiesServer = SocketServer.TCPServer((HOST, CAPABILITIES_PORT), WalleRequestHandler)
 
     # Activate the server; this will keep running until you
     # interrupt the program with Ctrl-C
@@ -261,10 +294,17 @@ def main():
     print 'main: Starting  pictureServerThread'
     pictureServerThread.start()
     
+    print 'main: Creating capabilitiesServerThread'
+    capabilitiesServerThread = Thread(target = threaded_server, args = (capabilitiesServer, ))
+    print 'main: Starting  capabilitiesServerThread'
+    capabilitiesServerThread.start()
+
     print 'main: Waiting serverThread to stop'
     serverThread.join()
     print 'main: Waiting pictureServerThread to stop'
     pictureServerThread.join()
+    print 'main: Waiting capabilitiesServerThread to stop'
+    capabilitiesServerThread.join()
     
     print 'main: Servers stoppped OK'
     
