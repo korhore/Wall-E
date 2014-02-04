@@ -8,16 +8,21 @@ def enum(**enums):
 
 class Command(object):
     
-    CommandTypes = enum(Drive='D', Stop='S', Who='W', Picture='P', Unknown='U')
-    
+    CommandTypes = enum(Drive='D', Stop='S', Who='W', Azimuth='A', Picture='P', Capability='C', Unknown='U')
+    Direction = enum(Input='I', Output='O')
+   
     def __init__(self, string="",
-                 number=-1, command = 'U', leftPower = 0.0, rightPower = 0.0, imageSize=0):
+                 number=-1, command = 'U', leftPower = 0.0, rightPower = 0.0, azimuth = 0.0, imageSize=0,
+                 direction='I', capabilities = []):
         self.number = number
         self.command = command
         self.leftPower = leftPower
         self.rightPower = rightPower
+        self.azimuth = azimuth
         self.imageSize = imageSize
-        
+        self.direction = direction
+        self.capabilities = capabilities
+       
         params = string.split()
         print params
         if len(params) >= 1:
@@ -38,11 +43,24 @@ class Command(object):
                     if len(params) >= 4:
                         self.rightPower = float(params[3])
                         print str(self.rightPower)
+                elif command == Command.CommandTypes.Azimuth:
+                    self.command = Command.CommandTypes.Azimuth
+                    if len(params) >= 3:
+                        self.azimuth = float(params[2])
+                        print str(self.azimuth)
                 elif command == Command.CommandTypes.Picture:
                     self.command = Command.CommandTypes.Picture
                     if len(params) >= 3:
                         self.imageSize = int(params[2])
                         print str(self.imageSize)
+                elif command == Command.CommandTypes.Capability:
+                    self.command = Command.CommandTypes.Capability
+                    if len(params) >= 3:
+                        self.direction = params[2]
+                        print str(self.direction)
+                    if len(params) >= 4:
+                        self.capabilities = params[3:]
+                        print str(self.capabilities)
     
                 elif command == Command.CommandTypes.Stop:
                     self.command = Command.CommandTypes.Stop
@@ -55,8 +73,12 @@ class Command(object):
     def __str__(self):
         if self.command == Command.CommandTypes.Drive:
             return str(self.number) + ' ' + self.command + ' ' + str(self.leftPower) +  ' ' + str(self.rightPower)
-        if self.command == Command.CommandTypes.Picture:
+        elif self.command == Command.CommandTypes.Azimuth:
+            return str(self.number) + ' ' + self.command + ' ' + str(self.azimuth)
+        elif self.command == Command.CommandTypes.Picture:
             return str(self.number) + ' ' + self.command + ' ' + str(self.imageSize)
+        elif self.command == Command.CommandTypes.Capability:
+            return str(self.number) + ' ' + self.command + ' ' + str(self.direction) +  ' ' + self.getStrCapabilities()
         elif self.command == Command.CommandTypes.Stop:
             return str(self.number) + ' ' + self.command
         elif self.command == Command.CommandTypes.Who:
@@ -84,10 +106,32 @@ class Command(object):
     def getRightPower(self):
         return self.rightPower
     
+    def setAzimuth(self, azimuth):
+        self.azimuth = azimuth
+    def getAzimuth(self):
+        return self.azimuth
+
     def setImageSize(self, imageSize):
         self.imageSize = imageSize
     def getImageSize(self):
         return self.imageSize
+    
+
+    def setCapabilities(self, capabilities):
+        self.capabilities = capabilities
+    def getCmageSize(self):
+        return self.capabilities
+    def setStrCapabilities(self, string):
+        str_capabilities = string.split()
+        self.capabilities=[]
+        for capability in str_capabilities:
+            self.capabilities.add(capability)
+        self.capabilities = capabilities
+    def getStrCapabilities(self):
+        capabilities = ""
+        for capability in self.capabilities:
+            capabilities += ' ' + str(capability)
+        return capabilities
 
         
 if __name__ == '__main__':
@@ -97,12 +141,23 @@ if __name__ == '__main__':
     print "str " + str(c)
     c=Command(string="13 W")
     print "str " + str(c)
-    c=Command(string="14 P 12300")
+    c=Command(string="14 A 0.75")
+    print "str " + str(c)
+    c=Command(string="15 P 12300")
     print "str " + str(c)
     c=Command(string="18 oho")
     print "str " + str(c)
     c=Command(string="hupsis oli")
     print "str " + str(c)
+    
     c=Command(number=99, command = 'D', leftPower = 0.77, rightPower = 0.55)
-    print "str " + str(c)
-    print "str(Command(str(c))) " + str(Command(str(c)))
+    print "D str " + str(c)
+    print "str(Command(str(c))) " + str(Command(string=str(c)))
+    
+    c=Command(number=100, command = 'A', azimuth = -0.85)
+    print "A str " + str(c)
+    print "str(Command(str(c))) " + str(Command(string=str(c)))
+
+    c=Command(number=110, command = 'C', direction = 'O', capabilities = [Command.CommandTypes.Drive, Command.CommandTypes.Azimuth])
+    print "C str " + str(c)
+    print "str(Command(str(c))) " + str(Command(string=str(c)))
