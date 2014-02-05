@@ -8,7 +8,7 @@ Updated on Feb 3, 2014
 import SocketServer
 from Command import Command
 from Romeo import Romeo
-from subprocess import call
+from Hearing import Hearing
 from threading import Thread
 import signal
 import sys
@@ -30,8 +30,37 @@ DAEMON=False
 START=False
 STOP=False
 
+class WalleServer(Thread):
+    """
+    Contmtrols Walle-robot. Walle has capabilities like movin, hearing, seeing and position sense.
+    TEchnically we use socket servers to communicate with external devices. Romeo board, is controlled
+    using library using USB. We use USB-microphones and Raspberry pi camera.
+    """
 
-class WalleServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+    def __init__(self):
+        Thread.__init__(self)
+        
+        self.azimuth=0.0                # position sense, azimuth from north
+        self.hearing_angle = 0.0        # device hears sound from this angle, device looks to its front
+                                        # to the azimuth direction
+        
+        self.sensation_queue = Queue()    # example how to make capabilities give us commands
+        self.hearing=Hearing(sensation_queue)
+
+
+    def run(self):
+        print "Starting " + self.name
+        
+        # startung other threads/sendes/capabilities
+        
+        self.running=True
+
+        while self.running:
+            sensation=self.command_sensation.get()
+            self.process(sensation)
+
+
+class WalleSocketServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     pause = 0.25
     allow_reuse_address = True
 
@@ -40,6 +69,12 @@ class WalleServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                                         RequestHandlerClass)
         self.socket.settimeout(self.pause)
         self.serving =True
+        
+        self.report_queue = Queue()
+        self.hearing=Hearing(report_queue)
+        self.hearing.start()
+
+
 
     def serve_forever(self):
         while self.serving:
@@ -98,7 +133,7 @@ class WalleRequestHandler(SocketServer.BaseRequestHandler):
            
     def processCommand(self, command):
         if command.getCommand() == Command.CommandTypes.Picture:
-            print "WalleServer.processCommand Command.CommandTypes.Picture"
+            print "WalleSocketServer.processCommand Command.CommandTypes.Picture"
             # take a picture
             call(["raspistill", "-vf", "-ex", "night", "-o", "/tmp/image.jpg"])
             f = open("/tmp/image.jpg", 'r')
@@ -165,15 +200,15 @@ def do_server():
         # Create the server, binding to localhost on port 2000
         print "do_server: create SocketServer.TCPServer " + HOST + " " + str(PORT)
         #server = SocketServer.TCPServer((HOST, PORT), WalleRequestHandler)
-        server = WalleServer((HOST, PORT), WalleRequestHandler)
+        server = WalleSocketServer((HOST, PORT), WalleRequestHandler)
         WalleRequestHandler.server = server
         
         print "do_server: create SocketServer.TCPServer " + HOST + " " + str(PICTURE_PORT) + " " + str(CAPABILITIES_PORT)
         #pictureServer = SocketServer.TCPServer((HOST, PICTURE_PORT), WalleRequestHandler)
-        pictureServer = WalleServer((HOST, PICTURE_PORT), WalleRequestHandler)
+        pictureServer = WalleSocketServer((HOST, PICTURE_PORT), WalleRequestHandler)
         WalleRequestHandler.pictureServer = pictureServer
         
-        capabilitiesServer = WalleServer((HOST, CAPABILITIES_PORT), WalleRequestHandler)
+        capabilitiesServer = WalleSocketServer((HOST, CAPABILITIES_PORT), WalleRequestHandler)
         WalleRequestHandler.capabilitiesServer = capabilitiesServer
 
     except Exception: 
@@ -313,7 +348,7 @@ def main():
 
 
 if __name__ == "__main__":
-    WalleRequestHandler.romeo = None    # no romeo devoce connection yet
+    WalleRequestHandler.romeo = None    # no romeo device connection yet
 
     print 'Number of arguments:', len(sys.argv), 'arguments.'
     print 'Argument List:', str(sys.argv)
