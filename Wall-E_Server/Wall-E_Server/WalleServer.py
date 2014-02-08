@@ -6,7 +6,7 @@ Updated on Feb 3, 2014
 '''
 
 import SocketServer
-from Command import Command
+from Sensation import Sensation
 from Romeo import Romeo
 from Hearing import Hearing
 from threading import Thread
@@ -14,6 +14,7 @@ import signal
 import sys
 import getopt
 import socket
+from Queue import Queue
 
 
 import daemon
@@ -24,7 +25,6 @@ import lockfile
 HOST = '0.0.0.0'
 PORT = 2000
 PICTURE_PORT = 2001
-CAPABILITIES_PORT = 2002
 
 DAEMON=False
 START=False
@@ -32,10 +32,18 @@ STOP=False
 
 class WalleServer(Thread):
     """
-    Contmtrols Walle-robot. Walle has capabilities like movin, hearing, seeing and position sense.
-    TEchnically we use socket servers to communicate with external devices. Romeo board, is controlled
+    Controls Walle-robot. Walle has capabilities like moving, hearing, seeing and position sense.
+    Technically we use socket servers to communicate with external devices. Romeo board is controlled
     using library using USB. We use USB-microphones and Raspberry pi camera.
+    
+    Walle emulates senses (camera, microphone, mobile phone) that have emit sensations to "brain" that has state and memory and gives
+    commands (tecnically Sensation class instances) to muscles (Romeo Board, mobile phone)
+    
+    Integraterd sensation are transferred in Queue, which is thread safe. Every SEnse runs in its own thread as real senses, independently.
+    External Senses are handled using sockets.
     """
+    
+    sensation_queue = Queue()       # global queue for senses to put sensations
 
     def __init__(self):
         Thread.__init__(self)
@@ -43,22 +51,24 @@ class WalleServer(Thread):
         self.azimuth=0.0                # position sense, azimuth from north
         self.hearing_angle = 0.0        # device hears sound from this angle, device looks to its front
                                         # to the azimuth direction
-        
-        self.sensation_queue = Queue()    # example how to make capabilities give us commands
-        self.hearing=Hearing(sensation_queue)
+
+        self.hearing=Hearing(WalleServer.sensation_queue)
+ 
 
 
     def run(self):
         print "Starting " + self.name
         
-        # startung other threads/sendes/capabilities
+        # starting other threads/senders/capabilities
         
         self.running=True
-
+        self.hearing.start()
+ 
         while self.running:
-            sensation=self.command_sensation.get()
+            sensation=WalleServer.sensation_queue.get()
             self.process(sensation)
 
+        self.hearing.stop()
 
 class WalleSocketServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     pause = 0.25
@@ -70,10 +80,6 @@ class WalleSocketServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         self.socket.settimeout(self.pause)
         self.serving =True
         
-        self.report_queue = Queue()
-        self.hearing=Hearing(report_queue)
-        self.hearing.start()
-
 
 
     def serve_forever(self):
@@ -104,47 +110,44 @@ class WalleRequestHandler(SocketServer.BaseRequestHandler):
         for string in strings:
             print "WalleRequestHandler.handle string " + string
             if len(string) > 0:
-                command=Command(string)
-                print command
-                if command.getCommand() == Command.CommandTypes.Stop:
-                    self.request.sendall(str(command))
-                    print "WalleRequestHandler.handle command " + str(command) + " Shutdown"
+                sensation=Sensation(string)
+                print sensation
+                if sensation.getSensation() == Sensation.SensationTypes.Stop:
+                    self.request.sendall(str(sensation))
+                    print "WalleRequestHandler.handle sensation " + str(sensation) + " Shutdown"
                     if not WalleRequestHandler.romeo is None:
                         print "_WalleRequestHandler.handle del WalleRequestHandler.romeo"
                         del WalleRequestHandler.romeo
                         WalleRequestHandler.romeo = None
                         
-                    print "WalleRequestHandler.handle command capabilitiesServer.shutdown()"
-                    WalleRequestHandler.capabilitiesServer.serving =False
-
-                    print "WalleRequestHandler.handle command pictureServer.shutdown()"
+                    print "WalleRequestHandler.handle sensation pictureServer.shutdown()"
                     WalleRequestHandler.pictureServer.serving =False
                     
-                    print "WalleRequestHandler.handle command " + str(command) + " server.shutdown()"
+                    print "WalleRequestHandler.handle sensation " + str(sensation) + " server.shutdown()"
                     WalleRequestHandler.server.serving =False
                 else:
-                    command, imageData = self.processCommand(command)
+                    sensation, imageData = self.processSensation(sensation)
                     
-                    self.request.sendall(str(command))
-                    print "WalleRequestHandler.handle command " + str(command)
-                    if command.getCommand() == Command.CommandTypes.Picture:
+                    self.request.sendall(str(sensation))
+                    print "WalleRequestHandler.handle sensation " + str(sensation)
+                    if sensation.getSensation() == Sensation.SensationTypes.Picture:
                         self.request.sendall(imageData)
-                    print "WalleRequestHandler.handle command imagedata " + str(len(imageData))
+                    print "WalleRequestHandler.handle sensation imagedata " + str(len(imageData))
            
-    def processCommand(self, command):
-        if command.getCommand() == Command.CommandTypes.Picture:
-            print "WalleSocketServer.processCommand Command.CommandTypes.Picture"
+    def processSensation(self, sensation):
+        if sensation.getSensation() == Sensation.SensationTypes.Picture:
+            print "WalleSocketServer.processSensation Sensation.SensationTypes.Picture"
             # take a picture
             call(["raspistill", "-vf", "-ex", "night", "-o", "/tmp/image.jpg"])
             f = open("/tmp/image.jpg", 'r')
             imageData=f.read()
-            command.setImageSize(len(imageData))
-            return command, imageData
+            sensation.setImageSize(len(imageData))
+            return sensation, imageData
         else:
             if not WalleRequestHandler.romeo == None:
-                return WalleRequestHandler.romeo.processCommand(command)
+                return WalleRequestHandler.romeo.processSensation(sensation)
             else:
-                return command, ""
+                return sensation, ""
            
         
 #    def handle(self):
@@ -167,18 +170,15 @@ def threaded_server(arg):
 def signal_handler(signal, frame):
     print 'signal_handler: You pressed Ctrl+C!'
     
-    print 'signal_handler: Shutting down command server ...'
+    print 'signal_handler: Shutting down sensation server ...'
     WalleRequestHandler.server.serving =False
-    print 'signal_handler: command server is down OK'
+    print 'signal_handler: sensation server is down OK'
     
     print 'signal_handler: Shutting down picture server...'
     WalleRequestHandler.pictureServer.serving =False
     print 'signal_handler: picture server is down OK'
 
-    print 'signal_handler: Shutting down capabilities server...'
-    WalleRequestHandler.capabilitiesServer.serving =False
-    print 'signal_handler: capabilities server is down OK'
-   
+  
 
 def do_server():
     signal.signal(signal.SIGINT, signal_handler)
@@ -194,22 +194,25 @@ def do_server():
  
     #romeo.test2()
 
+    print "do_server: create WalleServer"
+    walle = WalleServer()
+    #server = WalleSocketServer((HOST, PORT), WalleRequestHandler)
+    #WalleRequestHandler.server = server
 
     succeeded=True
     try:
+        
         # Create the server, binding to localhost on port 2000
+        print "do_server: create SocketServer.TCPServer "
         print "do_server: create SocketServer.TCPServer " + HOST + " " + str(PORT)
         #server = SocketServer.TCPServer((HOST, PORT), WalleRequestHandler)
         server = WalleSocketServer((HOST, PORT), WalleRequestHandler)
         WalleRequestHandler.server = server
         
-        print "do_server: create SocketServer.TCPServer " + HOST + " " + str(PICTURE_PORT) + " " + str(CAPABILITIES_PORT)
+        print "do_server: create SocketServer.TCPServer " + HOST + " " + str(PICTURE_PORT)
         #pictureServer = SocketServer.TCPServer((HOST, PICTURE_PORT), WalleRequestHandler)
         pictureServer = WalleSocketServer((HOST, PICTURE_PORT), WalleRequestHandler)
         WalleRequestHandler.pictureServer = pictureServer
-        
-        capabilitiesServer = WalleSocketServer((HOST, CAPABILITIES_PORT), WalleRequestHandler)
-        WalleRequestHandler.capabilitiesServer = capabilitiesServer
 
     except Exception: 
         print "do_server: socket error, exiting"
@@ -231,14 +234,6 @@ def do_server():
         print 'do_server: Starting  pictureServerThread'
         pictureServerThread.start()
           
-        print 'do_server: Creating capabilitiesServerThread'
-        capabilitiesServerThread = Thread(target = threaded_server, args = (capabilitiesServer, ))
-        print 'do_server: Starting  capabilitiesServerThread'
-        capabilitiesServerThread.start()
-      
-        print 'do_server: Waiting capabilitiesServerThread to stop'
-        capabilitiesServerThread.join()
-       
         print 'do_server: Waiting pictureServerThread to stop'
         pictureServerThread.join()
 
@@ -278,8 +273,8 @@ def stop():
         # Connect to server and send data
         print 'stop: sock.connect((localhost, PORT))'
         sock.connect(('localhost', PORT))
-        print "stop: sock.sendall STOP command"
-        sock.sendall(str(Command(command = 'S')))
+        print "stop: sock.sendall STOP sensation"
+        sock.sendall(str(Sensation(sensation = 'S')))
     
         # Receive data from the server
         received = sock.recv(1024)
@@ -296,7 +291,7 @@ def main():
     signal.signal(signal.SIGINT, signal_handler)
      
 
-    WalleRequestHandler.romeo = None    # no romeo devoce connection yet
+    WalleRequestHandler.romeo = None    # no romeo device connection yet
 #    print "main: create romeo"
 #    romeo = Romeo()
     #romeo.test2()
@@ -307,11 +302,10 @@ def main():
     print "main: create SocketServer.TCPServer " + HOST + " " + str(PORT)
     server = SocketServer.TCPServer((HOST, PORT), WalleRequestHandler)
     
-    print "main: create SocketServer.TCPServer " + HOST + " " + str(PICTURE_PORT) + + " " + str(CAPABILITIES_PORT)
+    print "main: create SocketServer.TCPServer " + HOST + " " + str(PICTURE_PORT)
     pictureServer = SocketServer.TCPServer((HOST, PICTURE_PORT), WalleRequestHandler)
 
-    capabilitiesServer = SocketServer.TCPServer((HOST, CAPABILITIES_PORT), WalleRequestHandler)
-
+ 
     # Activate the server; this will keep running until you
     # interrupt the program with Ctrl-C
     #threaded_server(pictureServer)
@@ -329,17 +323,10 @@ def main():
     print 'main: Starting  pictureServerThread'
     pictureServerThread.start()
     
-    print 'main: Creating capabilitiesServerThread'
-    capabilitiesServerThread = Thread(target = threaded_server, args = (capabilitiesServer, ))
-    print 'main: Starting  capabilitiesServerThread'
-    capabilitiesServerThread.start()
-
     print 'main: Waiting serverThread to stop'
     serverThread.join()
     print 'main: Waiting pictureServerThread to stop'
     pictureServerThread.join()
-    print 'main: Waiting capabilitiesServerThread to stop'
-    capabilitiesServerThread.join()
     
     print 'main: Servers stoppped OK'
     

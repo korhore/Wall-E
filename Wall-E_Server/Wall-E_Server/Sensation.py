@@ -6,16 +6,16 @@ Created on Feb 25, 2013
 def enum(**enums):
     return type('Enum', (), enums)
 
-class Command(object):
+class Sensation(object):
     
-    CommandTypes = enum(Drive='D', Stop='S', Who='W', Azimuth='A', Picture='P', Capability='C', Unknown='U')
+    SensationTypes = enum(Drive='D', Stop='S', Who='W', Azimuth='A', Picture='P', Capability='C', Unknown='U')
     Direction = enum(Input='I', Output='O')
    
     def __init__(self, string="",
-                 number=-1, command = 'U', leftPower = 0.0, rightPower = 0.0, azimuth = 0.0, imageSize=0,
+                 number=-1, sensation = 'U', leftPower = 0.0, rightPower = 0.0, azimuth = 0.0, imageSize=0,
                  direction='I', capabilities = []):
         self.number = number
-        self.command = command
+        self.sensation = sensation
         self.leftPower = leftPower
         self.rightPower = rightPower
         self.azimuth = azimuth
@@ -29,32 +29,32 @@ class Command(object):
             try:
                 self.number = int(params[0])
             except (ValueError):
-                self.command = Command.CommandTypes.Unknown
+                self.sensation = Sensation.SensationTypes.Unknown
                 return
                 
             print self.number
             if len(params) >= 2:
-                command = params[1]
-                if command == Command.CommandTypes.Drive:
-                    self.command = Command.CommandTypes.Drive
+                sensation = params[1]
+                if sensation == Sensation.SensationTypes.Drive:
+                    self.sensation = Sensation.SensationTypes.Drive
                     if len(params) >= 3:
                         self.leftPower = float(params[2])
                         print str(self.leftPower)
                     if len(params) >= 4:
                         self.rightPower = float(params[3])
                         print str(self.rightPower)
-                elif command == Command.CommandTypes.Azimuth:
-                    self.command = Command.CommandTypes.Azimuth
+                elif sensation == Sensation.SensationTypes.Azimuth:
+                    self.sensation = Sensation.SensationTypes.Azimuth
                     if len(params) >= 3:
                         self.azimuth = float(params[2])
                         print str(self.azimuth)
-                elif command == Command.CommandTypes.Picture:
-                    self.command = Command.CommandTypes.Picture
+                elif sensation == Sensation.SensationTypes.Picture:
+                    self.sensation = Sensation.SensationTypes.Picture
                     if len(params) >= 3:
                         self.imageSize = int(params[2])
                         print str(self.imageSize)
-                elif command == Command.CommandTypes.Capability:
-                    self.command = Command.CommandTypes.Capability
+                elif sensation == Sensation.SensationTypes.Capability:
+                    self.sensation = Sensation.SensationTypes.Capability
                     if len(params) >= 3:
                         self.direction = params[2]
                         print str(self.direction)
@@ -62,39 +62,39 @@ class Command(object):
                         self.capabilities = params[3:]
                         print str(self.capabilities)
     
-                elif command == Command.CommandTypes.Stop:
-                    self.command = Command.CommandTypes.Stop
-                elif command == Command.CommandTypes.Who:
-                    self.command = Command.CommandTypes.Who
+                elif sensation == Sensation.SensationTypes.Stop:
+                    self.sensation = Sensation.SensationTypes.Stop
+                elif sensation == Sensation.SensationTypes.Who:
+                    self.sensation = Sensation.SensationTypes.Who
                 else:
-                    self.command = Command.CommandTypes.Unknown
-                print self.command
+                    self.sensation = Sensation.SensationTypes.Unknown
+                print self.sensation
             
     def __str__(self):
-        if self.command == Command.CommandTypes.Drive:
-            return str(self.number) + ' ' + self.command + ' ' + str(self.leftPower) +  ' ' + str(self.rightPower)
-        elif self.command == Command.CommandTypes.Azimuth:
-            return str(self.number) + ' ' + self.command + ' ' + str(self.azimuth)
-        elif self.command == Command.CommandTypes.Picture:
-            return str(self.number) + ' ' + self.command + ' ' + str(self.imageSize)
-        elif self.command == Command.CommandTypes.Capability:
-            return str(self.number) + ' ' + self.command + ' ' + str(self.direction) +  ' ' + self.getStrCapabilities()
-        elif self.command == Command.CommandTypes.Stop:
-            return str(self.number) + ' ' + self.command
-        elif self.command == Command.CommandTypes.Who:
-            return str(self.number) + ' ' + self.command
+        if self.sensation == Sensation.SensationTypes.Drive:
+            return str(self.number) + ' ' + self.sensation + ' ' + str(self.leftPower) +  ' ' + str(self.rightPower)
+        elif self.sensation == Sensation.SensationTypes.Azimuth:
+            return str(self.number) + ' ' + self.sensation + ' ' + str(self.azimuth)
+        elif self.sensation == Sensation.SensationTypes.Picture:
+            return str(self.number) + ' ' + self.sensation + ' ' + str(self.imageSize)
+        elif self.sensation == Sensation.SensationTypes.Capability:
+            return str(self.number) + ' ' + self.sensation + ' ' + str(self.direction) +  ' ' + self.getStrCapabilities()
+        elif self.sensation == Sensation.SensationTypes.Stop:
+            return str(self.number) + ' ' + self.sensation
+        elif self.sensation == Sensation.SensationTypes.Who:
+            return str(self.number) + ' ' + self.sensation
         else:
-            return str(self.number) + ' ' + self.command
+            return str(self.number) + ' ' + self.sensation
 
     def setNumber(self, number):
         self.number = number
     def getNumber(self):
         return self.number
  
-    def setCommand(self, command):
-        self.command = command
-    def getCommand(self):
-        return self.command
+    def setSensation(self, sensation):
+        self.sensation = sensation
+    def getSensation(self):
+        return self.sensation
        
     def setLeftPower(self, leftPower):
         self.leftPower = leftPower
@@ -135,29 +135,29 @@ class Command(object):
 
         
 if __name__ == '__main__':
-    c=Command(string="12 D 0.97 0.56")
+    c=Sensation(string="12 D 0.97 0.56")
     print "str " + str(c)
-    c=Command(string="13 S")
+    c=Sensation(string="13 S")
     print "str " + str(c)
-    c=Command(string="13 W")
+    c=Sensation(string="13 W")
     print "str " + str(c)
-    c=Command(string="14 A 0.75")
+    c=Sensation(string="14 A 0.75")
     print "str " + str(c)
-    c=Command(string="15 P 12300")
+    c=Sensation(string="15 P 12300")
     print "str " + str(c)
-    c=Command(string="18 oho")
+    c=Sensation(string="18 oho")
     print "str " + str(c)
-    c=Command(string="hupsis oli")
+    c=Sensation(string="hupsis oli")
     print "str " + str(c)
     
-    c=Command(number=99, command = 'D', leftPower = 0.77, rightPower = 0.55)
+    c=Sensation(number=99, sensation = 'D', leftPower = 0.77, rightPower = 0.55)
     print "D str " + str(c)
-    print "str(Command(str(c))) " + str(Command(string=str(c)))
+    print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
     
-    c=Command(number=100, command = 'A', azimuth = -0.85)
+    c=Sensation(number=100, sensation = 'A', azimuth = -0.85)
     print "A str " + str(c)
-    print "str(Command(str(c))) " + str(Command(string=str(c)))
+    print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
 
-    c=Command(number=110, command = 'C', direction = 'O', capabilities = [Command.CommandTypes.Drive, Command.CommandTypes.Azimuth])
+    c=Sensation(number=110, sensation = 'C', direction = 'O', capabilities = [Sensation.SensationTypes.Drive, Sensation.SensationTypes.Azimuth])
     print "C str " + str(c)
-    print "str(Command(str(c))) " + str(Command(string=str(c)))
+    print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))

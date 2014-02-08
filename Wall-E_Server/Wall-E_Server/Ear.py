@@ -12,7 +12,7 @@ import numpy
 import math
 
 import SocketServer
-from Command import Command
+from Sensation import Sensation
 from Romeo import Romeo
 from subprocess import call
 from threading import Thread

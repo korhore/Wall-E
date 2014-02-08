@@ -33,7 +33,7 @@ import signal
 import pyfirmata
 from pyfirmata import SERVO
 from time import sleep
-from Command import Command
+from Sensation import Sensation
 
 
 PORT = '/dev/ttyACM0'
@@ -233,45 +233,45 @@ class Romeo:
                 pass
               # stop();
 
-    def processCommand(self, command):         #Move forward
-        print "Romeo.processCommand number " + str(command.getNumber()) + " Command " + command.getCommand() + " getLeftPower " + str(command.getLeftPower()) + " getRightPower " + str(command.getRightPower())
-        if command.getCommand() == Command.CommandTypes.Drive:
-            print "Romeo.processCommand Command.CommandTypes.Drive"
+    def processSensation(self, sensation):         #Move forward
+        print "Romeo.processSensation number " + str(sensation.getNumber()) + " Sensation " + sensation.getSensation() + " getLeftPower " + str(sensation.getLeftPower()) + " getRightPower " + str(sensation.getRightPower())
+        if sensation.getSensation() == Sensation.SensationTypes.Drive:
+            print "Romeo.processSensation Sensation.SensationTypes.Drive"
             #TODO Can't get anything else to worh, than motor is 1.0
             # other way it is stopped
-            if command.getLeftPower() >= 0.25:
-                print "Romeo.processCommand Command.CommandTypes.Drive 1 Left " + str(command.getLeftPower())
-                self.e2.write(command.getLeftPower())
+            if sensation.getLeftPower() >= 0.25:
+                print "Romeo.processSensation Sensation.SensationTypes.Drive 1 Left " + str(sensation.getLeftPower())
+                self.e2.write(sensation.getLeftPower())
                 self.m2.write(1)
-                print "Romeo.processCommand Command.CommandTypes.Drive self.e2.read() " + str(self.e2.read())
-            elif command.getLeftPower() <= -0.25:
-                print "Romeo.processCommand Command.CommandTypes.Drive -1 Left " + str(-command.getLeftPower())
-                self.e2.write(-command.getLeftPower())
+                print "Romeo.processSensation Sensation.SensationTypes.Drive self.e2.read() " + str(self.e2.read())
+            elif sensation.getLeftPower() <= -0.25:
+                print "Romeo.processSensation Sensation.SensationTypes.Drive -1 Left " + str(-sensation.getLeftPower())
+                self.e2.write(-sensation.getLeftPower())
                 self.m2.write(-1)
-                print "Romeo.processCommand Command.CommandTypes.Drive self.e2.read() " + str(self.e2.read())
+                print "Romeo.processSensation Sensation.SensationTypes.Drive self.e2.read() " + str(self.e2.read())
             else:
-                print "Romeo.processCommand Command.CommandTypes.Drive Left 0 0"
+                print "Romeo.processSensation Sensation.SensationTypes.Drive Left 0 0"
                 self.e2.write(0.0)
                 self.m2.write(0)
 
-            if command.getRightPower() >= 0.25:
-                print "Romeo.processCommand Command.CommandTypes.Drive 1 Right " + str(command.getRightPower())
-                self.e1.write(command.getRightPower())
+            if sensation.getRightPower() >= 0.25:
+                print "Romeo.processSensation Sensation.SensationTypes.Drive 1 Right " + str(sensation.getRightPower())
+                self.e1.write(sensation.getRightPower())
                 self.m1.write(1)
-                print "Romeo.processCommand Command.CommandTypes.Drive self.e2.read() " + str(self.e2.read())
-            elif command.getRightPower() <= -0.25:
-                print "Romeo.processCommand Command.CommandTypes.Drive -1 Right " + str(-command.getRightPower())
-                self.e1.write(-command.getRightPower())
+                print "Romeo.processSensation Sensation.SensationTypes.Drive self.e2.read() " + str(self.e2.read())
+            elif sensation.getRightPower() <= -0.25:
+                print "Romeo.processSensation Sensation.SensationTypes.Drive -1 Right " + str(-sensation.getRightPower())
+                self.e1.write(-sensation.getRightPower())
                 self.m1.write(-1)
-                print "Romeo.processCommand Command.CommandTypes.Drive self.e2.read() " + str(self.e2.read())
+                print "Romeo.processSensation Sensation.SensationTypes.Drive self.e2.read() " + str(self.e2.read())
             else:
-                print "Romeo.processCommand Command.CommandTypes.Drive 0 Right 0"
+                print "Romeo.processSensation Sensation.SensationTypes.Drive 0 Right 0"
                 self.e1.write(0.0)
                 self.m1.write(0)
 
  
         
-        return command, ""
+        return sensation, ""
 
     def test(self):
         print "Romeo.test 1"
