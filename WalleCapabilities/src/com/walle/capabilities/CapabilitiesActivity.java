@@ -17,7 +17,7 @@ import android.widget.EditText;
 
 public class CapabilitiesActivity extends Activity implements SensorEventListener {
 	final private float kFilteringFactor = 0.1f;
-	final private int CAPABILITIES_PORT = 2002;
+	final private int PORT = 2000;
 	final private String HOST = "10.0.0.5";
 	
     private EditText mHostField;
@@ -59,7 +59,7 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 	    mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 	    
 	    try {
-	    	  mSocket = new Socket(HOST, CAPABILITIES_PORT);
+	    	  mSocket = new Socket(HOST, PORT);
 	    	  mDataInputStream = new DataInputStream(mSocket.getInputStream());
 	    	  mDataOutputStream = new DataOutputStream(mSocket.getOutputStream());
 	    	  /*
