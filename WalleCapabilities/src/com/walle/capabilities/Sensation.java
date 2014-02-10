@@ -1,8 +1,13 @@
 package com.walle.capabilities;
 
+
+//package com.walle.capabilities;
+
+
 import android.util.Log;
 
-public class Sensation {
+
+public class Sensation extends Object {
 	final String LOGTAG="Sensation";
 	
 	private int m_number;
@@ -232,21 +237,21 @@ public class Sensation {
         
     public String toString() {
         if (this.m_sensationType == SensationType.Drive)
-            return Integer.toString(this.m_number) + ' ' + this.m_sensationType.toString() + ' ' +  ' ' + Float.toString(this.m_leftPower) +  ' ' + Float.toString(this.m_rightPower);
+            return Integer.toString(this.m_number) + ' ' + this.m_sensationType.getText() + ' ' +  ' ' + Float.toString(this.m_leftPower) +  ' ' + Float.toString(this.m_rightPower);
         else if (this.m_sensationType == SensationType.Hear)
-            return Integer.toString(this.m_number) + ' ' + this.m_sensationType + ' ' + Float.toString(this.m_hear);
+            return Integer.toString(this.m_number) + ' ' + this.m_sensationType.getText() + ' ' + Float.toString(this.m_hear);
         else if (this.m_sensationType == SensationType.Azimuth)
-            return Integer.toString(this.m_number) + ' ' + this.m_sensationType + ' ' + Float.toString(this.m_azimuth);
+            return Integer.toString(this.m_number) + ' ' + this.m_sensationType.getText() + ' ' + Float.toString(this.m_azimuth);
         else if (this.m_sensationType == SensationType.Picture)
-            return Integer.toString(this.m_number) + ' ' + this.m_sensationType + ' ' + Integer.toString(this.m_imageSize);
+            return Integer.toString(this.m_number) + ' ' + this.m_sensationType.getText() + ' ' + Integer.toString(this.m_imageSize);
         else if (this.m_sensationType == SensationType.Capability)
-            return Integer.toString(this.m_number) + ' ' + this.m_sensationType + ' ' + this.m_direction +  ' ' + this.getStrCapabilities();
+            return Integer.toString(this.m_number) + ' ' + this.m_sensationType.getText() + ' ' + this.m_direction +  ' ' + this.getStrCapabilities();
         else if (this.m_sensationType == SensationType.Stop)
-            return Integer.toString(this.m_number) + ' ' + this.m_sensationType;
+            return Integer.toString(this.m_number) + ' ' + this.m_sensationType.getText();
         else if (this.m_sensationType == SensationType.Who)
-            return Integer.toString(this.m_number) + ' ' + this.m_sensationType;
+            return Integer.toString(this.m_number) + ' ' + this.m_sensationType.getText();
         else
-            return Integer.toString(this.m_number) + ' ' + this.m_sensationType;
+            return Integer.toString(this.m_number) + ' ' + this.m_sensationType.getText();
         	
     }
 

@@ -4,21 +4,29 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 
 import android.app.Activity;
+import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.util.Log;
 import android.view.Menu;
 import android.widget.EditText;
 
 public class CapabilitiesActivity extends Activity implements SensorEventListener {
+	final String LOGTAG="CapabilitiesActivity";
+
 	final private float kFilteringFactor = 0.1f;
 	final private int PORT = 2000;
 	final private String HOST = "10.0.0.5";
+	final private float kAccuracyFactor = (float)(Math.PI * 5.0)/180.0f;
 	
     private EditText mHostField;
     private EditText mPortField;
@@ -27,14 +35,19 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
     private Sensor mMagnetometer;
+    
+    private PowerManager mPowerManager;
+    private PowerManager.WakeLock mWakeLock;
 
     private float[] mGravity;
 	private float[] mGeomagnetic;
-	private float mAzimuth;
+	private float mAzimuth = 0.0f;
+	private float mPreviousAzimuth = 0.0f;
+	private int mNumber = 0;
 
-	 Socket mSocket = null;
-	 DataOutputStream mDataOutputStream = null;
-	 DataInputStream mDataInputStream = null;
+	private Socket mSocket = null;
+	private DataOutputStream mDataOutputStream = null;
+	private DataInputStream mDataInputStream = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +70,20 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 	    mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
 	    mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 	    mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+
+	    // listen always, also in paused
+	    // TODO we get sensor data only, if we don't sleep
+	    mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_FASTEST);
+	    mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_FASTEST);
 	    
+	    createConnection();
+	    
+	    mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+	    mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "CapabilitiesActivity");
+	    mWakeLock.acquire();	    
+	}
+	
+	private void createConnection() {
 	    try {
 	    	  mSocket = new Socket(HOST, PORT);
 	    	  mDataInputStream = new DataInputStream(mSocket.getInputStream());
@@ -65,15 +91,14 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 	    	  /*
 	    	  mDataOutputStream.writeUTF(textOut.getText().toString());
 	    	  textIn.setText(mDataInputStream.readUTF());*/
-	    	 } catch (UnknownHostException e) {
+	    } catch (UnknownHostException e) {
 	    	  // TODO Auto-generated catch block
-	    	  e.printStackTrace();
-	    	 } catch (IOException e) {
+	    	Log.e(LOGTAG, "createConnection", e);
+	    } catch (IOException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
-			 }
-
-
+	    	Log.e(LOGTAG, "createConnection", e);
+		}
+		
 	}
 
 	@Override
@@ -85,13 +110,13 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 	
 	protected void onResume() {
 	    super.onResume();
-	    mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-	    mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_NORMAL);
+	    //mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+	    //mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_NORMAL);
 	}
 		 
 	protected void onPause() {
 	    super.onPause();
-	    mSensorManager.unregisterListener(this);
+	    //mSensorManager.unregisterListener(this);
 	}
 	
 	protected void onDestroy() {
@@ -101,7 +126,7 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 			    mSocket.close();
 			} catch (IOException e) {
 			    // TODO Auto-generated catch block
-			    e.printStackTrace();
+    	        Log.e(LOGTAG, "onDestroy", e);
 			}
 		}
 
@@ -111,7 +136,7 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 				mDataOutputStream.close();
 		    } catch (IOException e) {
 		    	// TODO Auto-generated catch block
-		    	e.printStackTrace();
+    	        Log.e(LOGTAG, "onDestroy", e);
 		    }
 
 		}
@@ -120,7 +145,7 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 				mDataInputStream.close();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+    	        Log.e(LOGTAG, "onDestroy", e);
 			}
 		}
 	}
@@ -168,20 +193,47 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 	}
 	
 	private void reportAzimuth(float aAzimuth) {
-		try {
-			mDataOutputStream.writeUTF(String.format("%8.3f", Math.toDegrees(aAzimuth)));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (mDataOutputStream != null) {
+			if (Math.abs(aAzimuth - mPreviousAzimuth) > kAccuracyFactor) {
+				try {
+					Sensation sensation = new Sensation(mNumber, Sensation.SensationType.Azimuth, aAzimuth);
+					String s = sensation.toString() +  "|";
+					byte[] bytes = s.getBytes("UTF-8");
+	    	        Log.d(LOGTAG, "reportAzimuth write " + Integer.toString(bytes.length));
+					mDataOutputStream.write(bytes);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+	    	        Log.e(LOGTAG, "reportAzimuth write", e);
+	    	        createConnection();
+	    	        return;
+				}
+				mNumber++;
+				mPreviousAzimuth = aAzimuth;
+				if (mDataInputStream != null) {
+					try {
+						int available = mDataInputStream.available();
+						int l=0;
+		    	        Log.d(LOGTAG, "reportAzimuth read " + Integer.toString(available));
+						while (available > 0)
+						{
+							byte[] b = new byte[256];
+			    	        Log.d(LOGTAG, "reportAzimuth read available " + Integer.toString(available));
+							l += mDataInputStream.read(b, l, available);
+			    	        Log.d(LOGTAG, "reportAzimuth read l " + Integer.toString(l));
+							available = mDataInputStream.available();
+						}
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+		    	        Log.e(LOGTAG, "reportAzimuth read", e);
+		    	        createConnection();
+		    	        return;
+					}
+				}
+			}
 		}
-		
-		try {
-			mDataInputStream.readUTF();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		else {
+	        Log.d(LOGTAG, "reportAzimuth; no mDataOutputStream");
 		}
-
 	}
 	
 
