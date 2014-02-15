@@ -47,13 +47,18 @@ class WalleServer(Thread):
 
     def __init__(self):
         Thread.__init__(self)
-        
+        self.name = "WalleServer"
+       
         self.azimuth=0.0                # position sense, azimuth from north
         self.hearing_angle = 0.0        # device hears sound from this angle, device looks to its front
                                         # to the azimuth direction
 
         self.hearing=Hearing(WalleServer.sensation_queue)
- 
+        print "WalleServer: creating WalleTCPServer"
+        self.tcpServer=WalleTCPServer(WalleServer.sensation_queue, (HOST,PORT))
+        
+        self.running=False
+
 
 
     def run(self):
@@ -63,28 +68,147 @@ class WalleServer(Thread):
         
         self.running=True
         self.hearing.start()
- 
+        print "WalleServer: starting WalleTCPServer"
+        self.tcpServer.start()
+
         while self.running:
             sensation=WalleServer.sensation_queue.get()
+            print "WalleServer: got sensation from queue " + str(sensation)
             self.process(sensation)
 
+        self.tcpServer.stop()
         self.hearing.stop()
 
-class WalleSocketServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+        def stop():
+            self.running = False
+            
+            
+    def process(self, sensation):
+        print "WalleServerprocess: " + str(sensation)
+        if sensation.getSensationType() == Sensation.SensationTypes.Drive:
+            print "Walleserver.process Sensation.SensationTypes.Drive"
+        elif sensation.getSensationType() == Sensation.SensationTypes.Stop:
+            print "Walleserver.process Sensation.SensationTypes.Stop"
+            self.stop()
+        elif sensation.getSensationType() == Sensation.SensationTypes.Who:
+            print "Walleserver.process Sensation.SensationTypes.Who"
+        elif sensation.getSensationType() == Sensation.SensationTypes.Hear:
+            print "Walleserver.process Sensation.SensationTypes.Hear"
+            self.hearing_angle = sensation.getHear()
+        elif sensation.getSensationType() == Sensation.SensationTypes.Azimuth:
+            print "Walleserver.process Sensation.SensationTypes.Azimuth"
+            self.azimuth = sensation.getAzimuth()
+        elif sensation.getSensationType() == Sensation.SensationTypes.Picture:
+            print "Walleserver.process Sensation.SensationTypes.Picture"
+        elif sensation.getSensationType() == Sensation.SensationTypes.Capability:
+            print "Walleserver.process Sensation.SensationTypes.Capability"
+        elif sensation.getSensationType() == Sensation.SensationTypes.Unknown:
+            print "Walleserver.process Sensation.SensationTypes.Unknown"
+  
+
+class WalleTCPServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     pause = 0.25
     allow_reuse_address = True
+    
+    # inhered
+    address_family = socket.AF_INET
+    socket_type = socket.SOCK_STREAM
+    request_queue_size = 5
+    #allow_reuse_address = False
 
-    def __init__(self, server_address, RequestHandlerClass):
-        SocketServer.TCPServer.__init__(self, server_address,
-                                        RequestHandlerClass)
-        self.socket.settimeout(self.pause)
-        self.serving =True
+
+    def __init__(self, queue, server_address):
+        Thread.__init__(self)
+        self.name = "WalleTCPServer"
+        self.queue = queue
+        self.server_address = server_address
+        print "WalleTCPServer: creating socket"
+        self.socket = socket.socket(self.address_family,
+                                    self.socket_type)
+#        self.socket.settimeout(self.pause)
+        self.socket.setblocking(1)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.socketServers = []
+        self.running=False
+       
+    def run(self):
+        print "Starting " + self.name
         
+        # starting other threads/senders/capabilities
+        
+        self.running=True
+#        if self.allow_reuse_address:
+#            self.socket.setsockopt(socket.SOL_TCP, socket.SO_REUSEADDR, 1)
+#            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+#        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+          
+        print self.name + "; bind " + str(self.server_address)
+        self.socket.bind(self.server_address)
+        self.server_address = self.socket.getsockname()
+        self.socket.listen(self.request_queue_size)
+ 
+        while self.running:
+            print self.name + ": waiting self.socket.accept()"
+            socket, address = self.socket.accept()
+            print self.name + ": self.socket.accept() " + str(address)
+            socketServer = self.createWalleSocketServer(queue=self.queue, socket=socket, address=address)
+            socketServer.start()
+
+    def stop():
+        self.running = False
+        
+    def createWalleSocketServer(self, queue, socket, address):
+        socketServer =  None
+        for socketServerCandidate in self.socketServers:
+            if not socketServerCandidate.running:
+                socketServer = socketServerCandidate
+                print self.name + ":createWalleSocketServer: found WalleSocketServer not running"
+                socketServer.__init__(queue, socket, address)
+                break
+        if not socketServer:
+            print self.name + ":createWalleSocketServer: creating new WalleSocketServer"
+            socketServer = WalleSocketServer(queue, socket, address)
+            self.socketServers.append(socketServer)
+        return socketServer
 
 
-    def serve_forever(self):
-        while self.serving:
-            self.handle_request()
+
+class WalleSocketServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+
+
+    def __init__(self, queue, socket, address):
+        Thread.__init__(self)
+        self.queue=queue
+        self.socket=socket
+        self.address=address
+        self.name = str(address)
+        self.running=False
+       
+    def run(self):
+        print "Starting " + self.name
+        
+        # starting other threads/senders/capabilities
+        
+        self.running=True
+ 
+        while self.running:
+            self.data = self.socket.recv(1024).strip()
+            print "WalleSocketServer Client " + str(self.address) + " wrote " + self.data
+            if len(self.data) == 0:
+                self.running = False
+            else:
+                strings=self.data.split('|')
+                for string in strings:
+                    print "WalleSocketServer string " + string
+                    if len(string) > 0:
+                        sensation=Sensation(string)
+                        print sensation
+                        self.queue.put(sensation)
+
+        self.socket.close()
+
+    def stop():
+        self.running = False
 
 
 class WalleRequestHandler(SocketServer.BaseRequestHandler):
@@ -112,7 +236,7 @@ class WalleRequestHandler(SocketServer.BaseRequestHandler):
             if len(string) > 0:
                 sensation=Sensation(string)
                 print sensation
-                if sensation.getSensation() == Sensation.SensationTypes.Stop:
+                if sensation.getSensationType() == Sensation.SensationTypes.Stop:
                     self.request.sendall(str(sensation))
                     print "WalleRequestHandler.handle sensation " + str(sensation) + " Shutdown"
                     if not WalleRequestHandler.romeo is None:
@@ -130,12 +254,12 @@ class WalleRequestHandler(SocketServer.BaseRequestHandler):
                     
                     self.request.sendall(str(sensation))
                     print "WalleRequestHandler.handle sensation " + str(sensation)
-                    if sensation.getSensation() == Sensation.SensationTypes.Picture:
+                    if sensation.getSensationType() == Sensation.SensationTypes.Picture:
                         self.request.sendall(imageData)
                     print "WalleRequestHandler.handle sensation imagedata " + str(len(imageData))
            
     def processSensation(self, sensation):
-        if sensation.getSensation() == Sensation.SensationTypes.Picture:
+        if sensation.getSensationType() == Sensation.SensationTypes.Picture:
             print "WalleSocketServer.processSensation Sensation.SensationTypes.Picture"
             # take a picture
             call(["raspistill", "-vf", "-ex", "night", "-o", "/tmp/image.jpg"])
@@ -201,19 +325,22 @@ def do_server():
 
     succeeded=True
     try:
+        walle.start()
         
-        # Create the server, binding to localhost on port 2000
-        print "do_server: create SocketServer.TCPServer "
-        print "do_server: create SocketServer.TCPServer " + HOST + " " + str(PORT)
-        #server = SocketServer.TCPServer((HOST, PORT), WalleRequestHandler)
-        server = WalleSocketServer((HOST, PORT), WalleRequestHandler)
-        WalleRequestHandler.server = server
+#        # TODO
+#        
+#        # Create the server, binding to localhost on port 2000
+#        print "do_server: create SocketServer.TCPServer "
+#        print "do_server: create SocketServer.TCPServer " + HOST + " " + str(PORT)
+#        #server = SocketServer.TCPServer((HOST, PORT), WalleRequestHandler)
+#        server = WalleSocketServer((HOST, PORT), WalleRequestHandler)
+#        WalleRequestHandler.server = server
         
-        print "do_server: create SocketServer.TCPServer " + HOST + " " + str(PICTURE_PORT)
-        #pictureServer = SocketServer.TCPServer((HOST, PICTURE_PORT), WalleRequestHandler)
-        pictureServer = WalleSocketServer((HOST, PICTURE_PORT), WalleRequestHandler)
-        WalleRequestHandler.pictureServer = pictureServer
-
+#        print "do_server: create SocketServer.TCPServer " + HOST + " " + str(PICTURE_PORT)
+#        #pictureServer = SocketServer.TCPServer((HOST, PICTURE_PORT), WalleRequestHandler)
+#        pictureServer = WalleSocketServer((HOST, PICTURE_PORT), WalleRequestHandler)
+#        WalleRequestHandler.pictureServer = pictureServer
+#
     except Exception: 
         print "do_server: socket error, exiting"
         succeeded=False
@@ -224,21 +351,23 @@ def do_server():
     if succeeded:
         print 'do_server: Press Ctrl+C to Stop'
         
-        print 'do_server: Creating serverThread'
-        serverThread = Thread(target = threaded_server, args = (server, ))
-        print 'do_server: Starting  serverThread'
-        serverThread.start()
+        walle.join()
         
-        print 'do_server: Creating pictureServerThread'
-        pictureServerThread = Thread(target = threaded_server, args = (pictureServer, ))
-        print 'do_server: Starting  pictureServerThread'
-        pictureServerThread.start()
+ #       print 'do_server: Creating serverThread'
+ #       serverThread = Thread(target = threaded_server, args = (server, ))
+ #       print 'do_server: Starting  serverThread'
+ #       serverThread.start()
+        
+  #      print 'do_server: Creating pictureServerThread'
+  #      pictureServerThread = Thread(target = threaded_server, args = (pictureServer, ))
+ #       print 'do_server: Starting  pictureServerThread'
+ #       pictureServerThread.start()
           
-        print 'do_server: Waiting pictureServerThread to stop'
-        pictureServerThread.join()
-
-        print 'do_server: Waiting serverThread to stop'
-        serverThread.join()
+ #       print 'do_server: Waiting pictureServerThread to stop'
+ #       pictureServerThread.join()
+#
+#        print 'do_server: Waiting serverThread to stop'
+#        serverThread.join()
         
         print 'do_server: Servers stoppped OK'
     
@@ -274,7 +403,7 @@ def stop():
         print 'stop: sock.connect((localhost, PORT))'
         sock.connect(('localhost', PORT))
         print "stop: sock.sendall STOP sensation"
-        sock.sendall(str(Sensation(sensation = 'S')))
+        sock.sendall(str(Sensation(sensationType = 'S')))
     
         # Receive data from the server
         received = sock.recv(1024)

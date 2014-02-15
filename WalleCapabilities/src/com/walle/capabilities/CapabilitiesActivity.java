@@ -26,6 +26,7 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 	final private float kFilteringFactor = 0.1f;
 	final private int PORT = 2000;
 	final private String HOST = "10.0.0.5";
+	//final private String HOST = "10.0.0.17";
 	final private float kAccuracyFactor = (float)(Math.PI * 5.0)/180.0f;
 	
     private EditText mHostField;
