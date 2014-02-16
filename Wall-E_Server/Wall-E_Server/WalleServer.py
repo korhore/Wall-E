@@ -15,6 +15,7 @@ import sys
 import getopt
 import socket
 from Queue import Queue
+import math
 
 
 import daemon
@@ -43,6 +44,9 @@ class WalleServer(Thread):
     External Senses are handled using sockets.
     """
     
+    TURN_ACCURACYFACTOR = math.pi * 10.0/180.0
+    FULL_TURN_FACTOR = math.pi * 45.0/180.0
+    
     sensation_queue = Queue()       # global queue for senses to put sensations
 
     def __init__(self):
@@ -52,9 +56,19 @@ class WalleServer(Thread):
         self.azimuth=0.0                # position sense, azimuth from north
         self.hearing_angle = 0.0        # device hears sound from this angle, device looks to its front
                                         # to the azimuth direction
-
+        self.turn_angle = 0.0           # turn until azimuth is this angle
+        
+        self.leftPower = 0.0            # moving
+        self.rightPower = 0.0
+ 
+        # starting build in capabilities/senses
+        # we have capability to move
+        #self.romeo = Romeo()
+        # we have hearing (positioning of object using sounds)
         self.hearing=Hearing(WalleServer.sensation_queue)
-        print "WalleServer: creating WalleTCPServer"
+        
+        # starting tcp server as nerve pathway to external senses to connect
+        # we have azimuth sense (our own position detection)
         self.tcpServer=WalleTCPServer(WalleServer.sensation_queue, (HOST,PORT))
         
         self.running=False
@@ -84,7 +98,7 @@ class WalleServer(Thread):
             
             
     def process(self, sensation):
-        print "WalleServerprocess: " + str(sensation)
+        print "WalleServer.process: " + str(sensation)
         if sensation.getSensationType() == Sensation.SensationTypes.Drive:
             print "Walleserver.process Sensation.SensationTypes.Drive"
         elif sensation.getSensationType() == Sensation.SensationTypes.Stop:
@@ -95,9 +109,12 @@ class WalleServer(Thread):
         elif sensation.getSensationType() == Sensation.SensationTypes.Hear:
             print "Walleserver.process Sensation.SensationTypes.Hear"
             self.hearing_angle = sensation.getHear()
+            self.turn_angle = self.add_radian(original_radian=self.azimuth, added_radian=self.hearing_angle) # object in this angle
+            self.turn()
         elif sensation.getSensationType() == Sensation.SensationTypes.Azimuth:
             print "Walleserver.process Sensation.SensationTypes.Azimuth"
             self.azimuth = sensation.getAzimuth()
+            self.turn()
         elif sensation.getSensationType() == Sensation.SensationTypes.Picture:
             print "Walleserver.process Sensation.SensationTypes.Picture"
         elif sensation.getSensationType() == Sensation.SensationTypes.Capability:
@@ -105,7 +122,41 @@ class WalleServer(Thread):
         elif sensation.getSensationType() == Sensation.SensationTypes.Unknown:
             print "Walleserver.process Sensation.SensationTypes.Unknown"
   
+    def turn(self):
+        self.turn_angle = self.azimuth + self.hearing_angle
+        print "WalleServer.turn: self.hearing_angle " + str(self.hearing_angle) + " self.azimuth " + str(self.azimuth)
+        print "WalleServer.turn: turn to " + str(self.turn_angle)
+        turn = False
+        if math.fabs(self.turn_angle - self.azimuth) > WalleServer.TURN_ACCURACYFACTOR:
+            power = (self.turn_angle - self.azimuth)/WalleServer.FULL_TURN_FACTOR
+            if power > 1.0:
+                power = 1.0
+            if power < -1.0:
+                power = -1.0
+            self.leftPower = power           # set motorn in opposite pover to turn in place
+            self.rightPower = -power
+            turn = True
+        else:
+            if math.fabs(self.leftPower) > 0.1 or math.fabs(self.rightPower) > 0.1:
+                self.leftPower = 0.0           # set motorn in opposite pover to turn in place
+                self.rightPower = 0.0
+                turn = True
+            
+        if turn:
+            print "WalleServer.turn: powers to " + str(self.leftPower) + ' ' + str(self.rightPower)
+        else:
+             print "WalleServer.turn: no turn"
+          
 
+    def add_radian(self, original_radian, added_radian):
+        result = original_radian + added_radian
+        if (result > math.pi):
+            return -math.pi + (result - math.pi)
+        if (result < -math.pi):
+            return math.pi - (result - math.pi)
+        return result
+
+        
 class WalleTCPServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     pause = 0.25
     allow_reuse_address = True

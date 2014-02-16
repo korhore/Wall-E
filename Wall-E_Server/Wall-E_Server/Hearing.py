@@ -57,7 +57,7 @@ class Hearing(Thread):
     SOUND_SPEED = 340.0 # 340 m/s in ear
     SOUND_LIMIT=EAR_DISTANCE/SOUND_SPEED # time of sound to travel distance of ears
 
-    ACCURACYFACTOR = math.pi * 5.0/180.0;
+    ACCURACYFACTOR = math.pi * 5.0/180.0
    
     left = 'left'
     right = 'right'
