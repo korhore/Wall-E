@@ -67,10 +67,11 @@ Android Phone
 
 Role as external Senses or remote controller
 
-Android phone has many sensor we can use. Now position sense is ready. It tells what is devices angle from north (azimuth).
-This capability is needed to turn Wall-E toward sound we hear.
+Android phone has many sensors we can use. Now position sense is ready.
+Wall-E carries Android cheap and little phone, which t tells what is device's angle from north (azimuth).
+This capability is needed to turn Wall-E toward the sounds it hears.
 
-Android Phone's role can also  same than N900, we can use it as remote controller. Android is programmed by Java and it has fine graphic libraries
+Android Phone's role can also same than N900, we can use it as remote controller. Android is programmed by Java and it has fine graphic libraries
 and it can use WLAN connections. Unfortunately remote controller is not programmed for Android yet.
 
 
