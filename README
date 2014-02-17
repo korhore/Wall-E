@@ -16,7 +16,7 @@ Arduino Pirate 4WD car
 
 Role as Robot device, its "muscles"
 
-This device is run by Romeo. Romea is Microcontroller and runs programs that are originally
+This device is run by Romeo. Romeo is microcontroller and runs programs that are originally
 written in C, compiled in host computer and uploaded by USB to the device. On this project we want
 control Arduino by Parberry PI computer, which native programming language is Python, so we load
 pyfirmata sketch 1) to it.
@@ -28,10 +28,20 @@ Role as Robot logic, it's "brains".
 
 Raspberry PI computer is very small and very cheap. But is real computer running Linux.
 We connect Raspberry PI and Arduino Romeo board by USB and set up Python server listening command
-that come from WLAN from remote controller. We need a cheap WLAN USB-stich.
+that come from WLAN from remote controller. We need a cheap WLAN USB-stick.
 Python has fine libraries to read WLAN connections and handle serial line devices
 that Romeo is seen in USB connection. Raspberry PI has two USB connection and we use them both, but we don't need
 USB-HUB.
+
+Raspberry PI carries also some integrated capabilities. We have two usb-microphones connected in 180 degrees angle,
+so we have implemented position hearing, capability to know in what angle sound comes. We have learned Wall-E to turn to that direction.
+It is very interested of it'sd environment, hoping to meet and see Eva, hoping to hold her hand one day (I haven't duid hands to Wall-E yet
+but please don't tell that to Wall-E, maybe one day he has hands.)
+
+Raspberry PI also has it's official camera, so we can see in remote controller what Wall-E sees.
+Later we can use camera to recognize objects.
+
+
 
 
 N900
@@ -39,7 +49,7 @@ N900
 
 Role as remote controller
 
-N900 is maemo mobile phone which runs Linux. It's native programming language is Qt C++, which is ideal to make
+N900 is Maemo mobile phone which runs Linux. It's native programming language is Qt C++, which is ideal to make
 applications with graphical UI and WLAN-client. We study fancy logics how to control devices, so this as fine
 platform to make them.
 
@@ -55,10 +65,13 @@ E7 is mobile phone which runs Qt above Symbian. It runs same source code as N900
 Android Phone
 -------------
 
-Role as remote controller
+Role as external Senses or remote controller
 
-Android Phone's role is same than N900, we can use it as remote controller. Android is programmed by Java and it has fine graphic libraries
-and it can use WLAN connections. Unfortunately nothing is programmed for Android yet, that time I haven't got yet.
+Android phone has many sensor we can use. Now position sense is ready. It tells what is devices angle from north (azimuth).
+This capability is beeded so we can turn Wall-E toward sound we hear.
+
+Android Phone's role can also  same than N900, we can use it as remote controller. Android is programmed by Java and it has fine graphic libraries
+and it can use WLAN connections. Unfortunately remote controller is not programmed for Android yet.
 
 
 
