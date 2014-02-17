@@ -3,6 +3,9 @@ Created on Feb 25, 2013
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
+
+import time
+
 def enum(**enums):
     return type('Enum', (), enums)
 
@@ -14,6 +17,7 @@ class Sensation(object):
     def __init__(self, string="",
                  number=-1, sensationType = 'U', leftPower = 0.0, rightPower = 0.0, hear = 0.0, azimuth = 0.0, imageSize=0,
                  direction='I', capabilities = []):
+        self.time = time.time()
         self.number = number
         self.sensationType = sensationType
         self.leftPower = leftPower
@@ -94,6 +98,10 @@ class Sensation(object):
         else:
             return str(self.number) + ' ' + self.sensationType
 
+    def getTime(self):
+        return self.time
+
+    
     def setNumber(self, number):
         self.number = number
     def getNumber(self):

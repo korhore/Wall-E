@@ -16,6 +16,7 @@ import getopt
 import socket
 from Queue import Queue
 import math
+import time
 
 
 import daemon
@@ -54,16 +55,19 @@ class WalleServer(Thread):
         self.name = "WalleServer"
        
         self.azimuth=0.0                # position sense, azimuth from north
+        self.turning_to_object = False  # Are we turning to see an object
         self.hearing_angle = 0.0        # device hears sound from this angle, device looks to its front
                                         # to the azimuth direction
         self.turn_angle = 0.0           # turn until azimuth is this angle
         
         self.leftPower = 0.0            # moving
         self.rightPower = 0.0
+        
+        self.number = 0
  
         # starting build in capabilities/senses
         # we have capability to move
-        #self.romeo = Romeo()
+        self.romeo = Romeo()
         # we have hearing (positioning of object using sounds)
         self.hearing=Hearing(WalleServer.sensation_queue)
         
@@ -98,7 +102,7 @@ class WalleServer(Thread):
             
             
     def process(self, sensation):
-        print "WalleServer.process: " + str(sensation)
+        print "WalleServer.process: " + time.ctime(sensation.getTime()) + ' ' + str(sensation)
         if sensation.getSensationType() == Sensation.SensationTypes.Drive:
             print "Walleserver.process Sensation.SensationTypes.Drive"
         elif sensation.getSensationType() == Sensation.SensationTypes.Stop:
@@ -110,6 +114,7 @@ class WalleServer(Thread):
             print "Walleserver.process Sensation.SensationTypes.Hear"
             self.hearing_angle = sensation.getHear()
             self.turn_angle = self.add_radian(original_radian=self.azimuth, added_radian=self.hearing_angle) # object in this angle
+            self.turning_to_object = True
             self.turn()
         elif sensation.getSensationType() == Sensation.SensationTypes.Azimuth:
             print "Walleserver.process Sensation.SensationTypes.Azimuth"
@@ -123,29 +128,24 @@ class WalleServer(Thread):
             print "Walleserver.process Sensation.SensationTypes.Unknown"
   
     def turn(self):
-        self.turn_angle = self.azimuth + self.hearing_angle
-        print "WalleServer.turn: self.hearing_angle " + str(self.hearing_angle) + " self.azimuth " + str(self.azimuth)
-        print "WalleServer.turn: turn to " + str(self.turn_angle)
-        turn = False
-        if math.fabs(self.turn_angle - self.azimuth) > WalleServer.TURN_ACCURACYFACTOR:
-            power = (self.turn_angle - self.azimuth)/WalleServer.FULL_TURN_FACTOR
-            if power > 1.0:
-                power = 1.0
-            if power < -1.0:
-                power = -1.0
-            self.leftPower = power           # set motorn in opposite pover to turn in place
-            self.rightPower = -power
-            turn = True
-        else:
-            if math.fabs(self.leftPower) > 0.1 or math.fabs(self.rightPower) > 0.1:
-                self.leftPower = 0.0           # set motorn in opposite pover to turn in place
+        if self.turning_to_object:
+            print "WalleServer.turn: self.hearing_angle " + str(self.hearing_angle) + " self.azimuth " + str(self.azimuth)
+            print "WalleServer.turn: turn to " + str(self.turn_angle)
+            self.leftPower, self.rightPower = self.getPower()
+            if math.fabs(self.leftPower) < Romeo.MINPOWER or math.fabs(self.rightPower) < Romeo.MINPOWER:
+                self.leftPower = 0.0           # set motors in opposite power to turn in place
                 self.rightPower = 0.0
-                turn = True
+                print "WalleServer.turn: Turn is ended"
+                self.turning_to_object = False
             
-        if turn:
             print "WalleServer.turn: powers to " + str(self.leftPower) + ' ' + str(self.rightPower)
-        else:
-             print "WalleServer.turn: no turn"
+            
+            self.number = self.number + 1
+            #test=Sensation.SensationTypes.Drive
+            sensation, picture = self.romeo.processSensation(Sensation(number=self.number, sensationType='D', leftPower = self.leftPower, rightPower = self.rightPower))
+            self.leftPower = sensation.getLeftPower()           # set motors in opposite power to turn in place
+            self.rightPower = sensation.getRightPower()
+            print "WalleServer.turn: powers set to " + str(self.leftPower) + ' ' + str(self.rightPower)
           
 
     def add_radian(self, original_radian, added_radian):
@@ -156,6 +156,36 @@ class WalleServer(Thread):
             return math.pi - (result - math.pi)
         return result
 
+
+    def getPower(self):
+        leftPower = 0.0           # set motorn in opposite pover to turn in place
+        rightPower = 0.0
+        
+        if math.fabs(self.turn_angle - self.azimuth) > WalleServer.TURN_ACCURACYFACTOR:
+            power = (self.turn_angle - self.azimuth)/WalleServer.FULL_TURN_FACTOR
+            if power > 1.0:
+                power = 1.0
+            if power < -1.0:
+                power = -1.0
+            if math.fabs(power) < Romeo.MINPOWER:
+                power = 0.0
+            leftPower = power           # set motorn in opposite pover to turn in place
+            rightPower = -power
+        if math.fabs(leftPower) < Romeo.MINPOWER or math.fabs(rightPower) < Romeo.MINPOWER:
+            leftPower = 0.0           # set motors in opposite power to turn in place
+            rightPower = 0.0
+ 
+        # test system has so little power, that we must run it at full speed           
+        if leftPower > Romeo.MINPOWER:
+            leftPower = 1.0           # set motorn in opposite pover to turn in place
+            rightPower = -1.0
+        elif leftPower < -Romeo.MINPOWER:
+            leftPower = -1.0           # set motorn in opposite pover to turn in place
+            rightPower = 1.0
+            
+            
+        return leftPower, rightPower
+        
         
 class WalleTCPServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     pause = 0.25
