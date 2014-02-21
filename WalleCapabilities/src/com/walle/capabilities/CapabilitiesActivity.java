@@ -64,7 +64,6 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 	    
 	    mAzimuthField = (TextView)findViewById(R.id.azimuth_field);
 	    mAzimuthField.setText(String.valueOf(mAzimuth));
-	    //mAzimuthField.setEnabled(false);
 	    
 	    mGravity = new float[3] ;
 		mGeomagnetic = new float[3];
@@ -200,7 +199,7 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 	        mAzimuth = orientation[0]; // orientation contains: azimuth, pitch and roll
 	        // update azimuth field
 	        mAzimuthField.setText(String.format("%8.3f", Math.toDegrees(mAzimuth)));
-	        // Test reportAzimuth(mAzimuth);
+	        reportAzimuth(mAzimuth);
 	      }
 	    }
 	}

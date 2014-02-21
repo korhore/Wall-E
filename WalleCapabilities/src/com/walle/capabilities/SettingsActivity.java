@@ -15,9 +15,6 @@ import android.widget.EditText;
 public class SettingsActivity extends Activity {
 	final String LOGTAG="SettingsActivity";
 
-	final private int PORT = 2000;
-	final private String HOST = "10.0.0.55";
-	//final private String HOST = "10.0.0.17";
 	
 	private static final String IP_PATTERN = 
 	        "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
