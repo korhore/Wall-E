@@ -7,31 +7,37 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.EditText;
+import android.widget.TextView;
 
 public class CapabilitiesActivity extends Activity implements SensorEventListener {
 	final String LOGTAG="CapabilitiesActivity";
 
 	final private float kFilteringFactor = 0.1f;
 	final private int PORT = 2000;
-	final private String HOST = "10.0.0.5";
+	final private String HOST = "10.0.0.55";
 	//final private String HOST = "10.0.0.17";
 	final private float kAccuracyFactor = (float)(Math.PI * 5.0)/180.0f;
 	
-    private EditText mHostField;
-    private EditText mPortField;
-    private EditText mAzimuthField;
+
+    private TextView mAzimuthField;
 
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
@@ -49,15 +55,16 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 	private Socket mSocket = null;
 	private DataOutputStream mDataOutputStream = null;
 	private DataInputStream mDataInputStream = null;
-
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_capabilities);
+		setContentView(R.layout.capabilities_main);
 		
-	    mHostField = (EditText)findViewById(R.id.host_field);
-	    mPortField = (EditText)findViewById(R.id.port_field);
-	    mAzimuthField = (EditText)findViewById(R.id.azimuth_field);
+	    
+	    mAzimuthField = (TextView)findViewById(R.id.azimuth_field);
+	    mAzimuthField.setText(String.valueOf(mAzimuth));
+	    //mAzimuthField.setEnabled(false);
 	    
 	    mGravity = new float[3] ;
 		mGeomagnetic = new float[3];
@@ -74,10 +81,10 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 
 	    // listen always, also in paused
 	    // TODO we get sensor data only, if we don't sleep
-	    mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_FASTEST);
-	    mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_FASTEST);
+	    mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+	    mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_NORMAL);
 	    
-	    createConnection();
+	    // Test createConnection();
 	    
 	    mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
 	    mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "CapabilitiesActivity");
@@ -107,6 +114,17 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.capabilities, menu);
 		return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item){
+	    switch(item.getItemId()){
+	    case R.id.action_settings:
+	    	Intent launchNewIntent = new Intent(CapabilitiesActivity.this,SettingsActivity.class);
+	    	startActivityForResult(launchNewIntent, 0);
+	    	return true;            
+	    }
+	    return false;
 	}
 	
 	protected void onResume() {
@@ -182,7 +200,7 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 	        mAzimuth = orientation[0]; // orientation contains: azimuth, pitch and roll
 	        // update azimuth field
 	        mAzimuthField.setText(String.format("%8.3f", Math.toDegrees(mAzimuth)));
-	        reportAzimuth(mAzimuth);
+	        // Test reportAzimuth(mAzimuth);
 	      }
 	    }
 	}
@@ -210,6 +228,7 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 				}
 				mNumber++;
 				mPreviousAzimuth = aAzimuth;
+
 				if (mDataInputStream != null) {
 					try {
 						int available = mDataInputStream.available();

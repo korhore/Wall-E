@@ -6,7 +6,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context=".CapabilitiesActivity" >
+    tools:context=".SettingsActivity" >
 
     <TextView
         android:id="@+id/settings_label"
@@ -33,9 +33,7 @@
         android:layout_alignBottom="@+id/host_label"
         android:layout_alignParentRight="true"
         android:ems="10"
-        android:inputType="number" >
-
-        <requestFocus />
+        android:inputType="phone" >
     </EditText>
 
     <TextView
@@ -58,24 +56,6 @@
         android:ems="10"
         android:inputType="number" />
 
-    <TextView
-        android:id="@+id/azimuth_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/settings_label"
-        android:layout_below="@+id/port_label"
-        android:layout_marginTop="35dp"
-        android:text="@string/azimuth"
-        android:textStyle="bold" />
 
-     <EditText
-        android:id="@+id/azimuth_field"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/azimuth_label"
-        android:layout_alignBottom="@+id/azimuth_label"
-        android:layout_alignParentRight="true"
-        android:ems="10"
-        android:inputType="numberDecimal" />
 
 </RelativeLayout>
