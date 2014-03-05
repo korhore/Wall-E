@@ -8,6 +8,7 @@ Updated on Feb 3, 2014
 import SocketServer
 from Sensation import Sensation
 from Romeo import Romeo
+from ManualRomeo import ManualRomeo
 from Hearing import Hearing
 from threading import Thread
 import signal
@@ -31,6 +32,7 @@ PICTURE_PORT = 2001
 DAEMON=False
 START=False
 STOP=False
+MANUAL=False
 
 class WalleServer(Thread):
     """
@@ -67,7 +69,10 @@ class WalleServer(Thread):
  
         # starting build in capabilities/senses
         # we have capability to move
-        self.romeo = Romeo()
+        if MANUAL:
+            self.romeo = ManualRomeo()
+        else:
+            self.romeo = Romeo()
         # we have hearing (positioning of object using sounds)
         self.hearing=Hearing(WalleServer.sensation_queue)
         
@@ -97,8 +102,8 @@ class WalleServer(Thread):
         self.tcpServer.stop()
         self.hearing.stop()
 
-        def stop():
-            self.running = False
+    def stop():
+        self.running = False
             
             
     def process(self, sensation):
@@ -176,12 +181,12 @@ class WalleServer(Thread):
             rightPower = 0.0
  
         # test system has so little power, that we must run it at full speed           
-        if leftPower > Romeo.MINPOWER:
-            leftPower = 1.0           # set motorn in opposite pover to turn in place
-            rightPower = -1.0
-        elif leftPower < -Romeo.MINPOWER:
-            leftPower = -1.0           # set motorn in opposite pover to turn in place
-            rightPower = 1.0
+ #       if leftPower > Romeo.MINPOWER:
+ #           leftPower = 1.0           # set motorn in opposite pover to turn in place
+ #           rightPower = -1.0
+ #       elif leftPower < -Romeo.MINPOWER:
+ #           leftPower = -1.0           # set motorn in opposite pover to turn in place
+ #           rightPower = 1.0
             
             
         return leftPower, rightPower
@@ -550,9 +555,9 @@ if __name__ == "__main__":
     print 'Number of arguments:', len(sys.argv), 'arguments.'
     print 'Argument List:', str(sys.argv)
     try:
-        opts, args = getopt.getopt(sys.argv[1:],"",["start","stop","restart","daemon"])
+        opts, args = getopt.getopt(sys.argv[1:],"",["start","stop","restart","daemon","manual"])
     except getopt.GetoptError:
-      print sys.argv[0] + '[--start] [--stop] [--restart] [--daemon]'
+      print sys.argv[0] + '[--start] [--stop] [--restart] [--daemon] [--manual]'
       sys.exit(2)
     print 'opts '+ str(opts)
     for opt, arg in opts:
@@ -561,7 +566,7 @@ if __name__ == "__main__":
             print sys.argv[0] + ' start'
             START=True
         elif opt == '--stop':
-            print sys.argv[0] + ' stopt'
+            print sys.argv[0] + ' stop'
             STOP=True
         elif opt == '--restart':
             print sys.argv[0] + ' restart'
@@ -570,7 +575,10 @@ if __name__ == "__main__":
         elif opt == '--daemon':
             print sys.argv[0] + ' daemon'
             DAEMON=True
-            
+        elif opt == '--manual':
+            print sys.argv[0] + ' manual'
+            MANUAL=True
+           
     if not START and not STOP:
         START=True
     
