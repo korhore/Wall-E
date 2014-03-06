@@ -45,6 +45,9 @@ class Hearing(Thread):
     debug = False
     log = False
     
+    SENSITIVITY = 1.25
+    AVERAGE=55.0
+    
     SOUND_STOPPED = 0
     SOUND_ONE_EAR = 1
     SOUND_TWO_EAR = 2
@@ -53,7 +56,7 @@ class Hearing(Thread):
 
     
      
-    EAR_DISTANCE = 0.20 # 0.2 m
+    EAR_DISTANCE = 0.25 # 0.25 m
     SOUND_SPEED = 340.0 # 340 m/s in ear
     SOUND_LIMIT=EAR_DISTANCE/SOUND_SPEED # time of sound to travel distance of ears
 
@@ -90,9 +93,9 @@ class Hearing(Thread):
        
         self.ear = [None]*Hearing.LEN_EARS
 
-        self.ear[Hearing.LEFT] = Ear(id=Hearing.LEFT, name=Hearing.ear_names[Hearing.LEFT], card='Set', average=55.0, sensitivity=1.5, queue=self.sound_queue) #'Set') # card=alsaaudio.cards()[1]
+        self.ear[Hearing.LEFT] = Ear(id=Hearing.LEFT, name=Hearing.ear_names[Hearing.LEFT], card='Set', average=Hearing.AVERAGE, sensitivity=Hearing.SENSITIVITY, queue=self.sound_queue) #'Set') # card=alsaaudio.cards()[1]
  #       self.ear[Hearing.RIGHT] = Ear(id=Hearing.RIGHT, name=Hearing.ear_names[Hearing.RIGHT], card='U0x46d0x8b2', average=680.0, sensitivity=1.5, queue=self.sound_queue) #'Set') # card=alsaaudio.cards()[2]
-        self.ear[Hearing.RIGHT] = Ear(id=Hearing.RIGHT, name=Hearing.ear_names[Hearing.RIGHT], card='Set_1', average=55.0, sensitivity=1.5, queue=self.sound_queue) #'Set') # card=alsaaudio.cards()[2]
+        self.ear[Hearing.RIGHT] = Ear(id=Hearing.RIGHT, name=Hearing.ear_names[Hearing.RIGHT], card='Set_1', average=Hearing.AVERAGE, sensitivity=Hearing.SENSITIVITY, queue=self.sound_queue) #'Set') # card=alsaaudio.cards()[2]
         
         self.sound_ear_id = Hearing.LEFT
         self.sound = [None]*Hearing.LEN_EARS
