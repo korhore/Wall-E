@@ -11,19 +11,19 @@ import alsaaudio
 import numpy
 import math
 
-import SocketServer
+#import SocketServer
 from Sensation import Sensation
-from Romeo import Romeo
-from subprocess import call
+#from Romeo import Romeo
+#from subprocess import call
 from threading import Thread
 from threading import Timer
 from Queue import Queue
-import signal
-import socket
+#import signal
+#import socket
 
 
-import daemon
-import lockfile
+#import daemon
+#import lockfile
 
 from Sound import *
 
@@ -58,11 +58,15 @@ class Ear(Thread):
         self.start_time=0.0
         #self.stop_time=0.0
         
-        self.running=True
-        
+        self.running=False
+        self.on=False
+       
     def stop(self):
         self.running=False
-
+        
+    def setOn(self, on):
+        self.on = on
+ 
 
     def values_bytes(self, data, dtype):
         minim=9999
@@ -119,20 +123,23 @@ class Ear(Thread):
 
    
     def run(self):
-        print "Starting " + self.name
-        
-        len=0
-
-        while self.running:
-            # blocking read data from device
-            l, data = self.inp.read()
-      
-            if l > 0:
-                len += l
-                self.values_bytes(data, '<i2')
-
-
-        print "Exiting " + self.name
+        if not self.running:
+            self.running = True
+            self.on=True
+            print "Starting " + self.name
+            
+            len=0
+    
+            while self.running:
+                # blocking read data from device
+                l, data = self.inp.read()
+          
+                if self.on and self.running and l > 0:
+                    len += l
+                    self.values_bytes(data, '<i2')
+    
+    
+            print "Exiting " + self.name
 
 def stop():
         ear1.stop()

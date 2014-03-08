@@ -107,7 +107,11 @@ class Hearing(Thread):
         self.ear[Hearing.LEFT].stop()
         self.ear[Hearing.RIGHT].stop()
         self.running=False
-        
+
+    def setOn(self, on):
+        self.ear[Hearing.LEFT].setOn(on)
+        self.ear[Hearing.RIGHT].setOn(on)
+       
 
     def run(self):
         if Hearing.log:
