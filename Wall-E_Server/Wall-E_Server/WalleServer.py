@@ -86,6 +86,7 @@ class WalleServer(Thread):
 
         
         self.running=False
+        self.turnTimer = Timer(10.0, self.stopTurn)
 
 
 
@@ -162,7 +163,7 @@ class WalleServer(Thread):
             self.leftPower = sensation.getLeftPower()           # set motors in opposite power to turn in place
             self.rightPower = sensation.getRightPower()
             if self.turning_to_object:
-                self.turnTimer = Timer(1.0, self.stopTurn)
+                #self.turnTimer = Timer(10.0, self.stopTurn)
                 self.turnTimer.start()
             else:
                 self.turnTimer.cancel()
