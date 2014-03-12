@@ -2,12 +2,12 @@ Wall-E Project
 --------------
 
 Introduction
--------------
+============
 
 Wall-E -project studies robots and controllers for them.
 It is based on Adruino Pirate 4WD car, which carries Raprberry-PI to control it.
 Remote controller is mobile phone like Android one or Maemo one or E7 ...
-All parts are cheap and we use everything we allready own.
+All parts are cheap and we use everything we already own.
 
 All devices are programmed with their own native programming language.
 
@@ -18,7 +18,7 @@ Role as Robot device, its "muscles"
 
 This device is run by Romeo. Romeo is microcontroller and runs programs that are originally
 written in C, compiled in host computer and uploaded by USB to the device. On this project we want
-control Arduino by Parberry PI computer, which native programming language is Python, so we load
+control Arduino by Raspberry PI computer, which native programming language is Python, so we load
 pyfirmata sketch 1) to it.
 
 Raspberry PI
@@ -73,6 +73,42 @@ This capability is needed to turn Wall-E toward the sounds it hears.
 
 Android Phone's role can also same than N900, we can use it as remote controller. Android is programmed by Java and it has fine graphic libraries
 and it can use WLAN connections. Unfortunately remote controller is not programmed for Android yet.
+
+Theory of Robots
+================
+
+Robot implementation based on research domains including developmental psychology, cognitive neuroscience, and cognitive psycology, very popular areas
+styudy with robotics.
+
+Events Perception
+-----------------
+
+Robot can notice events using its sensories.
+
+Goal driven action
+------------------
+
+Robot has goals, it makes decisions what actions are it makes to reach its goals. Implementation uses circle of event-decision-action to
+make tasks to reach goals. Some Goals are more important than others, so we implement Maslow's Hierarchy of Needs to guide robots actions,
+but robot itself has higher needs, its thinks is most important.
+
+Starting point of Wall-E
+========================
+
+This comes from Wall-E film. Wall-E likes to watch people dancing and thinks it would be nice to hold
+on hands with a girl robot. One day it see Eve, very graceful being, it can't set eyes off her. Here we gat most important goal of Wall-E,
+hold Eve's hand. OK, we must build a robot that can find out Eve. So we must build at least hearing and seeing as a start.
+
+Concept
+=======
+
+We must have sensorys. Project implements sensory framework sor simultaneous percertons
+like we human can do, Axons to corry these percetions from interbaö sensorys and from exterbal sensorys to the brain.
+Framewrk is veru flexible so Wall-E xan use all suitable devices we can offers (cheap devices we allreasy have or buy).
+
+OK Lets Start, project has already object positioning using hearing and turning using position
+sensory (azimuth) to that direction. Demo will be made to youtube.
+Next target will be object recognize using seeing.
 
 
 
