@@ -31,6 +31,8 @@ import java.lang.Math;
 
 public class CapabilitiesActivity extends Activity implements SensorEventListener {
 	final String LOGTAG="CapabilitiesActivity";
+	
+	enum connectionState {NOT_CONNECTED, CONNECTED, NO_HOST, SOCKET_ERROR, IO_ERROR};
 
 	final private float kFilteringFactor = 0.1f;
 	// Create a constant to convert nanoseconds to seconds.
@@ -62,7 +64,8 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 	private int mNumber = 0;
 
 	private Socket mSocket = null;
-	private boolean mSocketError = false;
+	//private boolean mSocketError = false;
+	private connectionState mConnectionState = connectionState.NOT_CONNECTED;
 	private DataOutputStream mDataOutputStream = null;
 	private DataInputStream mDataInputStream = null;
 	
@@ -118,9 +121,11 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 	}
 	
 	private void createConnection() {
-    	mSocketError = false;
+    	//mSocketError = false;
 
 	    try {
+	    	  mConnectionState = connectionState.CONNECTED;
+
 	    	  Log.d(LOGTAG, "createConnection Socket " + mSettingsModel.getHost() + ' ' + String.valueOf(mSettingsModel.getPort()));
 	    	  mSocket = new Socket(mSettingsModel.getHost(), mSettingsModel.getPort());
 	    	  mDataInputStream = new DataInputStream(mSocket.getInputStream());
@@ -129,15 +134,18 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 	    	  mDataOutputStream.writeUTF(textOut.getText().toString());
 	    	  textIn.setText(mDataInputStream.readUTF());*/
 	    } catch (SocketException e) {
-	    	mSocketError = true;
+	    	mConnectionState = connectionState.SOCKET_ERROR;
+	    	//mSocketError = true;
 	    	Log.e(LOGTAG, "createConnection SocketException", e);
 	    } catch (UnknownHostException e) {
 	    	  // TODO Auto-generated catch block
-	    	mSocketError = true;
+	    	//mSocketError = true;
+	    	mConnectionState = connectionState.NO_HOST;
 	    	Log.e(LOGTAG, "createConnection UnknownHostException", e);
 	    } catch (IOException e) {
 				// TODO Auto-generated catch block
-	    	mSocketError = true;
+	    	//mSocketError = true;
+	    	mConnectionState = connectionState.IO_ERROR;
 	    	Log.e(LOGTAG, "createConnection IOException", e);
 		}
 		
@@ -165,6 +173,8 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 		if (resultCode == 0) {	// if SettingActivity ended
 								// TODO Check if changes in settings
 								// create new connection
+	    	mConnectionState = connectionState.NOT_CONNECTED;;
+
 			createConnection();
 			
 		}
@@ -314,7 +324,7 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 	}
 	
 	private void reportAzimuth(float aAzimuth) {
-		if (mDataOutputStream != null) {
+		if (mConnectionState == connectionState.CONNECTED) {
 			if (Math.abs(aAzimuth - mPreviousAzimuth) > kAccuracyFactor) {
 				try {
 					Sensation sensation = new Sensation(mNumber, Sensation.SensationType.Azimuth, aAzimuth);
@@ -322,11 +332,18 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 					byte[] bytes = s.getBytes("UTF-8");
 	    	        Log.d(LOGTAG, "reportAzimuth write " + Integer.toString(bytes.length));
 					mDataOutputStream.write(bytes);
+			    	mDataOutputStream.flush();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 	    	        Log.e(LOGTAG, "reportAzimuth write", e);
-	    	        if (!mSocketError)
-	    	        	createConnection();
+	    	        mConnectionState = connectionState.IO_ERROR;
+	    	        try {
+						mSocket.close();
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+    	        	createConnection();
 	    	        return;
 				}
 				mNumber++;
@@ -342,24 +359,24 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 							byte[] b = new byte[256];
 			    	        Log.d(LOGTAG, "reportAzimuth read available " + Integer.toString(available));
 							l += mDataInputStream.read(b, l, available);
-			    	        Log.d(LOGTAG, "reportAzimuth read l " + Integer.toString(l));
+			    	        Log.d(LOGTAG, "reportAzimuth read l " + Integer.toString(l) + ' ' +  b);
 							available = mDataInputStream.available();
 						}
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 		    	        Log.e(LOGTAG, "reportAzimuth read", e);
-		    	        if (!mSocketError)
-		    	        	createConnection();
+		    	        mConnectionState = connectionState.IO_ERROR;
+		    	        try {
+							mSocket.close();
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+	    	        	createConnection();
 		    	        return;
 					}
 				}
 			}
-		}
-		else {
-	        if (!mSocketError) {
-	            Log.d(LOGTAG, "reportAzimuth; no mDataOutputStream");
-	      	   	createConnection();
-	        }
 		}
 	}
 	

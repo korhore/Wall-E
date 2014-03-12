@@ -77,13 +77,16 @@ DeviceStatusFrame::DeviceStatusFrame( QWidget *parent ):
 
     mCameraStateWidget = new DeviceStateWidget(this);
 
+    /*
 #if defined(Q_WS_S60)
     QPushButton* mCameraButton = new QPushButton(tr("Cam"), this);
     mCameraButton->setPalette( QPalette( QColor( 128, 128, 128 ) ) );
 #else
     QPushButton* mCameraButton = new QPushButton(tr("Cam."), this);
 #endif
-    mCameraButton->setIcon(QIcon(QPixmap(":pictures/camera_64x64.png")));
+*/
+    QPushButton* mCameraButton = new QPushButton(this);
+    mCameraButton->setIcon(QIcon(QPixmap(":pictures/eye_64x64.png")));
     mCameraButton->setIconSize(QSize(WIDTH,WIDTH));
     mCameraButton->setCheckable ( true );
     mCameraButton->setChecked ( false );
@@ -96,6 +99,17 @@ DeviceStatusFrame::DeviceStatusFrame( QWidget *parent ):
     cameraLayout->setSpacing( 1 );
     cameraLayout->addWidget( mCameraStateWidget );
     cameraLayout->addWidget( mCameraButton );
+
+    QPushButton* mMicrophoneButton = new QPushButton(this);
+    mMicrophoneButton->setIcon(QIcon(QPixmap(":pictures/ear_64x64.png")));
+    mMicrophoneButton->setIconSize(QSize(WIDTH,WIDTH));
+    mMicrophoneButton->setCheckable ( true );
+    mMicrophoneButton->setChecked ( false );
+    mMicrophoneButton->setPalette( QPalette( QColor( 128, 128, 128 ) ) );
+    cameraLayout->addWidget( mMicrophoneButton );
+    // TODO
+    //connect(mMicrophoneButton, SIGNAL(toggled(bool)), this, SLOT(handleMicrophoneToggled(bool)));
+
 
 
 
@@ -166,7 +180,7 @@ DeviceStatusFrame::DeviceStatusFrame( QWidget *parent ):
     mainLayout->setMargin( 2 );
     mainLayout->addWidget(device/*mDeviceStateWidget /*, WIDTH , 0, Qt::AlignCenter*/);
 
-    mainLayout->addWidget(camera );
+    mainLayout->addWidget(camera);
 
     mainLayout->addWidget(power);
 
