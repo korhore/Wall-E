@@ -1,4 +1,4 @@
-package com.walle.capabilities;
+package com.walle.sensory;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -6,9 +6,6 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import android.app.Activity;
 import android.content.Context;
@@ -20,14 +17,11 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.PowerManager;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.EditText;
 import android.widget.TextView;
-import java.lang.Math;
+
 
 public class CapabilitiesActivity extends Activity implements SensorEventListener {
 	final String LOGTAG="CapabilitiesActivity";
@@ -114,7 +108,7 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 	    mWakeLock.acquire();
 	    
 		mPrefs = this.getSharedPreferences(
-			      "com.walle.capabilities", Context.MODE_PRIVATE);
+			      "com.walle.sensory", Context.MODE_PRIVATE);
 		mSettingsModel = new SettingsModel(mPrefs);
 		createConnection();
 

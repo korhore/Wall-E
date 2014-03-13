@@ -1,13 +1,12 @@
-package com.walle.capabilities;
+package com.walle.sensory;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 
 public class SettingsModel {
 	private static final String TAG = "SettingsModel";
 	
     public static final String SETTINGS_PREFS_NAME = "WalleCapabilitiesSettingsPrefs";
-    private static final String FALSE = "false";
+    //private static final String FALSE = "false";
     private static final String HOST_NAME = "host";
     private static final String PORT_NAME = "port";
     

@@ -1,4 +1,4 @@
-package com.walle.capabilities;
+package com.walle.sensory;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,7 +42,7 @@ public class SettingsActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		
 		mPrefs = this.getSharedPreferences(
-			      "com.walle.capabilities", Context.MODE_PRIVATE);
+			      "com.walle.sensory", Context.MODE_PRIVATE);
 		mSettingsModel = new SettingsModel(mPrefs);
 		
 		setContentView(R.layout.capabilities_settings);

@@ -1,7 +1,7 @@
-package com.walle.capabilities;
+package com.walle.sensory;
 
 
-//package com.walle.capabilities;
+//package com.walle.sensory;
 
 
 import android.util.Log;

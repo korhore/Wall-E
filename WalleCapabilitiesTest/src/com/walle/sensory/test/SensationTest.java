@@ -1,7 +1,7 @@
-package com.walle.capabilities.test;
+package com.walle.sensory.test;
 
-import com.walle.capabilities.Sensation;
-import com.walle.capabilities.Sensation.SensationType;
+import com.walle.sensory.Sensation;
+import com.walle.sensory.Sensation.SensationType;
 
 import junit.framework.TestCase;
 
@@ -13,7 +13,7 @@ public class SensationTest extends TestCase {
 
 /*	
 	public SensationTest() {
-		super("com.walle.capabilities", Sensation.class);
+		super("com.walle.sensory", Sensation.class);
 		}
 */
 	
