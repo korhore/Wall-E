@@ -7,5 +7,7 @@
     <string name="settings_host">Host</string>
     <string name="settings_port">Port</string>
     <string name="azimuth">Azimuth</string>
-
+    <string name="service_connected">Service connected</string>
+    <string name="service_disconnected">Service disconnected</string>
+    
 </resources>
