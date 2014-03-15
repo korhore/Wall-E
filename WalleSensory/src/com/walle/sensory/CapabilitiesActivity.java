@@ -7,8 +7,6 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
-import com.walle.sensory.server.WalleSensoryServer;
-
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -19,7 +17,6 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -32,6 +29,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.walle.sensory.server.WalleSensoryServer;
 
 
 public class CapabilitiesActivity extends Activity implements SensorEventListener {
