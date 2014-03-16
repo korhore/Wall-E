@@ -1,9 +1,10 @@
 package com.walle.sensory.server;
 
 import android.content.SharedPreferences;
+import android.util.Log;
 
 public class SettingsModel {
-	private static final String TAG = "SettingsModel";
+	private static final String LOGTAG = "SettingsModel";
 	
     public static final String SETTINGS_PREFS_NAME = "WalleSensorySettingsPrefs";
     //private static final String FALSE = "false";
@@ -28,12 +29,13 @@ public class SettingsModel {
 	
 
 	public int getPort() {
+  	  	Log.d(LOGTAG, "getPort " +  String.valueOf(mPort));
 		return mPort;
 	}
 
 	public void setPort(int mPort) {
+ 	  	Log.d(LOGTAG, "setPort " +  String.valueOf(mPort));
 		this.mPort = mPort;
-		mPrefs.getInt(PORT_NAME, PORT);
 		// save permanently
         SharedPreferences.Editor editor = mPrefs.edit();
         editor.putInt(PORT_NAME, mPort);

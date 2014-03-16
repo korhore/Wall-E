@@ -34,8 +34,10 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 	final private float kFilteringFactor = 0.1f;
 	// Create a constant to convert nanoseconds to seconds.
 	private static final float NS2S = 1.0f / 1000000000.0f;
-	final private float kAccuracyFactor = (float)(Math.PI * 5.0)/180.0f;
-	final private float EPSILON = kAccuracyFactor;
+	final private float kAccelometerAccuracyFactor = 0.02f;
+	final private float kAzimuthAccuracyFactor = (float)(Math.PI * 5.0)/180.0f;
+	final private long kCalibrateTime = 60l * 1000000000l;	// nanoseconds
+	final private float EPSILON = kAzimuthAccuracyFactor;
 	
 
 
@@ -47,10 +49,16 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
     private PowerManager mPowerManager;
     private PowerManager.WakeLock mWakeLock;
 
+    private boolean mCalibrated = false;
+    private boolean mCalibrationStarted = false;
+
     private float[] mGravity;
+    private float[] mPreviousGravity;
+    private float[] mCalibrateGravity;
 	private float[] mGeomagnetic;
 	private float[] mGyro;
-	private float mTimestamp = 0.0f;
+	private long mTimestamp = 0l;
+	private long mCalibrationStartTime = 0l;
 	private float[] mDeltaRotationVector;
 	private float mAzimuth = 0.0f;
 	private float mPreviousAzimuth = 0.0f;
@@ -79,14 +87,38 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
      * from the service.  The Message's replyTo field must be a Messenger of
      * the client as previously given with MSG_REGISTER_CLIENT.
      */
-    public static final int MSG_UNREGISTER_CLIENT = 2;
+    public static final int MSG_UNREGISTER_CLIENT = MSG_REGISTER_CLIENT+1;
     
     /**
      * Command to report azimuth.
      */
-    public static final int MSG_AZIMUTH = 3;
+    public static final int MSG_AZIMUTH = MSG_UNREGISTER_CLIENT+1;
 
+    /**
+     * Command to report accelerometer.
+     */
+    public static final int MSG_ACCELEROMETER = MSG_AZIMUTH+1;
 
+    /**
+     * Get host
+     */
+    public static final int MSG_GET_HOST = MSG_ACCELEROMETER+1;
+
+    /**
+     * Set host
+     */
+    public static final int MSG_SET_HOST = MSG_GET_HOST+1;
+    
+    /**
+     * Get port
+     */
+    public static final int MSG_GET_PORT = MSG_SET_HOST+1;
+
+    /**
+     * Set port
+     */
+    public static final int MSG_SET_PORT = MSG_GET_PORT+1;
+     
     /**
      * Handler of incoming messages from clients.
      */
@@ -95,13 +127,54 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_REGISTER_CLIENT:
-                    mClients.add(msg.replyTo);
+      	    	  	Log.d(LOGTAG, "handleMessage MSG_REGISTER_CLIENT");
+      	    	    mClients.add(msg.replyTo);
+      	    	  	Log.d(LOGTAG, "handleMessage clients " + String.valueOf(mClients.size()));
                     break;
                 case MSG_UNREGISTER_CLIENT:
-                	/* TEST and do nothing
+      	    	  	Log.d(LOGTAG, "handleMessage MSG_UNREGISTER_CLIENT");
                     mClients.remove(msg.replyTo);
-    	            */
+      	    	  	Log.d(LOGTAG, "handleMessage clients " + String.valueOf(mClients.size()));
+                    if (mClients.size() == 0) {
+         	    	  	Log.d(LOGTAG, "handleMessage stopSelf()");
+         	    	  	stopSelf();
+                    }
                     break;
+                    
+                case MSG_GET_HOST:
+      	    	  	Log.d(LOGTAG, "handleMessage MSG_GET_HOST " + mSettingsModel.getHost());
+      		    	try {
+      		    		msg.replyTo.send(Message.obtain(null, MSG_GET_HOST, 0,  0, mSettingsModel.getHost()));
+      		        } catch (RemoteException e) {
+      			                // The client is dead.  Remove it from the list;
+      			                // we are going through the list from back to front
+      			                // so this is safe to do inside the loop.
+      		        	mClients.remove(msg.replyTo);
+      		        }
+                    break;
+
+                case MSG_SET_HOST:
+      	    	  	Log.d(LOGTAG, "handleMessage MSG_SET_HOST " + (String) msg.obj);
+      	    	    mSettingsModel.setHost((String) msg.obj);
+                    break;
+
+                case MSG_GET_PORT:
+      	    	  	Log.d(LOGTAG, "handleMessage MSG_GET_PORT " +  String.valueOf(mSettingsModel.getPort()));
+      		    	try {
+      		    		msg.replyTo.send(Message.obtain(null, MSG_GET_PORT,  mSettingsModel.getPort(),  0, null));
+      		        } catch (RemoteException e) {
+      			                // The client is dead.  Remove it from the list;
+      			                // we are going through the list from back to front
+      			                // so this is safe to do inside the loop.
+      		        	mClients.remove(msg.replyTo);
+      		        }
+                    break;
+
+                case MSG_SET_PORT:
+      	    	  	Log.d(LOGTAG, "handleMessage MSG_SET_PORT " + String.valueOf(msg.arg1));
+      	    	    mSettingsModel.setPort(msg.arg1);
+                    break;
+
                 default:
                     super.handleMessage(msg);
                     
@@ -127,13 +200,16 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
         //Log.d(TAG, "onCreate: creating mSensorManager");
         
         //mContext = getBaseContext();
-	    mGravity = new float[3] ;
+	    mGravity = new float[3];
+	    mPreviousGravity = new float[3];
+	    mCalibrateGravity = new float[3];
 		mGeomagnetic = new float[3];
 		mGyro = new float[3];
 		mDeltaRotationVector = new float[4];
     	for (int i=0; i<3; i++)
     	{
     		mGravity[i] = 0.0f;
+    		mPreviousGravity[i] = 0.0f;
     		mGeomagnetic[i] = 0.0f;
     		mGyro[i] = 0.0f;
     		mDeltaRotationVector[i] = 0.0f;
@@ -232,17 +308,43 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 		  
 	@Override
 	public void onSensorChanged(SensorEvent event) {
+		if (!mCalibrationStarted) {
+			mCalibrationStartTime = event.timestamp;
+			mCalibrationStarted = true;
+	        Log.d(LOGTAG, "onSensorChanged mCalibrationStartTime " + String.valueOf(mCalibrationStartTime));
+		}
 		boolean is_orientation=true;
 		
 	    if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
 	    {
 	        //Log.d(LOGTAG, "onSensorChanged TYPE_ACCELEROMETER");
 	    	is_orientation=true;
+	    	boolean report=false;
 	    	for (int i=0; i<3; i++)
 	    	{
 	    		mGravity[i] = ((1.0f - kFilteringFactor ) * mGravity[i]) + (kFilteringFactor  * event.values[i]);
+	    		if (Math.abs(mGravity[i] - mPreviousGravity[i]) > kAccelometerAccuracyFactor) {
+	    			report=true;
+	    		}
+
 	    	}
-	    	//mGravity=event.values;
+	    	if (mCalibrated) {
+		    	if (report) {
+		    		reportAccelerometer(mGravity);
+		    	}
+	    	}
+	    	else {
+	    		if ((event.timestamp - mCalibrationStartTime) > kCalibrateTime) {
+	    	        Log.d(LOGTAG, "onSensorChanged Calibrated " + String.valueOf(event.timestamp));
+	    	    	for (int i=0; i<3; i++)
+	    	    	{
+	    	    		mCalibrateGravity[i] = mGravity[i];
+		    	        Log.d(LOGTAG, "onSensorChanged Calibrated " + String.valueOf(mCalibrateGravity[i]));
+	    	    	}
+	    	    	mCalibrated = true;
+	    			
+	    		}
+	    	}
 	    }
 	    if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
 	    {
@@ -275,7 +377,9 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 		    	  SensorManager.getOrientation(R, orientation);
 		    	  mAzimuth = orientation[0]; // orientation contains: azimuth, pitch and roll
 		    	  // update azimuth field
-		    	  reportAzimuth(mAzimuth);
+		    	  if (Math.abs(mAzimuth - mPreviousAzimuth) > kAzimuthAccuracyFactor) {
+		    		  reportAzimuth(mAzimuth);
+		    	  }
 		      }
 		    }
 	    }
@@ -327,7 +431,7 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 	}
 	
 	private void reportAzimuth(float aAzimuth) {
-		if (Math.abs(aAzimuth - mPreviousAzimuth) > kAccuracyFactor) {
+		if (Math.abs(aAzimuth - mPreviousAzimuth) > kAzimuthAccuracyFactor) {
 		    boolean reported=false;
 		    
 		    for (int i=mClients.size()-1; i>=0; i--) {
@@ -350,7 +454,7 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 
 	    /*
 		if (mConnectionState == connectionState.CONNECTED) {
-			if (Math.abs(aAzimuth - mPreviousAzimuth) > kAccuracyFactor) {
+			if (Math.abs(aAzimuth - mPreviousAzimuth) > kAzimuthAccuracyFactor) {
 				try {
 					Sensation sensation = new Sensation(mNumber, Sensation.SensationType.Azimuth, aAzimuth);
 					String s = sensation.toString() +  "|";
@@ -405,6 +509,28 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 		}
 		*/
 	}
+	
+	private void reportAccelerometer(float[] aGravity) {
+		
+		float[] reporGrafity = new float[3];
+    	for (int i=0; i<3; i++)
+    	{
+    		mPreviousGravity[i] = aGravity[i];
+    		reporGrafity[i] = aGravity[i] - mCalibrateGravity[i];
+    	}
+
+	    for (int i=mClients.size()-1; i>=0; i--) {
+	    	try {
+	    		mClients.get(i).send(Message.obtain(null, MSG_ACCELEROMETER, 0,  0, reporGrafity));
+	        } catch (RemoteException e) {
+		                // The client is dead.  Remove it from the list;
+		                // we are going through the list from back to front
+		                // so this is safe to do inside the loop.
+	        	mClients.remove(i);
+	        }
+	    }
+	}
+
 	
 
 }
