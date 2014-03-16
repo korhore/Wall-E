@@ -3,16 +3,14 @@ package com.walle.sensory;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import android.app.Activity;
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.Menu;
 import android.widget.EditText;
 
-public class SettingsActivity extends Activity {
+import com.walle.sensory.server.WalleSensoryServerClient;
+
+public class SettingsActivity extends WalleSensoryServerClient {
 	final String LOGTAG="SettingsActivity";
 
 	
@@ -26,8 +24,6 @@ public class SettingsActivity extends Activity {
 
     private EditText mHostField;
     private EditText mPortField;
-	private SharedPreferences mPrefs;
-	private SettingsModel mSettingsModel;
 
 	
 	public static boolean validate(final String ip){          
@@ -41,14 +37,10 @@ public class SettingsActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		mPrefs = this.getSharedPreferences(
-			      "com.walle.sensory", Context.MODE_PRIVATE);
-		mSettingsModel = new SettingsModel(mPrefs);
-		
+	
 		setContentView(R.layout.capabilities_settings);
 		
 	    mHostField = (EditText)findViewById(R.id.host_field);
-	    mHostField.setText(mSettingsModel.getHost());
 	    mHostField.addTextChangedListener((new TextWatcher() {
 
 			@Override
@@ -57,7 +49,7 @@ public class SettingsActivity extends Activity {
 				if (!validate(s.toString()))
 					mHostField.setError("IP Format FINAL error");
 				else
-					mSettingsModel.setHost(s.toString());
+					setHost(s.toString());
 			}
 
 			@Override
@@ -73,7 +65,7 @@ public class SettingsActivity extends Activity {
 				if (!validate(mHostField.getText().toString()))
 						mHostField.setError("IP Format editing error");
 				else
-					mSettingsModel.setHost(mHostField.getText().toString());
+					setHost(mHostField.getText().toString());
 
 				
 			}
@@ -81,12 +73,11 @@ public class SettingsActivity extends Activity {
 	    }));
 	    
 	    mPortField = (EditText)findViewById(R.id.port_field);
-	    mPortField.setText(String.valueOf(mSettingsModel.getPort()));
 	    mPortField.addTextChangedListener((new TextWatcher() {
 
 			@Override
 			public void afterTextChanged(Editable s) {
-				 mSettingsModel.setPort(Integer.parseInt(s.toString()));
+				 setPort(Integer.parseInt(s.toString()));
 			}
 
 			@Override
@@ -99,7 +90,7 @@ public class SettingsActivity extends Activity {
 			@Override
 			public void onTextChanged(CharSequence s, int start, int before,
 					int count) {
-				mSettingsModel.setPort(Integer.parseInt(mPortField.getText().toString()));
+				setPort(Integer.parseInt(mPortField.getText().toString()));
 			}
 	    	
 	    }));
@@ -108,23 +99,49 @@ public class SettingsActivity extends Activity {
 	}
 	
 
+
+	///////////////////////////
+	//
+	// abstract methods implementation
+
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.capabilities, menu);
-		return true;
+	protected void onAzimuth(float aAzimuth) {
+		// TODO Auto-generated method stub
+		
 	}
-	
-	protected void onResume() {
-	    super.onResume();
+
+
+	@Override
+	protected void onAccelerometer(float[] aAccelerometer) {
+		// TODO Auto-generated method stub
+		
 	}
-		 
-	protected void onPause() {
-	    super.onPause();
+
+
+	@Override
+	protected void onHost(String aHost) {
+		mHostField.setText(aHost);		
 	}
-	
-	protected void onDestroy() {
-		super.onDestroy();
+
+
+	@Override
+	protected void onPort(int aPort) {
+	    mPortField.setText(String.valueOf(aPort));
+	}
+
+
+	@Override
+	protected void onConnectedService() {
+		// get data from service
+	    getHost();
+	    getPort();
+	}
+
+
+	@Override
+	protected void onDisconnectedService() {
+		// TODO Auto-generated method stub
+		
 	}
 		 
 		 
