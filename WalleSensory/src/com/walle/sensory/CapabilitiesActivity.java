@@ -13,10 +13,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -33,35 +29,26 @@ import android.widget.Toast;
 import com.walle.sensory.server.WalleSensoryServer;
 
 
-public class CapabilitiesActivity extends Activity implements SensorEventListener {
+public class CapabilitiesActivity extends Activity /*implements SensorEventListener*/ {
 	final String LOGTAG="CapabilitiesActivity";
 	
 	enum connectionState {NOT_CONNECTED, CONNECTED, NO_HOST, SOCKET_ERROR, IO_ERROR};
 
-	final private float kFilteringFactor = 0.1f;
-	// Create a constant to convert nanoseconds to seconds.
-	private static final float NS2S = 1.0f / 1000000000.0f;
-	//final private int PORT = 2000;
-	//final private String HOST = "10.0.0.55";
-	//final private String HOST = "10.0.0.17";
 	final private float kAccuracyFactor = (float)(Math.PI * 5.0)/180.0f;
-	final private float EPSILON = kAccuracyFactor;
+	private TextView mAzimuthField;
 	
+	private TextView mAccelometerXField;
+	private TextView mAccelometerYField;
+	private TextView mAccelometerZField;
 
-    private TextView mAzimuthField;
 
-    private SensorManager mSensorManager;
-    private Sensor mAccelerometer;
-    private Sensor mMagnetometer;
-    private Sensor mGyroscope;
-    
+
     private PowerManager mPowerManager;
     private PowerManager.WakeLock mWakeLock;
 
     private float[] mGravity;
 	private float[] mGeomagnetic;
 	private float[] mGyro;
-	private float mTimestamp = 0.0f;
 	private float[] mDeltaRotationVector;
 	private float mAzimuth = 0.0f;
 	private float mPreviousAzimuth = 0.0f;
@@ -95,8 +82,30 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
                 	// When service is separate process, we must do tricks to get parcelable parameter
                 	// This implementation is in same process, no trics
                 	mAzimuth = (Float) msg.obj;
+            	    mAzimuthField.setText(String.valueOf(mAzimuth));
                 	break;
-
+                case WalleSensoryServer.MSG_ACCELEROMETER:
+                	// When service is separate process, we must do tricks to get parcelable parameter
+                	// This implementation is in same process, no trics
+                	float[] aGravity = (float[]) msg.obj;
+                	for (int i=0; i<3; i++)
+                	{
+                		mGravity[i] = aGravity[i];
+                	}
+            	    mAccelometerXField.setText(String.format("%5.2f", mGravity[0]));
+            	    mAccelometerYField.setText(String.format("%5.2f", mGravity[1]));
+            	    mAccelometerZField.setText(String.format("%5.2f", mGravity[2]));
+            	    break;
+            	    
+                case WalleSensoryServer.MSG_GET_HOST:
+                	String host = (String) msg.obj;
+                	Log.d(LOGTAG, "HandleMessage MSG_GET_HOST " + host);
+               	    break;
+               	 
+                case WalleSensoryServer.MSG_GET_PORT:
+                 	Log.d(LOGTAG, "HandleMessage MSG_GET_PORT " + String.valueOf(msg.arg1));
+               	    break;
+               	 
                 default:
                     super.handleMessage(msg);
             }
@@ -128,7 +137,29 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
                 Message msg = Message.obtain(null,
                 		WalleSensoryServer.MSG_REGISTER_CLIENT, 0, 0);
                 msg.replyTo = mMessenger;
-                mService.send(msg);	// this crashes Android, if service is separate process (Can't marshal non-Parcelable objects across processes.)
+                mService.send(msg);	
+                
+                // Some tests
+
+                msg = Message.obtain(null,
+                		WalleSensoryServer.MSG_GET_HOST, 0, 0);
+                msg.replyTo = mMessenger;
+                mService.send(msg);	
+ 
+                msg = Message.obtain(null,
+                		WalleSensoryServer.MSG_SET_HOST, 0, 0, new String("10.0.0.55"));
+                msg.replyTo = mMessenger;
+                mService.send(msg);	
+
+                msg = Message.obtain(null,
+                		WalleSensoryServer.MSG_GET_PORT, 0, 0);
+                msg.replyTo = mMessenger;
+                mService.send(msg);	
+
+                msg = Message.obtain(null,
+                		WalleSensoryServer.MSG_SET_PORT, 2000, 0);
+                msg.replyTo = mMessenger;
+                mService.send(msg);	
             } catch (RemoteException e) {
                 // In this case the service has crashed before we could even
                 // do anything with it; we can count on soon being
@@ -193,6 +224,10 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 	    mAzimuthField = (TextView)findViewById(R.id.azimuth_field);
 	    mAzimuthField.setText(String.valueOf(mAzimuth));
 	    
+	    mAccelometerXField = (TextView)findViewById(R.id.accelerometer_x_field);
+	    mAccelometerYField = (TextView)findViewById(R.id.accelerometer_y_field);
+	    mAccelometerZField = (TextView)findViewById(R.id.accelerometer_z_field);
+	    
 	    mGravity = new float[3] ;
 		mGeomagnetic = new float[3];
 		mGyro = new float[3];
@@ -207,16 +242,16 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
     	mDeltaRotationVector[3] = 0.0f;
 
 	    
-	    mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
-	    mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-	    mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-	    mGyroscope = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+	    //mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+	    //mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+	    //mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+	    //mGyroscope = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 	    
 	    // listen always, also in paused
 	    // TODO we get sensor data only, if we don't sleep
-	    mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-	    mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_NORMAL);
-	    mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_NORMAL);
+	    //mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+	    //mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_NORMAL);
+	    //mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_NORMAL);
 	    
 	    // Test createConnection();
 	    
@@ -308,6 +343,19 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 	
 	protected void onDestroy() {
 		super.onDestroy();
+        // disconnect fron the the service
+        try {
+   	        Log.d(LOGTAG, "onDestroy MSG_UNREGISTER_CLIENT");
+            Message msg = Message.obtain(null,
+            		WalleSensoryServer.MSG_UNREGISTER_CLIENT, 0, 0);
+            msg.replyTo = mMessenger;
+            mService.send(msg);	// this crashes Android, if service is separate process (Can't marshal non-Parcelable objects across processes.)
+        } catch (RemoteException e) {
+            // In this case the service has crashed before we could even
+            // do anything with it; we can count on soon being
+            // disconnected (and then reconnected if it can be restarted)
+            // so there is no need to do anything here.
+        }
 	    doUnbindService();
 		if (mSocket != null) {
 			try {
@@ -339,7 +387,8 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 	}
 		 
 		 
-		  
+
+	/*
 	@Override
 	public void onSensorChanged(SensorEvent event) {
 		boolean is_orientation=true;
@@ -423,20 +472,21 @@ public class CapabilitiesActivity extends Activity implements SensorEventListene
 	    	  }
 	    	  mTimestamp = event.timestamp;
 	    	  float[] deltaRotationMatrix = new float[9];
-//	    	  /*boolean success = */ SensorManager.getRotationMatrixFromVector(deltaRotationMatrix, mDeltaRotationVector);
+//	    	  *boolean success = * SensorManager.getRotationMatrixFromVector(deltaRotationMatrix, mDeltaRotationVector);
 	    	    // User code should concatenate the delta rotation we computed with the current rotation
 	    	    // in order to get the updated rotation.
 	    	    // rotationCurrent = rotationCurrent * deltaRotationMatrix;
 		      Log.d(LOGTAG, "onSensorChanged TYPE_GYROSCOPE SensorManager.getRotationMatrixFromVector");
 	    }
 	}
-
+*/
+	/*
 	@Override
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {
 		// TODO Auto-generated method stub
 		
 	}
-	
+	*/
 	private void reportAzimuth(float aAzimuth) {
 		if (mConnectionState == connectionState.CONNECTED) {
 			if (Math.abs(aAzimuth - mPreviousAzimuth) > kAccuracyFactor) {
