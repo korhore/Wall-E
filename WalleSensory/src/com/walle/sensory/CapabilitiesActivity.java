@@ -2,10 +2,17 @@ package com.walle.sensory;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.OvalShape;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.util.AttributeSet;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,7 +35,40 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
     private PowerManager.WakeLock mWakeLock;
 
 
+	private static class StatusView extends View {
+		 
+		// CONSTRUCTOR
+		public StatusView(Context context) {
+			super(context);
+			setFocusable(true);
  
+		}
+		
+	    public StatusView(Context context, AttributeSet attr) {
+		    super(context);
+			setFocusable(true);
+	   }
+
+ 
+		@Override
+		protected void onDraw(Canvas canvas) {
+ 
+			canvas.drawColor(Color.CYAN);
+			Paint p = new Paint();
+			// smooths
+			p.setAntiAlias(true);
+			p.setColor(Color.RED);
+			p.setStyle(Paint.Style.STROKE); 
+			p.setStrokeWidth(4.5f);
+			// opacity
+			//p.setAlpha(0x80); //
+			canvas.drawCircle(10, 10, 10, p);
+		}
+ 
+	}
+	
+	private StatusView mStatusView;
+
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +85,8 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	    mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
 	    mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "CapabilitiesActivity");
 	    mWakeLock.acquire();
+	    
+	    mStatusView = (StatusView) findViewById(R.id.statusview);
 	    
 	}
 	

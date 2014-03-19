@@ -9,18 +9,29 @@
     tools:context=".CapabilitiesActivity" >
 
     <TextView
-        android:id="@+id/capabilities_label"
+        android:id="@+id/sensory_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/capabilities"
+        android:text="@string/sensory"
         android:textStyle="bold" />
 
-
+	<view
+	    xmlns:android="http://schemas.android.com/apk/res/android"
+	    android:id="@+id/statusview"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_alignBottom="@+id/sensory_label"
+	    android:layout_alignLeft="@+id/accelerometer_x_field"
+	    android:layout_alignRight="@+id/accelerometer_y_field"
+	    android:layout_alignTop="@+id/sensory_label"
+	    android:layout_marginLeft="10dp"
+	    class="com.walle.sensory.CapabilitiesActivity$StatusView" />
+    
     <TextView
         android:id="@+id/azimuth_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/capabilities_label"
+        android:layout_below="@+id/sensory_label"
         android:layout_marginTop="35dp"
         android:text="@string/azimuth"
         android:textStyle="bold" />
@@ -32,8 +43,8 @@
         android:layout_alignBaseline="@+id/azimuth_label"
         android:layout_alignBottom="@+id/azimuth_label"
         android:layout_alignParentRight="true"
-        android:ems="10"  />
-        <!--  android:inputType="numberDecimal"
+        android:ems="10"
+        android:text="0" />
 
          <requestFocus />  -->
 
@@ -79,4 +90,5 @@
          android:layout_toRightOf="@+id/accelerometer_y_field"
          android:text="0" />
 
+ 
 </RelativeLayout>
