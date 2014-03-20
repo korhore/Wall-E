@@ -37,6 +37,7 @@ public abstract class WalleSensoryServerClient extends Activity{
 
     // Parent class that extracts this utility class, return itself (this) 
 
+    abstract protected void onConnectionState(WalleSensoryServer.connectionState aConnectionState);
     abstract protected void onAzimuth(float aAzimuth);
     abstract protected void onAccelerometer(float[] aAccelerometer);
     abstract protected void onHost(String aHost);
@@ -59,6 +60,11 @@ public abstract class WalleSensoryServerClient extends Activity{
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
+	            case WalleSensoryServer.MSG_CONNECTION_STATE:
+	            	// When service is separate process, we must do tricks to get parcelable parameter
+	            	// This implementation is in same process, no tricks
+	             	onConnectionState(WalleSensoryServer.toConnectionState(msg.arg1));
+	            	break;
                 case WalleSensoryServer.MSG_AZIMUTH:
                 	// When service is separate process, we must do tricks to get parcelable parameter
                 	// This implementation is in same process, no tricks

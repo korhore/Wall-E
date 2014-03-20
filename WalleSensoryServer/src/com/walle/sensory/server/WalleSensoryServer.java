@@ -8,6 +8,8 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 
+import com.intelligentmachineaidedsystems.android.guardianangel.guardianangelservice.GuardianAngelService.PlaceType;
+
 
 import android.app.Service;
 import android.content.Context;
@@ -67,6 +69,7 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 	private Socket mSocket = null;
 	//private boolean mSocketError = false;
 	private connectionState mConnectionState = connectionState.NOT_CONNECTED;
+	private connectionState mPreviousConnectionState = connectionState.NOT_CONNECTED;
 	private DataOutputStream mDataOutputStream = null;
 	private DataInputStream mDataInputStream = null;
 	
@@ -90,9 +93,14 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
     public static final int MSG_UNREGISTER_CLIENT = MSG_REGISTER_CLIENT+1;
     
     /**
+     * Command to report cinnection state to walle-server
+     */
+    public static final int MSG_CONNECTION_STATE = MSG_UNREGISTER_CLIENT+1;
+
+    /**
      * Command to report azimuth.
      */
-    public static final int MSG_AZIMUTH = MSG_UNREGISTER_CLIENT+1;
+    public static final int MSG_AZIMUTH = MSG_CONNECTION_STATE+1;
 
     /**
      * Command to report accelerometer.
@@ -269,6 +277,8 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 	    	mConnectionState = connectionState.IO_ERROR;
 	    	Log.e(LOGTAG, "createConnection IOException", e);
 		}
+	    
+	    report(mConnectionState);
 		
 	}
 
@@ -452,7 +462,6 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 		    }
 		}
 
-	    /*
 		if (mConnectionState == connectionState.CONNECTED) {
 			if (Math.abs(aAzimuth - mPreviousAzimuth) > kAzimuthAccuracyFactor) {
 				try {
@@ -466,6 +475,7 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 					// TODO Auto-generated catch block
 	    	        Log.e(LOGTAG, "reportAzimuth write", e);
 	    	        mConnectionState = connectionState.IO_ERROR;
+	    	        report(mConnectionState);
 	    	        try {
 						mSocket.close();
 					} catch (IOException e1) {
@@ -495,6 +505,7 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 						// TODO Auto-generated catch block
 		    	        Log.e(LOGTAG, "reportAzimuth read", e);
 		    	        mConnectionState = connectionState.IO_ERROR;
+		    	        report(mConnectionState);
 		    	        try {
 							mSocket.close();
 						} catch (IOException e1) {
@@ -507,7 +518,6 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 				}
 			}
 		}
-		*/
 	}
 	
 	private void reportAccelerometer(float[] aGravity) {
@@ -530,6 +540,29 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 	        }
 	    }
 	}
+	
+	private void report(connectionState aConnectionState) {
+		if (aConnectionState != mPreviousConnectionState) {
+		    for (int i=mClients.size()-1; i>=0; i--) {
+		    	try {
+		    		mClients.get(i).send(Message.obtain(null, MSG_CONNECTION_STATE, aConnectionState.ordinal(),  0));
+		        } catch (RemoteException e) {
+			                // The client is dead.  Remove it from the list;
+			                // we are going through the list from back to front
+			                // so this is safe to do inside the loop.
+		        	mClients.remove(i);
+		        }
+		    }
+		    mPreviousConnectionState = aConnectionState;
+	    }
+		
+	}
+	
+	public static connectionState toConnectionState( int i ) {
+		final connectionState[] v = connectionState.values();
+		return i >= 0 && i < v.length ? v[i] : connectionState.NOT_CONNECTED;
+	}
+
 
 	
 
