@@ -10,6 +10,7 @@ import android.graphics.drawable.shapes.OvalShape;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,7 +21,8 @@ import com.walle.sensory.server.WalleSensoryServerClient;
 
 
 public class CapabilitiesActivity extends WalleSensoryServerClient  {
-	final String LOGTAG="CapabilitiesActivity";
+	final static String LOGTAG="CapabilitiesActivity";
+	final static int boundary=2;
 	
 
 	private TextView mAzimuthField;
@@ -36,24 +38,43 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 
 
 	private static class StatusView extends View {
-		 
+	    private ShapeDrawable mDrawable;
+	 
 		// CONSTRUCTOR
 		public StatusView(Context context) {
 			super(context);
+	    	Log.d(LOGTAG, "StatusView(Context context)");
 			setFocusable(true);
- 
-		}
+ 		}
 		
 	    public StatusView(Context context, AttributeSet attr) {
 		    super(context);
+	    	Log.d(LOGTAG, "StatusView(Context context, AttributeSet attr)");
 			setFocusable(true);
 	   }
+	    
+	    public void setStatus() {
+	    	Log.d(LOGTAG, "setStatus()");
+			
+		    int x = boundary;
+		    int y = boundary;
+		    int width = this.getWidth()-boundary;
+		    int height = this.getHeight()-boundary;
+		    
+		    mDrawable = new ShapeDrawable(new OvalShape());
+		    mDrawable.getPaint().setColor(0xff74AC23);
+		    mDrawable.setBounds(x, y, x + width, y + height);
+	   }
+
 
  
 		@Override
 		protected void onDraw(Canvas canvas) {
  
-			canvas.drawColor(Color.CYAN);
+			//canvas.drawColor(Color.CYAN);
+			Color color = new Color();
+			color.argb(0x10, 0x10, 0x10, 0x10);
+			canvas.drawColor(0x10101010);
 			Paint p = new Paint();
 			// smooths
 			p.setAntiAlias(true);
@@ -63,6 +84,9 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 			// opacity
 			//p.setAlpha(0x80); //
 			canvas.drawCircle(10, 10, 10, p);
+			
+	    	//mDrawable.draw(canvas);
+
 		}
  
 	}
@@ -73,6 +97,7 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+    	Log.d(LOGTAG, "onCreate()");
 		setContentView(R.layout.capabilities_main);
 		
 	    
@@ -86,7 +111,11 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	    mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "CapabilitiesActivity");
 	    mWakeLock.acquire();
 	    
+    	Log.d(LOGTAG, "onCreate() (StatusView) findViewById(R.id.statusview)");
 	    mStatusView = (StatusView) findViewById(R.id.statusview);
+    	Log.d(LOGTAG, "onCreate() mStatusView.setStatus()");
+	    //mStatusView.setStatus();
+    	Log.d(LOGTAG, "onCreate() done");
 	    
 	}
 	
