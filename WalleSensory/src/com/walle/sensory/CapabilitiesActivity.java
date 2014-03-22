@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.RectF;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.OvalShape;
 import android.os.Bundle;
@@ -17,11 +18,26 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.walle.sensory.server.WalleSensoryServer.connectionState;
 import com.walle.sensory.server.WalleSensoryServerClient;
 
 
 public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	final static String LOGTAG="CapabilitiesActivity";
+	
+/*
+	#define PowerChangedColor QColor(Qt::green)
+	#define UnconnectedStateColor QColor(Qt::gray)
+	#define HostLookupStateColor QColor(Qt::magenta)
+	#define ConnectingStateColor QColor(Qt::darkMagenta)
+	#define ConnectedStateColor QColor(Qt::darkYellow)
+	#define WritingStateColor QColor(Qt::blue)
+	#define WrittenStateColor QColor(Qt::darkBlue)
+	#define ReadingStateColor QColor(Qt::cyan)
+	#define ReadStateColor QColor(Qt::darkCyan)
+	#define ErrorStateColor QColor(Qt::red)
+	#define ClosingStateColor QColor(Qt::darkGray)
+*/
 	final static int boundary=2;
 	
 
@@ -30,7 +46,9 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	private TextView mAccelometerXField;
 	private TextView mAccelometerYField;
 	private TextView mAccelometerZField;
-
+	
+	private static int mConnectionStateColor;
+	private static connectionState mConnectionState;
 
 
     private PowerManager mPowerManager;
@@ -38,7 +56,9 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 
 
 	private static class StatusView extends View {
-	    private ShapeDrawable mDrawable;
+	    //private ShapeDrawable mDrawable;
+		private Paint p;
+
 	 
 		// CONSTRUCTOR
 		public StatusView(Context context) {
@@ -48,42 +68,28 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
  		}
 		
 	    public StatusView(Context context, AttributeSet attr) {
-		    super(context);
+		    super(context, attr);
 	    	Log.d(LOGTAG, "StatusView(Context context, AttributeSet attr)");
 			setFocusable(true);
 	   }
 	    
-	    public void setStatus() {
-	    	Log.d(LOGTAG, "setStatus()");
-			
-		    int x = boundary;
-		    int y = boundary;
-		    int width = this.getWidth()-boundary;
-		    int height = this.getHeight()-boundary;
-		    
-		    mDrawable = new ShapeDrawable(new OvalShape());
-		    mDrawable.getPaint().setColor(0xff74AC23);
-		    mDrawable.setBounds(x, y, x + width, y + height);
-	   }
-
-
  
 		@Override
 		protected void onDraw(Canvas canvas) {
  
 			//canvas.drawColor(Color.CYAN);
-			Color color = new Color();
-			color.argb(0x10, 0x10, 0x10, 0x10);
-			canvas.drawColor(0x10101010);
-			Paint p = new Paint();
-			// smooths
-			p.setAntiAlias(true);
-			p.setColor(Color.RED);
-			p.setStyle(Paint.Style.STROKE); 
-			p.setStrokeWidth(4.5f);
-			// opacity
-			//p.setAlpha(0x80); //
-			canvas.drawCircle(10, 10, 10, p);
+			if (p == null) {
+				p = new Paint();
+				// smooth
+				p.setAntiAlias(true);
+				p.setStyle(Paint.Style.FILL); 
+			}
+			//canvas.drawColor(Color.GRAY);
+			p.setColor(mConnectionStateColor);
+			//canvas.drawCircle(20, 20, 5, p);
+			p.setStrokeWidth((float) this.getHeight()/2);
+			canvas.drawCircle(this.getWidth()/2, this.getHeight()/2, this.getHeight()/4, p);
+//			canvas.drawOval(new RectF(0, 0, this.getWidth(), this.getHeight()), p);
 			
 	    	//mDrawable.draw(canvas);
 
@@ -98,6 +104,9 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
     	Log.d(LOGTAG, "onCreate()");
+    	
+    	mConnectionStateColor = toColor(connectionState.NOT_CONNECTED);
+    	
 		setContentView(R.layout.capabilities_main);
 		
 	    
@@ -112,11 +121,15 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	    mWakeLock.acquire();
 	    
     	Log.d(LOGTAG, "onCreate() (StatusView) findViewById(R.id.statusview)");
-	    mStatusView = (StatusView) findViewById(R.id.statusview);
-    	Log.d(LOGTAG, "onCreate() mStatusView.setStatus()");
-	    //mStatusView.setStatus();
+	    mStatusView = (CapabilitiesActivity.StatusView) findViewById(R.id.statusview);
     	Log.d(LOGTAG, "onCreate() done");
 	    
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		mStatusView.invalidate();
 	}
 	
 
@@ -193,7 +206,61 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 		// TODO Auto-generated method stub
 		
 	}
-		 
+
+
+	@Override
+	protected void onConnectionState(connectionState aConnectionState) {
+	    Log.d(LOGTAG, "onConnectionState " + aConnectionState.toString());
+		setStatus(aConnectionState);
+	}
+	
+	/////////////////////////////////////////////////////////////
+	//
+	// implementation
+	
+    public void setStatus(connectionState aConnectionState) {
+    	Log.d(LOGTAG, "setStatus()");
+    	
+    	mConnectionState = aConnectionState;
+    	mConnectionStateColor = toColor(mConnectionState);
+   		mStatusView.invalidate();
+   }
+
+   private int toColor(connectionState aConnectionState) {
+    	Log.d(LOGTAG, "toColor()");
+    	int color = Color.GRAY;
+    	
+    	switch (aConnectionState) {
+    		case NOT_CONNECTED:
+    			color = Color.GRAY;
+    			break;
+    		case CONNECTED:
+    			color = Color.GREEN;
+    			break;
+    		case WRITING:
+    			color = Color.BLUE;
+    			break;
+    		case READING:
+    			color = Color.BLACK;
+    			break;
+    		case NO_HOST:
+    			color = Color.MAGENTA;
+    			break;
+    		case SOCKET_ERROR:
+    			color = Color.RED;
+    			break;
+    		case IO_ERROR:
+    			color = Color.CYAN;
+    		default:
+    			break;
+    	}
+    	
+    	return color;
+   }
+
+
+
+
 		 
 
 	
