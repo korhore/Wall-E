@@ -8,9 +8,6 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 
-import com.intelligentmachineaidedsystems.android.guardianangel.guardianangelservice.GuardianAngelService.PlaceType;
-
-
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -19,6 +16,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -26,17 +24,17 @@ import android.os.Messenger;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.util.Log;
-
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class WalleSensoryServer extends Service implements SensorEventListener {
 	final String LOGTAG="WalleSensoryServer";
 	
-	enum connectionState {NOT_CONNECTED, CONNECTED, NO_HOST, SOCKET_ERROR, IO_ERROR};
+	public enum ConnectionState {NOT_CONNECTED, NO_HOST, SOCKET_ERROR, IO_ERROR, CONNECTING, CONNECTED, WRITING, READING};
 
 	final private float kFilteringFactor = 0.1f;
 	// Create a constant to convert nanoseconds to seconds.
 	private static final float NS2S = 1.0f / 1000000000.0f;
-	final private float kAccelometerAccuracyFactor = 0.02f;
+	final private float kAccelometerAccuracyFactor = 0.2f;
 	final private float kAzimuthAccuracyFactor = (float)(Math.PI * 5.0)/180.0f;
 	final private long kCalibrateTime = 60l * 1000000000l;	// nanoseconds
 	final private float EPSILON = kAzimuthAccuracyFactor;
@@ -66,12 +64,19 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 	private float mPreviousAzimuth = 0.0f;
 	private int mNumber = 0;
 
+	// queues to ftp socket
+	private LinkedBlockingQueue<Sensation> mSensationOutQueue;
+	private LinkedBlockingQueue<Sensation> mSensationInQueue;
+
+	// ftp socket with technical streams
 	private Socket mSocket = null;
 	//private boolean mSocketError = false;
-	private connectionState mConnectionState = connectionState.NOT_CONNECTED;
-	private connectionState mPreviousConnectionState = connectionState.NOT_CONNECTED;
+	private ConnectionState mConnectionState = ConnectionState.NOT_CONNECTED;
 	private DataOutputStream mDataOutputStream = null;
 	private DataInputStream mDataInputStream = null;
+	private SocketServer mSocketServer = null;
+	
+	//private CreateConnectionTask mCreateConnectionTask;
 	
 	private SharedPreferences mPrefs;
 	private SettingsModel mSettingsModel;
@@ -93,7 +98,7 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
     public static final int MSG_UNREGISTER_CLIENT = MSG_REGISTER_CLIENT+1;
     
     /**
-     * Command to report cinnection state to walle-server
+     * Command to report connection state to walle-server
      */
     public static final int MSG_CONNECTION_STATE = MSG_UNREGISTER_CLIENT+1;
 
@@ -149,6 +154,18 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
                     }
                     break;
                     
+                case MSG_CONNECTION_STATE:
+      	    	  	Log.d(LOGTAG, "handleMessage MSG_CONNECTION_STATE");
+      		    	try {
+      		    		msg.replyTo.send(Message.obtain(null, MSG_CONNECTION_STATE, mConnectionState.ordinal(), 0));
+      		        } catch (RemoteException e) {
+      			                // The client is dead.  Remove it from the list;
+      			                // we are going through the list from back to front
+      			                // so this is safe to do inside the loop.
+      		        	mClients.remove(msg.replyTo);
+      		        }
+                    break;
+
                 case MSG_GET_HOST:
       	    	  	Log.d(LOGTAG, "handleMessage MSG_GET_HOST " + mSettingsModel.getHost());
       		    	try {
@@ -245,43 +262,60 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 		mPrefs = this.getSharedPreferences(
 			      "com.walle.sensory", Context.MODE_PRIVATE);
 		mSettingsModel = new SettingsModel(mPrefs);
+		
+		//mCreateConnectionTask = new CreateConnectionTask();
+		
+		mSensationOutQueue = new LinkedBlockingQueue<Sensation>();
+		mSensationInQueue = new LinkedBlockingQueue<Sensation>();
+
 		createConnection();
 
 	}
+    
+	private void createConnection() {
+		if ((mConnectionState.ordinal() < ConnectionState.CONNECTING.ordinal())) {
+			mSocketServer = new SocketServer();
+			mSocketServer.start();
+		}
+	}
+    
+    /*
 	
 	private void createConnection() {
-    	//mSocketError = false;
+		Log.d(LOGTAG, "createConnection");
+
+		//mSocketError = false;
 
 	    try {
-	    	  mConnectionState = connectionState.CONNECTED;
+	    	  mConnectionState = ConnectionState.CONNECTED;
 
 	    	  Log.d(LOGTAG, "createConnection Socket " + mSettingsModel.getHost() + ' ' + String.valueOf(mSettingsModel.getPort()));
 	    	  mSocket = new Socket(mSettingsModel.getHost(), mSettingsModel.getPort());
 	    	  mDataInputStream = new DataInputStream(mSocket.getInputStream());
 	    	  mDataOutputStream = new DataOutputStream(mSocket.getOutputStream());
-	    	  /*
+	    	  *
 	    	  mDataOutputStream.writeUTF(textOut.getText().toString());
-	    	  textIn.setText(mDataInputStream.readUTF());*/
+	    	  textIn.setText(mDataInputStream.readUTF());*
 	    } catch (SocketException e) {
-	    	mConnectionState = connectionState.SOCKET_ERROR;
+	    	mConnectionState = ConnectionState.SOCKET_ERROR;
 	    	//mSocketError = true;
 	    	Log.e(LOGTAG, "createConnection SocketException", e);
 	    } catch (UnknownHostException e) {
 	    	  // TODO Auto-generated catch block
 	    	//mSocketError = true;
-	    	mConnectionState = connectionState.NO_HOST;
+	    	mConnectionState = ConnectionState.NO_HOST;
 	    	Log.e(LOGTAG, "createConnection UnknownHostException", e);
 	    } catch (IOException e) {
 				// TODO Auto-generated catch block
 	    	//mSocketError = true;
-	    	mConnectionState = connectionState.IO_ERROR;
+	    	mConnectionState = ConnectionState.IO_ERROR;
 	    	Log.e(LOGTAG, "createConnection IOException", e);
 		}
 	    
 	    report(mConnectionState);
 		
 	}
-
+*/
     @Override
 	public void onDestroy() {
 		super.onDestroy();
@@ -457,66 +491,22 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 		    }
 		    
 		    if (reported) {
-				mPreviousAzimuth = aAzimuth;
 			    Log.d(LOGTAG, "reportAzimuth " + String.valueOf(aAzimuth) );
 		    }
 		}
 
-		if (mConnectionState == connectionState.CONNECTED) {
+		if (mConnectionState.ordinal() >= ConnectionState.CONNECTED.ordinal()) {
+		    Log.d(LOGTAG, "reportAzimuth connected" + mConnectionState.toString() );
 			if (Math.abs(aAzimuth - mPreviousAzimuth) > kAzimuthAccuracyFactor) {
-				try {
-					Sensation sensation = new Sensation(mNumber, Sensation.SensationType.Azimuth, aAzimuth);
-					String s = sensation.toString() +  "|";
-					byte[] bytes = s.getBytes("UTF-8");
-	    	        Log.d(LOGTAG, "reportAzimuth write " + Integer.toString(bytes.length));
-					mDataOutputStream.write(bytes);
-			    	mDataOutputStream.flush();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-	    	        Log.e(LOGTAG, "reportAzimuth write", e);
-	    	        mConnectionState = connectionState.IO_ERROR;
-	    	        report(mConnectionState);
-	    	        try {
-						mSocket.close();
-					} catch (IOException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-    	        	createConnection();
-	    	        return;
-				}
+			    Log.d(LOGTAG, "reportAzimuth " + String.valueOf(aAzimuth) );
+				Sensation sensation = new Sensation(mNumber, Sensation.SensationType.Azimuth, aAzimuth);
+				mSensationOutQueue.add(sensation);
 				mNumber++;
 				mPreviousAzimuth = aAzimuth;
-
-				if (mDataInputStream != null) {
-					try {
-						int available = mDataInputStream.available();
-						int l=0;
-		    	        Log.d(LOGTAG, "reportAzimuth read " + Integer.toString(available));
-						while (available > 0)
-						{
-							byte[] b = new byte[256];
-			    	        Log.d(LOGTAG, "reportAzimuth read available " + Integer.toString(available));
-							l += mDataInputStream.read(b, l, available);
-			    	        Log.d(LOGTAG, "reportAzimuth read l " + Integer.toString(l) + ' ' +  b);
-							available = mDataInputStream.available();
-						}
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-		    	        Log.e(LOGTAG, "reportAzimuth read", e);
-		    	        mConnectionState = connectionState.IO_ERROR;
-		    	        report(mConnectionState);
-		    	        try {
-							mSocket.close();
-						} catch (IOException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
-	    	        	createConnection();
-		    	        return;
-					}
-				}
 			}
+		} else {
+			report(mConnectionState);
+        	createConnection();
 		}
 	}
 	
@@ -541,29 +531,214 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 	    }
 	}
 	
-	private void report(connectionState aConnectionState) {
-		if (aConnectionState != mPreviousConnectionState) {
+	private void report(ConnectionState aConnectionState) {
+		if (aConnectionState != mConnectionState) {
+	    	Log.d(LOGTAG, "report " + aConnectionState.toString() + " previous " + mConnectionState.toString());
 		    for (int i=mClients.size()-1; i>=0; i--) {
 		    	try {
+		    	   	Log.d(LOGTAG, "report mClients.get(" + String.valueOf(i) + ").send");
 		    		mClients.get(i).send(Message.obtain(null, MSG_CONNECTION_STATE, aConnectionState.ordinal(),  0));
 		        } catch (RemoteException e) {
 			                // The client is dead.  Remove it from the list;
 			                // we are going through the list from back to front
 			                // so this is safe to do inside the loop.
+		    	   	Log.e(LOGTAG, e.toString());
 		        	mClients.remove(i);
 		        }
 		    }
-		    mPreviousConnectionState = aConnectionState;
+		    mConnectionState = aConnectionState;
 	    }
 		
 	}
 	
-	public static connectionState toConnectionState( int i ) {
-		final connectionState[] v = connectionState.values();
-		return i >= 0 && i < v.length ? v[i] : connectionState.NOT_CONNECTED;
+	public static ConnectionState toConnectionState( int i ) {
+		final ConnectionState[] v = ConnectionState.values();
+		return i >= 0 && i < v.length ? v[i] : ConnectionState.NOT_CONNECTED;
+	}
+	
+	/////////////////////////////////////////////
+	//
+	// socket ftp in async threading
+	
+	private class SocketServer extends Thread {
+		
+		private SocketWriter mSocketWriter;
+		private SocketReader mSocketReader;
+		
+		public SocketServer() {
+			mSocketWriter = new SocketWriter();
+			mSocketReader = new SocketReader();
+						
+		}
+		public void run (){
+			
+			
+			report(ConnectionState.CONNECTING);
+		    try {
+
+		    	  Log.d(LOGTAG, "SocketServer.run " + mSettingsModel.getHost() + ' ' + String.valueOf(mSettingsModel.getPort()));
+		    	  mSocket = new Socket(mSettingsModel.getHost(), mSettingsModel.getPort());
+		    	  mDataInputStream = new DataInputStream(mSocket.getInputStream());
+		    	  mDataOutputStream = new DataOutputStream(mSocket.getOutputStream());
+		    	  report(ConnectionState.CONNECTED);
+		    } catch (SocketException e) {
+		    	report(ConnectionState.SOCKET_ERROR);
+		    	Log.e(LOGTAG, "SocketServer.run SocketException", e);
+		    } catch (UnknownHostException e) {
+		    	report(ConnectionState.NO_HOST);
+		    	Log.e(LOGTAG, "SocketServer.run  UnknownHostException", e);
+		    } catch (IOException e) {
+		    	report(ConnectionState.IO_ERROR);
+		    	Log.e(LOGTAG, "SocketServer.run IOException", e);
+			}
+		    
+		    if (mConnectionState == ConnectionState.CONNECTED) {
+		    	mSocketWriter.start();	
+		    	mSocketReader.start();
+		    }
+			
+		}
+	}
+	
+	private class SocketWriter extends Thread {
+		public void run () {
+	    	Log.d(LOGTAG, "SocketWriter.run");
+			while ((mSocket.isConnected()) && (!mSocket.isOutputShutdown())) {
+				Sensation sensation;
+				try {
+					sensation = mSensationOutQueue.take();
+				 	Log.d(LOGTAG, "SocketWriter.run take " + sensation.toString());
+					report(ConnectionState.WRITING);
+				    try {
+						byte[] bytes = (sensation.toString() + '|').getBytes("UTF-8");
+			    	    Log.d(LOGTAG, "SocketWriter.run write " + Integer.toString(bytes.length));
+						mDataOutputStream.write(bytes);
+					    mDataOutputStream.flush();
+					    report(ConnectionState.CONNECTED);
+					} catch (IOException e) {
+				        Log.e(LOGTAG, "SocketWriter.run write", e);
+				        report(ConnectionState.IO_ERROR);
+					}
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+		    	    Log.e(LOGTAG, "SocketWriter.run write", e);
+				}
+			}
+		}
 	}
 
+	private class SocketReader extends Thread {
+		public void run () {
+		 	Log.d(LOGTAG, "SocketReader.run");
+			byte[] b = new byte[256];
+			int l;
+			while ( (mConnectionState.ordinal() >= ConnectionState.CONNECTED.ordinal()) &&
+					(mSocket.isConnected()) && (!mSocket.isInputShutdown())) {
+				try  {
+					while ((l = mDataInputStream.read(b)) > 0) {
+		    	        Log.d(LOGTAG, "SocketReader.run  read l " + Integer.toString(l) + ' ' +  b);
+						report(ConnectionState.READING);					
+					}
+	    	        Log.d(LOGTAG, "SocketReader.run mSocket.close()");
+	    	        try {
+						mSocket.close();
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+	    	        Log.e(LOGTAG, "SocketReader.run read", e);
+	    	        mConnectionState = ConnectionState.IO_ERROR;
+	    	        report(ConnectionState.IO_ERROR);
+	    	        try {
+						mSocket.close();
+						return;
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+			}
+		}
+	}
+	
+	private class CreateConnectionTask extends AsyncTask<Void, Integer, ConnectionState> {
+		 @Override
+	     protected ConnectionState doInBackground(Void... voids) {
+	 		Log.d(LOGTAG, "CreateConnectionTask.doInBackground");
 
+	 		ConnectionState aConnectionState = ConnectionState.CONNECTING;
+	 		publishProgress(aConnectionState.ordinal());
+
+		    try {
+
+		    	  Log.d(LOGTAG, "CreateConnectionTask.doInBackground " + mSettingsModel.getHost() + ' ' + String.valueOf(mSettingsModel.getPort()));
+		    	  mSocket = new Socket(mSettingsModel.getHost(), mSettingsModel.getPort());
+		    	  mDataInputStream = new DataInputStream(mSocket.getInputStream());
+		    	  mDataOutputStream = new DataOutputStream(mSocket.getOutputStream());
+		    	  aConnectionState = ConnectionState.CONNECTED;
+		    } catch (SocketException e) {
+		    	aConnectionState = ConnectionState.SOCKET_ERROR;
+		    	Log.e(LOGTAG, "CreateConnectionTask.doInBackground SocketException", e);
+		    } catch (UnknownHostException e) {
+		    	aConnectionState = ConnectionState.NO_HOST;
+		    	Log.e(LOGTAG, "CreateConnectionTask.doInBackground  UnknownHostException", e);
+		    } catch (IOException e) {
+		    	aConnectionState = ConnectionState.IO_ERROR;
+		    	Log.e(LOGTAG, "createConnection IOException", e);
+			}
+		    
+		    return aConnectionState;
+	     }
+
+
+	     protected void onProgressUpdate(Integer... states) {
+	    	 report(toConnectionState(states[0]));
+	     }
+
+		 @Override
+	     protected void onPostExecute(ConnectionState aConnectionState) {
+	    	 report(aConnectionState);
+	     }
+	 }
+	 
+	 private class WriteToConnectionTask extends AsyncTask<String, Integer, ConnectionState> {
+		 @Override
+	     protected ConnectionState doInBackground(String... params) {
+	 		Log.d(LOGTAG, "WriteToConnectionTask.doInBackground");
+ 			ConnectionState aConnectionState = ConnectionState.WRITING;
+	 		if ((mSocket.isConnected()) && (!mSocket.isOutputShutdown())) {
+	 			publishProgress(aConnectionState.ordinal());
+	 			
+	 			try {
+	 				for (int i = 0; i < params.length; i++) {
+						byte[] bytes = params[i].getBytes("UTF-8");
+			    	    Log.d(LOGTAG, "reportAzimuth write " + Integer.toString(bytes.length));
+						mDataOutputStream.write(bytes);
+					    mDataOutputStream.flush();
+	 				}
+					aConnectionState = ConnectionState.CONNECTED;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+	    	        Log.e(LOGTAG, "WriteToConnectionTask.doInBackground write", e);
+	    	        aConnectionState = ConnectionState.IO_ERROR;
+				}
+	 		}
+	 		
+	 		return aConnectionState;
+	     }
+
+	     protected void onProgressUpdate(Integer... states) {
+	    	 report(toConnectionState(states[0]));
+	     }
+	     
+		 @Override
+	     protected void onPostExecute(ConnectionState aConnectionState) {
+	    	 report(aConnectionState);
+	     }
+
+	 }
 	
 
 }

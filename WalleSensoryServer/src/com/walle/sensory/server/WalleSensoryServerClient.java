@@ -26,8 +26,6 @@ import com.walle.sensory.server.WalleSensoryServer;
 public abstract class WalleSensoryServerClient extends Activity{
 	final String LOGTAG="WalleSensoryServerClient";
 	
-	//enum connectionState {NOT_CONNECTED, CONNECTED, NO_HOST, SOCKET_ERROR, IO_ERROR};
-
     /** Messenger for communicating with service. */
     Messenger mService = null;
     /** Flag indicating whether we have called bind on the service. */
@@ -37,7 +35,7 @@ public abstract class WalleSensoryServerClient extends Activity{
 
     // Parent class that extracts this utility class, return itself (this) 
 
-    abstract protected void onConnectionState(WalleSensoryServer.connectionState aConnectionState);
+    abstract protected void onConnectionState(WalleSensoryServer.ConnectionState aConnectionState);
     abstract protected void onAzimuth(float aAzimuth);
     abstract protected void onAccelerometer(float[] aAccelerometer);
     abstract protected void onHost(String aHost);
@@ -59,34 +57,41 @@ public abstract class WalleSensoryServerClient extends Activity{
     	// in.readParceleable(LocationType.class.getClassLoader());
         @Override
         public void handleMessage(Message msg) {
+   	        Log.d(LOGTAG, "handleMessage " + String.valueOf(msg.what));
             switch (msg.what) {
 	            case WalleSensoryServer.MSG_CONNECTION_STATE:
+	       	        Log.d(LOGTAG, "handleMessage MSG_CONNECTION_STATE");
 	            	// When service is separate process, we must do tricks to get parcelable parameter
 	            	// This implementation is in same process, no tricks
 	             	onConnectionState(WalleSensoryServer.toConnectionState(msg.arg1));
 	            	break;
                 case WalleSensoryServer.MSG_AZIMUTH:
+	       	        Log.d(LOGTAG, "handleMessage MSG_AZIMUTH");
                 	// When service is separate process, we must do tricks to get parcelable parameter
                 	// This implementation is in same process, no tricks
                  	onAzimuth((Float) msg.obj);
                 	break;
                 case WalleSensoryServer.MSG_ACCELEROMETER:
-                	// When service is separate process, we must do tricks to get parcelable parameter
+	       	        Log.d(LOGTAG, "handleMessage MSG_ACCELEROMETER");
+	       	                     	// When service is separate process, we must do tricks to get parcelable parameter
                 	// This implementation is in same process, no tricks
                  	onAccelerometer((float[]) msg.obj);
             	    break;
             	    
                 case WalleSensoryServer.MSG_GET_HOST:
+	       	        Log.d(LOGTAG, "handleMessage MSG_GET_HOST");
                 	// When service is separate process, we must do tricks to get parcelable parameter
                 	// This implementation is in same process, no tricks
                 	onHost((String) msg.obj);
                 	break;
                	 
                 case WalleSensoryServer.MSG_GET_PORT:
+	       	        Log.d(LOGTAG, "handleMessage MSG_GET_PORT");
                 	onPort(msg.arg1);
-           	    break;
+                	break;
                	 
                 default:
+	       	        Log.d(LOGTAG, "handleMessage default no handler here");
                     super.handleMessage(msg);
             }
         }
@@ -193,6 +198,19 @@ public abstract class WalleSensoryServerClient extends Activity{
     
     // call service asynchronously
     
+    public void getConnectionState() {
+    	if (mService != null) {
+	        try {
+	            Message msg = Message.obtain(null,
+	            		WalleSensoryServer.MSG_CONNECTION_STATE, 0, 0);
+	            msg.replyTo = mMessenger;
+	            mService.send(msg);	
+	        } catch (RemoteException e) {
+	            // In this case the service has crashed
+	        }
+    	}
+    }
+
     public void getHost() {
     	if (mService != null) {
 	        try {
