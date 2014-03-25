@@ -18,7 +18,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.walle.sensory.server.WalleSensoryServer.connectionState;
+import com.walle.sensory.server.WalleSensoryServer.ConnectionState;
 import com.walle.sensory.server.WalleSensoryServerClient;
 
 
@@ -48,7 +48,7 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	private TextView mAccelometerZField;
 	
 	private static int mConnectionStateColor;
-	private static connectionState mConnectionState;
+	private static ConnectionState mConnectionState;
 
 
     private PowerManager mPowerManager;
@@ -105,7 +105,7 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 		super.onCreate(savedInstanceState);
     	Log.d(LOGTAG, "onCreate()");
     	
-    	mConnectionStateColor = toColor(connectionState.NOT_CONNECTED);
+    	mConnectionStateColor = toColor(ConnectionState.NOT_CONNECTED);
     	
 		setContentView(R.layout.capabilities_main);
 		
@@ -171,6 +171,7 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
     protected void onConnectedService() {
         Toast.makeText(this, R.string.service_connected,
                 Toast.LENGTH_SHORT).show();
+        getConnectionState();
 
     }
 
@@ -209,7 +210,7 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 
 
 	@Override
-	protected void onConnectionState(connectionState aConnectionState) {
+	protected void onConnectionState(ConnectionState aConnectionState) {
 	    Log.d(LOGTAG, "onConnectionState " + aConnectionState.toString());
 		setStatus(aConnectionState);
 	}
@@ -218,7 +219,7 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	//
 	// implementation
 	
-    public void setStatus(connectionState aConnectionState) {
+    public void setStatus(ConnectionState aConnectionState) {
     	Log.d(LOGTAG, "setStatus()");
     	
     	mConnectionState = aConnectionState;
@@ -226,13 +227,16 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
    		mStatusView.invalidate();
    }
 
-   private int toColor(connectionState aConnectionState) {
+   private int toColor(ConnectionState aConnectionState) {
     	Log.d(LOGTAG, "toColor()");
     	int color = Color.GRAY;
     	
     	switch (aConnectionState) {
     		case NOT_CONNECTED:
     			color = Color.GRAY;
+    			break;
+    		case CONNECTING:
+    			color = Color.YELLOW;
     			break;
     		case CONNECTED:
     			color = Color.GREEN;

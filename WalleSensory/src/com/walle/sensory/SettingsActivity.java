@@ -8,7 +8,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.widget.EditText;
 
-import com.walle.sensory.server.WalleSensoryServer.connectionState;
+import com.walle.sensory.server.WalleSensoryServer.ConnectionState;
 import com.walle.sensory.server.WalleSensoryServerClient;
 
 public class SettingsActivity extends WalleSensoryServerClient {
@@ -147,7 +147,7 @@ public class SettingsActivity extends WalleSensoryServerClient {
 
 
 	@Override
-	protected void onConnectionState(connectionState aConnectionState) {
+	protected void onConnectionState(ConnectionState aConnectionState) {
 		// TODO Auto-generated method stub
 		
 	}
