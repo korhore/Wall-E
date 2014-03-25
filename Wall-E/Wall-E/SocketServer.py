@@ -54,7 +54,9 @@ class SocketServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServ
         self.running=True
  
         while self.running:
-            self.data = self.socket.recv(1024).strip()
+            # TODO
+            # buffer size can't be to big, but this needs multiline buffering, id sensation and is net reached
+            self.data = self.socket.recv(16).strip()
             print "SocketServer Client " + str(self.address) + " wrote " + self.data
             if len(self.data) == 0:
                 self.running = False
