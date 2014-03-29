@@ -11,11 +11,11 @@ def enum(**enums):
 
 class Sensation(object):
     
-    SensationTypes = enum(Drive='D', Stop='S', Who='W', Hear='H', Azimuth='A', Picture='P', Capability='C', Unknown='U')
+    SensationTypes = enum(Drive='D', Stop='S', Who='W', Hear='H', Azimuth='A', Acceleration='G', Picture='P', Capability='C', Unknown='U')
     Direction = enum(Input='I', Output='O')
    
     def __init__(self, string="",
-                 number=-1, sensationType = 'U', leftPower = 0.0, rightPower = 0.0, hear = 0.0, azimuth = 0.0, imageSize=0,
+                 number=-1, sensationType = 'U', leftPower = 0.0, rightPower = 0.0, hear = 0.0, azimuth = 0.0, accelerationX=0.0, accelerationY=0.0, accelerationZ=0.0, imageSize=0,
                  direction='I', capabilities = []):
         self.time = time.time()
         self.number = number
@@ -24,6 +24,9 @@ class Sensation(object):
         self.rightPower = rightPower
         self.hear = hear
         self.azimuth = azimuth
+        self.accelerationX = accelerationX
+        self.accelerationY = accelerationY
+        self.accelerationZ = accelerationZ
         self.imageSize = imageSize
         self.direction = direction
         self.capabilities = capabilities
@@ -58,6 +61,13 @@ class Sensation(object):
                     if len(params) >= 3:
                         self.azimuth = float(params[2])
                         print str(self.azimuth)
+                elif sensationType == Sensation.SensationTypes.Acceleration:
+                    self.sensationType = Sensation.SensationTypes.Acceleration
+                    if len(params) >= 5:
+                        self.accelerationX = float(params[2])
+                        self.accelerationY = float(params[3])
+                        self.accelerationZ = float(params[4])
+                        print str(self.accelerationX) + ' ' + str(self.accelerationY) + ' ' + str(self.accelerationZ)
                 elif sensationType == Sensation.SensationTypes.Picture:
                     self.sensationType = Sensation.SensationTypes.Picture
                     if len(params) >= 3:
@@ -87,6 +97,8 @@ class Sensation(object):
             return str(self.number) + ' ' + self.sensationType + ' ' + str(self.hear)
         elif self.sensationType == Sensation.SensationTypes.Azimuth:
             return str(self.number) + ' ' + self.sensationType + ' ' + str(self.azimuth)
+        elif self.sensationType == Sensation.SensationTypes.Acceleration:
+            return str(self.number) + ' ' + self.sensationType + ' ' + str(self.accelerationX)+ ' ' + str(self.accelerationY) + ' ' + str(self.accelerationZ)
         elif self.sensationType == Sensation.SensationTypes.Picture:
             return str(self.number) + ' ' + self.sensationType + ' ' + str(self.imageSize)
         elif self.sensationType == Sensation.SensationTypes.Capability:
@@ -131,6 +143,19 @@ class Sensation(object):
         self.azimuth = azimuth
     def getAzimuth(self):
         return self.azimuth
+
+    def setAccelerationX(self, accelerationX):
+        self.accelerationX = accelerationX
+    def getAccelerationX(self):
+        return self.accelerationX
+    def setAccelerationY(self, accelerationY):
+        self.accelerationY = accelerationY
+    def getAccelerationY(self):
+        return self.accelerationY
+    def setAccelerationZ(self, accelerationZ):
+        self.accelerationZ = accelerationZ
+    def getAccelerationZ(self):
+        return self.accelerationZ
 
     def setImageSize(self, imageSize):
         self.imageSize = imageSize
@@ -185,6 +210,10 @@ if __name__ == '__main__':
     print "A str " + str(c)
     print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
 
-    c=Sensation(number=102, sensationType = 'C', direction = 'O', capabilities = [Sensation.SensationTypes.Drive, Sensation.SensationTypes.Hear, Sensation.SensationTypes.Azimuth])
+    c=Sensation(number=102, sensationType = 'G', accelerationX = -0.85, accelerationY = 2.33, accelerationZ = -0.085)
+    print "G str " + str(c)
+    print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
+
+    c=Sensation(number=103, sensationType = 'C', direction = 'O', capabilities = [Sensation.SensationTypes.Drive, Sensation.SensationTypes.Hear, Sensation.SensationTypes.Azimuth])
     print "C str " + str(c)
     print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
