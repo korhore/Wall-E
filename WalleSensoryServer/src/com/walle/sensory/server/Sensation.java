@@ -13,6 +13,9 @@ public class Sensation extends Object {
 	private float m_rightPower;
 	private float m_hear;
 	private float m_azimuth;
+	private float m_accelerationX;
+	private float m_accelerationY;
+	private float m_accelerationZ;
 	private int m_imageSize;
 	private Direction m_direction;
 	private SensationType[] m_capabilities;
@@ -27,6 +30,7 @@ public class Sensation extends Object {
     	Who("W"),
     	Hear("H"),
     	Azimuth("A"),
+    	Acceleration("G"),
     	Picture("P"),
     	Capability("C"),
     	Unknown("U") 	;
@@ -94,6 +98,9 @@ public class Sensation extends Object {
 	    	m_rightPower = 0.0f;
 	    	m_hear = 0.0f;
 	    	m_azimuth = 0.0f;
+	    	m_accelerationX = 0.0f;
+	    	m_accelerationY = 0.0f;
+	    	m_accelerationZ = 0.0f;
 	    	m_imageSize = 0;
 	    	m_direction = Direction.Input;
 	    	m_capabilities = null;
@@ -114,6 +121,9 @@ public class Sensation extends Object {
 	    	m_rightPower = a_rightPower;
 	    	m_hear = 0.0f;
 	    	m_azimuth = 0.0f;
+	    	m_accelerationX = 0.0f;
+	    	m_accelerationY = 0.0f;
+	    	m_accelerationZ = 0.0f;
 	    	m_imageSize = 0;
 	    	m_direction = Direction.Input;
 	    	m_capabilities = null;
@@ -132,6 +142,9 @@ public class Sensation extends Object {
 	    	m_sensationType = a_sensationType;
 	    	m_leftPower = 0.0f;
 	    	m_rightPower = 0.0f;
+	    	m_accelerationX = 0.0f;
+	    	m_accelerationY = 0.0f;
+	    	m_accelerationZ = 0.0f;
 	    	if (a_sensationType == SensationType.Hear) {
 		    	m_hear = a_value;
 		    	m_azimuth = 0.0f;
@@ -148,6 +161,30 @@ public class Sensation extends Object {
 	}
 
     public Sensation(	int a_number,
+			SensationType a_sensationType,
+			float a_accelerationX,
+			float a_accelerationY,
+			float a_accelerationZ ) {
+
+	if (a_sensationType == SensationType.Acceleration) {
+    	m_number = a_number;
+    	m_sensationType = a_sensationType;
+    	m_leftPower = 0.0f;
+    	m_rightPower = 0.0f;
+    	m_hear = 0.0f;
+    	m_azimuth = 0.0f;
+    	m_accelerationX = a_accelerationX;
+    	m_accelerationY = a_accelerationY;
+    	m_accelerationZ = a_accelerationZ;
+    	m_imageSize = 0;
+    	m_direction = Direction.Input;
+    	m_capabilities = null;
+	} else {
+		throw new IllegalArgumentException();
+	}
+}
+
+    public Sensation(	int a_number,
 				SensationType a_sensationType,
 				Direction a_direction,
 				SensationType[] a_capabilities) {
@@ -159,6 +196,9 @@ public class Sensation extends Object {
 	    	m_rightPower = 0.0f;
 	    	m_hear = 0.0f;
 		    m_azimuth = 0.0f;
+	    	m_accelerationX = 0.0f;
+	    	m_accelerationY = 0.0f;
+	    	m_accelerationZ = 0.0f;
 	    	m_imageSize = 0;
 	    	m_direction = a_direction;
 	    	m_capabilities = a_capabilities;
@@ -175,6 +215,9 @@ public class Sensation extends Object {
 		m_rightPower = 0.0f;
 		m_hear = 0.0f;
 		m_azimuth = 0.0f;
+    	m_accelerationX = 0.0f;
+    	m_accelerationY = 0.0f;
+    	m_accelerationZ = 0.0f;
 		m_imageSize = 0;
 		m_direction = Direction.Input;
 		m_capabilities = null;
@@ -206,6 +249,19 @@ public class Sensation extends Object {
            			if (params.length >= 3) {
            				m_azimuth = Float.parseFloat(params[2]);
            				System.out.println(m_azimuth);
+           			}
+           		} else if (m_sensationType == SensationType.Acceleration) {
+           			if (params.length >= 3) {
+           				m_accelerationX = Float.parseFloat(params[2]);
+           				System.out.println(m_accelerationX);
+           			}
+           			if (params.length >= 4) {
+           				m_accelerationY = Float.parseFloat(params[3]);
+           				System.out.println(m_accelerationY);
+           			}
+           			if (params.length >= 5) {
+           				m_accelerationZ = Float.parseFloat(params[4]);
+           				System.out.println(m_accelerationZ);
            			}
            		} else if (m_sensationType == SensationType.Picture) {
            			if (params.length >= 3) {
@@ -239,6 +295,8 @@ public class Sensation extends Object {
             return Integer.toString(this.m_number) + ' ' + this.m_sensationType.getText() + ' ' + Float.toString(this.m_hear);
         else if (this.m_sensationType == SensationType.Azimuth)
             return Integer.toString(this.m_number) + ' ' + this.m_sensationType.getText() + ' ' + Float.toString(this.m_azimuth);
+        else if (this.m_sensationType == SensationType.Acceleration)
+            return Integer.toString(this.m_number) + ' ' + this.m_sensationType.getText() + ' ' + Float.toString(this.m_accelerationX) + ' ' + Float.toString(this.m_accelerationY) + ' ' + Float.toString(this.m_accelerationZ);
         else if (this.m_sensationType == SensationType.Picture)
             return Integer.toString(this.m_number) + ' ' + this.m_sensationType.getText() + ' ' + Integer.toString(this.m_imageSize);
         else if (this.m_sensationType == SensationType.Capability)
@@ -298,6 +356,30 @@ public class Sensation extends Object {
 
 	public void setAzimuth(float a_azimuth) {
 		this.m_azimuth = a_azimuth;
+	}
+
+	public float getAccelerationX() {
+		return m_accelerationX;
+	}
+
+	public void setAccelerationX(float a_accelerationX) {
+		this.m_accelerationX = a_accelerationX;
+	}
+
+	public float getAccelerationY() {
+		return m_accelerationY;
+	}
+
+	public void setAccelerationY(float a_accelerationY) {
+		this.m_accelerationY = a_accelerationY;
+	}
+
+	public float getAccelerationZ() {
+		return m_accelerationZ;
+	}
+
+	public void setAccelerationZ(float a_accelerationZ) {
+		this.m_accelerationZ = a_accelerationZ;
 	}
 
 	public int getImageSize() {

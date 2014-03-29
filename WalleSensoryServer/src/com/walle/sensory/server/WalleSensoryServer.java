@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import android.app.Service;
 import android.content.Context;
@@ -16,7 +17,6 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -24,7 +24,6 @@ import android.os.Messenger;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.util.Log;
-import java.util.concurrent.LinkedBlockingQueue;
 
 public class WalleSensoryServer extends Service implements SensorEventListener {
 	final String LOGTAG="WalleSensoryServer";
@@ -279,43 +278,6 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 		}
 	}
     
-    /*
-	
-	private void createConnection() {
-		Log.d(LOGTAG, "createConnection");
-
-		//mSocketError = false;
-
-	    try {
-	    	  mConnectionState = ConnectionState.CONNECTED;
-
-	    	  Log.d(LOGTAG, "createConnection Socket " + mSettingsModel.getHost() + ' ' + String.valueOf(mSettingsModel.getPort()));
-	    	  mSocket = new Socket(mSettingsModel.getHost(), mSettingsModel.getPort());
-	    	  mDataInputStream = new DataInputStream(mSocket.getInputStream());
-	    	  mDataOutputStream = new DataOutputStream(mSocket.getOutputStream());
-	    	  *
-	    	  mDataOutputStream.writeUTF(textOut.getText().toString());
-	    	  textIn.setText(mDataInputStream.readUTF());*
-	    } catch (SocketException e) {
-	    	mConnectionState = ConnectionState.SOCKET_ERROR;
-	    	//mSocketError = true;
-	    	Log.e(LOGTAG, "createConnection SocketException", e);
-	    } catch (UnknownHostException e) {
-	    	  // TODO Auto-generated catch block
-	    	//mSocketError = true;
-	    	mConnectionState = ConnectionState.NO_HOST;
-	    	Log.e(LOGTAG, "createConnection UnknownHostException", e);
-	    } catch (IOException e) {
-				// TODO Auto-generated catch block
-	    	//mSocketError = true;
-	    	mConnectionState = ConnectionState.IO_ERROR;
-	    	Log.e(LOGTAG, "createConnection IOException", e);
-		}
-	    
-	    report(mConnectionState);
-		
-	}
-*/
     @Override
 	public void onDestroy() {
 		super.onDestroy();
@@ -374,7 +336,7 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 	    	}
 	    	if (mCalibrated) {
 		    	if (report) {
-		    		reportAccelerometer(mGravity);
+		    		report(mGravity);
 		    	}
 	    	}
 	    	else {
@@ -422,7 +384,7 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 		    	  mAzimuth = orientation[0]; // orientation contains: azimuth, pitch and roll
 		    	  // update azimuth field
 		    	  if (Math.abs(mAzimuth - mPreviousAzimuth) > kAzimuthAccuracyFactor) {
-		    		  reportAzimuth(mAzimuth);
+		    		  report(mAzimuth);
 		    	  }
 		      }
 		    }
@@ -474,7 +436,7 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 		
 	}
 	
-	private void reportAzimuth(float aAzimuth) {
+	private void report(float aAzimuth) {
 		if (Math.abs(aAzimuth - mPreviousAzimuth) > kAzimuthAccuracyFactor) {
 		    boolean reported=false;
 		    
@@ -491,14 +453,14 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 		    }
 		    
 		    if (reported) {
-			    Log.d(LOGTAG, "reportAzimuth " + String.valueOf(aAzimuth) );
+			    Log.d(LOGTAG, "report Azimuth " + String.valueOf(aAzimuth) );
 		    }
 		}
 
 		if (mConnectionState.ordinal() >= ConnectionState.CONNECTED.ordinal()) {
-		    Log.d(LOGTAG, "reportAzimuth connected" + mConnectionState.toString() );
+		    Log.d(LOGTAG, "report Azimuth connected" + mConnectionState.toString() );
 			if (Math.abs(aAzimuth - mPreviousAzimuth) > kAzimuthAccuracyFactor) {
-			    Log.d(LOGTAG, "reportAzimuth " + String.valueOf(aAzimuth) );
+			    Log.d(LOGTAG, "report " + String.valueOf(aAzimuth) );
 				Sensation sensation = new Sensation(mNumber, Sensation.SensationType.Azimuth, aAzimuth);
 				mSensationOutQueue.add(sensation);
 				mNumber++;
@@ -510,7 +472,7 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 		}
 	}
 	
-	private void reportAccelerometer(float[] aGravity) {
+	private void report(float[] aGravity) {
 		
 		float[] reporGrafity = new float[3];
     	for (int i=0; i<3; i++)
@@ -662,83 +624,6 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 			}
 		}
 	}
-	
-	private class CreateConnectionTask extends AsyncTask<Void, Integer, ConnectionState> {
-		 @Override
-	     protected ConnectionState doInBackground(Void... voids) {
-	 		Log.d(LOGTAG, "CreateConnectionTask.doInBackground");
-
-	 		ConnectionState aConnectionState = ConnectionState.CONNECTING;
-	 		publishProgress(aConnectionState.ordinal());
-
-		    try {
-
-		    	  Log.d(LOGTAG, "CreateConnectionTask.doInBackground " + mSettingsModel.getHost() + ' ' + String.valueOf(mSettingsModel.getPort()));
-		    	  mSocket = new Socket(mSettingsModel.getHost(), mSettingsModel.getPort());
-		    	  mDataInputStream = new DataInputStream(mSocket.getInputStream());
-		    	  mDataOutputStream = new DataOutputStream(mSocket.getOutputStream());
-		    	  aConnectionState = ConnectionState.CONNECTED;
-		    } catch (SocketException e) {
-		    	aConnectionState = ConnectionState.SOCKET_ERROR;
-		    	Log.e(LOGTAG, "CreateConnectionTask.doInBackground SocketException", e);
-		    } catch (UnknownHostException e) {
-		    	aConnectionState = ConnectionState.NO_HOST;
-		    	Log.e(LOGTAG, "CreateConnectionTask.doInBackground  UnknownHostException", e);
-		    } catch (IOException e) {
-		    	aConnectionState = ConnectionState.IO_ERROR;
-		    	Log.e(LOGTAG, "createConnection IOException", e);
-			}
-		    
-		    return aConnectionState;
-	     }
-
-
-	     protected void onProgressUpdate(Integer... states) {
-	    	 report(toConnectionState(states[0]));
-	     }
-
-		 @Override
-	     protected void onPostExecute(ConnectionState aConnectionState) {
-	    	 report(aConnectionState);
-	     }
-	 }
-	 
-	 private class WriteToConnectionTask extends AsyncTask<String, Integer, ConnectionState> {
-		 @Override
-	     protected ConnectionState doInBackground(String... params) {
-	 		Log.d(LOGTAG, "WriteToConnectionTask.doInBackground");
- 			ConnectionState aConnectionState = ConnectionState.WRITING;
-	 		if ((mSocket.isConnected()) && (!mSocket.isOutputShutdown())) {
-	 			publishProgress(aConnectionState.ordinal());
-	 			
-	 			try {
-	 				for (int i = 0; i < params.length; i++) {
-						byte[] bytes = params[i].getBytes("UTF-8");
-			    	    Log.d(LOGTAG, "reportAzimuth write " + Integer.toString(bytes.length));
-						mDataOutputStream.write(bytes);
-					    mDataOutputStream.flush();
-	 				}
-					aConnectionState = ConnectionState.CONNECTED;
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-	    	        Log.e(LOGTAG, "WriteToConnectionTask.doInBackground write", e);
-	    	        aConnectionState = ConnectionState.IO_ERROR;
-				}
-	 		}
-	 		
-	 		return aConnectionState;
-	     }
-
-	     protected void onProgressUpdate(Integer... states) {
-	    	 report(toConnectionState(states[0]));
-	     }
-	     
-		 @Override
-	     protected void onPostExecute(ConnectionState aConnectionState) {
-	    	 report(aConnectionState);
-	     }
-
-	 }
 	
 
 }
