@@ -6,31 +6,34 @@ import android.util.Log;
 
 public class Sensation extends Object {
 	final String LOGTAG="Sensation";
+
+	public final static int SENSATION_LENGTH_SIZE = 2;
+	public final static int SENSATION_MAX_LENGTH = 99;
+	public final static String SENSATION_LENGTH_FORMAT = "%2d";
 	
 	private int m_number;
 	private SensationType m_sensationType;
 	private float m_leftPower;
 	private float m_rightPower;
-	private float m_hear;
+	private float m_hearDirection;
 	private float m_azimuth;
 	private float m_accelerationX;
 	private float m_accelerationY;
 	private float m_accelerationZ;
+	private float m_observationDirection;
+	private float m_observationDistance;
 	private int m_imageSize;
 	private Direction m_direction;
 	private SensationType[] m_capabilities;
 
-//    enum SensationTypes {Drive='D', Stop='S', Who='W', Hear='H', Azimuth='A', Picture='P', Capability='C', Unknown='U'};
-//    enum SensationTypes {Drive, Stop, Who, Hear, Azimuth, Picture, Capability, Unknown};
-//    public enum  Direction {Input("I"), Output=("O")};
-//    public enum  Direction {Input, Output};
     public enum SensationType {
     	Drive("D"),
     	Stop("S"),
     	Who("W"),
-    	Hear("H"),
+    	HearDirection("H"),
     	Azimuth("A"),
     	Acceleration("G"),
+    	Observation("O"),
     	Picture("P"),
     	Capability("C"),
     	Unknown("U") 	;
@@ -96,11 +99,13 @@ public class Sensation extends Object {
 	    	m_sensationType = a_sensationType;
 	    	m_leftPower = 0.0f;
 	    	m_rightPower = 0.0f;
-	    	m_hear = 0.0f;
+	    	m_hearDirection = 0.0f;
 	    	m_azimuth = 0.0f;
 	    	m_accelerationX = 0.0f;
 	    	m_accelerationY = 0.0f;
 	    	m_accelerationZ = 0.0f;
+	    	m_observationDirection = 0.0f;
+	    	m_observationDistance = -1.0f;
 	    	m_imageSize = 0;
 	    	m_direction = Direction.Input;
 	    	m_capabilities = null;
@@ -111,22 +116,36 @@ public class Sensation extends Object {
     
     public Sensation(	int a_number,
     			SensationType a_sensationType,
-    			float a_leftPower,
-    			float a_rightPower ) {
+    			float a_value_1,
+    			float a_value_2 ) {
 
-    	if (a_sensationType == SensationType.Drive) {
+    	if ((a_sensationType == SensationType.Drive) || (a_sensationType == SensationType.Observation)){
 	    	m_number = a_number;
 	    	m_sensationType = a_sensationType;
-	    	m_leftPower = a_leftPower;
-	    	m_rightPower = a_rightPower;
-	    	m_hear = 0.0f;
+	    	m_leftPower = a_value_1;
+	    	m_rightPower = a_value_2;
+	    	m_hearDirection = 0.0f;
 	    	m_azimuth = 0.0f;
 	    	m_accelerationX = 0.0f;
 	    	m_accelerationY = 0.0f;
 	    	m_accelerationZ = 0.0f;
+	    	m_observationDirection = 0.0f;
+	    	m_observationDistance = -1.0f;
 	    	m_imageSize = 0;
 	    	m_direction = Direction.Input;
 	    	m_capabilities = null;
+	    	if (a_sensationType == SensationType.Drive) {
+		    	m_leftPower = a_value_1;
+		    	m_rightPower = a_value_2;
+		    	m_observationDirection = 0.0f;
+		    	m_observationDistance = -1.0f;
+	    	}
+	    	else {
+		    	m_leftPower = 0.0f;
+		    	m_rightPower = 0.0f;
+		    	m_observationDirection = a_value_1;
+		    	m_observationDistance = a_value_2;
+	    	}
     	} else {
     		throw new IllegalArgumentException();
     	}
@@ -136,7 +155,7 @@ public class Sensation extends Object {
 				SensationType a_sensationType,
 				float a_value) {
 
-		if ((a_sensationType == SensationType.Hear) ||
+		if ((a_sensationType == SensationType.HearDirection) ||
 			(a_sensationType == SensationType.Azimuth)){
 	    	m_number = a_number;
 	    	m_sensationType = a_sensationType;
@@ -145,16 +164,18 @@ public class Sensation extends Object {
 	    	m_accelerationX = 0.0f;
 	    	m_accelerationY = 0.0f;
 	    	m_accelerationZ = 0.0f;
-	    	if (a_sensationType == SensationType.Hear) {
-		    	m_hear = a_value;
-		    	m_azimuth = 0.0f;
-	    	} else {
-		    	m_hear = 0.0f;
-		    	m_azimuth = a_value;
-	    	}
+	    	m_observationDirection = 0.0f;
+	    	m_observationDistance = -1.0f;
 	    	m_imageSize = 0;
 	    	m_direction = Direction.Input;
 	    	m_capabilities = null;
+	    	if (a_sensationType == SensationType.HearDirection) {
+		    	m_hearDirection = a_value;
+		    	m_azimuth = 0.0f;
+	    	} else {
+		    	m_hearDirection = 0.0f;
+		    	m_azimuth = a_value;
+	    	}
 		} else {
 			throw new IllegalArgumentException();
 		}
@@ -171,11 +192,13 @@ public class Sensation extends Object {
     	m_sensationType = a_sensationType;
     	m_leftPower = 0.0f;
     	m_rightPower = 0.0f;
-    	m_hear = 0.0f;
+    	m_hearDirection = 0.0f;
     	m_azimuth = 0.0f;
     	m_accelerationX = a_accelerationX;
     	m_accelerationY = a_accelerationY;
     	m_accelerationZ = a_accelerationZ;
+    	m_observationDirection = 0.0f;
+    	m_observationDistance = -1.0f;
     	m_imageSize = 0;
     	m_direction = Direction.Input;
     	m_capabilities = null;
@@ -194,11 +217,13 @@ public class Sensation extends Object {
 	    	m_sensationType = a_sensationType;
 	    	m_leftPower = 0.0f;
 	    	m_rightPower = 0.0f;
-	    	m_hear = 0.0f;
+	    	m_hearDirection = 0.0f;
 		    m_azimuth = 0.0f;
 	    	m_accelerationX = 0.0f;
 	    	m_accelerationY = 0.0f;
 	    	m_accelerationZ = 0.0f;
+	    	m_observationDirection = 0.0f;
+	    	m_observationDistance = -1.0f;
 	    	m_imageSize = 0;
 	    	m_direction = a_direction;
 	    	m_capabilities = a_capabilities;
@@ -213,11 +238,13 @@ public class Sensation extends Object {
 		m_sensationType = SensationType.Unknown;
 		m_leftPower = 0.0f;
 		m_rightPower = 0.0f;
-		m_hear = 0.0f;
+		m_hearDirection = 0.0f;
 		m_azimuth = 0.0f;
     	m_accelerationX = 0.0f;
     	m_accelerationY = 0.0f;
     	m_accelerationZ = 0.0f;
+    	m_observationDirection = 0.0f;
+    	m_observationDistance = -1.0f;
 		m_imageSize = 0;
 		m_direction = Direction.Input;
 		m_capabilities = null;
@@ -240,10 +267,10 @@ public class Sensation extends Object {
            				m_rightPower = Float.parseFloat(params[3]);
            				System.out.println(m_rightPower);
            			}
-           		} else if (m_sensationType == SensationType.Hear) {
+           		} else if (m_sensationType == SensationType.HearDirection) {
            			if (params.length >= 3) {
-           				m_hear = Float.parseFloat(params[2]);
-           				System.out.println(m_hear);
+           				m_hearDirection = Float.parseFloat(params[2]);
+           				System.out.println(m_hearDirection);
            			}
            		} else if (m_sensationType == SensationType.Azimuth) {
            			if (params.length >= 3) {
@@ -262,6 +289,15 @@ public class Sensation extends Object {
            			if (params.length >= 5) {
            				m_accelerationZ = Float.parseFloat(params[4]);
            				System.out.println(m_accelerationZ);
+           			}
+           		} else if (m_sensationType == SensationType.Observation) {
+           			if (params.length >= 3) {
+           				this.m_observationDirection = Float.parseFloat(params[2]);
+           				System.out.println(this.m_observationDirection);
+           			}
+           			if (params.length >= 4) {
+           				this.m_observationDistance = Float.parseFloat(params[3]);
+           				System.out.println(this.m_observationDistance);
            			}
            		} else if (m_sensationType == SensationType.Picture) {
            			if (params.length >= 3) {
@@ -291,12 +327,14 @@ public class Sensation extends Object {
     public String toString() {
         if (this.m_sensationType == SensationType.Drive)
             return Integer.toString(this.m_number) + ' ' + this.m_sensationType.getText() + ' ' +  ' ' + Float.toString(this.m_leftPower) +  ' ' + Float.toString(this.m_rightPower);
-        else if (this.m_sensationType == SensationType.Hear)
-            return Integer.toString(this.m_number) + ' ' + this.m_sensationType.getText() + ' ' + Float.toString(this.m_hear);
+        else if (this.m_sensationType == SensationType.HearDirection)
+            return Integer.toString(this.m_number) + ' ' + this.m_sensationType.getText() + ' ' + Float.toString(this.m_hearDirection);
         else if (this.m_sensationType == SensationType.Azimuth)
             return Integer.toString(this.m_number) + ' ' + this.m_sensationType.getText() + ' ' + Float.toString(this.m_azimuth);
         else if (this.m_sensationType == SensationType.Acceleration)
             return Integer.toString(this.m_number) + ' ' + this.m_sensationType.getText() + ' ' + Float.toString(this.m_accelerationX) + ' ' + Float.toString(this.m_accelerationY) + ' ' + Float.toString(this.m_accelerationZ);
+        else if (this.m_sensationType == SensationType.Observation)
+            return Integer.toString(this.m_number) + ' ' + this.m_sensationType.getText() + ' ' + Float.toString(this.m_observationDirection) + ' ' + Float.toString(this.m_observationDistance);
         else if (this.m_sensationType == SensationType.Picture)
             return Integer.toString(this.m_number) + ' ' + this.m_sensationType.getText() + ' ' + Integer.toString(this.m_imageSize);
         else if (this.m_sensationType == SensationType.Capability)
@@ -342,12 +380,12 @@ public class Sensation extends Object {
 		this.m_rightPower = a_rightPower;
 	}
 
-	public float getHear() {
-		return m_hear;	
+	public float getHearDirection() {
+		return m_hearDirection;	
 	}
 
-	public void setHear(float a_hear) {
-		this.m_hear = a_hear;
+	public void setHearDirection(float a_hearDirection) {
+		this.m_hearDirection = a_hearDirection;
 	}
 
 	public float getAzimuth() {
@@ -381,6 +419,23 @@ public class Sensation extends Object {
 	public void setAccelerationZ(float a_accelerationZ) {
 		this.m_accelerationZ = a_accelerationZ;
 	}
+
+	public float getObservationDirection() {
+		return m_observationDirection;	
+	}
+
+	public void setObservationDirection(float a_observationDirection) {
+		this.m_observationDirection = a_observationDirection;
+	}
+	
+	public float getObservationDistance() {
+		return m_observationDistance;	
+	}
+
+	public void setObservationDistance(float a_observationDistance) {
+		this.m_observationDistance = a_observationDistance;
+	}
+
 
 	public int getImageSize() {
 		return m_imageSize;
@@ -426,17 +481,17 @@ def enum(**enums):
 
 class Sensation(object):
     
-    SensationTypes = enum(Drive='D', Stop='S', Who='W', Hear='H', Azimuth='A', Picture='P', Capability='C', Unknown='U')
+    SensationTypes = enum(Drive='D', Stop='S', Who='W', HearDirection='H', Azimuth='A', Picture='P', Capability='C', Unknown='U')
     Direction = enum(Input='I', Output='O')
    
     def __init__(self, string="",
-                 number=-1, sensation = 'U', leftPower = 0.0, rightPower = 0.0, hear = 0.0, azimuth = 0.0, imageSize=0,
+                 number=-1, sensation = 'U', leftPower = 0.0, rightPower = 0.0, hearDirection = 0.0, azimuth = 0.0, imageSize=0,
                  direction='I', capabilities = []):
         self.number = number
         self.sensation = sensation
         self.leftPower = leftPower
         self.rightPower = rightPower
-        self.hear = hear
+        self.hearDirection = hearDirection
         self.azimuth = azimuth
         self.imageSize = imageSize
         self.direction = direction
@@ -462,11 +517,11 @@ class Sensation(object):
                     if len(params) >= 4:
                         self.rightPower = float(params[3])
                         print str(self.rightPower)
-                elif sensation == Sensation.SensationTypes.Hear:
-                    self.sensation = Sensation.SensationTypes.Hear
+                elif sensation == Sensation.SensationTypes.HearDirection:
+                    self.sensation = Sensation.SensationTypes.HearDirection
                     if len(params) >= 3:
-                        self.hear = float(params[2])
-                        print str(self.hear)
+                        self.hearDirection = float(params[2])
+                        print str(self.hearDirection)
                 elif sensation == Sensation.SensationTypes.Azimuth:
                     self.sensation = Sensation.SensationTypes.Azimuth
                     if len(params) >= 3:
@@ -497,8 +552,8 @@ class Sensation(object):
     def __str__(self):
         if self.sensation == Sensation.SensationTypes.Drive:
             return str(self.number) + ' ' + self.sensation + ' ' + str(self.leftPower) +  ' ' + str(self.rightPower)
-        elif self.sensation == Sensation.SensationTypes.Hear:
-            return str(self.number) + ' ' + self.sensation + ' ' + str(self.hear)
+        elif self.sensation == Sensation.SensationTypes.HearDirection:
+            return str(self.number) + ' ' + self.sensation + ' ' + str(self.hearDirection)
         elif self.sensation == Sensation.SensationTypes.Azimuth:
             return str(self.number) + ' ' + self.sensation + ' ' + str(self.azimuth)
         elif self.sensation == Sensation.SensationTypes.Picture:
@@ -532,10 +587,10 @@ class Sensation(object):
     def getRightPower(self):
         return self.rightPower
     
-    def setHear(self, hear):
-        self.hear = hear
-    def getHear(self):
-        return self.hear
+    def setHearDirection(self, hearDirection):
+        self.hearDirection = hearDirection
+    def getHearDirection(self):
+        return self.hearDirection
 
     def setAzimuth(self, azimuth):
         self.azimuth = azimuth
@@ -587,7 +642,7 @@ if __name__ == '__main__':
     print "D str " + str(c)
     print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
     
-    c=Sensation(number=100, sensation = 'H', hear = 0.85)
+    c=Sensation(number=100, sensation = 'H', hearDirection = 0.85)
     print "A str " + str(c)
     print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
 
@@ -595,7 +650,7 @@ if __name__ == '__main__':
     print "A str " + str(c)
     print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
 
-    c=Sensation(number=102, sensation = 'C', direction = 'O', capabilities = [Sensation.SensationTypes.Drive, Sensation.SensationTypes.Hear, Sensation.SensationTypes.Azimuth])
+    c=Sensation(number=102, sensation = 'C', direction = 'O', capabilities = [Sensation.SensationTypes.Drive, Sensation.SensationTypes.HearDirection, Sensation.SensationTypes.Azimuth])
     print "C str " + str(c)
     print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
 

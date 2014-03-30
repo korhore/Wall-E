@@ -51,9 +51,9 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
     private boolean mCalibrated = false;
     private boolean mCalibrationStarted = false;
 
-    private float[] mGravity;
-    private float[] mPreviousGravity;
-    private float[] mCalibrateGravity;
+    private float[] mAcceleration;
+    private float[] mPreviousAcceleration;
+    private float[] mCalibrateAcceleration;
 	private float[] mGeomagnetic;
 	private float[] mGyro;
 	private long mTimestamp = 0l;
@@ -130,6 +130,11 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
      * Set port
      */
     public static final int MSG_SET_PORT = MSG_GET_PORT+1;
+    
+    /**
+     * send/receive Sensation
+     */
+    public static final int MSG_SENSATION = MSG_SET_PORT+1;
      
     /**
      * Handler of incoming messages from clients.
@@ -224,16 +229,16 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
         //Log.d(TAG, "onCreate: creating mSensorManager");
         
         //mContext = getBaseContext();
-	    mGravity = new float[3];
-	    mPreviousGravity = new float[3];
-	    mCalibrateGravity = new float[3];
+	    mAcceleration = new float[3];
+	    mPreviousAcceleration = new float[3];
+	    mCalibrateAcceleration = new float[3];
 		mGeomagnetic = new float[3];
 		mGyro = new float[3];
 		mDeltaRotationVector = new float[4];
     	for (int i=0; i<3; i++)
     	{
-    		mGravity[i] = 0.0f;
-    		mPreviousGravity[i] = 0.0f;
+    		mAcceleration[i] = 0.0f;
+    		mPreviousAcceleration[i] = 0.0f;
     		mGeomagnetic[i] = 0.0f;
     		mGyro[i] = 0.0f;
     		mDeltaRotationVector[i] = 0.0f;
@@ -328,15 +333,15 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 	    	boolean report=false;
 	    	for (int i=0; i<3; i++)
 	    	{
-	    		mGravity[i] = ((1.0f - kFilteringFactor ) * mGravity[i]) + (kFilteringFactor  * event.values[i]);
-	    		if (Math.abs(mGravity[i] - mPreviousGravity[i]) > kAccelometerAccuracyFactor) {
+	    		mAcceleration[i] = ((1.0f - kFilteringFactor ) * mAcceleration[i]) + (kFilteringFactor  * event.values[i]);
+	    		if (Math.abs(mAcceleration[i] - mPreviousAcceleration[i]) > kAccelometerAccuracyFactor) {
 	    			report=true;
 	    		}
 
 	    	}
 	    	if (mCalibrated) {
 		    	if (report) {
-		    		report(mGravity);
+		    		report(mAcceleration);
 		    	}
 	    	}
 	    	else {
@@ -344,8 +349,8 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 	    	        Log.d(LOGTAG, "onSensorChanged Calibrated " + String.valueOf(event.timestamp));
 	    	    	for (int i=0; i<3; i++)
 	    	    	{
-	    	    		mCalibrateGravity[i] = mGravity[i];
-		    	        Log.d(LOGTAG, "onSensorChanged Calibrated " + String.valueOf(mCalibrateGravity[i]));
+	    	    		mCalibrateAcceleration[i] = mAcceleration[i];
+		    	        Log.d(LOGTAG, "onSensorChanged Calibrated " + String.valueOf(mCalibrateAcceleration[i]));
 	    	    	}
 	    	    	mCalibrated = true;
 	    			
@@ -374,10 +379,10 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 		}
 	    
 	    if (is_orientation) {
-		      if (mGravity != null && mGeomagnetic != null) {
+		      if (mAcceleration != null && mGeomagnetic != null) {
 		      float R[] = new float[9];
 		      float I[] = new float[9];
-		      boolean success = SensorManager.getRotationMatrix(R, I, mGravity, mGeomagnetic);
+		      boolean success = SensorManager.getRotationMatrix(R, I, mAcceleration, mGeomagnetic);
 		      if (success) {
 		    	  float orientation[] = new float[3];
 		    	  SensorManager.getOrientation(R, orientation);
@@ -472,13 +477,13 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 		}
 	}
 	
-	private void report(float[] aGravity) {
+	private void report(float[] aAcceleration) {
 		
 		float[] reporGrafity = new float[3];
     	for (int i=0; i<3; i++)
     	{
-    		mPreviousGravity[i] = aGravity[i];
-    		reporGrafity[i] = aGravity[i] - mCalibrateGravity[i];
+    		mPreviousAcceleration[i] = aAcceleration[i];
+    		reporGrafity[i] = aAcceleration[i] - mCalibrateAcceleration[i];
     	}
 
 	    for (int i=mClients.size()-1; i>=0; i--) {
@@ -491,6 +496,17 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 	        	mClients.remove(i);
 	        }
 	    }
+	    
+		if (mConnectionState.ordinal() >= ConnectionState.CONNECTED.ordinal()) {
+		    Log.d(LOGTAG, "report Acceleration connected" + mConnectionState.toString() );
+			Log.d(LOGTAG, "report " + String.valueOf(reporGrafity[0]) + ' ' + String.valueOf(reporGrafity[1]) + ' ' + String.valueOf(reporGrafity[2]));
+			Sensation sensation = new Sensation(mNumber, Sensation.SensationType.Acceleration, reporGrafity[0], reporGrafity[1], reporGrafity[2]);
+			mSensationOutQueue.add(sensation);
+			mNumber++;
+		} else {
+			report(mConnectionState);
+        	createConnection();
+		}
 	}
 	
 	private void report(ConnectionState aConnectionState) {
@@ -517,6 +533,23 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 		final ConnectionState[] v = ConnectionState.values();
 		return i >= 0 && i < v.length ? v[i] : ConnectionState.NOT_CONNECTED;
 	}
+	
+	private void report(Sensation aSensation) {
+    	Log.d(LOGTAG, "report " + aSensation.toString());
+		for (int i=mClients.size()-1; i>=0; i--) {
+			try {
+				Log.d(LOGTAG, "report mClients.get(" + String.valueOf(i) + ").send");
+		    	mClients.get(i).send(Message.obtain(null, MSG_SENSATION, 0, 0, aSensation.toString()));
+		    } catch (RemoteException e) {
+			            // The client is dead.  Remove it from the list;
+			            // we are going through the list from back to front
+			            // so this is safe to do inside the loop.
+		       	Log.e(LOGTAG, e.toString());
+		       	mClients.remove(i);
+		    }
+	    }
+	}
+
 	
 	/////////////////////////////////////////////
 	//
@@ -562,6 +595,15 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 		}
 	}
 	
+	/**
+	 * Reads Sensations from the queue and writes them to the socket.
+	 * Uses very simple and efficient protocol <message length> <messages>
+	 * Our goal is use as less resources as possible (we block if no Sensations to write)
+	 * but transfer Sensations as fast as possible to the client (socket buffer is just Sensation length,
+	 * every time, even it variates) so our robot gets its sensations fast and can perform many sensations
+	 * processing in same event/manouver. 
+	 *
+	 */
 	private class SocketWriter extends Thread {
 		public void run () {
 	    	Log.d(LOGTAG, "SocketWriter.run");
@@ -572,8 +614,11 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 				 	Log.d(LOGTAG, "SocketWriter.run take " + sensation.toString());
 					report(ConnectionState.WRITING);
 				    try {
-						byte[] bytes = (sensation.toString() + '|').getBytes("UTF-8");
+						byte[] bytes = (sensation.toString()).getBytes("UTF-8");
+						byte[] length_of_bytes = (String.format(Sensation.SENSATION_LENGTH_FORMAT,bytes.length)).getBytes("UTF-8");
 			    	    Log.d(LOGTAG, "SocketWriter.run write " + Integer.toString(bytes.length));
+						mDataOutputStream.write(length_of_bytes);
+					    mDataOutputStream.flush();
 						mDataOutputStream.write(bytes);
 					    mDataOutputStream.flush();
 					    report(ConnectionState.CONNECTED);
@@ -589,36 +634,61 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 		}
 	}
 
+	/**
+	 * Reads Sensations from the socket and reports them to the client.
+	 * Uses same very simple and efficient protocol <message length> <messages>
+	 * than socket writer.
+	 *
+	 */
+
 	private class SocketReader extends Thread {
 		public void run () {
 		 	Log.d(LOGTAG, "SocketReader.run");
-			byte[] b = new byte[256];
+			byte[] bl = new byte[Sensation.SENSATION_LENGTH_SIZE];
+			byte[] b = new byte[Sensation.SENSATION_MAX_LENGTH];
 			int l;
 			while ( (mConnectionState.ordinal() >= ConnectionState.CONNECTED.ordinal()) &&
 					(mSocket.isConnected()) && (!mSocket.isInputShutdown())) {
 				try  {
-					while ((l = mDataInputStream.read(b)) > 0) {
-		    	        Log.d(LOGTAG, "SocketReader.run  read l " + Integer.toString(l) + ' ' +  b);
-						report(ConnectionState.READING);					
+					// TODO don't work yet
+					while ((l = mDataInputStream.read(bl)) > 0) {
+		    	        Log.d(LOGTAG, "SocketReader.run read l " + Integer.toString(l) + ' ' +  bl.toString());
+						report(ConnectionState.READING);
+						
+		                boolean length_ok = true;
+	                	int sensation_length=0;
+	                	try {
+		                	sensation_length = Integer.parseInt(bl.toString());
+		                } catch (Exception e) {
+		                	Log.e(LOGTAG, "SocketServer Client protocol read error, no valid length, resyncing", e);
+		                    length_ok = false;
+		                }
+	                	if (length_ok) {
+	    					try {
+	    						l = mDataInputStream.read(b);
+		    		    	    Log.d(LOGTAG, "SocketReader.run read l " + Integer.toString(l) + ' ' +  b);
+		    		    	    if (sensation_length == l) {
+		    		    	    	Sensation s = new Sensation(b.toString());
+		    		    	    	report(s);
+		    		    	    } else {
+			    		    	    Log.d(LOGTAG, "SocketReader.run read SEnsation l " + Integer.toString(l) + " ignoring, resyncing" +  Integer.toString(sensation_length) + " does not match with " );
+		    		    	    }
+	    					}
+	    					catch (Exception e) {
+			                	Log.e(LOGTAG, "SocketServer Client Sensation read error resyncing", e);
+	    					}
+	                	}
 					}
+				}
+    			catch (Exception e) {
+    				Log.e(LOGTAG, "SocketServer Client Sensation lenght read error, closing socket", e);
 	    	        Log.d(LOGTAG, "SocketReader.run mSocket.close()");
-	    	        try {
-						mSocket.close();
-					} catch (IOException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-	    	        Log.e(LOGTAG, "SocketReader.run read", e);
-	    	        mConnectionState = ConnectionState.IO_ERROR;
 	    	        report(ConnectionState.IO_ERROR);
 	    	        try {
 						mSocket.close();
-						return;
 					} catch (IOException e1) {
 						// TODO Auto-generated catch block
-						e1.printStackTrace();
+	    				Log.e(LOGTAG, "SocketServer closing socket", e1);
 					}
 				}
 			}

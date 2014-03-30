@@ -40,7 +40,8 @@ public abstract class WalleSensoryServerClient extends Activity{
     abstract protected void onAccelerometer(float[] aAccelerometer);
     abstract protected void onHost(String aHost);
     abstract protected void onPort(int aPort);
-    
+    abstract protected void onSensation(Sensation aSensation);
+   
     abstract protected void onConnectedService();
     abstract protected void onDisconnectedService();
 
