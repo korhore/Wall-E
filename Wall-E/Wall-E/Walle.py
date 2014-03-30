@@ -70,6 +70,7 @@ class WalleServer(Thread):
         
         self.number = 0
         self.in_axon = Axon()       # global queue for senses to put sensations
+        self.out_axon = Axon()      # global queue for senses to put sensations
 
         # starting build in capabilities/senses
         # we have capability to move
@@ -82,7 +83,7 @@ class WalleServer(Thread):
         
         # starting tcp server as nerve pathway to external senses to connect
         # we have azimuth sense (our own position detection)
-        self.tcpServer=TCPServer(self.in_axon, (HOST,PORT))
+        self.tcpServer=TCPServer(out_axon = self.in_axon, in_axon = self.out_axon, server_address=(HOST,PORT))
 
         
         self.running=False
@@ -104,6 +105,8 @@ class WalleServer(Thread):
             sensation=self.in_axon.get()
             print "WalleServer: got sensation from queue " + str(sensation)
             self.process(sensation)
+            # as a test, echo everything to external device
+            self.out_axon.put(sensation)
 
         self.tcpServer.stop()
         self.hearing.stop()
@@ -114,78 +117,80 @@ class WalleServer(Thread):
             
     def process(self, sensation):
         print "WalleServer.process: " + time.ctime(sensation.getTime()) + ' ' + str(sensation)
-        if sensation.getSensationType() == Sensation.SensationTypes.Drive:
-            print "Walleserver.process Sensation.SensationTypes.Drive"
-        elif sensation.getSensationType() == Sensation.SensationTypes.Stop:
-            print "Walleserver.process Sensation.SensationTypes.Stop"
+        if sensation.getSensationType() == Sensation.SensationType.Drive:
+            print "Walleserver.process Sensation.SensationType.Drive"
+        elif sensation.getSensationType() == Sensation.SensationType.Stop:
+            print "Walleserver.process Sensation.SensationType.Stop"
             self.stop()
-        elif sensation.getSensationType() == Sensation.SensationTypes.Who:
-            print "Walleserver.process Sensation.SensationTypes.Who"
-        elif sensation.getSensationType() == Sensation.SensationTypes.Hear:
-            print "Walleserver.process Sensation.SensationTypes.Hear"
-            self.hearing_angle = sensation.getHear()
+        elif sensation.getSensationType() == Sensation.SensationType.Who:
+            print "Walleserver.process Sensation.SensationType.Who"
+        elif sensation.getSensationType() == Sensation.SensationType.HearDirection:
+            print "Walleserver.process Sensation.SensationType.HearDirection"
+            self.hearing_angle = sensation.getHearDirection()
             self.turn_angle = self.add_radian(original_radian=self.azimuth, added_radian=self.hearing_angle) # object in this angle
-            self.turning_to_object = True
             self.turn()
-        elif sensation.getSensationType() == Sensation.SensationTypes.Azimuth:
-            print "Walleserver.process Sensation.SensationTypes.Azimuth"
+        elif sensation.getSensationType() == Sensation.SensationType.Azimuth:
+            print "Walleserver.process Sensation.SensationType.Azimuth"
             self.azimuth = sensation.getAzimuth()
             self.turn()
-        elif sensation.getSensationType() == Sensation.SensationTypes.Picture:
-            print "Walleserver.process Sensation.SensationTypes.Picture"
-        elif sensation.getSensationType() == Sensation.SensationTypes.Capability:
-            print "Walleserver.process Sensation.SensationTypes.Capability"
-        elif sensation.getSensationType() == Sensation.SensationTypes.Unknown:
-            print "Walleserver.process Sensation.SensationTypes.Unknown"
+        elif sensation.getSensationType() == Sensation.SensationType.Picture:
+            print "Walleserver.process Sensation.SensationType.Picture"
+        elif sensation.getSensationType() == Sensation.SensationType.Capability:
+            print "Walleserver.process Sensation.SensationType.Capability"
+        elif sensation.getSensationType() == Sensation.SensationType.Unknown:
+            print "Walleserver.process Sensation.SensationType.Unknown"
   
     def turn(self):
+        # calculate new power to turn or continue turning
+        self.leftPower, self.rightPower = self.getPower()
         if self.turning_to_object:
             print "WalleServer.turn: self.hearing_angle " + str(self.hearing_angle) + " self.azimuth " + str(self.azimuth)
             print "WalleServer.turn: turn to " + str(self.turn_angle)
-            self.leftPower, self.rightPower = self.getPower()
             if math.fabs(self.leftPower) < Romeo.MINPOWER or math.fabs(self.rightPower) < Romeo.MINPOWER:
                 self.leftPower = 0.0           # set motors in opposite power to turn in place
                 self.rightPower = 0.0
                 print "WalleServer.turn: Turn is ended"
                 self.turning_to_object = False
-             
-            print "WalleServer.turn: powers to " + str(self.leftPower) + ' ' + str(self.rightPower)
-            
-            # adjust hearing
-            # if turn, dont hear sound, because we are giving moving sound
-            # we wanr hear only sounds from other objects
-            
-            self.hearing.setOn(not self.turning_to_object)
-            
-            self.number = self.number + 1
-            #test=Sensation.SensationTypes.Drive
-            sensation, picture = self.romeo.processSensation(Sensation(number=self.number, sensationType='D', leftPower = self.leftPower, rightPower = self.rightPower))
-            self.leftPower = sensation.getLeftPower()           # set motors in opposite power to turn in place
-            self.rightPower = sensation.getRightPower()
-            if self.turning_to_object:
-                #self.turnTimer = Timer(10.0, self.stopTurn)
-                self.turnTimer.start()
-            else:
                 self.turnTimer.cancel()
+            else:
+                print "WalleServer.turn: powers adjusted to " + str(self.leftPower) + ' ' + str(self.rightPower)
+                self.number = self.number + 1
+                sensation, picture = self.romeo.processSensation(Sensation(number=self.number, sensationType='D', leftPower = self.leftPower, rightPower = self.rightPower))
+                self.leftPower = sensation.getLeftPower()           # set motors in opposite power to turn in place
+                self.rightPower = sensation.getRightPower()           # set motors in opposite power to turn in place
+                
+        else:
+            if math.fabs(self.leftPower) >= Romeo.MINPOWER or math.fabs(self.rightPower) >= Romeo.MINPOWER:
+                self.turning_to_object = True
+                # adjust hearing
+                # if turn, don't hear sound, because we are giving moving sound
+                # we want hear only sounds from other objects
+                self.hearing.setOn(not self.turning_to_object)
+                print "WalleServer.turn: powers initial to " + str(self.leftPower) + ' ' + str(self.rightPower)
+                self.number = self.number + 1
+                sensation, picture = self.romeo.processSensation(Sensation(number=self.number, sensationType='D', leftPower = self.leftPower, rightPower = self.rightPower))
+                self.leftPower = sensation.getLeftPower()           # set motors in opposite power to turn in place
+                self.rightPower = sensation.getRightPower()           # set motors in opposite power to turn in place
+                self.turnTimer = Timer(10.0, self.stopTurn)
+                self.turnTimer.start()
 
-            print "WalleServer.turn: powers set to " + str(self.leftPower) + ' ' + str(self.rightPower)
             
     def stopTurn(self):
         self.turning_to_object = False
         self.leftPower = 0.0           # set motors in opposite power to turn in place
         self.rightPower = 0.0
-        print "WalleServer.turn: Turn is cancelled"
+        print "WalleServer.stopTurn: Turn is cancelled"
             
-        print "WalleServer.turn: powers to " + str(self.leftPower) + ' ' + str(self.rightPower)
+        print "WalleServer.stopTurn: powers to " + str(self.leftPower) + ' ' + str(self.rightPower)
             
         self.hearing.setOn(not self.turning_to_object)
             
         self.number = self.number + 1
-        #test=Sensation.SensationTypes.Drive
+        #test=Sensation.SensationType.Drive
         sensation, picture = self.romeo.processSensation(Sensation(number=self.number, sensationType='D', leftPower = self.leftPower, rightPower = self.rightPower))
         self.leftPower = sensation.getLeftPower()           # set motors in opposite power to turn in place
         self.rightPower = sensation.getRightPower()
-        print "WalleServer.turn: powers set to " + str(self.leftPower) + ' ' + str(self.rightPower)
+        print "WalleServer.stopTurn: powers set to " + str(self.leftPower) + ' ' + str(self.rightPower)
 
           
 

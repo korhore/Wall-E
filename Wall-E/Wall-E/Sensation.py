@@ -11,22 +11,32 @@ def enum(**enums):
 
 class Sensation(object):
     
-    SensationTypes = enum(Drive='D', Stop='S', Who='W', Hear='H', Azimuth='A', Acceleration='G', Picture='P', Capability='C', Unknown='U')
+    LENGTH_SIZE=2   # Sensation as string can only be 99 character long
+    
+    SensationType = enum(Drive='D', Stop='S', Who='W', HearDirection='H', Azimuth='A', Acceleration='G', Observation='O', Picture='P', Capability='C', Unknown='U')
     Direction = enum(Input='I', Output='O')
-   
+       
     def __init__(self, string="",
-                 number=-1, sensationType = 'U', leftPower = 0.0, rightPower = 0.0, hear = 0.0, azimuth = 0.0, accelerationX=0.0, accelerationY=0.0, accelerationZ=0.0, imageSize=0,
-                 direction='I', capabilities = []):
+                 number=-1, sensationType = 'U',
+                 leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
+                 azimuth = 0.0,                                             # Walle direction relative to magnetic north pole
+                 accelerationX=0.0, accelerationY=0.0, accelerationZ=0.0,   # acceleration of walle, coordinates relative to walle
+                 hearDirection = 0.0,                                       # sound direction heard by Walle, relative to Walle
+                 obselvationDirection= 0.0,obselvationDistance=-1.0,        # Walle's observation of something, relative to Walle
+                 imageSize=0,                                               # when image is transferred we use size of it technically in transmission
+                 direction='I', capabilities = []):                         # capabilitis of sensorys, direction what way sensation go
         self.time = time.time()
         self.number = number
         self.sensationType = sensationType
         self.leftPower = leftPower
         self.rightPower = rightPower
-        self.hear = hear
+        self.hearDirection = hearDirection
         self.azimuth = azimuth
         self.accelerationX = accelerationX
         self.accelerationY = accelerationY
         self.accelerationZ = accelerationZ
+        self.obselvationDirection = obselvationDirection
+        self.obselvationDistance = obselvationDistance
         self.imageSize = imageSize
         self.direction = direction
         self.capabilities = capabilities
@@ -37,44 +47,50 @@ class Sensation(object):
             try:
                 self.number = int(params[0])
             except (ValueError):
-                self.sensationType = Sensation.SensationTypes.Unknown
+                self.sensationType = Sensation.SensationType.Unknown
                 return
                 
             print self.number
             if len(params) >= 2:
                 sensationType = params[1]
-                if sensationType == Sensation.SensationTypes.Drive:
-                    self.sensationType = Sensation.SensationTypes.Drive
+                if sensationType == Sensation.SensationType.Drive:
+                    self.sensationType = Sensation.SensationType.Drive
                     if len(params) >= 3:
                         self.leftPower = float(params[2])
                         print str(self.leftPower)
                     if len(params) >= 4:
                         self.rightPower = float(params[3])
                         print str(self.rightPower)
-                elif sensationType == Sensation.SensationTypes.Hear:
-                    self.sensationType = Sensation.SensationTypes.Hear
+                elif sensationType == Sensation.SensationType.HearDirection:
+                    self.sensationType = Sensation.SensationType.HearDirection
                     if len(params) >= 3:
-                        self.hear = float(params[2])
-                        print str(self.hear)
-                elif sensationType == Sensation.SensationTypes.Azimuth:
-                    self.sensationType = Sensation.SensationTypes.Azimuth
+                        self.hearDirection = float(params[2])
+                        print str(self.hearDirection)
+                elif sensationType == Sensation.SensationType.Azimuth:
+                    self.sensationType = Sensation.SensationType.Azimuth
                     if len(params) >= 3:
                         self.azimuth = float(params[2])
                         print str(self.azimuth)
-                elif sensationType == Sensation.SensationTypes.Acceleration:
-                    self.sensationType = Sensation.SensationTypes.Acceleration
+                elif sensationType == Sensation.SensationType.Acceleration:
+                    self.sensationType = Sensation.SensationType.Acceleration
                     if len(params) >= 5:
                         self.accelerationX = float(params[2])
                         self.accelerationY = float(params[3])
                         self.accelerationZ = float(params[4])
                         print str(self.accelerationX) + ' ' + str(self.accelerationY) + ' ' + str(self.accelerationZ)
-                elif sensationType == Sensation.SensationTypes.Picture:
-                    self.sensationType = Sensation.SensationTypes.Picture
+                elif sensationType == Sensation.SensationType.Observation:
+                    self.sensationType = Sensation.SensationType.Observation
+                    if len(params) >= 4:
+                        self.obselvationDirection = float(params[2])
+                        self.obselvationDistance = float(params[3])
+                        print str(self.obselvationDirection) + ' ' + str(self.obselvationDistance)
+                elif sensationType == Sensation.SensationType.Picture:
+                    self.sensationType = Sensation.SensationType.Picture
                     if len(params) >= 3:
                         self.imageSize = int(params[2])
                         print str(self.imageSize)
-                elif sensationType == Sensation.SensationTypes.Capability:
-                    self.sensationType = Sensation.SensationTypes.Capability
+                elif sensationType == Sensation.SensationType.Capability:
+                    self.sensationType = Sensation.SensationType.Capability
                     if len(params) >= 3:
                         self.direction = params[2]
                         print str(self.direction)
@@ -82,30 +98,32 @@ class Sensation(object):
                         self.capabilities = params[3:]
                         print str(self.capabilities)
     
-                elif sensationType == Sensation.SensationTypes.Stop:
-                    self.sensationType = Sensation.SensationTypes.Stop
-                elif sensationType == Sensation.SensationTypes.Who:
-                    self.sensationType = Sensation.SensationTypes.Who
+                elif sensationType == Sensation.SensationType.Stop:
+                    self.sensationType = Sensation.SensationType.Stop
+                elif sensationType == Sensation.SensationType.Who:
+                    self.sensationType = Sensation.SensationType.Who
                 else:
-                    self.sensationType = Sensation.SensationTypes.Unknown
+                    self.sensationType = Sensation.SensationType.Unknown
                 print self.sensationType
             
     def __str__(self):
-        if self.sensationType == Sensation.SensationTypes.Drive:
+        if self.sensationType == Sensation.SensationType.Drive:
             return str(self.number) + ' ' + self.sensationType + ' ' + str(self.leftPower) +  ' ' + str(self.rightPower)
-        elif self.sensationType == Sensation.SensationTypes.Hear:
-            return str(self.number) + ' ' + self.sensationType + ' ' + str(self.hear)
-        elif self.sensationType == Sensation.SensationTypes.Azimuth:
+        elif self.sensationType == Sensation.SensationType.HearDirection:
+            return str(self.number) + ' ' + self.sensationType + ' ' + str(self.hearDirection)
+        elif self.sensationType == Sensation.SensationType.Azimuth:
             return str(self.number) + ' ' + self.sensationType + ' ' + str(self.azimuth)
-        elif self.sensationType == Sensation.SensationTypes.Acceleration:
+        elif self.sensationType == Sensation.SensationType.Acceleration:
             return str(self.number) + ' ' + self.sensationType + ' ' + str(self.accelerationX)+ ' ' + str(self.accelerationY) + ' ' + str(self.accelerationZ)
-        elif self.sensationType == Sensation.SensationTypes.Picture:
+        elif self.sensationType == Sensation.SensationType.Observation:
+            return str(self.number) + ' ' + self.sensationType + ' ' + str(self.obselvationDirection)+ ' ' + str(self.obselvationDistance)
+        elif self.sensationType == Sensation.SensationType.Picture:
             return str(self.number) + ' ' + self.sensationType + ' ' + str(self.imageSize)
-        elif self.sensationType == Sensation.SensationTypes.Capability:
+        elif self.sensationType == Sensation.SensationType.Capability:
             return str(self.number) + ' ' + self.sensationType + ' ' + str(self.direction) +  ' ' + self.getStrCapabilities()
-        elif self.sensationType == Sensation.SensationTypes.Stop:
+        elif self.sensationType == Sensation.SensationType.Stop:
             return str(self.number) + ' ' + self.sensationType
-        elif self.sensationType == Sensation.SensationTypes.Who:
+        elif self.sensationType == Sensation.SensationType.Who:
             return str(self.number) + ' ' + self.sensationType
         else:
             return str(self.number) + ' ' + self.sensationType
@@ -134,10 +152,10 @@ class Sensation(object):
     def getRightPower(self):
         return self.rightPower
     
-    def setHear(self, hear):
-        self.hear = hear
-    def getHear(self):
-        return self.hear
+    def setHearDirection(self, hearDirection):
+        self.hearDirection = hearDirection
+    def getHearDirection(self):
+        return self.hearDirection
 
     def setAzimuth(self, azimuth):
         self.azimuth = azimuth
@@ -156,6 +174,15 @@ class Sensation(object):
         self.accelerationZ = accelerationZ
     def getAccelerationZ(self):
         return self.accelerationZ
+
+    def setObservationDirection(self, observationDirection):
+        self.observationDirection = observationDirection
+    def getObservationDirection(self):
+        return self.observationDirection
+    def setObservationDistance(self, observationDistance):
+        self.observationDistance = observationDistance
+    def getObservationDistance(self):
+        return self.observationDistance
 
     def setImageSize(self, imageSize):
         self.imageSize = imageSize
@@ -191,6 +218,8 @@ if __name__ == '__main__':
     print "str " + str(c)
     c=Sensation(string="15 A 0.75")
     print "str " + str(c)
+    c=Sensation(string="15 O 0.75 3.75")
+    print "str " + str(c)
     c=Sensation(string="16 P 12300")
     print "str " + str(c)
     c=Sensation(string="17 oho")
@@ -202,7 +231,7 @@ if __name__ == '__main__':
     print "D str " + str(c)
     print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
     
-    c=Sensation(number=100, sensationType = 'H', hear = 0.85)
+    c=Sensation(number=100, sensationType = 'H', hearDirection = 0.85)
     print "A str " + str(c)
     print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
 
@@ -214,6 +243,9 @@ if __name__ == '__main__':
     print "G str " + str(c)
     print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
 
-    c=Sensation(number=103, sensationType = 'C', direction = 'O', capabilities = [Sensation.SensationTypes.Drive, Sensation.SensationTypes.Hear, Sensation.SensationTypes.Azimuth])
+    c=Sensation(number=103, sensationType = Sensation.SensationType.Observation, obselvationDirection= -0.85, obselvationDistance=-3.75)
+    print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
+
+    c=Sensation(number=104, sensationType = 'C', direction = 'O', capabilities = [Sensation.SensationType.Drive, Sensation.SensationType.HearDirection, Sensation.SensationType.Azimuth])
     print "C str " + str(c)
     print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))

@@ -6,6 +6,7 @@ Updated on Mar 8, 2014
 '''
 
 from SocketServer import SocketServer
+from SocketClient import SocketClient
 from Axon import Axon
 from Sensation import Sensation
 from Romeo import Romeo
@@ -45,10 +46,11 @@ class TCPServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer)
     #allow_reuse_address = False
 
 
-    def __init__(self, queue, server_address):
+    def __init__(self, out_axon, in_axon, server_address):
         Thread.__init__(self)
         self.name = "TCPServer"
-        self.queue = queue
+        self.out_axon = out_axon
+        self.in_axon = in_axon
         self.server_address = server_address
         print self.name + ": creating socket"
         self.socket = socket.socket(self.address_family,
@@ -56,6 +58,7 @@ class TCPServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer)
         self.socket.setblocking(1)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socketServers = []
+        self.socketClients = []
         self.running=False
        
     def run(self):
@@ -77,8 +80,11 @@ class TCPServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer)
             print self.name + ": waiting self.socket.accept()"
             socket, address = self.socket.accept()
             print self.name + ": self.socket.accept() " + str(address)
-            socketServer = self.createSocketServer(queue=self.queue, socket=socket, address=address)
+            socketServer = self.createSocketServer(queue=self.out_axon, socket=socket, address=address)
             socketServer.start()
+            time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
+            socketClient = self.createSocketClient(queue=self.in_axon, socket=socket, address=address)
+            socketClient.start()
             time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
 
     def stop(self):
@@ -101,3 +107,17 @@ class TCPServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer)
             socketServer = SocketServer(queue, socket, address)
             self.socketServers.append(socketServer)
         return socketServer
+
+    def createSocketClient(self, queue, socket, address):
+        socketClient =  None
+        for socketClientCandidate in self.socketClients:
+            if not socketClientCandidate.running:
+                socketClient = socketClientCandidate
+                print self.name + ":createSocketClient: found SocketClient not running"
+                socketClient.__init__(queue, socket, address)
+                break
+        if not socketClient:
+            print self.name + ":createSocketClient: creating new SocketClient"
+            socketClient = SocketClient(queue, socket, address)
+            self.socketClients.append(socketClient)
+        return socketClient

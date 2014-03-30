@@ -327,7 +327,7 @@ class Hearing(Thread):
             if Hearing.debug:
                 print "Hearing report " + str(self.angle)
             self.number = self.number+1
-            self.report_queue.put(Sensation(number=self.number, sensationType=Sensation.SensationTypes.Hear, hear = self.angle))
+            self.report_queue.put(Sensation(number=self.number, sensationType=Sensation.SensationType.HearDirection, hearDirection = self.angle))
             self.reported_angle = self.angle
  
       

@@ -5,7 +5,6 @@ Updated on Mar 8, 2014
 @author: reijo
 '''
 
-import SocketServer
 from Axon import Axon
 from Sensation import Sensation
 from Romeo import Romeo
@@ -25,18 +24,9 @@ import lockfile
 
 
 
-HOST = '0.0.0.0'
-PORT = 2000
-PICTURE_PORT = 2001
-
-DAEMON=False
-START=False
-STOP=False
-MANUAL=False
 
 
 class SocketServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
-
 
     def __init__(self, queue, socket, address):
         Thread.__init__(self)
@@ -54,18 +44,28 @@ class SocketServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServ
         self.running=True
  
         while self.running:
-            # TODO
-            # buffer size can't be to big, but this needs multiline buffering, id sensation and is net reached
-            self.data = self.socket.recv(16).strip()
-            print "SocketServer Client " + str(self.address) + " wrote " + self.data
+            print "SocketServer waiting size of next Sensation from" + str(self.address)
+            self.data = self.socket.recv(Sensation.LENGTH_SIZE).strip()
             if len(self.data) == 0:
                 self.running = False
             else:
-                strings=self.data.split('|')
-                for string in strings:
-                    print "WalleSocketServer string " + string
-                    if len(string) > 0:
-                        sensation=Sensation(string)
+                print "SocketServer Client " + str(self.address) + " wrote " + self.data
+                length_ok = True
+                try:
+                    sensation_length = int(self.data)
+                except:
+                    print "SocketServer Client protocol error, no valid length resyncing" + str(self.address) + " wrote " + self.data
+                    length_ok = False
+                    
+                if length_ok:
+                    print "SocketServer of next Sensation from" + str(self.address)
+                    self.data = self.socket.recv(sensation_length).strip()
+
+                    if len(self.data) == 0:
+                        self.running = False
+                    else:
+                        print "WalleSocketServer string " + self.data
+                        sensation=Sensation(self.data)
                         print sensation
                         self.queue.put(sensation)
 

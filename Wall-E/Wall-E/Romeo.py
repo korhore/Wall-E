@@ -237,37 +237,37 @@ class Romeo:
 
     def processSensation(self, sensation):         #Move forward
         print "Romeo.processSensation number " + str(sensation.getNumber()) + " Sensation " + sensation.getSensationType() + " getLeftPower " + str(sensation.getLeftPower()) + " getRightPower " + str(sensation.getRightPower())
-        if sensation.getSensationType() == Sensation.SensationTypes.Drive:
-            print "Romeo.processSensation Sensation.SensationTypes.Drive"
+        if sensation.getSensationType() == Sensation.SensationType.Drive:
+            print "Romeo.processSensation Sensation.SensationType.Drive"
             #TODO Can't get anything else to worh, than motor is 1.0
             # other way it is stopped
             if sensation.getLeftPower() >= Romeo.MINPOWER:
-                print "Romeo.processSensation Sensation.SensationTypes.Drive 1 Left " + str(sensation.getLeftPower())
+                print "Romeo.processSensation Sensation.SensationType.Drive 1 Left " + str(sensation.getLeftPower())
                 self.e2.write(sensation.getLeftPower())
                 self.m2.write(1)
-                print "Romeo.processSensation Sensation.SensationTypes.Drive self.e2.read() " + str(self.e2.read())
+                print "Romeo.processSensation Sensation.SensationType.Drive self.e2.read() " + str(self.e2.read())
             elif sensation.getLeftPower() <= -Romeo.MINPOWER:
-                print "Romeo.processSensation Sensation.SensationTypes.Drive -1 Left " + str(-sensation.getLeftPower())
+                print "Romeo.processSensation Sensation.SensationType.Drive -1 Left " + str(-sensation.getLeftPower())
                 self.e2.write(-sensation.getLeftPower())
                 self.m2.write(-1)
-                print "Romeo.processSensation Sensation.SensationTypes.Drive self.e2.read() " + str(self.e2.read())
+                print "Romeo.processSensation Sensation.SensationType.Drive self.e2.read() " + str(self.e2.read())
             else:
-                print "Romeo.processSensation Sensation.SensationTypes.Drive Left 0 0"
+                print "Romeo.processSensation Sensation.SensationType.Drive Left 0 0"
                 self.e2.write(0.0)
                 self.m2.write(0)
 
             if sensation.getRightPower() >= Romeo.MINPOWER:
-                print "Romeo.processSensation Sensation.SensationTypes.Drive 1 Right " + str(sensation.getRightPower())
+                print "Romeo.processSensation Sensation.SensationType.Drive 1 Right " + str(sensation.getRightPower())
                 self.e1.write(sensation.getRightPower())
                 self.m1.write(1)
-                print "Romeo.processSensation Sensation.SensationTypes.Drive self.e2.read() " + str(self.e2.read())
+                print "Romeo.processSensation Sensation.SensationType.Drive self.e2.read() " + str(self.e2.read())
             elif sensation.getRightPower() <= -Romeo.MINPOWER:
-                print "Romeo.processSensation Sensation.SensationTypes.Drive -1 Right " + str(-sensation.getRightPower())
+                print "Romeo.processSensation Sensation.SensationType.Drive -1 Right " + str(-sensation.getRightPower())
                 self.e1.write(-sensation.getRightPower())
                 self.m1.write(-1)
-                print "Romeo.processSensation Sensation.SensationTypes.Drive self.e2.read() " + str(self.e2.read())
+                print "Romeo.processSensation Sensation.SensationType.Drive self.e2.read() " + str(self.e2.read())
             else:
-                print "Romeo.processSensation Sensation.SensationTypes.Drive 0 Right 0"
+                print "Romeo.processSensation Sensation.SensationType.Drive 0 Right 0"
                 self.e1.write(0.0)
                 self.m1.write(0)
 
