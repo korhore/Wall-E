@@ -18,6 +18,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.walle.sensory.server.Sensation;
 import com.walle.sensory.server.WalleSensoryServer.ConnectionState;
 import com.walle.sensory.server.WalleSensoryServerClient;
 
@@ -215,6 +216,12 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 		setStatus(aConnectionState);
 	}
 	
+	@Override
+	protected void onSensation(Sensation aSensation) {
+	    Log.d(LOGTAG, " onSensation " + aSensation.toString());
+	}
+
+	
 	/////////////////////////////////////////////////////////////
 	//
 	// implementation
@@ -261,13 +268,5 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
     	
     	return color;
    }
-
-
-
-
-		 
-
-	
-
 
 }

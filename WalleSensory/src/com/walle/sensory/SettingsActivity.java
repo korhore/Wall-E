@@ -6,9 +6,11 @@ import java.util.regex.Pattern;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.widget.EditText;
 
 import com.walle.sensory.server.WalleSensoryServer.ConnectionState;
+import com.walle.sensory.server.Sensation;
 import com.walle.sensory.server.WalleSensoryServerClient;
 
 public class SettingsActivity extends WalleSensoryServerClient {
@@ -152,9 +154,9 @@ public class SettingsActivity extends WalleSensoryServerClient {
 		
 	}
 		 
-		 
-		  
-	
-
+	@Override
+	protected void onSensation(Sensation aSensation) {
+		// TODO Auto-generated method stub
+	}
 
 }
