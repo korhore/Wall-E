@@ -90,5 +90,12 @@
          android:layout_toRightOf="@+id/accelerometer_y_field"
          android:text="0" />
 
+     <ImageView
+         android:id="@+id/walle_image"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_centerVertical="true"
+         android:layout_toLeftOf="@+id/accelerometer_y_field"
+         android:src="@drawable/ic_launcher" />
  
 </RelativeLayout>

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.drawable.ShapeDrawable;
@@ -15,6 +16,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.ImageView.ScaleType;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,6 +53,8 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	
 	private static int mConnectionStateColor;
 	private static ConnectionState mConnectionState;
+	
+	private static ImageView mWalleImage;
 
 
     private PowerManager mPowerManager;
@@ -116,6 +121,8 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	    mAccelometerXField = (TextView)findViewById(R.id.accelerometer_x_field);
 	    mAccelometerYField = (TextView)findViewById(R.id.accelerometer_y_field);
 	    mAccelometerZField = (TextView)findViewById(R.id.accelerometer_z_field);
+	    
+	    mWalleImage = (ImageView)findViewById(R.id.walle_image);
 	    
 	    mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
 	    mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "CapabilitiesActivity");
@@ -218,7 +225,16 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	
 	@Override
 	protected void onSensation(Sensation aSensation) {
-	    Log.d(LOGTAG, " onSensation " + aSensation.toString());
+	    Log.d(LOGTAG, "onSensation " + aSensation.toString());
+	    
+	    if (aSensation.getSensationType() == Sensation.SensationType.Azimuth) {
+	    	Matrix matrix=new Matrix();
+	    	mWalleImage.setScaleType(ScaleType.MATRIX);   //required
+	    	matrix.postRotate(	(float) Math.toDegrees(-aSensation.getAzimuth()),
+	    						mWalleImage.getDrawable().getBounds().width()/2,
+	    						mWalleImage.getDrawable().getBounds().height()/2);
+	    	mWalleImage.setImageMatrix(matrix);
+	    }
 	}
 
 	
