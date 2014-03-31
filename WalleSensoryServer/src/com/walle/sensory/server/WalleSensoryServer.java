@@ -65,7 +65,6 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 
 	// queues to ftp socket
 	private LinkedBlockingQueue<Sensation> mSensationOutQueue;
-	private LinkedBlockingQueue<Sensation> mSensationInQueue;
 
 	// ftp socket with technical streams
 	private Socket mSocket = null;
@@ -270,7 +269,6 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 		//mCreateConnectionTask = new CreateConnectionTask();
 		
 		mSensationOutQueue = new LinkedBlockingQueue<Sensation>();
-		mSensationInQueue = new LinkedBlockingQueue<Sensation>();
 
 		createConnection();
 
@@ -645,38 +643,49 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 		public void run () {
 		 	Log.d(LOGTAG, "SocketReader.run");
 			byte[] bl = new byte[Sensation.SENSATION_LENGTH_SIZE];
-			byte[] b = new byte[Sensation.SENSATION_MAX_LENGTH];
+			byte[] b;
 			int l;
 			while ( (mConnectionState.ordinal() >= ConnectionState.CONNECTED.ordinal()) &&
 					(mSocket.isConnected()) && (!mSocket.isInputShutdown())) {
 				try  {
-					// TODO don't work yet
-					while ((l = mDataInputStream.read(bl)) > 0) {
-		    	        Log.d(LOGTAG, "SocketReader.run read l " + Integer.toString(l) + ' ' +  bl.toString());
-						report(ConnectionState.READING);
+					while ((l = mDataInputStream.read(bl)) == Sensation.SENSATION_LENGTH_SIZE) {
+		    	        Log.d(LOGTAG, "SocketReader.run read l " + Integer.toString(l) + ' ' +  new String(bl));
+		    			report(ConnectionState.READING);
 						
 		                boolean length_ok = true;
+		                boolean resyncing = false;
 	                	int sensation_length=0;
 	                	try {
-		                	sensation_length = Integer.parseInt(bl.toString());
+		                	sensation_length = Integer.parseInt(new String(bl));
 		                } catch (Exception e) {
 		                	Log.e(LOGTAG, "SocketServer Client protocol read error, no valid length, resyncing", e);
 		                    length_ok = false;
+		                    resyncing = true;
 		                }
 	                	if (length_ok) {
 	    					try {
+	    						b = new byte[sensation_length];
 	    						l = mDataInputStream.read(b);
-		    		    	    Log.d(LOGTAG, "SocketReader.run read l " + Integer.toString(l) + ' ' +  b);
+		    		    	    Log.d(LOGTAG, "SocketReader.run read l " + Integer.toString(l) + ' ' +  new String(b));
 		    		    	    if (sensation_length == l) {
-		    		    	    	Sensation s = new Sensation(b.toString());
+		    		    	    	Sensation s = new Sensation(new String(b));
 		    		    	    	report(s);
 		    		    	    } else {
-			    		    	    Log.d(LOGTAG, "SocketReader.run read SEnsation l " + Integer.toString(l) + " ignoring, resyncing" +  Integer.toString(sensation_length) + " does not match with " );
+			    		    	    Log.d(LOGTAG, "SocketReader.run read Sensation l " + Integer.toString(l) + " ignoring " +  Integer.toString(sensation_length) + " does not match with it, resyncing" );
+				                    resyncing = true;
 		    		    	    }
 	    					}
 	    					catch (Exception e) {
 			                	Log.e(LOGTAG, "SocketServer Client Sensation read error resyncing", e);
+			                    resyncing = true;
 	    					}
+	                	}
+	                	if (resyncing) {
+	                		// Resyncing reading all data, hoping nest sensation is start of next read
+    						b = new byte[Sensation.SENSATION_MAX_LENGTH];
+    						l = mDataInputStream.read(b);
+	    		    	    Log.d(LOGTAG, "SocketReader.run Resyncing read l " + Integer.toString(l) + ' ' +  new String(b));
+	                		
 	                	}
 					}
 				}
@@ -694,6 +703,5 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 			}
 		}
 	}
-	
 
 }

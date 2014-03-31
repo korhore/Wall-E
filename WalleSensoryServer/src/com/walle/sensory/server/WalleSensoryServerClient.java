@@ -91,7 +91,12 @@ public abstract class WalleSensoryServerClient extends Activity{
                 	onPort(msg.arg1);
                 	break;
                	 
-                default:
+                case WalleSensoryServer.MSG_SENSATION:
+	       	        Log.d(LOGTAG, "handleMessage MSG_SENSATION");
+	       	        onSensation(new Sensation((String) msg.obj));
+                	break;
+               	 
+               default:
 	       	        Log.d(LOGTAG, "handleMessage default no handler here");
                     super.handleMessage(msg);
             }

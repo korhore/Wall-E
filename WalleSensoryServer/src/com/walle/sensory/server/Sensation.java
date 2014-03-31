@@ -250,64 +250,62 @@ public class Sensation extends Object {
 		m_capabilities = null;
 
         String params[] = a_string.split(" ");
-        System.out.println(params.toString());
-        Log.d(LOGTAG, params.toString());
         if (params.length >= 1) {
        		m_number = Integer.parseInt(params[0]);
-            System.out.println(m_number);
+       		Log.d(LOGTAG, String.valueOf(m_number));
             
             if (params.length >= 2) {
            		m_sensationType = SensationType.fromString(params[1]);
            		if (m_sensationType == SensationType.Drive) {
            			if (params.length >= 3) {
            				m_leftPower = Float.parseFloat(params[2]);
-           				System.out.println(m_leftPower);
+           				Log.d(LOGTAG, String.valueOf(m_leftPower));
            			}
            			if (params.length >= 4) {
            				m_rightPower = Float.parseFloat(params[3]);
-           				System.out.println(m_rightPower);
+           				Log.d(LOGTAG, String.valueOf(m_rightPower));
            			}
            		} else if (m_sensationType == SensationType.HearDirection) {
            			if (params.length >= 3) {
            				m_hearDirection = Float.parseFloat(params[2]);
-           				System.out.println(m_hearDirection);
+           				Log.d(LOGTAG, String.valueOf(m_hearDirection));
            			}
            		} else if (m_sensationType == SensationType.Azimuth) {
            			if (params.length >= 3) {
            				m_azimuth = Float.parseFloat(params[2]);
-           				System.out.println(m_azimuth);
+           				Log.d(LOGTAG, String.valueOf(m_azimuth));
            			}
            		} else if (m_sensationType == SensationType.Acceleration) {
            			if (params.length >= 3) {
            				m_accelerationX = Float.parseFloat(params[2]);
-           				System.out.println(m_accelerationX);
+           				Log.d(LOGTAG, String.valueOf(m_accelerationX));
            			}
            			if (params.length >= 4) {
            				m_accelerationY = Float.parseFloat(params[3]);
-           				System.out.println(m_accelerationY);
+           				Log.d(LOGTAG, String.valueOf(m_accelerationY));
            			}
            			if (params.length >= 5) {
            				m_accelerationZ = Float.parseFloat(params[4]);
-           				System.out.println(m_accelerationZ);
+           				Log.d(LOGTAG, String.valueOf(m_accelerationZ));
            			}
            		} else if (m_sensationType == SensationType.Observation) {
            			if (params.length >= 3) {
            				this.m_observationDirection = Float.parseFloat(params[2]);
-           				System.out.println(this.m_observationDirection);
+           				Log.d(LOGTAG, String.valueOf(this.m_observationDirection));
            			}
            			if (params.length >= 4) {
            				this.m_observationDistance = Float.parseFloat(params[3]);
-           				System.out.println(this.m_observationDistance);
+           				Log.d(LOGTAG, String.valueOf(this.m_observationDistance));
            			}
            		} else if (m_sensationType == SensationType.Picture) {
            			if (params.length >= 3) {
            				m_imageSize = Integer.parseInt(params[2]);
-           				System.out.println(m_imageSize);
+           				Log.d(LOGTAG, String.valueOf(m_imageSize));
            			}
            		} else if (m_sensationType == SensationType.Capability) {
            			if (params.length >= 3) {
            				m_direction = Direction.fromString(params[2]);
-               			System.out.println(m_direction);
+           				Log.d(LOGTAG, String.valueOf(m_direction));
            			}
            			if (params.length >= 4) {
            				m_capabilities = new SensationType[params.length -3];
