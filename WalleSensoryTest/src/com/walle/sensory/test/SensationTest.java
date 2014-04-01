@@ -1,7 +1,7 @@
 package com.walle.sensory.test;
 
-import com.walle.sensory.Sensation;
-import com.walle.sensory.Sensation.SensationType;
+import com.walle.sensory.server.Sensation;
+import com.walle.sensory.server.Sensation.SensationType;
 
 import junit.framework.TestCase;
 
@@ -43,16 +43,30 @@ public class SensationTest extends TestCase {
 
 		s = new Sensation("15 H -0.75");
 		assertEquals("number should be 15", 15, s.getNumber());
-		assertTrue("SensationType should be Hear", s.getSensationType() == SensationType.Hear);
-		assertEquals("Hear should be -0.75", -0.75f, s.getHear(), 0.0001f);
+		assertTrue("SensationType should be Hear", s.getSensationType() == SensationType.HearDirection);
+		assertEquals("Hear should be -0.75", -0.75f, s.getHearDirection(), 0.0001f);
 
 		s = new Sensation("16 A 0.75");
 		assertEquals("number should be 16", 16, s.getNumber());
 		assertTrue("SensationType should be Azimuth", s.getSensationType() == SensationType.Azimuth);
 		assertEquals("Azimuth should be 0.75", 0.75f, s.getAzimuth(), 0.0001f);
 
-		s = new Sensation("17 P 12300");
+		s = new Sensation("17 G 0.75 1.75 2.75");
 		assertEquals("number should be 17", 17, s.getNumber());
+		assertTrue("SensationType should be Acceleration", s.getSensationType() == SensationType.Acceleration);
+		assertEquals("AccelerationX be 0.75", 0.75f, s.getAccelerationX(), 0.0001f);
+		assertEquals("AccelerationY be 1.75", 1.75f, s.getAccelerationY(), 0.0001f);
+		assertEquals("AccelerationZ be 1.75", 2.75f, s.getAccelerationZ(), 0.0001f);
+
+
+		s = new Sensation("16 O 0.75 5.5");
+		assertEquals("number should be 16", 16, s.getNumber());
+		assertTrue("SensationType should be Observatio", s.getSensationType() == SensationType.Observation);
+		assertEquals("ObservationDirection should be 0.75", 0.75f, s.getObservationDirection(), 0.0001f);
+		assertEquals("ObservationDistance should be 5.5", 5.5f, s.getObservationDistance(), 0.0001f);
+
+		s = new Sensation("18 P 12300");
+		assertEquals("number should be 18", 18, s.getNumber());
 		assertTrue("SensationType should be Picture", s.getSensationType() == SensationType.Picture);
 		assertEquals("ImageSize should be 12300", 12300, s.getImageSize());
 
