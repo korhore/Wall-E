@@ -2,6 +2,8 @@ package com.walle.sensory;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
@@ -104,6 +106,89 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	}
 	
 	private StatusView mStatusView;
+	
+
+	
+
+
+
+	private static class World extends View {
+	    int screenW;
+	    int screenH;
+	    int X;
+	    int Y;
+	    int initialY ;
+	    int evaW;
+	    int evaH;
+	    int angle;
+	    float dY;
+	    float acc;
+	    Bitmap mEva, mWalle;
+	
+	    public World(Context context) {
+	        super(context);
+	        mEva = BitmapFactory.decodeResource(getResources(),R.drawable.eva); //load a mEva image
+	        mWalle = BitmapFactory.decodeResource(getResources(),R.drawable.walle); //load a background
+	        evaW = mEva.getWidth();
+	        evaH = mEva.getHeight();
+	        acc = 0.2f; //acceleration
+	        dY = 0; //vertical speed
+	        initialY = 100; //Initial vertical position.
+	        angle = 0; //Start value for rotation angle.
+	    }
+
+	    public World(Context context, AttributeSet attr) {
+	        super(context, attr);
+	        mEva = BitmapFactory.decodeResource(getResources(),R.drawable.eva); //load a mEva image
+	        mWalle = BitmapFactory.decodeResource(getResources(),R.drawable.walle); //load a background
+	        evaW = mEva.getWidth();
+	        evaH = mEva.getHeight();
+	        acc = 0.2f; //acceleration
+	        dY = 0; //vertical speed
+	        initialY = 100; //Initial vertical position.
+	        angle = 0; //Start value for rotation angle.
+	    }
+	
+	    @Override
+	    public void onSizeChanged (int w, int h, int oldw, int oldh) {
+	        super.onSizeChanged(w, h, oldw, oldh);
+	        screenW = w;
+	        screenH = h;
+	        mWalle = Bitmap.createScaledBitmap(mWalle, w, h, true); //Resize background to fit the screen.
+	        X = (int) (screenW /2) - (evaW / 2) ; //Centre mEva into the centre of the screen.
+	        Y = initialY;
+	    }
+	
+	    @Override
+	    public void onDraw(Canvas canvas) {
+	        super.onDraw(canvas);
+	
+	        //Draw background.
+	        canvas.drawBitmap(mWalle, 0, 0, null);
+	
+	        //Compute roughly mEva speed and location.
+	        Y+= (int) dY; //Increase or decrease vertical position.
+	        if (Y > (screenH - evaH)) {
+	            dY=(-1)*dY; //Reverse speed when bottom hit.
+	        }
+	        dY+= acc; //Increase or decrease speed.
+	
+	        //Increase rotating angle.
+	        if (angle++ >360)
+	            angle =0;
+	
+	        //Draw mEva
+	        canvas.save(); //Save the position of the canvas.
+	        canvas.rotate(angle, X + (evaW / 2), Y + (evaH / 2)); //Rotate the canvas.
+	        canvas.drawBitmap(mEva, X, Y, null); //Draw the mEva on the rotated canvas.
+	        canvas.restore(); //Rotate the canvas back so that it looks like mEva has rotated.
+	
+	        //Call the next frame.
+	        invalidate();
+	    }
+	}
+	
+	private World mWorld;
 
 	
 	@Override
@@ -123,6 +208,7 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	    mAccelometerZField = (TextView)findViewById(R.id.accelerometer_z_field);
 	    
 	    mWalleImage = (ImageView)findViewById(R.id.walle_image);
+		mWorld = (World)findViewById(R.id.world);
 	    
 	    mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
 	    mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "CapabilitiesActivity");
