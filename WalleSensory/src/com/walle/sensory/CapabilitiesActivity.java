@@ -57,6 +57,14 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	private static ConnectionState mConnectionState;
 	
 	private static ImageView mWalleImage;
+	private static ImageView mEwaImage;
+	
+	private static Sensation mDriveSensation;
+	private static Sensation mHearDirectionSensation;
+	private static Sensation mAzimuthSensation;
+	private static Sensation mAccelerationSensation;
+	private static Sensation mObservationSensation;
+	private static Sensation mPictureSensation;
 
 
     private PowerManager mPowerManager;
@@ -117,36 +125,38 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	    int screenH;
 	    int X;
 	    int Y;
-	    int initialY ;
 	    int evaW;
 	    int evaH;
-	    int angle;
-	    float dY;
-	    float acc;
-	    Bitmap mEva, mWalle;
+	    int walleW;
+	    int walleH;
+	    int earW;
+	    int earH;
+	    Bitmap mEva, mWalle, mEar;
 	
 	    public World(Context context) {
 	        super(context);
 	        mEva = BitmapFactory.decodeResource(getResources(),R.drawable.eva); //load a mEva image
 	        mWalle = BitmapFactory.decodeResource(getResources(),R.drawable.walle); //load a background
+	        mEar = BitmapFactory.decodeResource(getResources(),R.drawable.ear); //load a mEarimage
 	        evaW = mEva.getWidth();
 	        evaH = mEva.getHeight();
-	        acc = 0.2f; //acceleration
-	        dY = 0; //vertical speed
-	        initialY = 100; //Initial vertical position.
-	        angle = 0; //Start value for rotation angle.
+	        walleW = mWalle.getWidth();
+	        walleH = mWalle.getHeight();
+	        earW = mEar.getWidth();
+	        earH = mEar.getHeight();
 	    }
 
 	    public World(Context context, AttributeSet attr) {
 	        super(context, attr);
 	        mEva = BitmapFactory.decodeResource(getResources(),R.drawable.eva); //load a mEva image
 	        mWalle = BitmapFactory.decodeResource(getResources(),R.drawable.walle); //load a background
+	        mEar = BitmapFactory.decodeResource(getResources(),R.drawable.ear); //load a mEar image
 	        evaW = mEva.getWidth();
 	        evaH = mEva.getHeight();
-	        acc = 0.2f; //acceleration
-	        dY = 0; //vertical speed
-	        initialY = 100; //Initial vertical position.
-	        angle = 0; //Start value for rotation angle.
+	        walleW = mWalle.getWidth();
+	        walleH = mWalle.getHeight();
+	        earW = mEar.getWidth();
+	        earH = mEar.getHeight();
 	    }
 	
 	    @Override
@@ -154,36 +164,44 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	        super.onSizeChanged(w, h, oldw, oldh);
 	        screenW = w;
 	        screenH = h;
-	        mWalle = Bitmap.createScaledBitmap(mWalle, w, h, true); //Resize background to fit the screen.
-	        X = (int) (screenW /2) - (evaW / 2) ; //Centre mEva into the centre of the screen.
-	        Y = initialY;
+	        //mWalle = Bitmap.createScaledBitmap(mWalle, w, h, true); //Resize background to fit the screen.
+	        X = (int) (screenW /2) - (walleW / 2) ; //Centre mWalle into the centre of the screen.
+	        Y = (int) (screenH /2) - (walleW / 2);
 	    }
 	
 	    @Override
 	    public void onDraw(Canvas canvas) {
 	        super.onDraw(canvas);
 	
-	        //Draw background.
-	        canvas.drawBitmap(mWalle, 0, 0, null);
 	
-	        //Compute roughly mEva speed and location.
-	        Y+= (int) dY; //Increase or decrease vertical position.
-	        if (Y > (screenH - evaH)) {
-	            dY=(-1)*dY; //Reverse speed when bottom hit.
+	        
+	        if (mAzimuthSensation != null)
+	        {
+		        canvas.save(); //Save the position of the canvas.
+		        canvas.rotate((float) Math.toDegrees(mAzimuthSensation.getAzimuth()), X + (walleW / 2), Y + (walleH / 2)); //Rotate the canvas.
+		        canvas.drawBitmap(mWalle, X, Y, null); //Draw the mEva on the rotated canvas.
+		        canvas.restore(); //Rotate the canvas back so that it looks like mEva has rotated.
 	        }
-	        dY+= acc; //Increase or decrease speed.
 	
-	        //Increase rotating angle.
-	        if (angle++ >360)
-	            angle =0;
-	
+	        if ((mAzimuthSensation != null) && (mHearDirectionSensation != null))
+	        {
+	        	// TODO draw ear at that direction
+		        canvas.save(); //Save the position of the canvas.
+		        canvas.rotate((float) Math.toDegrees(mAzimuthSensation.getAzimuth() + mHearDirectionSensation.getHearDirection()), X + (earW / 2), Y + (earH / 2)); //Rotate the canvas.
+		        canvas.drawBitmap(mEar, X, Y, null); //Draw the mEva on the rotated canvas.
+		        canvas.restore(); //Rotate the canvas back so that it looks like mEva has rotated.
+	        }
+
 	        //Draw mEva
-	        canvas.save(); //Save the position of the canvas.
-	        canvas.rotate(angle, X + (evaW / 2), Y + (evaH / 2)); //Rotate the canvas.
-	        canvas.drawBitmap(mEva, X, Y, null); //Draw the mEva on the rotated canvas.
-	        canvas.restore(); //Rotate the canvas back so that it looks like mEva has rotated.
-	
-	        //Call the next frame.
+	        if ((mAzimuthSensation != null) && (mObservationSensation != null))
+	        {
+	        	// TODO draw Eva at that direction and distance
+		        canvas.save(); //Save the position of the canvas.
+		        canvas.rotate((float) Math.toDegrees(mAzimuthSensation.getAzimuth() + mObservationSensation.getObservationDirection()), X + (evaW / 2), Y + (evaH / 2)); //Rotate the canvas.
+		        canvas.drawBitmap(mEva, X, Y, null); //Draw the mEva on the rotated canvas.
+		        canvas.restore(); //Rotate the canvas back so that it looks like mEva has rotated.
+	        }
+
 	        invalidate();
 	    }
 	}
@@ -195,6 +213,14 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
     	Log.d(LOGTAG, "onCreate()");
+    	
+    	mDriveSensation = null;
+    	mHearDirectionSensation = null;
+    	mAzimuthSensation = null;
+    	mAccelerationSensation = null;
+    	mObservationSensation = null;
+    	mPictureSensation = null;
+
     	
     	mConnectionStateColor = toColor(ConnectionState.NOT_CONNECTED);
     	
@@ -208,6 +234,7 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	    mAccelometerZField = (TextView)findViewById(R.id.accelerometer_z_field);
 	    
 	    mWalleImage = (ImageView)findViewById(R.id.walle_image);
+	    mEwaImage = (ImageView)findViewById(R.id.walle_image);
 		mWorld = (World)findViewById(R.id.world);
 	    
 	    mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
@@ -321,6 +348,29 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	    						mWalleImage.getDrawable().getBounds().height()/2);
 	    	mWalleImage.setImageMatrix(matrix);
 	    }
+	    
+	    switch (aSensation.getSensationType())
+	    {
+	    	case Drive:
+	        	mDriveSensation = aSensation;
+	        	break;
+	    	case HearDirection:
+	        	mHearDirectionSensation = aSensation;
+	        	break;
+	    	case Azimuth:
+	        	mAzimuthSensation = aSensation;
+	        	break;
+	    	case Acceleration:
+	        	mAccelerationSensation = aSensation;
+	        	break;
+	    	case Observation:
+	        	mObservationSensation = aSensation;
+	        	break;
+	    	case Picture:
+	        	mPictureSensation = aSensation;
+	        	break;
+	    }
+
 	}
 
 	
