@@ -22,7 +22,7 @@ class Sensation(object):
                  azimuth = 0.0,                                             # Walle direction relative to magnetic north pole
                  accelerationX=0.0, accelerationY=0.0, accelerationZ=0.0,   # acceleration of walle, coordinates relative to walle
                  hearDirection = 0.0,                                       # sound direction heard by Walle, relative to Walle
-                 obselvationDirection= 0.0,obselvationDistance=-1.0,        # Walle's observation of something, relative to Walle
+                 observationDirection= 0.0,observationDistance=-1.0,        # Walle's observation of something, relative to Walle
                  imageSize=0,                                               # when image is transferred we use size of it technically in transmission
                  direction='I', capabilities = []):                         # capabilitis of sensorys, direction what way sensation go
         self.time = time.time()
@@ -35,8 +35,8 @@ class Sensation(object):
         self.accelerationX = accelerationX
         self.accelerationY = accelerationY
         self.accelerationZ = accelerationZ
-        self.obselvationDirection = obselvationDirection
-        self.obselvationDistance = obselvationDistance
+        self.observationDirection = observationDirection
+        self.observationDistance = observationDistance
         self.imageSize = imageSize
         self.direction = direction
         self.capabilities = capabilities
@@ -81,9 +81,9 @@ class Sensation(object):
                 elif sensationType == Sensation.SensationType.Observation:
                     self.sensationType = Sensation.SensationType.Observation
                     if len(params) >= 4:
-                        self.obselvationDirection = float(params[2])
-                        self.obselvationDistance = float(params[3])
-                        print str(self.obselvationDirection) + ' ' + str(self.obselvationDistance)
+                        self.observationDirection = float(params[2])
+                        self.observationDistance = float(params[3])
+                        print str(self.observationDirection) + ' ' + str(self.observationDistance)
                 elif sensationType == Sensation.SensationType.Picture:
                     self.sensationType = Sensation.SensationType.Picture
                     if len(params) >= 3:
@@ -116,7 +116,7 @@ class Sensation(object):
         elif self.sensationType == Sensation.SensationType.Acceleration:
             return str(self.number) + ' ' + self.sensationType + ' ' + str(self.accelerationX)+ ' ' + str(self.accelerationY) + ' ' + str(self.accelerationZ)
         elif self.sensationType == Sensation.SensationType.Observation:
-            return str(self.number) + ' ' + self.sensationType + ' ' + str(self.obselvationDirection)+ ' ' + str(self.obselvationDistance)
+            return str(self.number) + ' ' + self.sensationType + ' ' + str(self.observationDirection)+ ' ' + str(self.observationDistance)
         elif self.sensationType == Sensation.SensationType.Picture:
             return str(self.number) + ' ' + self.sensationType + ' ' + str(self.imageSize)
         elif self.sensationType == Sensation.SensationType.Capability:
@@ -243,7 +243,7 @@ if __name__ == '__main__':
     print "G str " + str(c)
     print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
 
-    c=Sensation(number=103, sensationType = Sensation.SensationType.Observation, obselvationDirection= -0.85, obselvationDistance=-3.75)
+    c=Sensation(number=103, sensationType = Sensation.SensationType.Observation, observationDirection= -0.85, observationDistance=-3.75)
     print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
 
     c=Sensation(number=104, sensationType = 'C', direction = 'O', capabilities = [Sensation.SensationType.Drive, Sensation.SensationType.HearDirection, Sensation.SensationType.Azimuth])

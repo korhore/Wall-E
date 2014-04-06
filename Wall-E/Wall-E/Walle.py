@@ -38,6 +38,7 @@ START=False
 STOP=False
 MANUAL=False
 
+
 class WalleServer(Thread):
     """
     Controls Walle-robot. Walle has capabilities like moving, hearing, seeing and position sense.
@@ -54,6 +55,7 @@ class WalleServer(Thread):
     TURN_ACCURACYFACTOR = math.pi * 10.0/180.0
     FULL_TURN_FACTOR = math.pi * 45.0/180.0
     
+    DEFAULT_OBSERVATION_DISTANCE = 3.0
 
     def __init__(self):
         Thread.__init__(self)
@@ -63,7 +65,7 @@ class WalleServer(Thread):
         self.turning_to_object = False  # Are we turning to see an object
         self.hearing_angle = 0.0        # device hears sound from this angle, device looks to its front
                                         # to the azimuth direction
-        self.turn_angle = 0.0           # turn until azimuth is this angle
+        self.observation_angle = 0.0           # turn until azimuth is this angle
         
         self.leftPower = 0.0            # moving
         self.rightPower = 0.0
@@ -127,11 +129,17 @@ class WalleServer(Thread):
         elif sensation.getSensationType() == Sensation.SensationType.HearDirection:
             print "Walleserver.process Sensation.SensationType.HearDirection"
             self.hearing_angle = sensation.getHearDirection()
-            self.turn_angle = self.add_radian(original_radian=self.azimuth, added_radian=self.hearing_angle) # object in this angle
-            self.turn()
+            self.observation_angle = self.add_radian(original_radian=self.azimuth, added_radian=self.hearing_angle) # object in this angle
+            self.in_axon.put(Sensation(sensationType = Sensation.SensationType.Observation,
+                                       observationDirection= self.observation_angle,
+                                       observationDistance=WalleServer.DEFAULT_OBSERVATION_DISTANCE))
         elif sensation.getSensationType() == Sensation.SensationType.Azimuth:
             print "Walleserver.process Sensation.SensationType.Azimuth"
             self.azimuth = sensation.getAzimuth()
+            self.turn()
+        elif sensation.getSensationType() == Sensation.SensationType.Observation:
+            print "Walleserver.process Sensation.SensationType.Observation"
+            self.observation_angle = sensation.getObservationDirection()
             self.turn()
         elif sensation.getSensationType() == Sensation.SensationType.Picture:
             print "Walleserver.process Sensation.SensationType.Picture"
@@ -145,7 +153,7 @@ class WalleServer(Thread):
         self.leftPower, self.rightPower = self.getPower()
         if self.turning_to_object:
             print "WalleServer.turn: self.hearing_angle " + str(self.hearing_angle) + " self.azimuth " + str(self.azimuth)
-            print "WalleServer.turn: turn to " + str(self.turn_angle)
+            print "WalleServer.turn: turn to " + str(self.observation_angle)
             if math.fabs(self.leftPower) < Romeo.MINPOWER or math.fabs(self.rightPower) < Romeo.MINPOWER:
                 self.leftPower = 0.0           # set motors in opposite power to turn in place
                 self.rightPower = 0.0
@@ -207,15 +215,15 @@ class WalleServer(Thread):
         leftPower = 0.0           # set motor in opposite power to turn in place
         rightPower = 0.0
         
-        if math.fabs(self.turn_angle - self.azimuth) > WalleServer.TURN_ACCURACYFACTOR:
-            power = (self.turn_angle - self.azimuth)/WalleServer.FULL_TURN_FACTOR
+        if math.fabs(self.observation_angle - self.azimuth) > WalleServer.TURN_ACCURACYFACTOR:
+            power = (self.observation_angle - self.azimuth)/WalleServer.FULL_TURN_FACTOR
             if power > 1.0:
                 power = 1.0
             if power < -1.0:
                 power = -1.0
             if math.fabs(power) < Romeo.MINPOWER:
                 power = 0.0
-            leftPower = power           # set motorn in opposite pover to turn in place
+            leftPower = power           # set motorn in opposite power to turn in place
             rightPower = -power
         if math.fabs(leftPower) < Romeo.MINPOWER or math.fabs(rightPower) < Romeo.MINPOWER:
             leftPower = 0.0           # set motors in opposite power to turn in place
