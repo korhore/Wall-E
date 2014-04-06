@@ -121,8 +121,11 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 
 
 	private static class World extends View {
+		
+		final static float DISTANCE=5.0f;	// We see 5.0 m around Walle
 	    int screenW;
 	    int screenH;
+	    int screen;
 	    int X;
 	    int Y;
 	    int evaW;
@@ -131,6 +134,7 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	    int walleH;
 	    int earW;
 	    int earH;
+	    int hearingDistance;
 	    Bitmap mEva, mWalle, mEar;
 	
 	    public World(Context context) {
@@ -161,12 +165,21 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	
 	    @Override
 	    public void onSizeChanged (int w, int h, int oldw, int oldh) {
+	    	Log.d(LOGTAG, "onSizeChanged");
 	        super.onSizeChanged(w, h, oldw, oldh);
 	        screenW = w;
+	        screen = screenW;
 	        screenH = h;
+	        if (screenH < screen)
+	        	screen = screenH;
 	        //mWalle = Bitmap.createScaledBitmap(mWalle, w, h, true); //Resize background to fit the screen.
-	        X = (int) (screenW /2) - (walleW / 2) ; //Centre mWalle into the centre of the screen.
-	        Y = (int) (screenH /2) - (walleW / 2);
+	        X = (screenW /2) - (walleW / 2) ; //Centre mWalle into the centre of the screen.
+	        Y = (screenH /2) - (walleW / 2);
+	        if (screenW < screenH)
+	        	hearingDistance = screenW/8;
+	        else
+	        	hearingDistance = screenH/8;
+	    	Log.d(LOGTAG, "onSizeChanged hearingDistance " + hearingDistance);
 	    }
 	
 	    @Override
@@ -185,24 +198,57 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	
 	        if ((mAzimuthSensation != null) && (mHearDirectionSensation != null))
 	        {
+	        	double angle = (double) (mAzimuthSensation.getAzimuth() + mHearDirectionSensation.getHearDirection());
+	        	// get valid angle for sin and cos
+	        	while (angle >= (Math.PI/2.0d))
+	        		angle -= Math.PI/(Math.PI/2.0d);
+	        	while (angle <= -Math.PI/(Math.PI/2.0d))
+	        		angle += Math.PI/(Math.PI/2.0d);
+	        	
+		    	Log.d(LOGTAG, "onDraw HearDirectionSensation");
+		    	Log.d(LOGTAG, "onDraw HearDirectionSensation sin " + Math.asin(angle));
+		    	Log.d(LOGTAG, "onDraw HearDirectionSensation X " + (X + (int) (Math.asin(angle) * (double) hearingDistance)) );
+		    	Log.d(LOGTAG, "onDraw HearDirectionSensation cos " + Math.acos(angle));
+		    	Log.d(LOGTAG, "onDraw HearDirectionSensation Y " + (Y - (int) (Math.acos(angle) * (double) hearingDistance)) );
 	        	// TODO draw ear at that direction
 		        canvas.save(); //Save the position of the canvas.
-		        canvas.rotate((float) Math.toDegrees(mAzimuthSensation.getAzimuth() + mHearDirectionSensation.getHearDirection()), X + (earW / 2), Y + (earH / 2)); //Rotate the canvas.
-		        canvas.drawBitmap(mEar, X, Y, null); //Draw the mEva on the rotated canvas.
+//		        canvas.rotate((float) Math.toDegrees(mAzimuthSensation.getAzimuth() + mHearDirectionSensation.getHearDirection()), X + (earW / 2), Y + (earH / 2)); //Rotate the canvas.
+		        canvas.drawBitmap(	mEar,
+		        					X + (int) (Math.asin(angle) * (double) hearingDistance),
+		        					Y - (int) (Math.acos(angle) * (double) hearingDistance),
+		        					null); //Draw the mEva on the rotated canvas.
 		        canvas.restore(); //Rotate the canvas back so that it looks like mEva has rotated.
 	        }
 
 	        //Draw mEva
-	        if ((mAzimuthSensation != null) && (mObservationSensation != null))
+	        if (mObservationSensation != null)
 	        {
 	        	// TODO draw Eva at that direction and distance
 		        canvas.save(); //Save the position of the canvas.
-		        canvas.rotate((float) Math.toDegrees(mAzimuthSensation.getAzimuth() + mObservationSensation.getObservationDirection()), X + (evaW / 2), Y + (evaH / 2)); //Rotate the canvas.
-		        canvas.drawBitmap(mEva, X, Y, null); //Draw the mEva on the rotated canvas.
+		        if ((mObservationSensation.getObservationDirection() >= -Math.PI/2.0f) && 
+		        	(mObservationSensation.getObservationDirection() <= Math.PI/2.0f)) {
+			        canvas.drawBitmap(	mEva,
+        					X + (int) (Math.asin(mObservationSensation.getObservationDirection()) * (double) mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaW / 2),
+        					Y - (int) (Math.acos(mObservationSensation.getObservationDirection()) * (double) mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaH / 2),
+        					null); //Draw the mEva on the rotated canvas.
+		        }
+		        else if (mObservationSensation.getObservationDirection() < -Math.PI/2.0f) {
+		        	float angle = (float) Math.PI/2.0f + mObservationSensation.getObservationDirection();
+			        canvas.drawBitmap(	mEva,
+			        		 			X + (int) (Math.asin(angle) * (double) mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaW / 2),
+			        		 			Y + (int) (Math.acos(angle) * (double) mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaH / 2),
+			        		 			null); //Draw the mEva on the rotated canvas.
+		        } else {
+		        	float angle = (float) Math.PI/2.0f - mObservationSensation.getObservationDirection();
+			        canvas.drawBitmap(	mEva,
+			        		 			X + (int) (Math.asin(angle) * (double) mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaW / 2),
+			        		 			Y + (int) (Math.acos(angle) * (double) mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaH / 2),
+			        		 			null); //Draw the mEva on the rotated canvas.
+		        }
 		        canvas.restore(); //Rotate the canvas back so that it looks like mEva has rotated.
 	        }
 
-	        invalidate();
+	        //invalidate();
 	    }
 	}
 	
@@ -356,15 +402,18 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	        	break;
 	    	case HearDirection:
 	        	mHearDirectionSensation = aSensation;
+	        	mWorld.invalidate();
 	        	break;
 	    	case Azimuth:
 	        	mAzimuthSensation = aSensation;
+	        	mWorld.invalidate();
 	        	break;
 	    	case Acceleration:
 	        	mAccelerationSensation = aSensation;
 	        	break;
 	    	case Observation:
 	        	mObservationSensation = aSensation;
+	        	mWorld.invalidate();
 	        	break;
 	    	case Picture:
 	        	mPictureSensation = aSensation;
