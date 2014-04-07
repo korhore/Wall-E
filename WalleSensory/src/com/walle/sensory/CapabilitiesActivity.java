@@ -125,7 +125,7 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 		final static float DISTANCE=5.0f;	// We see 5.0 m around Walle
 	    int screenW;
 	    int screenH;
-	    int screen;
+	    float screen;
 	    int X;
 	    int Y;
 	    int evaW;
@@ -228,21 +228,21 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 		        if ((mObservationSensation.getObservationDirection() >= -Math.PI/2.0f) && 
 		        	(mObservationSensation.getObservationDirection() <= Math.PI/2.0f)) {
 			        canvas.drawBitmap(	mEva,
-        					X + (int) (Math.asin(mObservationSensation.getObservationDirection()) * (double) mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaW / 2),
-        					Y - (int) (Math.acos(mObservationSensation.getObservationDirection()) * (double) mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaH / 2),
-        					null); //Draw the mEva on the rotated canvas.
+        								X + (int) (Math.asin(mObservationSensation.getObservationDirection()) *  mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaW / 2),
+        								Y - (int) (Math.acos(mObservationSensation.getObservationDirection()) *  mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaH / 2),
+        								null); //Draw the mEva on the rotated canvas.
 		        }
 		        else if (mObservationSensation.getObservationDirection() < -Math.PI/2.0f) {
 		        	float angle = (float) Math.PI/2.0f + mObservationSensation.getObservationDirection();
 			        canvas.drawBitmap(	mEva,
-			        		 			X + (int) (Math.asin(angle) * (double) mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaW / 2),
-			        		 			Y + (int) (Math.acos(angle) * (double) mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaH / 2),
+			        		 			X + (int) (Math.asin(angle) * mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaW / 2),
+			        		 			Y + (int) (Math.acos(angle) * mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaH / 2),
 			        		 			null); //Draw the mEva on the rotated canvas.
 		        } else {
 		        	float angle = (float) Math.PI/2.0f - mObservationSensation.getObservationDirection();
 			        canvas.drawBitmap(	mEva,
-			        		 			X + (int) (Math.asin(angle) * (double) mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaW / 2),
-			        		 			Y + (int) (Math.acos(angle) * (double) mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaH / 2),
+			        		 			X + (int) (Math.asin(angle) * mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaW / 2),
+			        		 			Y + (int) (Math.acos(angle) * mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaH / 2),
 			        		 			null); //Draw the mEva on the rotated canvas.
 		        }
 		        canvas.restore(); //Rotate the canvas back so that it looks like mEva has rotated.
