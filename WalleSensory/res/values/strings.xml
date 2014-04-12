@@ -9,5 +9,6 @@
     <string name="azimuth">Azimuth</string>
     <string name="service_connected">Service connected</string>
     <string name="service_disconnected">Service disconnected</string>
+    <string name="test">Test</string>
     
 </resources>

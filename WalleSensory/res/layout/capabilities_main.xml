@@ -108,5 +108,13 @@
          android:layout_alignParentRight="true"
          android:layout_below="@+id/walle_image"
 	     class="com.walle.sensory.CapabilitiesActivity$World" />
+
+     <Button
+         android:id="@+id/test_button"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_above="@+id/world"
+         android:layout_alignRight="@+id/world"
+         android:text="@string/test" />
      
 </RelativeLayout>

@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import android.widget.TextView;
@@ -65,10 +66,15 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	private static Sensation mAccelerationSensation;
 	private static Sensation mObservationSensation;
 	private static Sensation mPictureSensation;
+	
+	private static float mTestObservationDirection = (float)-Math.PI;
 
 
     private PowerManager mPowerManager;
     private PowerManager.WakeLock mWakeLock;
+    
+	private static Button mTestButton;
+
 
 
 	private static class StatusView extends View {
@@ -172,9 +178,10 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	        screenH = h;
 	        if (screenH < screen)
 	        	screen = screenH;
+	        screen = screen/2.0f;
 	        //mWalle = Bitmap.createScaledBitmap(mWalle, w, h, true); //Resize background to fit the screen.
-	        X = (screenW /2) - (walleW / 2) ; //Centre mWalle into the centre of the screen.
-	        Y = (screenH /2) - (walleW / 2);
+	        X = (screenW /2);// - (walleW / 2) ; //Centre mWalle into the centre of the screen.
+	        Y = (screenH /2);// - (walleW / 2);
 	        if (screenW < screenH)
 	        	hearingDistance = screenW/8;
 	        else
@@ -185,8 +192,6 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	    @Override
 	    public void onDraw(Canvas canvas) {
 	        super.onDraw(canvas);
-	
-	
 	        
 	        if (mAzimuthSensation != null)
 	        {
@@ -223,29 +228,14 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	        //Draw mEva
 	        if (mObservationSensation != null)
 	        {
-	        	// TODO draw Eva at that direction and distance
-		        canvas.save(); //Save the position of the canvas.
-		        if ((mObservationSensation.getObservationDirection() >= -Math.PI/2.0f) && 
-		        	(mObservationSensation.getObservationDirection() <= Math.PI/2.0f)) {
-			        canvas.drawBitmap(	mEva,
-        								X + (int) (Math.asin(mObservationSensation.getObservationDirection()) *  mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaW / 2),
-        								Y - (int) (Math.acos(mObservationSensation.getObservationDirection()) *  mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaH / 2),
-        								null); //Draw the mEva on the rotated canvas.
-		        }
-		        else if (mObservationSensation.getObservationDirection() < -Math.PI/2.0f) {
-		        	float angle = (float) Math.PI/2.0f + mObservationSensation.getObservationDirection();
-			        canvas.drawBitmap(	mEva,
-			        		 			X + (int) (Math.asin(angle) * mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaW / 2),
-			        		 			Y + (int) (Math.acos(angle) * mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaH / 2),
-			        		 			null); //Draw the mEva on the rotated canvas.
-		        } else {
-		        	float angle = (float) Math.PI/2.0f - mObservationSensation.getObservationDirection();
-			        canvas.drawBitmap(	mEva,
-			        		 			X + (int) (Math.asin(angle) * mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaW / 2),
-			        		 			Y + (int) (Math.acos(angle) * mObservationSensation.getObservationDistance() * screen/DISTANCE) - (evaH / 2),
-			        		 			null); //Draw the mEva on the rotated canvas.
-		        }
-		        canvas.restore(); //Rotate the canvas back so that it looks like mEva has rotated.
+	        	float h = mObservationSensation.getObservationDistance() * screen/DISTANCE; // hypotenusa as pixels
+	        	double angle = mObservationSensation.getObservationDirection() - Math.PI/2.0d; // convert azimuth coordination to drawing coordination
+	        	float x = (float) ((float)X + (h * Math.cos(angle)) - (evaW / 2.0f));
+	        	float y = (float) ((float)Y + (h * Math.sin(angle)) - (evaH / 2.0f));
+		        canvas.drawBitmap(	mEva,
+    					x,
+    					y,
+						null); //Draw the mEva on the rotated canvas.
 	        }
 
 	        //invalidate();
@@ -282,6 +272,18 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	    mWalleImage = (ImageView)findViewById(R.id.walle_image);
 	    mEwaImage = (ImageView)findViewById(R.id.walle_image);
 		mWorld = (World)findViewById(R.id.world);
+		
+		mTestButton = (Button)findViewById(R.id.test_button);
+		mTestButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+            	mTestObservationDirection += (float) Math.PI/36.0f;
+            	if (mTestObservationDirection > (float) Math.PI)
+            		mTestObservationDirection = (float) -Math.PI;
+            	onSensation(new Sensation(0, Sensation.SensationType.Observation, mTestObservationDirection, 4.0f));
+                // Perform action on click
+            }
+        });
+
 	    
 	    mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
 	    mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "CapabilitiesActivity");
