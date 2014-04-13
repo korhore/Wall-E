@@ -196,33 +196,21 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	        if (mAzimuthSensation != null)
 	        {
 		        canvas.save(); //Save the position of the canvas.
-		        canvas.rotate((float) Math.toDegrees(mAzimuthSensation.getAzimuth()), X + (walleW / 2), Y + (walleH / 2)); //Rotate the canvas.
-		        canvas.drawBitmap(mWalle, X, Y, null); //Draw the mEva on the rotated canvas.
-		        canvas.restore(); //Rotate the canvas back so that it looks like mEva has rotated.
+		        canvas.rotate((float) Math.toDegrees(mAzimuthSensation.getAzimuth()), X, Y); //Rotate the canvas.
+		        canvas.drawBitmap(mWalle, X - (walleW / 2.0f), Y - (walleH / 2.0f), null); //Draw the Walle on the rotated canvas.
+		        canvas.restore(); //Rotate the canvas back so that it looks like Walle has rotated.
 	        }
 	
+	        //Draw Hearing
 	        if ((mAzimuthSensation != null) && (mHearDirectionSensation != null))
 	        {
-	        	double angle = (double) (mAzimuthSensation.getAzimuth() + mHearDirectionSensation.getHearDirection());
-	        	// get valid angle for sin and cos
-	        	while (angle >= (Math.PI/2.0d))
-	        		angle -= Math.PI/(Math.PI/2.0d);
-	        	while (angle <= -Math.PI/(Math.PI/2.0d))
-	        		angle += Math.PI/(Math.PI/2.0d);
-	        	
-		    	Log.d(LOGTAG, "onDraw HearDirectionSensation");
-		    	Log.d(LOGTAG, "onDraw HearDirectionSensation sin " + Math.asin(angle));
-		    	Log.d(LOGTAG, "onDraw HearDirectionSensation X " + (X + (int) (Math.asin(angle) * (double) hearingDistance)) );
-		    	Log.d(LOGTAG, "onDraw HearDirectionSensation cos " + Math.acos(angle));
-		    	Log.d(LOGTAG, "onDraw HearDirectionSensation Y " + (Y - (int) (Math.acos(angle) * (double) hearingDistance)) );
-	        	// TODO draw ear at that direction
-		        canvas.save(); //Save the position of the canvas.
-//		        canvas.rotate((float) Math.toDegrees(mAzimuthSensation.getAzimuth() + mHearDirectionSensation.getHearDirection()), X + (earW / 2), Y + (earH / 2)); //Rotate the canvas.
+	        	double angle = (double) (mAzimuthSensation.getAzimuth() + mHearDirectionSensation.getHearDirection()) - Math.PI/2.0d; // convert azimuth coordination to drawing coordination
+	        	float x = (float) ((float)X + (hearingDistance * Math.cos(angle)) - (earW / 2.0f));
+	        	float y = (float) ((float)Y + (hearingDistance * Math.sin(angle)) - (earH / 2.0f));
 		        canvas.drawBitmap(	mEar,
-		        					X + (int) (Math.asin(angle) * (double) hearingDistance),
-		        					Y - (int) (Math.acos(angle) * (double) hearingDistance),
-		        					null); //Draw the mEva on the rotated canvas.
-		        canvas.restore(); //Rotate the canvas back so that it looks like mEva has rotated.
+    					x,
+    					y,
+						null); //Draw the mEva on the rotated canvas.
 	        }
 
 	        //Draw mEva
