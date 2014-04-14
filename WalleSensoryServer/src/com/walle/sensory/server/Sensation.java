@@ -10,7 +10,10 @@ public class Sensation extends Object {
 	public final static int SENSATION_LENGTH_SIZE = 2;
 	public final static int SENSATION_MAX_LENGTH = 99;
 	public final static String SENSATION_LENGTH_FORMAT = "%2d";
-	
+
+	public final static String  SENSATION_SEPRATOR = "\r";
+	public final static int SENSATION_SEPRATOR_SIZE = 1;
+
 	private int m_number;
 	private SensationType m_sensationType;
 	private float m_leftPower;

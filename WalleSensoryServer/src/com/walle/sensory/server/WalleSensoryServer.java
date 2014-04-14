@@ -614,10 +614,13 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 				    try {
 						byte[] bytes = (sensation.toString()).getBytes("UTF-8");
 						byte[] length_of_bytes = (String.format(Sensation.SENSATION_LENGTH_FORMAT,bytes.length)).getBytes("UTF-8");
+						byte[] separator_bytes = (Sensation.SENSATION_SEPRATOR).getBytes("UTF-8");
 			    	    Log.d(LOGTAG, "SocketWriter.run write " + Integer.toString(bytes.length));
-						mDataOutputStream.write(length_of_bytes);
+						mDataOutputStream.write(length_of_bytes);				// message length section
 					    mDataOutputStream.flush();
-						mDataOutputStream.write(bytes);
+						mDataOutputStream.write(bytes);							// message data section
+					    mDataOutputStream.flush();
+						mDataOutputStream.write(separator_bytes);				// message separator section
 					    mDataOutputStream.flush();
 					    report(ConnectionState.CONNECTED);
 					} catch (IOException e) {
@@ -648,7 +651,7 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 			while ( (mConnectionState.ordinal() >= ConnectionState.CONNECTED.ordinal()) &&
 					(mSocket.isConnected()) && (!mSocket.isInputShutdown())) {
 				try  {
-					while ((l = mDataInputStream.read(bl)) == Sensation.SENSATION_LENGTH_SIZE) {
+					while ((l = mDataInputStream.read(bl)) == Sensation.SENSATION_LENGTH_SIZE) {	// messge length section
 		    	        Log.d(LOGTAG, "SocketReader.run read l " + Integer.toString(l) + ' ' +  new String(bl));
 		    			report(ConnectionState.READING);
 						
@@ -665,13 +668,18 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 	                	if (length_ok) {
 	    					try {
 	    						b = new byte[sensation_length];
-	    						l = mDataInputStream.read(b);
-		    		    	    Log.d(LOGTAG, "SocketReader.run read l " + Integer.toString(l) + ' ' +  new String(b));
-		    		    	    if (sensation_length == l) {
+	    						int read=0;
+	    						while (sensation_length > 0) {
+		    						l = mDataInputStream.read(b, read, sensation_length);		// messge data section
+		    						read += l;
+		    						sensation_length -= l;
+			    		    	    Log.d(LOGTAG, "SocketReader.run read l " + Integer.toString(l) + ' ' +  new String(b));
+	    						}
+		    		    	    if (sensation_length == 0) {
 		    		    	    	Sensation s = new Sensation(new String(b));
 		    		    	    	report(s);
 		    		    	    } else {
-			    		    	    Log.d(LOGTAG, "SocketReader.run read Sensation l " + Integer.toString(l) + " ignoring " +  Integer.toString(sensation_length) + " does not match with it, resyncing" );
+			    		    	    Log.d(LOGTAG, "SocketReader.run read Sensation read " + Integer.toString(read) + " ignoring " +  Integer.toString(sensation_length) + " does not match with it, resyncing" );
 				                    resyncing = true;
 		    		    	    }
 	    					}
@@ -680,13 +688,13 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 			                    resyncing = true;
 	    					}
 	                	}
-	                	if (resyncing) {
-	                		// Resyncing reading all data, hoping nest sensation is start of next read
-    						b = new byte[Sensation.SENSATION_MAX_LENGTH];
-    						l = mDataInputStream.read(b);
-	    		    	    Log.d(LOGTAG, "SocketReader.run Resyncing read l " + Integer.toString(l) + ' ' +  new String(b));
-	                		
-	                	}
+	                	// message separator section
+	                	// handles also resyncing if socket transmit error
+						b = new byte[Sensation.SENSATION_SEPRATOR_SIZE];
+	                	do {
+    						mDataInputStream.read(b);
+	    		    	    Log.d(LOGTAG, "SocketReader.run Resyncing read char" +  new String(b));
+	                	} while (b[0] != Sensation.SENSATION_SEPRATOR.charAt(0));
 					}
 				}
     			catch (Exception e) {
