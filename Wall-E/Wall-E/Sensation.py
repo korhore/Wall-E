@@ -12,7 +12,9 @@ def enum(**enums):
 class Sensation(object):
     
     LENGTH_SIZE=2   # Sensation as string can only be 99 character long
-    
+    SEPARATOR='\r'  # Separator between messages
+    SEPARATOR_SIZE=1  # Separator length
+   
     SensationType = enum(Drive='D', Stop='S', Who='W', HearDirection='H', Azimuth='A', Acceleration='G', Observation='O', Picture='P', Capability='C', Unknown='U')
     Direction = enum(Input='I', Output='O')
        

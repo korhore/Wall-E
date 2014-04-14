@@ -45,7 +45,7 @@ class SocketServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServ
  
         while self.running:
             print "SocketServer waiting size of next Sensation from" + str(self.address)
-            self.data = self.socket.recv(Sensation.LENGTH_SIZE).strip()
+            self.data = self.socket.recv(Sensation.LENGTH_SIZE).strip() # message length section
             if len(self.data) == 0:
                 self.running = False
             else:
@@ -58,16 +58,40 @@ class SocketServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServ
                     length_ok = False
                     
                 if length_ok:
-                    print "SocketServer of next Sensation from" + str(self.address)
-                    self.data = self.socket.recv(sensation_length).strip()
-
-                    if len(self.data) == 0:
-                        self.running = False
-                    else:
+                    print "SocketServer of next Sensation from " + str(self.address)
+                    self.data=''
+                    while sensation_length > 0:
+                        data = self.socket.recv(sensation_length).strip() # message data section
+                        if len(data) == 0:
+                            self.running = False
+                        else:
+                            self.data = self.data+data
+                            sensation_length = sensation_length - len(data)
+                            print "SocketServer Sensation data from " + str(self.address)+ ' ' + self.data + ' left ' + str(sensation_length)
+                            
+                            
+                    if self.running:
                         print "WalleSocketServer string " + self.data
                         sensation=Sensation(self.data)
                         print sensation
                         self.queue.put(sensation)
+            
+            synced = False
+            self.data = self.socket.recv(Sensation.SEPARATOR_SIZE).strip()  # message separator section
+            if len(self.data) == 0:
+                synced = True# Test
+                #self.running = False
+            print "WalleSocketServer separator l " + str(len(self.data)) + ' ' + str(len(Sensation.SEPARATOR))
+            while not synced and self.running:
+                if len(self.data) == len(Sensation.SEPARATOR):
+                    if self.data[0] is Sensation.SEPARATOR[0]:    # this also syncs to next message, if we get socket transmit errors
+                        synced = True
+                if not synced:
+                    self.data = self.socket.recv(Sensation.SEPARATOR_SIZE).strip()  # message separator section
+                    print "WalleSocketServer separator l " + str(len(self.data)) + ' ' + str(len(Sensation.SEPARATOR))
+                    if len(self.data) == 0:
+                        self.running = False
+               
 
         self.socket.close()
 

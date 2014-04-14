@@ -51,7 +51,7 @@ class SocketClient(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServ
             length_string = str(length)
             length_ok = True
             try:
-                l = self.socket.send(length_string)
+                l = self.socket.send(length_string) # message length section
                 print "SocketClient wrote length of Sensation to " + str(self.address)
             except:
                 print "SocketClient error writing length of Sensation to, closing socket " + str(self.address)
@@ -59,13 +59,24 @@ class SocketClient(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServ
                 length_ok = False
             if length_ok:
                 try:
-                    l = self.socket.send(sensation_string)
+                    l = self.socket.send(sensation_string)  # message data section
                     print "SocketClient wrote Sensation to " + str(self.address)
                     if length != l:
                         print "SocketClient length " + str(l) + " != " + length_string + " error writing to " + str(self.address)
                 except:
                     print "SocketClient error writing Sensation to, closing socket " + str(self.address)
                     self.running=False
+            if self.running:
+                try:
+                    l = self.socket.send(Sensation.SEPARATOR)  # message separator section
+                    if Sensation.SEPARATOR_SIZE == l:
+                        print "SocketClient wrote separator to " + str(self.address)
+                    else:
+                        print "SocketClient length " + str(l) + " != " + str(Sensation.SEPARATOR_SIZE) + " error writing to " + str(self.address)
+                except:
+                    print "SocketClient error writing Sensation to, closing socket " + str(self.address)
+                    self.running=False
+                
 
         self.socket.close()
 
