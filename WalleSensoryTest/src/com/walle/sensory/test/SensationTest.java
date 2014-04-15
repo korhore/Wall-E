@@ -26,32 +26,32 @@ public class SensationTest extends TestCase {
 	}
 	
 	public final void testSensation() {
-		Sensation s = new Sensation("12 D 0.97 0.56");
+		Sensation s = new Sensation("12 S I D 0.97 0.56");
 		
 		assertTrue("number should be 12", s.getNumber() == 12);
 		assertTrue("SensationType should be Drive", s.getSensationType() == SensationType.Drive);
 		assertEquals("LeftPower should be 0.97", 0.97f, s.getLeftPower(), 0.0001f);
 		assertEquals("RightPower should be 0.56", 0.56f, s.getRightPower(), 0.0001f);
 		
-		s = new Sensation("13 S");
+		s = new Sensation("13 S I S");
 		assertEquals("number should be 13", 13, s.getNumber());
 		assertTrue("SensationType should be Stop", s.getSensationType() == SensationType.Stop);
 
-		s = new Sensation("14 W");
+		s = new Sensation("14 S I W");
 		assertEquals("number should be 14", 14, s.getNumber());
 		assertTrue("SensationType should be Who", s.getSensationType() == SensationType.Who);
 
-		s = new Sensation("15 H -0.75");
+		s = new Sensation("15 S I H -0.75");
 		assertEquals("number should be 15", 15, s.getNumber());
 		assertTrue("SensationType should be Hear", s.getSensationType() == SensationType.HearDirection);
 		assertEquals("Hear should be -0.75", -0.75f, s.getHearDirection(), 0.0001f);
 
-		s = new Sensation("16 A 0.75");
+		s = new Sensation("16 S I A 0.75");
 		assertEquals("number should be 16", 16, s.getNumber());
 		assertTrue("SensationType should be Azimuth", s.getSensationType() == SensationType.Azimuth);
 		assertEquals("Azimuth should be 0.75", 0.75f, s.getAzimuth(), 0.0001f);
 
-		s = new Sensation("17 G 0.75 1.75 2.75");
+		s = new Sensation("17 S I G 0.75 1.75 2.75");
 		assertEquals("number should be 17", 17, s.getNumber());
 		assertTrue("SensationType should be Acceleration", s.getSensationType() == SensationType.Acceleration);
 		assertEquals("AccelerationX be 0.75", 0.75f, s.getAccelerationX(), 0.0001f);
@@ -59,13 +59,13 @@ public class SensationTest extends TestCase {
 		assertEquals("AccelerationZ be 1.75", 2.75f, s.getAccelerationZ(), 0.0001f);
 
 
-		s = new Sensation("16 O 0.75 5.5");
+		s = new Sensation("16 W I O 0.75 5.5");
 		assertEquals("number should be 16", 16, s.getNumber());
 		assertTrue("SensationType should be Observatio", s.getSensationType() == SensationType.Observation);
 		assertEquals("ObservationDirection should be 0.75", 0.75f, s.getObservationDirection(), 0.0001f);
 		assertEquals("ObservationDistance should be 5.5", 5.5f, s.getObservationDistance(), 0.0001f);
 
-		s = new Sensation("18 P 12300");
+		s = new Sensation("18 S I P 12300");
 		assertEquals("number should be 18", 18, s.getNumber());
 		assertTrue("SensationType should be Picture", s.getSensationType() == SensationType.Picture);
 		assertEquals("ImageSize should be 12300", 12300, s.getImageSize());
