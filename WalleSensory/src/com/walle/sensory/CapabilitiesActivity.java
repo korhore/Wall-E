@@ -267,7 +267,7 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
             	mTestObservationDirection += (float) Math.PI/36.0f;
             	if (mTestObservationDirection > (float) Math.PI)
             		mTestObservationDirection = (float) -Math.PI;
-            	onSensation(new Sensation(0, Sensation.SensationType.Observation, mTestObservationDirection, 4.0f));
+            	onSensation(new Sensation(0, Sensation.Memory.Working, Sensation.Direction.In, Sensation.SensationType.Observation, mTestObservationDirection, 4.0f));
                 // Perform action on click
             }
         });
