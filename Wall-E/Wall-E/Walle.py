@@ -155,10 +155,8 @@ class WalleServer(Thread):
             print "WalleServer.turn: self.hearing_angle " + str(self.hearing_angle) + " self.azimuth " + str(self.azimuth)
             print "WalleServer.turn: turn to " + str(self.observation_angle)
             if math.fabs(self.leftPower) < Romeo.MINPOWER or math.fabs(self.rightPower) < Romeo.MINPOWER:
-                self.leftPower = 0.0           # set motors in opposite power to turn in place
-                self.rightPower = 0.0
+                self.stopTurn()
                 print "WalleServer.turn: Turn is ended"
-                self.turning_to_object = False
                 self.turnTimer.cancel()
             else:
                 print "WalleServer.turn: powers adjusted to " + str(self.leftPower) + ' ' + str(self.rightPower)
@@ -187,7 +185,7 @@ class WalleServer(Thread):
         self.turning_to_object = False
         self.leftPower = 0.0           # set motors in opposite power to turn in place
         self.rightPower = 0.0
-        print "WalleServer.stopTurn: Turn is cancelled"
+        print "WalleServer.stopTurn: Turn is stopped/cancelled"
             
         print "WalleServer.stopTurn: powers to " + str(self.leftPower) + ' ' + str(self.rightPower)
             

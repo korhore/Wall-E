@@ -82,6 +82,7 @@ class Ear(Thread):
             square_a = float(a) * float(a)
             self.average = math.sqrt(( (self.average * self.average * (self.average_devider - 1.0))  + square_a)/self.average_devider)
             self.short_average = math.sqrt(( (self.short_average * self.short_average * (self.short_average_devider - 1.0))  + square_a)/self.short_average_devider)
+            #print "Ear " + self.name + " average " + str(self.average) + ' short_average ' + str(self.short_average)
             if a > maxim:
                 maxim = a
             if a < minim:
@@ -94,7 +95,7 @@ class Ear(Thread):
                    self.sound.set_volume_level(math.sqrt(self.square_sum/self.n)/self.average)
                    self.sound.set_state(Sound.STOP)
                    self.queue.put(self.sound)
-                   #print self.card + " voice stopped at " + time.ctime() + ' ' + str(self.stop_time) +  ' ' + str(self.stop_time-self.start_time) + ' ' + str(self.sum/self.n/self.average) + ' ' + str(self.short_average) + ' ' + str(self.average)
+                   print self.name + " voice stopped at " + time.ctime() + ' ' + str(self.sum/self.n/self.average) + ' ' + str(self.short_average) + ' ' + str(self.average)
                    self.voice = False
                 else:
                    self.sum += self.short_average
@@ -105,7 +106,7 @@ class Ear(Thread):
                    self.start_time = time.time() - (float(len(aaa)-i)/self.rate) # sound's start time is when we got sound data minus slots that are not in the sound
                    self.sound = Sound(id=self.id, state=Sound.START, start_time=self.start_time)
                    self.queue.put(self.sound)
-                   #print self.card + " voice started at " + time.ctime() + ' ' + str(self.start_time) + ' ' + str(self.short_average) + ' ' + str(self.average)
+                   print self.name + " voice started at " + time.ctime() + ' ' + str(self.start_time) + ' ' + str(self.short_average) + ' ' + str(self.average)
                    self.voice = True
                    self.sum=self.short_average
                    self.n=1.0
@@ -132,7 +133,9 @@ class Ear(Thread):
     
             while self.running:
                 # blocking read data from device
+                #print "reading " + self.name
                 l, data = self.inp.read()
+                #print "read " + self.name + " " + str(l)
           
                 if self.on and self.running and l > 0:
                     len += l
