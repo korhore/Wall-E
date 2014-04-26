@@ -5,6 +5,7 @@ Created on Feb 25, 2013
 '''
 
 import time
+import traceback
 
 def enum(**enums):
     return type('Enum', (), enums)
@@ -49,7 +50,7 @@ class Sensation(object):
         self.capabilities = capabilities
        
         params = string.split()
-        print params
+        #print params
         if len(params) >= 4:
             try:
                 self.number = int(params[0])
@@ -58,60 +59,64 @@ class Sensation(object):
             except (ValueError):
                 self.sensationType = Sensation.SensationType.Unknown
                 return
-                
-            print self.number
-            if len(params) >= 4:
-                sensationType = params[3]
-                if sensationType == Sensation.SensationType.Drive:
-                    self.sensationType = Sensation.SensationType.Drive
-                    if len(params) >= 5:
-                        self.leftPower = float(params[4])
-                        print str(self.leftPower)
-                    if len(params) >= 6:
-                        self.rightPower = float(params[5])
-                        print str(self.rightPower)
-                elif sensationType == Sensation.SensationType.HearDirection:
-                    self.sensationType = Sensation.SensationType.HearDirection
-                    if len(params) >= 5:
-                        self.hearDirection = float(params[4])
-                        print str(self.hearDirection)
-                elif sensationType == Sensation.SensationType.Azimuth:
-                    self.sensationType = Sensation.SensationType.Azimuth
-                    if len(params) >= 5:
-                        self.azimuth = float(params[4])
-                        print str(self.azimuth)
-                elif sensationType == Sensation.SensationType.Acceleration:
-                    self.sensationType = Sensation.SensationType.Acceleration
-                    if len(params) >= 7:
-                        self.accelerationX = float(params[4])
-                        self.accelerationY = float(params[5])
-                        self.accelerationZ = float(params[6])
-                        print str(self.accelerationX) + ' ' + str(self.accelerationY) + ' ' + str(self.accelerationZ)
-                elif sensationType == Sensation.SensationType.Observation:
-                    self.sensationType = Sensation.SensationType.Observation
-                    if len(params) >= 6:
-                        self.observationDirection = float(params[4])
-                        self.observationDistance = float(params[5])
-                        print str(self.observationDirection) + ' ' + str(self.observationDistance)
-                elif sensationType == Sensation.SensationType.Picture:
-                    self.sensationType = Sensation.SensationType.Picture
-                    if len(params) >= 5:
-                        self.imageSize = int(params[4])
-                        print str(self.imageSize)
-                elif sensationType == Sensation.SensationType.Capability:
-                    self.sensationType = Sensation.SensationType.Capability
-                    if len(params) >= 5:
-                        self.capabilities = params[4:]
-                        print str(self.capabilities)
-    
-                elif sensationType == Sensation.SensationType.Stop:
-                    self.sensationType = Sensation.SensationType.Stop
-                elif sensationType == Sensation.SensationType.Who:
-                    self.sensationType = Sensation.SensationType.Who
-                else:
-                    self.sensationType = Sensation.SensationType.Unknown
-                print self.sensationType
-            
+  
+            try:              
+                #print self.number
+                if len(params) >= 4:
+                    sensationType = params[3]
+                    if sensationType == Sensation.SensationType.Drive:
+                        self.sensationType = Sensation.SensationType.Drive
+                        if len(params) >= 5:
+                            self.leftPower = float(params[4])
+                            #print str(self.leftPower)
+                        if len(params) >= 6:
+                            self.rightPower = float(params[5])
+                            #print str(self.rightPower)
+                    elif sensationType == Sensation.SensationType.HearDirection:
+                        self.sensationType = Sensation.SensationType.HearDirection
+                        if len(params) >= 5:
+                            self.hearDirection = float(params[4])
+                            #print str(self.hearDirection)
+                    elif sensationType == Sensation.SensationType.Azimuth:
+                        self.sensationType = Sensation.SensationType.Azimuth
+                        if len(params) >= 5:
+                            self.azimuth = float(params[4])
+                            #print str(self.azimuth)
+                    elif sensationType == Sensation.SensationType.Acceleration:
+                        self.sensationType = Sensation.SensationType.Acceleration
+                        if len(params) >= 7:
+                            self.accelerationX = float(params[4])
+                            self.accelerationY = float(params[5])
+                            self.accelerationZ = float(params[6])
+                            #print str(self.accelerationX) + ' ' + str(self.accelerationY) + ' ' + str(self.accelerationZ)
+                    elif sensationType == Sensation.SensationType.Observation:
+                        self.sensationType = Sensation.SensationType.Observation
+                        if len(params) >= 6:
+                            self.observationDirection = float(params[4])
+                            self.observationDistance = float(params[5])
+                            #print str(self.observationDirection) + ' ' + str(self.observationDistance)
+                    elif sensationType == Sensation.SensationType.Picture:
+                        self.sensationType = Sensation.SensationType.Picture
+                        if len(params) >= 5:
+                            self.imageSize = int(params[4])
+                            #print str(self.imageSize)
+                    elif sensationType == Sensation.SensationType.Capability:
+                        self.sensationType = Sensation.SensationType.Capability
+                        if len(params) >= 5:
+                            self.capabilities = params[4:]
+                            #print str(self.capabilities)
+        
+                    elif sensationType == Sensation.SensationType.Stop:
+                        self.sensationType = Sensation.SensationType.Stop
+                    elif sensationType == Sensation.SensationType.Who:
+                        self.sensationType = Sensation.SensationType.Who
+                    else:
+                        self.sensationType = Sensation.SensationType.Unknown
+                    #print self.sensationType
+            except (ValueError):
+                print traceback.format_exc()
+                self.sensationType = Sensation.SensationType.Unknown
+                 
     def __str__(self):
         if self.sensationType == Sensation.SensationType.Drive:
             return str(self.number) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType + ' ' + str(self.leftPower) +  ' ' + str(self.rightPower)

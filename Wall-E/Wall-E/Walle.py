@@ -45,11 +45,12 @@ class WalleServer(Thread):
     Technically we use socket servers to communicate with external devices. Romeo board is controlled
     using library using USB. We use USB-microphones and Raspberry pi camera.
     
-    Walle emulates senses (camera, microphone, mobile phone) that have emit sensations to "brain" that has state and memory and gives
-    commands (tecnically Sensation class instances) to muscles (Romeo Board, mobile phone)
+    Walle emulates sensorys (camera, microphone, mobile phone) that have emit sensations to "brain" that has state and memory and gives
+    commands (technically Sensation class instances) to muscles (Romeo Board, mobile phone)
     
-    Integraterd sensation are transferred in Queue, which is thread safe. Every SEnse runs in its own thread as real senses, independently.
-    External Senses are handled using sockets.
+    Sensations from integrated sensorys are transferred By axons ad in real organs, implemented as Queue, which is thread safe.
+    Every sensory runs in its own thread as real sensorys, independently.
+    External Sensorys are handled using sockets.
     """
     
     TURN_ACCURACYFACTOR = math.pi * 10.0/180.0
@@ -108,7 +109,7 @@ class WalleServer(Thread):
             print "WalleServer: got sensation from queue " + str(sensation)
             self.process(sensation)
             # as a test, echo everything to external device
-            self.out_axon.put(sensation)
+            #self.out_axon.put(sensation)
 
         self.tcpServer.stop()
         self.hearing.stop()

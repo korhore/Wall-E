@@ -206,7 +206,8 @@ class Hearing(Thread):
         if sound.get_state() == Sound.STOP:
             # report one ear sound only rarely, wait better two ear sounds to come
             if (not self.reported) and ((self.sound_status == Hearing.SOUND_TWO_EAR) or ((time.time() - self.report_time) > Hearing.SOUND_ONE_EAR_REPORT_LIMIT)):
-                print "Sound reported delayed from " + Hearing.ear_names[id] + ' ' + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (self.angle)
+                if Hearing.debug:
+                    print "Sound reported delayed from " + Hearing.ear_names[id] + ' ' + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (self.angle)
                 #self.report_queue.put(SoundPosition(time=self.sound[self.id].get_start_time(), angle=self.angle, type=self.sound_status))
                 self.report()
                 self.reported = True
