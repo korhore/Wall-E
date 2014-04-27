@@ -28,6 +28,7 @@ import daemon
 import lockfile
 
 
+CONFIG_FILE_PATH = '/etc/Walle.cfg'
 
 HOST = '0.0.0.0'
 PORT = 2000

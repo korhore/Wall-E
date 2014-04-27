@@ -5,16 +5,9 @@ Created on Jan 19, 2014
 '''
 
 import alsaaudio
-#from threading import Thread
-#from Queue import Queue
-#import math
-#import time
-
-#from Ear import Ear
-#from Sound import Sound
-#from SoundPosition import SoundPosition
-#from Sensation import Sensation
 import ConfigParser
+
+from Config import CONFIG_FILE_PATH
 
 
 
@@ -72,11 +65,11 @@ if __name__ == "__main__":
     config.set('Microprhones', 'right', right)
 
     # Writing our configuration file to 'Walle.cfg'
-    with open('Walle.cfg', 'wb') as configfile:
+    with open(CONFIG_FILE_PATH, 'wb') as configfile:
         config.write(configfile)
 
     # Reading our configuration file to 'Walle.cfg'
-    config.read('Walle.cfg')
+    config.read(CONFIG_FILE_PATH)
     print 'From config file: left: ' + config.get('Microprhones', 'left')
     print 'From config file: right: ' + config.get('Microprhones', 'right')
     print "Setting is DONE!"

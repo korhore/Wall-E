@@ -9,11 +9,13 @@ from threading import Thread
 from Queue import Queue
 import math
 import time
+import ConfigParser
 
 from Ear import Ear
 from Sound import Sound
 #from SoundPosition import SoundPosition
 from Sensation import Sensation
+from Config import CONFIG_FILE_PATH
 
 
 
@@ -75,10 +77,12 @@ class Hearing(Thread):
     def __init__(self, report_queue):
         Thread.__init__(self)
         
+        self.name='Hearing'
         self.report_queue = report_queue
         
         self.sound_queue = Queue()
         self.running = False
+        self.canRun = True
         self.sound_status = Hearing.SOUND_STOPPED
         self.reported = False
         self.reported_timing = False
@@ -92,16 +96,44 @@ class Hearing(Thread):
         self.is_sound = [False]*Hearing.LEN_EARS
        
         self.ear = [None]*Hearing.LEN_EARS
-
-        self.ear[Hearing.LEFT] = Ear(id=Hearing.LEFT, name=Hearing.ear_names[Hearing.LEFT], card='Set', average=Hearing.AVERAGE, sensitivity=Hearing.SENSITIVITY, queue=self.sound_queue) #'Set') # card=alsaaudio.cards()[1]
- #       self.ear[Hearing.RIGHT] = Ear(id=Hearing.RIGHT, name=Hearing.ear_names[Hearing.RIGHT], card='U0x46d0x8b2', average=680.0, sensitivity=1.5, queue=self.sound_queue) #'Set') # card=alsaaudio.cards()[2]
-        self.ear[Hearing.RIGHT] = Ear(id=Hearing.RIGHT, name=Hearing.ear_names[Hearing.RIGHT], card='Set_1', average=Hearing.AVERAGE, sensitivity=Hearing.SENSITIVITY, queue=self.sound_queue) #'Set') # card=alsaaudio.cards()[2]
         
         self.sound_ear_id = Hearing.LEFT
         self.sound = [None]*Hearing.LEN_EARS
         self.sound[Hearing.LEFT] = Sound(id=Hearing.LEFT)
         self.sound[Hearing.RIGHT] = Sound(id=Hearing.RIGHT)
         self.number=0
+        
+        config = ConfigParser.RawConfigParser()
+        try:
+            config.read(CONFIG_FILE_PATH)
+            left_card = config.get('Microprhones', 'left')
+            if left_card == None:
+                print 'left_card == None'
+                self.canRun = False
+            right_card = config.get('Microprhones', 'right')
+            if right_card == None:
+                print 'right_card == None'
+                self.canRun = False
+        except ConfigParser.MissingSectionHeaderError:
+                print 'ConfigParser.MissingSectionHeaderError'
+                self.canRun = False
+        except ConfigParser.NoSectionError:
+                print 'ConfigParser.NoSectionError'
+                self.canRun = False
+        except ConfigParser.NoOptionError:
+                print 'ConfigParser.NoOptionError'
+                self.canRun = False
+        except :
+                print 'ConfigParser exception'
+                self.canRun = False
+
+
+        if self.canRun:
+            self.ear[Hearing.LEFT] = Ear(id=Hearing.LEFT, name=Hearing.ear_names[Hearing.LEFT], card=left_card, average=Hearing.AVERAGE, sensitivity=Hearing.SENSITIVITY, queue=self.sound_queue) #'Set') # card=alsaaudio.cards()[1]
+            self.ear[Hearing.RIGHT] = Ear(id=Hearing.RIGHT, name=Hearing.ear_names[Hearing.RIGHT], card=right_card, average=Hearing.AVERAGE, sensitivity=Hearing.SENSITIVITY, queue=self.sound_queue) #'Set') # card=alsaaudio.cards()[2]
+        else:
+            print "run 'sudo python SetUpEars.py' to set up microphones to enable Hearing"
+
         
     def stop(self):
         self.ear[Hearing.LEFT].stop()
@@ -114,20 +146,24 @@ class Hearing(Thread):
        
 
     def run(self):
-        if Hearing.log:
-            print "Starting " + self.name
-        
-        self.ear[Hearing.LEFT].start()
-        self.ear[Hearing.RIGHT].start()
-        self.running=True
+        if self.canRun:
+            if Hearing.log:
+                print "Starting " + self.name
+            
+            self.ear[Hearing.LEFT].start()
+            self.ear[Hearing.RIGHT].start()
+            self.running=True
+    
+            while self.running:
+                sound=self.sound_queue.get()
+                if Hearing.debug:
+                    print "Got sound from sound_queue " + Hearing.ear_names[sound.get_id()]  + " State " +  sound.get_str_state() + " start_time " + str(sound.get_start_time())  + " duration " + str(sound.get_duration())  + " volume_level " + str(sound.get_volume_level())
+                # TODO process which ear hears sounds first
+                self.process(sound)
+        else:
+            print "Can not start " + self.name
+            print "run 'sudo python SetUpEars.py' to set up microphones to enable Hearing"
 
-        while self.running:
-            sound=self.sound_queue.get()
-            if Hearing.debug:
-                print "Got sound from sound_queue " + Hearing.ear_names[sound.get_id()]  + " State " +  sound.get_str_state() + " start_time " + str(sound.get_start_time())  + " duration " + str(sound.get_duration())  + " volume_level " + str(sound.get_volume_level())
-            # TODO process which ear hears sounds first
-            self.process(sound)
- 
     # TODO Logic           
     def process(self, sound):
         id=sound.get_id()
