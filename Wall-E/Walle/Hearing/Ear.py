@@ -20,6 +20,7 @@ from Sound import Sound
 import Hearing
 
 class Ear(Thread):
+    average=Hearing.Hearing.AVERAGE;
     
 
     def __init__(self, id, name, queue, card='default', channels=1, rate=44100, format=alsaaudio.PCM_FORMAT_S16_LE,
@@ -54,6 +55,9 @@ class Ear(Thread):
         
         self.running=False
         self.on=False
+        
+        self.debug_time=time.time()
+
        
     def stop(self):
         self.running=False
@@ -83,17 +87,21 @@ class Ear(Thread):
                 # and nothing goes very much wrong, then if thread change will happen in middle of calculation and
                 # it is better that this is quick calculation so, long explanation
                 # better do this this way
-                Hearing.Hearing.average = math.sqrt(( (Hearing.Hearing.average * Hearing.Hearing.average * (Hearing.Hearing.average_devider - 1.0))  + square_a)/Hearing.Hearing.average_devider)
-                self.average = Hearing.Hearing.average
-                Hearing.Hearing.short_average = math.sqrt(( (Hearing.Hearing.short_average * Hearing.Hearing.short_average * (Hearing.Hearing.short_average_devider - 1.0))  + square_a)/Hearing.Hearing.short_average_devider)
-                self.short_average = Hearing.Hearing.short_average
+                Ear.average = math.sqrt(( (Ear.average * Ear.average * (self.average_devider - 1.0))  + square_a)/self.average_devider)
+                self.average = Ear.average
             else:
                 # if microphones are not equal, then we must use separate average
                 # it is not best situation, because it can happen that ears hear different level sounds, so they sensitivity may not be in balance in best way
                 # but if you don't have two equal microphones, this still may work good enough
                 self.average = math.sqrt(( (self.average * self.average * (self.average_devider - 1.0))  + square_a)/self.average_devider)
-                self.short_average = math.sqrt(( (self.short_average * self.short_average * (self.short_average_devider - 1.0))  + square_a)/self.short_average_devider)
-            #print "Ear " + self.name + " average " + str(self.average) + ' short_average ' + str(self.short_average)
+            self.short_average = math.sqrt(( (self.short_average * self.short_average * (self.short_average_devider - 1.0))  + square_a)/self.short_average_devider)
+            if Hearing.Hearing.log and time.time() > self.debug_time + 60.0:
+            #if Hearing.Hearing.log:
+            #if time.time() > self.debug_time + 6.0:
+                print "Ear " + self.name + " time.time() " + time.ctime(time.time()) + ' self.debug_time ' + time.ctime(self.debug_time)
+                print "Ear " + self.name + " average " + str(self.average) + ' short_average ' + str(self.short_average)
+                self.debug_time = time.time()
+            
             if a > maxim:
                 maxim = a
             if a < minim:

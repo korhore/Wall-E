@@ -45,7 +45,7 @@ class Hearing(Thread):
     """
     
     debug = False
-    log = False
+    log = True
     
     SENSITIVITY = 1.75
     AVERAGE=55.0
@@ -77,13 +77,6 @@ class Hearing(Thread):
     
     ear_names = ['left', 'right']
 
-    # global averages    
-    average=AVERAGE;
-    average_devider = float(RATE) * AVERAGE_SECS
-    short_average=AVERAGE;
-    short_average_devider = SHORT_AVERAGE_DEVIDER
-
-
     def __init__(self, report_queue):
         Thread.__init__(self)
         
@@ -112,12 +105,6 @@ class Hearing(Thread):
         self.sound[Hearing.LEFT] = Sound(id=Hearing.LEFT)
         self.sound[Hearing.RIGHT] = Sound(id=Hearing.RIGHT)
         self.number=0
-        
-        self.average=Hearing.AVERAGE;
-        self.average_devider = float(Hearing.RATE) * Hearing.AVERAGE_SECS
-        self.short_average=Hearing.AVERAGE;
-        self.short_average_devider = Hearing.SHORT_AVERAGE_DEVIDER
-
         
         config = ConfigParser.RawConfigParser()
         try:
