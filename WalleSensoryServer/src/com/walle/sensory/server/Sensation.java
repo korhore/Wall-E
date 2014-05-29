@@ -28,6 +28,7 @@ public class Sensation extends Object {
 	private float m_observationDirection;
 	private float m_observationDistance;
 	private int m_imageSize;
+	private SensationType m_calibrateSensationType;
 	private SensationType[] m_capabilities;
 
     public enum SensationType {
@@ -39,7 +40,8 @@ public class Sensation extends Object {
     	Acceleration("G"),
     	Observation("O"),
     	Picture("P"),
-    	Capability("C"),
+    	Calibrate("C"),
+    	Capability("1"),
     	Unknown("U") 	;
 
     	private String text;
@@ -127,7 +129,7 @@ public class Sensation extends Object {
 					  SensationType a_sensationType) {
 
 		if ((a_sensationType == SensationType.Stop) ||
-			(a_sensationType == SensationType.Who)){
+			(a_sensationType == SensationType.Who)) {
 	    	m_number = a_number;
 	    	m_sensationType = a_sensationType;
 	    	m_memory = a_memory;
@@ -144,6 +146,7 @@ public class Sensation extends Object {
 	    	m_observationDistance = -1.0f;
 	    	m_imageSize = 0;
 	    	m_direction = Direction.In;
+	    	m_calibrateSensationType = SensationType.Unknown;
 	    	m_capabilities = null;
 		} else {
 			throw new IllegalArgumentException();
@@ -173,6 +176,7 @@ public class Sensation extends Object {
 	    	m_observationDistance = -1.0f;
 	    	m_imageSize = 0;
 	    	m_direction = Direction.In;
+	    	m_calibrateSensationType = SensationType.Unknown;
 	    	m_capabilities = null;
 	    	if (a_sensationType == SensationType.Drive) {
 		    	m_leftPower = a_value_1;
@@ -212,6 +216,7 @@ public class Sensation extends Object {
 	    	m_observationDistance = -1.0f;
 	    	m_imageSize = 0;
 	    	m_direction = Direction.In;
+	    	m_calibrateSensationType = SensationType.Unknown;
 	    	m_capabilities = null;
 	    	if (a_sensationType == SensationType.HearDirection) {
 		    	m_hearDirection = a_value;
@@ -233,27 +238,59 @@ public class Sensation extends Object {
 			float a_accelerationY,
 			float a_accelerationZ ) {
 
-	if (a_sensationType == SensationType.Acceleration) {
-    	m_number = a_number;
-    	m_sensationType = a_sensationType;
-    	m_memory = a_memory;
-    	m_direction = a_direction;
-    	m_leftPower = 0.0f;
-    	m_rightPower = 0.0f;
-    	m_hearDirection = 0.0f;
-    	m_azimuth = 0.0f;
-    	m_accelerationX = a_accelerationX;
-    	m_accelerationY = a_accelerationY;
-    	m_accelerationZ = a_accelerationZ;
-    	m_observationDirection = 0.0f;
-    	m_observationDistance = -1.0f;
-    	m_imageSize = 0;
-    	m_direction = Direction.In;
-    	m_capabilities = null;
-	} else {
-		throw new IllegalArgumentException();
-	}
-}
+		if (a_sensationType == SensationType.Acceleration) {
+	    	m_number = a_number;
+	    	m_sensationType = a_sensationType;
+	    	m_memory = a_memory;
+	    	m_direction = a_direction;
+	    	m_leftPower = 0.0f;
+	    	m_rightPower = 0.0f;
+	    	m_hearDirection = 0.0f;
+	    	m_azimuth = 0.0f;
+	    	m_accelerationX = a_accelerationX;
+	    	m_accelerationY = a_accelerationY;
+	    	m_accelerationZ = a_accelerationZ;
+	    	m_observationDirection = 0.0f;
+	    	m_observationDistance = -1.0f;
+	    	m_imageSize = 0;
+	    	m_direction = Direction.In;
+	    	m_calibrateSensationType = SensationType.Unknown;
+	    	m_capabilities = null;
+		} else {
+			throw new IllegalArgumentException();
+		}
+    }
+    
+    public Sensation(	int a_number,
+			Memory a_memory,
+			Direction a_direction,
+			SensationType a_sensationType,
+			SensationType a_calibrateSensationType,
+			float a_value) {
+
+    	if (a_calibrateSensationType == SensationType.HearDirection) {
+			m_number = a_number;
+			m_sensationType = a_sensationType;
+			m_memory = a_memory;
+			m_direction = a_direction;
+			m_leftPower = 0.0f;
+			m_rightPower = 0.0f;
+			m_accelerationX = 0.0f;
+			m_accelerationY = 0.0f;
+			m_accelerationZ = 0.0f;
+			m_observationDirection = 0.0f;
+			m_observationDistance = -1.0f;
+			m_imageSize = 0;
+			m_direction = Direction.In;
+			m_calibrateSensationType = a_calibrateSensationType;
+			m_capabilities = null;
+			m_azimuth = 0.0f;
+			m_hearDirection = a_value;
+    	} else {
+    		throw new IllegalArgumentException();
+    	}
+    }
+
 
     public Sensation(	int a_number,
 						Memory a_memory,
@@ -277,6 +314,7 @@ public class Sensation extends Object {
 	    	m_observationDistance = -1.0f;
 	    	m_imageSize = 0;
 	    	m_direction = a_direction;
+	    	m_calibrateSensationType = SensationType.Unknown;
 	    	m_capabilities = a_capabilities;
 		} else {
 			throw new IllegalArgumentException();
@@ -300,76 +338,103 @@ public class Sensation extends Object {
     	m_observationDistance = -1.0f;
 		m_imageSize = 0;
 		m_direction = Direction.In;
+    	m_calibrateSensationType = SensationType.Unknown;
 		m_capabilities = null;
+		
+		boolean success=false;
+
 
         String params[] = a_string.split(" ");
         if (params.length >= 3) {
        		m_number = Integer.parseInt(params[0]);
-       		Log.d(LOGTAG, String.valueOf(m_number));
+       		//Log.d(LOGTAG, String.valueOf(m_number));
 			m_memory = Memory.fromString(params[1]);
-       		Log.d(LOGTAG, m_memory.toString());
+       		//Log.d(LOGTAG, m_memory.toString());
 			m_direction = Direction.fromString(params[2]);
-       		Log.d(LOGTAG, m_direction.toString());
+       		//Log.d(LOGTAG, m_direction.toString());
           
             if (params.length >= 4) {
            		m_sensationType = SensationType.fromString(params[3]);
            		if (m_sensationType == SensationType.Drive) {
            			if (params.length >= 5) {
            				m_leftPower = Float.parseFloat(params[4]);
-           				Log.d(LOGTAG, String.valueOf(m_leftPower));
+           				//Log.d(LOGTAG, String.valueOf(m_leftPower));
            			}
-           			if (params.length >= 5) {
+           			if (params.length >= 6) {
            				m_rightPower = Float.parseFloat(params[5]);
-           				Log.d(LOGTAG, String.valueOf(m_rightPower));
+           				success=true;
+           				//Log.d(LOGTAG, String.valueOf(m_rightPower));
            			}
            		} else if (m_sensationType == SensationType.HearDirection) {
            			if (params.length >= 5) {
            				m_hearDirection = Float.parseFloat(params[4]);
-           				Log.d(LOGTAG, String.valueOf(m_hearDirection));
+           				success=true;
+           				//Log.d(LOGTAG, String.valueOf(m_hearDirection));
            			}
            		} else if (m_sensationType == SensationType.Azimuth) {
            			if (params.length >= 5) {
            				m_azimuth = Float.parseFloat(params[4]);
-           				Log.d(LOGTAG, String.valueOf(m_azimuth));
+           				success=true;
+           				//Log.d(LOGTAG, String.valueOf(m_azimuth));
            			}
            		} else if (m_sensationType == SensationType.Acceleration) {
            			if (params.length >= 5) {
            				m_accelerationX = Float.parseFloat(params[4]);
-           				Log.d(LOGTAG, String.valueOf(m_accelerationX));
+           				//Log.d(LOGTAG, String.valueOf(m_accelerationX));
            			}
            			if (params.length >= 6) {
            				m_accelerationY = Float.parseFloat(params[5]);
-           				Log.d(LOGTAG, String.valueOf(m_accelerationY));
+           				//Log.d(LOGTAG, String.valueOf(m_accelerationY));
            			}
            			if (params.length >= 7) {
            				m_accelerationZ = Float.parseFloat(params[6]);
-           				Log.d(LOGTAG, String.valueOf(m_accelerationZ));
+           				success=true;
+           				//Log.d(LOGTAG, String.valueOf(m_accelerationZ));
            			}
            		} else if (m_sensationType == SensationType.Observation) {
            			if (params.length >= 5) {
            				this.m_observationDirection = Float.parseFloat(params[4]);
-           				Log.d(LOGTAG, String.valueOf(this.m_observationDirection));
+           				//Log.d(LOGTAG, String.valueOf(this.m_observationDirection));
            			}
            			if (params.length >= 6) {
            				this.m_observationDistance = Float.parseFloat(params[5]);
-           				Log.d(LOGTAG, String.valueOf(this.m_observationDistance));
+           				success=true;
+          				//Log.d(LOGTAG, String.valueOf(this.m_observationDistance));
            			}
            		} else if (m_sensationType == SensationType.Picture) {
            			if (params.length >= 5) {
            				m_imageSize = Integer.parseInt(params[4]);
-           				Log.d(LOGTAG, String.valueOf(m_imageSize));
+           				success=true;
+           				//Log.d(LOGTAG, String.valueOf(m_imageSize));
            			}
-           		} else if (m_sensationType == SensationType.Capability) {
+           		} else if (m_sensationType == SensationType.Calibrate) {
+           			if (params.length >= 6) {
+           				m_calibrateSensationType = SensationType.fromString(params[4]);
+           				if (m_calibrateSensationType == SensationType.HearDirection) {
+           					m_hearDirection = Float.parseFloat(params[5]);
+           					success=true;
+	           				//Log.d(LOGTAG, String.valueOf(m_hearDirection));
+           				}
+           			}
+            	} else if (m_sensationType == SensationType.Capability) {
            			if (params.length >= 5) {
            				m_capabilities = new SensationType[params.length -4];
            				for (int i = 4; i < params.length; i++)
            					m_capabilities[i-4] = SensationType.fromString(params[i]);
+           				success=true;
            			}
+           		} else if ((m_sensationType == SensationType.Stop) || (m_sensationType == SensationType.Who)){
+           			success=true;
            		}
-           	}
-        } else {
+       		}
+         } else {
 			throw new IllegalArgumentException();
 		}
+      
+		if (!success) {
+			m_sensationType = SensationType.Unknown;
+		}
+
 
     }
         
@@ -391,6 +456,11 @@ public class Sensation extends Object {
             return Integer.toString(this.m_number) + ' ' + this.m_memory.getText() + ' ' + this.m_direction.getText() + ' ' + this.m_sensationType.getText() + ' ' + Float.toString(this.m_observationDirection) + ' ' + Float.toString(this.m_observationDistance);
         else if (this.m_sensationType == SensationType.Picture)
             return Integer.toString(this.m_number) + ' ' + this.m_memory.getText() + ' ' + this.m_direction.getText() + ' ' + this.m_sensationType.getText() + ' ' + Integer.toString(this.m_imageSize);
+        else if (this.m_sensationType == SensationType.Calibrate) {
+        	if (this.m_calibrateSensationType == SensationType.HearDirection)
+        		return Integer.toString(this.m_number) + ' ' + this.m_memory.getText() + ' ' + this.m_direction.getText() + ' ' + this.m_sensationType.getText() + ' ' + this.m_calibrateSensationType.getText() + ' '+ Float.toString(this.m_hearDirection);
+            return Integer.toString(this.m_number) + ' ' + this.m_memory.getText() + ' ' + this.m_direction.getText() + ' ' + SensationType.Unknown.getText();
+        }
         else if (this.m_sensationType == SensationType.Capability)
             return Integer.toString(this.m_number) + ' ' + this.m_memory.getText() + ' ' + this.m_direction.getText() + ' ' + this.m_sensationType.getText() + ' ' + this.m_direction +  ' ' + this.getStrCapabilities();
         else if (this.m_sensationType == SensationType.Stop)
@@ -414,7 +484,7 @@ public class Sensation extends Object {
 		return m_sensationType;
 	}
 
-	public void setSnsationType(SensationType a_sensationType) {
+	public void setSensationType(SensationType a_sensationType) {
 		this.m_sensationType = a_sensationType;
 	}
 
@@ -497,6 +567,14 @@ public class Sensation extends Object {
 
 	public void setImageSize(int a_imageSize) {
 		this.m_imageSize = a_imageSize;
+	}
+
+	public SensationType getCalibrateSensationType() {
+		return m_calibrateSensationType;
+	}
+
+	public void setCalibrateSensationType(SensationType a_sensationType) {
+		this.m_calibrateSensationType = a_sensationType;
 	}
 
 	public Direction getDirection() {

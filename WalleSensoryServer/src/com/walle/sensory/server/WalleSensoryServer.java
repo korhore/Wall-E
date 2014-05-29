@@ -64,7 +64,7 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 	private float[] mDeltaRotationVector;
 	private float mAzimuth = 0.0f;
 	private float mPreviousAzimuth = 0.0f;
-	private int mNumber = 0;
+	private int mSensationNumber = 0;
 
 	// queues to ftp socket
 	private LinkedBlockingQueue<Sensation> mSensationOutQueue;
@@ -114,6 +114,11 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
     public static final int MSG_ACCELEROMETER = MSG_AZIMUTH+1;
 
     /**
+     * Command to report observation, not in use
+     */
+    // public static final int MSG_OBSERVATION = MSG_ACCELEROMETER+1;
+
+   /**
      * Get host
      */
     public static final int MSG_GET_HOST = MSG_ACCELEROMETER+1;
@@ -139,6 +144,13 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
     public static final int MSG_SENSATION = MSG_SET_PORT+1;
      
     /**
+     * emit Sensation
+     * from client
+     * send Sensation to Walle
+     */
+    public static final int MSG_EMIT_SENSATION = MSG_SENSATION+1;
+
+    /**
      * Handler of incoming messages from clients.
      */
     class IncomingHandler extends Handler {
@@ -161,7 +173,7 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
                     break;
                     
                 case MSG_CONNECTION_STATE:
-      	    	  	Log.d(LOGTAG, "handleMessage MSG_CONNECTION_STATE");
+      	    	  	//Log.d(LOGTAG, "handleMessage MSG_CONNECTION_STATE");
       		    	try {
       		    		msg.replyTo.send(Message.obtain(null, MSG_CONNECTION_STATE, mConnectionState.ordinal(), 0));
       		        } catch (RemoteException e) {
@@ -173,7 +185,7 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
                     break;
 
                 case MSG_GET_HOST:
-      	    	  	Log.d(LOGTAG, "handleMessage MSG_GET_HOST " + mSettingsModel.getHost());
+      	    	  	//Log.d(LOGTAG, "handleMessage MSG_GET_HOST " + mSettingsModel.getHost());
       		    	try {
       		    		msg.replyTo.send(Message.obtain(null, MSG_GET_HOST, 0,  0, mSettingsModel.getHost()));
       		        } catch (RemoteException e) {
@@ -185,12 +197,12 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
                     break;
 
                 case MSG_SET_HOST:
-      	    	  	Log.d(LOGTAG, "handleMessage MSG_SET_HOST " + (String) msg.obj);
+      	    	  	//Log.d(LOGTAG, "handleMessage MSG_SET_HOST " + (String) msg.obj);
       	    	    mSettingsModel.setHost((String) msg.obj);
                     break;
 
                 case MSG_GET_PORT:
-      	    	  	Log.d(LOGTAG, "handleMessage MSG_GET_PORT " +  String.valueOf(mSettingsModel.getPort()));
+      	    	  	//Log.d(LOGTAG, "handleMessage MSG_GET_PORT " +  String.valueOf(mSettingsModel.getPort()));
       		    	try {
       		    		msg.replyTo.send(Message.obtain(null, MSG_GET_PORT,  mSettingsModel.getPort(),  0, null));
       		        } catch (RemoteException e) {
@@ -202,8 +214,13 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
                     break;
 
                 case MSG_SET_PORT:
-      	    	  	Log.d(LOGTAG, "handleMessage MSG_SET_PORT " + String.valueOf(msg.arg1));
+      	    	  	//Log.d(LOGTAG, "handleMessage MSG_SET_PORT " + String.valueOf(msg.arg1));
       	    	    mSettingsModel.setPort(msg.arg1);
+                    break;
+
+                case MSG_EMIT_SENSATION:
+      	    	  	Log.d(LOGTAG, "handleMessage MSG_EMIT_SENSATION " + (String) msg.obj);
+      	    	    emitSensation((String) msg.obj);
                     break;
 
                 default:
@@ -464,12 +481,11 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 		}
 
 		if (mConnectionState.ordinal() >= ConnectionState.CONNECTED.ordinal()) {
-		    Log.d(LOGTAG, "report Azimuth connected" + mConnectionState.toString() );
+		    Log.d(LOGTAG, "report Azimuth connected " + mConnectionState.toString() );
 			if (Math.abs(aAzimuth - mPreviousAzimuth) > kAzimuthAccuracyFactor) {
 			    Log.d(LOGTAG, "report " + String.valueOf(aAzimuth) );
-				Sensation sensation = new Sensation(mNumber, Memory.Sensory, Direction.In, Sensation.SensationType.Azimuth, aAzimuth);
+				Sensation sensation = new Sensation(++mSensationNumber, Memory.Sensory, Direction.In, Sensation.SensationType.Azimuth, aAzimuth);
 				mSensationOutQueue.add(sensation);
-				mNumber++;
 				mPreviousAzimuth = aAzimuth;
 			}
 		} else {
@@ -479,7 +495,7 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 	}
 	
 	private void report(float[] aAcceleration) {
-		
+/*		
 		float[] reporGrafity = new float[3];
     	for (int i=0; i<3; i++)
     	{
@@ -499,23 +515,23 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 	    }
 	    
 		if (mConnectionState.ordinal() >= ConnectionState.CONNECTED.ordinal()) {
-		    Log.d(LOGTAG, "report Acceleration connected" + mConnectionState.toString() );
+		    Log.d(LOGTAG, "report Acceleration connected " + mConnectionState.toString() );
 			Log.d(LOGTAG, "report " + String.valueOf(reporGrafity[0]) + ' ' + String.valueOf(reporGrafity[1]) + ' ' + String.valueOf(reporGrafity[2]));
-			Sensation sensation = new Sensation(mNumber, Sensation.Memory.Sensory, Sensation.Direction.In, Sensation.SensationType.Acceleration, reporGrafity[0], reporGrafity[1], reporGrafity[2]);
+			Sensation sensation = new Sensation(++mSensationNumber, Sensation.Memory.Sensory, Sensation.Direction.In, Sensation.SensationType.Acceleration, reporGrafity[0], reporGrafity[1], reporGrafity[2]);
 			mSensationOutQueue.add(sensation);
-			mNumber++;
 		} else {
 			report(mConnectionState);
         	createConnection();
 		}
+*/
 	}
 	
 	private void report(ConnectionState aConnectionState) {
 		if (aConnectionState != mConnectionState) {
-	    	Log.d(LOGTAG, "report " + aConnectionState.toString() + " previous " + mConnectionState.toString());
+	    	//Log.d(LOGTAG, "report " + aConnectionState.toString() + " previous " + mConnectionState.toString());
 		    for (int i=mClients.size()-1; i>=0; i--) {
 		    	try {
-		    	   	Log.d(LOGTAG, "report mClients.get(" + String.valueOf(i) + ").send");
+		    	   	//Log.d(LOGTAG, "report mClients.get(" + String.valueOf(i) + ").send");
 		    		mClients.get(i).send(Message.obtain(null, MSG_CONNECTION_STATE, aConnectionState.ordinal(),  0));
 		        } catch (RemoteException e) {
 			                // The client is dead.  Remove it from the list;
@@ -536,11 +552,38 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 	}
 	
 	private void report(Sensation aSensation) {
-    	Log.d(LOGTAG, "report " + aSensation.toString());
+    	//Log.d(LOGTAG, "report " + aSensation.toString());
 		for (int i=mClients.size()-1; i>=0; i--) {
 			try {
-				Log.d(LOGTAG, "report mClients.get(" + String.valueOf(i) + ").send");
+				//Log.d(LOGTAG, "report mClients.get(" + String.valueOf(i) + ").send");
 		    	mClients.get(i).send(Message.obtain(null, MSG_SENSATION, 0, 0, aSensation.toString()));
+		    } catch (RemoteException e) {
+			            // The client is dead.  Remove it from the list;
+			            // we are going through the list from back to front
+			            // so this is safe to do inside the loop.
+		       	Log.e(LOGTAG, e.toString());
+		       	mClients.remove(i);
+		    }
+	    }
+	}
+		
+	private void emitSensation(String aSensationString) {
+    	//Log.d(LOGTAG, "emitSensation " + aSensationString);
+	    	
+		if (mConnectionState.ordinal() >= ConnectionState.CONNECTED.ordinal()) {
+		    //Log.d(LOGTAG, "emitSensation connected " + mConnectionState.toString() );
+			Sensation sensation = new Sensation(aSensationString);
+			mSensationOutQueue.add(sensation);
+			mSensationNumber++;
+		} else {
+			report(mConnectionState);
+        	createConnection();
+		}
+
+		for (int i=mClients.size()-1; i>=0; i--) {
+			try {
+				//Log.d(LOGTAG, "emitSensation mClients.get(" + String.valueOf(i) + ").send");
+		    	mClients.get(i).send(Message.obtain(null, MSG_SENSATION, 0, 0, aSensationString));
 		    } catch (RemoteException e) {
 			            // The client is dead.  Remove it from the list;
 			            // we are going through the list from back to front
@@ -618,7 +661,7 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 						byte[] bytes = (sensation.toString()).getBytes("UTF-8");
 						byte[] length_of_bytes = (String.format(Sensation.SENSATION_LENGTH_FORMAT,bytes.length)).getBytes("UTF-8");
 						byte[] separator_bytes = (Sensation.SENSATION_SEPRATOR).getBytes("UTF-8");
-			    	    Log.d(LOGTAG, "SocketWriter.run write " + Integer.toString(bytes.length));
+			    	    //Log.d(LOGTAG, "SocketWriter.run write " + Integer.toString(bytes.length));
 						mDataOutputStream.write(length_of_bytes);				// message length section
 					    mDataOutputStream.flush();
 						mDataOutputStream.write(bytes);							// message data section
@@ -655,18 +698,18 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 					(mSocket.isConnected()) && (!mSocket.isInputShutdown())) {
 				try  {
 					while ((l = mDataInputStream.read(bl)) == Sensation.SENSATION_LENGTH_SIZE) {	// messge length section
-		    	        Log.d(LOGTAG, "SocketReader.run read message length l " + Integer.toString(l) + ' ' +  new String(bl) + " bytes" );
+		    	        //Log.d(LOGTAG, "SocketReader.run read message length l " + Integer.toString(l) + ' ' +  new String(bl) + " bytes" );
 		    			report(ConnectionState.READING);
 						
 		                boolean length_ok = true;
-		                boolean resyncing = false;
+//		                boolean resyncing = false;
 	                	int sensation_length=0;
 	                	try {
 		                	sensation_length = Integer.parseInt(new String(bl));
 		                } catch (Exception e) {
 		                	Log.e(LOGTAG, "SocketServer Client protocol read error, no valid length, resyncing", e);
 		                    length_ok = false;
-		                    resyncing = true;
+//		                    resyncing = true;
 		                }
 	                	if (length_ok) {
 	    					try {
@@ -676,19 +719,20 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 		    						l = mDataInputStream.read(b, read, sensation_length);		// messge data section
 		    						read += l;
 		    						sensation_length -= l;
-			    		    	    Log.d(LOGTAG, "SocketReader.run read data section l " + Integer.toString(l) + ' ' +  new String(b));
+			    		    	    //Log.d(LOGTAG, "SocketReader.run read data section l " + Integer.toString(l) + ' ' +  new String(b));
 	    						}
 		    		    	    if (sensation_length == 0) {
 		    		    	    	Sensation s = new Sensation(new String(b));
+		    					 	Log.d(LOGTAG, "SocketReader.run read " + s.toString());
 		    		    	    	report(s);
 		    		    	    } else {
 			    		    	    Log.d(LOGTAG, "SocketReader.run read Sensation read " + Integer.toString(read) + " ignoring " +  Integer.toString(sensation_length) + " does not match with it, resyncing" );
-				                    resyncing = true;
+//				                    resyncing = true;
 		    		    	    }
 	    					}
 	    					catch (Exception e) {
 			                	Log.e(LOGTAG, "SocketServer Client Sensation read error resyncing", e);
-			                    resyncing = true;
+//			                    resyncing = true;
 	    					}
 	                	}
 	                	// message separator section
@@ -696,7 +740,7 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 						b = new byte[Sensation.SENSATION_SEPRATOR_SIZE];
 	                	do {
     						mDataInputStream.read(b);
-	    		    	    Log.d(LOGTAG, "SocketReader.run separator section read char " +  new String(b));
+//	    		    	    Log.d(LOGTAG, "SocketReader.run separator section read char " +  new String(b));
 	                	} while (b[0] != Sensation.SENSATION_SEPRATOR.charAt(0));
 					}
 				}
