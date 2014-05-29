@@ -28,6 +28,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name="CalibrateActivity"></activity>
         <activity android:name="SettingsActivity"></activity>
         <service android:enabled="true"
          	android:name="com.walle.sensory.server.WalleSensoryServer"

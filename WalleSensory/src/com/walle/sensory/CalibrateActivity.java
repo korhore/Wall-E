@@ -1,13 +1,14 @@
 package com.walle.sensory;
 
+
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.util.AttributeSet;
@@ -19,7 +20,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.walle.sensory.server.Sensation;
@@ -27,111 +27,40 @@ import com.walle.sensory.server.WalleSensoryServer.ConnectionState;
 import com.walle.sensory.server.WalleSensoryServerClient;
 
 
-public class CapabilitiesActivity extends WalleSensoryServerClient  {
-	final static String LOGTAG="CapabilitiesActivity";
+public class CalibrateActivity extends WalleSensoryServerClient  {
+	final static String LOGTAG="CalibrateActivity";
 	
-/*
-	#define PowerChangedColor QColor(Qt::green)
-	#define UnconnectedStateColor QColor(Qt::gray)
-	#define HostLookupStateColor QColor(Qt::magenta)
-	#define ConnectingStateColor QColor(Qt::darkMagenta)
-	#define ConnectedStateColor QColor(Qt::darkYellow)
-	#define WritingStateColor QColor(Qt::blue)
-	#define WrittenStateColor QColor(Qt::darkBlue)
-	#define ReadingStateColor QColor(Qt::cyan)
-	#define ReadStateColor QColor(Qt::darkCyan)
-	#define ErrorStateColor QColor(Qt::red)
-	#define ClosingStateColor QColor(Qt::darkGray)
-*/
+
 	final static int boundary=2;
 	
 
-	private TextView mAzimuthField;
-	
-	private TextView mAccelometerXField;
-	private TextView mAccelometerYField;
-	private TextView mAccelometerZField;
-	
-	private static int mConnectionStateColor;
-	private ConnectionState mConnectionState;
-	
+
+
 	private ImageView mWalleImage;
 	private ImageView mEwaImage;
 	
-	private Sensation mDriveSensation;
 	private static Sensation mHearDirectionSensation;
-	private static Sensation mAzimuthSensation;
-	private Sensation mAccelerationSensation;
-	private static Sensation mObservationSensation;
-	private Sensation mPictureSensation;
 	private static Sensation mEmitSensation;
 	
-	private float mTestObservationDirection = (float)-Math.PI;
 
-
-    private PowerManager mPowerManager;
-    private PowerManager.WakeLock mWakeLock;
     
-	private Button mTestButton;
-	private Button mCalibrateButton;
-	private Button mSettingsButton;
-
+	private Button mSensoryButton;
+	private Button mLeftButton;
+	private Button mMiddleButton;
+	private Button mRightButton;
 
 	private static int mSensationNumber = 0;
-
-
-	// Note, custom view class must be static
-	private static class StatusView extends View {
-	    //private ShapeDrawable mDrawable;
-		private Paint p;
-
-	 
-		// CONSTRUCTOR
-		public StatusView(Context context) {
-			super(context);
-	    	Log.d(LOGTAG, "StatusView(Context context)");
-			setFocusable(true);
- 		}
-		
-	    public StatusView(Context context, AttributeSet attr) {
-		    super(context, attr);
-	    	Log.d(LOGTAG, "StatusView(Context context, AttributeSet attr)");
-			setFocusable(true);
-	   }
-	    
- 
-		@Override
-		protected void onDraw(Canvas canvas) {
- 
-			//canvas.drawColor(Color.CYAN);
-			if (p == null) {
-				p = new Paint();
-				// smooth
-				p.setAntiAlias(true);
-				p.setStyle(Paint.Style.FILL); 
-			}
-			//canvas.drawColor(Color.GRAY);
-			p.setColor(mConnectionStateColor);
-			//canvas.drawCircle(20, 20, 5, p);
-			p.setStrokeWidth((float) this.getHeight()/2);
-			canvas.drawCircle(this.getWidth()/2, this.getHeight()/2, this.getHeight()/4, p);
-//			canvas.drawOval(new RectF(0, 0, this.getWidth(), this.getHeight()), p);
-			
-	    	//mDrawable.draw(canvas);
-
-		}
- 
-	}
 	
-	private StatusView mStatusView;
-	
+	private MediaPlayer mMediaPlayer;
 
-	
+
+
+
 
 
 	// Note, custom view class must be static to allow it be initialized from layoyt file
 	private static class World extends View {
-		private CapabilitiesActivity mCapabilitiesActivity=null;	// Note, when this is static class, there are situations
+		private CalibrateActivity mCapabilitiesActivity=null;	// Note, when this is static class, there are situations
 																	// we want to access outer class members.
 																	// All of then can't be changes to static, so
 																	// it's better to use reference to outer class, when needed
@@ -150,6 +79,7 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	    int earH;
 	    int hearingDistance;
 	    Bitmap mEva, mWalle, mEar;
+	    
 	
 	    public World(Context context) {
 	        super(context);
@@ -162,6 +92,7 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	        walleH = mWalle.getHeight();
 	        earW = mEar.getWidth();
 	        earH = mEar.getHeight();
+
 	    }
 
 	    public World(Context context, AttributeSet attr) {
@@ -175,6 +106,8 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	        walleH = mWalle.getHeight();
 	        earW = mEar.getWidth();
 	        earH = mEar.getHeight();
+	        
+
 	    }
 	
 	    @Override
@@ -201,18 +134,10 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	    public void onDraw(Canvas canvas) {
 	        super.onDraw(canvas);
 	        
-	        if (mAzimuthSensation != null)
-	        {
-		        canvas.save(); //Save the position of the canvas.
-		        canvas.rotate((float) Math.toDegrees(mAzimuthSensation.getAzimuth()), X, Y); //Rotate the canvas.
-		        canvas.drawBitmap(mWalle, X - (walleW / 2.0f), Y - (walleH / 2.0f), null); //Draw the Walle on the rotated canvas.
-		        canvas.restore(); //Rotate the canvas back so that it looks like Walle has rotated.
-	        }
-	
 	        //Draw Hearing
-	        if ((mAzimuthSensation != null) && (mHearDirectionSensation != null))
+	        if (mHearDirectionSensation != null)
 	        {
-	        	double angle = (double) (mAzimuthSensation.getAzimuth() + mHearDirectionSensation.getHearDirection()) - Math.PI/2.0d; // convert azimuth coordination to drawing coordination
+	        	double angle =  mHearDirectionSensation.getHearDirection() - Math.PI/2.0d; // convert azimuth coordination to drawing coordination
 	        	float x = (float) ((float)X + (hearingDistance * Math.cos(angle)) - (earW / 2.0f));
 	        	float y = (float) ((float)Y + (hearingDistance * Math.sin(angle)) - (earH / 2.0f));
 		        canvas.drawBitmap(	mEar,
@@ -221,20 +146,8 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 						null); //Draw the mEva on the rotated canvas.
 	        }
 
-	        //Draw mEva
-	        if (mObservationSensation != null)
-	        {
-	        	float h = mObservationSensation.getObservationDistance() * screen/DISTANCE; // hypotenusa as pixels
-	        	double angle = mObservationSensation.getObservationDirection() - Math.PI/2.0d; // convert azimuth coordination to drawing coordination
-	        	float x = (float) ((float)X + (h * Math.cos(angle)) - (evaW / 2.0f));
-	        	float y = (float) ((float)Y + (h * Math.sin(angle)) - (evaH / 2.0f));
-		        canvas.drawBitmap(	mEva,
-    					x,
-    					y,
-						null); //Draw the mEva on the rotated canvas.
-	        }
+	        //Draw Buttons
 
-	        //invalidate();
 	    }
 	    
 	    @Override
@@ -292,73 +205,56 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 		super.onCreate(savedInstanceState);
     	Log.d(LOGTAG, "onCreate()");
     	
-    	mDriveSensation = null;
     	mHearDirectionSensation = null;
-    	mAzimuthSensation = null;
-    	mAccelerationSensation = null;
-    	mObservationSensation = null;
-    	mPictureSensation = null;
 
-    	
-    	mConnectionStateColor = toColor(ConnectionState.NOT_CONNECTED);
-    	
-		setContentView(R.layout.capabilities_main);
-		
-	    
-	    mAzimuthField = (TextView)findViewById(R.id.azimuth_field);
-	    
-	    mAccelometerXField = (TextView)findViewById(R.id.accelerometer_x_field);
-	    mAccelometerYField = (TextView)findViewById(R.id.accelerometer_y_field);
-	    mAccelometerZField = (TextView)findViewById(R.id.accelerometer_z_field);
+   	
+		setContentView(R.layout.capabilities_calibrate);
 	    
 	    mWalleImage = (ImageView)findViewById(R.id.walle_image);
 	    mEwaImage = (ImageView)findViewById(R.id.walle_image);
-		mWorld = (World)findViewById(R.id.world);
+		mWorld = (World)findViewById(R.id.calibrate_world);
 		mWorld.mCapabilitiesActivity = this;	// allow static inner class to accces outer class non static members
 		
-		mTestButton = (Button)findViewById(R.id.test_button);
-		mTestButton.setOnClickListener(new View.OnClickListener() {
+		mSensoryButton = (Button)findViewById(R.id.sensory_button);
+		mSensoryButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-            	mTestObservationDirection += (float) Math.PI/36.0f;
-            	if (mTestObservationDirection > (float) Math.PI)
-            		mTestObservationDirection = (float) -Math.PI;
-            	onSensation(new Sensation(0, Sensation.Memory.Working, Sensation.Direction.In, Sensation.SensationType.Observation, mTestObservationDirection, 4.0f));
-                // Perform action on click
+    	    	Intent launchNewIntent = new Intent(CalibrateActivity.this,CapabilitiesActivity.class);
+    	    	startActivityForResult(launchNewIntent, 0);
             }
         });
 		
-		mCalibrateButton = (Button)findViewById(R.id.calibrate_button);
-		mCalibrateButton.setOnClickListener(new View.OnClickListener() {
+
+		mLeftButton = (Button)findViewById(R.id.left_button);
+		
+		//mMiddleButton = new Button(getContext());;
+		//mMiddleButton.setText(R.string.middle);
+		mMiddleButton = (Button)findViewById(R.id.middle_button);
+		mMiddleButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-    	    	Intent launchNewIntent = new Intent(CapabilitiesActivity.this,CalibrateActivity.class);
-    	    	startActivityForResult(launchNewIntent, 0);
+		    	Log.d(LOGTAG, "mMiddleButton.onClick");
+		    	// here we should report sensation
+		    	mEmitSensation = new Sensation(	++mSensationNumber,
+														Sensation.Memory.Sensory,
+														Sensation.Direction.In,
+														Sensation.SensationType.Observation,
+														0f, 3.0f);
+		    	emitSensation(mEmitSensation);
+		    	//play sound
+		    	mMediaPlayer = MediaPlayer.create(getBaseContext(), R.raw.evesayswalle);
+		    	mMediaPlayer.start();
             }
         });
 
+		
+		mRightButton = (Button)findViewById(R.id.right_button);
 
-		mSettingsButton = (Button)findViewById(R.id.settings_button);
-		mSettingsButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-    	    	Intent launchNewIntent = new Intent(CapabilitiesActivity.this,SettingsActivity.class);
-    	    	startActivityForResult(launchNewIntent, 0);
-            }
-        });
 
-	    
-	    mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
-	    mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "CapabilitiesActivity");
-	    mWakeLock.acquire();
-	    
-    	Log.d(LOGTAG, "onCreate() (StatusView) findViewById(R.id.statusview)");
-	    mStatusView = (CapabilitiesActivity.StatusView) findViewById(R.id.statusview);
-    	Log.d(LOGTAG, "onCreate() done");
 	    
 	}
 	
 	@Override
 	protected void onResume() {
 		super.onResume();
-		mStatusView.invalidate();
 	}
 	
 
@@ -373,7 +269,7 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	public boolean onOptionsItemSelected(MenuItem item){
 	    switch(item.getItemId()){
 	    case R.id.action_settings:
-	    	Intent launchNewIntent = new Intent(CapabilitiesActivity.this,SettingsActivity.class);
+	    	Intent launchNewIntent = new Intent(CalibrateActivity.this,SettingsActivity.class);
 	    	startActivityForResult(launchNewIntent, 0);
 	    	return true;            
 	    }
@@ -416,16 +312,11 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	
 	@Override
 	protected void onAzimuth(float aAzimuth) {
-		mAzimuthField.setText(String.format("%5.2f", aAzimuth));
 		// TODO Auto-generated method stub
-		
 	}
 	@Override
 	protected void onAccelerometer(float[] aAccelerometer) {
-		mAccelometerXField.setText(String.format("%5.2f", aAccelerometer[0]));
-		mAccelometerYField.setText(String.format("%5.2f", aAccelerometer[1]));
-		mAccelometerZField.setText(String.format("%5.2f", aAccelerometer[2]));
-		
+		// TODO Auto-generated method stub
 	}
 	@Override
 	protected void onHost(String aHost) {
@@ -460,26 +351,9 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	    
 	    switch (aSensation.getSensationType())
 	    {
-	    	case Drive:
-	        	mDriveSensation = aSensation;
-	        	break;
 	    	case HearDirection:
 	        	mHearDirectionSensation = aSensation;
 	        	mWorld.invalidate();
-	        	break;
-	    	case Azimuth:
-	        	mAzimuthSensation = aSensation;
-	        	mWorld.invalidate();
-	        	break;
-	    	case Acceleration:
-	        	mAccelerationSensation = aSensation;
-	        	break;
-	    	case Observation:
-	        	mObservationSensation = aSensation;
-	        	mWorld.invalidate();
-	        	break;
-	    	case Picture:
-	        	mPictureSensation = aSensation;
 	        	break;
 	        default:
 	        	break;
@@ -498,45 +372,7 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	
     public void setStatus(ConnectionState aConnectionState) {
     	//Log.d(LOGTAG, "setStatus()");
-    	
-    	mConnectionState = aConnectionState;
-    	mConnectionStateColor = toColor(mConnectionState);
-   		mStatusView.invalidate();
    }
 
-   private int toColor(ConnectionState aConnectionState) {
-    	//Log.d(LOGTAG, "toColor()");
-    	int color = Color.GRAY;
-    	
-    	switch (aConnectionState) {
-    		case NOT_CONNECTED:
-    			color = Color.GRAY;
-    			break;
-    		case CONNECTING:
-    			color = Color.YELLOW;
-    			break;
-    		case CONNECTED:
-    			color = Color.GREEN;
-    			break;
-    		case WRITING:
-    			color = Color.BLUE;
-    			break;
-    		case READING:
-    			color = Color.BLACK;
-    			break;
-    		case NO_HOST:
-    			color = Color.MAGENTA;
-    			break;
-    		case SOCKET_ERROR:
-    			color = Color.RED;
-    			break;
-    		case IO_ERROR:
-    			color = Color.CYAN;
-    		default:
-    			break;
-    	}
-    	
-    	return color;
-   }
 
 }

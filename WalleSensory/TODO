@@ -1,3 +1,4 @@
 Service does not stop
-Threading to write/read sockets
-Reading socket needs more intelligent to assemble sensation from multiple reads
+DONE Threading to write/read sockets 
+DONE Reading socket needs more intelligent to assemble sensation from multiple reads
+Too much logging when socket readings and writings

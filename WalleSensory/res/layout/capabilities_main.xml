@@ -113,8 +113,24 @@
          android:id="@+id/test_button"
          android:layout_width="wrap_content"
          android:layout_height="wrap_content"
-         android:layout_above="@+id/world"
-         android:layout_alignRight="@+id/world"
+         android:layout_alignRight="@+id/statusview"
+         android:layout_alignTop="@+id/statusview"
          android:text="@string/test" />
+
+     <Button
+         android:id="@+id/calibrate_button"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_alignRight="@+id/world"
+         android:layout_alignTop="@+id/walle_image"
+         android:text="@string/calibrate" />
+
+     <Button
+         android:id="@+id/settings_button"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_above="@+id/world"
+         android:layout_alignLeft="@+id/world"
+         android:text="@string/settings" />
      
 </RelativeLayout>
