@@ -16,7 +16,7 @@ class Sensation(object):
     SEPARATOR='|'  # Separator between messages
     SEPARATOR_SIZE=1  # Separator length
    
-    SensationType = enum(Drive='D', Stop='S', Who='W', HearDirection='H', Azimuth='A', Acceleration='G', Observation='O', Picture='P', Capability='C', Unknown='U')
+    SensationType = enum(Drive='D', Stop='S', Who='W', HearDirection='H', Azimuth='A', Acceleration='G', Observation='O', Picture='P', Calibrate='C', Capability='1', Unknown='U')
     Direction = enum(In='I', Out='O')
     Memory = enum(Sensory='S', Working='W', LongTerm='L')
        
@@ -31,6 +31,7 @@ class Sensation(object):
                  hearDirection = 0.0,                                       # sound direction heard by Walle, relative to Walle
                  observationDirection= 0.0,observationDistance=-1.0,        # Walle's observation of something, relative to Walle
                  imageSize=0,                                               # when image is transferred we use size of it technically in transmission
+                 calibrateSensationType = SensationType.Unknown,
                  capabilities = []):                         # capabilitis of sensorys, direction what way sensation go
         self.time = time.time()
         self.number = number
@@ -47,6 +48,7 @@ class Sensation(object):
         self.observationDirection = observationDirection
         self.observationDistance = observationDistance
         self.imageSize = imageSize
+        self.calibrateSensationType = calibrateSensationType
         self.capabilities = capabilities
        
         params = string.split()
@@ -100,6 +102,14 @@ class Sensation(object):
                         if len(params) >= 5:
                             self.imageSize = int(params[4])
                             #print str(self.imageSize)
+                    elif sensationType == Sensation.SensationType.Calibrate:
+                        self.sensationType = Sensation.SensationType.Calibrate
+                        if len(params) >= 5:
+                            self.calibrateSensationType = params[4]
+                            if self.calibrateSensationType == Sensation.SensationType.HearDirection:
+                                if len(params) >= 6:
+                                    self.hearDirection = float(params[5])
+                            #print str(self.capabilities)
                     elif sensationType == Sensation.SensationType.Capability:
                         self.sensationType = Sensation.SensationType.Capability
                         if len(params) >= 5:
@@ -130,6 +140,11 @@ class Sensation(object):
             return str(self.number) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType + ' ' + str(self.observationDirection)+ ' ' + str(self.observationDistance)
         elif self.sensationType == Sensation.SensationType.Picture:
             return str(self.number) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType + ' ' + str(self.imageSize)
+        elif self.sensationType == Sensation.SensationType.Calibrate:
+            if self.calibrateSensationType == Sensation.SensationType.HearDirection:
+                return str(self.number) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType + ' ' + self.calibrateSensationType + ' ' + str(self.hearDirection)
+            else:
+                return str(self.number) + ' ' + self.memory + ' ' + self.direction + ' ' + Sensation.SensationType.Unknown
         elif self.sensationType == Sensation.SensationType.Capability:
             return str(self.number) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType + ' ' + self.getStrCapabilities()
         elif self.sensationType == Sensation.SensationType.Stop:
@@ -235,7 +250,7 @@ if __name__ == '__main__':
     print "str " + str(c)
     c=Sensation(string="13 S I W")
     print "str " + str(c)
-    c=Sensation(string="14 S I H  -0.75")
+    c=Sensation(string="14 S I H -0.75")
     print "str " + str(c)
     c=Sensation(string="15 S I A 0.75")
     print "str " + str(c)
@@ -243,7 +258,9 @@ if __name__ == '__main__':
     print "str " + str(c)
     c=Sensation(string="16 S I P 12300")
     print "str " + str(c)
-    c=Sensation(string="17 oho")
+    c=Sensation(string="17 S I C H -0.75")
+    print "str " + str(c)
+    c=Sensation(string="18 oho")
     print "str " + str(c)
     c=Sensation(string="hupsis oli")
     print "str " + str(c)
@@ -253,7 +270,7 @@ if __name__ == '__main__':
     print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
     
     c=Sensation(number=100, sensationType = 'H', memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, hearDirection = 0.85)
-    print "A str " + str(c)
+    print "H str " + str(c)
     print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
 
     c=Sensation(number=101, sensationType = 'A', memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, azimuth = -0.85)
@@ -267,6 +284,10 @@ if __name__ == '__main__':
     c=Sensation(number=103, sensationType = Sensation.SensationType.Observation, memory = Sensation.Memory.Working, direction = Sensation.Direction.In, observationDirection= -0.85, observationDistance=-3.75)
     print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
 
-    c=Sensation(number=104, sensationType = 'C', memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = [Sensation.SensationType.Drive, Sensation.SensationType.HearDirection, Sensation.SensationType.Azimuth])
+    c=Sensation(number=104, sensationType = 'C', memory = Sensation.Memory.Sensory, calibrateSensationType = 'H', direction = Sensation.Direction.In, hearDirection = 0.85)
     print "C str " + str(c)
+    print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
+
+    c=Sensation(number=105, sensationType = '1', memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = [Sensation.SensationType.Drive, Sensation.SensationType.HearDirection, Sensation.SensationType.Azimuth])
+    print "1 str " + str(c)
     print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))

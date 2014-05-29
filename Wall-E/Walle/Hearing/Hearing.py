@@ -11,8 +11,8 @@ import math
 import time
 import ConfigParser
 
-import Ear
-from Sound import Sound
+from Walle.Hearing.Ear import Ear
+from Walle.Hearing.Sound import Sound
 #from SoundPosition import SoundPosition
 from Walle.Sensation import Sensation
 from Walle.Config import CONFIG_FILE_PATH
@@ -132,8 +132,8 @@ class Hearing(Thread):
 
 
         if self.canRun:
-            self.ear[Hearing.LEFT] = Ear.Ear(id=Hearing.LEFT, name=Hearing.ear_names[Hearing.LEFT], card=left_card, average=Hearing.AVERAGE, sensitivity=Hearing.SENSITIVITY, queue=self.sound_queue) #'Set') # card=alsaaudio.cards()[1]
-            self.ear[Hearing.RIGHT] = Ear.Ear(id=Hearing.RIGHT, name=Hearing.ear_names[Hearing.RIGHT], card=right_card, average=Hearing.AVERAGE, sensitivity=Hearing.SENSITIVITY, queue=self.sound_queue) #'Set') # card=alsaaudio.cards()[2]
+            self.ear[Hearing.LEFT] = Ear(id=Hearing.LEFT, name=Hearing.ear_names[Hearing.LEFT], card=left_card, average=Hearing.AVERAGE, sensitivity=Hearing.SENSITIVITY, queue=self.sound_queue) #'Set') # card=alsaaudio.cards()[1]
+            self.ear[Hearing.RIGHT] = Ear(id=Hearing.RIGHT, name=Hearing.ear_names[Hearing.RIGHT], card=right_card, average=Hearing.AVERAGE, sensitivity=Hearing.SENSITIVITY, queue=self.sound_queue) #'Set') # card=alsaaudio.cards()[2]
         else:
             print "run 'sudo python SetUpEars.py' to set up microphones to enable Hearing"
 

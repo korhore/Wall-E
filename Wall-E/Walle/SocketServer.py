@@ -9,7 +9,7 @@ from Axon import Axon
 from Sensation import Sensation
 from Romeo import Romeo
 from ManualRomeo import ManualRomeo
-from Hearing import Hearing
+from Hearing.Hearing import Hearing
 from threading import Thread
 import signal
 import sys

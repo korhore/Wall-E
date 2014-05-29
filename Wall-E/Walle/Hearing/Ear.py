@@ -16,15 +16,14 @@ from threading import Timer
 from Queue import Queue
 
 from Walle.Sensation import Sensation
-from Sound import Sound
-import Hearing
+from Walle.Hearing.Sound import Sound
 
 class Ear(Thread):
-    average=Hearing.Hearing.AVERAGE;
-    
+
+    log = True
 
     def __init__(self, id, name, queue, card='default', channels=1, rate=44100, format=alsaaudio.PCM_FORMAT_S16_LE,
-                 global_average = True, average=0.0, sensitivity=2.0):
+                 average=0.0, sensitivity=2.0):
         Thread.__init__(self)
         self.id=id
         self.name=name
@@ -44,7 +43,6 @@ class Ear(Thread):
         
         self.queue=queue
  
-        self.global_average = global_average       
         self.average=average;
         self.average_devider = float(rate) * 10.0
         self.short_average=average;
@@ -78,24 +76,9 @@ class Ear(Thread):
         i=0
         for a in aaa:
             square_a = float(a) * float(a)
-            if self.global_average:
-                # global averages for both ears
-                # global average keeps both ears sensitivity in balance
-                # Note, this is not thread safe calculation
-                # two thread are using same variables
-                # but we use this is Raspberry pi, which does not have many cores
-                # and nothing goes very much wrong, then if thread change will happen in middle of calculation and
-                # it is better that this is quick calculation so, long explanation
-                # better do this this way
-                Ear.average = math.sqrt(( (Ear.average * Ear.average * (self.average_devider - 1.0))  + square_a)/self.average_devider)
-                self.average = Ear.average
-            else:
-                # if microphones are not equal, then we must use separate average
-                # it is not best situation, because it can happen that ears hear different level sounds, so they sensitivity may not be in balance in best way
-                # but if you don't have two equal microphones, this still may work good enough
-                self.average = math.sqrt(( (self.average * self.average * (self.average_devider - 1.0))  + square_a)/self.average_devider)
+            self.average = math.sqrt(( (self.average * self.average * (self.average_devider - 1.0))  + square_a)/self.average_devider)
             self.short_average = math.sqrt(( (self.short_average * self.short_average * (self.short_average_devider - 1.0))  + square_a)/self.short_average_devider)
-            if Hearing.Hearing.log and time.time() > self.debug_time + 60.0:
+            if Ear.log and time.time() > self.debug_time + 60.0:
             #if Hearing.Hearing.log:
             #if time.time() > self.debug_time + 6.0:
                 print "Ear " + self.name + " time.time() " + time.ctime(time.time()) + ' self.debug_time ' + time.ctime(self.debug_time)

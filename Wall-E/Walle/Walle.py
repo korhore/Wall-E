@@ -12,7 +12,7 @@ from SocketServer import SocketServer
 from Sensation import Sensation
 from Romeo import Romeo
 from ManualRomeo import ManualRomeo
-from Hearing import Hearing
+from Hearing.Hearing import Hearing
 from threading import Thread
 from threading import Timer
 import signal
@@ -63,6 +63,7 @@ class WalleServer(Thread):
         Thread.__init__(self)
         self.name = "WalleServer"
        
+        self.number=0
         self.azimuth=0.0                # position sense, azimuth from north
         self.turning_to_object = False  # Are we turning to see an object
         self.hearing_angle = 0.0        # device hears sound from this angle, device looks to its front
@@ -73,8 +74,8 @@ class WalleServer(Thread):
         self.rightPower = 0.0
         
         self.number = 0
-        self.in_axon = Axon()       # global queue for senses to put sensations
-        self.out_axon = Axon()      # global queue for senses to put sensations
+        self.in_axon = Axon()       # global queue for senses to put sensations to walle
+        self.out_axon = Axon()      # global queue for walle to put sensations to external senses
 
         # starting build in capabilities/senses
         # we have capability to move
@@ -130,17 +131,29 @@ class WalleServer(Thread):
             print "Walleserver.process Sensation.SensationType.Who"
         elif sensation.getSensationType() == Sensation.SensationType.HearDirection:
             print "Walleserver.process Sensation.SensationType.HearDirection"
+            #inform external senses that we remember now hearing          
+            self.out_axon.put(sensation)
             self.hearing_angle = sensation.getHearDirection()
             self.observation_angle = self.add_radian(original_radian=self.azimuth, added_radian=self.hearing_angle) # object in this angle
-            self.in_axon.put(Sensation(sensationType = Sensation.SensationType.Observation,
+            print "Walleserver.process create Sensation.SensationType.Observation"
+            self.in_axon.put(Sensation(number=++self.number,
+                                       sensationType = Sensation.SensationType.Observation,
                                        observationDirection= self.observation_angle,
                                        observationDistance=WalleServer.DEFAULT_OBSERVATION_DISTANCE))
+            # mark hearing sensation to be processed to set direction out of memory, we forget it
+            sensation.setDirection(Sensation.Direction.Out)
+            #inform external senses that we don't remember hearing any more           
+            self.out_axon.put(sensation)
         elif sensation.getSensationType() == Sensation.SensationType.Azimuth:
             print "Walleserver.process Sensation.SensationType.Azimuth"
+            #inform external senses that we remember now azimuth          
+            #self.out_axon.put(sensation)
             self.azimuth = sensation.getAzimuth()
             self.turn()
         elif sensation.getSensationType() == Sensation.SensationType.Observation:
             print "Walleserver.process Sensation.SensationType.Observation"
+            #inform external senses that we remember now observation          
+            self.out_axon.put(sensation)
             self.observation_angle = sensation.getObservationDirection()
             self.turn()
         elif sensation.getSensationType() == Sensation.SensationType.Picture:

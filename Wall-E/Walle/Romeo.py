@@ -97,7 +97,7 @@ def main():
 
 
 class Romeo:
-    MINPOWER=0.25
+    MINPOWER=0.60
  
     def __init__(self):
  
