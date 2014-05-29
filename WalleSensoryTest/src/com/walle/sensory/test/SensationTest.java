@@ -70,6 +70,18 @@ public class SensationTest extends TestCase {
 		assertTrue("SensationType should be Picture", s.getSensationType() == SensationType.Picture);
 		assertEquals("ImageSize should be 12300", 12300, s.getImageSize());
 
+		s = new Sensation("19 S I C H -0.75");
+		assertEquals("number should be 19", 19, s.getNumber());
+		assertTrue("SensationType should be Calibrate", s.getSensationType() == SensationType.Calibrate);
+		assertTrue("Calibrate SensationType should be Hear", s.getCalibrateSensationType() == SensationType.HearDirection);
+		assertEquals("Hear should be -0.75", -0.75f, s.getHearDirection(), 0.0001f);
+
+		// Calibrate tests for sensation types that are not supported yet
+		s = new Sensation("20 S I C O -0.75");
+		assertEquals("number should be 20", 20, s.getNumber());
+		assertTrue("SensationType should be Unknown", s.getSensationType() == SensationType.Unknown);
+
+
 		try
 		{
 			s = new Sensation("18 oho");
