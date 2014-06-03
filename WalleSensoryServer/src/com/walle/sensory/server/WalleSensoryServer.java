@@ -579,6 +579,8 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 			report(mConnectionState);
         	createConnection();
 		}
+		
+		/* What's this? Why we are echoing sensations back?
 
 		for (int i=mClients.size()-1; i>=0; i--) {
 			try {
@@ -592,6 +594,7 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 		       	mClients.remove(i);
 		    }
 	    }
+	    */
 	}
 
 	

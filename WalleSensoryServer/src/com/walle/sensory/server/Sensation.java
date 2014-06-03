@@ -145,7 +145,6 @@ public class Sensation extends Object {
 	    	m_observationDirection = 0.0f;
 	    	m_observationDistance = -1.0f;
 	    	m_imageSize = 0;
-	    	m_direction = Direction.In;
 	    	m_calibrateSensationType = SensationType.Unknown;
 	    	m_capabilities = null;
 		} else {
@@ -175,7 +174,6 @@ public class Sensation extends Object {
 	    	m_observationDirection = 0.0f;
 	    	m_observationDistance = -1.0f;
 	    	m_imageSize = 0;
-	    	m_direction = Direction.In;
 	    	m_calibrateSensationType = SensationType.Unknown;
 	    	m_capabilities = null;
 	    	if (a_sensationType == SensationType.Drive) {
@@ -215,7 +213,6 @@ public class Sensation extends Object {
 	    	m_observationDirection = 0.0f;
 	    	m_observationDistance = -1.0f;
 	    	m_imageSize = 0;
-	    	m_direction = Direction.In;
 	    	m_calibrateSensationType = SensationType.Unknown;
 	    	m_capabilities = null;
 	    	if (a_sensationType == SensationType.HearDirection) {
@@ -253,7 +250,6 @@ public class Sensation extends Object {
 	    	m_observationDirection = 0.0f;
 	    	m_observationDistance = -1.0f;
 	    	m_imageSize = 0;
-	    	m_direction = Direction.In;
 	    	m_calibrateSensationType = SensationType.Unknown;
 	    	m_capabilities = null;
 		} else {
@@ -281,7 +277,6 @@ public class Sensation extends Object {
 			m_observationDirection = 0.0f;
 			m_observationDistance = -1.0f;
 			m_imageSize = 0;
-			m_direction = Direction.In;
 			m_calibrateSensationType = a_calibrateSensationType;
 			m_capabilities = null;
 			m_azimuth = 0.0f;
@@ -313,7 +308,6 @@ public class Sensation extends Object {
 	    	m_observationDirection = 0.0f;
 	    	m_observationDistance = -1.0f;
 	    	m_imageSize = 0;
-	    	m_direction = a_direction;
 	    	m_calibrateSensationType = SensationType.Unknown;
 	    	m_capabilities = a_capabilities;
 		} else {
@@ -337,7 +331,6 @@ public class Sensation extends Object {
     	m_observationDirection = 0.0f;
     	m_observationDistance = -1.0f;
 		m_imageSize = 0;
-		m_direction = Direction.In;
     	m_calibrateSensationType = SensationType.Unknown;
 		m_capabilities = null;
 		
