@@ -9,46 +9,72 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".CapabilitiesActivity" >
 
-    <TextView
-        android:id="@+id/sensory_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/sensory"
-        android:textStyle="bold" />
+     <Button
+         android:id="@+id/sensory_button"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_alignParentLeft="true"
+         android:layout_alignParentTop="true"
+         android:layout_marginLeft="5dp"
+         android:text="@string/sensory"
+         android:textStyle="bold" />
 
-	<view
-	    xmlns:android="http://schemas.android.com/apk/res/android"
-	    android:id="@+id/statusview"
-	    android:layout_width="wrap_content"
-	    android:layout_height="wrap_content"
-	    android:layout_alignTop="@+id/sensory_label"
-	    android:layout_alignBottom="@+id/sensory_label"
-        android:layout_alignParentRight="true"
-        android:ems="10"
-	    class="com.walle.sensory.CapabilitiesActivity$StatusView" />
+     <Button
+         android:id="@+id/settings_button"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_alignParentTop="true"
+         android:layout_toRightOf="@+id/sensory_button"
+         android:text="@string/settings" />
+
+      <Button
+         android:id="@+id/calibrate_button"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_alignParentTop="true"
+         android:layout_toRightOf="@+id/settings_button"
+         android:text="@string/calibrate" />
+
+      <Button
+         android:id="@+id/test_button"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_alignParentTop="true"
+         android:layout_toRightOf="@+id/calibrate_button"
+         android:text="@string/test" />
     
-    <TextView
-        android:id="@+id/azimuth_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/sensory_label"
-        android:layout_marginTop="35dp"
-        android:text="@string/azimuth"
-        android:textStyle="bold" />
 
+      <TextView
+         android:id="@+id/azimuth_label"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="22dp"
+         android:layout_below="@+id/sensory_button"
+         android:text="@string/azimuth"
+         android:textStyle="bold" />
+      
      <TextView
-        android:id="@+id/azimuth_field"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/azimuth_label"
-        android:layout_alignBottom="@+id/azimuth_label"
-        android:layout_alignParentRight="true"
-        android:ems="10"
-        android:text="0" />
+         android:id="@+id/azimuth_field"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_above="@+id/accelerometer_label"
+         android:layout_alignLeft="@+id/accelerometer_x_field"
+         android:ems="10"
+         android:text="0" />
 
-         <requestFocus />  -->
+     <view
+         xmlns:android="http://schemas.android.com/apk/res/android"
+         android:id="@+id/statusview"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_above="@+id/accelerometer_label"
+         android:layout_alignLeft="@+id/test_button"
+         android:layout_alignRight="@+id/test_button"
+         android:layout_below="@+id/sensory_button"
+         class="com.walle.sensory.CapabilitiesActivity$StatusView"
+         android:ems="10" />
 
-     <TextView
+      <TextView
          android:id="@+id/accelerometer_label"
          android:layout_width="wrap_content"
          android:layout_height="wrap_content"
@@ -64,7 +90,8 @@
          android:layout_height="wrap_content"
          android:layout_alignBaseline="@+id/accelerometer_label"
          android:layout_alignBottom="@+id/accelerometer_label"
-         android:layout_alignLeft="@+id/azimuth_field"
+         android:layout_toRightOf="@+id/accelerometer_label"
+         android:layout_marginLeft="22dp"
          android:layout_marginRight="10dp"
          android:text="0" />
 
@@ -89,15 +116,6 @@
          android:layout_marginRight="10dp"
          android:layout_toRightOf="@+id/accelerometer_y_field"
          android:text="0" />
-
-     <ImageView
-         android:id="@+id/walle_image"
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         android:layout_below="@+id/accelerometer_label"
-         android:layout_marginTop="16dp"
-         android:layout_toLeftOf="@+id/accelerometer_y_field"
-         android:src="@drawable/walle" />
  
      <view
          android:id="@+id/world"
@@ -108,29 +126,44 @@
          android:layout_alignParentRight="true"
          android:layout_below="@+id/walle_image"
 	     class="com.walle.sensory.CapabilitiesActivity$World" />
-
+     
      <Button
-         android:id="@+id/test_button"
+         android:id="@+id/middle_button"
          android:layout_width="wrap_content"
          android:layout_height="wrap_content"
+         android:layout_alignTop="@+id/world"
+         android:layout_centerHorizontal="true"
+         android:layout_marginTop="36dp"
+         android:text="@string/middle" />
+     
+
+     <ImageView
+         android:id="@+id/walle_image"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_below="@+id/accelerometer_x_field"
+         android:layout_centerHorizontal="true"
+         android:layout_marginTop="14dp"
+         android:src="@drawable/walle" />
+
+     <Button
+         android:id="@+id/left_button"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_alignRight="@+id/sensory_button"
+         android:layout_below="@+id/middle_button"
+         android:layout_alignBaseline="@+id/world"
+         android:layout_marginLeft="32dp"
+         android:text="@string/left" />
+
+     <Button
+         android:id="@+id/right_button"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_alignBaseline="@+id/left_button"
+         android:layout_alignBottom="@+id/left_button"
          android:layout_alignRight="@+id/statusview"
-         android:layout_alignTop="@+id/statusview"
-         android:text="@string/test" />
-
-     <Button
-         android:id="@+id/calibrate_button"
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         android:layout_alignRight="@+id/world"
-         android:layout_alignTop="@+id/walle_image"
-         android:text="@string/calibrate" />
-
-     <Button
-         android:id="@+id/settings_button"
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         android:layout_above="@+id/world"
-         android:layout_alignLeft="@+id/world"
-         android:text="@string/settings" />
+         android:layout_marginRight="32dp"
+         android:text="@string/right" />
      
 </RelativeLayout>

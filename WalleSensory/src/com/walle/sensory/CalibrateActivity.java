@@ -240,8 +240,8 @@ public class CalibrateActivity extends WalleSensoryServerClient  {
 														0f, 3.0f);
 		    	emitSensation(mEmitSensation);
 		    	//play sound
-		    	mMediaPlayer = MediaPlayer.create(getBaseContext(), R.raw.evesayswalle);
-		    	mMediaPlayer.start();
+		    	//mMediaPlayer = MediaPlayer.create(getBaseContext(), R.raw.evesayswalle);
+		    	//mMediaPlayer.start();
             }
         });
 

@@ -8,6 +8,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.util.AttributeSet;
@@ -28,7 +29,11 @@ import com.walle.sensory.server.WalleSensoryServerClient;
 
 
 public class CapabilitiesActivity extends WalleSensoryServerClient  {
+	private enum Functionality {sensory, remoteController, calibrate};
+	
 	final static String LOGTAG="CapabilitiesActivity";
+	
+	private Functionality mFunctionality = Functionality.sensory;
 	
 /*
 	#define PowerChangedColor QColor(Qt::green)
@@ -67,14 +72,23 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	private static Sensation mEmitSensation;
 	
 	private float mTestObservationDirection = (float)-Math.PI;
+	private float mPIPerTwo = (float) Math.PI/2.0f;
 
 
     private PowerManager mPowerManager;
     private PowerManager.WakeLock mWakeLock;
     
-	private Button mTestButton;
-	private Button mCalibrateButton;
+	private Button mSensoryButton;
 	private Button mSettingsButton;
+	private Button mCalibrateButton;
+	private Button mTestButton;
+	
+	private Button mLeftButton;
+	private Button mMiddleButton;
+	private Button mRightButton;
+
+	private MediaPlayer mMediaPlayer;
+	boolean mSayingWalle = false;
 
 
 	private static int mSensationNumber = 0;
@@ -327,6 +341,21 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
             }
         });
 		
+		mSensoryButton = (Button)findViewById(R.id.sensory_button);
+		mSensoryButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+            	setFuctionality(Functionality.sensory);
+            }
+        });
+		
+		mCalibrateButton = (Button)findViewById(R.id.calibrate_button);
+		mCalibrateButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+            	setFuctionality(Functionality.calibrate);
+            }
+        });
+
+/*		
 		mCalibrateButton = (Button)findViewById(R.id.calibrate_button);
 		mCalibrateButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -334,13 +363,59 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
     	    	startActivityForResult(launchNewIntent, 0);
             }
         });
-
+*/
 
 		mSettingsButton = (Button)findViewById(R.id.settings_button);
 		mSettingsButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
     	    	Intent launchNewIntent = new Intent(CapabilitiesActivity.this,SettingsActivity.class);
     	    	startActivityForResult(launchNewIntent, 0);
+            }
+        });
+
+		mLeftButton = (Button)findViewById(R.id.left_button);
+		mLeftButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+		    	Log.d(LOGTAG, "mLeftButton.onClick");
+		    	// here we should report sensation
+		    	mEmitSensation = new Sensation(	++mSensationNumber,
+														Sensation.Memory.Sensory,
+														Sensation.Direction.In,
+														Sensation.SensationType.Calibrate,
+														Sensation.SensationType.HearDirection,
+														-mPIPerTwo);
+		    	emitSensation(mEmitSensation);
+            }
+        });
+		
+		mMiddleButton = (Button)findViewById(R.id.middle_button);
+		mMiddleButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+		    	Log.d(LOGTAG, "mMiddleButton.onClick");
+		    	// here we should report sensation
+		    	mEmitSensation = new Sensation(	++mSensationNumber,
+														Sensation.Memory.Sensory,
+														Sensation.Direction.In,
+														Sensation.SensationType.Calibrate,
+														Sensation.SensationType.HearDirection,
+														0.0f);
+		    	emitSensation(mEmitSensation);
+            }
+        });
+
+		
+		mRightButton = (Button)findViewById(R.id.right_button);
+		mRightButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+		    	Log.d(LOGTAG, "mRightButton.onClick");
+		    	// here we should report sensation
+		    	mEmitSensation = new Sensation(	++mSensationNumber,
+														Sensation.Memory.Sensory,
+														Sensation.Direction.In,
+														Sensation.SensationType.Calibrate,
+														Sensation.SensationType.HearDirection,
+														mPIPerTwo);
+		    	emitSensation(mEmitSensation);
             }
         });
 
@@ -354,6 +429,48 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
     	Log.d(LOGTAG, "onCreate() done");
 	    
 	}
+	
+	private void playSayWalle() {
+    	//play sound
+    	mMediaPlayer = MediaPlayer.create(getBaseContext(), R.raw.evesayswalle);
+    	mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+    		public void onCompletion(MediaPlayer aMediaPlayer) {
+    			mSayingWalle = false;
+    			mMediaPlayer.release();
+    			// stop calibrating
+		    	mEmitSensation = new Sensation(	++mSensationNumber,
+						Sensation.Memory.Sensory,
+						Sensation.Direction.Out,
+						Sensation.SensationType.Calibrate,
+						Sensation.SensationType.HearDirection,
+						0.0f);
+		    	emitSensation(mEmitSensation);
+
+    		}
+    	});
+		mSayingWalle = true;
+		mMediaPlayer.start();
+
+	}
+	
+	private void setFuctionality(Functionality aFunctionality) {
+		mFunctionality = aFunctionality;
+
+		switch (aFunctionality) {
+		case calibrate:
+			mSensoryButton.setEnabled(true);
+			mCalibrateButton.setEnabled(false);
+			mTestButton.setEnabled(false);
+			break;
+		case sensory:
+		default:
+			mSensoryButton.setEnabled(false);
+			mCalibrateButton.setEnabled(true);
+			mTestButton.setEnabled(true);
+			break;
+		}
+	}
+
 	
 	@Override
 	protected void onResume() {
@@ -480,6 +597,20 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	        	break;
 	    	case Picture:
 	        	mPictureSensation = aSensation;
+	        	break;
+	    	case Calibrate:
+	    		if (aSensation.getDirection() == Sensation.Direction.In) {
+		    		if (!mSayingWalle) {
+		    		    Log.d(LOGTAG, "onSensation Calibrating playSayWalle");
+		    			playSayWalle();
+		    		}
+		    		else {
+		    		    Log.d(LOGTAG, "onSensation Calibrating ignoring when mediaplayer is already active");
+		    		}
+	    		}
+	    		else {
+	    		    Log.d(LOGTAG, "onSensation Calibrating ignoring Direction.Out Calibrating");
+	    		}
 	        	break;
 	        default:
 	        	break;
