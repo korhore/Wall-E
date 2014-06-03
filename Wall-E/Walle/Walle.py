@@ -5,10 +5,8 @@ Updated on Mar 8, 2014
 @author: reijo
 '''
 
-import SocketServer
 from Axon import Axon
 from TCPServer import TCPServer
-from SocketServer import SocketServer
 from Sensation import Sensation
 from Romeo import Romeo
 from ManualRomeo import ManualRomeo
@@ -58,6 +56,8 @@ class WalleServer(Thread):
     FULL_TURN_FACTOR = math.pi * 45.0/180.0
     
     DEFAULT_OBSERVATION_DISTANCE = 3.0
+    
+    ACTION_TIME=10.0
 
     def __init__(self):
         Thread.__init__(self)
@@ -92,7 +92,13 @@ class WalleServer(Thread):
 
         
         self.running=False
-        self.turnTimer = Timer(10.0, self.stopTurn)
+        self.turnTimer = Timer(WalleServer.ACTION_TIME, self.stopTurn)
+        
+        self.calibrating=False
+        self.calibrating_angle = 0.0        # calibrate device hears sound from this angle, device looks to its front
+        self.calibratingTimer = Timer(WalleServer.ACTION_TIME, self.stopCalibrating)
+        print "WalleServer: Calibrate version"
+
 
 
 
@@ -134,16 +140,19 @@ class WalleServer(Thread):
             #inform external senses that we remember now hearing          
             self.out_axon.put(sensation)
             self.hearing_angle = sensation.getHearDirection()
-            self.observation_angle = self.add_radian(original_radian=self.azimuth, added_radian=self.hearing_angle) # object in this angle
-            print "Walleserver.process create Sensation.SensationType.Observation"
-            self.in_axon.put(Sensation(number=++self.number,
-                                       sensationType = Sensation.SensationType.Observation,
-                                       observationDirection= self.observation_angle,
-                                       observationDistance=WalleServer.DEFAULT_OBSERVATION_DISTANCE))
-            # mark hearing sensation to be processed to set direction out of memory, we forget it
-            sensation.setDirection(Sensation.Direction.Out)
-            #inform external senses that we don't remember hearing any more           
-            self.out_axon.put(sensation)
+            if self.calibrating:
+                print "Walleserver.process Calibrating hearing_angle " + str(self.hearing_angle) + " calibrating_angle " + str(self.calibrating_angle)
+            else:
+                self.observation_angle = self.add_radian(original_radian=self.azimuth, added_radian=self.hearing_angle) # object in this angle
+                print "Walleserver.process create Sensation.SensationType.Observation"
+                self.in_axon.put(Sensation(number=++self.number,
+                                           sensationType = Sensation.SensationType.Observation,
+                                           observationDirection= self.observation_angle,
+                                           observationDistance=WalleServer.DEFAULT_OBSERVATION_DISTANCE))
+                # mark hearing sensation to be processed to set direction out of memory, we forget it
+                sensation.setDirection(Sensation.Direction.Out)
+                #inform external senses that we don't remember hearing any more           
+                self.out_axon.put(sensation)
         elif sensation.getSensationType() == Sensation.SensationType.Azimuth:
             print "Walleserver.process Sensation.SensationType.Azimuth"
             #inform external senses that we remember now azimuth          
@@ -158,6 +167,25 @@ class WalleServer(Thread):
             self.turn()
         elif sensation.getSensationType() == Sensation.SensationType.Picture:
             print "Walleserver.process Sensation.SensationType.Picture"
+        elif sensation.getSensationType() == Sensation.SensationType.Calibrate:
+            print "Walleserver.process Sensation.SensationType.Calibrate"
+            if self.turning_to_object:
+                print "Walleserver.process turning_to_object, can't calibrate"
+            else:
+                # allow requester to start calibration activaties
+                if sensation.getDirection() == Sensation.Direction.In:
+                    print "Walleserver.process asked to start calibrating"
+                    self.calibrating = True
+                    sensation.setDirection(Sensation.Direction.In)
+                    self.out_axon.put(sensation)
+                    self.calibratingTimer = Timer(WalleServer.ACTION_TIME, self.stopCalibrating)
+                    self.calibratingTimer.start()
+                else:
+                    print "Walleserver.process asked to stop calibrating"
+                    self.calibrating = False
+                    self.calibratingTimer.cancel()
+
+
         elif sensation.getSensationType() == Sensation.SensationType.Capability:
             print "Walleserver.process Sensation.SensationType.Capability"
         elif sensation.getSensationType() == Sensation.SensationType.Unknown:
@@ -192,7 +220,7 @@ class WalleServer(Thread):
                 sensation, picture = self.romeo.processSensation(Sensation(number=self.number, sensationType='D', leftPower = self.leftPower, rightPower = self.rightPower))
                 self.leftPower = sensation.getLeftPower()           # set motors in opposite power to turn in place
                 self.rightPower = sensation.getRightPower()           # set motors in opposite power to turn in place
-                self.turnTimer = Timer(10.0, self.stopTurn)
+                self.turnTimer = Timer(WalleServer.ACTION_TIME, self.stopTurn)
                 self.turnTimer.start()
 
             
@@ -213,7 +241,11 @@ class WalleServer(Thread):
         self.rightPower = sensation.getRightPower()
         print "WalleServer.stopTurn: powers set to " + str(self.leftPower) + ' ' + str(self.rightPower)
 
-          
+
+    def stopCalibrating(self):
+        self.calibrating=False
+        print "WalleServer.stopCalibrating: Calibrating is stopped/cancelled"
+
 
     def add_radian(self, original_radian, added_radian):
         result = original_radian + added_radian
@@ -283,8 +315,6 @@ def do_server():
 
     print "do_server: create WalleServer"
     walle = WalleServer()
-    #server = WalleSocketServer((HOST, PORT), WalleRequestHandler)
-    #WalleRequestHandler.server = server
 
     succeeded=True
     try:

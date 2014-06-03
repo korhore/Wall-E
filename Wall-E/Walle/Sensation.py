@@ -109,7 +109,7 @@ class Sensation(object):
                             if self.calibrateSensationType == Sensation.SensationType.HearDirection:
                                 if len(params) >= 6:
                                     self.hearDirection = float(params[5])
-                            #print str(self.capabilities)
+                            print str(self.hearDirection)
                     elif sensationType == Sensation.SensationType.Capability:
                         self.sensationType = Sensation.SensationType.Capability
                         if len(params) >= 5:
