@@ -14,7 +14,7 @@ from Config import CONFIG_FILE_PATH
       
 if __name__ == "__main__":
     #main()
-    print "Setting up microprones for Walle-robot"
+    print "Setting up microphones for Walle-robot"
     print
     print 'str(alsaaudio.cards())' + str(alsaaudio.cards())
     print "Your audio cards are:"
@@ -22,7 +22,7 @@ if __name__ == "__main__":
         if card != 'ALSA':
             print card
             
-    print 'Plug LEFT microphone on, unplug righ one if it is plugged, so LEFT microphone can be detected.'
+    print 'Plug LEFT microphone on, unplug right one if it is plugged, so LEFT microphone can be detected.'
     raw_input('Press Return when ready')
     left = None
     for card in alsaaudio.cards():
@@ -52,17 +52,17 @@ if __name__ == "__main__":
         exit(-1)
 
     print
-    print "Microprhones are set"
+    print "Microphones are set"
     print "LEFT microphone is set as " + left
-    print "RIGHT microhrone is set as " + right
+    print "RIGHT microphone is set as " + right
     print
     print "Writing config file"
 
     config = ConfigParser.RawConfigParser()
 
-    config.add_section('Microprhones')
-    config.set('Microprhones', 'left', left)
-    config.set('Microprhones', 'right', right)
+    config.add_section('Microphones')
+    config.set('Microphones', 'left', left)
+    config.set('Microphones', 'right', right)
 
     # Writing our configuration file to 'Walle.cfg'
     with open(CONFIG_FILE_PATH, 'wb') as configfile:
@@ -70,8 +70,8 @@ if __name__ == "__main__":
 
     # Reading our configuration file to 'Walle.cfg'
     config.read(CONFIG_FILE_PATH)
-    print 'From config file: left: ' + config.get('Microprhones', 'left')
-    print 'From config file: right: ' + config.get('Microprhones', 'right')
+    print 'From config file: left: ' + config.get('Microphones', 'left')
+    print 'From config file: right: ' + config.get('Microphones', 'right')
     print "Setting is DONE!"
 
 #         ear1=Ear(card=alsaaudio.cards()[0]) #'Set') # card=alsaaudio.cards()[1]

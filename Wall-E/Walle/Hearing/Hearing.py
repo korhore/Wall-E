@@ -66,16 +66,22 @@ class Hearing(Thread):
     SOUND_LIMIT=EAR_DISTANCE/SOUND_SPEED # time of sound to travel distance of ears
 
     ACCURACYFACTOR = math.pi * 5.0/180.0
-   
+
+    Microphones = 'Microphones'   
     left = 'left'
     right = 'right'
+    calibrating_factor = 'calibrating_factor'
+    calibrating_zero = 'calibrating_zero'
+
     
     LEFT = 0
     RIGHT = 1
     LEN_EARS=2
     
+    CALIBRATING_DEVIDER = 20.0
     
-    ear_names = ['left', 'right']
+    
+    ear_names = [left, right]
 
     def __init__(self, report_queue):
         Thread.__init__(self)
@@ -106,17 +112,32 @@ class Hearing(Thread):
         self.sound[Hearing.RIGHT] = Sound(id=Hearing.RIGHT)
         self.number=0
         
-        config = ConfigParser.RawConfigParser()
+        self.calibrating = False
+        self.calibrating_angle = 0.0
+        self.calibrating_factor = 1.0
+        self.calibrating_zero = 0.0
+
+        
+        self.config = ConfigParser.RawConfigParser()
         try:
-            config.read(CONFIG_FILE_PATH)
-            left_card = config.get('Microprhones', 'left')
+            self.config.read(CONFIG_FILE_PATH)
+            left_card = self.config.get(Hearing.Microphones, Hearing.left)
             if left_card == None:
                 print 'left_card == None'
                 self.canRun = False
-            right_card = config.get('Microprhones', 'right')
+            right_card = self.config.get(Hearing.Microphones, Hearing.right)
             if right_card == None:
                 print 'right_card == None'
                 self.canRun = False
+            try:
+                self.calibrating_zero = self.config.get(Hearing.Microphones, Hearing.calibrating_zero)
+            except ConfigParser.NoOptionError:
+                self.calibrating_zero = 0.0
+            try:
+                self.calibrating_factor = self.config.get(Hearing.Microphones, Hearing.calibrating_factor)
+            except ConfigParser.NoOptionError:
+                self.calibrating_factor = 1.0
+                
         except ConfigParser.MissingSectionHeaderError:
                 print 'ConfigParser.MissingSectionHeaderError'
                 self.canRun = False
@@ -199,6 +220,8 @@ class Hearing(Thread):
             # but we can't be sure, that another sound comes, so we must wait
             #
             # TODO Only got Sound from left/Right  No other sound, no direction
+            # TODO Maybe one ear logic should be ignored before stop of sound, to make logic more simple
+            # because if one ear sound is reported, two ear sound newer even gets change
             if self.sound_status == Hearing.SOUND_ONE_EAR:
                 #print "Sound from " + Hearing.ear_names[id] + " No other sound, no direction, other sound stopped " + str( sound.get_start_time() - other_sound.get_stop_time())
                 if sound.get_start_time() - other_sound.get_stop_time() < Hearing.SOUND_LIMIT:
@@ -206,6 +229,8 @@ class Hearing(Thread):
                         print "Sound from " + Hearing.ear_names[id] + " No other sound, but other sound just stopped " + str( sound.get_start_time() - other_sound.get_stop_time())
                     if self.debug:
                         print "Sound status two ear sound"
+                    if self.calibrating:
+                        self.calibrate_level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
                     self.angle = self.level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
                     if self.debug:
                         print "Sound from " + Hearing.ear_names[id] + " direction by volume level " + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (self.angle)
@@ -232,6 +257,7 @@ class Hearing(Thread):
                         print "Sound direction by timing already reported from " + Hearing.ear_names[id] + " has other sound, direction by timing " + str(other_sound.get_start_time() - sound.get_start_time()) + " degrees " + str (self.angle)
 
             else:
+                # TODO Two eard sound is not needed to calculate yet, here it is calcilated for debug purposes, remove this
                 self.angle = self.level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
                 if Hearing.debug:
                     print "Sound direction by volume level no reported yet from " + Hearing.ear_names[id] + ' ' + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (self.angle)
@@ -241,6 +267,9 @@ class Hearing(Thread):
         if sound.get_state() == Sound.STOP:
             # report one ear sound only rarely, wait better two ear sounds to come
             if (not self.reported) and ((self.sound_status == Hearing.SOUND_TWO_EAR) or ((time.time() - self.report_time) > Hearing.SOUND_ONE_EAR_REPORT_LIMIT)):
+                if self.calibrating:
+                    self.calibrate_level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
+                    self.angle = self.level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
                 if Hearing.debug:
                     print "Sound reported delayed from " + Hearing.ear_names[id] + ' ' + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (self.angle)
                 #self.report_queue.put(SoundPosition(time=self.sound[self.id].get_start_time(), angle=self.angle, type=self.sound_status))
@@ -269,14 +298,37 @@ class Hearing(Thread):
             return 45.0 * math.pi/180.0
         if rightlevel == 0.0:
             return -45.0 * math.pi/180.0
-
-        t = (rightlevel-  leftlevel)/max(leftlevel,rightlevel)
+        
+        t = self.calibrating_factor * (self.calibrating_zero + rightlevel - leftlevel)/max(leftlevel,rightlevel)
         if t < -1.0:
             t = -1.0
         if t > 1.0:
             t = 1.0
             
         return math.asin(t)
+
+    def calibrate_level_to_degrees(self, leftlevel, rightlevel):
+        if (leftlevel != 0.0) and (rightlevel != 0.0):
+            if (self.calibrating_angle != 0.0) and ((self.calibrating_zero + rightlevel - leftlevel) != 0.0):
+                print "Hearing calibrate_level_to_degrees self.calibrating_factor " + str(self.calibrating_factor)
+                calibrating_factor = self.calibrating_angle * max(leftlevel,rightlevel)/(self.calibrating_zero + rightlevel - leftlevel)
+                print "Hearing calibrate_level_to_degrees candidate calibrating_factor " + str(calibrating_factor)
+                self.calibrating_factor = (((Hearing.CALIBRATING_DEVIDER - 1.0) * self.calibrating_factor) + calibrating_factor)/Hearing.CALIBRATING_DEVIDER
+                print "Hearing calibrate_level_to_degrees new self.calibrating_factor " + str(self.calibrating_factor)
+                with open(CONFIG_FILE_PATH, 'wb') as configfile:
+                    self.config.set(Hearing.Microphones, Hearing.calibrating_factor, self.calibrating_factor)
+                    self.config.write(configfile)
+
+            else:
+                print "Hearing calibrate_level_to_degrees self.calibrating_zero " + str(self.calibrating_zero)
+                calibrating_zero = rightlevel - leftlevel
+                print "Hearing calibrate_level_to_degrees candidate calibrating_zero " + str(calibrating_zero)
+                self.calibrating_zero = (((Hearing.CALIBRATING_DEVIDER - 1.0) * self.calibrating_zero) + calibrating_zero)/Hearing.CALIBRATING_DEVIDER
+                print "Hearing calibrate_level_to_degrees new self.calibrating_zero " + str(self.calibrating_zero)
+                with open(CONFIG_FILE_PATH, 'wb') as configfile:
+                    self.config.set(Hearing.Microphones, Hearing.calibrating_zero, self.calibrating_zero)
+                    self.config.write(configfile)
+           
 
     def timing_to_degrees(self, lefttime, righttime):
         t = ((lefttime - righttime)*Hearing.SOUND_SPEED)/Hearing.EAR_DISTANCE
@@ -371,7 +423,9 @@ class Hearing(Thread):
                 if self.reported_level:
                     print "Sound by LEVEL, angle " + str(self.angle)
 
-
+    def setCalibrating(self, calibrating, calibrating_angle):
+        self.calibrating = calibrating
+        self.calibrating_angle = calibrating_angle
  
       
 if __name__ == "__main__":

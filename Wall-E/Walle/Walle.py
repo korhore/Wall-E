@@ -96,7 +96,7 @@ class WalleServer(Thread):
         
         self.calibrating=False
         self.calibrating_angle = 0.0        # calibrate device hears sound from this angle, device looks to its front
-        self.calibratingTimer = Timer(WalleServer.ACTION_TIME, self.stopCalibrating)
+        #self.calibratingTimer = Timer(WalleServer.ACTION_TIME, self.stopCalibrating)
         print "WalleServer: Calibrate version"
 
 
@@ -169,21 +169,33 @@ class WalleServer(Thread):
             print "Walleserver.process Sensation.SensationType.Picture"
         elif sensation.getSensationType() == Sensation.SensationType.Calibrate:
             print "Walleserver.process Sensation.SensationType.Calibrate"
-            if self.turning_to_object:
-                print "Walleserver.process turning_to_object, can't calibrate"
-            else:
-                # allow requester to start calibration activaties
+            if sensation.getMemory() == Sensation.Memory.Working:
                 if sensation.getDirection() == Sensation.Direction.In:
-                    print "Walleserver.process asked to start calibrating"
+                    print "Walleserver.process asked to start calibrating mode"
                     self.calibrating = True
-                    sensation.setDirection(Sensation.Direction.In)
-                    self.out_axon.put(sensation)
-                    self.calibratingTimer = Timer(WalleServer.ACTION_TIME, self.stopCalibrating)
-                    self.calibratingTimer.start()
                 else:
-                    print "Walleserver.process asked to stop calibrating"
+                    print "Walleserver.process asked to stop calibrating mode"
                     self.calibrating = False
-                    self.calibratingTimer.cancel()
+            elif sensation.getMemory() == Sensation.Memory.Sensory:
+                if self.calibrating:
+                    if self.turning_to_object:
+                        print "Walleserver.process turning_to_object, can't start calibrate activity yet"
+                    else:
+                        # allow requester to start calibration activaties
+                        if sensation.getDirection() == Sensation.Direction.In:
+                            print "Walleserver.process asked to start calibrating activity"
+                            self.calibrating_angle = sensation.getHearDirection()
+                            self.hearing.setCalibrating(calibrating=True, calibrating_angle=self.calibrating_angle)
+                            sensation.setDirection(Sensation.Direction.In)
+                            self.out_axon.put(sensation)
+                            #self.calibratingTimer = Timer(WalleServer.ACTION_TIME, self.stopCalibrating)
+                            #self.calibratingTimer.start()
+                        else:
+                            print "Walleserver.process asked to stop calibrating activity"
+                            self.hearing.setCalibrating(calibrating=False, calibrating_angle=self.calibrating_angle)
+                            #self.calibratingTimer.cancel()
+                else:
+                    print "Walleserver.process asked calibrating activity WITHOUT calibrate mode, IGNORED"
 
 
         elif sensation.getSensationType() == Sensation.SensationType.Capability:
@@ -242,9 +254,9 @@ class WalleServer(Thread):
         print "WalleServer.stopTurn: powers set to " + str(self.leftPower) + ' ' + str(self.rightPower)
 
 
-    def stopCalibrating(self):
-        self.calibrating=False
-        print "WalleServer.stopCalibrating: Calibrating is stopped/cancelled"
+ #   def stopCalibrating(self):
+ #       self.calibrating=False
+ #       print "WalleServer.stopCalibrating: Calibrating mode is stopped/cancelled"
 
 
     def add_radian(self, original_radian, added_radian):
