@@ -33,7 +33,7 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	
 	final static String LOGTAG="CapabilitiesActivity";
 	
-	private Functionality mFunctionality = Functionality.sensory;
+	private static Functionality mFunctionality = Functionality.sensory;
 	
 /*
 	#define PowerChangedColor QColor(Qt::green)
@@ -63,12 +63,13 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	private ImageView mWalleImage;
 	private ImageView mEwaImage;
 	
-	private Sensation mDriveSensation;
+	private static Sensation mDriveSensation;
 	private static Sensation mHearDirectionSensation;
+	private static Sensation mCalibrateHearDirectionSensation;
 	private static Sensation mAzimuthSensation;
-	private Sensation mAccelerationSensation;
+	private static Sensation mAccelerationSensation;
 	private static Sensation mObservationSensation;
-	private Sensation mPictureSensation;
+	private static Sensation mPictureSensation;
 	private static Sensation mEmitSensation;
 	
 	private float mTestObservationDirection = (float)-Math.PI;
@@ -214,39 +215,59 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	    @Override
 	    public void onDraw(Canvas canvas) {
 	        super.onDraw(canvas);
-	        
-	        if (mAzimuthSensation != null)
-	        {
-		        canvas.save(); //Save the position of the canvas.
-		        canvas.rotate((float) Math.toDegrees(mAzimuthSensation.getAzimuth()), X, Y); //Rotate the canvas.
-		        canvas.drawBitmap(mWalle, X - (walleW / 2.0f), Y - (walleH / 2.0f), null); //Draw the Walle on the rotated canvas.
-		        canvas.restore(); //Rotate the canvas back so that it looks like Walle has rotated.
-	        }
-	
-	        //Draw Hearing
-	        if ((mAzimuthSensation != null) && (mHearDirectionSensation != null))
-	        {
-	        	double angle = (double) (mAzimuthSensation.getAzimuth() + mHearDirectionSensation.getHearDirection()) - Math.PI/2.0d; // convert azimuth coordination to drawing coordination
-	        	float x = (float) ((float)X + (hearingDistance * Math.cos(angle)) - (earW / 2.0f));
-	        	float y = (float) ((float)Y + (hearingDistance * Math.sin(angle)) - (earH / 2.0f));
-		        canvas.drawBitmap(	mEar,
-    					x,
-    					y,
-						null); //Draw the mEva on the rotated canvas.
-	        }
 
-	        //Draw mEva
-	        if (mObservationSensation != null)
-	        {
-	        	float h = mObservationSensation.getObservationDistance() * screen/DISTANCE; // hypotenusa as pixels
-	        	double angle = mObservationSensation.getObservationDirection() - Math.PI/2.0d; // convert azimuth coordination to drawing coordination
-	        	float x = (float) ((float)X + (h * Math.cos(angle)) - (evaW / 2.0f));
-	        	float y = (float) ((float)Y + (h * Math.sin(angle)) - (evaH / 2.0f));
-		        canvas.drawBitmap(	mEva,
-    					x,
-    					y,
-						null); //Draw the mEva on the rotated canvas.
-	        }
+		    if (mFunctionality == Functionality.sensory) {
+		        //Draw Walle
+		        if (mAzimuthSensation != null)
+		        {
+			        canvas.save(); //Save the position of the canvas.
+			        canvas.rotate((float) Math.toDegrees(mAzimuthSensation.getAzimuth()), X, Y); //Rotate the canvas.
+			        canvas.drawBitmap(mWalle, X - (walleW / 2.0f), Y - (walleH / 2.0f), null); //Draw the Walle on the rotated canvas.
+			        canvas.restore(); //Rotate the canvas back so that it looks like Walle has rotated.
+		        }
+		
+		        //Draw Hearing
+		        if ((mAzimuthSensation != null) && (mHearDirectionSensation != null))
+		        {
+		        	double angle = (double) (mAzimuthSensation.getAzimuth() + mHearDirectionSensation.getHearDirection()) - Math.PI/2.0d; // convert azimuth coordination to drawing coordination
+		        	float x = (float) ((float)X + (hearingDistance * Math.cos(angle)) - (earW / 2.0f));
+		        	float y = (float) ((float)Y + (hearingDistance * Math.sin(angle)) - (earH / 2.0f));
+			        canvas.drawBitmap(	mEar,
+	    					x,
+	    					y,
+							null); //Draw the mEva on the rotated canvas.
+		        }
+	
+		        //Draw mEva
+		        if (mObservationSensation != null)
+		        {
+		        	float h = mObservationSensation.getObservationDistance() * screen/DISTANCE; // hypotenusa as pixels
+		        	double angle = mObservationSensation.getObservationDirection() - Math.PI/2.0d; // convert azimuth coordination to drawing coordination
+		        	float x = (float) ((float)X + (h * Math.cos(angle)) - (evaW / 2.0f));
+		        	float y = (float) ((float)Y + (h * Math.sin(angle)) - (evaH / 2.0f));
+			        canvas.drawBitmap(	mEva,
+	    					x,
+	    					y,
+							null); //Draw the mEva on the rotated canvas.
+		        }
+		    } else if (mFunctionality == Functionality.calibrate) {
+		        //Draw Walle
+		        canvas.drawBitmap(mWalle, X - (walleW / 2.0f), Y - (walleH / 2.0f), null); //Draw the Walle on the non rotated canvas.
+		
+		        //Draw Hearing
+		        if (mCalibrateHearDirectionSensation != null)
+		        {
+		        	double angle = (double) mCalibrateHearDirectionSensation .getHearDirection() - Math.PI/2.0d; // convert azimuth coordination to drawing coordination
+		        	float x = (float) ((float)X + (hearingDistance * Math.cos(angle)) - (earW / 2.0f));
+		        	float y = (float) ((float)Y + (hearingDistance * Math.sin(angle)) - (earH / 2.0f));
+			        canvas.drawBitmap(	mEar,
+	    					x,
+	    					y,
+							null); //Draw the mEar on the canvas.
+		        }
+		    	
+		    }
+
 
 	        //invalidate();
 	    }
@@ -308,6 +329,7 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
     	
     	mDriveSensation = null;
     	mHearDirectionSensation = null;
+    	mCalibrateHearDirectionSensation = null;
     	mAzimuthSensation = null;
     	mAccelerationSensation = null;
     	mObservationSensation = null;
@@ -418,6 +440,8 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 		    	emitSensation(mEmitSensation);
             }
         });
+		
+		setFuctionality(Functionality.sensory);
 
 	    
 	    mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
@@ -445,30 +469,67 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 						Sensation.SensationType.HearDirection,
 						0.0f);
 		    	emitSensation(mEmitSensation);
+		    	
+				mLeftButton.setVisibility(View.VISIBLE);
+				mMiddleButton.setVisibility(View.VISIBLE);
+				mRightButton.setVisibility(View.VISIBLE);
+
 
     		}
     	});
 		mSayingWalle = true;
 		mMediaPlayer.start();
+		
+		mLeftButton.setVisibility(View.GONE);
+		mMiddleButton.setVisibility(View.GONE);
+		mRightButton.setVisibility(View.GONE);
+
 
 	}
 	
 	private void setFuctionality(Functionality aFunctionality) {
-		mFunctionality = aFunctionality;
-
 		switch (aFunctionality) {
 		case calibrate:
+	    	mEmitSensation = new Sensation(	++mSensationNumber,
+					Sensation.Memory.Working,		// set mode	calibrate, in Walle's working memory is now calibrating task
+					Sensation.Direction.In,
+					Sensation.SensationType.Calibrate,
+					Sensation.SensationType.HearDirection,
+					0f);
+	    	emitSensation(mEmitSensation);
+
 			mSensoryButton.setEnabled(true);
 			mCalibrateButton.setEnabled(false);
 			mTestButton.setEnabled(false);
+			
+			mLeftButton.setVisibility(View.VISIBLE);
+			mMiddleButton.setVisibility(View.VISIBLE);
+			mRightButton.setVisibility(View.VISIBLE);
 			break;
 		case sensory:
 		default:
+			if (mFunctionality == Functionality.calibrate) {
+		    	mEmitSensation = new Sensation(	++mSensationNumber,
+						Sensation.Memory.Working,		// set mode	calibrate off, in Walle's working memory is not any more calibrating task
+						Sensation.Direction.Out,
+						Sensation.SensationType.Calibrate,
+						Sensation.SensationType.HearDirection,
+						0f);
+		    	emitSensation(mEmitSensation);
+				
+			};
 			mSensoryButton.setEnabled(false);
 			mCalibrateButton.setEnabled(true);
 			mTestButton.setEnabled(true);
+			
+			mLeftButton.setVisibility(View.GONE);
+			mMiddleButton.setVisibility(View.GONE);
+			mRightButton.setVisibility(View.GONE);
 			break;
 		}
+		
+		mFunctionality = aFunctionality;
+
 	}
 
 	
@@ -575,45 +636,72 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	    	mWalleImage.setImageMatrix(matrix);
 	    }
 	    
-	    switch (aSensation.getSensationType())
-	    {
-	    	case Drive:
-	        	mDriveSensation = aSensation;
-	        	break;
-	    	case HearDirection:
-	        	mHearDirectionSensation = aSensation;
-	        	mWorld.invalidate();
-	        	break;
-	    	case Azimuth:
-	        	mAzimuthSensation = aSensation;
-	        	mWorld.invalidate();
-	        	break;
-	    	case Acceleration:
-	        	mAccelerationSensation = aSensation;
-	        	break;
-	    	case Observation:
-	        	mObservationSensation = aSensation;
-	        	mWorld.invalidate();
-	        	break;
-	    	case Picture:
-	        	mPictureSensation = aSensation;
-	        	break;
-	    	case Calibrate:
-	    		if (aSensation.getDirection() == Sensation.Direction.In) {
-		    		if (!mSayingWalle) {
-		    		    Log.d(LOGTAG, "onSensation Calibrating playSayWalle");
-		    			playSayWalle();
+	    if (mFunctionality == Functionality.sensory) {
+		    switch (aSensation.getSensationType())
+		    {
+		    	case Drive:
+		        	mDriveSensation = aSensation;
+		        	break;
+		    	case HearDirection:
+		        	mHearDirectionSensation = aSensation;
+		        	mWorld.invalidate();
+		        	break;
+		    	case Azimuth:
+		        	mAzimuthSensation = aSensation;
+		        	mWorld.invalidate();
+		        	break;
+		    	case Acceleration:
+		        	mAccelerationSensation = aSensation;
+		        	break;
+		    	case Observation:
+		        	mObservationSensation = aSensation;
+		        	mWorld.invalidate();
+		        	break;
+		    	case Picture:
+		        	mPictureSensation = aSensation;
+		        	break;
+		    	case Calibrate:
+		    		if (aSensation.getDirection() == Sensation.Direction.In) {
+			    		if (!mSayingWalle) {
+			    		    Log.d(LOGTAG, "onSensation Calibrating playSayWalle");
+			    			playSayWalle();
+			    		}
+			    		else {
+			    		    Log.d(LOGTAG, "onSensation Calibrating ignoring when mediaplayer is already active");
+			    		}
 		    		}
 		    		else {
-		    		    Log.d(LOGTAG, "onSensation Calibrating ignoring when mediaplayer is already active");
+		    		    Log.d(LOGTAG, "onSensation Calibrating ignoring Direction.Out Calibrating");
 		    		}
-	    		}
-	    		else {
-	    		    Log.d(LOGTAG, "onSensation Calibrating ignoring Direction.Out Calibrating");
-	    		}
-	        	break;
-	        default:
-	        	break;
+		        	break;
+		        default:
+		        	break;
+		    }
+	    } else if (mFunctionality == Functionality.calibrate) {
+		    switch (aSensation.getSensationType())
+		    {
+		    	case HearDirection:
+		        	mCalibrateHearDirectionSensation = aSensation;
+		        	mWorld.invalidate();
+		        	break;
+		    	case Calibrate:
+		    		if (aSensation.getDirection() == Sensation.Direction.In) {
+			    		if (!mSayingWalle) {
+			    		    Log.d(LOGTAG, "onSensation Calibrating playSayWalle");
+			    			playSayWalle();
+			    		}
+			    		else {
+			    		    Log.d(LOGTAG, "onSensation Calibrating ignoring when mediaplayer is already active");
+			    		}
+		    		}
+		    		else {
+		    		    Log.d(LOGTAG, "onSensation Calibrating ignoring Direction.Out Calibrating");
+		    		}
+		        	break;
+		        default:
+		        	break;
+		    }
+
 	    }
 
 	    // don't emit sensation, it makes us call back all sensations Walle sends to us.
