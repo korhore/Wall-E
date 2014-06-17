@@ -24,16 +24,18 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.walle.sensory.server.Sensation;
+import com.walle.sensory.server.WalleSensoryServer;
 import com.walle.sensory.server.WalleSensoryServer.ConnectionState;
+import com.walle.sensory.server.WalleSensoryServer.Functionality;
+//import com.walle.sensory.server.WalleSensoryServer.ConnectionState;
 import com.walle.sensory.server.WalleSensoryServerClient;
 
 
 public class CapabilitiesActivity extends WalleSensoryServerClient  {
-	private enum Functionality {sensory, remoteController, calibrate};
 	
 	final static String LOGTAG="CapabilitiesActivity";
 	
-	private static Functionality mFunctionality = Functionality.sensory;
+	private static WalleSensoryServer.Functionality mFunctionality = WalleSensoryServer.Functionality.sensory;
 	
 /*
 	#define PowerChangedColor QColor(Qt::green)
@@ -216,7 +218,7 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	    public void onDraw(Canvas canvas) {
 	        super.onDraw(canvas);
 
-		    if (mFunctionality == Functionality.sensory) {
+		    if (mFunctionality == WalleSensoryServer.Functionality.sensory) {
 		        //Draw Walle
 		        if (mAzimuthSensation != null)
 		        {
@@ -250,7 +252,7 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	    					y,
 							null); //Draw the mEva on the rotated canvas.
 		        }
-		    } else if (mFunctionality == Functionality.calibrate) {
+		    } else if (mFunctionality == WalleSensoryServer.Functionality.calibrate) {
 		        //Draw Walle
 		        canvas.drawBitmap(mWalle, X - (walleW / 2.0f), Y - (walleH / 2.0f), null); //Draw the Walle on the non rotated canvas.
 		
@@ -366,14 +368,14 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 		mSensoryButton = (Button)findViewById(R.id.sensory_button);
 		mSensoryButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-            	setFuctionality(Functionality.sensory);
+            	askFuctionality(WalleSensoryServer.Functionality.sensory);
             }
         });
 		
 		mCalibrateButton = (Button)findViewById(R.id.calibrate_button);
 		mCalibrateButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-            	setFuctionality(Functionality.calibrate);
+            	askFuctionality(WalleSensoryServer.Functionality.calibrate);
             }
         });
 
@@ -441,7 +443,7 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
             }
         });
 		
-		setFuctionality(Functionality.sensory);
+		setFuctionality(WalleSensoryServer.Functionality.sensory);
 
 	    
 	    mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
@@ -487,17 +489,9 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 
 	}
 	
-	private void setFuctionality(Functionality aFunctionality) {
+	private void setFuctionality(WalleSensoryServer.Functionality aFunctionality) {
 		switch (aFunctionality) {
 		case calibrate:
-	    	mEmitSensation = new Sensation(	++mSensationNumber,
-					Sensation.Memory.Working,		// set mode	calibrate, in Walle's working memory is now calibrating task
-					Sensation.Direction.In,
-					Sensation.SensationType.Calibrate,
-					Sensation.SensationType.HearDirection,
-					0f);
-	    	emitSensation(mEmitSensation);
-
 			mSensoryButton.setEnabled(true);
 			mCalibrateButton.setEnabled(false);
 			mTestButton.setEnabled(false);
@@ -508,16 +502,6 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 			break;
 		case sensory:
 		default:
-			if (mFunctionality == Functionality.calibrate) {
-		    	mEmitSensation = new Sensation(	++mSensationNumber,
-						Sensation.Memory.Working,		// set mode	calibrate off, in Walle's working memory is not any more calibrating task
-						Sensation.Direction.Out,
-						Sensation.SensationType.Calibrate,
-						Sensation.SensationType.HearDirection,
-						0f);
-		    	emitSensation(mEmitSensation);
-				
-			};
 			mSensoryButton.setEnabled(false);
 			mCalibrateButton.setEnabled(true);
 			mTestButton.setEnabled(true);
@@ -532,6 +516,28 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 
 	}
 
+	private void askFuctionality(WalleSensoryServer.Functionality aFunctionality) {
+		switch (aFunctionality) {
+		case calibrate:
+	    	mEmitSensation = new Sensation(	++mSensationNumber,
+					Sensation.Memory.Working,		// set mode	calibrate, in Walle's working memory is now calibrating task
+					Sensation.Direction.In,
+					Sensation.SensationType.Calibrate,
+					Sensation.SensationType.HearDirection,
+					0f);
+			break;
+		case sensory:
+		default:
+	    	mEmitSensation = new Sensation(	++mSensationNumber,
+					Sensation.Memory.Working,		// set mode	calibrate off, in Walle's working memory is not any more calibrating task
+					Sensation.Direction.Out,
+					Sensation.SensationType.Calibrate,
+					Sensation.SensationType.HearDirection,
+					0f);
+			break;
+		}
+    	emitSensation(mEmitSensation);
+	}
 	
 	@Override
 	protected void onResume() {
@@ -618,7 +624,7 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 
 
 	@Override
-	protected void onConnectionState(ConnectionState aConnectionState) {
+	protected void onConnectionState(WalleSensoryServer.ConnectionState aConnectionState) {
 	    //Log.d(LOGTAG, "onConnectionState " + aConnectionState.toString());
 		setStatus(aConnectionState);
 	}
@@ -636,7 +642,7 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 	    	mWalleImage.setImageMatrix(matrix);
 	    }
 	    
-	    if (mFunctionality == Functionality.sensory) {
+	    if (mFunctionality == WalleSensoryServer.Functionality.sensory) {
 		    switch (aSensation.getSensationType())
 		    {
 		    	case Drive:
@@ -661,14 +667,19 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 		        	mPictureSensation = aSensation;
 		        	break;
 		    	case Calibrate:
-		    		if (aSensation.getDirection() == Sensation.Direction.In) {
-			    		if (!mSayingWalle) {
-			    		    Log.d(LOGTAG, "onSensation Calibrating playSayWalle");
-			    			playSayWalle();
-			    		}
-			    		else {
-			    		    Log.d(LOGTAG, "onSensation Calibrating ignoring when mediaplayer is already active");
-			    		}
+		    		if (aSensation.getMemory() == Sensation.Memory.Working) {
+		    			if (aSensation.getDirection() == Sensation.Direction.In) {
+		    				setFuctionality(Functionality.calibrate);
+		    			} else {
+		    				setFuctionality(Functionality.sensory);
+		    			}
+//			    		if (!mSayingWalle) {
+//			    		    Log.d(LOGTAG, "onSensation Calibrating playSayWalle");
+//			    			playSayWalle();
+//			    		}
+//			    		else {
+//			    		    Log.d(LOGTAG, "onSensation Calibrating ignoring when mediaplayer is already active");
+//			    		}
 		    		}
 		    		else {
 		    		    Log.d(LOGTAG, "onSensation Calibrating ignoring Direction.Out Calibrating");
@@ -677,7 +688,7 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 		        default:
 		        	break;
 		    }
-	    } else if (mFunctionality == Functionality.calibrate) {
+	    } else if (mFunctionality == WalleSensoryServer.Functionality.calibrate) {
 		    switch (aSensation.getSensationType())
 		    {
 		    	case HearDirection:
@@ -757,5 +768,4 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
     	
     	return color;
    }
-
 }
