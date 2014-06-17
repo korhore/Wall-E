@@ -57,7 +57,7 @@ class WalleServer(Thread):
     
     DEFAULT_OBSERVATION_DISTANCE = 3.0
     
-    ACTION_TIME=10.0
+    ACTION_TIME=1.0
 
     def __init__(self):
         Thread.__init__(self)
@@ -94,7 +94,7 @@ class WalleServer(Thread):
         self.running=False
         self.turnTimer = Timer(WalleServer.ACTION_TIME, self.stopTurn)
         
-        self.calibrating=False
+        self.calibrating=False              # are we calibrating
         self.calibrating_angle = 0.0        # calibrate device hears sound from this angle, device looks to its front
         #self.calibratingTimer = Timer(WalleServer.ACTION_TIME, self.stopCalibrating)
         print "WalleServer: Calibrate version"
@@ -154,17 +154,19 @@ class WalleServer(Thread):
                 #inform external senses that we don't remember hearing any more           
                 self.out_axon.put(sensation)
         elif sensation.getSensationType() == Sensation.SensationType.Azimuth:
-            print "Walleserver.process Sensation.SensationType.Azimuth"
-            #inform external senses that we remember now azimuth          
-            #self.out_axon.put(sensation)
-            self.azimuth = sensation.getAzimuth()
-            self.turn()
+            if not self.calibrating:
+                print "Walleserver.process Sensation.SensationType.Azimuth"
+                #inform external senses that we remember now azimuth          
+                #self.out_axon.put(sensation)
+                self.azimuth = sensation.getAzimuth()
+                self.turn()
         elif sensation.getSensationType() == Sensation.SensationType.Observation:
-            print "Walleserver.process Sensation.SensationType.Observation"
-            #inform external senses that we remember now observation          
-            self.out_axon.put(sensation)
-            self.observation_angle = sensation.getObservationDirection()
-            self.turn()
+            if not self.calibrating:
+                print "Walleserver.process Sensation.SensationType.Observation"
+                #inform external senses that we remember now observation          
+                self.out_axon.put(sensation)
+                self.observation_angle = sensation.getObservationDirection()
+                self.turn()
         elif sensation.getSensationType() == Sensation.SensationType.Picture:
             print "Walleserver.process Sensation.SensationType.Picture"
         elif sensation.getSensationType() == Sensation.SensationType.Calibrate:
@@ -176,6 +178,8 @@ class WalleServer(Thread):
                 else:
                     print "Walleserver.process asked to stop calibrating mode"
                     self.calibrating = False
+                # ask external senses to to set same calibrating mode          
+                self.out_axon.put(sensation)
             elif sensation.getMemory() == Sensation.Memory.Sensory:
                 if self.calibrating:
                     if self.turning_to_object:

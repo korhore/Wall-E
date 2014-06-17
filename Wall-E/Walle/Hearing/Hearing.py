@@ -130,11 +130,11 @@ class Hearing(Thread):
                 print 'right_card == None'
                 self.canRun = False
             try:
-                self.calibrating_zero = self.config.get(Hearing.Microphones, Hearing.calibrating_zero)
+                self.calibrating_zero = self.config.getfloat(Hearing.Microphones, Hearing.calibrating_zero)
             except ConfigParser.NoOptionError:
                 self.calibrating_zero = 0.0
             try:
-                self.calibrating_factor = self.config.get(Hearing.Microphones, Hearing.calibrating_factor)
+                self.calibrating_factor = self.config.getfloat(Hearing.Microphones, Hearing.calibrating_factor)
             except ConfigParser.NoOptionError:
                 self.calibrating_factor = 1.0
                 
