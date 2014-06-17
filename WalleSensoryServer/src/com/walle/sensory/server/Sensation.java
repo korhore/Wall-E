@@ -578,6 +578,14 @@ public class Sensation extends Object {
 		this.m_direction = a_direction;
 	}
 
+	public Memory getMemory() {
+		return m_memory;
+	}
+
+	public void setMemory(Memory a_memory) {
+		this.m_memory = a_memory;
+	}
+
 	public SensationType[] getCapabilities() {
 		return m_capabilities;
 	}

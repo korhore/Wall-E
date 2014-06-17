@@ -19,6 +19,7 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
+import android.view.View;
 
 import com.walle.sensory.server.WalleSensoryServer;
 
@@ -266,6 +267,8 @@ public abstract class WalleSensoryServerClient extends Activity{
 	    	}
     	}
     }
+    
+
 
     public void emitSensation(Sensation aSensation) {
     	if (mService != null) {

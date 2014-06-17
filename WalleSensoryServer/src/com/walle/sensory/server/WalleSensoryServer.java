@@ -11,6 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import com.walle.sensory.server.Sensation.Direction;
 import com.walle.sensory.server.Sensation.Memory;
+import com.walle.sensory.server.Sensation.SensationType;
 
 import android.app.Service;
 import android.content.Context;
@@ -20,6 +21,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -27,11 +29,13 @@ import android.os.Messenger;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.util.Log;
+import android.view.View;
 
 public class WalleSensoryServer extends Service implements SensorEventListener {
 	final String LOGTAG="WalleSensoryServer";
 	
 	public enum ConnectionState {NOT_CONNECTED, NO_HOST, SOCKET_ERROR, IO_ERROR, CONNECTING, CONNECTED, WRITING, READING};
+	public enum Functionality {sensory, calibrate, remoteController};
 
 	final private float kFilteringFactor = 0.1f;
 	// Create a constant to convert nanoseconds to seconds.
@@ -42,6 +46,8 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 	final private float EPSILON = kAzimuthAccuracyFactor;
 	
 
+
+	private static Functionality mFunctionality = Functionality.sensory;
 
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
@@ -82,6 +88,10 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 	private SharedPreferences mPrefs;
 	private SettingsModel mSettingsModel;
     private ArrayList<Messenger> mClients = new ArrayList<Messenger>();
+    
+	private MediaPlayer mMediaPlayer;
+	boolean mSayingWalle = false;
+
     
     
     /**
@@ -597,6 +607,67 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 	    */
 	}
 
+	private void process(Sensation aSensation) {
+		if (aSensation.getSensationType() == SensationType.Calibrate) {
+			if (aSensation.getCalibrateSensationType() == Sensation.SensationType.HearDirection) {
+				if (aSensation.getMemory() == Memory.Working) {
+					if (aSensation.getDirection() == Direction.In) {
+						mFunctionality = Functionality.calibrate;
+				    	Log.d(LOGTAG, "process asked to start calibrate mode");
+					} else {
+				    	Log.d(LOGTAG, "process asked to stop calibrate mode, going to sensory mode" );
+						mFunctionality = Functionality.sensory;
+					}
+				} else if (aSensation.getMemory() == Memory.Sensory) {
+					if (mFunctionality == Functionality.calibrate) {
+				    	Log.d(LOGTAG, "process in calibrate mode" );
+						if (aSensation.getDirection() == Direction.In) {
+					    	Log.d(LOGTAG, "process in calibrate mode, start calibrate activity" );
+			    			playSayWalle();
+
+						} else {
+					    	Log.d(LOGTAG, "process in calibrate mode, stop calibrate activity" );
+							// TODO handle here hearing calibration, saying walle!
+						}
+					} else {
+				    	Log.d(LOGTAG, "process asked to start calibrate activity without sensory mode, ignired" );
+						mFunctionality = Functionality.sensory;
+					}
+	
+				}
+			}
+		} else {
+	    	Log.d(LOGTAG, "process asked to calibrate other than HearDirection, can not calibrate those, ignored" );
+		}
+
+	}
+		
+		private void playSayWalle() {
+	    	//play sound
+			if (mSayingWalle) {
+		    	Log.d(LOGTAG, "playSayWalle asked to play sound, but was already started, ignored");
+			} else {
+		    	mMediaPlayer = MediaPlayer.create(getBaseContext(), R.raw.evesayswalle);
+		    	mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+		    		public void onCompletion(MediaPlayer aMediaPlayer) {
+		    			mSayingWalle = false;
+		    			mMediaPlayer.release();
+		    			// report stoped calibrating action
+		    			report( new Sensation(	++mSensationNumber,
+								Sensation.Memory.Sensory,
+								Sensation.Direction.Out,
+								Sensation.SensationType.Calibrate,
+								Sensation.SensationType.HearDirection,
+								0.0f));
+	
+		    		}
+		    	});
+				mSayingWalle = true;
+				mMediaPlayer.start();
+		    	Log.d(LOGTAG, "playSayWalle started to play sound");
+			}
+		}
+
 	
 	/////////////////////////////////////////////
 	//
@@ -727,6 +798,7 @@ public class WalleSensoryServer extends Service implements SensorEventListener {
 		    		    	    if (sensation_length == 0) {
 		    		    	    	Sensation s = new Sensation(new String(b));
 		    					 	Log.d(LOGTAG, "SocketReader.run read " + s.toString());
+		    					 	process(s);
 		    		    	    	report(s);
 		    		    	    } else {
 			    		    	    Log.d(LOGTAG, "SocketReader.run read Sensation read " + Integer.toString(read) + " ignoring " +  Integer.toString(sensation_length) + " does not match with it, resyncing" );
