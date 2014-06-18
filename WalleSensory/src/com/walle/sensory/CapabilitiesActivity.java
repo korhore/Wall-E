@@ -673,13 +673,6 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 		    			} else {
 		    				setFuctionality(Functionality.sensory);
 		    			}
-//			    		if (!mSayingWalle) {
-//			    		    Log.d(LOGTAG, "onSensation Calibrating playSayWalle");
-//			    			playSayWalle();
-//			    		}
-//			    		else {
-//			    		    Log.d(LOGTAG, "onSensation Calibrating ignoring when mediaplayer is already active");
-//			    		}
 		    		}
 		    		else {
 		    		    Log.d(LOGTAG, "onSensation Calibrating ignoring Direction.Out Calibrating");
@@ -696,17 +689,25 @@ public class CapabilitiesActivity extends WalleSensoryServerClient  {
 		        	mWorld.invalidate();
 		        	break;
 		    	case Calibrate:
-		    		if (aSensation.getDirection() == Sensation.Direction.In) {
-			    		if (!mSayingWalle) {
-			    		    Log.d(LOGTAG, "onSensation Calibrating playSayWalle");
-			    			playSayWalle();
+		    		if (aSensation.getMemory() == Sensation.Memory.Working) {
+		    			if (aSensation.getDirection() == Sensation.Direction.In) {
+		    				setFuctionality(Functionality.calibrate);
+		    			} else {
+		    				setFuctionality(Functionality.sensory);
+		    			}
+		    		} else {
+			    		if (aSensation.getDirection() == Sensation.Direction.In) {
+				    		if (!mSayingWalle) {
+				    		    Log.d(LOGTAG, "onSensation Calibrating playSayWalle");
+				    			playSayWalle();
+				    		}
+				    		else {
+				    		    Log.d(LOGTAG, "onSensation Calibrating ignoring when mediaplayer is already active");
+				    		}
 			    		}
 			    		else {
-			    		    Log.d(LOGTAG, "onSensation Calibrating ignoring when mediaplayer is already active");
+			    		    Log.d(LOGTAG, "onSensation Calibrating ignoring Direction.Out Calibrating");
 			    		}
-		    		}
-		    		else {
-		    		    Log.d(LOGTAG, "onSensation Calibrating ignoring Direction.Out Calibrating");
 		    		}
 		        	break;
 		        default:
