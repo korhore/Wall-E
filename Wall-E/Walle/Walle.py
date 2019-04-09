@@ -97,24 +97,24 @@ class WalleServer(Thread):
         self.calibrating=False              # are we calibrating
         self.calibrating_angle = 0.0        # calibrate device hears sound from this angle, device looks to its front
         #self.calibratingTimer = Timer(WalleServer.ACTION_TIME, self.stopCalibrating)
-        print "WalleServer: Calibrate version"
+        print ("WalleServer: Calibrate version")
 
 
 
 
     def run(self):
-        print "Starting " + self.name
+        print ("Starting " + self.name)
         
         # starting other threads/senders/capabilities
         
         self.running=True
         self.hearing.start()
-        print "WalleServer: starting TCPServer"
+        print ("WalleServer: starting TCPServer")
         self.tcpServer.start()
 
         while self.running:
             sensation=self.in_axon.get()
-            print "WalleServer: got sensation from queue " + str(sensation)
+            print ("WalleServer: got sensation from queue " + str(sensation))
             self.process(sensation)
             # as a test, echo everything to external device
             #self.out_axon.put(sensation)
@@ -127,24 +127,24 @@ class WalleServer(Thread):
             
             
     def process(self, sensation):
-        print "WalleServer.process: " + time.ctime(sensation.getTime()) + ' ' + str(sensation)
+        print ("WalleServer.process: " + time.ctime(sensation.getTime()) + ' ' + str(sensation))
         if sensation.getSensationType() == Sensation.SensationType.Drive:
-            print "Walleserver.process Sensation.SensationType.Drive"
+            print ("Walleserver.process Sensation.SensationType.Drive")
         elif sensation.getSensationType() == Sensation.SensationType.Stop:
-            print "Walleserver.process Sensation.SensationType.Stop"
+            print ("Walleserver.process Sensation.SensationType.Stop")
             self.stop()
         elif sensation.getSensationType() == Sensation.SensationType.Who:
-            print "Walleserver.process Sensation.SensationType.Who"
+            print ("Walleserver.process Sensation.SensationType.Who")
         elif sensation.getSensationType() == Sensation.SensationType.HearDirection:
-            print "Walleserver.process Sensation.SensationType.HearDirection"
+            print ("Walleserver.process Sensation.SensationType.HearDirection")
             #inform external senses that we remember now hearing          
             self.out_axon.put(sensation)
             self.hearing_angle = sensation.getHearDirection()
             if self.calibrating:
-                print "Walleserver.process Calibrating hearing_angle " + str(self.hearing_angle) + " calibrating_angle " + str(self.calibrating_angle)
+                print ("Walleserver.process Calibrating hearing_angle " + str(self.hearing_angle) + " calibrating_angle " + str(self.calibrating_angle))
             else:
                 self.observation_angle = self.add_radian(original_radian=self.azimuth, added_radian=self.hearing_angle) # object in this angle
-                print "Walleserver.process create Sensation.SensationType.Observation"
+                print ("Walleserver.process create Sensation.SensationType.Observation")
                 self.in_axon.put(Sensation(number=++self.number,
                                            sensationType = Sensation.SensationType.Observation,
                                            observationDirection= self.observation_angle,
@@ -155,39 +155,39 @@ class WalleServer(Thread):
                 self.out_axon.put(sensation)
         elif sensation.getSensationType() == Sensation.SensationType.Azimuth:
             if not self.calibrating:
-                print "Walleserver.process Sensation.SensationType.Azimuth"
+                print ("Walleserver.process Sensation.SensationType.Azimuth")
                 #inform external senses that we remember now azimuth          
                 #self.out_axon.put(sensation)
                 self.azimuth = sensation.getAzimuth()
                 self.turn()
         elif sensation.getSensationType() == Sensation.SensationType.Observation:
             if not self.calibrating:
-                print "Walleserver.process Sensation.SensationType.Observation"
+                print ("Walleserver.process Sensation.SensationType.Observation")
                 #inform external senses that we remember now observation          
                 self.out_axon.put(sensation)
                 self.observation_angle = sensation.getObservationDirection()
                 self.turn()
         elif sensation.getSensationType() == Sensation.SensationType.Picture:
-            print "Walleserver.process Sensation.SensationType.Picture"
+            print ("Walleserver.process Sensation.SensationType.Picture")
         elif sensation.getSensationType() == Sensation.SensationType.Calibrate:
-            print "Walleserver.process Sensation.SensationType.Calibrate"
+            print ("Walleserver.process Sensation.SensationType.Calibrate")
             if sensation.getMemory() == Sensation.Memory.Working:
                 if sensation.getDirection() == Sensation.Direction.In:
-                    print "Walleserver.process asked to start calibrating mode"
+                    print ("Walleserver.process asked to start calibrating mode")
                     self.calibrating = True
                 else:
-                    print "Walleserver.process asked to stop calibrating mode"
+                    print ("Walleserver.process asked to stop calibrating mode")
                     self.calibrating = False
                 # ask external senses to to set same calibrating mode          
                 self.out_axon.put(sensation)
             elif sensation.getMemory() == Sensation.Memory.Sensory:
                 if self.calibrating:
                     if self.turning_to_object:
-                        print "Walleserver.process turning_to_object, can't start calibrate activity yet"
+                        print ("Walleserver.process turning_to_object, can't start calibrate activity yet")
                     else:
                         # allow requester to start calibration activaties
                         if sensation.getDirection() == Sensation.Direction.In:
-                            print "Walleserver.process asked to start calibrating activity"
+                            print ("Walleserver.process asked to start calibrating activity")
                             self.calibrating_angle = sensation.getHearDirection()
                             self.hearing.setCalibrating(calibrating=True, calibrating_angle=self.calibrating_angle)
                             sensation.setDirection(Sensation.Direction.In)
@@ -195,30 +195,30 @@ class WalleServer(Thread):
                             #self.calibratingTimer = Timer(WalleServer.ACTION_TIME, self.stopCalibrating)
                             #self.calibratingTimer.start()
                         else:
-                            print "Walleserver.process asked to stop calibrating activity"
+                            print ("Walleserver.process asked to stop calibrating activity")
                             self.hearing.setCalibrating(calibrating=False, calibrating_angle=self.calibrating_angle)
                             #self.calibratingTimer.cancel()
                 else:
-                    print "Walleserver.process asked calibrating activity WITHOUT calibrate mode, IGNORED"
+                    print ("Walleserver.process asked calibrating activity WITHOUT calibrate mode, IGNORED")
 
 
         elif sensation.getSensationType() == Sensation.SensationType.Capability:
-            print "Walleserver.process Sensation.SensationType.Capability"
+            print ("Walleserver.process Sensation.SensationType.Capability")
         elif sensation.getSensationType() == Sensation.SensationType.Unknown:
-            print "Walleserver.process Sensation.SensationType.Unknown"
+            print ("Walleserver.process Sensation.SensationType.Unknown")
   
     def turn(self):
         # calculate new power to turn or continue turning
         self.leftPower, self.rightPower = self.getPower()
         if self.turning_to_object:
-            print "WalleServer.turn: self.hearing_angle " + str(self.hearing_angle) + " self.azimuth " + str(self.azimuth)
-            print "WalleServer.turn: turn to " + str(self.observation_angle)
+            print ("WalleServer.turn: self.hearing_angle " + str(self.hearing_angle) + " self.azimuth " + str(self.azimuth))
+            print ("WalleServer.turn: turn to " + str(self.observation_angle))
             if math.fabs(self.leftPower) < Romeo.MINPOWER or math.fabs(self.rightPower) < Romeo.MINPOWER:
                 self.stopTurn()
-                print "WalleServer.turn: Turn is ended"
+                print ("WalleServer.turn: Turn is ended")
                 self.turnTimer.cancel()
             else:
-                print "WalleServer.turn: powers adjusted to " + str(self.leftPower) + ' ' + str(self.rightPower)
+                print ("WalleServer.turn: powers adjusted to " + str(self.leftPower) + ' ' + str(self.rightPower))
                 self.number = self.number + 1
                 sensation, picture = self.romeo.processSensation(Sensation(number=self.number, sensationType='D', leftPower = self.leftPower, rightPower = self.rightPower))
                 self.leftPower = sensation.getLeftPower()           # set motors in opposite power to turn in place
@@ -231,7 +231,7 @@ class WalleServer(Thread):
                 # if turn, don't hear sound, because we are giving moving sound
                 # we want hear only sounds from other objects
                 self.hearing.setOn(not self.turning_to_object)
-                print "WalleServer.turn: powers initial to " + str(self.leftPower) + ' ' + str(self.rightPower)
+                print ("WalleServer.turn: powers initial to " + str(self.leftPower) + ' ' + str(self.rightPower))
                 self.number = self.number + 1
                 sensation, picture = self.romeo.processSensation(Sensation(number=self.number, sensationType='D', leftPower = self.leftPower, rightPower = self.rightPower))
                 self.leftPower = sensation.getLeftPower()           # set motors in opposite power to turn in place
@@ -244,9 +244,9 @@ class WalleServer(Thread):
         self.turning_to_object = False
         self.leftPower = 0.0           # set motors in opposite power to turn in place
         self.rightPower = 0.0
-        print "WalleServer.stopTurn: Turn is stopped/cancelled"
+        print ("WalleServer.stopTurn: Turn is stopped/cancelled")
             
-        print "WalleServer.stopTurn: powers to " + str(self.leftPower) + ' ' + str(self.rightPower)
+        print ("WalleServer.stopTurn: powers to " + str(self.leftPower) + ' ' + str(self.rightPower))
             
         self.hearing.setOn(not self.turning_to_object)
             
@@ -255,7 +255,7 @@ class WalleServer(Thread):
         sensation, picture = self.romeo.processSensation(Sensation(number=self.number, sensationType='D', leftPower = self.leftPower, rightPower = self.rightPower))
         self.leftPower = sensation.getLeftPower()           # set motors in opposite power to turn in place
         self.rightPower = sensation.getRightPower()
-        print "WalleServer.stopTurn: powers set to " + str(self.leftPower) + ' ' + str(self.rightPower)
+        print ("WalleServer.stopTurn: powers set to " + str(self.leftPower) + ' ' + str(self.rightPower))
 
 
  #   def stopCalibrating(self):
@@ -284,7 +284,7 @@ class WalleServer(Thread):
                 power = -1.0
             if math.fabs(power) < Romeo.MINPOWER:
                 power = 0.0
-            leftPower = power           # set motorn in opposite power to turn in place
+            leftPower = power           # set motor in opposite power to turn in place
             rightPower = -power
         if math.fabs(leftPower) < Romeo.MINPOWER or math.fabs(rightPower) < Romeo.MINPOWER:
             leftPower = 0.0           # set motors in opposite power to turn in place
@@ -308,20 +308,20 @@ class WalleServer(Thread):
 def threaded_server(arg):
     # Activate the server; this will keep running until you
     # interrupt the program with Ctrl-C
-    print "threaded_server: starting server"
+    print ("threaded_server: starting server")
     arg.serve_forever()
-    print "threaded_server: arg.serve_forever() ended"
+    print ("threaded_server: arg.serve_forever() ended")
 
 def signal_handler(signal, frame):
-    print 'signal_handler: You pressed Ctrl+C!'
+    print ('signal_handler: You pressed Ctrl+C!')
     
-    print 'signal_handler: Shutting down sensation server ...'
+    print ('signal_handler: Shutting down sensation server ...')
     WalleRequestHandler.server.serving =False
-    print 'signal_handler: sensation server is down OK'
+    print ('signal_handler: sensation server is down OK')
     
-    print 'signal_handler: Shutting down picture server...'
+    print ('signal_handler: Shutting down picture server...')
     WalleRequestHandler.pictureServer.serving =False
-    print 'signal_handler: picture server is down OK'
+    print ('signal_handler: picture server is down OK')
 
   
 
@@ -329,7 +329,7 @@ def do_server():
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGHUP, signal_handler)
 
-    print "do_server: create WalleServer"
+    print ("do_server: create WalleServer")
     walle = WalleServer()
 
     succeeded=True
@@ -337,19 +337,19 @@ def do_server():
         walle.start()
         
     except Exception: 
-        print "do_server: socket error, exiting"
+        print ("do_server: socket error, exiting")
         succeeded=False
 
     if succeeded:
-        print 'do_server: Press Ctrl+C to Stop'
+        print ('do_server: Press Ctrl+C to Stop')
         
         walle.join()
         
-    print "do_server exit"
+    print ("do_server exit")
     
 def start(is_daemon):
         if is_daemon:
-            print "start: daemon.__file__ " +  daemon.__file__
+            print ("start: daemon.__file__ " +  daemon.__file__)
             stdout=open('/tmp/Wall-E_Server.stdout', 'w+')
             stderr=open('/tmp/Wall-E_Server.stderr', 'w+')
             #remove('/var/run/Wall-E_Server.pid.lock')
@@ -364,31 +364,31 @@ def start(is_daemon):
     
 def stop():
     
-    print "stop: socket.socket(socket.AF_INET, socket.SOCK_STREAM)"
+    print ("stop: socket.socket(socket.AF_INET, socket.SOCK_STREAM)")
     # Create a socket (SOCK_STREAM means a TCP socket)
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     except Exception: 
-        print "stop: socket error"
+        print ("stop: socket error")
 
     
     try:
         # Connect to server and send data
-        print 'stop: sock.connect((localhost, PORT))'
+        print ('stop: sock.connect((localhost, PORT))')
         sock.connect(('localhost', PORT))
-        print "stop: sock.sendall STOP sensation"
+        print ("stop: sock.sendall STOP sensation")
         sock.sendall(str(Sensation(sensationType = 'S')))
     
         # Receive data from the server
-        print "stop: sock.recv(1024)"
+        print ("stop: sock.recv(1024)")
         received = sock.recv(1024)
-        print 'stop: received answer ' + received
+        print ('stop: received answer ' + received)
     except Exception: 
-        print "stop: connect error"
+        print ("stop: connect error")
     finally:
-        print 'stop: sock.close()'
+        print ('stop: sock.close()')
         sock.close()
-    print "stop: end"
+    print ("stop: end")
 
  
 
@@ -396,31 +396,31 @@ def stop():
 if __name__ == "__main__":
     #WalleRequestHandler.romeo = None    # no romeo device connection yet
 
-    print 'Number of arguments:', len(sys.argv), 'arguments.'
-    print 'Argument List:', str(sys.argv)
+    print ('Number of arguments:', len(sys.argv), 'arguments.')
+    print ('Argument List:', str(sys.argv))
     try:
         opts, args = getopt.getopt(sys.argv[1:],"",["start","stop","restart","daemon","manual"])
     except getopt.GetoptError:
-      print sys.argv[0] + '[--start] [--stop] [--restart] [--daemon] [--manual]'
+      print (sys.argv[0] + '[--start] [--stop] [--restart] [--daemon] [--manual]')
       sys.exit(2)
-    print 'opts '+ str(opts)
+    print ('opts '+ str(opts))
     for opt, arg in opts:
-        print 'opt '+ opt
+        print ('opt '+ opt)
         if opt == '--start':
-            print sys.argv[0] + ' start'
+            print (sys.argv[0] + ' start')
             START=True
         elif opt == '--stop':
-            print sys.argv[0] + ' stop'
+            print (sys.argv[0] + ' stop')
             STOP=True
         elif opt == '--restart':
-            print sys.argv[0] + ' restart'
+            print (sys.argv[0] + ' restart')
             STOP=True
             START=True
         elif opt == '--daemon':
-            print sys.argv[0] + ' daemon'
+            print (sys.argv[0] + ' daemon')
             DAEMON=True
         elif opt == '--manual':
-            print sys.argv[0] + ' manual'
+            print (sys.argv[0] + ' manual')
             MANUAL=True
            
     if not START and not STOP:
@@ -431,7 +431,7 @@ if __name__ == "__main__":
     if (START): 
         start(DAEMON)   
              
-    print "__main__ exit"
+    print ("__main__ exit")
     exit()
 
 

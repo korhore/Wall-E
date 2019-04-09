@@ -119,11 +119,11 @@ class Romeo:
         self.oldkey = -1
 
         self.board = pyfirmata.Board(port=self.port, layout=self.romeoLayout)
-        print("Connected to " + PORT)
-        print "Setting up the connection to the board ..."
+        print(("Connected to " + PORT))
+        print("Setting up the connection to the board ...")
         self.it = pyfirmata.util.Iterator(self.board)
         self.it.start()
-        print "Start iterator ..."
+        print("Start iterator ...")
         #for i in range(4,7):
         #    self.board.analog[i].pinMode(i,self.board.OUTPUT)
         
@@ -137,7 +137,7 @@ class Romeo:
         self.board.analog[BUTTON_SENSOR].enable_reporting()
             
     def __del__(self):
-        print "del it and board ..."
+        print("del it and board ...")
         self.board.pass_time(1)
         self.board.exit()
         del self.it
@@ -161,7 +161,7 @@ class Romeo:
         self.pin = self.spinbutton.get_text()
         
     def advance(self, a,b):         #Move forward
-        print "advance" + str(a) + " " + str(b)
+        print("advance" + str(a) + " " + str(b))
         #analogWrite (E1,a);      //PWM Speed Control
         #self.board.analog[E1].write(a) 
         #self.e1.write(float(a)/255.0) 
@@ -177,7 +177,7 @@ class Romeo:
         self.m2.write(1)
         
     def stop(self):         #stop
-        print "stop"
+        print("stop")
 #        self.board.digital[M1].write(0) 
         self.m1.write(0) 
 #        self.board.digital[M2].write(0) 
@@ -192,17 +192,17 @@ class Romeo:
         return -1 # No valid key pressed
     
     def read_button(self):
-        print "Press some button"
+        print("Press some button")
         self.adc_key_in = self.board.analog[BUTTON_SENSOR].read() #read the value from the sensor
         i=0
         while (self.adc_key_in == None) and i < 10:
-            print "self.board.analog[BUTTON_SENSOR].read() == None"
+            print("self.board.analog[BUTTON_SENSOR].read() == None")
             time.sleep(0.50)                # wait for debounce time
             self.adc_key_in = self.board.analog[BUTTON_SENSOR].read() #read the value from the sensor
             i=i+1
 
         if self.adc_key_in == None:
-            print "No value in analog " + str(BUTTON_SENSOR)
+            print("No value in analog " + str(BUTTON_SENSOR))
         else:      
             #get the key */
             self.key = self.get_key(self.adc_key_in) # convert into key press
@@ -213,8 +213,8 @@ class Romeo:
                 if self.key != self.oldkey:       
                     self.oldkey = self.key
                     if self.key >= 0:
-                        print self.adc_key_in
-                        print MSGS[self.key]
+                        print(self.adc_key_in)
+                        print(MSGS[self.key])
             
                         if self.key == 0: #Move Forward
                             pass
@@ -236,38 +236,38 @@ class Romeo:
               # stop();
 
     def processSensation(self, sensation):         #Move forward
-        print "Romeo.processSensation number " + str(sensation.getNumber()) + " Sensation " + sensation.getSensationType() + " getLeftPower " + str(sensation.getLeftPower()) + " getRightPower " + str(sensation.getRightPower())
+        print("Romeo.processSensation number " + str(sensation.getNumber()) + " Sensation " + sensation.getSensationType() + " getLeftPower " + str(sensation.getLeftPower()) + " getRightPower " + str(sensation.getRightPower()))
         if sensation.getSensationType() == Sensation.SensationType.Drive:
-            print "Romeo.processSensation Sensation.SensationType.Drive"
+            print("Romeo.processSensation Sensation.SensationType.Drive")
             #TODO Can't get anything else to worh, than motor is 1.0
             # other way it is stopped
             if sensation.getLeftPower() >= Romeo.MINPOWER:
-                print "Romeo.processSensation Sensation.SensationType.Drive 1 Left " + str(sensation.getLeftPower())
+                print("Romeo.processSensation Sensation.SensationType.Drive 1 Left " + str(sensation.getLeftPower()))
                 self.e2.write(sensation.getLeftPower())
                 self.m2.write(1)
-                print "Romeo.processSensation Sensation.SensationType.Drive self.e2.read() " + str(self.e2.read())
+                print("Romeo.processSensation Sensation.SensationType.Drive self.e2.read() " + str(self.e2.read()))
             elif sensation.getLeftPower() <= -Romeo.MINPOWER:
-                print "Romeo.processSensation Sensation.SensationType.Drive -1 Left " + str(-sensation.getLeftPower())
+                print("Romeo.processSensation Sensation.SensationType.Drive -1 Left " + str(-sensation.getLeftPower()))
                 self.e2.write(-sensation.getLeftPower())
                 self.m2.write(-1)
-                print "Romeo.processSensation Sensation.SensationType.Drive self.e2.read() " + str(self.e2.read())
+                print("Romeo.processSensation Sensation.SensationType.Drive self.e2.read() " + str(self.e2.read()))
             else:
-                print "Romeo.processSensation Sensation.SensationType.Drive Left 0 0"
+                print("Romeo.processSensation Sensation.SensationType.Drive Left 0 0")
                 self.e2.write(0.0)
                 self.m2.write(0)
 
             if sensation.getRightPower() >= Romeo.MINPOWER:
-                print "Romeo.processSensation Sensation.SensationType.Drive 1 Right " + str(sensation.getRightPower())
+                print("Romeo.processSensation Sensation.SensationType.Drive 1 Right " + str(sensation.getRightPower()))
                 self.e1.write(sensation.getRightPower())
                 self.m1.write(1)
-                print "Romeo.processSensation Sensation.SensationType.Drive self.e2.read() " + str(self.e2.read())
+                print("Romeo.processSensation Sensation.SensationType.Drive self.e2.read() " + str(self.e2.read()))
             elif sensation.getRightPower() <= -Romeo.MINPOWER:
-                print "Romeo.processSensation Sensation.SensationType.Drive -1 Right " + str(-sensation.getRightPower())
+                print("Romeo.processSensation Sensation.SensationType.Drive -1 Right " + str(-sensation.getRightPower()))
                 self.e1.write(-sensation.getRightPower())
                 self.m1.write(-1)
-                print "Romeo.processSensation Sensation.SensationType.Drive self.e2.read() " + str(self.e2.read())
+                print("Romeo.processSensation Sensation.SensationType.Drive self.e2.read() " + str(self.e2.read()))
             else:
-                print "Romeo.processSensation Sensation.SensationType.Drive 0 Right 0"
+                print("Romeo.processSensation Sensation.SensationType.Drive 0 Right 0")
                 self.e1.write(0.0)
                 self.m1.write(0)
 
@@ -276,7 +276,7 @@ class Romeo:
         return sensation, ""
 
     def test(self):
-        print "Romeo.test 1"
+        print("Romeo.test 1")
         self.board.digital[E1].mode = SERVO
         self.e2.mode = SERVO
         for i in range(0,180):
@@ -291,10 +291,10 @@ class Romeo:
             self.e2.write(i)
             self.board.digital[M2].write(-1)
             sleep(0.015)
-        print "Romeo.test 1 end"
+        print("Romeo.test 1 end")
         
     def test2(self):
-        print "Romeo.test 2"
+        print("Romeo.test 2")
         self.e1.mode = SERVO
         self.e2.mode = SERVO
         for i in range(0,255):
@@ -309,7 +309,7 @@ class Romeo:
             self.e2.write(i)
             self.m2.write(-1)
             sleep(0.015)
-        print "Romeo.test 2 end"
+        print("Romeo.test 2 end")
 
 if __name__ == '__main__':
     main()

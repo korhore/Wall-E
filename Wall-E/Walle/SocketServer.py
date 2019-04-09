@@ -37,24 +37,24 @@ class SocketServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServ
         self.running=False
        
     def run(self):
-        print "Starting " + self.name
+        print("Starting " + self.name)
         
         # starting other threads/senders/capabilities
         
         self.running=True
  
         while self.running:
-            print "SocketServer waiting size of next Sensation from" + str(self.address)
+            print("SocketServer waiting size of next Sensation from" + str(self.address))
             self.data = self.socket.recv(Sensation.LENGTH_SIZE).strip() # message length section
             if len(self.data) == 0:
                 self.running = False
             else:
-                print "SocketServer Client " + str(self.address) + " wrote " + self.data
+                print("SocketServer Client " + str(self.address) + " wrote " + self.data)
                 length_ok = True
                 try:
                     sensation_length = int(self.data)
                 except:
-                    print "SocketServer Client protocol error, no valid length resyncing" + str(self.address) + " wrote " + self.data
+                    print("SocketServer Client protocol error, no valid length resyncing" + str(self.address) + " wrote " + self.data)
                     length_ok = False
                     
                 if length_ok:
@@ -73,7 +73,7 @@ class SocketServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServ
                     if self.running:
                         #print "SocketServer string " + self.data
                         sensation=Sensation(self.data)
-                        print "SocketServer " + str(sensation)
+                        print("SocketServer " + str(sensation))
                         if sensation.getSensationType() is not Sensation.SensationType.Unknown:
                             self.queue.put(sensation)
             
@@ -97,7 +97,7 @@ class SocketServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServ
         self.socket.close()
 
     def stop(self):
-        print self.name + ":stop" 
+        print(self.name + ":stop") 
         self.socket.sendall(str(Sensation(sensationType = 'S')))
         self.running = False
 

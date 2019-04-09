@@ -13,10 +13,12 @@ import math
 
 from threading import Thread
 from threading import Timer
-from Queue import Queue
+from queue import Queue
 
-from Walle.Sensation import Sensation
-from Walle.Hearing.Sound import Sound
+#from Walle.Sensation import Sensation
+#from .Sensation import Sensation
+#from Walle.Hearing.Sound import Sound
+from .Sound import Sound
 
 class Ear(Thread):
 
@@ -32,7 +34,7 @@ class Ear(Thread):
         self.rate = float(rate)
         #print 'str(alsaaudio.cards())' + str(alsaaudio.cards())
         self.inp = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NORMAL, card)
-        print name + ' card ' + self.inp.cardname()
+        print(name + ' card ' + self.inp.cardname())
         #self.inp = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NONBLOCK)
 
         # Set attributes: Mono, 44100 Hz, 16 bit little endian samples
@@ -81,8 +83,8 @@ class Ear(Thread):
             if Ear.log and time.time() > self.debug_time + 60.0:
             #if Hearing.Hearing.log:
             #if time.time() > self.debug_time + 6.0:
-                print "Ear " + self.name + " time.time() " + time.ctime(time.time()) + ' self.debug_time ' + time.ctime(self.debug_time)
-                print "Ear " + self.name + " average " + str(self.average) + ' short_average ' + str(self.short_average)
+                print("Ear " + self.name + " time.time() " + time.ctime(time.time()) + ' self.debug_time ' + time.ctime(self.debug_time))
+                print("Ear " + self.name + " average " + str(self.average) + ' short_average ' + str(self.short_average))
                 self.debug_time = time.time()
             
             if a > maxim:
@@ -129,7 +131,7 @@ class Ear(Thread):
         if not self.running:
             self.running = True
             self.on=True
-            print "Starting " + self.name
+            print("Starting " + self.name)
             
             len=0
     
@@ -144,17 +146,17 @@ class Ear(Thread):
                     self.values_bytes(data, '<i2')
     
     
-            print "Exiting " + self.name
+            print("Exiting " + self.name)
 
 def stop():
         ear1.stop()
         ear2.stop()
 
 def main():
-        print 'main()'
+        print('main()')
         #signal.signal(signal.SIGINT, signal_handler)
         
-        print 'str(alsaaudio.cards())' + str(alsaaudio.cards())
+        print('str(alsaaudio.cards())' + str(alsaaudio.cards()))
     
         ear1=Ear(card=alsaaudio.cards()[0]) #'Set') # card=alsaaudio.cards()[1]
         ear1.start()
@@ -180,9 +182,9 @@ if __name__ == "__main__":
         
         while(True):
             sound=queue.get()
-            print "Got sound from queue"
+            print("Got sound from queue")
         
-        print "__main__ exit"
+        print("__main__ exit")
         exit()
 
 

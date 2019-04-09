@@ -33,12 +33,12 @@ from Sensation import Sensation
 class ManualRomeo:
  
     def __init__(self):
-        print "ManualRomeo.__init__"
+        print("ManualRomeo.__init__")
  
 
     # needed
     def processSensation(self, sensation):         #Move forward
-        print "ManualRomeo.processSensation number " + str(sensation.getNumber()) + " Sensation " + sensation.getSensationType() + " getLeftPower " + str(sensation.getLeftPower()) + " getRightPower " + str(sensation.getRightPower())
+        print("ManualRomeo.processSensation number " + str(sensation.getNumber()) + " Sensation " + sensation.getSensationType() + " getLeftPower " + str(sensation.getLeftPower()) + " getRightPower " + str(sensation.getRightPower()))
         
         return sensation, ""
 

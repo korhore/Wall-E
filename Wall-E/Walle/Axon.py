@@ -4,7 +4,7 @@ Created on Jan 19, 2014
 @author: reijo
 '''
 
-from Queue import Queue
+from queue import Queue
 from Sensation import Sensation
 
 

@@ -109,7 +109,7 @@ class Sensation(object):
                             if self.calibrateSensationType == Sensation.SensationType.HearDirection:
                                 if len(params) >= 6:
                                     self.hearDirection = float(params[5])
-                            print "Calibrate hearDirection " + str(self.hearDirection)
+                            print(("Calibrate hearDirection " + str(self.hearDirection)))
                     elif sensationType == Sensation.SensationType.Capability:
                         self.sensationType = Sensation.SensationType.Capability
                         if len(params) >= 5:
@@ -124,7 +124,7 @@ class Sensation(object):
                         self.sensationType = Sensation.SensationType.Unknown
                     #print self.sensationType
             except (ValueError):
-                print traceback.format_exc()
+                print((traceback.format_exc()))
                 self.sensationType = Sensation.SensationType.Unknown
                  
     def __str__(self):
@@ -245,49 +245,49 @@ class Sensation(object):
         
 if __name__ == '__main__':
     c=Sensation(string="12 S I D 0.97 0.56")
-    print "str " + str(c)
+    print(("str " + str(c)))
     c=Sensation(string="13 S I S")
-    print "str " + str(c)
+    print(("str " + str(c)))
     c=Sensation(string="13 S I W")
-    print "str " + str(c)
+    print(("str " + str(c)))
     c=Sensation(string="14 S I H -0.75")
-    print "str " + str(c)
+    print("str " + str(c))
     c=Sensation(string="15 S I A 0.75")
-    print "str " + str(c)
+    print("str " + str(c))
     c=Sensation(string="15 W I O 0.75 3.75")
-    print "str " + str(c)
+    print("str " + str(c))
     c=Sensation(string="16 S I P 12300")
-    print "str " + str(c)
+    print("str " + str(c))
     c=Sensation(string="17 S I C H -0.75")
-    print "str " + str(c)
+    print("str " + str(c))
     c=Sensation(string="18 oho")
-    print "str " + str(c)
+    print("str " + str(c))
     c=Sensation(string="hupsis oli")
-    print "str " + str(c)
+    print("str " + str(c))
     
     c=Sensation(number=99, sensationType = 'D', memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, leftPower = 0.77, rightPower = 0.55)
-    print "D str " + str(c)
-    print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
+    print("D str " + str(c))
+    print("str(Sensation(str(c))) " + str(Sensation(string=str(c))))
     
     c=Sensation(number=100, sensationType = 'H', memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, hearDirection = 0.85)
-    print "H str " + str(c)
-    print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
+    print("H str " + str(c))
+    print("str(Sensation(str(c))) " + str(Sensation(string=str(c))))
 
     c=Sensation(number=101, sensationType = 'A', memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, azimuth = -0.85)
-    print "A str " + str(c)
-    print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
+    print("A str " + str(c))
+    print("str(Sensation(str(c))) " + str(Sensation(string=str(c))))
 
     c=Sensation(number=102, sensationType = 'G', memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, accelerationX = -0.85, accelerationY = 2.33, accelerationZ = -0.085)
-    print "G str " + str(c)
-    print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
+    print("G str " + str(c))
+    print("str(Sensation(str(c))) " + str(Sensation(string=str(c))))
 
     c=Sensation(number=103, sensationType = Sensation.SensationType.Observation, memory = Sensation.Memory.Working, direction = Sensation.Direction.In, observationDirection= -0.85, observationDistance=-3.75)
-    print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
+    print("str(Sensation(str(c))) " + str(Sensation(string=str(c))))
 
     c=Sensation(number=104, sensationType = 'C', memory = Sensation.Memory.Sensory, calibrateSensationType = 'H', direction = Sensation.Direction.In, hearDirection = 0.85)
-    print "C str " + str(c)
-    print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
+    print("C str " + str(c))
+    print("str(Sensation(str(c))) " + str(Sensation(string=str(c))))
 
     c=Sensation(number=105, sensationType = '1', memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = [Sensation.SensationType.Drive, Sensation.SensationType.HearDirection, Sensation.SensationType.Azimuth])
-    print "1 str " + str(c)
-    print "str(Sensation(str(c))) " + str(Sensation(string=str(c)))
+    print("1 str " + str(c))
+    print("str(Sensation(str(c))) " + str(Sensation(string=str(c))))

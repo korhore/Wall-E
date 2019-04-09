@@ -6,12 +6,13 @@ Created on Jan 19, 2014
 
 import alsaaudio
 from threading import Thread
-from Queue import Queue
+from queue import Queue
 import math
 import time
-import ConfigParser
+import configparser
 
 from Walle.Hearing.Ear import Ear
+#from .Ear import Ear
 from Walle.Hearing.Sound import Sound
 #from SoundPosition import SoundPosition
 from Walle.Sensation import Sensation
@@ -118,37 +119,37 @@ class Hearing(Thread):
         self.calibrating_zero = 0.0
 
         
-        self.config = ConfigParser.RawConfigParser()
+        self.config = configparser.RawConfigParser()
         try:
             self.config.read(CONFIG_FILE_PATH)
             left_card = self.config.get(Hearing.Microphones, Hearing.left)
             if left_card == None:
-                print 'left_card == None'
+                print('left_card == None')
                 self.canRun = False
             right_card = self.config.get(Hearing.Microphones, Hearing.right)
             if right_card == None:
-                print 'right_card == None'
+                print('right_card == None')
                 self.canRun = False
             try:
                 self.calibrating_zero = self.config.getfloat(Hearing.Microphones, Hearing.calibrating_zero)
-            except ConfigParser.NoOptionError:
+            except configparser.NoOptionError:
                 self.calibrating_zero = 0.0
             try:
                 self.calibrating_factor = self.config.getfloat(Hearing.Microphones, Hearing.calibrating_factor)
-            except ConfigParser.NoOptionError:
+            except configparser.NoOptionError:
                 self.calibrating_factor = 1.0
                 
-        except ConfigParser.MissingSectionHeaderError:
-                print 'ConfigParser.MissingSectionHeaderError'
+        except configparser.MissingSectionHeaderError:
+                print('ConfigParser.MissingSectionHeaderError')
                 self.canRun = False
-        except ConfigParser.NoSectionError:
-                print 'ConfigParser.NoSectionError'
+        except configparser.NoSectionError:
+                print('ConfigParser.NoSectionError')
                 self.canRun = False
-        except ConfigParser.NoOptionError:
-                print 'ConfigParser.NoOptionError'
+        except configparser.NoOptionError:
+                print('ConfigParser.NoOptionError')
                 self.canRun = False
         except :
-                print 'ConfigParser exception'
+                print('ConfigParser exception')
                 self.canRun = False
 
 
@@ -156,7 +157,7 @@ class Hearing(Thread):
             self.ear[Hearing.LEFT] = Ear(id=Hearing.LEFT, name=Hearing.ear_names[Hearing.LEFT], card=left_card, average=Hearing.AVERAGE, sensitivity=Hearing.SENSITIVITY, queue=self.sound_queue) #'Set') # card=alsaaudio.cards()[1]
             self.ear[Hearing.RIGHT] = Ear(id=Hearing.RIGHT, name=Hearing.ear_names[Hearing.RIGHT], card=right_card, average=Hearing.AVERAGE, sensitivity=Hearing.SENSITIVITY, queue=self.sound_queue) #'Set') # card=alsaaudio.cards()[2]
         else:
-            print "run 'sudo python SetUpEars.py' to set up microphones to enable Hearing"
+            print("run 'sudo python SetUpEars.py' to set up microphones to enable Hearing")
 
         
     def stop(self):
@@ -172,7 +173,7 @@ class Hearing(Thread):
     def run(self):
         if self.canRun:
             if Hearing.log:
-                print "Starting " + self.name
+                print("Starting " + self.name)
             
             self.ear[Hearing.LEFT].start()
             self.ear[Hearing.RIGHT].start()
@@ -181,12 +182,12 @@ class Hearing(Thread):
             while self.running:
                 sound=self.sound_queue.get()
                 if Hearing.debug:
-                    print "Got sound from sound_queue " + Hearing.ear_names[sound.get_id()]  + " State " +  sound.get_str_state() + " start_time " + str(sound.get_start_time())  + " duration " + str(sound.get_duration())  + " volume_level " + str(sound.get_volume_level())
+                    print("Got sound from sound_queue " + Hearing.ear_names[sound.get_id()]  + " State " +  sound.get_str_state() + " start_time " + str(sound.get_start_time())  + " duration " + str(sound.get_duration())  + " volume_level " + str(sound.get_volume_level()))
                 # TODO process which ear hears sounds first
                 self.process(sound)
         else:
-            print "Can not start " + self.name
-            print "run 'sudo python SetUpEars.py' to set up microphones to enable Hearing"
+            print("Can not start " + self.name)
+            print("run 'sudo python SetUpEars.py' to set up microphones to enable Hearing")
 
     # TODO Logic           
     def process(self, sound):
@@ -203,12 +204,12 @@ class Hearing(Thread):
             if  self.is_sound[other]:
                 self.sound_status = Hearing.SOUND_TWO_EAR
                 if Hearing.debug:
-                    print "Sound status two ear sound"
+                    print("Sound status two ear sound")
             else:
                 self.sound_status = Hearing.SOUND_ONE_EAR
                 self.id = id        # remember initial ear hears sound first
                 if Hearing.debug:
-                    print "Sound status one ear sound"
+                    print("Sound status one ear sound")
        # if stop or continue and sound has lasted SOUND_LIMIT
         if sound.get_state() == Sound.STOP or (sound.get_state() == Sound.CONTINUE and sound.get_duration() > Hearing.SOUND_LIMIT):
             other_sound=self.sound[other]
@@ -226,23 +227,23 @@ class Hearing(Thread):
                 #print "Sound from " + Hearing.ear_names[id] + " No other sound, no direction, other sound stopped " + str( sound.get_start_time() - other_sound.get_stop_time())
                 if sound.get_start_time() - other_sound.get_stop_time() < Hearing.SOUND_LIMIT:
                     if self.debug:
-                        print "Sound from " + Hearing.ear_names[id] + " No other sound, but other sound just stopped " + str( sound.get_start_time() - other_sound.get_stop_time())
+                        print("Sound from " + Hearing.ear_names[id] + " No other sound, but other sound just stopped " + str( sound.get_start_time() - other_sound.get_stop_time()))
                     if self.debug:
-                        print "Sound status two ear sound"
+                        print("Sound status two ear sound")
                     if self.calibrating:
                         self.calibrate_level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
                     self.angle = self.level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
                     if self.debug:
-                        print "Sound from " + Hearing.ear_names[id] + " direction by volume level " + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (self.angle)
+                        print("Sound from " + Hearing.ear_names[id] + " direction by volume level " + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (self.angle))
                     #self.report_queue.put(SoundPosition(time=self.sound[self.id].get_start_time(), angle=self.angle, type=Hearing.SOUND_TWO_EAR))
                     self.reported_level = True
                     self.report()
                 else:  
                     if self.debug:
-                        print "Sound from " + Hearing.ear_names[id] + " No other sound, no direction, other sound stopped " + str( sound.get_start_time() - other_sound.get_stop_time())
+                        print("Sound from " + Hearing.ear_names[id] + " No other sound, no direction, other sound stopped " + str( sound.get_start_time() - other_sound.get_stop_time()))
                     self.angle = self.single_sound_to_degrees(self.is_sound[Hearing.LEFT], self.is_sound[Hearing.RIGHT])
                     if self.debug:
-                        print "Sound from " + Hearing.ear_names[id] + " single " + str(self.is_sound[Hearing.LEFT]) + ' ' + str(self.is_sound[Hearing.RIGHT]) + " degrees " + str (self.angle)
+                        print("Sound from " + Hearing.ear_names[id] + " single " + str(self.is_sound[Hearing.LEFT]) + ' ' + str(self.is_sound[Hearing.RIGHT]) + " degrees " + str (self.angle))
                     #self.report_queue.put(SoundPosition(self.angle))
             elif math.fabs(other_sound.get_start_time() - sound.get_start_time()) < Hearing.SOUND_LIMIT:
                 if not self.reported_timing: # timing is reported always once per sound, even if by level is reported
@@ -251,16 +252,16 @@ class Hearing(Thread):
                     self.reported_timing = True
                     self.report()
                     if self.debug or self.log:
-                        print "Sound direction by TIMING reported from " + Hearing.ear_names[id] + " has other sound, direction by timing " + str(other_sound.get_start_time() - sound.get_start_time()) + " degrees " + str (self.angle)
+                        print("Sound direction by TIMING reported from " + Hearing.ear_names[id] + " has other sound, direction by timing " + str(other_sound.get_start_time() - sound.get_start_time()) + " degrees " + str (self.angle))
                 else:
                     if self.debug:
-                        print "Sound direction by timing already reported from " + Hearing.ear_names[id] + " has other sound, direction by timing " + str(other_sound.get_start_time() - sound.get_start_time()) + " degrees " + str (self.angle)
+                        print("Sound direction by timing already reported from " + Hearing.ear_names[id] + " has other sound, direction by timing " + str(other_sound.get_start_time() - sound.get_start_time()) + " degrees " + str (self.angle))
 
             else:
                 # TODO Two eard sound is not needed to calculate yet, here it is calcilated for debug purposes, remove this
                 self.angle = self.level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
                 if Hearing.debug:
-                    print "Sound direction by volume level no reported yet from " + Hearing.ear_names[id] + ' ' + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (self.angle)
+                    print("Sound direction by volume level no reported yet from " + Hearing.ear_names[id] + ' ' + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (self.angle))
                 #self.report_queue.put(SoundPosition(self.angle))
                 #self.reported = True
                    
@@ -271,13 +272,13 @@ class Hearing(Thread):
                     self.calibrate_level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
                     self.angle = self.level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
                 if Hearing.debug:
-                    print "Sound reported delayed from " + Hearing.ear_names[id] + ' ' + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (self.angle)
+                    print("Sound reported delayed from " + Hearing.ear_names[id] + ' ' + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (self.angle))
                 #self.report_queue.put(SoundPosition(time=self.sound[self.id].get_start_time(), angle=self.angle, type=self.sound_status))
                 self.reported_level = True
                 self.report()
             else:
                 if Hearing.debug:
-                    print "Sound stopped self.reported " + str(self.reported) + " self.sound_status " + str(self.sound_status) + " (time.time() - self.report_time) " + str((time.time() - self.report_time))
+                    print("Sound stopped self.reported " + str(self.reported) + " self.sound_status " + str(self.sound_status) + " (time.time() - self.report_time) " + str((time.time() - self.report_time)))
                    
                 
             self.is_sound[id] = False
@@ -285,11 +286,11 @@ class Hearing(Thread):
             if self.sound_status == Hearing.SOUND_TWO_EAR:
                 self.sound_status = Hearing.SOUND_ONE_EAR
                 if Hearing.debug:
-                    print "Sound status one ear sound"
+                    print("Sound status one ear sound")
             else:
                 self.sound_status = Hearing.SOUND_STOPPED
                 if Hearing.debug:
-                    print "Sound status stopped sound"
+                    print("Sound status stopped sound")
 
 
             
@@ -310,21 +311,21 @@ class Hearing(Thread):
     def calibrate_level_to_degrees(self, leftlevel, rightlevel):
         if (leftlevel != 0.0) and (rightlevel != 0.0):
             if (self.calibrating_angle != 0.0) and ((self.calibrating_zero + rightlevel - leftlevel) != 0.0):
-                print "Hearing calibrate_level_to_degrees self.calibrating_factor " + str(self.calibrating_factor)
+                print("Hearing calibrate_level_to_degrees self.calibrating_factor " + str(self.calibrating_factor))
                 calibrating_factor = self.calibrating_angle * max(leftlevel,rightlevel)/(self.calibrating_zero + rightlevel - leftlevel)
-                print "Hearing calibrate_level_to_degrees candidate calibrating_factor " + str(calibrating_factor)
+                print("Hearing calibrate_level_to_degrees candidate calibrating_factor " + str(calibrating_factor))
                 self.calibrating_factor = (((Hearing.CALIBRATING_DEVIDER - 1.0) * self.calibrating_factor) + calibrating_factor)/Hearing.CALIBRATING_DEVIDER
-                print "Hearing calibrate_level_to_degrees new self.calibrating_factor " + str(self.calibrating_factor)
+                print("Hearing calibrate_level_to_degrees new self.calibrating_factor " + str(self.calibrating_factor))
                 with open(CONFIG_FILE_PATH, 'wb') as configfile:
                     self.config.set(Hearing.Microphones, Hearing.calibrating_factor, self.calibrating_factor)
                     self.config.write(configfile)
 
             else:
-                print "Hearing calibrate_level_to_degrees self.calibrating_zero " + str(self.calibrating_zero)
+                print("Hearing calibrate_level_to_degrees self.calibrating_zero " + str(self.calibrating_zero))
                 calibrating_zero = rightlevel - leftlevel
-                print "Hearing calibrate_level_to_degrees candidate calibrating_zero " + str(calibrating_zero)
+                print("Hearing calibrate_level_to_degrees candidate calibrating_zero " + str(calibrating_zero))
                 self.calibrating_zero = (((Hearing.CALIBRATING_DEVIDER - 1.0) * self.calibrating_zero) + calibrating_zero)/Hearing.CALIBRATING_DEVIDER
-                print "Hearing calibrate_level_to_degrees new self.calibrating_zero " + str(self.calibrating_zero)
+                print("Hearing calibrate_level_to_degrees new self.calibrating_zero " + str(self.calibrating_zero))
                 with open(CONFIG_FILE_PATH, 'wb') as configfile:
                     self.config.set(Hearing.Microphones, Hearing.calibrating_zero, self.calibrating_zero)
                     self.config.write(configfile)
@@ -360,50 +361,50 @@ class Hearing(Thread):
         if not self.is_sound[id]:
             if sound.get_state() == Sound.START:
                 if Hearing.debug:
-                    print "process START sound from " + Hearing.ear_names[id]
+                    print("process START sound from " + Hearing.ear_names[id])
                 if other_sound.get_start_time() > sound.get_start_time():
                     if Hearing.debug:
-                        print "process sound other has later start time"
+                        print("process sound other has later start time")
                     if other_sound.get_start_time() - sound.get_start_time() < Hearing.SOUND_LIMIT:
                         if Hearing.debug:
-                            print "in same sound with other sound, sound state keeps same"
+                            print("in same sound with other sound, sound state keeps same")
                     else:
                         if Hearing.debug:
-                            print "Too old sound, not with other, sound state keeps same"
+                            print("Too old sound, not with other, sound state keeps same")
                 else:
                     if Hearing.debug:
-                        print "process this sound was later"
+                        print("process this sound was later")
                     if sound.get_start_time() - other_sound.get_stop_time() < Hearing.SOUND_LIMIT:
                         if Hearing.debug:
-                            print "This sound start is close to other sound stop, continue previous sounds"
+                            print("This sound start is close to other sound stop, continue previous sounds")
                         self.is_sound = True
                         change=True
                     else:
                         if Hearing.debug:
-                            print "This sound start is NOT close to other sound stop, start sounds"
+                            print("This sound start is NOT close to other sound stop, start sounds")
                         self.sound_ear_id = id
                         self.is_sound = True
                         change=True
                          
         elif sound.get_state() == Sound.STOP:
             if Hearing.debug:
-                print "process STOP sound from " + Hearing.ear_names[id]
+                print("process STOP sound from " + Hearing.ear_names[id])
             if self.sound_ear_id == id:
                 if Hearing.debug:
-                    print "This sound stops"
+                    print("This sound stops")
                 self.is_sound = False
                 change=True
             else:
                 if Hearing.debug:
-                    print "Other sound stops, sound state keeps same"
+                    print("Other sound stops, sound state keeps same")
                 
         if change:
             if self.is_sound:
                 if Hearing.debug:
-                    print "SOUND STARTED ON " + Hearing.ear_names[self.sound_ear_id]
+                    print("SOUND STARTED ON " + Hearing.ear_names[self.sound_ear_id])
             else:
                 if Hearing.debug:
-                    print "SOUND STOPPED ON " + Hearing.ear_names[self.sound_ear_id]
+                    print("SOUND STOPPED ON " + Hearing.ear_names[self.sound_ear_id])
 
     def other(self, id):
         return (id+1) % Hearing.LEN_EARS
@@ -411,7 +412,7 @@ class Hearing(Thread):
     def report(self):
         if math.fabs(self.angle - self.reported_angle) > Hearing.ACCURACYFACTOR:
             if Hearing.debug:
-                print "Hearing report " + str(self.angle)
+                print("Hearing report " + str(self.angle))
             self.number = self.number+1
             self.report_queue.put(Sensation(number=self.number, sensationType=Sensation.SensationType.HearDirection, hearDirection = self.angle))
             self.reported_angle = self.angle
@@ -419,9 +420,9 @@ class Hearing(Thread):
             self.report_time=time.time()
             if self.log:
                 if self.reported_timing:
-                    print "Sound by TIMING, angle " + str(self.angle)
+                    print("Sound by TIMING, angle " + str(self.angle))
                 if self.reported_level:
-                    print "Sound by LEVEL, angle " + str(self.angle)
+                    print("Sound by LEVEL, angle " + str(self.angle))
 
     def setCalibrating(self, calibrating, calibrating_angle):
         self.calibrating = calibrating
@@ -434,7 +435,7 @@ if __name__ == "__main__":
         Hearing.log = True
         
         if Hearing.log:
-            print str(alsaaudio.cards())
+            print(str(alsaaudio.cards()))
         report_queue = Queue()
 
 
@@ -443,9 +444,9 @@ if __name__ == "__main__":
         while True:
             sensation=report_queue.get()
             #if Hearing.debug:
-            print "--> Got sound_position from report_queue, sensation " + time.ctime(sensation.getTime()) + " " + str(sensation)
+            print("--> Got sound_position from report_queue, sensation " + time.ctime(sensation.getTime()) + " " + str(sensation))
  
-        print "__main__ exit"
+        print("__main__ exit")
         exit()
        
         
