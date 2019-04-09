@@ -7,9 +7,9 @@ Updated on Mar 8, 2014
 
 from Axon import Axon
 from Sensation import Sensation
-from Romeo import Romeo
-from ManualRomeo import ManualRomeo
-from Hearing.Hearing import Hearing
+#from Romeo import Romeo
+#from ManualRomeo import ManualRomeo
+#from Hearing.Hear import Hear
 from threading import Thread
 import signal
 import sys
@@ -18,13 +18,8 @@ import socket
 import math
 import time
 
-
 import daemon
 import lockfile
-
-
-
-
 
 class SocketServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 

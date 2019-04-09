@@ -5,13 +5,6 @@ Updated on Mar 8, 2014
 @author: reijo
 '''
 
-from SocketServer import SocketServer
-from SocketClient import SocketClient
-from Axon import Axon
-from Sensation import Sensation
-from Romeo import Romeo
-from ManualRomeo import ManualRomeo
-from Hearing import Hearing
 from threading import Thread
 import signal
 import sys
@@ -20,20 +13,27 @@ import socket
 import math
 import time
 
-
 import daemon
 import lockfile
 
+from SocketServer import SocketServer
+from SocketClient import SocketClient
+#from Axon import Axon
+#from Sensation import Sensation
+#from Romeo import Romeo
+#from ManualRomeo import ManualRomeo
+#from Hearing import Hear
 
 
-HOST = '0.0.0.0'
-PORT = 2000
-PICTURE_PORT = 2001
 
-DAEMON=False
-START=False
-STOP=False
-MANUAL=False
+#HOST = '0.0.0.0'
+#PORT = 2000
+#PICTURE_PORT = 2001
+
+#DAEMON=False
+#START=False
+#STOP=False
+#MANUAL=False
 
      
 class TCPServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):

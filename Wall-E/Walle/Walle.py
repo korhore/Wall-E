@@ -5,26 +5,25 @@ Updated on Mar 8, 2014
 @author: reijo
 '''
 
+import sys
+import signal
+import getopt
+from threading import Thread
+from threading import Timer
+import socket
+import math
+import time
+
+import daemon
+import lockfile
+
 from Axon import Axon
 from TCPServer import TCPServer
 from Sensation import Sensation
 from Romeo import Romeo
 from ManualRomeo import ManualRomeo
-from Hearing.Hearing import Hearing
-from threading import Thread
-from threading import Timer
-import signal
-import sys
-import getopt
-import socket
-import math
-import time
-
-
-
-import daemon
-import lockfile
-
+if 'Hearing.Hear' not in sys.modules:
+    from Hearing.Hear import Hear
 
 CONFIG_FILE_PATH = '/etc/Walle.cfg'
 
@@ -84,7 +83,7 @@ class WalleServer(Thread):
         else:
             self.romeo = Romeo()
         # we have hearing (positioning of object using sounds)
-        self.hearing=Hearing(self.in_axon)
+        self.hearing=Hear(self.in_axon)
         
         # starting tcp server as nerve pathway to external senses to connect
         # we have azimuth sense (our own position detection)
@@ -209,53 +208,55 @@ class WalleServer(Thread):
   
     def turn(self):
         # calculate new power to turn or continue turning
-        self.leftPower, self.rightPower = self.getPower()
-        if self.turning_to_object:
-            print ("WalleServer.turn: self.hearing_angle " + str(self.hearing_angle) + " self.azimuth " + str(self.azimuth))
-            print ("WalleServer.turn: turn to " + str(self.observation_angle))
-            if math.fabs(self.leftPower) < Romeo.MINPOWER or math.fabs(self.rightPower) < Romeo.MINPOWER:
-                self.stopTurn()
-                print ("WalleServer.turn: Turn is ended")
-                self.turnTimer.cancel()
+        if self.romeo.exitst(): # if we have moving capability
+            self.leftPower, self.rightPower = self.getPower()
+            if self.turning_to_object:
+                print ("WalleServer.turn: self.hearing_angle " + str(self.hearing_angle) + " self.azimuth " + str(self.azimuth))
+                print ("WalleServer.turn: turn to " + str(self.observation_angle))
+                if math.fabs(self.leftPower) < Romeo.MINPOWER or math.fabs(self.rightPower) < Romeo.MINPOWER:
+                    self.stopTurn()
+                    print ("WalleServer.turn: Turn is ended")
+                    self.turnTimer.cancel()
+                else:
+                    print ("WalleServer.turn: powers adjusted to " + str(self.leftPower) + ' ' + str(self.rightPower))
+                    self.number = self.number + 1
+                    sensation, picture = self.romeo.processSensation(Sensation(number=self.number, sensationType='D', leftPower = self.leftPower, rightPower = self.rightPower))
+                    self.leftPower = sensation.getLeftPower()           # set motors in opposite power to turn in place
+                    self.rightPower = sensation.getRightPower()           # set motors in opposite power to turn in place
+                    
             else:
-                print ("WalleServer.turn: powers adjusted to " + str(self.leftPower) + ' ' + str(self.rightPower))
-                self.number = self.number + 1
-                sensation, picture = self.romeo.processSensation(Sensation(number=self.number, sensationType='D', leftPower = self.leftPower, rightPower = self.rightPower))
-                self.leftPower = sensation.getLeftPower()           # set motors in opposite power to turn in place
-                self.rightPower = sensation.getRightPower()           # set motors in opposite power to turn in place
-                
-        else:
-            if math.fabs(self.leftPower) >= Romeo.MINPOWER or math.fabs(self.rightPower) >= Romeo.MINPOWER:
-                self.turning_to_object = True
-                # adjust hearing
-                # if turn, don't hear sound, because we are giving moving sound
-                # we want hear only sounds from other objects
-                self.hearing.setOn(not self.turning_to_object)
-                print ("WalleServer.turn: powers initial to " + str(self.leftPower) + ' ' + str(self.rightPower))
-                self.number = self.number + 1
-                sensation, picture = self.romeo.processSensation(Sensation(number=self.number, sensationType='D', leftPower = self.leftPower, rightPower = self.rightPower))
-                self.leftPower = sensation.getLeftPower()           # set motors in opposite power to turn in place
-                self.rightPower = sensation.getRightPower()           # set motors in opposite power to turn in place
-                self.turnTimer = Timer(WalleServer.ACTION_TIME, self.stopTurn)
-                self.turnTimer.start()
+                if math.fabs(self.leftPower) >= Romeo.MINPOWER or math.fabs(self.rightPower) >= Romeo.MINPOWER:
+                    self.turning_to_object = True
+                    # adjust hearing
+                    # if turn, don't hear sound, because we are giving moving sound
+                    # we want hear only sounds from other objects
+                    self.hearing.setOn(not self.turning_to_object)
+                    print ("WalleServer.turn: powers initial to " + str(self.leftPower) + ' ' + str(self.rightPower))
+                    self.number = self.number + 1
+                    sensation, picture = self.romeo.processSensation(Sensation(number=self.number, sensationType='D', leftPower = self.leftPower, rightPower = self.rightPower))
+                    self.leftPower = sensation.getLeftPower()           # set motors in opposite power to turn in place
+                    self.rightPower = sensation.getRightPower()           # set motors in opposite power to turn in place
+                    self.turnTimer = Timer(WalleServer.ACTION_TIME, self.stopTurn)
+                    self.turnTimer.start()
 
             
     def stopTurn(self):
-        self.turning_to_object = False
-        self.leftPower = 0.0           # set motors in opposite power to turn in place
-        self.rightPower = 0.0
-        print ("WalleServer.stopTurn: Turn is stopped/cancelled")
-            
-        print ("WalleServer.stopTurn: powers to " + str(self.leftPower) + ' ' + str(self.rightPower))
-            
-        self.hearing.setOn(not self.turning_to_object)
-            
-        self.number = self.number + 1
-        #test=Sensation.SensationType.Drive
-        sensation, picture = self.romeo.processSensation(Sensation(number=self.number, sensationType='D', leftPower = self.leftPower, rightPower = self.rightPower))
-        self.leftPower = sensation.getLeftPower()           # set motors in opposite power to turn in place
-        self.rightPower = sensation.getRightPower()
-        print ("WalleServer.stopTurn: powers set to " + str(self.leftPower) + ' ' + str(self.rightPower))
+        if self.romeo.exitst(): # if we have moving capability
+            self.turning_to_object = False
+            self.leftPower = 0.0           # set motors in opposite power to turn in place
+            self.rightPower = 0.0
+            print ("WalleServer.stopTurn: Turn is stopped/cancelled")
+                
+            print ("WalleServer.stopTurn: powers to " + str(self.leftPower) + ' ' + str(self.rightPower))
+                
+            self.hearing.setOn(not self.turning_to_object)
+                
+            self.number = self.number + 1
+            #test=Sensation.SensationType.Drive
+            sensation, picture = self.romeo.processSensation(Sensation(number=self.number, sensationType='D', leftPower = self.leftPower, rightPower = self.rightPower))
+            self.leftPower = sensation.getLeftPower()           # set motors in opposite power to turn in place
+            self.rightPower = sensation.getRightPower()
+            print ("WalleServer.stopTurn: powers set to " + str(self.leftPower) + ' ' + str(self.rightPower))
 
 
  #   def stopCalibrating(self):

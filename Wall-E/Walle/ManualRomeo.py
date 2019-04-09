@@ -30,10 +30,19 @@
 from Sensation import Sensation
 
 
+'''
+Just a dummy base class
+'''
+
 class ManualRomeo:
  
     def __init__(self):
         print("ManualRomeo.__init__")
+        self.exist = True
+        
+    def exists(self):
+        return self.exist
+
  
 
     # needed
