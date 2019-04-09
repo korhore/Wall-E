@@ -1,0 +1,11 @@
+- convert to python3, because we wiil use Tenserflow in picture classifying
+  and perhaps in other tasks also and TenserFlow does not work very well
+  with python2.7 with raspberry, but with python3 better
+  
+- import problem
+
+- arrange code by copabilities as modules without denpendencies: moving,
+  hearing, seeing, sensing, etc. This can solve import problem,
+  but it would be aesier to develop capabilities anyway.
+  
+  - CONFIG_FILE_PATH from config.py
