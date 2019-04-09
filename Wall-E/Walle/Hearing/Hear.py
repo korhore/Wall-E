@@ -166,8 +166,9 @@ class Hear(Thread):
 
         
     def stop(self):
-        self.ear[Hear.LEFT].stop()
-        self.ear[Hear.RIGHT].stop()
+        if self.canRun:
+            self.ear[Hear.LEFT].stop()
+            self.ear[Hear.RIGHT].stop()
         self.running=False
 
     def setOn(self, on):

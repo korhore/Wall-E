@@ -83,9 +83,10 @@ class TCPServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer)
             socketServer = self.createSocketServer(queue=self.out_axon, socket=socket, address=address)
             socketServer.start()
             time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
-            socketClient = self.createSocketClient(queue=self.in_axon, socket=socket, address=address)
-            socketClient.start()
-            time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
+            if self.running:
+                socketClient = self.createSocketClient(queue=self.in_axon, socket=socket, address=address)
+                socketClient.start()
+                time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
 
     def stop(self):
         print(self.name + ":stop") 

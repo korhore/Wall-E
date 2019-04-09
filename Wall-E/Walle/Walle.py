@@ -19,13 +19,15 @@ import lockfile
 
 from Axon import Axon
 from TCPServer import TCPServer
+from SocketClient import SocketClient
 from Sensation import Sensation
 from Romeo import Romeo
 from ManualRomeo import ManualRomeo
+from dbus.mainloop.glib import threads_init
+from xdg.IconTheme import theme_cache
 if 'Hearing.Hear' not in sys.modules:
     from Hearing.Hear import Hear
-
-CONFIG_FILE_PATH = '/etc/Walle.cfg'
+from Config import CONFIG_FILE_PATH
 
 HOST = '0.0.0.0'
 PORT = 2000
@@ -97,6 +99,9 @@ class WalleServer(Thread):
         self.calibrating_angle = 0.0        # calibrate device hears sound from this angle, device looks to its front
         #self.calibratingTimer = Timer(WalleServer.ACTION_TIME, self.stopCalibrating)
         print ("WalleServer: Calibrate version")
+        
+        # finally remember instance
+        WalleServer.walle = self
 
 
 
@@ -117,12 +122,31 @@ class WalleServer(Thread):
             self.process(sensation)
             # as a test, echo everything to external device
             #self.out_axon.put(sensation)
+ 
+        print ('Walle:run shutting downsignal_handler: Shutting down sensation server ...')
 
+        print ('Walle:run shutting down TcpServer ...')
         self.tcpServer.stop()
+        
+        print ('Walle:run shutting down hearing ...')
         self.hearing.stop()
+        
+        print ('Walle:run ALL SHUT DOWN')
+
 
     def stop(self):
         self.running = False
+
+    '''
+    DoStop is used to stop server process and its sobprocesses (threads)
+    Technique is just give Stop Sewnsation oto process.
+    With same tecnique remote machines can stop us and we scan stop them
+    '''
+            
+    def doStop(self):
+        self.in_axon.put(Sensation(number=++self.number,
+                                   sensationType = Sensation.SensationType.Stop))
+
             
             
     def process(self, sensation):
@@ -313,19 +337,6 @@ def threaded_server(arg):
     arg.serve_forever()
     print ("threaded_server: arg.serve_forever() ended")
 
-def signal_handler(signal, frame):
-    print ('signal_handler: You pressed Ctrl+C!')
-    
-    print ('signal_handler: Shutting down sensation server ...')
-    WalleRequestHandler.server.serving =False
-    print ('signal_handler: sensation server is down OK')
-    
-    print ('signal_handler: Shutting down picture server...')
-    WalleRequestHandler.pictureServer.serving =False
-    print ('signal_handler: picture server is down OK')
-
-  
-
 def do_server():
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGHUP, signal_handler)
@@ -343,10 +354,28 @@ def do_server():
 
     if succeeded:
         print ('do_server: Press Ctrl+C to Stop')
-        
+
+        WalleServer.walle = walle   # remember walle so
+                                    # we can stop it in ignal_handler   
         walle.join()
         
     print ("do_server exit")
+    
+def signal_handler(signal, frame):
+    print ('signal_handler: You pressed Ctrl+C!')
+    
+    WalleServer.walle.doStop()
+    
+#     print ('signal_handler: Shutting down sensation server ...')
+#     WalleRequestHandler.server.serving =False
+#     print ('signal_handler: sensation server is down OK')
+#     
+#     print ('signal_handler: Shutting down picture server...')
+#     WalleRequestHandler.pictureServer.serving =False
+#     print ('signal_handler: picture server is down OK')
+
+
+
     
 def start(is_daemon):
         if is_daemon:
@@ -369,23 +398,26 @@ def stop():
     # Create a socket (SOCK_STREAM means a TCP socket)
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    except Exception: 
-        print ("stop: socket error")
+        try:
+            # Connect to server and send data
+            print ('stop: sock.connect((localhost, PORT))')
+            address=('localhost', PORT)
+            sock.connect(address)
+            print ("stop: connected")
+            print ("stop: SocketClient.stop")
+            ok = SocketClient.stop(socket = sock, address=address)
+            if ok:
+                # Receive data from the server
+                print ("stop: sock.recv(1024)")
+                received = sock.recv(1024)
+                print ('stop: received answer ' + received)
+        except Exception as err: 
+            print ("stop: socket connect, cannot stop localhost, error " + str(err))
+            return
+    except Exception as err: 
+        print ("stop: socket error, cannot stop localhost , error " + str(err))
+        return
 
-    
-    try:
-        # Connect to server and send data
-        print ('stop: sock.connect((localhost, PORT))')
-        sock.connect(('localhost', PORT))
-        print ("stop: sock.sendall STOP sensation")
-        sock.sendall(str(Sensation(sensationType = 'S')))
-    
-        # Receive data from the server
-        print ("stop: sock.recv(1024)")
-        received = sock.recv(1024)
-        print ('stop: received answer ' + received)
-    except Exception: 
-        print ("stop: connect error")
     finally:
         print ('stop: sock.close()')
         sock.close()

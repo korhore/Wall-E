@@ -7,9 +7,7 @@ Updated on Mar 8, 2014
 
 from Axon import Axon
 from Sensation import Sensation
-#from Romeo import Romeo
-#from ManualRomeo import ManualRomeo
-#from Hearing.Hear import Hear
+from SocketClient import SocketClient
 from threading import Thread
 import signal
 import sys
@@ -40,7 +38,7 @@ class SocketServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServ
  
         while self.running:
             print("SocketServer waiting size of next Sensation from" + str(self.address))
-            self.data = self.socket.recv(Sensation.LENGTH_SIZE).strip() # message length section
+            self.data = self.socket.recv(Sensation.LENGTH_SIZE).strip().decode('utf-8') # message length section
             if len(self.data) == 0:
                 self.running = False
             else:
@@ -56,7 +54,7 @@ class SocketServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServ
                     #print "SocketServer of next Sensation from " + str(self.address)
                     self.data=''
                     while sensation_length > 0:
-                        data = self.socket.recv(sensation_length).strip() # message data section
+                        data = self.socket.recv(sensation_length).strip().decode('utf-8') # message data section
                         if len(data) == 0:
                             self.running = False
                         else:
@@ -73,7 +71,7 @@ class SocketServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServ
                             self.queue.put(sensation)
             
             synced = False
-            self.data = self.socket.recv(Sensation.SEPARATOR_SIZE).strip()  # message separator section
+            self.data = self.socket.recv(Sensation.SEPARATOR_SIZE).strip().decode('utf-8')  # message separator section
             if len(self.data) == 0:
                 synced = True# Test
                 #self.running = False
@@ -83,16 +81,15 @@ class SocketServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServ
                     if self.data[0] is Sensation.SEPARATOR[0]:    # this also syncs to next message, if we get socket transmit errors
                         synced = True
                 if not synced:
-                    self.data = self.socket.recv(Sensation.SEPARATOR_SIZE).strip()  # message separator section
+                    self.data = self.socket.recv(Sensation.SEPARATOR_SIZE).strip().decode('utf-8')  # message separator section
                     #print "WalleSocketServer separator l " + str(len(self.data)) + ' ' + str(len(Sensation.SEPARATOR))
                     if len(self.data) == 0:
-                        self.running = False
-               
+                        self.running = False               
 
         self.socket.close()
 
     def stop(self):
         print(self.name + ":stop") 
-        self.socket.sendall(str(Sensation(sensationType = 'S')))
+        ok = SocketClient.stop(socket = self.socket, address=self.address)
         self.running = False
 
