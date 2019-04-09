@@ -90,8 +90,7 @@ class SocketClient(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServ
         
         sensation_string = str(sensation)
         length =len(sensation_string)
-        #length_string = "{"+str(Sensation.LENGTH_SIZE)+"d}".format(length)
-        length_string = "{0:2d}".format(length)
+        length_string = Sensation.LENGTH_FORMAT.format(length)
         ok = True
         try:
             l = socket.send(length_string.encode('utf-8')) # message length section

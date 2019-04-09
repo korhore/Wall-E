@@ -8,4 +8,5 @@
   hearing, seeing, sensing, etc. This can solve import problem,
   but it would be aesier to develop capabilities anyway.
   
-  - CONFIG_FILE_PATH from config.py
+  - OK CONFIG_FILE_PATH from config.py
+  - OK sensation length cleaner in socketclient, maybe format string

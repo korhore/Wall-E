@@ -13,6 +13,7 @@ def enum(**enums):
 class Sensation(object):
     
     LENGTH_SIZE=2   # Sensation as string can only be 99 character long
+    LENGTH_FORMAT = "{0:2d}"
     SEPARATOR='|'  # Separator between messages
     SEPARATOR_SIZE=1  # Separator length
    

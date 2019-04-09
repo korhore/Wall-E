@@ -123,7 +123,7 @@ class WalleServer(Thread):
             # as a test, echo everything to external device
             #self.out_axon.put(sensation)
  
-        print ('Walle:run shutting downsignal_handler: Shutting down sensation server ...')
+        print ('Walle:run shutting down ...')
 
         print ('Walle:run shutting down TcpServer ...')
         self.tcpServer.stop()
