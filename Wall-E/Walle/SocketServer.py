@@ -37,39 +37,7 @@ class SocketServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServ
         self.running=True
  
         while self.running:
-            print("SocketServer waiting size of next Sensation from" + str(self.address))
-            self.data = self.socket.recv(Sensation.LENGTH_SIZE).strip().decode('utf-8') # message length section
-            if len(self.data) == 0:
-                self.running = False
-            else:
-                print("SocketServer Client " + str(self.address) + " wrote " + self.data)
-                length_ok = True
-                try:
-                    sensation_length = int(self.data)
-                except:
-                    print("SocketServer Client protocol error, no valid length resyncing" + str(self.address) + " wrote " + self.data)
-                    length_ok = False
-                    
-                if length_ok:
-                    #print "SocketServer of next Sensation from " + str(self.address)
-                    self.data=''
-                    while sensation_length > 0:
-                        data = self.socket.recv(sensation_length).strip().decode('utf-8') # message data section
-                        if len(data) == 0:
-                            self.running = False
-                        else:
-                            self.data = self.data+data
-                            sensation_length = sensation_length - len(data)
-                            #print "SocketServer Sensation data from " + str(self.address)+ ' ' + self.data + ' left ' + str(sensation_length)
-                            
-                            
-                    if self.running:
-                        #print "SocketServer string " + self.data
-                        sensation=Sensation(self.data)
-                        print("SocketServer " + str(sensation))
-                        if sensation.getSensationType() is not Sensation.SensationType.Unknown:
-                            self.queue.put(sensation)
-            
+            print("SocketServer waiting next Sensation from" + str(self.address))
             synced = False
             self.data = self.socket.recv(Sensation.SEPARATOR_SIZE).strip().decode('utf-8')  # message separator section
             if len(self.data) == 0:
@@ -85,6 +53,50 @@ class SocketServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServ
                     #print "WalleSocketServer separator l " + str(len(self.data)) + ' ' + str(len(Sensation.SEPARATOR))
                     if len(self.data) == 0:
                         self.running = False               
+
+            if synced and self.running:
+                print("SocketServer waiting size of next Sensation from" + str(self.address))
+                #self.data = self.socket.recv(Sensation.LENGTH_SIZE).strip().decode('utf-8') # message length section
+                self.data = self.socket.recv(Sensation.NUMBER_SIZE)                         # message length section
+                if len(self.data) == 0:
+                    self.running = False
+                else:
+                    #length = int.from_bytes(self.data, Sensation.BYTEORDER)
+                    #print("SocketServer Client " + str(self.address) + " wrote " + self.data)
+                    length_ok = True
+                    try:
+                        #sensation_length = int(self.data)
+                        sensation_length = int.from_bytes(self.data, Sensation.BYTEORDER)
+                    except:
+                        print("SocketServer Client protocol error, no valid length resyncing" + str(self.address) + " wrote " + self.data)
+                        length_ok = False
+                        
+                    if length_ok:
+                        print("SocketServer Client " + str(self.address) + " wrote " + str(sensation_length))
+                        #print "SocketServer of next Sensation from " + str(self.address)
+                        self.data=None
+                        while sensation_length > 0:
+                            #data = self.socket.recv(sensation_length).strip().decode('utf-8') # message data section
+                            data = self.socket.recv(sensation_length)                       # message data section
+                            if len(data) == 0:
+                                self.running = False
+                            else:
+                                if self.data is None:
+                                    self.data = data
+                                else:
+                                    self.data = self.data+data
+                                sensation_length = sensation_length - len(data)
+                                #print "SocketServer Sensation data from " + str(self.address)+ ' ' + self.data + ' left ' + str(sensation_length)
+                                
+                                
+                        if self.running:
+                            #print "SocketServer string " + self.data
+                            #sensation=Sensation(self.data)
+                            sensation=Sensation(bytes=self.data)
+                            print("SocketServer " + str(sensation))
+                            if sensation.getSensationType() is not Sensation.SensationType.Unknown:
+                                self.queue.put(sensation)
+            
 
         self.socket.close()
 

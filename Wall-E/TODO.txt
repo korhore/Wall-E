@@ -6,7 +6,10 @@
 
 - arrange code by copabilities as modules without denpendencies: moving,
   hearing, seeing, sensing, etc. This can solve import problem,
-  but it would be aesier to develop capabilities anyway.
+  but it would be easier to develop capabilities anyway.
   
   - OK CONFIG_FILE_PATH from config.py
   - OK sensation length cleaner in socketclient, maybe format string
+  - sensation length as bytee  in socketclient, tcp is bytes anyway
+  - other possibility is toBuffer/toBytes - method to code sensation
+    as bytes ans ecode method to oppisite way

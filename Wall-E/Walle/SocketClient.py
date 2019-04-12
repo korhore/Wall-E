@@ -88,37 +88,43 @@ class SocketClient(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServ
     def sendSensation(sensation, socket, address):
         print("SocketClient.sendSensation")
         
-        sensation_string = str(sensation)
-        length =len(sensation_string)
-        length_string = Sensation.LENGTH_FORMAT.format(length)
+#         sensation_string = str(sensation)
+#         length =len(sensation_string)
+#         length_string = Sensation.LENGTH_FORMAT.format(length)
+        bytes = sensation.bytes()
+        length =len(bytes)
+        length_bytes = length.to_bytes(Sensation.NUMBER_SIZE, byteorder=Sensation.BYTEORDER)
+
         ok = True
         try:
-            l = socket.send(length_string.encode('utf-8')) # message length section
-            print("SocketClient wrote length " + length_string + " of Sensation to " + str(address))
+            l = socket.send(Sensation.SEPARATOR.encode('utf-8'))        # message separator section
+            if Sensation.SEPARATOR_SIZE == l:
+                print("SocketClient wrote separator to " + str(address))
+            else:
+                print("SocketClient length " + str(l) + " != " + str(Sensation.SEPARATOR_SIZE) + " error writing to " + str(address))
+                ok = False
         except Exception as err:
-            print("SocketClient error writing length of Sensation to " + str(address) + " error " + str(err))
-            ok = False
+            print("SocketClient error writing Sensation.SEPARATOR to " + str(address)  + " error " + str(err))
+            ok=False
         if ok:
             try:
-                l = socket.send(sensation_string.encode('utf-8'))  # message data section
-                print("SocketClient wrote Sensation " + sensation_string + " to " + str(address))
-                if length != l:
-                    print("SocketClient length " + str(l) + " != " + length_string + " error writing to " + str(address))
-                    ok = False
+#                l = socket.send(length_string.encode('utf-8'))          # message length section
+                l = socket.send(length_bytes)                            # message length section
+                print("SocketClient wrote length " + str(length) + " of Sensation to " + str(address))
             except Exception as err:
-                print("SocketClient error writing Sensation to " + str(address) + " error " + str(err))
+                print("SocketClient error writing length of Sensation to " + str(address) + " error " + str(err))
                 ok = False
             if ok:
                 try:
-                    l = socket.send(Sensation.SEPARATOR.encode('utf-8'))  # message separator section
-                    if Sensation.SEPARATOR_SIZE == l:
-                        print("SocketClient wrote separator to " + str(address))
-                    else:
-                        print("SocketClient length " + str(l) + " != " + str(Sensation.SEPARATOR_SIZE) + " error writing to " + str(address))
+#                    l = socket.send(sensation_string.encode('utf-8'))  # message data section
+                    l = socket.send(bytes)                              # message data section
+                    print("SocketClient wrote Sensation to " + str(address))
+                    if length != l:
+                        print("SocketClient length " + str(l) + " != " + str(length) + " error writing to " + str(address))
                         ok = False
                 except Exception as err:
-                    print("SocketClient error writing Sensation.SEPARATOR to " + str(address)  + " error " + str(err))
-                    ok=False
+                    print("SocketClient error writing Sensation to " + str(address) + " error " + str(err))
+                    ok = False
         return ok
 
     '''
@@ -127,7 +133,7 @@ class SocketClient(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServ
     '''
     def stop(self):
         print(self.name + ":stop") 
-        SocketClient.sendSensation(sensation=Sensation(sensationType = Sensation.SensationType.Stop), socket=self.socket, address=self.address)
+        SocketClient.sendSensation(sensation=Sensation(number=0, sensationType = Sensation.SensationType.Stop), socket=self.socket, address=self.address)
         self.running = False
 
     '''
@@ -135,5 +141,5 @@ class SocketClient(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServ
     '''
     def stop(socket, address):
         print("SocketClient:stop") 
-        SocketClient.sendSensation(sensation=Sensation(sensationType = Sensation.SensationType.Stop), socket=socket, address=address)
+        SocketClient.sendSensation(sensation=Sensation(number=0, sensationType = Sensation.SensationType.Stop), socket=socket, address=address)
 

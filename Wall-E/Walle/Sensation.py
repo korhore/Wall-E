@@ -6,9 +6,29 @@ Created on Feb 25, 2013
 
 import time
 import traceback
+from enum import Enum
+import struct
 
-def enum(**enums):
+
+#def enum(**enums):
+#    return type('Enum', (), enums)
+
+def enum(*sequential, **named):
+    enums = dict(zip(sequential, range(len(sequential))), **named)
     return type('Enum', (), enums)
+
+def StrToBytes(e):
+    return e.encode('utf8')
+
+def bytesToStr(b):
+    return b.decode('utf8')
+
+def floatToBytes(f):
+    return bytearray(struct.pack(Sensation.FLOAT_PACK_TYPE, f)) 
+
+def bytesToFloat(b):
+    return struct.unpack(Sensation.FLOAT_PACK_TYPE, b)[0]
+
 
 class Sensation(object):
     
@@ -16,12 +36,26 @@ class Sensation(object):
     LENGTH_FORMAT = "{0:2d}"
     SEPARATOR='|'  # Separator between messages
     SEPARATOR_SIZE=1  # Separator length
+    
+    ENUM_SIZE=1
+    NUMBER_SIZE=4
+    BYTEORDER="little"
+    FLOAT_PACK_TYPE="d"
+    FLOAT_PACK_SIZE=8
    
     SensationType = enum(Drive='D', Stop='S', Who='W', HearDirection='H', Azimuth='A', Acceleration='G', Observation='O', Picture='P', Calibrate='C', Capability='1', Unknown='U')
     Direction = enum(In='I', Out='O')
-    Memory = enum(Sensory='S', Working='W', LongTerm='L')
+    Memory = enum(Sensory='S', Working='W', LongTerm='L' )
+    
+#    list(Memory)
+#     class Memory(Enum):
+#         Sensory='S',
+#         Working='W',
+#         LongTerm='L'
        
-    def __init__(self, string="",
+    def __init__(self,
+                 string="",
+                 bytes=None,
                  number=-1,
                  sensationType = SensationType.Unknown,
                  memory=Memory.Sensory,
@@ -127,6 +161,67 @@ class Sensation(object):
             except (ValueError):
                 print((traceback.format_exc()))
                 self.sensationType = Sensation.SensationType.Unknown
+
+        #print params
+        if bytes != None:
+            try:
+                l=len(bytes)
+                i=0
+                self.number = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
+                #print("number " + str(number))
+                i += Sensation.NUMBER_SIZE
+                
+                self.memory = bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                #print("memory " + str(memory))
+                i += Sensation.ENUM_SIZE
+                
+                self.sensationType = bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                #print("sensationType " + str(sensationType))
+                i += Sensation.ENUM_SIZE
+                
+                self.direction = bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                #print("direction " + str(direction))
+                i += Sensation.ENUM_SIZE
+                
+                if self.sensationType is Sensation.SensationType.Drive:
+                    self.leftPower = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    i += Sensation.FLOAT_PACK_SIZE
+                    self.rightPower = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    i += Sensation.FLOAT_PACK_SIZE
+                elif self.sensationType is Sensation.SensationType.HearDirection:
+                    self.hearDirection = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    i += Sensation.FLOAT_PACK_SIZE
+                elif self.sensationType is Sensation.SensationType.Azimuth:
+                    self.azimuth = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    i += Sensation.FLOAT_PACK_SIZE
+                elif self.sensationType is Sensation.SensationType.Acceleration:
+                    self.accelerationX = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    i += Sensation.FLOAT_PACK_SIZE
+                    self.accelerationY = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    i += Sensation.FLOAT_PACK_SIZE
+                    self.accelerationZ = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    i += Sensation.FLOAT_PACK_SIZE
+                elif self.sensationType is Sensation.SensationType.Observation:
+                    self.observationDirection = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    i += Sensation.FLOAT_PACK_SIZE
+                    self.observationDistance = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    i += Sensation.FLOAT_PACK_SIZE
+                elif self.sensationType is Sensation.SensationType.Picture:
+                    self.imageSize =int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER)
+                    i += Sensation.NUMBER_SIZE
+                    # TODO real image
+                elif self.sensationType is Sensation.SensationType.Calibrate:
+                    self.calibrateSensationType = bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                    i += Sensation.ENUM_SIZE
+                    if self.calibrateSensationType == Sensation.SensationType.HearDirection:
+                        self.hearDirection = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                        i += Sensation.FLOAT_PACK_SIZE
+                elif self.sensationType is Sensation.SensationType.Capability:
+                    self.capabilities = bytesToStr(bytes[i:l+1])
+
+            except (ValueError):
+                self.sensationType = Sensation.SensationType.Unknown
+ 
                  
     def __str__(self):
         if self.sensationType == Sensation.SensationType.Drive:
@@ -154,6 +249,43 @@ class Sensation(object):
             return str(self.number) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType
         else:
             return str(self.number) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType
+
+    def bytes(self):
+        b = self.number.to_bytes(Sensation.NUMBER_SIZE, byteorder=Sensation.BYTEORDER)
+        b += StrToBytes(self.memory)
+        b += StrToBytes(self.sensationType)
+        b += StrToBytes(self.direction)
+
+        if self.sensationType == Sensation.SensationType.Drive:
+            b += floatToBytes(self.leftPower) + floatToBytes(self.rightPower)
+        elif self.sensationType == Sensation.SensationType.HearDirection:
+            b +=  floatToBytes(self.hearDirection)
+        elif self.sensationType == Sensation.SensationType.Azimuth:
+            b +=  floatToBytes(self.azimuth)
+        elif self.sensationType == Sensation.SensationType.Acceleration:
+            b +=  floatToBytes(self.accelerationX) + floatToBytes(self.accelerationY) + floatToBytes(self.accelerationZ)
+        elif self.sensationType == Sensation.SensationType.Observation:
+            b +=  floatToBytes(self.observationDirection) + floatToBytes(self.observationDistance)
+        # TODO send real picture
+        elif self.sensationType == Sensation.SensationType.Picture:
+            b +=  self.imageSize.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
+        elif self.sensationType == Sensation.SensationType.Calibrate:
+            if self.calibrateSensationType == Sensation.SensationType.HearDirection:
+                b += StrToBytes(self.calibrateSensationType) + floatToBytes(self.hearDirection)
+#             else:
+#                 return str(self.number) + ' ' + self.memory + ' ' + self.direction + ' ' + Sensation.SensationType.Unknown
+        elif self.sensationType == Sensation.SensationType.Capability:
+            b += StrToBytes(self.getStrCapabilities())
+# all other done
+#         elif self.sensationType == Sensation.SensationType.Stop:
+#             return str(self.number) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType
+#         elif self.sensationType == Sensation.SensationType.Who:
+#             return str(self.number) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType
+#         else:
+#             return str(self.number) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType
+        
+        return b
+
 
     def getTime(self):
         return self.time
@@ -229,66 +361,178 @@ class Sensation(object):
 
     def setCapabilities(self, capabilities):
         self.capabilities = capabilities
-    def getCmageSize(self):
+    def getCapabilities(self):
         return self.capabilities
+    
     def setStrCapabilities(self, string):
-        str_capabilities = string.split()
+        #str_capabilities = string.split()
         self.capabilities=[]
-        for capability in str_capabilities:
+        for capability in string:
             self.capabilities.add(capability)
         self.capabilities = capabilities
     def getStrCapabilities(self):
         capabilities = ""
         for capability in self.capabilities:
-            capabilities += ' ' + str(capability)
+            capabilities += str(capability)
         return capabilities
 
         
 if __name__ == '__main__':
-    c=Sensation(string="12 S I D 0.97 0.56")
-    print(("str " + str(c)))
-    c=Sensation(string="13 S I S")
-    print(("str " + str(c)))
-    c=Sensation(string="13 S I W")
-    print(("str " + str(c)))
-    c=Sensation(string="14 S I H -0.75")
-    print("str " + str(c))
-    c=Sensation(string="15 S I A 0.75")
-    print("str " + str(c))
-    c=Sensation(string="15 W I O 0.75 3.75")
-    print("str " + str(c))
-    c=Sensation(string="16 S I P 12300")
-    print("str " + str(c))
-    c=Sensation(string="17 S I C H -0.75")
-    print("str " + str(c))
-    c=Sensation(string="18 oho")
-    print("str " + str(c))
-    c=Sensation(string="hupsis oli")
-    print("str " + str(c))
+    s=Sensation(string="12 S I D 0.97 0.56")
+    print(("str s  " + str(s)))
+    print("str(Sensation(str(s))) " + str(Sensation(string=str(s))))
+    b=s.bytes()
+    s2=Sensation(bytes=b)
+    print(("str s2 " + str(s2)))
+    print(str(s == s2))
+        
+    s=Sensation(string="13 S I S")
+    print(("str s  " + str(s)))
+    print("str(Sensation(str(s))) " + str(Sensation(string=str(s))))
+    b=s.bytes()
+    s2=Sensation(bytes=b)
+    print(("str s2 " + str(s2)))
+    print(str(s == s2))
     
-    c=Sensation(number=99, sensationType = 'D', memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, leftPower = 0.77, rightPower = 0.55)
-    print("D str " + str(c))
-    print("str(Sensation(str(c))) " + str(Sensation(string=str(c))))
+    s=Sensation(string="13 S I W")
+    print(("str s  " + str(s)))
+    print("str(Sensation(str(s))) " + str(Sensation(string=str(s))))
+    b=s.bytes()
+    s2=Sensation(bytes=b)
+    print(("str s2 " + str(s2)))
+    print(str(s == s2))
     
-    c=Sensation(number=100, sensationType = 'H', memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, hearDirection = 0.85)
-    print("H str " + str(c))
-    print("str(Sensation(str(c))) " + str(Sensation(string=str(c))))
+    s=Sensation(string="14 S I H -0.75")
+    print(("str s  " + str(s)))
+    print("str(Sensation(str(s))) " + str(Sensation(string=str(s))))
+    b=s.bytes()
+    s2=Sensation(bytes=b)
+    print(("str s2 " + str(s2)))
+    print(str(s == s2))
+    
+    s=Sensation(string="15 S I A 0.75")
+    print(("str s  " + str(s)))
+    print("str(Sensation(str(s))) " + str(Sensation(string=str(s))))
+    b=s.bytes()
+    s2=Sensation(bytes=b)
+    print(("str s2 " + str(s2)))
+    print(str(s == s2))
+    
+    s=Sensation(string="15 W I O 0.75 3.75")
+    print(("str s  " + str(s)))
+    print("str(Sensation(str(s))) " + str(Sensation(string=str(s))))
+    b=s.bytes()
+    s2=Sensation(bytes=b)
+    print(("str s2 " + str(s2)))
+    print(str(s == s2))
+    
+    s=Sensation(string="16 S I P 12300")
+    print(("str s  " + str(s)))
+    print("str(Sensation(str(s))) " + str(Sensation(string=str(s))))
+    b=s.bytes()
+    s2=Sensation(bytes=b)
+    print(("str s2 " + str(s2)))
+    print(str(s == s2))
+    
+    s=Sensation(string="17 S I C H -0.75")
+    print(("str s  " + str(s)))
+    print("str(Sensation(str(s))) " + str(Sensation(string=str(s))))
+    b=s.bytes()
+    s2=Sensation(bytes=b)
+    print(("str s2 " + str(s2)))
+    print(str(s == s2))
+    
+    
+    
+    
+    
+    
+    
+    
+    s=Sensation(string="18 oho")
+    print("str " + str(s))
+    s=Sensation(string="hupsis oli")
+    print("str " + str(s))
+    
+    s=Sensation(number=99, sensationType = 'D', memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, leftPower = 0.77, rightPower = 0.55)
+    print(("str s  " + str(s)))
+    print("str(Sensation(str(s))) " + str(Sensation(string=str(s))))
+    b=s.bytes()
+    s2=Sensation(bytes=b)
+    print(("str s2 " + str(s2)))
+    print(str(s == s2))
+    
+    s=Sensation(number=100, sensationType = 'H', memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, hearDirection = 0.85)
+    print(("str s  " + str(s)))
+    print("str(Sensation(str(s))) " + str(Sensation(string=str(s))))
+    b=s.bytes()
+    s2=Sensation(bytes=b)
+    print(("str s2 " + str(s2)))
+    print(str(s == s2))
 
-    c=Sensation(number=101, sensationType = 'A', memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, azimuth = -0.85)
-    print("A str " + str(c))
-    print("str(Sensation(str(c))) " + str(Sensation(string=str(c))))
+    s=Sensation(number=101, sensationType = 'A', memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, azimuth = -0.85)
+    print(("str s  " + str(s)))
+    print("str(Sensation(str(s))) " + str(Sensation(string=str(s))))
+    b=s.bytes()
+    s2=Sensation(bytes=b)
+    print(("str s2 " + str(s2)))
+    print(str(s == s2))
 
-    c=Sensation(number=102, sensationType = 'G', memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, accelerationX = -0.85, accelerationY = 2.33, accelerationZ = -0.085)
-    print("G str " + str(c))
-    print("str(Sensation(str(c))) " + str(Sensation(string=str(c))))
+    s=Sensation(number=102, sensationType = 'G', memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, accelerationX = -0.85, accelerationY = 2.33, accelerationZ = -0.085)
+    print(("str s  " + str(s)))
+    print("str(Sensation(str(s))) " + str(Sensation(string=str(s))))
+    b=s.bytes()
+    s2=Sensation(bytes=b)
+    print(("str s2 " + str(s2)))
+    print(str(s == s2))
 
-    c=Sensation(number=103, sensationType = Sensation.SensationType.Observation, memory = Sensation.Memory.Working, direction = Sensation.Direction.In, observationDirection= -0.85, observationDistance=-3.75)
-    print("str(Sensation(str(c))) " + str(Sensation(string=str(c))))
+    s=Sensation(number=103, sensationType = Sensation.SensationType.Observation, memory = Sensation.Memory.Working, direction = Sensation.Direction.In, observationDirection= -0.85, observationDistance=-3.75)
+    print(("str s  " + str(s)))
+    print("str(Sensation(str(s))) " + str(Sensation(string=str(s))))
+    b=s.bytes()
+    s2=Sensation(bytes=b)
+    print(("str s2 " + str(s2)))
+    print(str(s == s2))
 
-    c=Sensation(number=104, sensationType = 'C', memory = Sensation.Memory.Sensory, calibrateSensationType = 'H', direction = Sensation.Direction.In, hearDirection = 0.85)
-    print("C str " + str(c))
-    print("str(Sensation(str(c))) " + str(Sensation(string=str(c))))
+    s=Sensation(number=104, sensationType = 'C', memory = Sensation.Memory.Sensory, calibrateSensationType = 'H', direction = Sensation.Direction.In, hearDirection = 0.85)
+    print(("str s  " + str(s)))
+    print("str(Sensation(str(s))) " + str(Sensation(string=str(s))))
+    b=s.bytes()
+    s2=Sensation(bytes=b)
+    print(("str s2 " + str(s2)))
+    print(str(s == s2))
 
-    c=Sensation(number=105, sensationType = '1', memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = [Sensation.SensationType.Drive, Sensation.SensationType.HearDirection, Sensation.SensationType.Azimuth])
-    print("1 str " + str(c))
-    print("str(Sensation(str(c))) " + str(Sensation(string=str(c))))
+    s=Sensation(number=10500, sensationType = '1', memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = [Sensation.SensationType.Drive, Sensation.SensationType.HearDirection, Sensation.SensationType.Azimuth])
+    print(("str s  " + str(s)))
+    print("str(Sensation(str(s))) " + str(Sensation(string=str(s))))
+    b=s.bytes()
+    s2=Sensation(bytes=b)
+    print(("str s2 " + str(s2)))
+    print(str(s == s2))
+    
+    bytes = s.bytes()
+    l=len(bytes)
+    print("len(bytes) " + str(l))
+    i=0
+    number = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
+    print("number " + str(number))
+    i += Sensation.NUMBER_SIZE
+    
+    memory = bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+    #memory = bytesToStr(bytes[4:])
+    print("memory " + str(memory))
+    i += Sensation.ENUM_SIZE
+    
+    sensationType = bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+    print("sensationType " + str(sensationType))
+    i += Sensation.ENUM_SIZE
+    
+    direction = bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+    print("direction " + str(direction))
+    i += Sensation.ENUM_SIZE
+    
+    capabilities = bytesToStr(bytes[i:l+1])
+    print("capabilities " + str(capabilities))
+    i = l
+
+    print("bytes " + str(bytes))
