@@ -13,6 +13,7 @@ from threading import Timer
 import socket
 import math
 import time
+import configparser
 
 import daemon
 import lockfile
@@ -63,6 +64,10 @@ class WalleServer(Thread):
     def __init__(self):
         Thread.__init__(self)
         self.name = "WalleServer"
+        
+        Capabilities = 'Capabilities' 
+        Memory =        'Memory'
+
        
         self.number=0
         self.azimuth=0.0                # position sense, azimuth from north
@@ -77,6 +82,8 @@ class WalleServer(Thread):
         self.number = 0
         self.in_axon = Axon()       # global queue for senses to put sensations to walle
         self.out_axon = Axon()      # global queue for walle to put sensations to external senses
+
+        self.configure()
 
         # starting build in capabilities/senses
         # we have capability to move
@@ -104,8 +111,43 @@ class WalleServer(Thread):
         WalleServer.walle = self
 
 
-
-
+    def configure(self):
+        self.config = configparser.RawConfigParser()
+        # read our capabilities about sensation
+        try:
+            self.config.read(CONFIG_FILE_PATH)
+            left_card = self.config.get(WalleServer.Capabilities, WalleServer.Memory)
+            if left_card == None:
+                print('left_card == None')
+                self.canRun = False
+            right_card = self.config.get(Hear.Microphones, Hear.right)
+            if right_card == None:
+                print('right_card == None')
+                self.canRun = False
+            try:
+                self.calibrating_zero = self.config.getfloat(Hear.Microphones, Hear.calibrating_zero)
+            except configparser.NoOptionError:
+                self.calibrating_zero = 0.0
+            try:
+                self.calibrating_factor = self.config.getfloat(Hear.Microphones, Hear.calibrating_factor)
+            except configparser.NoOptionError:
+                self.calibrating_factor = 1.0
+ 
+        # TODO make autoconfig here               
+        except configparser.MissingSectionHeaderError:
+                print('ConfigParser.MissingSectionHeaderError')
+                self.canRun = False
+        except configparser.NoSectionError:
+                print('ConfigParser.NoSectionError')
+                self.canRun = False
+        except configparser.NoOptionError:
+                print('ConfigParser.NoOptionError')
+                self.canRun = False
+        except :
+                print('ConfigParser exception')
+                self.canRun = False
+       
+        
     def run(self):
         print ("Starting " + self.name)
         
