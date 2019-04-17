@@ -111,10 +111,21 @@ class Sensation(object):
                 SensationType.Calibrate: CALIBRATE,
                 SensationType.Capability: CAPABILITY}
     
+    def getDirectionString(direction):
+        ret = Sensation.Directions.get(direction)
+        return ret
     def getDirectionStrings():
         return Sensation.Directions.values()
+    
+    def getMemoryString(memory):
+        ret = Sensation.Memorys.get(memory)
+        return ret
     def getMemoryStrings():
         return Sensation.Memorys.values()
+    
+    def getSensationTypeString(sensationType):
+        ret = Sensation.SensationTypes.get(sensationType)
+        return Sensation.SensationTypes.get(sensationType)
     def getSensationTypeStrings():
         return Sensation.SensationTypes.values()
 

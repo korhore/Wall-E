@@ -64,19 +64,8 @@ class WalleServer(Thread):
     
     ACTION_TIME=1.0
 
-    # Configuratioon Section and Option names
-    DEFAULT_SECTION="DEFAULT"
-    DIRECTION_SECTIION="Direction"
-    IN_SECTION="In"
-    OUT_SECTION="Out"
-    MEMORY_SECTION="Memory"
-    SENSORY_SECTION="Sensory"
-    WORKING_SECTION="Working"
-    LONG_TERM_SECTION="LongTerm"
-    DRIVE_CAPABILITY_OPTION="Drive"
-    STOP_CAPABILITY_OPTION="Stop"
-    TRUE_VALUE="True"
-    FALSE_VALUE="False"
+#     TRUE_VALUE="True"
+#    FALSE_VALUE="False"
   
 
     def __init__(self):
@@ -111,6 +100,8 @@ class WalleServer(Thread):
             else:
                 self.romeo = Romeo()
             # we have hearing (positioning of object using sounds)
+            self.turnTimer = Timer(WalleServer.ACTION_TIME, self.stopTurn)
+            
         if self.config.canHear():
             self.hearing=Hear(self.in_axon)
         
@@ -120,7 +111,6 @@ class WalleServer(Thread):
 
         
         self.running=False
-        self.turnTimer = Timer(WalleServer.ACTION_TIME, self.stopTurn)
         
         self.calibrating=False              # are we calibrating
         self.calibrating_angle = 0.0        # calibrate device hears sound from this angle, device looks to its front
@@ -129,111 +119,8 @@ class WalleServer(Thread):
         
         # finally remember instance
         WalleServer.walle = self
-        
-    '''
-    Configuration look like this
-    [DEFAULT]
-        [Direction]
-            [In]
-                [Memory]
-                    [Sensory]
-                         Drive=False
-                         Stop=False}
-                    [Working]
-                        Drive=False
-                        Stop=False}
-                    [LongTerm]
-                        Drive=False
-                        Stop=False}
-            [Out]
-                [Memory]
-                    [Sensory]
-                         Drive=False
-                         Stop=False}
-                    [Working]
-                        Drive=False
-                        Stop=False}
-                    [LongTerm]
-                        Drive=False
-                        Stop=False}
- 
-    Make dicts with keys, values of Drextions, Memory, Capabilities
-    so we get this kind one level section,
-    Sections will be  hosts available, but will we need more than localhost,
-    Other hosts can be got by Sensations.
-    
-    In_Sensory_Drive=False
-    In_Sensory_Stop=False
 
-    In_Working_Drive=False
-    In_Working_Stop=False
-   
-    In_LongTerm_Drive=False
-    In_LongTerm_Stop=False
-    
-    [Microphones]
-    left = Set
-    right = Set_1
-    calibrating_zero = 0.131151809437
-    calibrating_factor = 3.54444800648
-    
-    
-    '''
-
-
-    def configure(self):
-        cwd = os.getcwd()
-        print("cwd " + cwd)
-#        self.config = configparser.RawConfigParser()
-        self.config = configparser.ConfigParser()
-        # read our capabilities about sensation
-        try:
-            config_file=open(CONFIG_FILE_PATH,"a+")
-            self.config.read(config_file)
-            
-            if not self.config.has_section(WalleServer.DEFAULT_SECTION):
-                self.createDefaultSection(config=self.config, config_file=config_file)
-                
-            left_card = self.config.get(WalleServer.Capabilities, WalleServer.Memory)
-            
-            left_card = self.config.get(Hear.Microphones, Hear.left)
-            if left_card == None:
-                print('left_card == None')
-                self.canRun = False
-            right_card = self.config.get(Hear.Microphones, Hear.right)
-            if right_card == None:
-                print('right_card == None')
-                self.canRun = False
-            try:
-                self.calibrating_zero = self.config.getfloat(Hear.Microphones, Hear.calibrating_zero)
-            except configparser.NoOptionError:
-                self.calibrating_zero = 0.0
-            try:
-                self.calibrating_factor = self.config.getfloat(Hear.Microphones, Hear.calibrating_factor)
-            except configparser.NoOptionError:
-                self.calibrating_factor = 1.0
- 
-        # TODO make autoconfig here               
-        except configparser.MissingSectionHeaderError as e:
-                print('ConfigParser.MissingSectionHeaderError ' + str(e))
-                self.canRun = False
-        except configparser.NoSectionError as e:
-                print('ConfigParser.NoSectionError ' + str(e))
-                self.canRun = False
-        except configparser.NoOptionError as e:
-                print('ConfigParser.NoOptionError ' + str(e))
-                self.canRun = False
-        except Exception as e:
-                print('ConfigParser exception ' + str(e))
-                self.canRun = False
-
-    def createDefaultSection(self, config, config_file):
-        try:
-            config.add_section(WalleServer.DEFAULT_SECTION)
-            config.write(config_file)   
-        except Exception as e:
-                print('onfig.add_secction exception ' + str(e))
-        
+       
     def run(self):
         print ("Starting " + self.name)
         
