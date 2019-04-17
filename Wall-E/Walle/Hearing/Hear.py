@@ -21,7 +21,7 @@ from .SoundPosition import SoundPosition
 if 'Sensation' not in sys.modules:
     from Sensation import Sensation
 #from Walle.Sensation import Sensation
-from Config import CONFIG_FILE_PATH
+from Config import Config
 
 
 

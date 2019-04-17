@@ -5,6 +5,7 @@ Updated on Mar 8, 2014
 @author: reijo
 '''
 
+import os
 import sys
 import signal
 import getopt
@@ -28,7 +29,9 @@ from dbus.mainloop.glib import threads_init
 from xdg.IconTheme import theme_cache
 if 'Hearing.Hear' not in sys.modules:
     from Hearing.Hear import Hear
-from Config import CONFIG_FILE_PATH
+#from Config import CONFIG_FILE_PATH
+#if 'Config' not in sys.modules:
+from Config import Config
 
 HOST = '0.0.0.0'
 PORT = 2000
@@ -61,6 +64,21 @@ class WalleServer(Thread):
     
     ACTION_TIME=1.0
 
+    # Configuratioon Section and Option names
+    DEFAULT_SECTION="DEFAULT"
+    DIRECTION_SECTIION="Direction"
+    IN_SECTION="In"
+    OUT_SECTION="Out"
+    MEMORY_SECTION="Memory"
+    SENSORY_SECTION="Sensory"
+    WORKING_SECTION="Working"
+    LONG_TERM_SECTION="LongTerm"
+    DRIVE_CAPABILITY_OPTION="Drive"
+    STOP_CAPABILITY_OPTION="Stop"
+    TRUE_VALUE="True"
+    FALSE_VALUE="False"
+  
+
     def __init__(self):
         Thread.__init__(self)
         self.name = "WalleServer"
@@ -83,16 +101,18 @@ class WalleServer(Thread):
         self.in_axon = Axon()       # global queue for senses to put sensations to walle
         self.out_axon = Axon()      # global queue for walle to put sensations to external senses
 
-        self.configure()
+        self.config = Config()
 
         # starting build in capabilities/senses
         # we have capability to move
-        if MANUAL:
-            self.romeo = ManualRomeo()
-        else:
-            self.romeo = Romeo()
-        # we have hearing (positioning of object using sounds)
-        self.hearing=Hear(self.in_axon)
+        if self.config.canMove():
+            if MANUAL:
+                self.romeo = ManualRomeo()
+            else:
+                self.romeo = Romeo()
+            # we have hearing (positioning of object using sounds)
+        if self.config.canHear():
+            self.hearing=Hear(self.in_axon)
         
         # starting tcp server as nerve pathway to external senses to connect
         # we have azimuth sense (our own position detection)
@@ -109,14 +129,74 @@ class WalleServer(Thread):
         
         # finally remember instance
         WalleServer.walle = self
+        
+    '''
+    Configuration look like this
+    [DEFAULT]
+        [Direction]
+            [In]
+                [Memory]
+                    [Sensory]
+                         Drive=False
+                         Stop=False}
+                    [Working]
+                        Drive=False
+                        Stop=False}
+                    [LongTerm]
+                        Drive=False
+                        Stop=False}
+            [Out]
+                [Memory]
+                    [Sensory]
+                         Drive=False
+                         Stop=False}
+                    [Working]
+                        Drive=False
+                        Stop=False}
+                    [LongTerm]
+                        Drive=False
+                        Stop=False}
+ 
+    Make dicts with keys, values of Drextions, Memory, Capabilities
+    so we get this kind one level section,
+    Sections will be  hosts available, but will we need more than localhost,
+    Other hosts can be got by Sensations.
+    
+    In_Sensory_Drive=False
+    In_Sensory_Stop=False
+
+    In_Working_Drive=False
+    In_Working_Stop=False
+   
+    In_LongTerm_Drive=False
+    In_LongTerm_Stop=False
+    
+    [Microphones]
+    left = Set
+    right = Set_1
+    calibrating_zero = 0.131151809437
+    calibrating_factor = 3.54444800648
+    
+    
+    '''
 
 
     def configure(self):
-        self.config = configparser.RawConfigParser()
+        cwd = os.getcwd()
+        print("cwd " + cwd)
+#        self.config = configparser.RawConfigParser()
+        self.config = configparser.ConfigParser()
         # read our capabilities about sensation
         try:
-            self.config.read(CONFIG_FILE_PATH)
+            config_file=open(CONFIG_FILE_PATH,"a+")
+            self.config.read(config_file)
+            
+            if not self.config.has_section(WalleServer.DEFAULT_SECTION):
+                self.createDefaultSection(config=self.config, config_file=config_file)
+                
             left_card = self.config.get(WalleServer.Capabilities, WalleServer.Memory)
+            
+            left_card = self.config.get(Hear.Microphones, Hear.left)
             if left_card == None:
                 print('left_card == None')
                 self.canRun = False
@@ -134,19 +214,25 @@ class WalleServer(Thread):
                 self.calibrating_factor = 1.0
  
         # TODO make autoconfig here               
-        except configparser.MissingSectionHeaderError:
-                print('ConfigParser.MissingSectionHeaderError')
+        except configparser.MissingSectionHeaderError as e:
+                print('ConfigParser.MissingSectionHeaderError ' + str(e))
                 self.canRun = False
-        except configparser.NoSectionError:
-                print('ConfigParser.NoSectionError')
+        except configparser.NoSectionError as e:
+                print('ConfigParser.NoSectionError ' + str(e))
                 self.canRun = False
-        except configparser.NoOptionError:
-                print('ConfigParser.NoOptionError')
+        except configparser.NoOptionError as e:
+                print('ConfigParser.NoOptionError ' + str(e))
                 self.canRun = False
-        except :
-                print('ConfigParser exception')
+        except Exception as e:
+                print('ConfigParser exception ' + str(e))
                 self.canRun = False
-       
+
+    def createDefaultSection(self, config, config_file):
+        try:
+            config.add_section(WalleServer.DEFAULT_SECTION)
+            config.write(config_file)   
+        except Exception as e:
+                print('onfig.add_secction exception ' + str(e))
         
     def run(self):
         print ("Starting " + self.name)
@@ -154,7 +240,8 @@ class WalleServer(Thread):
         # starting other threads/senders/capabilities
         
         self.running=True
-        self.hearing.start()
+        if self.config.canHear():
+            self.hearing.start()
         print ("WalleServer: starting TCPServer")
         self.tcpServer.start()
 
@@ -170,8 +257,9 @@ class WalleServer(Thread):
         print ('Walle:run shutting down TcpServer ...')
         self.tcpServer.stop()
         
-        print ('Walle:run shutting down hearing ...')
-        self.hearing.stop()
+        if self.config.canHear():
+            print ('Walle:run shutting down hearing ...')
+            self.hearing.stop()
         
         print ('Walle:run ALL SHUT DOWN')
 
@@ -200,7 +288,7 @@ class WalleServer(Thread):
             self.stop()
         elif sensation.getSensationType() == Sensation.SensationType.Who:
             print ("Walleserver.process Sensation.SensationType.Who")
-        elif sensation.getSensationType() == Sensation.SensationType.HearDirection:
+        elif self.config.canHear() and sensation.getSensationType() == Sensation.SensationType.HearDirection:
             print ("Walleserver.process Sensation.SensationType.HearDirection")
             #inform external senses that we remember now hearing          
             self.out_axon.put(sensation)
@@ -246,7 +334,7 @@ class WalleServer(Thread):
                 # ask external senses to to set same calibrating mode          
                 self.out_axon.put(sensation)
             elif sensation.getMemory() == Sensation.Memory.Sensory:
-                if self.calibrating:
+                if self.config.canHear() and self.calibrating:
                     if self.turning_to_object:
                         print ("Walleserver.process turning_to_object, can't start calibrate activity yet")
                     else:
@@ -274,7 +362,7 @@ class WalleServer(Thread):
   
     def turn(self):
         # calculate new power to turn or continue turning
-        if self.romeo.exitst(): # if we have moving capability
+        if self.config.canMove() and self.romeo.exitst(): # if we have moving capability
             self.leftPower, self.rightPower = self.getPower()
             if self.turning_to_object:
                 print ("WalleServer.turn: self.hearing_angle " + str(self.hearing_angle) + " self.azimuth " + str(self.azimuth))
@@ -296,7 +384,8 @@ class WalleServer(Thread):
                     # adjust hearing
                     # if turn, don't hear sound, because we are giving moving sound
                     # we want hear only sounds from other objects
-                    self.hearing.setOn(not self.turning_to_object)
+                    if self.config.canHear():
+                        self.hearing.setOn(not self.turning_to_object)
                     print ("WalleServer.turn: powers initial to " + str(self.leftPower) + ' ' + str(self.rightPower))
                     self.number = self.number + 1
                     sensation, picture = self.romeo.processSensation(Sensation(number=self.number, sensationType='D', leftPower = self.leftPower, rightPower = self.rightPower))
@@ -307,7 +396,7 @@ class WalleServer(Thread):
 
             
     def stopTurn(self):
-        if self.romeo.exitst(): # if we have moving capability
+        if self.config.canMove() and self.romeo.exitst(): # if we have moving capability
             self.turning_to_object = False
             self.leftPower = 0.0           # set motors in opposite power to turn in place
             self.rightPower = 0.0
@@ -315,7 +404,8 @@ class WalleServer(Thread):
                 
             print ("WalleServer.stopTurn: powers to " + str(self.leftPower) + ' ' + str(self.rightPower))
                 
-            self.hearing.setOn(not self.turning_to_object)
+            if self.config.canHear():
+                self.hearing.setOn(not self.turning_to_object)
                 
             self.number = self.number + 1
             #test=Sensation.SensationType.Drive

@@ -39,16 +39,16 @@ class Sensation(object):
                             # there is a reference for them for instance 10 mins
                             #
                             # After that we can produce higher level Sensations
-                            # Wgichs memory attribute if higher level,
+                            # with memory attribute in higher level,
                             # Working or Memory, that reference to basic
-                            # momory level, that is Sensory level.
-                            # Tat way we can produce meanings is higher level
+                            # memory level, that is Sensory level.
+                            # That way we can produce meanings is higher level
                             # of low level sensations. For instance we can get
                             # a picture (Sensory) and process it with tnsorFlow
-                            # which classifies it as ket words and get
-                            # Working or Momory level Sensations that refers
-                            # to the original haååeming, a picture, meneaning
-                            # that robot has seens it at certain time.
+                            # which classifies it as get words and get
+                            # Working or Memory level Sensations that refers
+                            # to the original hearing, a picture, meaning
+                            # that robot has seen it at certain time.
                             # THigher level Sensation can be processed also and
                             # we can save original picture in a file with
                             # its classified names. After that our robot
@@ -73,6 +73,51 @@ class Sensation(object):
     SensationType = enum(Drive='a', Stop='b', Who='c', HearDirection='d', Azimuth='e', Acceleration='f', Observation='g', PictureFilePath='h', PictureData='i', Calibrate='j', Capability='k', Unknown='l')
     Direction = enum(In='I', Out='O')
     Memory = enum(Sensory='S', Working='W', LongTerm='L' )
+
+# enum items as strings    
+    IN="In"
+    OUT="Out"
+    MEMORY_SECTION="Memory"
+    SENSORY="Sensory"
+    WORKING="Working"
+    LONG_TERM="LongTerm"
+    DRIVE="Drive"
+    STOP="Stop"
+    WHO="Who"
+    HEARDIRECTION="HearDirection"
+    AZIMUTH="Azimuth"
+    ACCELERATION="Acceleration"
+    OBSERVATION="Observation"
+    PICTUREPATH="PictureFilePath"
+    PICTUREDATA="PictureData"
+    CALIBRATE="Calibrate"
+    CAPABILITY="Capability"
+    
+    Directions={Direction.In: IN,
+                Direction.Out: OUT}
+    
+    Memorys = {Memory.Sensory: SENSORY,
+               Memory.Working: WORKING,
+               Memory.LongTerm: LONG_TERM}
+    SensationTypes={SensationType.Drive: DRIVE,
+               SensationType.Stop: STOP,
+               SensationType.Who: WHO,
+                SensationType.HearDirection: HEARDIRECTION,
+                SensationType.Azimuth: AZIMUTH,
+                SensationType.Acceleration: ACCELERATION,
+                SensationType.Observation: OBSERVATION,
+                SensationType.PictureFilePath: PICTUREPATH,
+                SensationType.PictureData: PICTUREDATA,
+                SensationType.Calibrate: CALIBRATE,
+                SensationType.Capability: CAPABILITY}
+    
+    def getDirectionStrings():
+        return Sensation.Directions.values()
+    def getMemoryStrings():
+        return Sensation.Memorys.values()
+    def getSensationTypeStrings():
+        return Sensation.SensationTypes.values()
+
     
     def addToSensationMemory(sensation):
         # add new sensation
@@ -300,6 +345,8 @@ class Sensation(object):
                 self.sensationType = Sensation.SensationType.Unknown
                
         Sensation.addToSensationMemory(self)
+        Sensation.getSensationTypeStrings() # test
+
                  
     def __str__(self):
         if self.sensationType == Sensation.SensationType.Drive:
