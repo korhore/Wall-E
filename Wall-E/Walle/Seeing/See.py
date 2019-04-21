@@ -29,17 +29,17 @@ class See(Thread):
     RATE=44100
     SHORT_AVERAGE_DEVIDER = 2000.0
     
-    SOUND_STOPPED = 0
-    SOUND_ONE_EAR = 1
-    SOUND_TWO_EAR = 2
+    IMAGE_STOPPED = 0
+    IMAGE_ONE_EYE = 1
+    IMAGE_TWO_EYE = 2
     
-    SOUND_ONE_EAR_REPORT_LIMIT = 60.0
+    IMAGE_ONE_EYE_REPORT_LIMIT = 60.0
 
     
      
-    EAR_DISTANCE = 0.25 # 0.25 m
-    SOUND_SPEED = 340.0 # 340 m/s in ear
-    SOUND_LIMIT=EAR_DISTANCE/SOUND_SPEED # time of sound to travel distance of ears
+    EYE_DISTANCE = 0.25 # 0.25 m
+    IMAGE_SPEED = 340.0 # 340 m/s in eye
+    IMAGE_LIMIT=EYE_DISTANCE/IMAGE_SPEED # time of image to travel distance of ears
 
     ACCURACYFACTOR = math.pi * 5.0/180.0
 
@@ -52,7 +52,7 @@ class See(Thread):
     
     LEFT = 0
     RIGHT = 1
-    LEN_EARS=2
+    LEN_EYES=2
     
     CALIBRATING_DEVIDER = 20.0
     
@@ -62,13 +62,13 @@ class See(Thread):
     def __init__(self, report_queue):
         Thread.__init__(self)
         
-        self.name='Hear'
+        self.name='See'
         self.report_queue = report_queue
         
-        self.sound_queue = Queue()
+        self.image_queue = Queue()
         self.running = False
         self.canRun = True
-        self.sound_status = Hear.SOUND_STOPPED
+        self.image_status = See.IMAGE_STOPPED
         self.reported = False
         self.reported_timing = False
         self.reported_level = False
@@ -76,16 +76,16 @@ class See(Thread):
         self.report_time=time.time()
         self.angle = 0.0
         self.reported_angle = 0.0
-        self.id=Hear.LEFT
-        #self.is_sound = False
-        self.is_sound = [False]*Hear.LEN_EARS
+        self.id=See.LEFT
+        #self.is_image = False
+        self.is_image = [False]*See.LEN_EYES
        
-        self.ear = [None]*Hear.LEN_EARS
+        self.eye = [None]*See.LEN_EYES
         
-        self.sound_ear_id = Hear.LEFT
-        self.sound = [None]*Hear.LEN_EARS
-        self.sound[Hear.LEFT] = Sound(id=Hear.LEFT)
-        self.sound[Hear.RIGHT] = Sound(id=Hear.RIGHT)
+        self.image_ear_id = See.LEFT
+        self.image = [None]*See.LEN_EYES
+        self.image[See.LEFT] = Sound(id=See.LEFT)
+        self.image[See.RIGHT] = Sound(id=See.RIGHT)
         self.number=0
         
         self.calibrating = False
@@ -97,20 +97,20 @@ class See(Thread):
         self.config = configparser.RawConfigParser()
         try:
             self.config.read(CONFIG_FILE_PATH)
-            left_card = self.config.get(Hear.Microphones, Hear.left)
+            left_card = self.config.get(See.Microphones, See.left)
             if left_card == None:
                 print('left_card == None')
                 self.canRun = False
-            right_card = self.config.get(Hear.Microphones, Hear.right)
+            right_card = self.config.get(See.Microphones, See.right)
             if right_card == None:
                 print('right_card == None')
                 self.canRun = False
             try:
-                self.calibrating_zero = self.config.getfloat(Hear.Microphones, Hear.calibrating_zero)
+                self.calibrating_zero = self.config.getfloat(See.Microphones, See.calibrating_zero)
             except configparser.NoOptionError:
                 self.calibrating_zero = 0.0
             try:
-                self.calibrating_factor = self.config.getfloat(Hear.Microphones, Hear.calibrating_factor)
+                self.calibrating_factor = self.config.getfloat(See.Microphones, See.calibrating_factor)
             except configparser.NoOptionError:
                 self.calibrating_factor = 1.0
                 
@@ -129,144 +129,144 @@ class See(Thread):
 
 
         if self.canRun:
-            self.ear[Hear.LEFT] = Ear(id=Hear.LEFT, name=Hear.ear_names[Hear.LEFT], card=left_card, average=Hear.AVERAGE, sensitivity=Hear.SENSITIVITY, queue=self.sound_queue) #'Set') # card=alsaaudio.cards()[1]
-            self.ear[Hear.RIGHT] = Ear(id=Hear.RIGHT, name=Hear.ear_names[Hear.RIGHT], card=right_card, average=Hear.AVERAGE, sensitivity=Hear.SENSITIVITY, queue=self.sound_queue) #'Set') # card=alsaaudio.cards()[2]
+            self.eye[See.LEFT] = Ear(id=See.LEFT, name=See.ear_names[See.LEFT], card=left_card, average=See.AVERAGE, sensitivity=See.SENSITIVITY, queue=self.image_queue) #'Set') # card=alsaaudio.cards()[1]
+            self.eye[See.RIGHT] = Ear(id=See.RIGHT, name=See.ear_names[See.RIGHT], card=right_card, average=See.AVERAGE, sensitivity=See.SENSITIVITY, queue=self.image_queue) #'Set') # card=alsaaudio.cards()[2]
         else:
-            print("run 'sudo python SetUpEars.py' to set up microphones to enable Hear")
+            print("run 'sudo python SetUpEars.py' to set up microphones to enable See")
 
         
     def stop(self):
         if self.canRun:
-            self.ear[Hear.LEFT].stop()
-            self.ear[Hear.RIGHT].stop()
+            self.eye[See.LEFT].stop()
+            self.eye[See.RIGHT].stop()
         self.running=False
 
     def setOn(self, on):
-        self.ear[Hear.LEFT].setOn(on)
-        self.ear[Hear.RIGHT].setOn(on)
+        self.eye[See.LEFT].setOn(on)
+        self.eye[See.RIGHT].setOn(on)
        
 
     def run(self):
         if self.canRun:
-            if Hear.log:
+            if See.log:
                 print("Starting " + self.name)
             
-            self.ear[Hear.LEFT].start()
-            self.ear[Hear.RIGHT].start()
+            self.eye[See.LEFT].start()
+            self.eye[See.RIGHT].start()
             self.running=True
     
             while self.running:
-                sound=self.sound_queue.get()
-                if Hear.debug:
-                    print("Got sound from sound_queue " + Hear.ear_names[sound.get_id()]  + " State " +  sound.get_str_state() + " start_time " + str(sound.get_start_time())  + " duration " + str(sound.get_duration())  + " volume_level " + str(sound.get_volume_level()))
-                # TODO process which ear hears sounds first
-                self.process(sound)
+                image=self.image_queue.get()
+                if See.debug:
+                    print("Got image from image_queue " + See.ear_names[image.get_id()]  + " State " +  image.get_str_state() + " start_time " + str(image.get_start_time())  + " duration " + str(image.get_duration())  + " volume_level " + str(image.get_volume_level()))
+                # TODO process which eye hears images first
+                self.process(image)
         else:
             print("Can not start " + self.name)
             print("run 'sudo python SetUpEars.py' to set up microphones to enable Hearing")
 
     # TODO Logic           
-    def process(self, sound):
-        id=sound.get_id()
+    def process(self, image):
+        id=image.get_id()
         other=self.other(id)
       
-        if sound.get_state() == Sound.START:
-            self.sound[id]=sound
-            self.reported = False       # report after sound start
+        if image.get_state() == Sound.START:
+            self.image[id]=image
+            self.reported = False       # report after image start
             self.reported_timing = False
             self.reported_level = False
             self.reported_single = False
-            self.is_sound[id] = True
-            if  self.is_sound[other]:
-                self.sound_status = Hear.SOUND_TWO_EAR
-                if Hear.debug:
-                    print("Sound status two ear sound")
+            self.is_image[id] = True
+            if  self.is_image[other]:
+                self.image_status = See.IMAGE_TWO_EYE
+                if See.debug:
+                    print("Sound status two eye image")
             else:
-                self.sound_status = Hear.SOUND_ONE_EAR
-                self.id = id        # remember initial ear hears sound first
-                if Hear.debug:
-                    print("Sound status one ear sound")
-       # if stop or continue and sound has lasted SOUND_LIMIT
-        if sound.get_state() == Sound.STOP or (sound.get_state() == Sound.CONTINUE and sound.get_duration() > Hear.SOUND_LIMIT):
-            other_sound=self.sound[other]
-            left_sound = self.sound[Hear.LEFT]
-            right_sound = self.sound[Hear.RIGHT]
+                self.image_status = See.IMAGE_ONE_EYE
+                self.id = id        # remember initial eye hears image first
+                if See.debug:
+                    print("Sound status one eye image")
+       # if stop or continue and image has lasted IMAGE_LIMIT
+        if image.get_state() == Sound.STOP or (image.get_state() == Sound.CONTINUE and image.get_duration() > See.IMAGE_LIMIT):
+            other_image=self.image[other]
+            left_image = self.image[See.LEFT]
+            right_image = self.image[See.RIGHT]
             change=False
             
-            # if there is not yet sound from another ear, sound comes from this ear's direction
-            # but we can't be sure, that another sound comes, so we must wait
+            # if there is not yet image from another eye, image comes from this eye's direction
+            # but we can't be sure, that another image comes, so we must wait
             #
-            # TODO Only got Sound from left/Right  No other sound, no direction
-            # TODO Maybe one ear logic should be ignored before stop of sound, to make logic more simple
-            # because if one ear sound is reported, two ear sound newer even gets change
-            if self.sound_status == Hear.SOUND_ONE_EAR:
-                #print "Sound from " + Hear.ear_names[id] + " No other sound, no direction, other sound stopped " + str( sound.get_start_time() - other_sound.get_stop_time())
-                if sound.get_start_time() - other_sound.get_stop_time() < Hear.SOUND_LIMIT:
+            # TODO Only got Sound from left/Right  No other image, no direction
+            # TODO Maybe one eye logic should be ignored before stop of image, to make logic more simple
+            # because if one eye image is reported, two eye image newer even gets change
+            if self.image_status == See.IMAGE_ONE_EYE:
+                #print "Sound from " + See.ear_names[id] + " No other image, no direction, other image stopped " + str( image.get_start_time() - other_image.get_stop_time())
+                if image.get_start_time() - other_image.get_stop_time() < See.IMAGE_LIMIT:
                     if self.debug:
-                        print("Sound from " + Hear.ear_names[id] + " No other sound, but other sound just stopped " + str( sound.get_start_time() - other_sound.get_stop_time()))
+                        print("Sound from " + See.ear_names[id] + " No other image, but other image just stopped " + str( image.get_start_time() - other_image.get_stop_time()))
                     if self.debug:
-                        print("Sound status two ear sound")
+                        print("Sound status two eye image")
                     if self.calibrating:
-                        self.calibrate_level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
-                    self.angle = self.level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
+                        self.calibrate_level_to_degrees(left_image.get_volume_level(), right_image.get_volume_level())
+                    self.angle = self.level_to_degrees(left_image.get_volume_level(), right_image.get_volume_level())
                     if self.debug:
-                        print("Sound from " + Hear.ear_names[id] + " direction by volume level " + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (self.angle))
-                    #self.report_queue.put(SoundPosition(time=self.sound[self.id].get_start_time(), angle=self.angle, type=Hear.SOUND_TWO_EAR))
+                        print("Sound from " + See.ear_names[id] + " direction by volume level " + str(left_image.get_volume_level()) + ' ' + str(right_image.get_volume_level()) + " degrees " + str (self.angle))
+                    #self.report_queue.put(SoundPosition(time=self.image[self.id].get_start_time(), angle=self.angle, type=See.IMAGE_TWO_EYE))
                     self.reported_level = True
                     self.report()
                 else:  
                     if self.debug:
-                        print("Sound from " + Hear.ear_names[id] + " No other sound, no direction, other sound stopped " + str( sound.get_start_time() - other_sound.get_stop_time()))
-                    self.angle = self.single_sound_to_degrees(self.is_sound[Hear.LEFT], self.is_sound[Hear.RIGHT])
+                        print("Sound from " + See.ear_names[id] + " No other image, no direction, other image stopped " + str( image.get_start_time() - other_image.get_stop_time()))
+                    self.angle = self.single_image_to_degrees(self.is_image[See.LEFT], self.is_image[See.RIGHT])
                     if self.debug:
-                        print("Sound from " + Hear.ear_names[id] + " single " + str(self.is_sound[Hear.LEFT]) + ' ' + str(self.is_sound[Hear.RIGHT]) + " degrees " + str (self.angle))
+                        print("Sound from " + See.ear_names[id] + " single " + str(self.is_image[See.LEFT]) + ' ' + str(self.is_image[See.RIGHT]) + " degrees " + str (self.angle))
                     #self.report_queue.put(SoundPosition(self.angle))
-            elif math.fabs(other_sound.get_start_time() - sound.get_start_time()) < Hear.SOUND_LIMIT:
-                if not self.reported_timing: # timing is reported always once per sound, even if by level is reported
-                    self.angle = self.timing_to_degrees(left_sound.get_start_time(), right_sound.get_start_time())
-                    #self.report_queue.put(SoundPosition(time=self.sound[self.id].get_start_time(), angle=self.angle, type=Hear.SOUND_TWO_EAR))
+            elif math.fabs(other_image.get_start_time() - image.get_start_time()) < See.IMAGE_LIMIT:
+                if not self.reported_timing: # timing is reported always once per image, even if by level is reported
+                    self.angle = self.timing_to_degrees(left_image.get_start_time(), right_image.get_start_time())
+                    #self.report_queue.put(SoundPosition(time=self.image[self.id].get_start_time(), angle=self.angle, type=See.IMAGE_TWO_EYE))
                     self.reported_timing = True
                     self.report()
                     if self.debug or self.log:
-                        print("Sound direction by TIMING reported from " + Hear.ear_names[id] + " has other sound, direction by timing " + str(other_sound.get_start_time() - sound.get_start_time()) + " degrees " + str (self.angle))
+                        print("Sound direction by TIMING reported from " + See.ear_names[id] + " has other image, direction by timing " + str(other_image.get_start_time() - image.get_start_time()) + " degrees " + str (self.angle))
                 else:
                     if self.debug:
-                        print("Sound direction by timing already reported from " + Hear.ear_names[id] + " has other sound, direction by timing " + str(other_sound.get_start_time() - sound.get_start_time()) + " degrees " + str (self.angle))
+                        print("Sound direction by timing already reported from " + See.ear_names[id] + " has other image, direction by timing " + str(other_image.get_start_time() - image.get_start_time()) + " degrees " + str (self.angle))
 
             else:
-                # TODO Two eard sound is not needed to calculate yet, here it is calcilated for debug purposes, remove this
-                self.angle = self.level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
-                if Hear.debug:
-                    print("Sound direction by volume level no reported yet from " + Hear.ear_names[id] + ' ' + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (self.angle))
+                # TODO Two eard image is not needed to calculate yet, here it is calcilated for debug purposes, remove this
+                self.angle = self.level_to_degrees(left_image.get_volume_level(), right_image.get_volume_level())
+                if See.debug:
+                    print("Sound direction by volume level no reported yet from " + See.ear_names[id] + ' ' + str(left_image.get_volume_level()) + ' ' + str(right_image.get_volume_level()) + " degrees " + str (self.angle))
                 #self.report_queue.put(SoundPosition(self.angle))
                 #self.reported = True
                    
-        if sound.get_state() == Sound.STOP:
-            # report one ear sound only rarely, wait better two ear sounds to come
-            if (not self.reported) and ((self.sound_status == Hear.SOUND_TWO_EAR) or ((time.time() - self.report_time) > Hear.SOUND_ONE_EAR_REPORT_LIMIT)):
+        if image.get_state() == Sound.STOP:
+            # report one eye image only rarely, wait better two eye images to come
+            if (not self.reported) and ((self.image_status == See.IMAGE_TWO_EYE) or ((time.time() - self.report_time) > See.IMAGE_ONE_EYE_REPORT_LIMIT)):
                 if self.calibrating:
-                    self.calibrate_level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
-                    self.angle = self.level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
-                if Hear.debug:
-                    print("Sound reported delayed from " + Hear.ear_names[id] + ' ' + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (self.angle))
-                #self.report_queue.put(SoundPosition(time=self.sound[self.id].get_start_time(), angle=self.angle, type=self.sound_status))
+                    self.calibrate_level_to_degrees(left_image.get_volume_level(), right_image.get_volume_level())
+                    self.angle = self.level_to_degrees(left_image.get_volume_level(), right_image.get_volume_level())
+                if See.debug:
+                    print("Sound reported delayed from " + See.ear_names[id] + ' ' + str(left_image.get_volume_level()) + ' ' + str(right_image.get_volume_level()) + " degrees " + str (self.angle))
+                #self.report_queue.put(SoundPosition(time=self.image[self.id].get_start_time(), angle=self.angle, type=self.image_status))
                 self.reported_level = True
                 self.report()
             else:
-                if Hear.debug:
-                    print("Sound stopped self.reported " + str(self.reported) + " self.sound_status " + str(self.sound_status) + " (time.time() - self.report_time) " + str((time.time() - self.report_time)))
+                if See.debug:
+                    print("Sound stopped self.reported " + str(self.reported) + " self.image_status " + str(self.image_status) + " (time.time() - self.report_time) " + str((time.time() - self.report_time)))
                    
                 
-            self.is_sound[id] = False
+            self.is_image[id] = False
             
-            if self.sound_status == Hear.SOUND_TWO_EAR:
-                self.sound_status = Hear.SOUND_ONE_EAR
-                if Hear.debug:
-                    print("Sound status one ear sound")
+            if self.image_status == See.IMAGE_TWO_EYE:
+                self.image_status = See.IMAGE_ONE_EYE
+                if See.debug:
+                    print("Sound status one eye image")
             else:
-                self.sound_status = Hear.SOUND_STOPPED
-                if Hear.debug:
-                    print("Sound status stopped sound")
+                self.image_status = See.IMAGE_STOPPED
+                if See.debug:
+                    print("Sound status stopped image")
 
 
             
@@ -290,25 +290,25 @@ class See(Thread):
                 print("Hearing calibrate_level_to_degrees self.calibrating_factor " + str(self.calibrating_factor))
                 calibrating_factor = self.calibrating_angle * max(leftlevel,rightlevel)/(self.calibrating_zero + rightlevel - leftlevel)
                 print("Hearing calibrate_level_to_degrees candidate calibrating_factor " + str(calibrating_factor))
-                self.calibrating_factor = (((Hear.CALIBRATING_DEVIDER - 1.0) * self.calibrating_factor) + calibrating_factor)/Hear.CALIBRATING_DEVIDER
+                self.calibrating_factor = (((See.CALIBRATING_DEVIDER - 1.0) * self.calibrating_factor) + calibrating_factor)/See.CALIBRATING_DEVIDER
                 print("Hearing calibrate_level_to_degrees new self.calibrating_factor " + str(self.calibrating_factor))
                 with open(CONFIG_FILE_PATH, 'wb') as configfile:
-                    self.config.set(Hear.Microphones, Hear.calibrating_factor, self.calibrating_factor)
+                    self.config.set(See.Microphones, See.calibrating_factor, self.calibrating_factor)
                     self.config.write(configfile)
 
             else:
                 print("Hearing calibrate_level_to_degrees self.calibrating_zero " + str(self.calibrating_zero))
                 calibrating_zero = rightlevel - leftlevel
                 print("Hearing calibrate_level_to_degrees candidate calibrating_zero " + str(calibrating_zero))
-                self.calibrating_zero = (((Hear.CALIBRATING_DEVIDER - 1.0) * self.calibrating_zero) + calibrating_zero)/Hear.CALIBRATING_DEVIDER
+                self.calibrating_zero = (((See.CALIBRATING_DEVIDER - 1.0) * self.calibrating_zero) + calibrating_zero)/See.CALIBRATING_DEVIDER
                 print("Hearing calibrate_level_to_degrees new self.calibrating_zero " + str(self.calibrating_zero))
                 with open(CONFIG_FILE_PATH, 'wb') as configfile:
-                    self.config.set(Hear.Microphones, Hear.calibrating_zero, self.calibrating_zero)
+                    self.config.set(See.Microphones, See.calibrating_zero, self.calibrating_zero)
                     self.config.write(configfile)
            
 
     def timing_to_degrees(self, lefttime, righttime):
-        t = ((lefttime - righttime)*Hear.SOUND_SPEED)/Hear.EAR_DISTANCE
+        t = ((lefttime - righttime)*See.IMAGE_SPEED)/See.EYE_DISTANCE
         if t < -0.5:
             t = -0.5
         if t > 0.5:
@@ -316,78 +316,78 @@ class See(Thread):
             
         return math.acos(t)
     
-    def single_sound_to_degrees(self, is_left_sound, is_right_sound):
-        if is_left_sound and is_right_sound:
+    def single_image_to_degrees(self, is_left_image, is_right_image):
+        if is_left_image and is_right_image:
             return 0.0
-        if (not is_left_sound) and (not is_right_sound):
+        if (not is_left_image) and (not is_right_image):
             return 0.0
-        if is_left_sound:
+        if is_left_image:
             return -45.0 * math.pi/180.0
         return 45.0 * math.pi/180.0
 
 
 
  
-    def analyse(self, sound):
-        id=sound.get_id()
-        self.sound[id]=sound
+    def analyse(self, image):
+        id=image.get_id()
+        self.image[id]=image
         other=self.other(id)
-        other_sound=self.sound[other]
+        other_image=self.image[other]
         change=False
-        if not self.is_sound[id]:
-            if sound.get_state() == Sound.START:
-                if Hear.debug:
-                    print("process START sound from " + Hear.ear_names[id])
-                if other_sound.get_start_time() > sound.get_start_time():
-                    if Hear.debug:
-                        print("process sound other has later start time")
-                    if other_sound.get_start_time() - sound.get_start_time() < Hear.SOUND_LIMIT:
-                        if Hear.debug:
-                            print("in same sound with other sound, sound state keeps same")
+        if not self.is_image[id]:
+            if image.get_state() == Sound.START:
+                if See.debug:
+                    print("process START image from " + See.ear_names[id])
+                if other_image.get_start_time() > image.get_start_time():
+                    if See.debug:
+                        print("process image other has later start time")
+                    if other_image.get_start_time() - image.get_start_time() < See.IMAGE_LIMIT:
+                        if See.debug:
+                            print("in same image with other image, image state keeps same")
                     else:
-                        if Hear.debug:
-                            print("Too old sound, not with other, sound state keeps same")
+                        if See.debug:
+                            print("Too old image, not with other, image state keeps same")
                 else:
-                    if Hear.debug:
-                        print("process this sound was later")
-                    if sound.get_start_time() - other_sound.get_stop_time() < Hear.SOUND_LIMIT:
-                        if Hear.debug:
-                            print("This sound start is close to other sound stop, continue previous sounds")
-                        self.is_sound = True
+                    if See.debug:
+                        print("process this image was later")
+                    if image.get_start_time() - other_image.get_stop_time() < See.IMAGE_LIMIT:
+                        if See.debug:
+                            print("This image start is close to other image stop, continue previous images")
+                        self.is_image = True
                         change=True
                     else:
-                        if Hear.debug:
-                            print("This sound start is NOT close to other sound stop, start sounds")
-                        self.sound_ear_id = id
-                        self.is_sound = True
+                        if See.debug:
+                            print("This image start is NOT close to other image stop, start images")
+                        self.image_ear_id = id
+                        self.is_image = True
                         change=True
                          
-        elif sound.get_state() == Sound.STOP:
-            if Hear.debug:
-                print("process STOP sound from " + Hear.ear_names[id])
-            if self.sound_ear_id == id:
-                if Hear.debug:
-                    print("This sound stops")
-                self.is_sound = False
+        elif image.get_state() == Sound.STOP:
+            if See.debug:
+                print("process STOP image from " + See.ear_names[id])
+            if self.image_ear_id == id:
+                if See.debug:
+                    print("This image stops")
+                self.is_image = False
                 change=True
             else:
-                if Hear.debug:
-                    print("Other sound stops, sound state keeps same")
+                if See.debug:
+                    print("Other image stops, image state keeps same")
                 
         if change:
-            if self.is_sound:
-                if Hear.debug:
-                    print("SOUND STARTED ON " + Hear.ear_names[self.sound_ear_id])
+            if self.is_image:
+                if See.debug:
+                    print("IMAGE STARTED ON " + See.ear_names[self.image_ear_id])
             else:
-                if Hear.debug:
-                    print("SOUND STOPPED ON " + Hear.ear_names[self.sound_ear_id])
+                if See.debug:
+                    print("IMAGE STOPPED ON " + See.ear_names[self.image_ear_id])
 
     def other(self, id):
-        return (id+1) % Hear.LEN_EARS
+        return (id+1) % See.LEN_EYES
     
     def report(self):
-        if math.fabs(self.angle - self.reported_angle) > Hear.ACCURACYFACTOR:
-            if Hear.debug:
+        if math.fabs(self.angle - self.reported_angle) > See.ACCURACYFACTOR:
+            if See.debug:
                 print("Hearing report " + str(self.angle))
             self.number = self.number+1
             self.report_queue.put(Sensation(number=self.number, sensationType=Sensation.SensationType.HearDirection, hearDirection = self.angle))
@@ -407,20 +407,20 @@ class See(Thread):
       
 if __name__ == "__main__":
         #main()
-        Hear.debug = False
-        Hear.log = True
+        See.debug = False
+        See.log = True
         
-        if Hear.log:
+        if See.log:
             print(str(alsaaudio.cards()))
         report_queue = Queue()
 
 
-        hearing=Hear(report_queue)
+        hearing=See(report_queue)
         hearing.start()
         while True:
             sensation=report_queue.get()
-            #if Hear.debug:
-            print("--> Got sound_position from report_queue, sensation " + time.ctime(sensation.getTime()) + " " + str(sensation))
+            #if See.debug:
+            print("--> Got image_position from report_queue, sensation " + time.ctime(sensation.getTime()) + " " + str(sensation))
  
         print("__main__ exit")
         exit()

@@ -77,7 +77,10 @@ class Config(ConfigParser):
 
     TRUE="True"
     FALSE="False"
-
+    
+    TRUE_ENCODED=b'\x01'
+    FALSE_ENCODED=b'\x00'
+     
     def __init__(self):
         ConfigParser.__init__(self)
         
@@ -126,8 +129,98 @@ class Config(ConfigParser):
                     print('Microphones configparser exception ' + str(e))
                     self.canRun = False
 
+    '''
+    localhost capaliliys to bytes
+    '''
+    def toBytes(self):
+        b=b''
+        for directionStr in Sensation.getDirectionStrings():
+            for memoryStr in Sensation.getMemoryStrings():
+                for capabilityStr in Sensation.getSensationTypeStrings():
+                    option=self.getOptionName(directionStr,memoryStr,capabilityStr)
+                    #iscab=self.getboolean(Config.Capabilities, option)
+                    #b_iscab= bytes(iscab,'utf-8')
+                    #b += bytes(self.getboolean(Config.Capabilities, option))
+                    b2 = b + self.boolToByte(self.getboolean(Config.Capabilities, option))
+                    b=b2
+        print("toBytes " + str(len(b)))
+        return b
  
+     
+    '''
+    Helper function to convert boolean to one byte
+    '''
+    def boolToByte(self, boolean):
+        if boolean:
+            ret = Config.TRUE_ENCODED
+        else:
+            ret = Config.FALSE_ENCODED
+        return ret
+ 
+    '''
+    Helper function to convert one byte to boolean
+    '''
+    def byteToBool(self, b):
+        if b == Config.TRUE_ENCODED:
+            return True
+        return False
 
+    '''
+    Helper function to convert boolean to config file String
+    '''
+    def boooleanToString(self, bool):
+        if bool:
+            return Config.TRUE
+        
+        return Config.FALSE
+
+    
+    '''
+    external or local host capabilities to given capability section
+    section name is normally hosts ip-address as text, if given
+    if section is not given, we get local capabilities
+    '''
+    def fromBytes(self, b, section=Capabilities):
+        print("fromBytes " + str(len(b)))
+        i=0
+        changes=False
+        if not self.has_section(section):
+            try:
+                self.add_section(section)
+                changes=True
+
+            except MissingSectionHeaderError as e:
+                    print('self.add_section ' + section + ' configparser.MissingSectionHeaderError ' + str(e))
+            except NoSectionError as e:
+                    print('eslf.add_section ' + section + ' configparser.NoSectionError ' + str(e))
+            except NoOptionError as e:
+                    print('self.add_section ' + section + ' configparser.NoOptionError ' + str(e))
+            except Exception as e:
+                    print('self.add_section ' + section + ' exception ' + str(e))
+        for directionStr in Sensation.getDirectionStrings():
+            for memoryStr in Sensation.getMemoryStrings():
+                for capabilityStr in Sensation.getSensationTypeStrings():
+                    option=self.getOptionName(directionStr,memoryStr,capabilityStr)
+                    is_set=self.byteToBool(b[i])
+                    try:
+                        if not self.has_option(section, option):
+                            self.set(section, option, self.boooleanToString(is_set))
+                            changes=True
+                        else:
+                            was_set = self.getboolean(section, option)
+                            if is_set != was_set:
+                                self.set(section, option, self.boooleanToString(is_set))
+                                changes=True
+                    except Exception as e:
+                        print('self.set(' + section+', option, self.FALSE) exception ' + str(e))
+
+        if changes:
+            try:
+                configfile = open(CONFIG_FILE_PATH, 'w')
+                self.write(configfile)
+                configfile.close()
+            except Exception as e:
+                print('self.write(configfile) ' + str(e))
 
     def createDefaultSection(self):
         changes=False
@@ -186,9 +279,9 @@ class Config(ConfigParser):
     def getOptionName(self, directionStr,memoryStr,capabilityStr):
         return directionStr+'_'+memoryStr+'_'+capabilityStr
 
-    def hasCapability(self, directionStr,memoryStr,capabilityStr):
+    def hasCapability(self, directionStr,memoryStr,capabilityStr, section=Capabilities):
         option=self.getOptionName(directionStr,memoryStr,capabilityStr)
-        return self.getboolean(Config.Capabilities, option)
+        return self.getboolean(section, option)
 
              
     def canHear(self):
@@ -211,4 +304,9 @@ class Config(ConfigParser):
                                  Sensation.getSensationTypeString(Sensation.SensationType.PictureData))
 
 
+if __name__ == "__main__":
+    config = Config()
+    b=config.toBytes()
+    config.fromBytes(b=b,section="test")
+ 
 
