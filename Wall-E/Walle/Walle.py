@@ -29,6 +29,8 @@ from dbus.mainloop.glib import threads_init
 from xdg.IconTheme import theme_cache
 if 'Hearing.Hear' not in sys.modules:
     from Hearing.Hear import Hear
+if 'Seeing.See' not in sys.modules:
+    from Seeing.See import See
 #from Config import CONFIG_FILE_PATH
 #if 'Config' not in sys.modules:
 from Config import Config
@@ -105,6 +107,9 @@ class WalleServer(Thread):
         if self.config.canHear():
             self.hearing=Hear(self.in_axon)
         
+        if self.config.canSee():
+            self.seeing=See(self.in_axon)
+
         # starting tcp server as nerve pathway to external senses to connect
         # we have azimuth sense (our own position detection)
         self.tcpServer=TCPServer(out_axon = self.in_axon, in_axon = self.out_axon, server_address=(HOST,PORT))
@@ -129,6 +134,8 @@ class WalleServer(Thread):
         self.running=True
         if self.config.canHear():
             self.hearing.start()
+        if self.config.canSee():
+            self.seeing.start()
         print ("WalleServer: starting TCPServer")
         self.tcpServer.start()
 
@@ -147,7 +154,10 @@ class WalleServer(Thread):
         if self.config.canHear():
             print ('Walle:run shutting down hearing ...')
             self.hearing.stop()
-        
+        if self.config.canSee():
+            print ('Walle:run shutting down seering ...')
+            self.seeing.stop()
+       
         print ('Walle:run ALL SHUT DOWN')
 
 
@@ -447,6 +457,9 @@ def stop():
 
 if __name__ == "__main__":
     #WalleRequestHandler.romeo = None    # no romeo device connection yet
+    cwd = os.getcwd()
+    print("cwd " + cwd)
+
 
     print ('Number of arguments:', len(sys.argv), 'arguments.')
     print ('Argument List:', str(sys.argv))

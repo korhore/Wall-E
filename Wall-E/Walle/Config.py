@@ -261,7 +261,7 @@ class Config(ConfigParser):
     def canSee(self):
        return self.hasCapability(Sensation.getDirectionString(Sensation.Direction.In),
                                  Sensation.getMemoryString(Sensation.Memory.Sensory),
-                                 Sensation.getSensationTypeString(Sensation.SensationType.PictureFilePath)) \
+                                 Sensation.getSensationTypeString(Sensation.SensationType.ImageFilePath)) \
                                  and \
               self.hasCapability(Sensation.getDirectionString(Sensation.Direction.In),
                                  Sensation.getMemoryString(Sensation.Memory.Sensory),

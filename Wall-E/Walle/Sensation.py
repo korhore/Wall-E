@@ -70,7 +70,7 @@ class Sensation(object):
     FLOAT_PACK_SIZE=8
  
     # so many sensationtypes, that first letter is not good idea any more  
-    SensationType = enum(Drive='a', Stop='b', Who='c', HearDirection='d', Azimuth='e', Acceleration='f', Observation='g', PictureFilePath='h', PictureData='i', Calibrate='j', Capability='k', Unknown='l')
+    SensationType = enum(Drive='a', Stop='b', Who='c', HearDirection='d', Azimuth='e', Acceleration='f', Observation='g', ImageFilePath='h', PictureData='i', Calibrate='j', Capability='k', Unknown='l')
     Direction = enum(In='I', Out='O')
     Memory = enum(Sensory='S', Working='W', LongTerm='L' )
 
@@ -88,7 +88,7 @@ class Sensation(object):
     AZIMUTH="Azimuth"
     ACCELERATION="Acceleration"
     OBSERVATION="Observation"
-    PICTUREPATH="PictureFilePath"
+    IMAGEFILEPATH="ImageFilePath"
     PICTUREDATA="PictureData"
     CALIBRATE="Calibrate"
     CAPABILITY="Capability"
@@ -106,7 +106,7 @@ class Sensation(object):
                 SensationType.Azimuth: AZIMUTH,
                 SensationType.Acceleration: ACCELERATION,
                 SensationType.Observation: OBSERVATION,
-                SensationType.PictureFilePath: PICTUREPATH,
+                SensationType.ImageFilePath: IMAGEFILEPATH,
                 SensationType.PictureData: PICTUREDATA,
                 SensationType.Calibrate: CALIBRATE,
                 SensationType.Capability: CAPABILITY}
@@ -177,6 +177,7 @@ class Sensation(object):
                  accelerationX=0.0, accelerationY=0.0, accelerationZ=0.0,   # acceleration of walle, coordinates relative to walle
                  hearDirection = 0.0,                                       # sound direction heard by Walle, relative to Walle
                  observationDirection= 0.0,observationDistance=-1.0,        # Walle's observation of something, relative to Walle
+                 imageFilePath=None,
                  imageSize=0,                                               # when image is transferred we use size of it technically in transmission
                  calibrateSensationType = SensationType.Unknown,
                  capabilities = []):                         # capabilitis of sensorys, direction what way sensation go
@@ -207,6 +208,7 @@ class Sensation(object):
         self.accelerationZ = accelerationZ
         self.observationDirection = observationDirection
         self.observationDistance = observationDistance
+        self.imageFilePath = imageFilePath
         self.imageSize = imageSize
         self.calibrateSensationType = calibrateSensationType
         self.capabilities = capabilities
@@ -257,10 +259,10 @@ class Sensation(object):
                             self.observationDirection = float(params[4])
                             self.observationDistance = float(params[5])
                             #print str(self.observationDirection) + ' ' + str(self.observationDistance)
-                    elif sensationType == Sensation.SensationType.PictureFilePath:
-                        self.sensationType = Sensation.SensationType.PictureFilePath
+                    elif sensationType == Sensation.SensationType.ImageFilePath:
+                        self.sensationType = Sensation.SensationType.ImageFilePath
                         if len(params) >= 5:
-                            self.imageSize = int(params[4])
+                            self.imageFilePath = params[4]
                             #print str(self.imageSize)
                     elif sensationType == Sensation.SensationType.PictureData:
                         self.sensationType = Sensation.SensationType.PictureData
@@ -336,8 +338,8 @@ class Sensation(object):
                     i += Sensation.FLOAT_PACK_SIZE
                     self.observationDistance = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
-                elif self.sensationType is Sensation.SensationType.PictureFilePath:
-                    self.imageSize =int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER)
+                elif self.sensationType is Sensation.SensationType.ImageFilePath:
+                    self.imageFilePath =bytesToStr(bytes[i:l+1])
                     i += Sensation.NUMBER_SIZE
                     # TODO real image
                 elif self.sensationType is Sensation.SensationType.PictureData:
@@ -370,8 +372,8 @@ class Sensation(object):
             return str(self.number) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType + ' ' + str(self.accelerationX)+ ' ' + str(self.accelerationY) + ' ' + str(self.accelerationZ)
         elif self.sensationType == Sensation.SensationType.Observation:
             return str(self.number) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType + ' ' + str(self.observationDirection)+ ' ' + str(self.observationDistance)
-        elif self.sensationType == Sensation.SensationType.PictureFilePath:
-            return str(self.number) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType + ' ' + str(self.imageSize)
+        elif self.sensationType == Sensation.SensationType.ImageFilePath:
+            return str(self.number) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType + ' ' + self.imageFilePath
         elif self.sensationType == Sensation.SensationType.PictureData:
             return str(self.number) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType + ' ' + str(self.imageSize)
         elif self.sensationType == Sensation.SensationType.Calibrate:
@@ -405,8 +407,8 @@ class Sensation(object):
         elif self.sensationType == Sensation.SensationType.Observation:
             b +=  floatToBytes(self.observationDirection) + floatToBytes(self.observationDistance)
         # TODO send real picture
-        elif self.sensationType == Sensation.SensationType.PictureFilePath:
-            b +=  self.imageSize.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
+        elif self.sensationType == Sensation.SensationType.ImageFilePath:
+            b +=  StrToBytes(self.imageFilePath)
         elif self.sensationType == Sensation.SensationType.PictureData:
             b +=  self.imageSize.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
         elif self.sensationType == Sensation.SensationType.Calibrate:
@@ -661,7 +663,7 @@ if __name__ == '__main__':
     print(("str s2 " + str(s2)))
     print(str(s_Observation == s2))
 
-    s_PictureFilePath=Sensation(reference=s_Acceleration, sensationType = Sensation.SensationType.PictureFilePath, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, imageSize=1024)
+    s_PictureFilePath=Sensation(reference=s_Acceleration, sensationType = Sensation.SensationType.ImageFilePath, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, imageFilePath="my/own/path/to/file")
     print(("str s  " + str(s_PictureFilePath)))
     print("str(Sensation(str(s))) " + str(Sensation(string=str(s_PictureFilePath))))
     b=s_PictureFilePath.bytes()
