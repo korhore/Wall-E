@@ -217,8 +217,8 @@ class WalleServer(Thread):
                 self.out_axon.put(sensation)
                 self.observation_angle = sensation.getObservationDirection()
                 self.turn()
-        elif sensation.getSensationType() == Sensation.SensationType.Picture:
-            print ("Walleserver.process Sensation.SensationType.Picture")
+        elif sensation.getSensationType() == Sensation.SensationType.ImageFilePath:
+            print ("Walleserver.process Sensation.SensationType.ImageFilePath")
         elif sensation.getSensationType() == Sensation.SensationType.Calibrate:
             print ("Walleserver.process Sensation.SensationType.Calibrate")
             if sensation.getMemory() == Sensation.Memory.Working:
