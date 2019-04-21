@@ -3,57 +3,25 @@ Created on Apr 28, 201
 
 @author: reijo.korhonen@gmail.com
 
-
-    Configuration file looks like this
-    [DEFAULT]
-        [Direction]
-            [In]
-                [Memory]
-                    [Sensory]
-                         Drive=False
-                         Stop=False}
-                    [Working]
-                        Drive=False
-                        Stop=False}
-                    [LongTerm]
-                        Drive=False
-                        Stop=False}
-            [Out]
-                [Memory]
-                    [Sensory]
-                         Drive=False
-                         Stop=False}
-                    [Working]
-                        Drive=False
-                        Stop=False}
-                    [LongTerm]
-                        Drive=False
-                        Stop=False}
- 
-    Make dicts with keys, values of Drextions, Memory, Capabilities
-    so we get this kind one level section,
-    Sections will be  hosts available, but will we need more than localhost,
-    Other hosts can be got by Sensations.
+    config file is on level by sections, but we need three level by host
+    - Direction
+    - Menory
+    - Capability
     
-    In_Sensory_Drive=False
-    In_Sensory_Stop=False
-
-    In_Working_Drive=False
-    In_Working_Stop=False
-   
-    In_LongTerm_Drive=False
-    In_LongTerm_Stop=False
+    Implementation sets these level in option names likes this
+    in_sensory_drive = False
     
-    [Microphones]
-    left = Set
-    right = Set_1
-    calibrating_zero = 0.131151809437
-    calibrating_factor = 3.54444800648
+    Default configutation is False for all capabilities in all levels
+    In 'Capabilities' sections localhost those capabilities can be set True
+    that have hardware for those.
+    
+    Remote hosts can have their own capabilities and
+    they have their own sections for them.
+
     
     
 '''
 import os
-#import sys
 from configparser import ConfigParser
 from configparser import MissingSectionHeaderError,NoSectionError,NoOptionError
 from Sensation import Sensation
@@ -83,9 +51,6 @@ class Config(ConfigParser):
     def __init__(self):
         ConfigParser.__init__(self)
         
-#        cwd = os.getcwd()
-#        print("cwd " + cwd)
-
         #Read config        
         self.read(CONFIG_FILE_PATH)
  
