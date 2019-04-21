@@ -1,7 +1,7 @@
 '''
-Created on Apr 28, 2014
+Created on Apr 28, 201
 
-@author: reijo
+@author: reijo.korhonen@gmail.com
 
 
     Configuration file looks like this
@@ -59,8 +59,7 @@ from configparser import MissingSectionHeaderError,NoSectionError,NoOptionError
 from Sensation import Sensation
 from _ast import Or
 
-# TODO relative
-CONFIG_FILE_PATH = '/home/reijo/git/Wall-E/Wall-E/Walle/etc/Walle.cfg'
+CONFIG_FILE_PATH = 'etc/Walle.cfg'
 
 class Config(ConfigParser):
 
@@ -305,6 +304,9 @@ class Config(ConfigParser):
 
 
 if __name__ == "__main__":
+    cwd = os.getcwd()
+    print("cwd " + cwd)
+
     config = Config()
     b=config.toBytes()
     config.fromBytes(b=b,section="test")
