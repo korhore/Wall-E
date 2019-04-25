@@ -12,7 +12,7 @@ Created on Apr 28, 201
     in_sensory_drive = False
     
     Default configutation is False for all capabilities in all levels
-    In 'Capabilities' sections localhost those capabilities can be set True
+    In 'LOCALHOST' sections localhost those capabilities can be set True
     that have hardware for those.
     
     Remote hosts can have their own capabilities and
@@ -32,21 +32,26 @@ CONFIG_FILE_PATH = 'etc/Walle.cfg'
 class Config(ConfigParser):
 
     # Configuratioon Section and Option names
-    Capabilities =  'Capabilities' 
-    Memory =        'Memory'
-    Microphones = 'Microphones'   
-    left = 'left'
-    right = 'right'
-    calibrating_factor = 'calibrating_factor'
-    calibrating_zero = 'calibrating_zero'
+    LOCALHOST =         'localhost' 
+    MEMORY =            'memory'
+#    Microphones =       'MICROPHONES' 
+    HOSTS =             'hosts' 
+    WHO =               'who' 
+    MICROPHONE_LEFT =              'microphone_left'
+    MICROPHONE_RIGHT =             'microphone_right'
+    MICROPHONE_CALIBRATING_FACTOR ='microphone_calibrating_factor'
+    MICROPHONE_CALIBRATING_ZERO =  'microphone_calibrating_zero'
 
-    DEFAULT_SECTION="DEFAULT"
+    DEFAULT_SECTION =   'DEFAULT'
 
-    TRUE="True"
-    FALSE="False"
-    
-    TRUE_ENCODED=b'\x01'
-    FALSE_ENCODED=b'\x00'
+    TRUE=               'True'
+    FALSE=              'False'
+    NONE=               'None'
+    EMPTY=              ''
+    ZERO=               '0.0'
+  
+    TRUE_ENCODED =      b'\x01'
+    FALSE_ENCODED =     b'\x00'
      
     def __init__(self):
         ConfigParser.__init__(self)
@@ -57,26 +62,26 @@ class Config(ConfigParser):
         # If we don't have default section or Capsbilities section make it.
         # It will be a template if some capabilities will be set on                          
         if not self.has_section(Config.DEFAULT_SECTION) or \
-           not self.has_section(Config.Capabilities):
+           not self.has_section(Config.LOCALHOST):
                 self.createDefaultSection()
  
         # if we have microphones, read config for them    
         if self.canHear():   
             try:                
-                left_card = self.get(Config.Microphones, Config.left)
+                left_card = self.get(Config.LOCALHOST, Config.LEFT)
                 if left_card == None:
                     print('left_card == None')
                     self.canRun = False
-                right_card = self.get(Config.Microphones, Config.right)
+                right_card = self.get(Config.LOCALHOST, Config.RIGHT)
                 if right_card == None:
                     print('right_card == None')
                     self.canRun = False
                 try:
-                    self.calibrating_zero = self.getfloat(Config.Microphones, Config.calibrating_zero)
+                    self.calibrating_zero = self.getfloat(Config.LOCALHOST, Config.MICROPHONE_CALIBRATING_ZERO)
                 except self.NoOptionError:
                     self.calibrating_zero = 0.0
                 try:
-                    self.calibrating_factor = self.getfloat(Config.Microphones, Config.calibrating_factor)
+                    self.calibrating_factor = self.getfloat(Config.LOCALHOST, Config.MICROPHONE_CALIBRATING_FACTOR)
                 except self.NoOptionError:
                     self.calibrating_factor = 1.0
                     
@@ -95,6 +100,7 @@ class Config(ConfigParser):
 
     '''
     localhost capaliliys to bytes
+    TODO to its own class
     '''
     def toBytes(self):
         b=b''
@@ -102,12 +108,12 @@ class Config(ConfigParser):
             for memoryStr in Sensation.getMemoryStrings():
                 for capabilityStr in Sensation.getSensationTypeStrings():
                     option=self.getOptionName(directionStr,memoryStr,capabilityStr)
-                    #iscab=self.getboolean(Config.Capabilities, option)
+                    #iscab=self.getboolean(Config.LOCALHOST, option)
                     #b_iscab= bytes(iscab,'utf-8')
-                    #b += bytes(self.getboolean(Config.Capabilities, option))
-                    b2 = b + self.boolToByte(self.getboolean(Config.Capabilities, option))
+                    #b += bytes(self.getboolean(Config.LOCALHOST, option))
+                    b2 = b + self.boolToByte(self.getboolean(Config.LOCALHOST, option))
                     b=b2
-        print("toBytes " + str(len(b)))
+        print('toBytes ' + str(len(b)))
         return b
  
      
@@ -144,8 +150,8 @@ class Config(ConfigParser):
     section name is normally hosts ip-address as text, if given
     if section is not given, we get local capabilities
     '''
-    def fromBytes(self, b, section=Capabilities):
-        print("fromBytes " + str(len(b)))
+    def fromBytes(self, b, section=LOCALHOST):
+        print('fromBytes ' + str(len(b)))
         i=0
         changes=False
         if not self.has_section(section):
@@ -193,15 +199,58 @@ class Config(ConfigParser):
                 for capabilityStr in Sensation.getSensationTypeStrings():
                     option=self.getOptionName(directionStr,memoryStr,capabilityStr)
                     try:
-                        if not self.has_option(self.DEFAULT_SECTION, option):
+                        if not self.has_option(Config.DEFAULT_SECTION, option):
                             self.set(self.DEFAULT_SECTION, option, self.FALSE)
                             changes=True
                     except Exception as e:
                         print('self.set(self.DEFAULT_SECTION, option, self.FALSE) exception ' + str(e))
-                        
-        if not self.has_section(Config.Capabilities):
+        try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.MICROPHONE_LEFT):
+                self.set(Config.DEFAULT_SECTION, Config.MICROPHONE_LEFT, Config.EMPTY)
+                changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION, Config.MICROPHONE_LEFT, Config.Config.EMPTY) exception ' + str(e))
+            
+        try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.WHO):
+                self.set(Config.DEFAULT_SECTION,Config.WHO, Config.LOCALHOST)
+                changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION, Config.WHO, Config.Config.WHO) exception ' + str(e))
+
+        try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.HOSTS):
+                self.set(Config.DEFAULT_SECTION,Config.HOSTS, Config.EMPTY)
+                changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION, Config.LOCALHOST, Config.Config.EMPTY) exception ' + str(e))
+
+        try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.MICROPHONE_RIGHT):
+                self.set(Config.DEFAULT_SECTION,Config.MICROPHONE_RIGHT, Config.EMPTY)
+                changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION, Config.MICROPHONE_RIGHT, Config.Config.EMPTY) exception ' + str(e))
+
+        try:                
+            if not self.has_option(Config.DEFAULT_SECTION,Config.MICROPHONE_CALIBRATING_ZERO):
+                self.set(Config.DEFAULT_SECTION,Config.MICROPHONE_CALIBRATING_ZERO, Config.ZERO)
+                changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION,Config.MICROPHONE_CALIBRATING_ZERO, Config.ZERO) exception ' + str(e))
+
+        try:                
+            if not self.has_option(Config.DEFAULT_SECTION,Config.MICROPHONE_CALIBRATING_FACTOR):
+                self.set(Config.DEFAULT_SECTION,Config.MICROPHONE_CALIBRATING_FACTOR, Config.ZERO)
+                changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION,Config.MICROPHONE_CALIBRATING_FACTOR, Config.ZERO) exception ' + str(e))
+
+        
+        
+        if not self.has_section(Config.LOCALHOST):
             try:
-                self.add_section(Config.Capabilities)
+                self.add_section(Config.LOCALHOST)
                 changes=True
 
             except MissingSectionHeaderError as e:
@@ -243,37 +292,42 @@ class Config(ConfigParser):
     def getOptionName(self, directionStr,memoryStr,capabilityStr):
         return directionStr+'_'+memoryStr+'_'+capabilityStr
 
-    def hasCapability(self, directionStr,memoryStr,capabilityStr, section=Capabilities):
+    def hasCapability(self, directionStr,memoryStr,capabilityStr, section=LOCALHOST):
         option=self.getOptionName(directionStr,memoryStr,capabilityStr)
         return self.getboolean(section, option)
 
              
-    def canHear(self):
+    def canHear(self, host=LOCALHOST):
         return self.hasCapability(Sensation.getDirectionString(Sensation.Direction.In),
                                   Sensation.getMemoryString(Sensation.Memory.Sensory),
-                                  Sensation.getSensationTypeString(Sensation.SensationType.HearDirection))
+                                  Sensation.getSensationTypeString(Sensation.SensationType.HearDirection),
+                                  section=host)
     
-    def canMove(self):
+    def canMove(self, host=LOCALHOST):
        return self.hasCapability(Sensation.getDirectionString(Sensation.Direction.In),
                                  Sensation.getMemoryString(Sensation.Memory.Sensory),
-                                 Sensation.getSensationTypeString(Sensation.SensationType.Drive))
+                                 Sensation.getSensationTypeString(Sensation.SensationType.Drive),
+                                 section=host)
 
-    def canSee(self):
+    def canSee(self, host=LOCALHOST):
        return self.hasCapability(Sensation.getDirectionString(Sensation.Direction.In),
                                  Sensation.getMemoryString(Sensation.Memory.Sensory),
-                                 Sensation.getSensationTypeString(Sensation.SensationType.ImageFilePath)) \
+                                 Sensation.getSensationTypeString(Sensation.SensationType.ImageFilePath),
+                                 section=host) \
                                  and \
               self.hasCapability(Sensation.getDirectionString(Sensation.Direction.In),
                                  Sensation.getMemoryString(Sensation.Memory.Sensory),
-                                 Sensation.getSensationTypeString(Sensation.SensationType.PictureData))
+                                 Sensation.getSensationTypeString(Sensation.SensationType.PictureData),
+                                 section=host)
 
+# TODO microphones, different memory levels
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     cwd = os.getcwd()
-    print("cwd " + cwd)
+    print('cwd ' + cwd)
 
     config = Config()
     b=config.toBytes()
-    config.fromBytes(b=b,section="test")
+    config.fromBytes(b=b,section='test')
  
 

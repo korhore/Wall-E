@@ -102,17 +102,18 @@ class Sensation(object):
     Memorys = {Memory.Sensory: SENSORY,
                Memory.Working: WORKING,
                Memory.LongTerm: LONG_TERM}
-    SensationTypes={SensationType.Drive: DRIVE,
+    SensationTypes={
+               SensationType.Drive: DRIVE,
                SensationType.Stop: STOP,
                SensationType.Who: WHO,
-                SensationType.HearDirection: HEARDIRECTION,
-                SensationType.Azimuth: AZIMUTH,
-                SensationType.Acceleration: ACCELERATION,
-                SensationType.Observation: OBSERVATION,
-                SensationType.ImageFilePath: IMAGEFILEPATH,
-                SensationType.PictureData: PICTUREDATA,
-                SensationType.Calibrate: CALIBRATE,
-                SensationType.Capability: CAPABILITY}
+               SensationType.HearDirection: HEARDIRECTION,
+               SensationType.Azimuth: AZIMUTH,
+               SensationType.Acceleration: ACCELERATION,
+               SensationType.Observation: OBSERVATION,
+               SensationType.ImageFilePath: IMAGEFILEPATH,
+               SensationType.PictureData: PICTUREDATA,
+               SensationType.Calibrate: CALIBRATE,
+               SensationType.Capability: CAPABILITY}
     
     def getDirectionString(direction):
         ret = Sensation.Directions.get(direction)
@@ -186,6 +187,7 @@ class Sensation(object):
                  sensationType = SensationType.Unknown,
                  memory=Memory.Sensory,
                  direction=Direction.In,
+                 who=None,
                  leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
                  azimuth = 0.0,                                             # Walle direction relative to magnetic north pole
                  accelerationX=0.0, accelerationY=0.0, accelerationZ=0.0,   # acceleration of walle, coordinates relative to walle
@@ -218,6 +220,7 @@ class Sensation(object):
         self.sensationType = sensationType
         self.memory = memory
         self.direction = direction
+        self.who = who
         self.leftPower = leftPower
         self.rightPower = rightPower
         self.hearDirection = hearDirection
@@ -845,6 +848,13 @@ class Sensation(object):
         self.direction = direction
     def getDirection(self):
         return self.direction
+    
+    def setWho(self, who):
+        self.who = who
+    def getWho(self):
+        return self.who
+        
+
        
     def setLeftPower(self, leftPower):
         self.leftPower = leftPower

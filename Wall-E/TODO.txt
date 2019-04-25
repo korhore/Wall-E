@@ -1,15 +1,17 @@
-- convert to python3, because we wiil use Tenserflow in picture classifying
+- OK convert to python3, because we wiil use Tenserflow in picture classifying
   and perhaps in other tasks also and TenserFlow does not work very well
   with python2.7 with raspberry, but with python3 better
   
-- import problem
+- OK import problem
 
 - arrange code by copabilities as modules without denpendencies: moving,
   hearing, seeing, sensing, etc. This can solve import problem,
   but it would be easier to develop capabilities anyway.
   
   - OK CONFIG_FILE_PATH from config.py
-  - OK sensation length cleaner in socketclient, maybe format string
-  - sensation length as bytee  in socketclient, tcp is bytes anyway
-  - other possibility is toBuffer/toBytes - method to code sensation
+  - OK toBytes - method to code sensation
     as bytes ans ecode method to oppisite way
+    
+ - Make Capabilities-class. Can be iplemented in Config. In confif should be
+   anyway hosts, property, where we Aass hosts that have contacted us and
+   hosts that we add manually. Start with this.
