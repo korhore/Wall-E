@@ -76,7 +76,8 @@ class Sensation(object):
     SensationType = enum(Drive='a', Stop='b', Who='c', HearDirection='d', Azimuth='e', Acceleration='f', Observation='g', ImageFilePath='h', PictureData='i', Calibrate='j', Capability='k', Unknown='l')
     Direction = enum(In='I', Out='O')
     Memory = enum(Sensory='S', Working='W', LongTerm='L' )
-
+    Kind = enum(WallE='w', Eva='e', Other='o')
+    Instance = enum(Real='r', Virtual='v')
 # enum items as strings    
     IN="In"
     OUT="Out"
@@ -95,7 +96,13 @@ class Sensation(object):
     PICTUREDATA="PictureData"
     CALIBRATE="Calibrate"
     CAPABILITY="Capability"
-    
+    KIND="Kind"
+    WALLE="Wall-E"
+    EVA="Eva"
+    OTHER="Other"
+    REAL="Real"
+    VIRTUAL="Virtual"
+       
     Directions={Direction.In: IN,
                 Direction.Out: OUT}
     
@@ -114,6 +121,11 @@ class Sensation(object):
                SensationType.PictureData: PICTUREDATA,
                SensationType.Calibrate: CALIBRATE,
                SensationType.Capability: CAPABILITY}
+    Kinds={Kind.WallE: WALLE,
+           Kind.Eva: EVA,
+           Kind.Other: OTHER}
+    Instances={Instance.Real: REAL,
+               Instance.Virtual: VIRTUAL}
     
     def getDirectionString(direction):
         ret = Sensation.Directions.get(direction)

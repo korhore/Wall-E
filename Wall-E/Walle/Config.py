@@ -36,7 +36,12 @@ class Config(ConfigParser):
     MEMORY =            'memory'
 #    Microphones =       'MICROPHONES' 
     HOSTS =             'hosts' 
-    WHO =               'who' 
+    WHO =               'Who' 
+    WALLE =             'Wall-E'
+    KIND =              "Kind"
+    INSTANCE =          "Instance"
+    VIRTUALINSTANCES =  "Virtualinstances"
+
     MICROPHONE_LEFT =              'microphone_left'
     MICROPHONE_RIGHT =             'microphone_right'
     MICROPHONE_CALIBRATING_FACTOR ='microphone_calibrating_factor'
@@ -222,17 +227,45 @@ class Config(ConfigParser):
             
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.WHO):
-                self.set(Config.DEFAULT_SECTION,Config.WHO, Config.LOCALHOST)
+                self.set(Config.DEFAULT_SECTION,Config.WHO, Sensation.WALLE)
                 changes=True
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION, Config.WHO, Config.Config.WHO) exception ' + str(e))
+
+        try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.KIND):
+                self.set(Config.DEFAULT_SECTION,Config.KIND, Sensation.WALLE)
+                changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION,Config.KIND, Sensation.WALLE) exception ' + str(e))
+            
+        try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.KIND):
+                self.set(Config.DEFAULT_SECTION,Config.KIND, Sensation.WALLE)
+                changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION,Config.KIND, Sensation.WALLE) exception ' + str(e))
+
+        try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.INSTANCE):
+                self.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.REAL)
+                changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION,Config.KIND, Sensation.WALLE) exception ' + str(e))
 
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.HOSTS):
                 self.set(Config.DEFAULT_SECTION,Config.HOSTS, Config.EMPTY)
                 changes=True
         except Exception as e:
-            print('self.set(Config.DEFAULT_SECTION, Config.LOCALHOST, Config.Config.EMPTY) exception ' + str(e))
+            print('self.set(Config.DEFAULT_SECTION,Config.HOSTS, Config.EMPTY) exception ' + str(e))
+
+        try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.VIRTUALINSTANCES):
+                self.set(Config.DEFAULT_SECTION,Config.VIRTUALINSTANCES, Config.EMPTY)
+                changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION,Config.HOSTS, Config.EMPTY) exception ' + str(e))
 
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.MICROPHONE_RIGHT):
@@ -306,6 +339,37 @@ class Config(ConfigParser):
         return self.getboolean(section, option)
 
              
+    def getVirtualInstances(self, host=LOCALHOST):
+        self.virtualInstances=[]
+        virtualInstances = self.get(section=host, option=self.VIRTUALINSTANCES)
+        if virtualInstances != None and len(virtualInstances) > 0:
+            self.virtualInstances = virtualInstances.split()
+            
+        return self.virtualInstances
+
+    def getKind(self, host=LOCALHOST):
+        self.kind = Sensation.Kind.WallE
+        kind = self.get(section=host, option=self.KIND)
+        if kind != None and len(kind) > 0:
+            if kind == Sensation.Kinds[Sensation.Kind.WallE]:
+                self.kind = Sensation.Kind.WallE
+            elif kind == Sensation.Kinds[Sensation.Kind.Eva]:
+                self.kind = Sensation.Kind.Eva
+            else:
+                self.kind = Sensation.Kind.Other
+        return self.kind
+
+    def getInstance(self, host=LOCALHOST):
+        self.instance = Sensation.Instance.Real
+        instance = self.get(section=host, option=self.INSTANCE)
+        if instance != None and len(instance) > 0:
+            if instance == Sensation.Instances[Sensation.Instance.Real]:
+                self.instance = Sensation.Instance.Real
+            else:
+                self.instance = Sensation.Instance.Virtual
+          
+        return self.instance
+    
     def canHear(self, host=LOCALHOST):
         return self.hasCapability(Sensation.getDirectionString(Sensation.Direction.In),
                                   Sensation.getMemoryString(Sensation.Memory.Sensory),
@@ -338,5 +402,13 @@ if __name__ == '__main__':
     config = Config()
     b=config.toBytes()
     config.fromBytes(b=b,section='test')
+    
+    instance= config.getInstance()
+    print('Instance ' + str(instance))
  
+    kind= config.getKind()
+    print('Kind ' + str(kind))
+    
+    virtualInstances=  config.getVirtualInstances()
+    print('VirtualInstances ' + str(virtualInstances))
 
