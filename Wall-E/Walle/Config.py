@@ -102,7 +102,7 @@ class Config(ConfigParser):
     localhost capaliliys to bytes
     TODO to its own class
     '''
-    def toBytes(self):
+    def toBytes(self, section=LOCALHOST):
         b=b''
         for directionStr in Sensation.getDirectionStrings():
             for memoryStr in Sensation.getMemoryStrings():
@@ -111,9 +111,12 @@ class Config(ConfigParser):
                     #iscab=self.getboolean(Config.LOCALHOST, option)
                     #b_iscab= bytes(iscab,'utf-8')
                     #b += bytes(self.getboolean(Config.LOCALHOST, option))
-                    b2 = b + self.boolToByte(self.getboolean(Config.LOCALHOST, option))
+                    is_set=self.getboolean(section, option)
+#                     if is_set:
+#                         print('toBytes ' + directionStr + ' ' + memoryStr + ' ' + capabilityStr + ': True')
+                    b2 = b + self.boolToByte(is_set)
                     b=b2
-        print('toBytes ' + str(len(b)))
+#         print('toBytes section ' + section + ' '+ str(len(b)))
         return b
  
      
@@ -136,6 +139,12 @@ class Config(ConfigParser):
         return False
 
     '''
+    Helper function to convert int to boolean
+    '''
+    def intToBool(self, b):
+        return b != 0
+
+    '''
     Helper function to convert boolean to config file String
     '''
     def boooleanToString(self, bool):
@@ -151,7 +160,7 @@ class Config(ConfigParser):
     if section is not given, we get local capabilities
     '''
     def fromBytes(self, b, section=LOCALHOST):
-        print('fromBytes ' + str(len(b)))
+#         print('fromBytes ' + str(len(b)))
         i=0
         changes=False
         if not self.has_section(section):
@@ -270,22 +279,22 @@ class Config(ConfigParser):
             except Exception as e:
                 print('self.write(configfile) ' + str(e))
                 
-        try:
-            can=self.canHear()
-            print('self.canHear() ' + str(can))
-        except Exception as e:
-            print('self.canHear() ' + str(e))
-            
-        try:
-            can=self.canMove()
-            print('self.canMove() ' + str(can))
-        except Exception as e:
-            print('self.canMove() ' + str(e))
-        try:
-            can=self.canSee()
-            print('self.canSee() ' + str(can))
-        except Exception as e:
-            print('self.canSee() ' + str(e))
+#         try:
+#             can=self.canHear()
+#             print('self.canHear() ' + str(can))
+#         except Exception as e:
+#             print('self.canHear() ' + str(e))
+#             
+#         try:
+#             can=self.canMove()
+#             print('self.canMove() ' + str(can))
+#         except Exception as e:
+#             print('self.canMove() ' + str(e))
+#         try:
+#             can=self.canSee()
+#             print('self.canSee() ' + str(can))
+#         except Exception as e:
+#             print('self.canSee() ' + str(e))
 
  
     # what capabilities we have TODO
