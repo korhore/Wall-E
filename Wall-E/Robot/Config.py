@@ -27,10 +27,11 @@ from configparser import MissingSectionHeaderError,NoSectionError,NoOptionError
 from Sensation import Sensation
 from _ast import Or
 
-CONFIG_FILE_PATH = 'etc/Robot.cfg'
 
 class Config(ConfigParser):
 
+    CONFIG_FILE_PATH = 'etc/Robot.cfg'
+    
     # Configuratioon Section and Option names
     LOCALHOST =         'localhost' 
     MEMORY =            'memory'
@@ -114,7 +115,7 @@ class Config(ConfigParser):
             # relational subdirectory for virtual instance
             if not os.path.exists(directory):
                 os.makedirs(directory)
-            config_file_path=directory + '/' + CONFIG_FILE_PATH
+            config_file_path=directory + '/' + Config.CONFIG_FILE_PATH
             directory = directory +'/etc'
             # relational subdirectory for virtual instance
             if not os.path.exists(directory):
@@ -139,7 +140,9 @@ class Config(ConfigParser):
                     print('config.write(configfile) ' + str(e))
 
                 
-            
+    def getVirtualinstanceConfigFilePath(self, virtualinstance):
+        return self.VIRTUALINSTANCES +'/'+virtualinstance + '/' + Config.CONFIG_FILE_PATH
+        
 
                 
             
@@ -380,6 +383,11 @@ class Config(ConfigParser):
             self.virtualInstances = virtualInstances.split()
             
         return self.virtualInstances
+    
+    def getWho(self, host=LOCALHOST):
+        who = self.get(section=host, option=self.WHO)
+        return who
+
 
     def getKind(self, host=LOCALHOST):
         self.kind = Sensation.Kind.WallE
