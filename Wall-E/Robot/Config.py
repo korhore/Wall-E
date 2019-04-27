@@ -27,7 +27,7 @@ from configparser import MissingSectionHeaderError,NoSectionError,NoOptionError
 from Sensation import Sensation
 from _ast import Or
 
-CONFIG_FILE_PATH = 'etc/Walle.cfg'
+CONFIG_FILE_PATH = 'etc/Robot.cfg'
 
 class Config(ConfigParser):
 
@@ -58,11 +58,12 @@ class Config(ConfigParser):
     TRUE_ENCODED =      b'\x01'
     FALSE_ENCODED =     b'\x00'
      
-    def __init__(self):
+    def __init__(self, config_file_path=CONFIG_FILE_PATH):
         ConfigParser.__init__(self)
+        self.config_file_path = config_file_path
         
         #Read config        
-        self.read(CONFIG_FILE_PATH)
+        self.read(self.config_file_path)
  
         # If we don't have default section or Capsbilities section make it.
         # It will be a template if some capabilities will be set on                          
@@ -102,6 +103,46 @@ class Config(ConfigParser):
             except Exception as e:
                     print('Microphones configparser exception ' + str(e))
                     self.canRun = False
+                    
+        # handle virtual instances
+        if not os.path.exists(self.VIRTUALINSTANCES):
+                os.makedirs(self.VIRTUALINSTANCES)
+
+        for virtualinstance in self.getVirtualInstances():
+            print('Handle  virtualinstance ' + virtualinstance)
+            directory = self.VIRTUALINSTANCES+'/'+virtualinstance
+            # relational subdirectory for virtual instance
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            config_file_path=directory + '/' + CONFIG_FILE_PATH
+            directory = directory +'/etc'
+            # relational subdirectory for virtual instance
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            #finallu create or update defaulr config file for virtual instance 
+            config = Config(config_file_path=config_file_path)
+            # finally set default that this is virtual instance
+            changes = False
+            try:
+                instance = config.get(Config.DEFAULT_SECTION, Config.INSTANCE)
+                if instance != Sensation.VIRTUAL:          
+                    config.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.VIRTUAL)
+                    changes=True
+            except Exception as e:
+                    print('config.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.VIRTUAL) exception ' + str(e))
+            if changes:
+                try:
+                    configfile = open(config_file_path, 'w')
+                    config.write(configfile)
+                    configfile.close()
+                except Exception as e:
+                    print('config.write(configfile) ' + str(e))
+
+                
+            
+
+                
+            
 
     '''
     localhost capaliliys to bytes
@@ -200,7 +241,7 @@ class Config(ConfigParser):
 
         if changes:
             try:
-                configfile = open(CONFIG_FILE_PATH, 'w')
+                configfile = open(self.config_file_path, 'w')
                 self.write(configfile)
                 configfile.close()
             except Exception as e:
@@ -231,13 +272,6 @@ class Config(ConfigParser):
                 changes=True
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION, Config.WHO, Config.Config.WHO) exception ' + str(e))
-
-        try:                
-            if not self.has_option(Config.DEFAULT_SECTION, Config.KIND):
-                self.set(Config.DEFAULT_SECTION,Config.KIND, Sensation.WALLE)
-                changes=True
-        except Exception as e:
-            print('self.set(Config.DEFAULT_SECTION,Config.KIND, Sensation.WALLE) exception ' + str(e))
             
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.KIND):
@@ -306,7 +340,7 @@ class Config(ConfigParser):
 
         if changes:
             try:
-                configfile = open(CONFIG_FILE_PATH, 'w')
+                configfile = open(self.config_file_path, 'w')
                 self.write(configfile)
                 configfile.close()
             except Exception as e:
