@@ -45,13 +45,13 @@ STOP=False
 MANUAL=False
 
 
-class WalleServer(Thread):
+class RobotServer(Thread):
     """
-    Controls Walle-robot. Walle has capabilities like moving, hearing, seeing and position sense.
+    Controls Robot-robot. Robot has capabilities like moving, hearing, seeing and position sense.
     Technically we use socket servers to communicate with external devices. Romeo board is controlled
     using library using USB. We use USB-microphones and Raspberry pi camera.
     
-    Walle emulates sensorys (camera, microphone, mobile phone) that have emit sensations to "brain" that has state and memory and gives
+    Robot emulates sensorys (camera, microphone, mobile phone) that have emit sensations to "brain" that has state and memory and gives
     commands (technically Sensation class instances) to muscles (Romeo Board, mobile phone)
     
     Sensations from integrated sensorys are transferred By axons ad in real organs, implemented as Queue, which is thread safe.
@@ -72,7 +72,7 @@ class WalleServer(Thread):
 
     def __init__(self):
         Thread.__init__(self)
-        self.name = "WalleServer"
+        self.name = "RobotServer"
         
         Capabilities = 'Capabilities' 
         Memory =        'Memory'
@@ -89,10 +89,11 @@ class WalleServer(Thread):
         self.rightPower = 0.0
         
         self.number = 0
-        self.in_axon = Axon()       # global queue for senses to put sensations to walle
-        self.out_axon = Axon()      # global queue for walle to put sensations to external senses
-
+        # TODO Identity from configuration
+ 
         self.config = Config()
+        self.in_axon = Axon(Config.LOCALHOST)       # global queue for senses to put sensations to robot
+        self.out_axon = Axon(Config.LOCALHOST)      # global queue for robot to put sensations to external senses
 
         # starting build in capabilities/senses
         # we have capability to move
@@ -102,7 +103,7 @@ class WalleServer(Thread):
             else:
                 self.romeo = Romeo()
             # we have hearing (positioning of object using sounds)
-            self.turnTimer = Timer(WalleServer.ACTION_TIME, self.stopTurn)
+            self.turnTimer = Timer(RobotServer.ACTION_TIME, self.stopTurn)
             
         if self.config.canHear():
             self.hearing=Hear(self.in_axon)
@@ -119,11 +120,11 @@ class WalleServer(Thread):
         
         self.calibrating=False              # are we calibrating
         self.calibrating_angle = 0.0        # calibrate device hears sound from this angle, device looks to its front
-        #self.calibratingTimer = Timer(WalleServer.ACTION_TIME, self.stopCalibrating)
-        print ("WalleServer: Calibrate version")
+        #self.calibratingTimer = Timer(RobotServer.ACTION_TIME, self.stopCalibrating)
+        print ("RobotServer: Calibrate version")
         
         # finally remember instance
-        WalleServer.walle = self
+        RobotServer.robot = self
 
        
     def run(self):
@@ -136,29 +137,29 @@ class WalleServer(Thread):
             self.hearing.start()
         if self.config.canSee():
             self.seeing.start()
-        print ("WalleServer: starting TCPServer")
+        print ("RobotServer: starting TCPServer")
         self.tcpServer.start()
 
         while self.running:
             sensation=self.in_axon.get()
-            print ("WalleServer: got sensation from queue " + str(sensation))
+            print ("RobotServer: got sensation from queue " + str(sensation))
             self.process(sensation)
             # as a test, echo everything to external device
             #self.out_axon.put(sensation)
  
-        print ('Walle:run shutting down ...')
+        print ('Robot:run shutting down ...')
 
-        print ('Walle:run shutting down TcpServer ...')
+        print ('Robot:run shutting down TcpServer ...')
         self.tcpServer.stop()
         
         if self.config.canHear():
-            print ('Walle:run shutting down hearing ...')
+            print ('Robot:run shutting down hearing ...')
             self.hearing.stop()
         if self.config.canSee():
-            print ('Walle:run shutting down seering ...')
+            print ('Robot:run shutting down seeing ...')
             self.seeing.stop()
        
-        print ('Walle:run ALL SHUT DOWN')
+        print ('Robot:run ALL SHUT DOWN')
 
 
     def stop(self):
@@ -177,99 +178,99 @@ class WalleServer(Thread):
             
             
     def process(self, sensation):
-        print ("WalleServer.process: " + time.ctime(sensation.getTime()) + ' ' + str(sensation))
+        print ("RobotServer.process: " + time.ctime(sensation.getTime()) + ' ' + str(sensation))
         if sensation.getSensationType() == Sensation.SensationType.Drive:
-            print ("Walleserver.process Sensation.SensationType.Drive")
+            print ("Robotserver.process Sensation.SensationType.Drive")
         elif sensation.getSensationType() == Sensation.SensationType.Stop:
-            print ("Walleserver.process Sensation.SensationType.Stop")
+            print ("Robotserver.process Sensation.SensationType.Stop")
             self.stop()
         elif sensation.getSensationType() == Sensation.SensationType.Who:
-            print ("Walleserver.process Sensation.SensationType.Who")
+            print ("Robotserver.process Sensation.SensationType.Who")
         elif self.config.canHear() and sensation.getSensationType() == Sensation.SensationType.HearDirection:
-            print ("Walleserver.process Sensation.SensationType.HearDirection")
+            print ("Robotserver.process Sensation.SensationType.HearDirection")
             #inform external senses that we remember now hearing          
             self.out_axon.put(sensation)
             self.hearing_angle = sensation.getHearDirection()
             if self.calibrating:
-                print ("Walleserver.process Calibrating hearing_angle " + str(self.hearing_angle) + " calibrating_angle " + str(self.calibrating_angle))
+                print ("Robotserver.process Calibrating hearing_angle " + str(self.hearing_angle) + " calibrating_angle " + str(self.calibrating_angle))
             else:
                 self.observation_angle = self.add_radian(original_radian=self.azimuth, added_radian=self.hearing_angle) # object in this angle
-                print ("Walleserver.process create Sensation.SensationType.Observation")
+                print ("Robotserver.process create Sensation.SensationType.Observation")
                 self.in_axon.put(Sensation(number=++self.number,
                                            sensationType = Sensation.SensationType.Observation,
                                            observationDirection= self.observation_angle,
-                                           observationDistance=WalleServer.DEFAULT_OBSERVATION_DISTANCE))
+                                           observationDistance=RobotServer.DEFAULT_OBSERVATION_DISTANCE))
                 # mark hearing sensation to be processed to set direction out of memory, we forget it
                 sensation.setDirection(Sensation.Direction.Out)
                 #inform external senses that we don't remember hearing any more           
                 self.out_axon.put(sensation)
         elif sensation.getSensationType() == Sensation.SensationType.Azimuth:
             if not self.calibrating:
-                print ("Walleserver.process Sensation.SensationType.Azimuth")
+                print ("Robotserver.process Sensation.SensationType.Azimuth")
                 #inform external senses that we remember now azimuth          
                 #self.out_axon.put(sensation)
                 self.azimuth = sensation.getAzimuth()
                 self.turn()
         elif sensation.getSensationType() == Sensation.SensationType.Observation:
             if not self.calibrating:
-                print ("Walleserver.process Sensation.SensationType.Observation")
+                print ("Robotserver.process Sensation.SensationType.Observation")
                 #inform external senses that we remember now observation          
                 self.out_axon.put(sensation)
                 self.observation_angle = sensation.getObservationDirection()
                 self.turn()
         elif sensation.getSensationType() == Sensation.SensationType.ImageFilePath:
-            print ("Walleserver.process Sensation.SensationType.ImageFilePath")
+            print ("Robotserver.process Sensation.SensationType.ImageFilePath")
         elif sensation.getSensationType() == Sensation.SensationType.Calibrate:
-            print ("Walleserver.process Sensation.SensationType.Calibrate")
+            print ("Robotserver.process Sensation.SensationType.Calibrate")
             if sensation.getMemory() == Sensation.Memory.Working:
                 if sensation.getDirection() == Sensation.Direction.In:
-                    print ("Walleserver.process asked to start calibrating mode")
+                    print ("Robotserver.process asked to start calibrating mode")
                     self.calibrating = True
                 else:
-                    print ("Walleserver.process asked to stop calibrating mode")
+                    print ("Robotserver.process asked to stop calibrating mode")
                     self.calibrating = False
                 # ask external senses to to set same calibrating mode          
                 self.out_axon.put(sensation)
             elif sensation.getMemory() == Sensation.Memory.Sensory:
                 if self.config.canHear() and self.calibrating:
                     if self.turning_to_object:
-                        print ("Walleserver.process turning_to_object, can't start calibrate activity yet")
+                        print ("Robotserver.process turning_to_object, can't start calibrate activity yet")
                     else:
                         # allow requester to start calibration activaties
                         if sensation.getDirection() == Sensation.Direction.In:
-                            print ("Walleserver.process asked to start calibrating activity")
+                            print ("Robotserver.process asked to start calibrating activity")
                             self.calibrating_angle = sensation.getHearDirection()
                             self.hearing.setCalibrating(calibrating=True, calibrating_angle=self.calibrating_angle)
                             sensation.setDirection(Sensation.Direction.In)
                             self.out_axon.put(sensation)
-                            #self.calibratingTimer = Timer(WalleServer.ACTION_TIME, self.stopCalibrating)
+                            #self.calibratingTimer = Timer(RobotServer.ACTION_TIME, self.stopCalibrating)
                             #self.calibratingTimer.start()
                         else:
-                            print ("Walleserver.process asked to stop calibrating activity")
+                            print ("Robotserver.process asked to stop calibrating activity")
                             self.hearing.setCalibrating(calibrating=False, calibrating_angle=self.calibrating_angle)
                             #self.calibratingTimer.cancel()
                 else:
-                    print ("Walleserver.process asked calibrating activity WITHOUT calibrate mode, IGNORED")
+                    print ("Robotserver.process asked calibrating activity WITHOUT calibrate mode, IGNORED")
 
 
         elif sensation.getSensationType() == Sensation.SensationType.Capability:
-            print ("Walleserver.process Sensation.SensationType.Capability")
+            print ("Robotserver.process Sensation.SensationType.Capability")
         elif sensation.getSensationType() == Sensation.SensationType.Unknown:
-            print ("Walleserver.process Sensation.SensationType.Unknown")
+            print ("Robotserver.process Sensation.SensationType.Unknown")
   
     def turn(self):
         # calculate new power to turn or continue turning
         if self.config.canMove() and self.romeo.exitst(): # if we have moving capability
             self.leftPower, self.rightPower = self.getPower()
             if self.turning_to_object:
-                print ("WalleServer.turn: self.hearing_angle " + str(self.hearing_angle) + " self.azimuth " + str(self.azimuth))
-                print ("WalleServer.turn: turn to " + str(self.observation_angle))
+                print ("RobotServer.turn: self.hearing_angle " + str(self.hearing_angle) + " self.azimuth " + str(self.azimuth))
+                print ("RobotServer.turn: turn to " + str(self.observation_angle))
                 if math.fabs(self.leftPower) < Romeo.MINPOWER or math.fabs(self.rightPower) < Romeo.MINPOWER:
                     self.stopTurn()
-                    print ("WalleServer.turn: Turn is ended")
+                    print ("RobotServer.turn: Turn is ended")
                     self.turnTimer.cancel()
                 else:
-                    print ("WalleServer.turn: powers adjusted to " + str(self.leftPower) + ' ' + str(self.rightPower))
+                    print ("RobotServer.turn: powers adjusted to " + str(self.leftPower) + ' ' + str(self.rightPower))
                     self.number = self.number + 1
                     sensation, picture = self.romeo.processSensation(Sensation(number=self.number, sensationType='D', leftPower = self.leftPower, rightPower = self.rightPower))
                     self.leftPower = sensation.getLeftPower()           # set motors in opposite power to turn in place
@@ -283,12 +284,12 @@ class WalleServer(Thread):
                     # we want hear only sounds from other objects
                     if self.config.canHear():
                         self.hearing.setOn(not self.turning_to_object)
-                    print ("WalleServer.turn: powers initial to " + str(self.leftPower) + ' ' + str(self.rightPower))
+                    print ("RobotServer.turn: powers initial to " + str(self.leftPower) + ' ' + str(self.rightPower))
                     self.number = self.number + 1
                     sensation, picture = self.romeo.processSensation(Sensation(number=self.number, sensationType='D', leftPower = self.leftPower, rightPower = self.rightPower))
                     self.leftPower = sensation.getLeftPower()           # set motors in opposite power to turn in place
                     self.rightPower = sensation.getRightPower()           # set motors in opposite power to turn in place
-                    self.turnTimer = Timer(WalleServer.ACTION_TIME, self.stopTurn)
+                    self.turnTimer = Timer(RobotServer.ACTION_TIME, self.stopTurn)
                     self.turnTimer.start()
 
             
@@ -297,9 +298,9 @@ class WalleServer(Thread):
             self.turning_to_object = False
             self.leftPower = 0.0           # set motors in opposite power to turn in place
             self.rightPower = 0.0
-            print ("WalleServer.stopTurn: Turn is stopped/cancelled")
+            print ("RobotServer.stopTurn: Turn is stopped/cancelled")
                 
-            print ("WalleServer.stopTurn: powers to " + str(self.leftPower) + ' ' + str(self.rightPower))
+            print ("RobotServer.stopTurn: powers to " + str(self.leftPower) + ' ' + str(self.rightPower))
                 
             if self.config.canHear():
                 self.hearing.setOn(not self.turning_to_object)
@@ -309,12 +310,12 @@ class WalleServer(Thread):
             sensation, picture = self.romeo.processSensation(Sensation(number=self.number, sensationType='D', leftPower = self.leftPower, rightPower = self.rightPower))
             self.leftPower = sensation.getLeftPower()           # set motors in opposite power to turn in place
             self.rightPower = sensation.getRightPower()
-            print ("WalleServer.stopTurn: powers set to " + str(self.leftPower) + ' ' + str(self.rightPower))
+            print ("RobotServer.stopTurn: powers set to " + str(self.leftPower) + ' ' + str(self.rightPower))
 
 
  #   def stopCalibrating(self):
  #       self.calibrating=False
- #       print "WalleServer.stopCalibrating: Calibrating mode is stopped/cancelled"
+ #       print "RobotServer.stopCalibrating: Calibrating mode is stopped/cancelled"
 
 
     def add_radian(self, original_radian, added_radian):
@@ -330,8 +331,8 @@ class WalleServer(Thread):
         leftPower = 0.0           # set motor in opposite power to turn in place
         rightPower = 0.0
         
-        if math.fabs(self.observation_angle - self.azimuth) > WalleServer.TURN_ACCURACYFACTOR:
-            power = (self.observation_angle - self.azimuth)/WalleServer.FULL_TURN_FACTOR
+        if math.fabs(self.observation_angle - self.azimuth) > RobotServer.TURN_ACCURACYFACTOR:
+            power = (self.observation_angle - self.azimuth)/RobotServer.FULL_TURN_FACTOR
             if power > 1.0:
                 power = 1.0
             if power < -1.0:
@@ -370,12 +371,12 @@ def do_server():
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGHUP, signal_handler)
 
-    print ("do_server: create WalleServer")
-    walle = WalleServer()
+    print ("do_server: create RobotServer")
+    robot = RobotServer()
 
     succeeded=True
     try:
-        walle.start()
+        robot.start()
         
     except Exception: 
         print ("do_server: socket error, exiting")
@@ -384,23 +385,23 @@ def do_server():
     if succeeded:
         print ('do_server: Press Ctrl+C to Stop')
 
-        WalleServer.walle = walle   # remember walle so
+        RobotServer.robot = robot   # remember robot so
                                     # we can stop it in ignal_handler   
-        walle.join()
+        robot.join()
         
     print ("do_server exit")
     
 def signal_handler(signal, frame):
     print ('signal_handler: You pressed Ctrl+C!')
     
-    WalleServer.walle.doStop()
+    RobotServer.robot.doStop()
     
 #     print ('signal_handler: Shutting down sensation server ...')
-#     WalleRequestHandler.server.serving =False
+#     RobotRequestHandler.server.serving =False
 #     print ('signal_handler: sensation server is down OK')
 #     
 #     print ('signal_handler: Shutting down picture server...')
-#     WalleRequestHandler.pictureServer.serving =False
+#     RobotRequestHandler.pictureServer.serving =False
 #     print ('signal_handler: picture server is down OK')
 
 
@@ -456,7 +457,7 @@ def stop():
 
 
 if __name__ == "__main__":
-    #WalleRequestHandler.romeo = None    # no romeo device connection yet
+    #RobotRequestHandler.romeo = None    # no romeo device connection yet
     cwd = os.getcwd()
     print("cwd " + cwd)
 

@@ -32,10 +32,10 @@ class Axon():
         return self.queue.empty()
     
     def process(self, sensation):
-        if sensation.getSensationType() == Sensation.SentationType.Who:
+        if sensation.getSensationType() == Sensation.SensationType.Who:
             self.who = sensation.getWho()
-        elif sensation.getSensationType() == Sensation.SentationType.CapabilitiesType:
-            elf.capabilities = capabilities = sensation.getCapabilities()
+        elif sensation.getSensationType() == Sensation.SensationType.Capability:
+            self.capabilities = sensation.getCapabilities()
             
         return sensation
 

@@ -15,3 +15,8 @@
  - Make Capabilities-class. Can be iplemented in Config. In confif should be
    anyway hosts, property, where we Aass hosts that have contacted us and
    hosts that we add manually. Start with this.
+   
+- Implement Identity and Virtual instance. That way we can test Walle to meet Eva
+  in sxame process with threads, so developing will be much faster than using
+  many physical servers, but functionality will be exactly same.
+  Need some changes to Confif, Axen etc. Renane main class as Robot(Server)

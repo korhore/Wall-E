@@ -1,8 +1,8 @@
 #! /bin/sh
 # copy service file
-#cp init/Wall-E_Server /etc/init.d
-cp /usr/local/bin/Wall-E_Server /etc/init.d
+#cp init/Robot_Server /etc/init.d
+cp /usr/local/bin/Robot_Server /etc/init.d
 # set up service starting/stopping
-update-rc.d Wall-E_Server defaults
+update-rc.d Robot_Server defaults
 # start service
-service Wall-E_Server start
+service Robot_Server start

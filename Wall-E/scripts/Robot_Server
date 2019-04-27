@@ -1,28 +1,28 @@
 #! /bin/sh
-# /etc/init.d/Wall-E_server
+# /etc/init.d/Robot_server
 #
 
-SERVER='/usr/local/lib/python2.7/dist-packages/Wall-E_Server/WalleServer.py'
+SERVER='/usr/local/lib/python2.7/dist-packages/Robot_Server/RobotServer.py'
 
 # Some things that run always
-touch /var/lock/Wall-E_server
+touch /var/lock/Robot_server
 
 # Carry out specific functions when asked to by the system
 case "$1" in
   start)
-    echo "Starting script Wall-E_server"
+    echo "Starting script Robot_server"
     /usr/bin/env python $SERVER --start --daemon
     ;;
   stop)
-    echo "Stopping script Wall-E_server"
+    echo "Stopping script Robot_server"
     /usr/bin/env python $SERVER --stop
     ;;
   restart)
-    echo "Starting script Wall-E_server"
+    echo "Starting script Robot_server"
     /usr/bin/env python $SERVER --restart --daemon
     ;;
   *)
-    echo "Usage: /etc/init.d/Wall-E_server {start|stop|restart}"
+    echo "Usage: /etc/init.d/Robot_server {start|stop|restart}"
     exit 1
     ;;
 esac
