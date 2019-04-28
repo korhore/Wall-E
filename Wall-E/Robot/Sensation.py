@@ -78,6 +78,7 @@ class Sensation(object):
     Memory = enum(Sensory='S', Working='W', LongTerm='L' )
     Kind = enum(WallE='w', Eva='e', Other='o')
     Instance = enum(Real='r', Virtual='v')
+    Mode = enum(Normal='n', StudyOwnIdentity='i',Sleeping='l',Starting='s', Stopping='p')
 # enum items as strings    
     IN="In"
     OUT="Out"
@@ -102,7 +103,12 @@ class Sensation(object):
     OTHER="Other"
     REAL="Real"
     VIRTUAL="Virtual"
-       
+    NORMAL="Normal"
+    STUDYOWNIDENTITY="StudyOwnIdentity"
+    SLEEPING="Sleeping"
+    STARTING="Starting"
+    STOPPING="Stopping"
+      
     Directions={Direction.In: IN,
                 Direction.Out: OUT}
     
@@ -126,6 +132,11 @@ class Sensation(object):
            Kind.Other: OTHER}
     Instances={Instance.Real: REAL,
                Instance.Virtual: VIRTUAL}
+    Modes={Mode.Normal: NORMAL,
+           Mode.StudyOwnIdentity: STUDYOWNIDENTITY,
+           Mode.Sleeping: SLEEPING,
+           Mode.Starting: STARTING,
+           Mode.Stopping: STOPPING }
     
     def getDirectionString(direction):
         ret = Sensation.Directions.get(direction)

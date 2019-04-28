@@ -42,6 +42,7 @@ class Config(ConfigParser):
     KIND =              "Kind"
     INSTANCE =          "Instance"
     VIRTUALINSTANCES =  "Virtualinstances"
+    IDENTITYS =         "Identitys"
 
     MICROPHONE_LEFT =              'microphone_left'
     MICROPHONE_RIGHT =             'microphone_right'
@@ -104,6 +105,14 @@ class Config(ConfigParser):
             except Exception as e:
                     print('Microphones configparser exception ' + str(e))
                     self.canRun = False
+ 
+        # handle identitys
+        if not os.path.exists(self.IDENTITYS):
+            os.makedirs(self.IDENTITYS)
+        for kind, kindstr in Sensation.Kinds.items():
+            dir = self.getIdentityDirPath(kind)
+            if not os.path.exists(dir):
+                os.makedirs(dir)
                     
         # handle virtual instances
         if not os.path.exists(self.VIRTUALINSTANCES):
@@ -120,7 +129,7 @@ class Config(ConfigParser):
             # relational subdirectory for virtual instance
             if not os.path.exists(directory):
                 os.makedirs(directory)
-            #finallu create or update defaulr config file for virtual instance 
+            #finallu create or update default config file for virtual instance 
             config = Config(config_file_path=config_file_path)
             # finally set default that this is virtual instance
             changes = False
@@ -138,6 +147,9 @@ class Config(ConfigParser):
                     configfile.close()
                 except Exception as e:
                     print('config.write(configfile) ' + str(e))
+                    
+    def getIdentityDirPath(self, kind):
+        return self.IDENTITYS +'/'+ Sensation.Kinds[kind]
 
                 
     def getVirtualinstanceConfigFilePath(self, virtualinstance):
