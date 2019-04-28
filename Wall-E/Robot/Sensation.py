@@ -943,6 +943,13 @@ class Sensation(object):
         for capability in self.capabilities:
             capabilities += str(capability)
         return capabilities
+    
+    def hasCapability(self, directionStr,memoryStr,capabilityStr):
+        if self.getSensationType() == SensationType.Capability:
+            option=self.getOptionName(directionStr,memoryStr,capabilityStr)
+            return self.getboolean(section, option)
+        return False
+
 
         
 if __name__ == '__main__':

@@ -24,3 +24,10 @@
   Weneed also functional status od robot, StudyOwnIdentity, Sleeping, Normal, etc
   
 - Axon should have sunAxons with capanility and direction to handle sensation routing.
+
+- Seems, that Calibrating logic with direction will become broken, when direction is set
+  to Sensation. Fix this later, because we donnt yet have hardware suitable for
+  direction hearing. This has been experimental any way
+  
+  - Move moving to its own submodule and fix Sensation in Romeo.
+    This module should process all moving and observation Sensations

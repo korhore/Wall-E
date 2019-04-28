@@ -11,14 +11,16 @@ from Sensation import Sensation
 
 class Axon():
     """
-    Axon transfers sensation
+    Axon transfers sensation from one Axon to Axons
   """
     
 
-    def __init__(self, host):
+    def __init__(self, config):
         self.queue = Queue()
-        self.host = host
-        self.who = None
+        self.config=config()
+        #self.host = host
+        self.who = self.config.getWho()
+        self.capabilities = self.config.getCapabilities()
        
     def put(self, sensation):
         self.queue.put(sensation)

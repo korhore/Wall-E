@@ -32,11 +32,13 @@ class See(Thread):
     
  
 
-    def __init__(self, report_queue):
+    def __init__(self, outAxon):
         Thread.__init__(self)
         
         self.name='See'
-        self.report_queue = report_queue
+        self.outAxon = outAxon
+        self.inAxon = Axon(Config.LOCALHOST)
+        self.inAxon.setCapabilities(self, capabilities)
         #self.config = config
        
         self.view_queue = Queue()
@@ -52,11 +54,8 @@ class See(Thread):
         self.eye = None
         
         self.view_ear_id = "camera"
-        self.view_ear_name = "Rapberry PI camera"
-        self.number=0
+        self.view_ear_name = "Rapberry PI camera"       
         
-        
-
         if self.canRun:
             self.eye = Eye(id=self.view_ear_id, name=self.view_ear_name, queue=self.view_queue) #'Set') # card=alsaaudio.cards()[1]
         else:
@@ -98,9 +97,8 @@ class See(Thread):
         id=view.get_id()
         print(str(id) + " Processing " + view.get_file_path())
         sensation = Sensation()
-        self.number = self.number+1
         sensation=Sensation(sensationType = Sensation.SensationType.ImageFilePath, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, imageFilePath=view.get_file_path())
-        self.report_queue.put(sensation)
+        self.outAxon.put(sensation)
 
 
 def stop():
@@ -114,18 +112,18 @@ if __name__ == "__main__":
         See.debug = False
         See.log = True
         
-        report_queue = Queue()
+        outAxon = Queue()
 
 
-        seeing=See(report_queue)
+        seeing=See(outAxon)
         seeing.start()
         t = Timer(12.0, stop)
         t.start() # after 30 seconds,Eye will be stopped
 
         while seeing.isRunning():
-            sensation=report_queue.get()
+            sensation=outAxon.get()
             #if See.debug:
-            print("--> Got view_position from report_queue, sensation " + time.ctime(sensation.getTime()) + " " + str(sensation))
+            print("--> Got sensation from outAxon " + time.ctime(sensation.getTime()) + " " + str(sensation))
  
         print("__main__ exit")
         exit()

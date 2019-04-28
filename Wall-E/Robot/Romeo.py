@@ -294,7 +294,7 @@ class Romeo(ManualRomeo):
     
      
             
-            return sensation, ""
+            return sensation
 
     def test(self):
         if self.exist:

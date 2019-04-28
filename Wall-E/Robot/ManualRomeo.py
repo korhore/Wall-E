@@ -49,5 +49,5 @@ class ManualRomeo:
     def processSensation(self, sensation):         #Move forward
         print("ManualRomeo.processSensation number " + str(sensation.getNumber()) + " Sensation " + sensation.getSensationType() + " getLeftPower " + str(sensation.getLeftPower()) + " getRightPower " + str(sensation.getRightPower()))
         
-        return sensation, ""
+        return sensation
 

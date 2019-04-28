@@ -76,10 +76,10 @@ class RobotServer(Thread):
         Thread.__init__(self)
         self.mode = Sensation.Mode.Starting
 
-        self.name = "RobotServer"
+        self.name = "Robot"
         
         Capabilities = 'Capabilities' 
-        Memory =        'Memory'
+        Memory =       'Memory'
 
        
         self.azimuth=0.0                # position sense, azimuth from north
@@ -103,10 +103,12 @@ class RobotServer(Thread):
             self.in_axon = in_axon
              
         # global queue for this robot to put sensations to external senses  (muscles) or robots
+        self.out_axons = []
         if out_axon is None:
-            self.out_axon = Axon(Config.LOCALHOST)
+            #self.out_axon = Axon(Config.LOCALHOST)
+            self.out_axons.append(Axon(Config.LOCALHOST))
         else:
-            self.out_axon = out_axon
+            self.out_axon = self.out_axons.append(out_axon)
         # starting build in capabilities/senses
         # we have capability to move
         if self.config.canMove():
@@ -122,6 +124,7 @@ class RobotServer(Thread):
         
         if self.config.canSee():
             self.seeing=See(self.in_axon)
+            self.out_axons.append(self.seeing.getInAxon())
 
         # Real instances can have sockets to other robots
         # starting tcp server as nerve pathway to external senses to connect

@@ -1,5 +1,5 @@
 '''
-Created on Apr 28, 201
+Created on 28.042019
 
 @author: reijo.korhonen@gmail.com
 
@@ -59,6 +59,9 @@ class Config(ConfigParser):
   
     TRUE_ENCODED =      b'\x01'
     FALSE_ENCODED =     b'\x00'
+    
+    TRUE_CHAR =         'T'
+    FALSE_CHAR =        'F'
      
     def __init__(self, config_file_path=CONFIG_FILE_PATH):
         ConfigParser.__init__(self)
@@ -161,7 +164,6 @@ class Config(ConfigParser):
 
     '''
     localhost capaliliys to bytes
-    TODO to its own class
     '''
     def toBytes(self, section=LOCALHOST):
         b=b''
@@ -169,22 +171,32 @@ class Config(ConfigParser):
             for memoryStr in Sensation.getMemoryStrings():
                 for capabilityStr in Sensation.getSensationTypeStrings():
                     option=self.getOptionName(directionStr,memoryStr,capabilityStr)
-                    #iscab=self.getboolean(Config.LOCALHOST, option)
-                    #b_iscab= bytes(iscab,'utf-8')
-                    #b += bytes(self.getboolean(Config.LOCALHOST, option))
                     is_set=self.getboolean(section, option)
-#                     if is_set:
+#                    if is_set:
 #                         print('toBytes ' + directionStr + ' ' + memoryStr + ' ' + capabilityStr + ': True')
-                    b2 = b + self.boolToByte(is_set)
-                    b=b2
+                    b = b + Config.boolToByte(is_set)
 #         print('toBytes section ' + section + ' '+ str(len(b)))
         return b
  
-     
+    '''
+    localhost capaliliys to String
+    '''
+    def toString(self, section=LOCALHOST):
+        string=''
+        for directionStr in Sensation.getDirectionStrings():
+            for memoryStr in Sensation.getMemoryStrings():
+                for capabilityStr in Sensation.getSensationTypeStrings():
+                    option=self.getOptionName(directionStr,memoryStr,capabilityStr)
+                    is_set=self.getboolean(section, option)
+#                    if is_set:
+#                         print('toString ' + directionStr + ' ' + memoryStr + ' ' + capabilityStr + ': True')
+                    string = string + Config.boolToChar(is_set)
+        return string
+    
     '''
     Helper function to convert boolean to one byte
     '''
-    def boolToByte(self, boolean):
+    def boolToByte(boolean):
         if boolean:
             ret = Config.TRUE_ENCODED
         else:
@@ -194,7 +206,7 @@ class Config(ConfigParser):
     '''
     Helper function to convert one byte to boolean
     '''
-    def byteToBool(self, b):
+    def byteToBool(b):
         if b == Config.TRUE_ENCODED:
             return True
         return False
@@ -202,17 +214,36 @@ class Config(ConfigParser):
     '''
     Helper function to convert int to boolean
     '''
-    def intToBool(self, b):
+    def intToBool(b):
         return b != 0
 
     '''
     Helper function to convert boolean to config file String
     '''
-    def boooleanToString(self, bool):
+    def boolToString(bool):
         if bool:
             return Config.TRUE
         
         return Config.FALSE
+    
+    '''
+    Helper function to convert boolean to one char
+    '''
+    def boolToChar(bool):
+        if bool:
+            ret = Config.TRUE_CHAR
+        else:
+            ret = Config.FALSE_CHAR
+        return ret
+ 
+    '''
+    Helper function to convert one char to boolean
+    '''
+    def charToBool(b):
+        if b == Config.TRUE_CHAR:
+            return True
+        return False
+
 
     
     '''
@@ -237,19 +268,74 @@ class Config(ConfigParser):
                     print('self.add_section ' + section + ' configparser.NoOptionError ' + str(e))
             except Exception as e:
                     print('self.add_section ' + section + ' exception ' + str(e))
+        # capabilities from b bytes to options
         for directionStr in Sensation.getDirectionStrings():
             for memoryStr in Sensation.getMemoryStrings():
                 for capabilityStr in Sensation.getSensationTypeStrings():
                     option=self.getOptionName(directionStr,memoryStr,capabilityStr)
-                    is_set=self.byteToBool(b[i])
+                    is_set=Config.intToBool(b[i])
+                    i=i+1
+#                    if is_set:
+#                         print('fromBytes ' + directionStr + ' ' + memoryStr + ' ' + capabilityStr + ': True')
                     try:
                         if not self.has_option(section, option):
-                            self.set(section, option, self.boooleanToString(is_set))
+                            self.set(section, option, Config.boolToString(is_set))
                             changes=True
                         else:
                             was_set = self.getboolean(section, option)
                             if is_set != was_set:
-                                self.set(section, option, self.boooleanToString(is_set))
+                                self.set(section, option, Config.boolToString(is_set))
+                                changes=True
+                    except Exception as e:
+                        print('self.set(' + section+', option, self.FALSE) exception ' + str(e))
+
+        if changes:
+            try:
+                configfile = open(self.config_file_path, 'w')
+                self.write(configfile)
+                configfile.close()
+            except Exception as e:
+                print('self.write(configfile) ' + str(e))
+
+    '''
+    external or local host capabilities to given capability section
+    section name is normally hosts ip-address as text, if given
+    if section is not given, we get local capabilities
+    '''
+    def fromString(self, string, section=LOCALHOST):
+#         print('fromBytes ' + str(len(b)))
+        i=0
+        changes=False
+        if not self.has_section(section):
+            try:
+                self.add_section(section)
+                changes=True
+
+            except MissingSectionHeaderError as e:
+                    print('self.add_section ' + section + ' configparser.MissingSectionHeaderError ' + str(e))
+            except NoSectionError as e:
+                    print('eslf.add_section ' + section + ' configparser.NoSectionError ' + str(e))
+            except NoOptionError as e:
+                    print('self.add_section ' + section + ' configparser.NoOptionError ' + str(e))
+            except Exception as e:
+                    print('self.add_section ' + section + ' exception ' + str(e))
+        # capabilities from string to options
+        for directionStr in Sensation.getDirectionStrings():
+            for memoryStr in Sensation.getMemoryStrings():
+                for capabilityStr in Sensation.getSensationTypeStrings():
+                    option=self.getOptionName(directionStr,memoryStr,capabilityStr)
+                    is_set=Config.charToBool(string[i])
+                    i=i+1
+#                    if is_set:
+#                         print('fromBytes ' + directionStr + ' ' + memoryStr + ' ' + capabilityStr + ': True')
+                    try:
+                        if not self.has_option(section, option):
+                            self.set(section, option, Config.boolToString(is_set))
+                            changes=True
+                        else:
+                            was_set = self.getboolean(section, option)
+                            if is_set != was_set:
+                                self.set(section, option, Config.boolToString(is_set))
                                 changes=True
                     except Exception as e:
                         print('self.set(' + section+', option, self.FALSE) exception ' + str(e))
@@ -455,7 +541,10 @@ if __name__ == '__main__':
 
     config = Config()
     b=config.toBytes()
-    config.fromBytes(b=b,section='test')
+    config.fromBytes(b=b,section='bytes')
+
+    string=config.toString()
+    config.fromString(string=string,section='string')
     
     instance= config.getInstance()
     print('Instance ' + str(instance))
