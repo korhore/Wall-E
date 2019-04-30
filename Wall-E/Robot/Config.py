@@ -3,9 +3,11 @@ Created on 28.042019
 
 @author: reijo.korhonen@gmail.com
 
+Config
+
     config file is on level by sections, but we need three level by host
     - Direction
-    - Menory
+    - Memory
     - Capability
     
     Implementation sets these level in option names likes this
@@ -20,13 +22,22 @@ Created on 28.042019
 
     
     
+Capabilities
+
+Internal implementation of capabilities set on three levels
+direction, memory, capability
+
+Can be initialized from bytes, string, config or default config for localhost
+
+    
+    
 '''
+
+import sys
 import os
 from configparser import ConfigParser
 from configparser import MissingSectionHeaderError,NoSectionError,NoOptionError
 from Sensation import Sensation
-from _ast import Or
-
 
 class Config(ConfigParser):
 
@@ -474,22 +485,22 @@ class Config(ConfigParser):
         return self.getboolean(section, option)
 
              
-    def getVirtualInstances(self, host=LOCALHOST):
+    def getVirtualInstances(self, section=LOCALHOST):
         self.virtualInstances=[]
-        virtualInstances = self.get(section=host, option=self.VIRTUALINSTANCES)
+        virtualInstances = self.get(section=section, option=self.VIRTUALINSTANCES)
         if virtualInstances != None and len(virtualInstances) > 0:
             self.virtualInstances = virtualInstances.split()
             
         return self.virtualInstances
     
-    def getWho(self, host=LOCALHOST):
-        who = self.get(section=host, option=self.WHO)
+    def getWho(self, section=LOCALHOST):
+        who = self.get(section=section, option=self.WHO)
         return who
 
 
-    def getKind(self, host=LOCALHOST):
+    def getKind(self, section=LOCALHOST):
         self.kind = Sensation.Kind.WallE
-        kind = self.get(section=host, option=self.KIND)
+        kind = self.get(section=section, option=self.KIND)
         if kind != None and len(kind) > 0:
             if kind == Sensation.Kinds[Sensation.Kind.WallE]:
                 self.kind = Sensation.Kind.WallE
@@ -499,9 +510,9 @@ class Config(ConfigParser):
                 self.kind = Sensation.Kind.Other
         return self.kind
 
-    def getInstance(self, host=LOCALHOST):
+    def getInstance(self, section=LOCALHOST):
         self.instance = Sensation.Instance.Real
-        instance = self.get(section=host, option=self.INSTANCE)
+        instance = self.get(section=section, option=self.INSTANCE)
         if instance != None and len(instance) > 0:
             if instance == Sensation.Instances[Sensation.Instance.Real]:
                 self.instance = Sensation.Instance.Real
@@ -510,34 +521,127 @@ class Config(ConfigParser):
           
         return self.instance
     
-    def canHear(self, host=LOCALHOST):
+    def getCapabilities(self, section=LOCALHOST):
+        bytes=self.toBytes(section=section)
+        return Capabilities(bytes=bytes)
+
+    def canHear(self, section=LOCALHOST):
         return self.hasCapability(Sensation.getDirectionString(Sensation.Direction.In),
                                   Sensation.getMemoryString(Sensation.Memory.Sensory),
                                   Sensation.getSensationTypeString(Sensation.SensationType.HearDirection),
-                                  section=host)
+                                  section=section)
     
-    def canMove(self, host=LOCALHOST):
+    def canMove(self, section=LOCALHOST):
        return self.hasCapability(Sensation.getDirectionString(Sensation.Direction.In),
                                  Sensation.getMemoryString(Sensation.Memory.Sensory),
                                  Sensation.getSensationTypeString(Sensation.SensationType.Drive),
-                                 section=host)
+                                 section=section)
 
-    def canSee(self, host=LOCALHOST):
+    def canSee(self, section=LOCALHOST):
        return self.hasCapability(Sensation.getDirectionString(Sensation.Direction.In),
                                  Sensation.getMemoryString(Sensation.Memory.Sensory),
                                  Sensation.getSensationTypeString(Sensation.SensationType.ImageFilePath),
-                                 section=host) \
+                                 section=section) \
                                  and \
               self.hasCapability(Sensation.getDirectionString(Sensation.Direction.In),
                                  Sensation.getMemoryString(Sensation.Memory.Sensory),
                                  Sensation.getSensationTypeString(Sensation.SensationType.PictureData),
-                                 section=host)
+                                 section=section)
 
-# TODO microphones, different memory levels
+
+
+class Capabilities():
+    
+    def __init__(self, string=None, bytes=None, config=None):
+        if string is not None:
+            self.fromString(string=string)
+        else:            
+            if bytes == None:
+                if config is None:
+                    self.config = Config()
+                else:
+                    self.config= config
+                bytes=self.config.toBytes()
+    
+            self.fromBytes(bytes=bytes)
+
+    
+    '''
+    Initiated from bytes
+    '''
+    def fromBytes(self, bytes=None):
+        if bytes == None:
+            bytes=self.config.toBytes()
+        self.directions={}
+        i=0
+        # create three level dictionary about capabilitys by direction, by memory, by sensation type
+        for direction, _ in Sensation.Directions.items():
+            memorys={}
+            self.directions[direction] = memorys
+            for memory, _ in Sensation.Memorys.items():
+                capabilitys={}
+                memorys[memory] = capabilitys
+                for capability, _ in Sensation.SensationTypes.items():
+                    is_set=Config.intToBool(b=bytes[i])
+#                     if is_set:
+#                         print (str(direction) + str(memory) + str(capability) + ': TRUE')
+                    capabilitys[capability] = is_set
+#                     print ('i ' + str(i) + ': ' + str(bytes[i]) + ' ' + str(is_set))
+                    i=i+1
+    '''
+    Initiated from String
+    '''
+    def fromString(self, string=None):
+        if string == None:
+            string=self.config.toString()
+        self.directions={}
+        i=0
+        # create three level dictionary about capabilitys by direction, by memory, by sensation type
+        for direction, _ in Sensation.Directions.items():
+            memorys={}
+            self.directions[direction] = memorys
+            for memory, _ in Sensation.Memorys.items():
+                capabilitys={}
+                memorys[memory] = capabilitys
+                for capability, _ in Sensation.SensationTypes.items():
+                    is_set=Config.charToBool(string[i])
+#                     if is_set:
+#                         print (str(direction) + str(memory) + str(capability) + ': TRUE')
+                    capabilitys[capability] = is_set
+#                     print ('i ' + str(i) + ': ' + str(bytes[i]) + ' ' + str(is_set))
+                    i=i+1
+
+    '''
+    Getter to get if single capability is set
+    '''
+    def hasCapanility(self, direction, memory, sensationType):
+        return self.directions[direction][memory][sensationType]
+ 
+    '''
+    Setter to get if single capability is set
+    '''
+    def setCapanility(self, direction, memory, sensationType, is_set):
+        self.directions[direction][memory][sensationType] = is_set
+        
+        
+'''
+test
+'''
+def test(name, capabilities):
+    for direction, directionStr in Sensation.Directions.items():
+        for memory, memoryStr in Sensation.Memorys.items():
+            for capability, capabilityStr in Sensation.SensationTypes.items():
+                is_set = capabilities.hasCapanility(direction, memory, capability)
+                if is_set:
+                    print (name + ": " + str(directionStr) + ' ' + str(memoryStr) + ' ' + str(capabilityStr) + ': True')
+
+
 
 if __name__ == '__main__':
     cwd = os.getcwd()
     print('cwd ' + cwd)
+    
+    # config
 
     config = Config()
     b=config.toBytes()
@@ -554,4 +658,43 @@ if __name__ == '__main__':
     
     virtualInstances=  config.getVirtualInstances()
     print('VirtualInstances ' + str(virtualInstances))
+    
+
+    
+    #capabilities
+
+    capabilities = Capabilities()
+    
+    #test
+    test(name="default", capabilities=capabilities)
+ 
+    # set all True 
+    print ("Set all True")
+    for direction, directionStr in Sensation.Directions.items():
+        for memory, memoryStr in Sensation.Memorys.items():
+            for capability, capabilityStr in Sensation.SensationTypes.items():
+                capabilities.setCapanility(direction, memory, capability, True)
+    test(name="Set all True", capabilities=capabilities)
+
+     # set all False 
+    print ("Set all False")
+    for direction, directionStr in Sensation.Directions.items():
+        for memory, memoryStr in Sensation.Memorys.items():
+            for capability, capabilityStr in Sensation.SensationTypes.items():
+                capabilities.setCapanility(direction, memory, capability, False)
+    test(name="Set all False", capabilities=capabilities)
+
+    config=Config()
+    capabilities=Capabilities(config=config)
+    test("default config", capabilities)
+    
+    bytes=config.toBytes(section="bytes")                
+    capabilities=Capabilities(bytes=bytes)
+    test("bytes", capabilities)
+
+    string=config.toString()                
+    capabilities = Capabilities(string=string)
+    test("string", capabilities)
+
+
 

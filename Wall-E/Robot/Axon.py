@@ -6,6 +6,7 @@ Created on Jan 19, 2014
 
 from queue import Queue
 from Sensation import Sensation
+from Config import Config
 
 
 
@@ -17,7 +18,7 @@ class Axon():
 
     def __init__(self, config):
         self.queue = Queue()
-        self.config=config()
+        self.config=config
         #self.host = host
         self.who = self.config.getWho()
         self.capabilities = self.config.getCapabilities()

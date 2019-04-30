@@ -11,9 +11,11 @@ Can be initialized from bytes, string, config or default config for localhost
     
     
 '''
+import sys
 import os
 from Sensation import Sensation
-from Config import Config
+if 'Config' not in sys.modules:
+    from Config import Config
 
 
 class Capabilities():

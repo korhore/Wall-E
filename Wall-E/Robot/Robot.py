@@ -98,7 +98,7 @@ class RobotServer(Thread):
         self.name = self.config.getWho()
           # global queue for senses and other robots to put sensations to robot
         if in_axon is None:
-            self.in_axon = Axon(Config.LOCALHOST) 
+            self.in_axon = Axon(config=self.config) 
         else:
             self.in_axon = in_axon
              
