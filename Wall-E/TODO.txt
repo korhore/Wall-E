@@ -7,12 +7,25 @@ Main architecture
   all Sensation for "out" direction
 - Robot has many inAxons for subRobots that are in samre time these Robots
   inAxons.
-- Finallyu the are leafRobots that dont have any more subRobots. Thesae are
+- Finally there are leafRobots that dont have any more subRobots. Thesae are
   sinal implementation of one (basically or more) capability
   
 - arrange code by copabilities as modules without denpendencies: moving,
   hearing, seeing, sensing, etc. This can solve import problem,
   but it would be easier to develop capabilities anyway.
+  
+- MainRobot is final mainRobot
+- Subrobots use their own working subdirectory and they are thread
+- Subrobots have their own implementation subdirectory,
+  so they can be started there. Implementation is still unclear, can we use same
+  class name "Robot" and if not, how we can import subSobits implementation
+  to be started. Lets see.
+
+- networking clients use also trheir own subdirectories.
+- There must be way to override capabilities so we can restricy what Robots over
+  can know about us and what we handle from them. All network robots capabilities
+  should be False by default
+
   
   - OK CONFIG_FILE_PATH from config.py
   - OK toBytes - method to code sensation

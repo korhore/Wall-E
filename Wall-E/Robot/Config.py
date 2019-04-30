@@ -53,6 +53,7 @@ class Config(ConfigParser):
     KIND =              "Kind"
     INSTANCE =          "Instance"
     VIRTUALINSTANCES =  "Virtualinstances"
+    SUBINSTANCES =      "Subinstances"
     IDENTITYS =         "Identitys"
 
     MICROPHONE_LEFT =              'microphone_left'
@@ -67,6 +68,7 @@ class Config(ConfigParser):
     NONE=               'None'
     EMPTY=              ''
     ZERO=               '0.0'
+    DEFAULT_SUBINSTANCES=  'Seeing Hearing Moving'
   
     TRUE_ENCODED =      b'\x01'
     FALSE_ENCODED =     b'\x00'
@@ -74,9 +76,11 @@ class Config(ConfigParser):
     TRUE_CHAR =         'T'
     FALSE_CHAR =        'F'
      
-    def __init__(self, config_file_path=CONFIG_FILE_PATH):
+    def __init__(self, config_file_path=CONFIG_FILE_PATH, level=0):
         ConfigParser.__init__(self)
         self.config_file_path = config_file_path
+        self.level=level+1
+        print("Config level " + str(self.level) + ' ' + self.config_file_path)
         
         #Read config        
         self.read(self.config_file_path)
@@ -128,32 +132,58 @@ class Config(ConfigParser):
             if not os.path.exists(dir):
                 os.makedirs(dir)
                     
-        # handle virtual instances
-        if not os.path.exists(self.VIRTUALINSTANCES):
-                os.makedirs(self.VIRTUALINSTANCES)
+         # for one level
+        if self.level <= 1:
+            # handle subInstances (senses, muscles)
+            self.handleSubInstances(is_virtualInstance=False)
 
-        for virtualinstance in self.getVirtualInstances():
-            print('Handle  virtualinstance ' + virtualinstance)
-            directory = self.VIRTUALINSTANCES+'/'+virtualinstance
-            # relational subdirectory for virtual instance
+            # handle virtual instances
+            if not os.path.exists(self.VIRTUALINSTANCES):
+                os.makedirs(self.VIRTUALINSTANCES)
+            self.handleSubInstances(is_virtualInstance=True)
+
+                     
+                    
+                    
+    def handleSubInstances(self, is_virtualInstance):
+        if is_virtualInstance:
+            instances=self.getVirtualInstances()
+        else:
+            instances=self.getSubInstances()
+
+        # relational subdirectory for virtual instance
+        for instance in instances:
+            print('Handle  instance ' + instance)
+            if is_virtualInstance:
+                directory = self.VIRTUALINSTANCES+'/'+instance
+            else:
+                directory = instance
             if not os.path.exists(directory):
+                print('os.makedirs ' + directory)
                 os.makedirs(directory)
             config_file_path=directory + '/' + Config.CONFIG_FILE_PATH
-            directory = directory +'/etc'
+            etc_directory = directory +'/etc'
+            
             # relational subdirectory for virtual instance
-            if not os.path.exists(directory):
-                os.makedirs(directory)
+            if not os.path.exists(etc_directory):
+                print('os.makedirs ' + etc_directory)
+                os.makedirs(etc_directory)
             #finallu create or update default config file for virtual instance 
-            config = Config(config_file_path=config_file_path)
-            # finally set default that this is virtual instance
+            print('Config(' + config_file_path +')')
+            # TODO Here we should make onlt onle level morem because otherwise we get
+            #endless loop
+            config = Config(config_file_path=config_file_path, level=self.level)
+           # finally set default that this is virtual instance
             changes = False
-            try:
-                instance = config.get(Config.DEFAULT_SECTION, Config.INSTANCE)
-                if instance != Sensation.VIRTUAL:          
-                    config.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.VIRTUAL)
-                    changes=True
-            except Exception as e:
-                    print('config.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.VIRTUAL) exception ' + str(e))
+            if is_virtualInstance:                
+                instances=self.getSubInstances()
+                try:
+                    instance = config.get(Config.DEFAULT_SECTION, Config.INSTANCE)
+                    if instance != Sensation.VIRTUAL:          
+                        config.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.VIRTUAL)
+                        changes=True
+                except Exception as e:
+                        print('config.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.VIRTUAL) exception ' + str(e))
             if changes:
                 try:
                     configfile = open(config_file_path, 'w')
@@ -161,6 +191,7 @@ class Config(ConfigParser):
                     configfile.close()
                 except Exception as e:
                     print('config.write(configfile) ' + str(e))
+
                     
     def getIdentityDirPath(self, kind):
         return self.IDENTITYS +'/'+ Sensation.Kinds[kind]
@@ -169,6 +200,8 @@ class Config(ConfigParser):
     def getVirtualinstanceConfigFilePath(self, virtualinstance):
         return self.VIRTUALINSTANCES +'/'+virtualinstance + '/' + Config.CONFIG_FILE_PATH
         
+    def getSubinstanceConfigFilePath(self, instance):
+        return instance + '/' + Config.CONFIG_FILE_PATH
 
                 
             
@@ -376,14 +409,14 @@ class Config(ConfigParser):
                 self.set(Config.DEFAULT_SECTION, Config.MICROPHONE_LEFT, Config.EMPTY)
                 changes=True
         except Exception as e:
-            print('self.set(Config.DEFAULT_SECTION, Config.MICROPHONE_LEFT, Config.Config.EMPTY) exception ' + str(e))
+            print('self.set(Config.DEFAULT_SECTION, Config.MICROPHONE_LEFT, Config.EMPTY) exception ' + str(e))
             
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.WHO):
                 self.set(Config.DEFAULT_SECTION,Config.WHO, Sensation.WALLE)
                 changes=True
         except Exception as e:
-            print('self.set(Config.DEFAULT_SECTION, Config.WHO, Config.Config.WHO) exception ' + str(e))
+            print('self.set(Config.DEFAULT_SECTION, Config.WHO, Config.WHO) exception ' + str(e))
             
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.KIND):
@@ -407,6 +440,16 @@ class Config(ConfigParser):
             print('self.set(Config.DEFAULT_SECTION,Config.HOSTS, Config.EMPTY) exception ' + str(e))
 
         try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.SUBINSTANCES):
+                if self.level == 1:
+                    self.set(Config.DEFAULT_SECTION,Config.SUBINSTANCES, Config.DEFAULT_SUBINSTANCES)
+                else:
+                    self.set(Config.DEFAULT_SECTION,Config.SUBINSTANCES, Config.EMPTY)
+                changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION,Config.HOSTS, Config.EMPTY) exception ' + str(e))
+
+        try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.VIRTUALINSTANCES):
                 self.set(Config.DEFAULT_SECTION,Config.VIRTUALINSTANCES, Config.EMPTY)
                 changes=True
@@ -418,7 +461,7 @@ class Config(ConfigParser):
                 self.set(Config.DEFAULT_SECTION,Config.MICROPHONE_RIGHT, Config.EMPTY)
                 changes=True
         except Exception as e:
-            print('self.set(Config.DEFAULT_SECTION, Config.MICROPHONE_RIGHT, Config.Config.EMPTY) exception ' + str(e))
+            print('self.set(Config.DEFAULT_SECTION, Config.MICROPHONE_RIGHT, Config.EMPTY) exception ' + str(e))
 
         try:                
             if not self.has_option(Config.DEFAULT_SECTION,Config.MICROPHONE_CALIBRATING_ZERO):
@@ -485,6 +528,14 @@ class Config(ConfigParser):
         return self.getboolean(section, option)
 
              
+    def getSubInstances(self, section=LOCALHOST):
+        self.subInstances=[]
+        subInstances = self.get(section=section, option=self.SUBINSTANCES)
+        if subInstances != None and len(subInstances) > 0:
+            self.subInstances = subInstances.split()
+            
+        return self.subInstances
+
     def getVirtualInstances(self, section=LOCALHOST):
         self.virtualInstances=[]
         virtualInstances = self.get(section=section, option=self.VIRTUALINSTANCES)
@@ -656,6 +707,9 @@ if __name__ == '__main__':
     kind= config.getKind()
     print('Kind ' + str(kind))
     
+    subInstances=  config.getsubInstances()
+    print('subInstances ' + str(subInstances))
+
     virtualInstances=  config.getVirtualInstances()
     print('VirtualInstances ' + str(virtualInstances))
     

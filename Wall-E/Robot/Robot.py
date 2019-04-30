@@ -33,11 +33,11 @@ if 'Seeing.See' not in sys.modules:
     from Seeing.See import See
 #from Config import CONFIG_FILE_PATH
 #if 'Config' not in sys.modules:
-from Config import Config
+from Config import Config, Capabilities
 
-HOST = '0.0.0.0'
-PORT = 2000
-PICTURE_PORT = 2001
+# HOST = '0.0.0.0'
+# PORT = 2000
+# PICTURE_PORT = 2001
 
 DAEMON=False
 START=False
@@ -45,7 +45,7 @@ STOP=False
 MANUAL=False
 
 
-class RobotServer(Thread):
+class Robot(Thread):
     """
     Controls Robot-robot. Robot has capabilities like moving, hearing, seeing and position sense.
     Technically we use socket servers to communicate with external devices. Romeo board is controlled
@@ -70,106 +70,83 @@ class RobotServer(Thread):
 #    FALSE_VALUE="False"
   
 
-    def __init__(self, configFilePath=Config.CONFIG_FILE_PATH,
-                 in_axon=None,
-                 out_axon=None):
+    def __init__(self, workingDirectory=None,
+                 configFilePath=Config.CONFIG_FILE_PATH,
+                 inAxon=None, # we read this as muscle functionality and getting
+                              # sensationsfron ot subInstances (Senses)
+                              # write to this when submitting things to subInstances
+                 outAxon=None):
         Thread.__init__(self)
         self.mode = Sensation.Mode.Starting
-
-        self.name = "Robot"
-        
-        Capabilities = 'Capabilities' 
-        Memory =       'Memory'
+        self.inAxon = inAxon    # axon for up direction
+        self.outAxon = outAxon
+        self.subInstances = []     # subInstance contain a outAxon we write muscle sensations
+                                # for subrobot this axon in inAxon
+                                # We ask subInstance to report its Sensations to
+                                # inAxon, so our live is reading inAxon
+                                # and writing to outAxon, which is created by us
+                                # or give in this method
+        self.running=False
 
        
-        self.azimuth=0.0                # position sense, azimuth from north
-        self.turning_to_object = False  # Are we turning to see an object
-        self.hearing_angle = 0.0        # device hears sound from this angle, device looks to its front
-                                        # to the azimuth direction
-        self.observation_angle = 0.0           # turn until azimuth is this angle
-        
-        self.leftPower = 0.0            # moving
-        self.rightPower = 0.0
-        
-         # TODO Identity from configuration
+#         Capabilities = 'Capabilities' 
+#         Memory =       'Memory'
+
+       
  
         self.config = Config(config_file_path=configFilePath)
+        self.capabilities = Capabilities(config=self.config)
         self.log("init robot who " + self.config.getWho() + " kind " + self.config.getKind() + " instance " + self.config.getInstance())
         self.name = self.config.getWho()
-          # global queue for senses and other robots to put sensations to robot
-        if in_axon is None:
-            self.in_axon = Axon(config=self.config) 
-        else:
-            self.in_axon = in_axon
+        # global queue for senses and other robots to put sensations to robot
+        if self.inAxon is None:
+            self.inAxon = Axon(config=self.config) 
+        if self.outAxon is None:
+            self.outAxon = Axon(config=self.config) 
+ 
+        # TODO           
+        # Study our config. What subInstances we have.
              
-        # global queue for this robot to put sensations to external senses  (muscles) or robots
-        self.out_axons = []
-        if out_axon is None:
-            #self.out_axon = Axon(Config.LOCALHOST)
-            self.out_axons.append(Axon(Config.LOCALHOST))
-        else:
-            self.out_axon = self.out_axons.append(out_axon)
-        # starting build in capabilities/senses
-        # we have capability to move
-        if self.config.canMove():
-            if MANUAL:
-                self.romeo = ManualRomeo()
-            else:
-                self.romeo = Romeo()
-            # we have hearing (positioning of object using sounds)
-            self.turnTimer = Timer(RobotServer.ACTION_TIME, self.stopTurn)
-            
-        if self.config.canHear():
-            self.hearing=Hear(self.in_axon)
-        
-        if self.config.canSee():
-            self.seeing=See(self.in_axon)
-            self.out_axons.append(self.seeing.getInAxon())
+                #and create virtual instances
+        for subInstance in self.config.getSubInstances():
+            robot = Robot(configFilePath=self.config.getSubinstanceConfigFilePath(subInstance),
+                          outAxon=self.inAxon)
+            self.subInstances.append(robot)
 
-        # Real instances can have sockets to other robots
-        # starting tcp server as nerve pathway to external senses to connect
-        # we have azimuth sense (our own position detection)
-        # TODO We should process self.in_axon
-        # so TCPServer should have its own our.axen
-        # and axon TCPServer puts data and we read shouls be same than senses,
-        # self.in_axon so to be clear, so should put direction to axons to know,
-        # in what direction Sansation are handled.
-        if self.config.getInstance() == Sensation.Instance.Real:
-            self.tcpServer=TCPServer(out_axon = self.in_axon, in_axon = self.out_axon, server_address=(HOST,PORT))
-
-        
-        self.running=False
-        
-        self.calibrating=False              # are we calibrating
-        self.calibrating_angle = 0.0        # calibrate device hears sound from this angle, device looks to its front
-        #self.calibratingTimer = Timer(RobotServer.ACTION_TIME, self.stopCalibrating)
-        self.log("Calibrate version")      
-        # finally remember instance
-        RobotServer.robot = self
-        #and create virtual instances
-        self.virtualInstances = []
         for virtualInstance in self.config.getVirtualInstances():
-            robot = RobotServer(configFilePath=self.config.getVirtualinstanceConfigFilePath(virtualInstance))
-            self.virtualInstances.append(robot)
+            robot = Robot(configFilePath=self.config.getVirtualinstanceConfigFilePath(virtualInstance),
+                          outAxon=self.inAxon)
+            self.subInstances.append(robot)
+            
+    def getInAxon(self):
+        return self.inAxon
+    def setInAxon(self, inAxon):
+        self.inAxon = inAxon
 
+    def getOutAxon(self):
+        return self.outAxon
+    def setOutAxon(self, outAxon):
+        self.outAxon = outAxon
        
+    def getConfig(self):
+        return self.config
+    def setConfig(self, outAxon):
+        self.config = config
+
+    def getCapabilities(self):
+        return self.capabilities
+    def setCapabilities(self, capabilities):
+        self.capabilities = capabilities
+
     def run(self):
         self.log(" Starting robot who " + self.config.getWho() + " kind " + self.config.getKind() + " instance " + self.config.getInstance())      
         
         # starting other threads/senders/capabilities
         
         self.running=True
-        
-        if self.config.canHear():
-            self.hearing.start()
-        if self.config.canSee():
-            self.seeing.start()
-        if self.config.getInstance() == Sensation.Instance.Real:
-            self.log("starting TCPServer")      
-            self.tcpServer.start()
-        
-        # start virtual instances here
-        for robot in self.virtualInstances:
+                
+        # start subInstances and virtual instances here
+        for robot in self.subInstances:
             robot.start()
             
         # study own identity
@@ -179,7 +156,7 @@ class RobotServer(Thread):
         # live until stopped
         self.mode = Sensation.Mode.Normal
         while self.running:
-            sensation=self.in_axon.get()
+            sensation=self.inAxon.get()
             self.log("got sensation from queue " + str(sensation))      
             self.process(sensation)
             # as a test, echo everything to external device
@@ -189,21 +166,8 @@ class RobotServer(Thread):
         self.log("Stopping robot")      
 
          # stop virtual instances here, when main instance is not running any more
-        for robot in self.virtualInstances:
+        for robot in self.subInstances:
             robot.stop()
-
-        self.log("run shutting down ...")      
-
-        if self.config.getInstance() == Sensation.Instance.Real:
-            self.log("run shutting down TcpServer ...")      
-            self.tcpServer.stop()
-        
-        if self.config.canHear():
-            self.log("run shutting down hearing ...")      
-            self.hearing.stop()
-        if self.config.canSee():
-            self.log("run shutting down seeing ...")      
-            self.seeing.stop()
        
         self.log("run ALL SHUT DOWN")      
         
@@ -211,19 +175,24 @@ class RobotServer(Thread):
          print(self.name + ":" + Sensation.Modes[self.mode] + ": " + logStr)
 
     def stop(self):
-        self.running = False
-        for virtailInstace in self.GetVirtailInstaces():
-            virtailInstace.stop()
+        self.log("Stopping robot")      
+
+         # stop virtual instances here, when main instance is not running any more
+        for robot in self.subInstances:
+            robot.stop()
+        self.running = False    # this in not real, but we wait for Sensation,
+                                # so give  us one stop sensation
+        self.inAxon.put(Sensation(sensationType = Sensation.SensationType.Stop))
 
 
     '''
-    DoStop is used to stop server process and its sobprocesses (threads)
-    Technique is just give Stop Sewnsation oto process.
-    With same tecnique remote machines can stop us and we scan stop them
+    DoStop is used to stop server process and its subprocesses (threads)
+    Technique is just give Stop Sensation oto process.
+    With same technique remote machines can stop us and we scan stop them
     '''
             
     def doStop(self):
-        self.in_axon.put(Sensation(sensationType = Sensation.SensationType.Stop))
+        self.inAxon.put(Sensation(sensationType = Sensation.SensationType.Stop))
         
     def studyOwnIdentity(self):
         self.mode = Sensation.Mode.StudyOwnIdentity
@@ -240,7 +209,7 @@ class RobotServer(Thread):
             
             
     def process(self, sensation):
-        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation))      
+        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + str(sensation))      
         if sensation.getSensationType() == Sensation.SensationType.Drive:
             self.log('process: Sensation.SensationType.Drive')      
         elif sensation.getSensationType() == Sensation.SensationType.Stop:
@@ -248,6 +217,8 @@ class RobotServer(Thread):
             self.stop()
         elif sensation.getSensationType() == Sensation.SensationType.Who:
             print (self.name + ": Robotserver.process Sensation.SensationType.Who")
+            
+        # TODO study what capabilities out subrobots have ins put sensation to them
         elif self.config.canHear() and sensation.getSensationType() == Sensation.SensationType.HearDirection:
             self.log('process: SensationType.HearDirection')      
              #inform external senses that we remember now hearing          
@@ -261,11 +232,11 @@ class RobotServer(Thread):
                 observation = Sensation(sensationType = Sensation.SensationType.Observation,
                                         memory=Memory.Work,
                                         observationDirection= self.observation_angle,
-                                        observationDistance=RobotServer.DEFAULT_OBSERVATION_DISTANCE,
+                                        observationDistance=Robot.DEFAULT_OBSERVATION_DISTANCE,
                                         reference=sensation)
                 # process internally
                 self.log("process: put Observation to in_axon")
-                self.in_axon.put(observation)
+                self.inAxon.put(observation)
                 
                 #process by remote robotes
                 # mark hearing sensation to be processed to set direction out of memory, we forget it
@@ -319,7 +290,7 @@ class RobotServer(Thread):
                             sensation.setDirection(Sensation.Direction.In)
                             self.log('process: calibrating put HearDirection to out_axon')      
                             self.out_axon.put(sensation)
-                            #self.calibratingTimer = Timer(RobotServer.ACTION_TIME, self.stopCalibrating)
+                            #self.calibratingTimer = Timer(Robot.ACTION_TIME, self.stopCalibrating)
                             #self.calibratingTimer.start()
                         else:
                             self.log('process: asked to stop calibrating activity')      
@@ -363,7 +334,7 @@ class RobotServer(Thread):
                     sensation, picture = self.romeo.processSensation(Sensation(sensationType='D', leftPower = self.leftPower, rightPower = self.rightPower))
                     self.leftPower = sensation.getLeftPower()           # set motors in opposite power to turn in place
                     self.rightPower = sensation.getRightPower()           # set motors in opposite power to turn in place
-                    self.turnTimer = Timer(RobotServer.ACTION_TIME, self.stopTurn)
+                    self.turnTimer = Timer(Robot.ACTION_TIME, self.stopTurn)
                     self.turnTimer.start()
 
             
@@ -387,7 +358,7 @@ class RobotServer(Thread):
 
  #   def stopCalibrating(self):
  #       self.calibrating=False
- #       print( self.name + ": RobotServer.stopCalibrating: Calibrating mode is stopped/cancelled")
+ #       print( self.name + ": Robot.stopCalibrating: Calibrating mode is stopped/cancelled")
 
 
     def add_radian(self, original_radian, added_radian):
@@ -403,8 +374,8 @@ class RobotServer(Thread):
         leftPower = 0.0           # set motor in opposite power to turn in place
         rightPower = 0.0
         
-        if math.fabs(self.observation_angle - self.azimuth) > RobotServer.TURN_ACCURACYFACTOR:
-            power = (self.observation_angle - self.azimuth)/RobotServer.FULL_TURN_FACTOR
+        if math.fabs(self.observation_angle - self.azimuth) > Robot.TURN_ACCURACYFACTOR:
+            power = (self.observation_angle - self.azimuth)/Robot.FULL_TURN_FACTOR
             if power > 1.0:
                 power = 1.0
             if power < -1.0:
@@ -443,8 +414,9 @@ def do_server():
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGHUP, signal_handler)
 
-    print ("do_server: create RobotServer")
-    robot = RobotServer()
+    print ("do_server: create Robot")
+    global robot
+    robot = Robot()
 
     succeeded=True
     try:
@@ -459,7 +431,7 @@ def do_server():
     if succeeded:
         print ('do_server: Press Ctrl+C to Stop')
 
-        RobotServer.robot = robot   # remember robot so
+        Robot.robot = robot   # remember robot so
                                     # we can stop it in ignal_handler   
         robot.join()
         
@@ -468,7 +440,7 @@ def do_server():
 def signal_handler(signal, frame):
     print ('signal_handler: You pressed Ctrl+C!')
     
-    RobotServer.robot.doStop()
+    robot.doStop()
     
 #     print ('signal_handler: Shutting down sensation server ...')
 #     RobotRequestHandler.server.serving =False
