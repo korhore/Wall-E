@@ -176,7 +176,6 @@ class Config(ConfigParser):
            # finally set default that this is virtual instance
             changes = False
             if is_virtualInstance:                
-                instances=self.getSubInstances()
                 try:
                     instance = config.get(Config.DEFAULT_SECTION, Config.INSTANCE)
                     if instance != Sensation.VIRTUAL:          
@@ -184,6 +183,15 @@ class Config(ConfigParser):
                         changes=True
                 except Exception as e:
                         print('config.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.VIRTUAL) exception ' + str(e))
+            else:
+                try:
+                    instance = config.get(Config.DEFAULT_SECTION, Config.INSTANCE)
+                    if instance != Sensation.SUBINSTANCE:          
+                        config.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.SUBINSTANCE)
+                        changes=True
+                except Exception as e:
+                        print('config.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.VIRTUAL) exception ' + str(e))
+               
             if changes:
                 try:
                     configfile = open(config_file_path, 'w')
@@ -567,6 +575,8 @@ class Config(ConfigParser):
         if instance != None and len(instance) > 0:
             if instance == Sensation.Instances[Sensation.Instance.Real]:
                 self.instance = Sensation.Instance.Real
+            if instance == Sensation.Instances[Sensation.Instance.SubInstance]:
+                self.instance = Sensation.Instance.SubInstance
             else:
                 self.instance = Sensation.Instance.Virtual
           

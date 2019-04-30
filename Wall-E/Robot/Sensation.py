@@ -77,7 +77,7 @@ class Sensation(object):
     Direction = enum(In='I', Out='O')
     Memory = enum(Sensory='S', Working='W', LongTerm='L' )
     Kind = enum(WallE='w', Eva='e', Other='o')
-    Instance = enum(Real='r', Virtual='v')
+    Instance = enum(Real='r', SubInstance='s', Virtual='v')
     Mode = enum(Normal='n', StudyOwnIdentity='i',Sleeping='l',Starting='s', Stopping='p')
 # enum items as strings    
     IN="In"
@@ -102,6 +102,7 @@ class Sensation(object):
     EVA="Eva"
     OTHER="Other"
     REAL="Real"
+    SUBINSTANCE="SubInstance"
     VIRTUAL="Virtual"
     NORMAL="Normal"
     STUDYOWNIDENTITY="StudyOwnIdentity"
@@ -131,6 +132,7 @@ class Sensation(object):
            Kind.Eva: EVA,
            Kind.Other: OTHER}
     Instances={Instance.Real: REAL,
+               Instance.SubInstance: SUBINSTANCE,
                Instance.Virtual: VIRTUAL}
     Modes={Mode.Normal: NORMAL,
            Mode.StudyOwnIdentity: STUDYOWNIDENTITY,

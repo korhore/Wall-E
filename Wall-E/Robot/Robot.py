@@ -18,6 +18,7 @@ import configparser
 
 import daemon
 import lockfile
+import importlib
 
 from Axon import Axon
 from TCPServer import TCPServer
@@ -109,8 +110,19 @@ class Robot(Thread):
              
                 #and create virtual instances
         for subInstance in self.config.getSubInstances():
-            robot = Robot(configFilePath=self.config.getSubinstanceConfigFilePath(subInstance),
-                          outAxon=self.inAxon)
+            try:
+                module = subInstance+ '.' +subInstance
+                imported_module = importlib.import_module(module)
+                robot = getattr(imported_module, subInstance)(configFilePath=self.config.getSubinstanceConfigFilePath(subInstance),
+                                                              outAxon=self.inAxon)
+  
+                #robot = imported_module(configFilePath=self.config.getSubinstanceConfigFilePath(subInstance),
+                #                        outAxon=self.inAxon)
+            except ImportError as e:
+                print("Import error, using default Robot for " + module + ' fix this ' + str(e))
+
+                robot = Robot(configFilePath=self.config.getSubinstanceConfigFilePath(subInstance),
+                              outAxon=self.inAxon)
             self.subInstances.append(robot)
 
         for virtualInstance in self.config.getVirtualInstances():
@@ -172,7 +184,7 @@ class Robot(Thread):
         self.log("run ALL SHUT DOWN")      
         
     def log(self, logStr):
-         print(self.name + ":" + Sensation.Modes[self.mode] + ": " + logStr)
+         print(self.name + ":" + str( self.config.level) + ":" + Sensation.Modes[self.mode] + ": " + logStr)
 
     def stop(self):
         self.log("Stopping robot")      
