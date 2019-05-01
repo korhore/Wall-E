@@ -60,7 +60,7 @@ class Sensation(object):
     LOWPOINT_NUMBERVARIANCE=-100.0
     HIGHPOINT_NUMBERVARIANCE=100.0
     
-    CACHE_TIME = 600.0;       # cache sensation 600 seconds = 10 mins (may be changed)
+    CACHE_TIME = 300.0;       # cache sensation 300 seconds = 5 mins (may be changed)
     LENGTH_SIZE=2   # Sensation as string can only be 99 character long
     LENGTH_FORMAT = "{0:2d}"
     SEPARATOR='|'  # Separator between messages
@@ -165,7 +165,12 @@ class Sensation(object):
         
         # remove too old ones
         now = systemTime.time()
-        while len(Sensation.sensationMemory) > 0 and now - Sensation.sensationMemory[0].getTime() > Sensation.CACHE_TIME:
+        # TODO When use reference_time, then it is possible that
+        # at the start there is much referenced sensation, and after that
+        # there are less referenced, that keep in the memory too long time.
+        # Maybe this is not a big problem. This simple implementation keeps
+        # sensation creation efficient
+        while len(Sensation.sensationMemory) > 0 and now - Sensation.sensationMemory[0].getReferenceTime() > Sensation.CACHE_TIME:
             print('delete from sensation cache ' + str(sensation.getNumber()))
             del Sensation.sensationMemory[0]
                 
@@ -206,8 +211,9 @@ class Sensation(object):
     def __init__(self,
                  string=None,
                  bytes=None,
-                 time=None,
                  number=None,
+                 time=None,
+                 reference_time=None,
                  references=[],
                  sensationType = SensationType.Unknown,
                  memory=Memory.Sensory,
@@ -223,8 +229,12 @@ class Sensation(object):
                  calibrateSensationType = SensationType.Unknown,
                  capabilities = []):                         # capabilitis of sensorys, direction what way sensation go
         self.time=time
+        self.reference_time = reference_time
         if self.time == None:
             self.time = systemTime.time()
+        if self.reference_time == None:
+            self.reference_time = self.time
+
         self.number = number
         if self.number == None:
             self.number = self.nextNumber()
@@ -263,76 +273,78 @@ class Sensation(object):
         if string != None:    
             params = string.split()
             #print params
-            if len(params) >= 4:
+            if len(params) >= 6:
                 try:
                     self.number = float(params[0])
-                    self.memory = params[1]
-                    self.direction = params[2]
-                    self.sensationType = params[3]
-                    last_param=4
+                    self.time = float(params[1])
+                    self.reference_time = float(params[2])
+                    self.memory = params[3]
+                    self.direction = params[4]
+                    self.sensationType = params[5]
+                    last_param=6
                 except (ValueError):
                     self.sensationType = Sensation.SensationType.Unknown
                     return
       
                 try:              
                     #print self.number
-                    if len(params) >= 4:
-                        sensationType = params[3]
+                    if len(params) >= 6:
+                        sensationType = params[5]
                         if self.sensationType == Sensation.SensationType.Drive:
-                            if len(params) >= 5:
-                                self.leftPower = float(params[4])
+                            if len(params) >= 7:
+                                self.leftPower = float(params[6])
                                 #print str(self.leftPower)
-                                last_param=5
-                            if len(params) >= 6:
-                                self.rightPower = float(params[5])
-                                last_param=6
+                                last_param=7
+                            if len(params) >= 8:
+                                self.rightPower = float(params[7])
+                                last_param=8
                                 #print str(self.rightPower)
                         elif self.sensationType == Sensation.SensationType.HearDirection:
-                            if len(params) >= 5:
-                                self.hearDirection = float(params[4])
-                                last_param=5
+                            if len(params) >= 7:
+                                self.hearDirection = float(params[6])
+                                last_param=7
                                 #print str(self.hearDirection)
                         elif self.sensationType == Sensation.SensationType.Azimuth:
-                            if len(params) >= 5:
-                                self.azimuth = float(params[4])
-                                last_param=5
+                            if len(params) >= 7:
+                                self.azimuth = float(params[6])
+                                last_param=7
                                 #print str(self.azimuth)
                         elif self.sensationType == Sensation.SensationType.Acceleration:
-                            if len(params) >= 7:
-                                self.accelerationX = float(params[4])
-                                self.accelerationY = float(params[5])
-                                self.accelerationZ = float(params[6])
-                                last_param=7
+                            if len(params) >= 9:
+                                self.accelerationX = float(params[6])
+                                self.accelerationY = float(params[7])
+                                self.accelerationZ = float(params[8])
+                                last_param=9
                                 #print str(self.accelerationX) + ' ' + str(self.accelerationY) + ' ' + str(self.accelerationZ)
                         elif self.sensationType == Sensation.SensationType.Observation:
-                            if len(params) >= 6:
-                                self.observationDirection = float(params[4])
-                                self.observationDistance = float(params[5])
-                                last_param=6
+                            if len(params) >= 8:
+                                self.observationDirection = float(params[6])
+                                self.observationDistance = float(params[7])
+                                last_param=8
                                 #print str(self.observationDirection) + ' ' + str(self.observationDistance)
                         elif self.sensationType == Sensation.SensationType.ImageFilePath:
-                            if len(params) >= 5:
-                                self.imageFilePath = params[4]
-                                last_param=5
+                            if len(params) >= 7:
+                                self.imageFilePath = params[6]
+                                last_param=7
                         elif self.sensationType == Sensation.SensationType.PictureData:
-                            if len(params) >= 5:
-                                self.imageSize = int(params[4])
-                                last_param=5
+                            if len(params) >= 7:
+                                self.imageSize = int(params[6])
+                                last_param=7
                                 #print str(self.imageSize)
                         elif self.sensationType == Sensation.SensationType.Calibrate:
-                            if len(params) >= 5:
-                                self.calibrateSensationType = params[4]
-                                last_param=5
+                            if len(params) >= 7:
+                                self.calibrateSensationType = params[6]
+                                last_param=7
                                 if self.calibrateSensationType == Sensation.SensationType.HearDirection:
-                                    if len(params) >= 6:
-                                        self.hearDirection = float(params[5])
-                                        last_param=6
+                                    if len(params) >= 8:
+                                        self.hearDirection = float(params[7])
+                                        last_param=8
                                 print(("Calibrate hearDirection " + str(self.hearDirection)))
                         elif self.sensationType == Sensation.SensationType.Capability:
-                            if len(params) >= 5:
+                            if len(params) >= 7:
                                 # TODO uncode string of params
-                                self.capabilities = params[4]
-                                last_param=5
+                                self.capabilities = params[6]
+                                last_param=7
                                 #print str(self.capabilities)
             
     #                     elif self.sensationType == Sensation.SensationType.Stop:
@@ -365,6 +377,12 @@ class Sensation(object):
                 #print("number " + str(number))
                 #i += Sensation.NUMBER_SIZE
                 self.number = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                i += Sensation.FLOAT_PACK_SIZE
+                
+                self.time = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                i += Sensation.FLOAT_PACK_SIZE
+                
+                self.reference_time = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                 i += Sensation.FLOAT_PACK_SIZE
                 
                 self.memory = bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
@@ -455,8 +473,9 @@ class Sensation(object):
        
     def create(  string=None,
                  bytes=None,
-                 time=None,
                  number=None,
+                 time=None,
+                 reference_time=None,
                  references=[],
                  sensationType = SensationType.Unknown,
                  memory=Memory.Sensory,
@@ -486,8 +505,9 @@ class Sensation(object):
             print("Create new sensation")
             return Sensation(string=string,
                  bytes=bytes,
-                 time=time,
                  number=number,
+                 time=time,
+                 reference_time=reference_time,
                  references=references,
                  sensationType = sensationType,
                  memory=memory,
@@ -507,6 +527,7 @@ class Sensation(object):
         sensation.time=time
         if sensation.time == None:
             sensation.time = systemTime.time()
+        sensation.reference_time = systemTime.time()
 
         # references are always both way
         if references == None:
@@ -534,76 +555,78 @@ class Sensation(object):
         if string != None:    
             params = string.split()
             #print params
-            if len(params) >= 4:
+            if len(params) >= 6:
                 try:
                     sensation.number = float(params[0])
-                    sensation.memory = params[1]
-                    sensation.direction = params[2]
-                    sensation.sensationType = params[3]
-                    last_param=4
+                    sensation.time = float(params[1])
+                    sensation.reference_time = float(params[2])
+                    sensation.memory = params[3]
+                    sensation.direction = params[4]
+                    sensation.sensationType = params[5]
+                    last_param=6
                 except (ValueError):
                     sensation.sensationType = Sensation.SensationType.Unknown
                     return
         
                 try:              
                     #print sensation.number
-                    if len(params) >= 4:
-                        sensationType = params[3]
+                    if len(params) >= 6:
+                        sensationType = params[5]
                         if sensation.sensationType == Sensation.SensationType.Drive:
-                            if len(params) >= 5:
-                                sensation.leftPower = float(params[4])
+                            if len(params) >= 7:
+                                sensation.leftPower = float(params[6])
                                 #print str(sensation.leftPower)
-                                last_param=5
-                            if len(params) >= 6:
-                                sensation.rightPower = float(params[5])
-                                last_param=6
+                                last_param=7
+                            if len(params) >= 8:
+                                sensation.rightPower = float(params[7])
+                                last_param=8
                                 #print str(sensation.rightPower)
                         elif sensation.sensationType == Sensation.SensationType.HearDirection:
-                            if len(params) >= 5:
-                                sensation.hearDirection = float(params[4])
-                                last_param=5
+                            if len(params) >= 7:
+                                sensation.hearDirection = float(params[6])
+                                last_param=7
                                 #print str(sensation.hearDirection)
                         elif sensation.sensationType == Sensation.SensationType.Azimuth:
-                            if len(params) >= 5:
-                                sensation.azimuth = float(params[4])
-                                last_param=5
+                            if len(params) >= 7:
+                                sensation.azimuth = float(params[6])
+                                last_param=7
                                 #print str(sensation.azimuth)
                         elif sensation.sensationType == Sensation.SensationType.Acceleration:
-                            if len(params) >= 7:
-                                sensation.accelerationX = float(params[4])
-                                sensation.accelerationY = float(params[5])
-                                sensation.accelerationZ = float(params[6])
-                                last_param=7
+                            if len(params) >= 9:
+                                sensation.accelerationX = float(params[6])
+                                sensation.accelerationY = float(params[7])
+                                sensation.accelerationZ = float(params[8])
+                                last_param=9
                                 #print str(sensation.accelerationX) + ' ' + str(sensation.accelerationY) + ' ' + str(sensation.accelerationZ)
                         elif sensation.sensationType == Sensation.SensationType.Observation:
-                            if len(params) >= 6:
-                                sensation.observationDirection = float(params[4])
-                                sensation.observationDistance = float(params[5])
-                                last_param=6
+                            if len(params) >= 8:
+                                sensation.observationDirection = float(params[6])
+                                sensation.observationDistance = float(params[7])
+                                last_param=8
                                 #print str(sensation.observationDirection) + ' ' + str(sensation.observationDistance)
                         elif sensation.sensationType == Sensation.SensationType.ImageFilePath:
-                            if len(params) >= 5:
-                                sensation.imageFilePath = params[4]
-                                last_param=5
+                            if len(params) >= 7:
+                                sensation.imageFilePath = params[6]
+                                last_param=7
                         elif sensation.sensationType == Sensation.SensationType.PictureData:
-                            if len(params) >= 5:
-                                sensation.imageSize = int(params[4])
-                                last_param=5
+                            if len(params) >= 7:
+                                sensation.imageSize = int(params[6])
+                                last_param=7
                                 #print str(sensation.imageSize)
                         elif sensation.sensationType == Sensation.SensationType.Calibrate:
-                            if len(params) >= 5:
-                                sensation.calibrateSensationType = params[4]
-                                last_param=5
+                            if len(params) >= 7:
+                                sensation.calibrateSensationType = params[6]
+                                last_param=7
                                 if sensation.calibrateSensationType == Sensation.SensationType.HearDirection:
-                                    if len(params) >= 6:
-                                        sensation.hearDirection = float(params[5])
-                                        last_param=6
+                                    if len(params) >= 8:
+                                        sensation.hearDirection = float(params[7])
+                                        last_param=8
                                 print(("Calibrate hearDirection " + str(sensation.hearDirection)))
                         elif sensation.sensationType == Sensation.SensationType.Capability:
                             if len(params) >= 5:
                                 # TODO uncode string of params
-                                sensation.capabilities = params[4]
-                                last_param=5
+                                sensation.capabilities = params[6]
+                                last_param=7
                                 #print str(sensation.capabilities)
             
         #                     elif sensation.sensationType == Sensation.SensationType.Stop:
@@ -638,6 +661,12 @@ class Sensation(object):
                 sensation.number = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                 i += Sensation.FLOAT_PACK_SIZE
                    
+                sensation.time = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                i += Sensation.FLOAT_PACK_SIZE
+                
+                sensation.reference_time = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                i += Sensation.FLOAT_PACK_SIZE
+                
                 sensation.memory = bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
                 #print("memory " + str(memory))
                 i += Sensation.ENUM_SIZE
@@ -728,7 +757,7 @@ class Sensation(object):
 
                  
     def __str__(self):
-        s=str(self.number) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType
+        s=str(self.number) + ' ' + str(self.time) + ' ' + str(self.reference_time) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType
         if self.sensationType == Sensation.SensationType.Drive:
             s +=  ' ' + str(self.leftPower) +  ' ' + str(self.rightPower)
         elif self.sensationType == Sensation.SensationType.HearDirection:
@@ -766,6 +795,8 @@ class Sensation(object):
     def bytes(self):
 #        b = self.number.to_bytes(Sensation.NUMBER_SIZE, byteorder=Sensation.BYTEORDER)
         b = floatToBytes(self.number)
+        b += floatToBytes(self.time)
+        b += floatToBytes(self.reference_time)
         b += StrToBytes(self.memory)
         b += StrToBytes(self.sensationType)
         b += StrToBytes(self.direction)
@@ -817,7 +848,25 @@ class Sensation(object):
     def getTime(self):
         return self.time
 
+    def setTime(self, time = None):
+        if time == None:
+            time = systemTime.time()
+        self.time = time
+
+    def getReferenceTime(self):
+        return self.reference_time
     
+    def setReferenceTime(self, reference_time = None):
+        if reference_time == None:
+            reference_time = systemTime.time()
+        self.reference_time = reference_time
+        for reference in self.references:
+#            reference.setReferenceTime(reference_time)
+#            TODO comes infinite loop
+#            Below works, if we have refenece as a star
+            reference.reference_time = reference_time
+
+
     def setNumber(self, number):
         self.number = number
     def getNumber(self):
@@ -825,6 +874,8 @@ class Sensation(object):
     
     def setReferences(self, references):
         self.references = references
+        self.setReferenceTime()
+        
     '''
     Add single reference
     References are alwaystwo sided, but not referencing to self
@@ -834,6 +885,8 @@ class Sensation(object):
            reference not in self.references:
             self.references.append(reference)
             reference.addReference(self)
+        self.setReferenceTime()
+        
     '''
     Add many referencew
     '''
@@ -842,12 +895,15 @@ class Sensation(object):
             self.addReference(reference)
 
     def getReferences(self):
+        self.setReferenceTime()
         return self.references
 
     def getReferenceNumbers(self):
+        self.setReferenceTime()
         referenceNumbers=[]
         for reference in self.references:
             referenceNumbers.append(reference.getNumber())
+            reference.reference_time = self.reference_time
         return referenceNumbers
  
     '''
@@ -858,7 +914,8 @@ class Sensation(object):
         for referenceNumber in referenceNumbers:
             references = Sensation.getSensationsFromSensationMemory(referenceNumber)
             self.addReferences(references)
-            
+        self.setReferenceTime()
+           
     def setSensationType(self, sensationType):
         self.sensationType = sensationType
     def getSensationType(self):
