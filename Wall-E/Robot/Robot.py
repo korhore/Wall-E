@@ -71,14 +71,25 @@ class Robot(Thread):
 #    FALSE_VALUE="False"
   
 
-    def __init__(self, workingDirectory=None,
-                 configFilePath=Config.CONFIG_FILE_PATH,
+    def __init__(self,
+                 instance=None,
+                 is_virtualInstance=False,
+                 is_subInstance=False,
+                 level=0,
+
                  inAxon=None, # we read this as muscle functionality and getting
                               # sensationsfron ot subInstances (Senses)
                               # write to this when submitting things to subInstances
                  outAxon=None):
         Thread.__init__(self)
         self.mode = Sensation.Mode.Starting
+        self.instance=instance
+        if  self.instance is None:
+            self.instance = Config.DEFAULT_INSTANCE
+        self.is_virtualInstance=is_virtualInstance
+        self.is_subInstance=is_subInstance
+        self.level=level+1
+        
         self.inAxon = inAxon    # axon for up direction
         self.outAxon = outAxon
         self.subInstances = []     # subInstance contain a outAxon we write muscle sensations
@@ -95,7 +106,11 @@ class Robot(Thread):
 
        
  
-        self.config = Config(config_file_path=configFilePath)
+        self.config = Config(instance=self.instance,
+                 is_virtualInstance=self.is_virtualInstance,
+                 is_subInstance=self.is_subInstance,
+                 level=level)   # don't increase level, it has increased yet and Config has its own levels (that are same)
+
         self.capabilities = Capabilities(config=self.config)
         self.log("init robot who " + self.config.getWho() + " kind " + self.config.getKind() + " instance " + self.config.getInstance())
         self.name = self.config.getWho()
@@ -113,7 +128,11 @@ class Robot(Thread):
             try:
                 module = subInstance+ '.' +subInstance
                 imported_module = importlib.import_module(module)
-                robot = getattr(imported_module, subInstance)(configFilePath=self.config.getSubinstanceConfigFilePath(subInstance),
+                print('init ' + subInstance)
+                robot = getattr(imported_module, subInstance)(instance=subInstance,
+                                                              is_virtualInstance=False,
+                                                              is_subInstance=True,
+                                                              level=self.level,
                                                               outAxon=self.inAxon)
   
                 #robot = imported_module(configFilePath=self.config.getSubinstanceConfigFilePath(subInstance),
@@ -126,7 +145,10 @@ class Robot(Thread):
             self.subInstances.append(robot)
 
         for virtualInstance in self.config.getVirtualInstances():
-            robot = Robot(configFilePath=self.config.getVirtualinstanceConfigFilePath(virtualInstance),
+            robot = Robot(instance=virtualInstance,
+                          is_virtualInstance=True,
+                          subInstance=False,
+                          level=self.level,
                           outAxon=self.inAxon)
             self.subInstances.append(robot)
             
@@ -218,6 +240,24 @@ class Robot(Thread):
             for fname in fileList:
                 self.log('\t%s' % fname)      
 
+    '''    
+    Process basic functionality is validate meaning level of the sensation.
+    We should remember meaningful sensations and ignore (forget) less
+    meaningful sensations. Implementation is dependent on memory level.
+    
+    When in Sensory level, we should process sensations very fast and
+    detect changes.
+    
+    When in Work level, we are processing meanings of sensations.
+    If much reference with high meaning level, also this sensation is meaningful
+    
+    When in Longterm level, we process memories. Which memories are still important
+    and which memories we should forget.
+    
+    TODO above implementation is mostly for Hearing Sensory and
+    Moving Sensory and should be move to those implementations.
+    
+    '''
             
             
     def process(self, sensation):
@@ -315,7 +355,10 @@ class Robot(Thread):
         elif sensation.getSensationType() == Sensation.SensationType.Capability:
             self.log('process: Sensation.SensationType.Capability')      
         elif sensation.getSensationType() == Sensation.SensationType.Unknown:
-            self.log('process: Sensation.SensationType.Unknown')      
+            self.log('process: Sensation.SensationType.Unknown')
+ 
+        # Just put sensation to our parent            
+        self.outAxon.put(sensation)    
   
     def turn(self):
         # calculate new power to turn or continue turning

@@ -1,6 +1,6 @@
 '''
 Created on 30.04.2019
-Updated on 30.04.2019
+Updated on 01.05.2019
 
 @author: reijo.korhonen@gmail.com
 '''
@@ -9,7 +9,7 @@ from Robot import  Robot
 from Config import Config, Capabilities
 
 
-class Hearing(Robot):
+class Moving(Robot):
     """
      Study dynamic import
      Implemenation of this functionality comes later
@@ -32,7 +32,7 @@ class Hearing(Robot):
                        level=level,
                        inAxon=inAxon,
                        outAxon=outAxon)
-        print("We are in Hearing, not Robot")
+        print("We are in Moving, not Robot")
         
 
     '''    

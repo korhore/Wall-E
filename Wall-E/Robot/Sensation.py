@@ -787,7 +787,7 @@ class Sensation(object):
 #         else:
 #             pass
 
-#        # TODO at the end references (numbers)
+#        # at the end references (numbers)
         for reference in self.references:
             s +=  ' ' + str(reference.getNumber())
         return s
@@ -828,7 +828,7 @@ class Sensation(object):
             b += capabilities_size.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
             b += StrToBytes(self.getStrCapabilities())
             
-        # TODO at the end references (numbers)
+        #  at the end references (numbers)
         reference_number=len(self.references)
         b +=  reference_number.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
         for j in range(reference_number):

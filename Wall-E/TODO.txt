@@ -50,3 +50,7 @@ Main architecture
   
   - Move moving to its own submodule and fix Sensation in Romeo.
     This module should process all moving and observation Sensations
+    
+- Robot start 3! times!!!!!!!!!
+- correct this in Config so that one instance of it handles only one config,
+  but can start otser instance for virtual and subrobots
