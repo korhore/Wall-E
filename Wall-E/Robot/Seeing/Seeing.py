@@ -5,8 +5,11 @@ Updated on 30.04.2019
 @author: reijo.korhonen@gmail.com
 '''
 
+import time
+
 from Robot import  Robot
 from Config import Config, Capabilities
+from Sensation import Sensation
 
 
 class Seeing(Robot):

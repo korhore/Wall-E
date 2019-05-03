@@ -41,10 +41,7 @@ class AlsaAudioMicrophone(Robot):
                  is_virtualInstance=False,
                  is_subInstance=False,
                  level=0,
-
-                 inAxon=None, # we read this as muscle functionality and getting
-                              # sensationsfron ot subInstances (Senses)
-                              # write to this when submitting things to subInstances
+                 inAxon=None, 
                  outAxon=None):
         Robot.__init__(self,
                        instance=instance,
@@ -54,24 +51,24 @@ class AlsaAudioMicrophone(Robot):
                        inAxon=inAxon,
                        outAxon=outAxon)
         print("We are in AlsaAudioMicrophone, not Robot")
-        
-#card='default', channels=1, rate=44100, format=alsaaudio.PCM_FORMAT_S16_LE,
-#                 average=0.0, sensitivity=2.0):
-        self.card='pulse'
-#        self.card='default'
+
+        # from settings        
+        self.card='hw:CARD=Headset'
         self.channels=1
-        self.sensitivity=2.0
-        self.rate = 16
-        #self.rate = 44100
+        self.sensitivity=1.1
+        self.rate = 44100
         self.format = alsaaudio.PCM_FORMAT_S16_LE
-        self.average=0.0
-        self.average_devider = float(self.rate) * 10.0
+        self.average=300.0  # default value should be high enough so we don't start with a sound in silence
+        self.average_devider = float(self.rate) * 100.0
         self.short_average=self.average
-        self.short_average_devider = 2000.0
+        self.short_average_devider = float(self.rate) * 1.0
+        
         self.voice = False
         self.start_time=0.0
-      #print 'str(alsaaudio.cards())' + str(alsaaudio.cards())
+
         self.inp = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NORMAL, self.card)
+        #self.outp = alsaaudio.PCM(alsaaudio.PCM_PLAYBACK, alsaaudio.PCM_NORMAL, self.card)
+        #self.heard_voice=''
         self.log('card ' + self.inp.cardname())
         #self.inp = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NONBLOCK)
 
@@ -79,7 +76,7 @@ class AlsaAudioMicrophone(Robot):
         self.inp.setchannels(self.channels)
         self.inp.setrate(self.rate)
         self.inp.setformat(self.format)
-        self.inp.setperiodsize(32) #32 160
+        self.inp.setperiodsize(2048) #32 160
         
   
         #self.stop_time=0.0
@@ -116,20 +113,101 @@ class AlsaAudioMicrophone(Robot):
                 
         # live until stopped
         self.mode = Sensation.Mode.Normal
+        previous_data=None
         while self.running:
             # blocking read data from device
             #print "reading " + self.name
             l, data = self.inp.read()
-            self.log("read " + str(l))
- 
+#            self.log("read " + str(l) + " dir(data) " + str(dir(data)))
+#            self.log("read " + str(l) )
+            if l > 0:
+                self.values_bytes(data, '<i2')
+                # write back in testing purposes
+                # self.outp.write(data)
+            else:
+                self.log("no self.values_bytes" )
+                if l == -alsaaudio.EPIPE:
+                    self.log("-alsaaudio.EPIPE data" + data )
+               
+#            time.sleep(3)
+
         self.mode = Sensation.Mode.Stopping
-        self.log("Stopping robot")      
+        self.log("Stopping AlsaAudioMicrophone")      
 
          # stop virtual instances here, when main instance is not running any more
         for robot in self.subInstances:
             robot.stop()
        
-        self.log("run ALL SHUT DOWN")      
+        self.log("run ALL SHUT DOWN")
+        
+    def values_bytes(self, data, dtype):
+#        self.log("values_bytes")      
+        minim=9999
+        maxim=-9999
+       
+        try:
+            aaa = numpy.fromstring(data, dtype=dtype)
+        except (ValueError):
+            self.log("values_bytes numpy.fromstring(data, dtype=dtype ValueError")      
+            return "ValueError"
+        
+        i=0
+        for a in aaa:
+            square_a = float(a) * float(a)
+            self.average = math.sqrt(( (self.average * self.average * (self.average_devider - 1.0))  + square_a)/self.average_devider)
+            self.short_average = math.sqrt(( (self.short_average * self.short_average * (self.short_average_devider - 1.0))  + square_a)/self.short_average_devider)
+            if time.time() > self.debug_time + 10.0:
+            #if Hearing.Hearing.log:
+            #if time.time() > self.debug_time + 6.0:
+                self.log("time.time() " + time.ctime(time.time()) + ' self.debug_time ' + time.ctime(self.debug_time))
+                self.log("average " + str(self.average) + ' short_average ' + str(self.short_average))
+                self.debug_time = time.time()
+            
+            if a > maxim:
+                maxim = a
+            if a < minim:
+                minim = a
+            if self.voice:
+                #self.heard_voice += data
+                if self.short_average <= self.sensitivity * self.average:
+                   #duration=self.n/self.rate
+                   #self.stop_time = self.start_time + duration
+#                    self.sound.set_duration(self.n/self.rate)
+#                    self.sound.set_volume_level(math.sqrt(self.square_sum/self.n)/self.average)
+#                    self.sound.set_state(Sound.STOP)
+#                    self.queue.put(self.sound)
+                   self.log("voice stopped at " + time.ctime() + ' ' + str(self.sum/self.n/self.average) + ' ' + str(self.short_average) + ' ' + str(self.average))
+                   self.voice = False
+                   #  for testing purposes playback, what we heard
+                   #self.outp.write(self.heard_voice)
+                   #self.heard_voice=''
+
+                else:
+                   self.sum += self.short_average
+                   self.square_sum += square_a
+                   self.n+=1.0
+            else:
+                if self.short_average > self.sensitivity * self.average:
+                   self.start_time = time.time() - (float(len(aaa)-i)/self.rate) # sound's start time is when we got sound data minus slots that are not in the sound
+#                    self.sound = Sound(id=self.id, state=Sound.START, start_time=self.start_time)
+#                    self.queue.put(self.sound)
+                   self.log( "voice started at " + time.ctime() + ' ' + str(self.start_time) + ' ' + str(self.short_average) + ' ' + str(self.average))
+                   self.voice = True
+                   self.sum=self.short_average
+                   self.n=1.0
+                   self.square_sum = square_a
+                   #self.heard_voice = data # or +=
+                   
+            i += 1
+            
+#        if self.voice:
+#            #duration=self.n/self.rate
+#            self.stop_time = self.start_time + duration
+#             self.sound.set_duration(self.n/self.rate)
+#             self.sound.set_volume_level(math.sqrt(self.square_sum/self.n)/self.average)
+#             self.sound.set_state(Sound.CONTINUE)
+#             self.queue.put(self.sound)
+  
 
     '''    
     Process basic functionality is validate meaning level of the sensation.

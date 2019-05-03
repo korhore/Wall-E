@@ -1,5 +1,6 @@
 '''
 Created on Feb 25, 2013
+Edited on 03.05.2019
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -45,13 +46,13 @@ class Sensation(object):
                             # memory level, that is Sensory level.
                             # That way we can produce meanings is higher level
                             # of low level sensations. For instance we can get
-                            # a picture (Sensory) and process it with tnsorFlow
+                            # a image (Sensory) and process it with tnsorFlow
                             # which classifies it as get words and get
                             # Working or Memory level Sensations that refers
-                            # to the original hearing, a picture, meaning
+                            # to the original hearing, a Image, meaning
                             # that robot has seen it at certain time.
                             # THigher level Sensation can be processed also and
-                            # we can save original picture in a file with
+                            # we can save original image in a file with
                             # its classified names. After that our robot
                             # knows how those classifies names look like,
                             # what is has seen. 
@@ -73,7 +74,7 @@ class Sensation(object):
     FLOAT_PACK_SIZE=8
  
     # so many sensationtypes, that first letter is not good idea any more  
-    SensationType = enum(Drive='a', Stop='b', Who='c', HearDirection='d', Azimuth='e', Acceleration='f', Observation='g', ImageFilePath='h', PictureData='i', Calibrate='j', Capability='k', Unknown='l')
+    SensationType = enum(Drive='a', Stop='b', Who='c', Azimuth='d', Acceleration='e', Observation='f', HearDirection='g', VoiceFilePath='h', VoiceData='i', ImageFilePath='j', ImageData='k', Calibrate='l', Capability='m', Unknown='n')
     Direction = enum(In='I', Out='O')
     Memory = enum(Sensory='S', Working='W', LongTerm='L' )
     Kind = enum(WallE='w', Eva='e', Other='o')
@@ -89,12 +90,14 @@ class Sensation(object):
     DRIVE="Drive"
     STOP="Stop"
     WHO="Who"
-    HEARDIRECTION="HearDirection"
     AZIMUTH="Azimuth"
     ACCELERATION="Acceleration"
     OBSERVATION="Observation"
+    HEARDIRECTION="HearDirection"
+    VOICEFILEPATH="VoiceFilePath"
+    VOICEDATA="VoiceData"
     IMAGEFILEPATH="ImageFilePath"
-    PICTUREDATA="PictureData"
+    IMAGEDATA="ImageData"
     CALIBRATE="Calibrate"
     CAPABILITY="Capability"
     KIND="Kind"
@@ -120,12 +123,14 @@ class Sensation(object):
                SensationType.Drive: DRIVE,
                SensationType.Stop: STOP,
                SensationType.Who: WHO,
-               SensationType.HearDirection: HEARDIRECTION,
                SensationType.Azimuth: AZIMUTH,
                SensationType.Acceleration: ACCELERATION,
                SensationType.Observation: OBSERVATION,
+               SensationType.HearDirection: HEARDIRECTION,
+               SensationType.VoiceFilePath:VOICEFILEPATH,
+               SensationType.VoiceData:VOICEDATA,
                SensationType.ImageFilePath: IMAGEFILEPATH,
-               SensationType.PictureData: PICTUREDATA,
+               SensationType.ImageData: IMAGEDATA,
                SensationType.Calibrate: CALIBRATE,
                SensationType.Capability: CAPABILITY}
     Kinds={Kind.WallE: WALLE,
@@ -224,8 +229,12 @@ class Sensation(object):
                  accelerationX=0.0, accelerationY=0.0, accelerationZ=0.0,   # acceleration of walle, coordinates relative to walle
                  hearDirection = 0.0,                                       # sound direction heard by Walle, relative to Walle
                  observationDirection= 0.0,observationDistance=-1.0,        # Walle's observation of something, relative to Walle
+                 voiceFilePath=None,
+                 voiceSize=0,                                               # when voice is transferred we use size of it technically in transmission
+                 voiceData='',                                              # ALSA voice is string (uncompressed voice information)                                             
                  imageFilePath=None,
                  imageSize=0,                                               # when image is transferred we use size of it technically in transmission
+                 imageData=None,                                               # TODO Don'tyyet know what kind data this is
                  calibrateSensationType = SensationType.Unknown,
                  capabilities = []):                         # capabilitis of sensorys, direction what way sensation go
         self.time=time
@@ -265,8 +274,12 @@ class Sensation(object):
         self.accelerationZ = accelerationZ
         self.observationDirection = observationDirection
         self.observationDistance = observationDistance
+        self.voiceFilePath = voiceFilePath
+        self.voiceSize = voiceSize
+        self.voiceData = voiceData
         self.imageFilePath = imageFilePath
         self.imageSize = imageSize
+        self.imageData = imageData
         self.calibrateSensationType = calibrateSensationType
         self.capabilities = capabilities
 
@@ -322,11 +335,21 @@ class Sensation(object):
                                 self.observationDistance = float(params[7])
                                 last_param=8
                                 #print str(self.observationDirection) + ' ' + str(self.observationDistance)
+                        elif self.sensationType == Sensation.SensationType.VoiceFilePath:
+                            if len(params) >= 7:
+                                self.voiceFilePath = params[6]
+                                last_param=7
+                        elif self.sensationType == Sensation.SensationType.VoiceData:
+                            if len(params) >= 8:
+                                self.voiceSize = int(params[6])
+                                self.voiceData = params[7]
+                                last_param=8
+                                #print str(self.voiceSize)
                         elif self.sensationType == Sensation.SensationType.ImageFilePath:
                             if len(params) >= 7:
                                 self.imageFilePath = params[6]
                                 last_param=7
-                        elif self.sensationType == Sensation.SensationType.PictureData:
+                        elif self.sensationType == Sensation.SensationType.ImageData:
                             if len(params) >= 7:
                                 self.imageSize = int(params[6])
                                 last_param=7
@@ -420,6 +443,21 @@ class Sensation(object):
                     i += Sensation.FLOAT_PACK_SIZE
                     self.observationDistance = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
+                elif self.sensationType is Sensation.SensationType.VoiceFilePath:
+                    voiceFilePath_size = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
+                    print("voiceFilePath_size " + str(voiceFilePath_size))
+                    i += Sensation.NUMBER_SIZE
+                    self.voiceFilePath =bytesToStr(bytes[i:i+voiceFilePath_size])
+                    i += voiceFilePath_size
+                    # TODO real voice
+                elif self.sensationType is Sensation.SensationType.VoiceData:
+                    self.voiceSize =int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER)
+                    i += Sensation.NUMBER_SIZE
+                    voiceData_size = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
+                    print("voiceData_size " + str(voiceData_size))
+                    i += Sensation.NUMBER_SIZE
+                    self.voiceData =bytesToStr(bytes[i:i+voiceData_size])
+                    i += voiceData_size
                 elif self.sensationType is Sensation.SensationType.ImageFilePath:
                     imageFilePath_size = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
                     print("imageFilePath_size " + str(imageFilePath_size))
@@ -427,7 +465,7 @@ class Sensation(object):
                     self.imageFilePath =bytesToStr(bytes[i:i+imageFilePath_size])
                     i += imageFilePath_size
                     # TODO real image
-                elif self.sensationType is Sensation.SensationType.PictureData:
+                elif self.sensationType is Sensation.SensationType.ImageData:
                     self.imageSize =int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER)
                     i += Sensation.NUMBER_SIZE
                 elif self.sensationType is Sensation.SensationType.Calibrate:
@@ -485,8 +523,12 @@ class Sensation(object):
                  accelerationX=0.0, accelerationY=0.0, accelerationZ=0.0,   # acceleration of walle, coordinates relative to walle
                  hearDirection = 0.0,                                       # sound direction heard by Walle, relative to Walle
                  observationDirection= 0.0,observationDistance=-1.0,        # Walle's observation of something, relative to Walle
+                 voiceFilePath=None,
+                 voiceSize=0,                                               # when voice is transferred we use size of it technically in transmission
+                 voiceData='',
                  imageFilePath=None,
                  imageSize=0,                                               # when image is transferred we use size of it technically in transmission
+                 imageData=None,                                            # TODO datatype of this
                  calibrateSensationType = SensationType.Unknown,
                  capabilities = []):                                        # capabilitis of sensorys, direction what way sensation go
         
@@ -517,8 +559,12 @@ class Sensation(object):
                  accelerationX=accelerationX, accelerationY=accelerationY, accelerationZ=accelerationZ,   # acceleration of walle, coordinates relative to walle
                  hearDirection = hearDirection,                                       # sound direction heard by Walle, relative to Walle
                  observationDirection = observationDirection,observationDistance = observationDistance,        # Walle's observation of something, relative to Walle
+                 voiceFilePath=voiceFilePath,
+                 voiceSize=voiceSize,                                               # when voice is transferred we use size of it technically in transmission
+                 voiceData=voiceData,
                  imageFilePath=imageFilePath,
                  imageSize=imageSize,                                               # when image is transferred we use size of it technically in transmission
+                 imageData=imageData,
                  calibrateSensationType = calibrateSensationType,
                  capabilities = capabilities)
             
@@ -547,8 +593,12 @@ class Sensation(object):
         sensation.accelerationZ = accelerationZ
         sensation.observationDirection = observationDirection
         sensation.observationDistance = observationDistance
+        sensation.voiceFilePath = voiceFilePath
+        sensation.voiceSize = voiceSize
+        sensation.voiceData = voiceData
         sensation.imageFilePath = imageFilePath
         sensation.imageSize = imageSize
+        sensation.imageData = imageData
         sensation.calibrateSensationType = calibrateSensationType
         sensation.capabilities = capabilities
           
@@ -604,11 +654,21 @@ class Sensation(object):
                                 sensation.observationDistance = float(params[7])
                                 last_param=8
                                 #print str(sensation.observationDirection) + ' ' + str(sensation.observationDistance)
+                        elif sensation.sensationType == Sensation.SensationType.VoiceFilePath:
+                            if len(params) >= 7:
+                                sensation.voiceFilePath = params[6]
+                                last_param=7
+                        elif sensation.sensationType == Sensation.SensationType.VoiceData:
+                            if len(params) >= 8:
+                                sensation.voiceSize = int(params[6])
+                                sensation.voiceData = params[7]
+                                last_param=8
+                                #print str(sensation.voiceSize)
                         elif sensation.sensationType == Sensation.SensationType.ImageFilePath:
                             if len(params) >= 7:
                                 sensation.imageFilePath = params[6]
                                 last_param=7
-                        elif sensation.sensationType == Sensation.SensationType.PictureData:
+                        elif sensation.sensationType == Sensation.SensationType.ImageData:
                             if len(params) >= 7:
                                 sensation.imageSize = int(params[6])
                                 last_param=7
@@ -702,6 +762,21 @@ class Sensation(object):
                     i += Sensation.FLOAT_PACK_SIZE
                     sensation.observationDistance = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
+                elif sensation.sensationType is Sensation.SensationType.VoiceFilePath:
+                    voiceFilePath_size = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
+                    print("voiceFilePath_size " + str(voiceFilePath_size))
+                    i += Sensation.NUMBER_SIZE
+                    sensation.voiceFilePath =bytesToStr(bytes[i:i+voiceFilePath_size])
+                    i += voiceFilePath_size
+                    # TODO real voice
+                elif sensation.sensationType is Sensation.SensationType.VoiceData:
+                    sensation.voiceSize =int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER)
+                    i += Sensation.NUMBER_SIZE
+                    voiceData_size = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
+                    print("voiceData_size " + str(voiceData_size))
+                    i += Sensation.NUMBER_SIZE
+                    sensation.voiceData =bytesToStr(bytes[i:i+voiceData_size])
+                    i += voiceData_size
                 elif sensation.sensationType is Sensation.SensationType.ImageFilePath:
                     imageFilePath_size = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
                     print("imageFilePath_size " + str(imageFilePath_size))
@@ -709,7 +784,7 @@ class Sensation(object):
                     sensation.imageFilePath =bytesToStr(bytes[i:i+imageFilePath_size])
                     i += imageFilePath_size
                     # TODO real image
-                elif sensation.sensationType is Sensation.SensationType.PictureData:
+                elif sensation.sensationType is Sensation.SensationType.ImageData:
                     sensation.imageSize =int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER)
                     i += Sensation.NUMBER_SIZE
                 elif sensation.sensationType is Sensation.SensationType.Calibrate:
@@ -768,9 +843,13 @@ class Sensation(object):
             s +=  ' ' + str(self.accelerationX)+ ' ' + str(self.accelerationY) + ' ' + str(self.accelerationZ)
         elif self.sensationType == Sensation.SensationType.Observation:
             s += ' ' + str(self.observationDirection)+ ' ' + str(self.observationDistance)
+        elif self.sensationType == Sensation.SensationType.VoiceFilePath:
+            s += ' ' + self.voiceFilePath
+        elif self.sensationType == Sensation.SensationType.VoiceData:
+            s += ' ' + str(self.voiceSize) + ' ' + self.voiceData
         elif self.sensationType == Sensation.SensationType.ImageFilePath:
             s += ' ' + self.imageFilePath
-        elif self.sensationType == Sensation.SensationType.PictureData:
+        elif self.sensationType == Sensation.SensationType.ImageData:
             s += ' ' + str(self.imageSize)
         elif self.sensationType == Sensation.SensationType.Calibrate:
             if self.calibrateSensationType == Sensation.SensationType.HearDirection:
@@ -811,12 +890,21 @@ class Sensation(object):
             b +=  floatToBytes(self.accelerationX) + floatToBytes(self.accelerationY) + floatToBytes(self.accelerationZ)
         elif self.sensationType == Sensation.SensationType.Observation:
             b +=  floatToBytes(self.observationDirection) + floatToBytes(self.observationDistance)
-        # TODO send real picture
+        elif self.sensationType == Sensation.SensationType.VoiceFilePath:
+            voiceFilePath_size=len(self.voiceFilePath)
+            b +=  voiceFilePath_size.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
+            b +=  StrToBytes(self.voiceFilePath)
+        elif self.sensationType == Sensation.SensationType.VoiceData:
+            b +=  self.voiceSize.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
+            voiceData_size=len(self.voiceData)
+            b +=  voiceData_size.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
+            b +=  StrToBytes(self.voiceData)
+        # TODO send real image
         elif self.sensationType == Sensation.SensationType.ImageFilePath:
             imageFilePath_size=len(self.imageFilePath)
             b +=  imageFilePath_size.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
             b +=  StrToBytes(self.imageFilePath)
-        elif self.sensationType == Sensation.SensationType.PictureData:
+        elif self.sensationType == Sensation.SensationType.ImageData:
             b +=  self.imageSize.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
         elif self.sensationType == Sensation.SensationType.Calibrate:
             if self.calibrateSensationType == Sensation.SensationType.HearDirection:
@@ -980,12 +1068,32 @@ class Sensation(object):
     def getObservationDistance(self):
         return self.observationDistance
 
+    def setVoiceData(self, voiceData):
+        self.voiceData = voiceData        
+    def getVoiceData(self):
+        return self.voiceData
+    def setVoiceSize(self, voiceSize):
+        self.voiceSize = voiceSize
+    def getVoiceSize(self):
+        return self.voiceSize
+    def setVoiceFilePath(self, voiceFilePath):
+        self.voiceFilePath = voiceFilePath       
+    def getVoiceFilePath(self):
+        return self.voiceFilePath
+
+    def setImageData(self, imageData):
+        self.imageData = imageData        
+    def getImageData(self):
+        return self.imageData
     def setImageSize(self, imageSize):
         self.imageSize = imageSize
     def getImageSize(self):
         return self.imageSize
-    
-
+    def setImageFilePath(self, imageFilePath):
+        self.imageFilePath = imageFilePath       
+    def getImageFilePath(self):
+        return self.imageFilePath
+   
     def setCapabilities(self, capabilities):
         self.capabilities = capabilities
     def getCapabilities(self):
@@ -1155,47 +1263,86 @@ if __name__ == '__main__':
     print(("Sensation.create: str s2 " + str(s2)))
     print("Sensation.create: " + str(s_Observation_create == s2))
     print()
-
     
-    s_PictureFilePath=Sensation(references=[s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.ImageFilePath, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, imageFilePath="my/own/path/to/file")
-    print(("str s  " + str(s_PictureFilePath)))
-    print("str(Sensation(str(s))) " + str(Sensation(string=str(s_PictureFilePath))))
-    b=s_PictureFilePath.bytes()
+    # voice
+    s_VoiceFilePath=Sensation(references=[s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.VoiceFilePath, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, voiceFilePath="my/own/path/to/file")
+    print(("str s  " + str(s_VoiceFilePath)))
+    print("str(Sensation(str(s))) " + str(Sensation(string=str(s_VoiceFilePath))))
+    b=s_VoiceFilePath.bytes()
     s2=Sensation(bytes=b)
     print(("str s2 " + str(s2)))
-    print(str(s_PictureFilePath == s2))
+    print(str(s_VoiceFilePath == s2))
 
     #test with create
     print("test with create")
-    s_PictureFilePath_create=Sensation.create(references=[s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], sensationType = Sensation.SensationType.ImageFilePath, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, imageFilePath="my/own/path/to/file")
-    print(("Sensation.create: str s  " + str(s_PictureFilePath_create)))
-    print("Sensation.create: str(Sensation(str(s))) " + str(Sensation.create(string=str(s_PictureFilePath_create))))
-    b=s_PictureFilePath_create.bytes()
+    s_VoiceFilePath_create=Sensation.create(references=[s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], sensationType = Sensation.SensationType.VoiceFilePath, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, voiceFilePath="my/own/path/to/file")
+    print(("Sensation.create: str s  " + str(s_VoiceFilePath_create)))
+    print("Sensation.create: str(Sensation(str(s))) " + str(Sensation.create(string=str(s_VoiceFilePath_create))))
+    b=s_VoiceFilePath_create.bytes()
     s2=Sensation.create(bytes=b)
     print(("Sensation.create: str s2 " + str(s2)))
-    print("Sensation.create: " + str(s_PictureFilePath_create == s2))
+    print("Sensation.create: " + str(s_VoiceFilePath_create == s2))
     print()
 
-    s_PictureData=Sensation(references=[s_PictureFilePath,s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.PictureData, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, imageSize=1024)
-    print(("str s  " + str(s_PictureData)))
-    print("str(Sensation(str(s))) " + str(Sensation(string=str(s_PictureData))))
-    b=s_PictureData.bytes()
+    s_VoiceData=Sensation(references=[s_VoiceFilePath,s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.VoiceData, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, voiceSize=1024, voiceData='dummy')
+    print(("str s  " + str(s_VoiceData)))
+    print("str(Sensation(str(s))) " + str(Sensation(string=str(s_VoiceData))))
+    b=s_VoiceData.bytes()
     s2=Sensation(bytes=b)
     print(("str s2 " + str(s2)))
-    print(str(s_PictureData == s2))
+    print(str(s_VoiceData == s2))
 
     #test with create
     print("test with create")
-    s_PictureData_create=Sensation.create(references=[s_PictureFilePath_create,s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], sensationType = Sensation.SensationType.PictureData, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, imageSize=1024)
-    print(("Sensation.create: str s  " + str(s_PictureData_create)))
-    print("Sensation.create: str(Sensation(str(s))) " + str(Sensation.create(string=str(s_PictureData_create))))
-    b=s_PictureData_create.bytes()
+    s_VoiceData_create=Sensation.create(references=[s_VoiceFilePath_create,s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], sensationType = Sensation.SensationType.VoiceData, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, voiceSize=1024, voiceData='dummy')
+    print(("Sensation.create: str s  " + str(s_VoiceData_create)))
+    print("Sensation.create: str(Sensation(str(s))) " + str(Sensation.create(string=str(s_VoiceData_create))))
+    b=s_VoiceData_create.bytes()
     s2=Sensation.create(bytes=b)
     print(("Sensation.create: str s2 " + str(s2)))
-    print("Sensation.create: " +str(s_PictureData_create == s2))
+    print("Sensation.create: " +str(s_VoiceData_create == s2))
+    print()
+    
+    # image    
+    s_ImageFilePath=Sensation(references=[s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.ImageFilePath, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, imageFilePath="my/own/path/to/file")
+    print(("str s  " + str(s_ImageFilePath)))
+    print("str(Sensation(str(s))) " + str(Sensation(string=str(s_ImageFilePath))))
+    b=s_ImageFilePath.bytes()
+    s2=Sensation(bytes=b)
+    print(("str s2 " + str(s2)))
+    print(str(s_ImageFilePath == s2))
+
+    #test with create
+    print("test with create")
+    s_ImageFilePath_create=Sensation.create(references=[s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], sensationType = Sensation.SensationType.ImageFilePath, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, imageFilePath="my/own/path/to/file")
+    print(("Sensation.create: str s  " + str(s_ImageFilePath_create)))
+    print("Sensation.create: str(Sensation(str(s))) " + str(Sensation.create(string=str(s_ImageFilePath_create))))
+    b=s_ImageFilePath_create.bytes()
+    s2=Sensation.create(bytes=b)
+    print(("Sensation.create: str s2 " + str(s2)))
+    print("Sensation.create: " + str(s_ImageFilePath_create == s2))
     print()
 
-    s_Calibrate=Sensation(references=[s_PictureData,s_PictureFilePath,s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.Calibrate, memory = Sensation.Memory.Sensory, calibrateSensationType = Sensation.SensationType.HearDirection, direction = Sensation.Direction.In, hearDirection = 0.85)
+    s_ImageData=Sensation(references=[s_ImageFilePath,s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.ImageData, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, imageSize=1024)
+    print(("str s  " + str(s_ImageData)))
+    print("str(Sensation(str(s))) " + str(Sensation(string=str(s_ImageData))))
+    b=s_ImageData.bytes()
+    s2=Sensation(bytes=b)
+    print(("str s2 " + str(s2)))
+    print(str(s_ImageData == s2))
+
+    #test with create
+    print("test with create")
+    s_ImageData_create=Sensation.create(references=[s_ImageFilePath_create,s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], sensationType = Sensation.SensationType.ImageData, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, imageSize=1024)
+    print(("Sensation.create: str s  " + str(s_ImageData_create)))
+    print("Sensation.create: str(Sensation(str(s))) " + str(Sensation.create(string=str(s_ImageData_create))))
+    b=s_ImageData_create.bytes()
+    s2=Sensation.create(bytes=b)
+    print(("Sensation.create: str s2 " + str(s2)))
+    print("Sensation.create: " +str(s_ImageData_create == s2))
+    print()
+
+    s_Calibrate=Sensation(references=[s_ImageData,s_ImageFilePath,s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.Calibrate, memory = Sensation.Memory.Sensory, calibrateSensationType = Sensation.SensationType.HearDirection, direction = Sensation.Direction.In, hearDirection = 0.85)
     print(("str s  " + str(s_Calibrate)))
     print("str(Sensation(str(s))) " + str(Sensation(string=str(s_Calibrate))))
     b=s_Calibrate.bytes()
@@ -1205,7 +1352,7 @@ if __name__ == '__main__':
 
     #test with create
     print("test with create")
-    s_Calibrate_create=Sensation.create(references=[s_PictureData_create,s_PictureFilePath_create,s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], sensationType = Sensation.SensationType.Calibrate, memory = Sensation.Memory.Sensory, calibrateSensationType = Sensation.SensationType.HearDirection, direction = Sensation.Direction.In, hearDirection = 0.85)
+    s_Calibrate_create=Sensation.create(references=[s_ImageData_create,s_ImageFilePath_create,s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], sensationType = Sensation.SensationType.Calibrate, memory = Sensation.Memory.Sensory, calibrateSensationType = Sensation.SensationType.HearDirection, direction = Sensation.Direction.In, hearDirection = 0.85)
     print(("Sensation.create: str s  " + str(s_Calibrate_create)))
     print("Sensation.create: str(Sensation(str(s))) " + str(Sensation.create(string=str(s_Calibrate_create))))
     b=s_Calibrate_create.bytes()
@@ -1214,7 +1361,7 @@ if __name__ == '__main__':
     print("Sensation.create: " + str(s_Calibrate_create == s2))
     print()
 
-    s_Capability=Sensation(references=[s_Calibrate,s_PictureData,s_PictureFilePath,s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.Capability, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = [Sensation.SensationType.Drive, Sensation.SensationType.HearDirection, Sensation.SensationType.Azimuth])
+    s_Capability=Sensation(references=[s_Calibrate,s_VoiceData,s_VoiceFilePath,s_ImageData,s_ImageFilePath,s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.Capability, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = [Sensation.SensationType.Drive, Sensation.SensationType.HearDirection, Sensation.SensationType.Azimuth])
     print(("str s  " + str(s_Capability)))
     print("str(Sensation(str(s))) " + str(Sensation(string=str(s_Capability))))
     b=s_Capability.bytes()
@@ -1224,7 +1371,7 @@ if __name__ == '__main__':
     
      #test with create
     print("test with create")
-    s_Capability_create=Sensation.create(references=[s_Calibrate_create,s_PictureData_create,s_PictureFilePath_create,s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], sensationType = Sensation.SensationType.Capability, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = [Sensation.SensationType.Drive, Sensation.SensationType.HearDirection, Sensation.SensationType.Azimuth])
+    s_Capability_create=Sensation.create(references=[s_Calibrate_create,s_VoiceData_create,s_VoiceFilePath_create,s_ImageData_create,s_ImageFilePath_create,s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], sensationType = Sensation.SensationType.Capability, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = [Sensation.SensationType.Drive, Sensation.SensationType.HearDirection, Sensation.SensationType.Azimuth])
     print(("Sensation.create: str s  " + str(s_Capability_create)))
     print("Sensation.create: str(Sensation(str(s))) " + str(Sensation.create(string=str(s_Capability_create))))
     b=s_Capability_create.bytes()

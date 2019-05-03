@@ -22,7 +22,7 @@ setup(name='Wall-E_Server',
       package_data={'Wall-E_Server': ['../etc/Wall-E_Server',]},
       #package_data={'mypkg': ['data/*.dat']},
       include_package_data=True,
-      install_requires=['pyserial', 'pyFirmata', 'python-daemon'],
+      install_requires=['pyserial', 'pyFirmata', 'python-daemon', 'pyalsaaudio'],
       url='https://github.com/korhore/Wall-E',
       classifiers=[
         'Development Status :: 4 - Beta',

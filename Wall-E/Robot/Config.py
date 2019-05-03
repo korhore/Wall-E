@@ -680,7 +680,7 @@ class Config(ConfigParser):
                                  and \
               self.hasCapability(Sensation.getDirectionString(Sensation.Direction.In),
                                  Sensation.getMemoryString(Sensation.Memory.Sensory),
-                                 Sensation.getSensationTypeString(Sensation.SensationType.PictureData),
+                                 Sensation.getSensationTypeString(Sensation.SensationType.ImageData),
                                  section=section)
 
 

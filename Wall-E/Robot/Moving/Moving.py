@@ -4,9 +4,11 @@ Updated on 01.05.2019
 
 @author: reijo.korhonen@gmail.com
 '''
+import time
 
 from Robot import  Robot
 from Config import Config, Capabilities
+from Sensation import Sensation
 
 
 class Moving(Robot):
