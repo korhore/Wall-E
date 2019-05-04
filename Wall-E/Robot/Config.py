@@ -61,6 +61,8 @@ class Config(ConfigParser):
     IDENTITYS =         "Identitys"
 
     MICROPHONE =                   'microphone'
+    MICROPHONE_VOICE_LEVEL_AVERAGE = 'microphone_voice_average_level'
+    MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT = '300.0'
     MICROPHONE_LEFT =              'microphone_left'
     MICROPHONE_RIGHT =             'microphone_right'
     MICROPHONE_CALIBRATING_FACTOR ='microphone_calibrating_factor'
@@ -515,6 +517,13 @@ class Config(ConfigParser):
             print('self.set(Config.DEFAULT_SECTION, Config.MICROPHONE, Config.EMPTY) exception ' + str(e))
             
         try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.MICROPHONE_VOICE_LEVEL_AVERAGE):
+                self.set(Config.DEFAULT_SECTION, Config.MICROPHONE_VOICE_LEVEL_AVERAGE, Config.MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT)
+                changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION, Config.MICROPHONE_VOICE_LEVEL_AVERAGE, Config.MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT) ' + str(e))
+            
+        try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.MICROPHONE_LEFT):
                 self.set(Config.DEFAULT_SECTION, Config.MICROPHONE_LEFT, Config.EMPTY)
                 changes=True
@@ -656,6 +665,33 @@ class Config(ConfigParser):
           
         return self.instance
     
+    def getMicrophone(self, section=LOCALHOST):
+        try:
+            return self.get(section=section, option=self.MICROPHONE)
+        except Exception as e:
+            print('self.get(section=section, option=self.MICROPHONE) ' + str(e))
+            return None
+
+    def getMicrophoneVoiceAvegageLevel(self, section=LOCALHOST):
+        try:
+            return self.getfloat(section=section, option=self.MICROPHONE_VOICE_LEVEL_AVERAGE)
+        except Exception as e:
+            print('self.getfloat(section=section, option=self.MICROPHONE_VOICE_LEVEL_AVERAGE)' + str(e))
+            return None
+        
+    def setMicrophoneVoiceAvegageLevel(self, section=LOCALHOST, voiceLevelAverage=MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT):
+        try:
+            self.set(section=section, option=self.MICROPHONE_VOICE_LEVEL_AVERAGE, value=str(voiceLevelAverage))
+        except Exception as e:
+            print('self.set(section=section, option=self.MICROPHONE_VOICE_LEVEL_AVERAGE, value=str(voiceLevelAverage))' + str(e))
+        try:
+            configfile = open(self.config_file_path, 'w')
+            print('self.write(' + self.config_file_path + ')')
+            self.write(configfile)
+            configfile.close()
+        except Exception as e:
+            print('self.write(' + self.config_file_path + ') ' + str(e))
+ 
     def getCapabilities(self, section=LOCALHOST):
         bytes=self.toBytes(section=section)
         return Capabilities(bytes=bytes)
