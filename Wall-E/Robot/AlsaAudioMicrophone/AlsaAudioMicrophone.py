@@ -5,12 +5,10 @@ Updated on 04.05.2019
 @author: reijo.korhonen@gmail.com
 
 This class is low level sensory for hearing,
-implemented by alasaaudio and need usb-mictophone as hardware
+implemented by alasaaudio and need usb-microphone as hardware
 
 '''
-import sys
 import time
-import getopt
 import alsaaudio
 import numpy
 import math
@@ -18,23 +16,17 @@ import math
 from threading import Thread
 from threading import Timer
 
-#import sys
-#sys.path.append('/home/reijo/git/Wall-E/Wall-E/Robot')
 
 from Robot import Robot
 from Config import Config, Capabilities
 from Sensation import Sensation
 
-import sys
-#from builtins import None
-#import parent.file1
-
 
 
 class AlsaAudioMicrophone(Robot):
     """
-     Implemenation for out Voice sensation at Sensory level
-     using ALSA-library amd microphone hardwate
+     Implementation for out Voice sensation at Sensory level
+     using ALSA-library and microphone hardware
     """
     
     CONVERSION_FORMAT='<i2'
@@ -93,13 +85,13 @@ class AlsaAudioMicrophone(Robot):
         # live until stopped
         self.mode = Sensation.Mode.Normal
         voice_data=None
-        voide_l=0
+        voice_l=0
         while self.running:
             # blocking read data from device
             #print "reading " + self.name
             l, data = self.inp.read() # l int, data bytes
             if l > 0:
-                # connect voide sate as long we hear a voice and send it then
+                # collect voice data as long we hear a voice and send it then
                 if self.analyzeData(l, data, self.CONVERSION_FORMAT):
                     if voice_data is None:
                         voice_data = data
@@ -113,7 +105,7 @@ class AlsaAudioMicrophone(Robot):
                         sensation = Sensation.create(sensationType = Sensation.SensationType.VoiceData, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, voiceSize=voice_l, voiceData=voice_data)
                         self.outAxon.put(sensation)
                         voice_data=None
-                        voide_l=0
+                        voice_l=0
 
         self.mode = Sensation.Mode.Stopping
         self.log("Stopping AlsaAudioMicrophone")

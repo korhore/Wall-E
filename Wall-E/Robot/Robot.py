@@ -112,8 +112,8 @@ class Robot(Thread):
                  level=level)   # don't increase level, it has increased yet and Config has its own levels (that are same)
 
         self.capabilities = Capabilities(config=self.config)
-        self.log("init robot who " + self.config.getWho() + " kind " + self.config.getKind() + " instance " + self.config.getInstance())
-        self.name = self.config.getWho()
+        self.log("init robot who " + self.getWho() + " kind " + self.config.getKind() + " instance " + self.config.getInstance())
+        self.name = self.getWho()
         # global queue for senses and other robots to put sensations to robot
         if self.inAxon is None:
             self.inAxon = Axon(config=self.config) 
@@ -152,6 +152,12 @@ class Robot(Thread):
                           outAxon=self.inAxon)
             self.subInstances.append(robot)
             
+    def getLevel(self):
+        return self.level
+    
+    def getWho(self):
+        return self.config.getWho()
+    
     def getInAxon(self):
         return self.inAxon
     def setInAxon(self, inAxon):
@@ -173,7 +179,7 @@ class Robot(Thread):
         self.capabilities = capabilities
 
     def run(self):
-        self.log(" Starting robot who " + self.config.getWho() + " kind " + self.config.getKind() + " instance " + self.config.getInstance())      
+        self.log(" Starting robot who " + self.getWho() + " kind " + self.config.getKind() + " instance " + self.config.getInstance())      
         
         # starting other threads/senders/capabilities
         
@@ -221,7 +227,7 @@ class Robot(Thread):
 
     '''
     DoStop is used to stop server process and its subprocesses (threads)
-    Technique is just give Stop Sensation oto process.
+    Technique is just give Stop Sensation to process.
     With same technique remote machines can stop us and we scan stop them
     '''
             
@@ -261,8 +267,19 @@ class Robot(Thread):
             
             
     def process(self, sensation):
-        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + sensation.toDebugStr())      
-        if sensation.getSensationType() == Sensation.SensationType.Drive:
+        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + sensation.toDebugStr())   
+        if self.getLevel() == 1 and sensation.getSensationType() == Sensation.SensationType.VoiceData:
+            self.log('process: self.getLevel() == 1 and Sensation.SensationType.VoiceData')
+            # for testing purposes write this back to all out subInstances playback gets it
+            for robot in self.subInstances:
+                if robot.getWho() == "Speaking":
+                    # TODO should we make a copy, because we should not change original sensation
+                    sensation.setDirection(Sensation.Direction.In)
+                    self.log('process: Sensation.SensationType.VoiceData Speaking robot.getInAxon().put(sensation)')
+                    robot.getInAxon().put(sensation)
+                    return  
+   
+        elif sensation.getSensationType() == Sensation.SensationType.Drive:
             self.log('process: Sensation.SensationType.Drive')      
         elif sensation.getSensationType() == Sensation.SensationType.Stop:
             self.log('process: SensationSensationType.Stop')      
@@ -357,8 +374,9 @@ class Robot(Thread):
         elif sensation.getSensationType() == Sensation.SensationType.Unknown:
             self.log('process: Sensation.SensationType.Unknown')
  
-        # Just put sensation to our parent            
-        self.outAxon.put(sensation)    
+        # Finally just put sensation to our parent (if we have one)
+        if self.getLevel() > 1:
+            self.outAxon.put(sensation)    
   
     def turn(self):
         # calculate new power to turn or continue turning
