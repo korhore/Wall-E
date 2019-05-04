@@ -22,11 +22,16 @@ def enum(*sequential, **named):
     enums = dict(zip(sequential, range(len(sequential))), **named)
     return type('Enum', (), enums)
 
+# try unicode-escape instead of utf8 toavoid error with non ascii characters bytes
 def StrToBytes(e):
-    return e.encode('utf8')
+    return e.encode('unicode-escape')
 
 def bytesToStr(b):
-    return b.decode('utf8')
+    try:
+        return b.decode('unicode-escape')
+    except UnicodeDecodeError as e:
+        print ('UnicodeDecodeError ' + str(e))
+        return ''
 
 def floatToBytes(f):
     return bytearray(struct.pack(Sensation.FLOAT_PACK_TYPE, f)) 
@@ -881,6 +886,21 @@ class Sensation(object):
 #        # at the end references (numbers)
         for reference in self.references:
             s +=  ' ' + str(reference.getNumber())
+        return s
+
+    '''
+    Printable string
+    '''
+    def toDebugStr(self):
+        # we cand make yet printable bytes, but as a debug purpuses, it is rare neended
+        if self.sensationType == Sensation.SensationType.VoiceData:
+            s=str(self.number) + ' ' + str(self.time) + ' ' + str(self.reference_time) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType
+            s += ' ' + str(self.voiceSize)
+        elif self.sensationType == Sensation.SensationType.ImageData:
+            s=str(self.number) + ' ' + str(self.time) + ' ' + str(self.reference_time) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType
+            s += ' ' + str(self.imageSize) +  ' ' + bytesToStr(self.imageData)
+        else:
+            s=self.__str__()
         return s
 
     def bytes(self):

@@ -58,7 +58,7 @@ class Moving(Robot):
             
             
     def process(self, sensation):
-        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + str(sensation))      
+        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + sensation.toDebugStr())      
         if sensation.getSensationType() == Sensation.SensationType.Drive:
             self.log('process: Sensation.SensationType.Drive')      
         elif sensation.getSensationType() == Sensation.SensationType.Stop:

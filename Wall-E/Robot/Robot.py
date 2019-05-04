@@ -191,7 +191,7 @@ class Robot(Thread):
         self.mode = Sensation.Mode.Normal
         while self.running:
             sensation=self.inAxon.get()
-            self.log("got sensation from queue " + str(sensation))      
+            self.log("got sensation from queue " + sensation.toDebugStr())      
             self.process(sensation)
             # as a test, echo everything to external device
             #self.out_axon.put(sensation)
@@ -261,7 +261,7 @@ class Robot(Thread):
             
             
     def process(self, sensation):
-        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + str(sensation))      
+        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + sensation.toDebugStr())      
         if sensation.getSensationType() == Sensation.SensationType.Drive:
             self.log('process: Sensation.SensationType.Drive')      
         elif sensation.getSensationType() == Sensation.SensationType.Stop:
