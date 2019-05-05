@@ -19,14 +19,14 @@ from Robot import Robot
 from Config import Config, Capabilities
 from Sensation import Sensation
 
-
-
-
 class AlsaAudioPlayback(Robot):
     """
      Implementaion for out Voice sensation at Sensory level
      using ALSA-library and speaker as hardware
     """
+    CHANNELS=1
+    RATE = 44100
+    FORMAT = alsaaudio.PCM_FORMAT_S16_LE
 
     def __init__(self,
                  instance=None,
@@ -45,10 +45,10 @@ class AlsaAudioPlayback(Robot):
         print("We are in AlsaAudioPlayback, not Robot")
 
         # from settings        
-        self.device= self.config.getMicrophone()    # TODO with headset works
-        self.channels=1
-        self.rate = 44100
-        self.format = alsaaudio.PCM_FORMAT_S16_LE
+        self.device= self.config.getPlayback()
+        self.channels=AlsaAudioPlayback.CHANNELS
+        self.rate = AlsaAudioPlayback.RATE
+        self.format = AlsaAudioPlayback.FORMAT
  
         self.outp = alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK, mode=alsaaudio.PCM_NORMAL, device=self.device)
         # Set attributes: Mono, 44100 Hz, 16 bit little endian samples

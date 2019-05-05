@@ -30,6 +30,13 @@ class AlsaAudioMicrophone(Robot):
     """
     
     CONVERSION_FORMAT='<i2'
+    CHANNELS=1
+    SENSITIVITY=1.25
+    RATE = 44100
+    FORMAT = alsaaudio.PCM_FORMAT_S16_LE
+    AVERAGE_PERIOD=100.0                # used as period in seconds
+    SHORT_AVERAGE_PERIOD=1.0             # used as period in seconds
+
 
     def __init__(self,
                  instance=None,
@@ -49,14 +56,14 @@ class AlsaAudioMicrophone(Robot):
 
         # from settings        
         self.device= self.config.getMicrophone()
-        self.channels=1
-        self.sensitivity=1.25
-        self.rate = 44100
-        self.format = alsaaudio.PCM_FORMAT_S16_LE
+        self.channels=AlsaAudioMicrophone.CHANNELS
+        self.sensitivity=AlsaAudioMicrophone.SENSITIVITY
+        self.rate = AlsaAudioMicrophone.RATE
+        self.format = AlsaAudioMicrophone.FORMAT
         self.average=self.config.getMicrophoneVoiceAvegageLevel()
-        self.average_devider = float(self.rate) * 100.0
+        self.average_devider = float(self.rate) * AlsaAudioMicrophone.AVERAGE_PERIOD
         self.short_average=self.average
-        self.short_average_devider = float(self.rate) * 1.0
+        self.short_average_devider = float(self.rate) * AlsaAudioMicrophone.SHORT_AVERAGE_PERIOD
         
         self.voice = False
         self.start_time=0.0

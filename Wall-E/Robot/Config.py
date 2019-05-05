@@ -67,6 +67,8 @@ class Config(ConfigParser):
     MICROPHONE_RIGHT =             'microphone_right'
     MICROPHONE_CALIBRATING_FACTOR ='microphone_calibrating_factor'
     MICROPHONE_CALIBRATING_ZERO =  'microphone_calibrating_zero'
+    
+    PLAYBACK =          'playback'
 
     DEFAULT_SECTION =   'DEFAULT'
 
@@ -551,6 +553,12 @@ class Config(ConfigParser):
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION,Config.MICROPHONE_CALIBRATING_FACTOR, Config.ZERO) exception ' + str(e))
             
+        try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.PLAYBACK):
+                self.set(Config.DEFAULT_SECTION, Config.PLAYBACK, Config.EMPTY)
+                changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION, Config.PLAYBACK, Config.EMPTY) exception ' + str(e))
             
         if self.is_virtualInstance:                
             try:
@@ -692,6 +700,20 @@ class Config(ConfigParser):
         except Exception as e:
             print('self.write(' + self.config_file_path + ') ' + str(e))
  
+    def getMicrophone(self, section=LOCALHOST):
+        try:
+            return self.get(section=section, option=self.MICROPHONE)
+        except Exception as e:
+            print('self.get(section=section, option=self.MICROPHONE) ' + str(e))
+            return None
+
+    def getPlayback(self, section=LOCALHOST):
+        try:
+            return self.get(section=section, option=self.PLAYBACK)
+        except Exception as e:
+            print('self.get(section=section, option=self.PLAYBACK) ' + str(e))
+            return None
+        
     def getCapabilities(self, section=LOCALHOST):
         bytes=self.toBytes(section=section)
         return Capabilities(bytes=bytes)
