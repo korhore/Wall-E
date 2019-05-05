@@ -28,6 +28,7 @@ from Romeo import Romeo
 from ManualRomeo import ManualRomeo
 from dbus.mainloop.glib import threads_init
 from xdg.IconTheme import theme_cache
+from _ast import Or
 if 'Hearing.Hear' not in sys.modules:
     from Hearing.Hear import Hear
 if 'Seeing.See' not in sys.modules:
@@ -72,17 +73,19 @@ class Robot(Thread):
   
 
     def __init__(self,
+                 parent=None,
                  instance=None,
                  is_virtualInstance=False,
                  is_subInstance=False,
-                 level=0,
-
-                 inAxon=None, # we read this as muscle functionality and getting
-                              # sensationsfron ot subInstances (Senses)
-                              # write to this when submitting things to subInstances
-                 outAxon=None):
+                 level=0):
+# 
+#                  inAxon=None, # we read this as muscle functionality and getting
+#                               # sensationsfron ot subInstances (Senses)
+#                               # write to this when submitting things to subInstances
+#                  outAxon=None):
         Thread.__init__(self)
         self.mode = Sensation.Mode.Starting
+        self.parent = parent
         self.instance=instance
         if  self.instance is None:
             self.instance = Config.DEFAULT_INSTANCE
@@ -90,8 +93,9 @@ class Robot(Thread):
         self.is_subInstance=is_subInstance
         self.level=level+1
         
-        self.inAxon = inAxon    # axon for up direction
-        self.outAxon = outAxon
+#         self.inAxon = inAxon      # axon from up we read from up or from subInstances
+#         self.outAxon = outAxon    # axon we write for up
+                                  # down goes always by subInstances inAxon
         self.subInstances = []     # subInstance contain a outAxon we write muscle sensations
                                 # for subrobot this axon in inAxon
                                 # We ask subInstance to report its Sensations to
@@ -115,10 +119,13 @@ class Robot(Thread):
         self.log("init robot who " + self.getWho() + " kind " + self.config.getKind() + " instance " + self.config.getInstance())
         self.name = self.getWho()
         # global queue for senses and other robots to put sensations to robot
-        if self.inAxon is None:
-            self.inAxon = Axon(config=self.config) 
-        if self.outAxon is None:
-            self.outAxon = Axon(config=self.config) 
+        # we create self.inAxon always ourselves, it is newer shared by others
+        # other way than others write to it
+        #if self.inAxon is None:
+        self.axon = Axon(config=self.config)
+        # outAxon is other inaxon, so this is not used
+        #if self.outAxon is None and self.getLevel() > 1:
+        #    self.outAxon = Axon(config=self.config) 
  
         # TODO           
         # Study our config. What subInstances we have.
@@ -129,11 +136,12 @@ class Robot(Thread):
                 module = subInstance+ '.' +subInstance
                 imported_module = importlib.import_module(module)
                 print('init ' + subInstance)
-                robot = getattr(imported_module, subInstance)(instance=subInstance,
+                robot = getattr(imported_module, subInstance)(parent=self,
+                                                              instance=subInstance,
                                                               is_virtualInstance=False,
                                                               is_subInstance=True,
-                                                              level=self.level,
-                                                              outAxon=self.inAxon)
+                                                              level=self.level)
+                                                              #outAxon=self.inAxon)
   
                 #robot = imported_module(configFilePath=self.config.getSubinstanceConfigFilePath(subInstance),
                 #                        outAxon=self.inAxon)
@@ -141,42 +149,86 @@ class Robot(Thread):
                 print("Import error, using default Robot for " + module + ' fix this ' + str(e))
 
                 robot = Robot(configFilePath=self.config.getSubinstanceConfigFilePath(subInstance),
-                              outAxon=self.inAxon)
+                              parent=self)
+                              #outAxon=self.inAxon)
             self.subInstances.append(robot)
 
         for virtualInstance in self.config.getVirtualInstances():
             robot = Robot(instance=virtualInstance,
+                          parent=self,
                           is_virtualInstance=True,
                           subInstance=False,
-                          level=self.level,
-                          outAxon=self.inAxon)
+                          level=self.level)
+                          #outAxon=self.inAxon)
             self.subInstances.append(robot)
             
+    def getParent(self):
+        return self.parent
+
     def getLevel(self):
         return self.level
     
     def getWho(self):
         return self.config.getWho()
     
-    def getInAxon(self):
-        return self.inAxon
-    def setInAxon(self, inAxon):
-        self.inAxon = inAxon
-
-    def getOutAxon(self):
-        return self.outAxon
-    def setOutAxon(self, outAxon):
-        self.outAxon = outAxon
+    def getAxon(self):
+        return self.axon
+#     def setInAxon(self, inAxon):
+#         self.inAxon = inAxon
+# 
+#     def getOutAxon(self):
+#         return self.outAxon
+#     def setOutAxon(self, outAxon):
+#         self.outAxon = outAxon
        
     def getConfig(self):
         return self.config
-    def setConfig(self, outAxon):
+    def setConfig(self, config):
         self.config = config
+        
+    def getSubInstances(self):
+        return self.subInstances
 
     def getCapabilities(self):
         return self.capabilities
     def setCapabilities(self, capabilities):
         self.capabilities = capabilities
+        
+    '''
+    Has this instance this capability
+    ''' 
+    def hasCapanility(self, direction, memory, sensationType):
+        hasCapalility = self.getCapabilities().hasCapanility(direction, memory, sensationType)
+        if hasCapalility:
+            self.log("hasCapanility direction " + str(direction) + " memory " + str(memory) + " sensationType " + str(sensationType) + ' ' + str(self.getCapabilities().hasCapanility(direction, memory, sensationType)) + ' True')      
+        return hasCapalility
+    '''
+    Has this instance or at least one of its subinstabces this capability
+    ''' 
+    def hasSubCapanility(self, direction, memory, sensationType):
+        #self.log("hasSubCapanility direction " + str(direction) + " memory " + str(memory) + " sensationType " + str(sensationType))
+        if self.hasCapanility(direction, memory, sensationType):
+            self.log('hasSubCapanility self has direction ' + str(direction) + ' memory ' + str(memory) + ' sensationType ' + str(sensationType) + ' True')      
+            return True    
+        for robot in self.getSubInstances():
+            if robot.getCapabilities().hasCapanility(direction, memory, sensationType) or \
+               robot.hasSubCapanility(direction, memory, sensationType):
+                self.log('hasSubCapanility subInstance ' + robot.getWho() + ' direction ' + str(direction) + ' memory ' + str(memory) + ' sensationType ' + str(sensationType) + ' True')      
+                return True
+        #self.log('hasSubCapanility direction ' + str(direction) + ' memory ' + str(memory) + ' sensationType ' + str(sensationType) + ' False')      
+        return False
+   
+    def getSubCapabiliyInstances(self, direction, memory, sensationType):
+        robots=[]
+        for robot in self.getSubInstances():
+            if robot.hasCapanility(direction, memory, sensationType) or \
+                robot.hasSubCapanility(direction, memory, sensationType):
+                robots.append(robot)
+        return robots
+
+    def getCapabilities(self):
+        return self.capabilities
+
 
     def run(self):
         self.log(" Starting robot who " + self.getWho() + " kind " + self.config.getKind() + " instance " + self.config.getInstance())      
@@ -196,7 +248,7 @@ class Robot(Thread):
         # live until stopped
         self.mode = Sensation.Mode.Normal
         while self.running:
-            sensation=self.inAxon.get()
+            sensation=self.axon.get()
             self.log("got sensation from queue " + sensation.toDebugStr())      
             self.process(sensation)
             # as a test, echo everything to external device
@@ -222,7 +274,7 @@ class Robot(Thread):
             robot.stop()
         self.running = False    # this in not real, but we wait for Sensation,
                                 # so give  us one stop sensation
-        self.inAxon.put(Sensation(sensationType = Sensation.SensationType.Stop))
+        self.axon.put(Sensation(sensationType = Sensation.SensationType.Stop))
 
 
     '''
@@ -232,7 +284,7 @@ class Robot(Thread):
     '''
             
     def doStop(self):
-        self.inAxon.put(Sensation(sensationType = Sensation.SensationType.Stop))
+        self.axon.put(Sensation(sensationType = Sensation.SensationType.Stop))
         
     def studyOwnIdentity(self):
         self.mode = Sensation.Mode.StudyOwnIdentity
@@ -267,116 +319,145 @@ class Robot(Thread):
             
             
     def process(self, sensation):
-        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + sensation.toDebugStr())   
-        if self.getLevel() == 1 and sensation.getSensationType() == Sensation.SensationType.VoiceData:
-            self.log('process: self.getLevel() == 1 and Sensation.SensationType.VoiceData')
-            # for testing purposes write this back to all out subInstances playback gets it
-            for robot in self.subInstances:
-                if robot.getWho() == "Speaking":
-                    # TODO should we make a copy, because we should not change original sensation
-                    sensation.setDirection(Sensation.Direction.In)
-                    self.log('process: Sensation.SensationType.VoiceData Speaking robot.getInAxon().put(sensation)')
-                    robot.getInAxon().put(sensation)
-                    return  
-   
-        elif sensation.getSensationType() == Sensation.SensationType.Drive:
-            self.log('process: Sensation.SensationType.Drive')      
-        elif sensation.getSensationType() == Sensation.SensationType.Stop:
+        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + sensation.toDebugStr())
+        if sensation.getSensationType() == Sensation.SensationType.Stop:
             self.log('process: SensationSensationType.Stop')      
             self.stop()
-        elif sensation.getSensationType() == Sensation.SensationType.Who:
-            print (self.name + ": Robotserver.process Sensation.SensationType.Who")
-            
-        # TODO study what capabilities out subrobots have ins put sensation to them
-        elif self.config.canHear() and sensation.getSensationType() == Sensation.SensationType.HearDirection:
-            self.log('process: SensationType.HearDirection')      
-             #inform external senses that we remember now hearing          
-            self.out_axon.put(sensation)
-            self.hearing_angle = sensation.getHearDirection()
-            if self.calibrating:
-                self.log("process: Calibrating hearing_angle " + str(self.hearing_angle) + " calibrating_angle " + str(self.calibrating_angle))      
+
+        elif sensation.getDirection() == Sensation.Direction.Out:
+            if self.getParent() is not None: # if sensation is going up  and we have a parent
+                self.log('process: self.getParent().getAxon().put(sensation)')      
+                self.getParent().getAxon().put(sensation)
             else:
-                self.observation_angle = self.add_radian(original_radian=self.azimuth, added_radian=self.hearing_angle) # object in this angle
-                self.log("process: create Sensation.SensationType.Observation")
-                observation = Sensation(sensationType = Sensation.SensationType.Observation,
-                                        memory=Memory.Work,
-                                        observationDirection= self.observation_angle,
-                                        observationDistance=Robot.DEFAULT_OBSERVATION_DISTANCE,
-                                        reference=sensation)
-                # process internally
-                self.log("process: put Observation to in_axon")
-                self.inAxon.put(observation)
-                
-                #process by remote robotes
-                # mark hearing sensation to be processed to set direction out of memory, we forget it
-                sensation.setDirection(Sensation.Direction.Out)
-                observation.setDirection(Sensation.Direction.Out)
-                #inform external senses that we don't remember hearing any more           
-                self.log("process: put HearDirection to out_axon")
-                self.out_axon.put(sensation)
-                # seems that out_axon is handled when observation is processed internally here
-                #self.log("process: put Observation to out_axon")
-                #self.out_axon.put(observation)
-        elif sensation.getSensationType() == Sensation.SensationType.Azimuth:
-            if not self.calibrating:
-                self.log('process: Sensation.SensationType.Azimuth')      
-                #inform external senses that we remember now azimuth          
-                #self.out_axon.put(sensation)
-                self.azimuth = sensation.getAzimuth()
-                self.turn()
-        elif sensation.getSensationType() == Sensation.SensationType.Observation:
-            if not self.calibrating:
-                self.log('process: Sensation.SensationType.Observation')      
-                #inform external senses that we remember now observation          
-                self.observation_angle = sensation.getObservationDirection()
-                self.turn()
-                self.log("process: put Observation to out_axon")
-                sensation.setDirection(Sensation.Direction.Out)
-                self.out_axon.put(sensation)
-        elif sensation.getSensationType() == Sensation.SensationType.ImageFilePath:
-            self.log('process: Sensation.SensationType.ImageFilePath')      
-        elif sensation.getSensationType() == Sensation.SensationType.Calibrate:
-            self.log('process: Sensation.SensationType.Calibrate')      
-            if sensation.getMemory() == Sensation.Memory.Working:
-                if sensation.getDirection() == Sensation.Direction.In:
-                    self.log('process: asked to start calibrating mode')      
-                    self.calibrating = True
-                else:
-                    self.log('process: asked to stop calibrating mode')      
-                    self.calibrating = False
-                # ask external senses to to set same calibrating mode          
-                self.out_axon.put(sensation)
-            elif sensation.getMemory() == Sensation.Memory.Sensory:
-                if self.config.canHear() and self.calibrating:
-                    if self.turning_to_object:
-                        print (self.name + ": Robotserver.process turning_to_object, can't start calibrate activity yet")
-                    else:
-                        # allow requester to start calibration activaties
-                        if sensation.getDirection() == Sensation.Direction.In:
-                            self.log('process: asked to start calibrating activity')      
-                            self.calibrating_angle = sensation.getHearDirection()
-                            self.hearing.setCalibrating(calibrating=True, calibrating_angle=self.calibrating_angle)
-                            sensation.setDirection(Sensation.Direction.In)
-                            self.log('process: calibrating put HearDirection to out_axon')      
-                            self.out_axon.put(sensation)
-                            #self.calibratingTimer = Timer(Robot.ACTION_TIME, self.stopCalibrating)
-                            #self.calibratingTimer.start()
-                        else:
-                            self.log('process: asked to stop calibrating activity')      
-                            self.hearing.setCalibrating(calibrating=False, calibrating_angle=self.calibrating_angle)
-                            #self.calibratingTimer.cancel()
-                else:
-                    self.log('process: asked calibrating activity WITHOUT calibrate mode, IGNORED')      
+                # do some basic processing of main robot level and testing
+                #Voidedat can be played back, if we have a subcapability for it
+                if sensation.getSensationType() == Sensation.SensationType.VoiceData:
+                    self.log('process: Main root Sensation.SensationType.VoiceData')
+                    # basically we don't know how to handle going in sensation, but
+                    # subInstances can know. Check which subinsces can process this and deliver sensation to them.
+                    # Also subclasses can implement their own implementation for processing        
+                    robots = self.getSubCapabiliyInstances(direction=Sensation.Direction.In, memory=sensation.getMemory(), sensationType=Sensation.SensationType.VoiceData)
+                    for robot in robots:
+                        self.log('robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
+                        sensation.setDirection(Sensation.Direction.In)# todo, we should create new in-direction instance and reference it
+                        playbackSensation = Sensation.create(sensation=sensation, references=[sensation], direction=Sensation.Direction.In) # new instance od sensation for playback
+                        robot.getAxon().put(playbackSensation)
+        else:
+            # basically we don't know how to handle going in sensation, but
+            # subInstances can know. Check which subinsces can process this and deliver sensation to them.
+            # Also subclasses can implement their own implementation for processing        
+            robots = self.getSubCapabiliyInstances(direction=Sensation.Direction.In, memory=sensation.getMemory(), sensationType=sensation.getSensationType())
+            for robot in robots:
+                self.log('robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
+                robot.getAxon().put(sensation)
+ #             # for testing purposes write this back to all out subInstances playback gets it
+#             for robot in self.subInstances:
+#                 if robot.getWho() == "Speaking":
+#                     # TODO should we make a copy, because we should not change original sensation
+#                     sensation.setDirection(Sensation.Direction.In)
+#                     self.log('process: Sensation.SensationType.VoiceData Speaking robot.getInAxon().put(sensation)')
+#                     robot.getInAxon().put(sensation)
+#                     return  
 
-
-        elif sensation.getSensationType() == Sensation.SensationType.Capability:
-            self.log('process: Sensation.SensationType.Capability')      
-        elif sensation.getSensationType() == Sensation.SensationType.Unknown:
-            self.log('process: Sensation.SensationType.Unknown')
+        # TODO This old stuf is not needed   
+#         if sensation.getSensationType() == Sensation.SensationType.Drive:
+#             self.log('process: Sensation.SensationType.Drive')      
+#         elif sensation.getSensationType() == Sensation.SensationType.Stop:
+#             self.log('process: SensationSensationType.Stop')      
+#             self.stop()
+#         elif sensation.getSensationType() == Sensation.SensationType.Who:
+#             print (self.name + ": Robotserver.process Sensation.SensationType.Who")
+#             
+#         # TODO study what capabilities out subrobots have ins put sensation to them
+#         elif self.config.canHear() and sensation.getSensationType() == Sensation.SensationType.HearDirection:
+#             self.log('process: SensationType.HearDirection')      
+#              #inform external senses that we remember now hearing          
+#             self.out_axon.put(sensation)
+#             self.hearing_angle = sensation.getHearDirection()
+#             if self.calibrating:
+#                 self.log("process: Calibrating hearing_angle " + str(self.hearing_angle) + " calibrating_angle " + str(self.calibrating_angle))      
+#             else:
+#                 self.observation_angle = self.add_radian(original_radian=self.azimuth, added_radian=self.hearing_angle) # object in this angle
+#                 self.log("process: create Sensation.SensationType.Observation")
+#                 observation = Sensation(sensationType = Sensation.SensationType.Observation,
+#                                         memory=Memory.Work,
+#                                         observationDirection= self.observation_angle,
+#                                         observationDistance=Robot.DEFAULT_OBSERVATION_DISTANCE,
+#                                         reference=sensation)
+#                 # process internally
+#                 self.log("process: put Observation to in_axon")
+#                 self.inAxon.put(observation)
+#                 
+#                 #process by remote robotes
+#                 # mark hearing sensation to be processed to set direction out of memory, we forget it
+#                 sensation.setDirection(Sensation.Direction.Out)
+#                 observation.setDirection(Sensation.Direction.Out)
+#                 #inform external senses that we don't remember hearing any more           
+#                 self.log("process: put HearDirection to out_axon")
+#                 self.out_axon.put(sensation)
+#                 # seems that out_axon is handled when observation is processed internally here
+#                 #self.log("process: put Observation to out_axon")
+#                 #self.out_axon.put(observation)
+#         elif sensation.getSensationType() == Sensation.SensationType.Azimuth:
+#             if not self.calibrating:
+#                 self.log('process: Sensation.SensationType.Azimuth')      
+#                 #inform external senses that we remember now azimuth          
+#                 #self.out_axon.put(sensation)
+#                 self.azimuth = sensation.getAzimuth()
+#                 self.turn()
+#         elif sensation.getSensationType() == Sensation.SensationType.Observation:
+#             if not self.calibrating:
+#                 self.log('process: Sensation.SensationType.Observation')      
+#                 #inform external senses that we remember now observation          
+#                 self.observation_angle = sensation.getObservationDirection()
+#                 self.turn()
+#                 self.log("process: put Observation to out_axon")
+#                 sensation.setDirection(Sensation.Direction.Out)
+#                 self.out_axon.put(sensation)
+#         elif sensation.getSensationType() == Sensation.SensationType.ImageFilePath:
+#             self.log('process: Sensation.SensationType.ImageFilePath')      
+#         elif sensation.getSensationType() == Sensation.SensationType.Calibrate:
+#             self.log('process: Sensation.SensationType.Calibrate')      
+#             if sensation.getMemory() == Sensation.Memory.Working:
+#                 if sensation.getDirection() == Sensation.Direction.In:
+#                     self.log('process: asked to start calibrating mode')      
+#                     self.calibrating = True
+#                 else:
+#                     self.log('process: asked to stop calibrating mode')      
+#                     self.calibrating = False
+#                 # ask external senses to to set same calibrating mode          
+#                 self.out_axon.put(sensation)
+#             elif sensation.getMemory() == Sensation.Memory.Sensory:
+#                 if self.config.canHear() and self.calibrating:
+#                     if self.turning_to_object:
+#                         print (self.name + ": Robotserver.process turning_to_object, can't start calibrate activity yet")
+#                     else:
+#                         # allow requester to start calibration activaties
+#                         if sensation.getDirection() == Sensation.Direction.In:
+#                             self.log('process: asked to start calibrating activity')      
+#                             self.calibrating_angle = sensation.getHearDirection()
+#                             self.hearing.setCalibrating(calibrating=True, calibrating_angle=self.calibrating_angle)
+#                             sensation.setDirection(Sensation.Direction.In)
+#                             self.log('process: calibrating put HearDirection to out_axon')      
+#                             self.out_axon.put(sensation)
+#                             #self.calibratingTimer = Timer(Robot.ACTION_TIME, self.stopCalibrating)
+#                             #self.calibratingTimer.start()
+#                         else:
+#                             self.log('process: asked to stop calibrating activity')      
+#                             self.hearing.setCalibrating(calibrating=False, calibrating_angle=self.calibrating_angle)
+#                             #self.calibratingTimer.cancel()
+#                 else:
+#                     self.log('process: asked calibrating activity WITHOUT calibrate mode, IGNORED')      
+# 
+# 
+#         elif sensation.getSensationType() == Sensation.SensationType.Capability:
+#             self.log('process: Sensation.SensationType.Capability')      
+#         elif sensation.getSensationType() == Sensation.SensationType.Unknown:
+#             self.log('process: Sensation.SensationType.Unknown')
  
         # Finally just put sensation to our parent (if we have one)
-        if self.getLevel() > 1:
-            self.outAxon.put(sensation)    
+#         if self.getLevel() > 1:
+#             self.outAxon.put(sensation)
   
     def turn(self):
         # calculate new power to turn or continue turning

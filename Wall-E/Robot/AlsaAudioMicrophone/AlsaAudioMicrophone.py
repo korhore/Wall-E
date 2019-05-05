@@ -39,19 +39,17 @@ class AlsaAudioMicrophone(Robot):
 
 
     def __init__(self,
+                 parent=None,
                  instance=None,
                  is_virtualInstance=False,
                  is_subInstance=False,
-                 level=0,
-                 inAxon=None, 
-                 outAxon=None):
+                 level=0):
         Robot.__init__(self,
+                       parent=parent,
                        instance=instance,
                        is_virtualInstance=is_virtualInstance,
                        is_subInstance=is_subInstance,
-                       level=level,
-                       inAxon=inAxon,
-                       outAxon=outAxon)
+                       level=level)
         print("We are in AlsaAudioMicrophone, not Robot")
 
         # from settings        
@@ -110,7 +108,7 @@ class AlsaAudioMicrophone(Robot):
                     if voice_data is not None:
                         self.log("self.outAxon.put(sensation)")
                         sensation = Sensation.create(sensationType = Sensation.SensationType.VoiceData, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, voiceSize=voice_l, voiceData=voice_data)
-                        self.outAxon.put(sensation)
+                        self.getParent().getAxon().put(sensation) # or self.process
                         voice_data=None
                         voice_l=0
 

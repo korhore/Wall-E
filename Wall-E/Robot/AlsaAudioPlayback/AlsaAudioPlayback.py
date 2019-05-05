@@ -29,19 +29,17 @@ class AlsaAudioPlayback(Robot):
     FORMAT = alsaaudio.PCM_FORMAT_S16_LE
 
     def __init__(self,
+                 parent=None,
                  instance=None,
                  is_virtualInstance=False,
                  is_subInstance=False,
-                 level=0,
-                 inAxon=None, 
-                 outAxon=None):
+                 level=0):
         Robot.__init__(self,
+                       parent=parent,
                        instance=instance,
                        is_virtualInstance=is_virtualInstance,
                        is_subInstance=is_subInstance,
-                       level=level,
-                       inAxon=inAxon,
-                       outAxon=outAxon)
+                       level=level)
         print("We are in AlsaAudioPlayback, not Robot")
 
         # from settings        
@@ -73,7 +71,7 @@ class AlsaAudioPlayback(Robot):
         # live until stopped
         self.mode = Sensation.Mode.Normal
         while self.running:
-            sensation=self.inAxon.get()
+            sensation=self.axon.get()
             self.log("got sensation from queue " + sensation.toDebugStr())
             # if we get something we can do    
             if sensation.getSensationType() == Sensation.SensationType.VoiceData:

@@ -219,6 +219,7 @@ class Sensation(object):
     '''
        
     def __init__(self,
+                 sensation=None,
                  string=None,
                  bytes=None,
                  number=None,
@@ -261,32 +262,57 @@ class Sensation(object):
 #                 self.references = Sensation.getSensationFromSensationMemory(self.referenceNumbers)
 
         # references are always both way
-        if references == None:
-            references=[]
-        self.references=[]
-        self.addReferences(references)
-            
-        self.sensationType = sensationType
-        self.memory = memory
-        self.direction = direction
-        self.who = who
-        self.leftPower = leftPower
-        self.rightPower = rightPower
-        self.hearDirection = hearDirection
-        self.azimuth = azimuth
-        self.accelerationX = accelerationX
-        self.accelerationY = accelerationY
-        self.accelerationZ = accelerationZ
-        self.observationDirection = observationDirection
-        self.observationDistance = observationDistance
-        self.voiceFilePath = voiceFilePath
-        self.voiceSize = voiceSize
-        self.voiceData = voiceData
-        self.imageFilePath = imageFilePath
-        self.imageSize = imageSize
-        self.imageData = imageData
-        self.calibrateSensationType = calibrateSensationType
-        self.capabilities = capabilities
+        if sensation is not None:   # copy contructor
+            self.references=sensation.references
+            self.sensationType = sensation.sensationType
+            self.memory = sensation.memory
+            self.direction = sensation.direction
+            self.who = sensation.who
+            self.leftPower = sensation.leftPower
+            self.rightPower = sensation.rightPower
+            self.hearDirection = sensation.hearDirection
+            self.azimuth = sensation.azimuth
+            self.accelerationX = sensation.accelerationX
+            self.accelerationY = sensation.accelerationY
+            self.accelerationZ = sensation.accelerationZ
+            self.observationDirection = sensation.observationDirection
+            self.observationDistance = sensation.observationDistance
+            self.voiceFilePath = sensation.voiceFilePath
+            self.voiceSize = sensation.voiceSize
+            self.voiceData = sensation.voiceData
+            self.imageFilePath = sensation.imageFilePath
+            self.imageSize = sensation.imageSize
+            self.imageData = sensation.imageData
+            self.calibrateSensationType = sensation.calibrateSensationType
+            self.capabilities = sensation.capabilities
+        else:
+            # references are always both way
+            if references == None:
+                references=[]
+            self.references=[]
+            self.addReferences(references)
+                
+            self.sensationType = sensationType
+            self.memory = memory
+            self.direction = direction
+            self.who = who
+            self.leftPower = leftPower
+            self.rightPower = rightPower
+            self.hearDirection = hearDirection
+            self.azimuth = azimuth
+            self.accelerationX = accelerationX
+            self.accelerationY = accelerationY
+            self.accelerationZ = accelerationZ
+            self.observationDirection = observationDirection
+            self.observationDistance = observationDistance
+            self.voiceFilePath = voiceFilePath
+            self.voiceSize = voiceSize
+            self.voiceData = voiceData
+            self.imageFilePath = imageFilePath
+            self.imageSize = imageSize
+            self.imageData = imageData
+            self.calibrateSensationType = calibrateSensationType
+            self.capabilities = capabilities
 
         if string != None:    
             params = string.split()
@@ -520,7 +546,8 @@ class Sensation(object):
     Parameters are exactly same than in default constsructor
     '''
        
-    def create(  string=None,
+    def create(  sensation=None,
+                 string=None,
                  bytes=None,
                  number=None,
                  time=None,
@@ -543,6 +570,10 @@ class Sensation(object):
                  calibrateSensationType = SensationType.Unknown,
                  capabilities = []):                                        # capabilitis of sensorys, direction what way sensation go
         
+        if sensation is not None:             # not an update, create new one
+            print("Create new sensation instance this one ")
+            return Sensation(sensation=sensation)
+
         if string != None:              # if string we get number there
             params = string.split()
             number = float(params[0])
