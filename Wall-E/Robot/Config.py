@@ -96,6 +96,7 @@ class Config(ConfigParser):
         self.is_virtualInstance=is_virtualInstance
         self.is_subInstance=is_subInstance
         self.level=level+1
+        self.is_changes=False # do we gave chanhes to save
 
         print("Config level " + str(self.level) + 
               " is_virtualInstance " + str(self.is_virtualInstance) + 
@@ -228,13 +229,13 @@ class Config(ConfigParser):
             #endless loop
             config = Config(config_file_path=config_file_path, level=self.level)
            # finally set default that this is virtual instance
-            changes = False
+            #changes = False
             if is_virtualInstance:                
                 try:
                     instance = config.get(Config.DEFAULT_SECTION, Config.INSTANCE)
                     if instance != Sensation.VIRTUAL:          
                         config.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.VIRTUAL)
-                        changes=True
+                        self.is_changes=True
                 except Exception as e:
                         print('config.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.VIRTUAL) exception ' + str(e))
             else:
@@ -242,11 +243,11 @@ class Config(ConfigParser):
                     instance = config.get(Config.DEFAULT_SECTION, Config.INSTANCE)
                     if instance != Sensation.SUBINSTANCE:          
                         config.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.SUBINSTANCE)
-                        changes=True
+                        self.is_changes=True
                 except Exception as e:
                         print('config.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.VIRTUAL) exception ' + str(e))
                
-            if changes:
+            if self.is_changes:
                 try:
                     configfile = open(config_file_path, 'w')
                     config.write(configfile)
@@ -360,11 +361,11 @@ class Config(ConfigParser):
     def fromBytes(self, b, section=LOCALHOST):
 #         print('fromBytes ' + str(len(b)))
         i=0
-        changes=False
+        #changes=False
         if not self.has_section(section):
             try:
                 self.add_section(section)
-                changes=True
+                self.is_changes=True
 
             except MissingSectionHeaderError as e:
                     print('self.add_section ' + section + ' configparser.MissingSectionHeaderError ' + str(e))
@@ -386,23 +387,30 @@ class Config(ConfigParser):
                     try:
                         if not self.has_option(section, option):
                             self.set(section, option, Config.boolToString(is_set))
-                            changes=True
+                            self.is_changes=True
                         else:
                             was_set = self.getboolean(section, option)
                             if is_set != was_set:
                                 self.set(section, option, Config.boolToString(is_set))
-                                changes=True
+                                self.is_changes=True
                     except Exception as e:
                         print('self.set(' + section+', option, self.FALSE) exception ' + str(e))
 
-        if changes:
+        self.commit()
+
+    '''
+    commit changes
+    '''
+    def commit(self):
+        if self.is_changes:
             try:
                 configfile = open(self.config_file_path, 'w')
                 self.write(configfile)
                 configfile.close()
+                self.is_changes=False
             except Exception as e:
                 print('self.write(configfile) ' + str(e))
-
+        
     '''
     external or local host capabilities to given capability section
     section name is normally hosts ip-address as text, if given
@@ -411,11 +419,11 @@ class Config(ConfigParser):
     def fromString(self, string, section=LOCALHOST):
 #         print('fromBytes ' + str(len(b)))
         i=0
-        changes=False
+        #changes=False
         if not self.has_section(section):
             try:
                 self.add_section(section)
-                changes=True
+                self.is_changes=True
 
             except MissingSectionHeaderError as e:
                     print('self.add_section ' + section + ' configparser.MissingSectionHeaderError ' + str(e))
@@ -437,25 +445,19 @@ class Config(ConfigParser):
                     try:
                         if not self.has_option(section, option):
                             self.set(section, option, Config.boolToString(is_set))
-                            changes=True
+                            self.is_changes=True
                         else:
                             was_set = self.getboolean(section, option)
                             if is_set != was_set:
                                 self.set(section, option, Config.boolToString(is_set))
-                                changes=True
+                                self.is_changes=True
                     except Exception as e:
                         print('self.set(' + section+', option, self.FALSE) exception ' + str(e))
 
-        if changes:
-            try:
-                configfile = open(self.config_file_path, 'w')
-                self.write(configfile)
-                configfile.close()
-            except Exception as e:
-                print('self.write(configfile) ' + str(e))
+        self.commit()
 
     def createDefaultSection(self):
-        changes=False
+        #changes=False
         for directionStr in Sensation.getDirectionStrings():
             for memoryStr in Sensation.getMemoryStrings():
                 for capabilityStr in Sensation.getSensationTypeStrings():
@@ -463,34 +465,34 @@ class Config(ConfigParser):
                     try:
                         if not self.has_option(Config.DEFAULT_SECTION, option):
                             self.set(self.DEFAULT_SECTION, option, self.FALSE)
-                            changes=True
+                            self.is_changes=True
                     except Exception as e:
                         print('self.set(self.DEFAULT_SECTION, option, self.FALSE) exception ' + str(e))
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.WHO):
                 self.set(Config.DEFAULT_SECTION,Config.WHO, Sensation.WALLE)
-                changes=True
+                self.is_changes=True
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION, Config.WHO, Config.WHO) exception ' + str(e))
             
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.KIND):
                 self.set(Config.DEFAULT_SECTION,Config.KIND, Sensation.WALLE)
-                changes=True
+                self.is_changes=True
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION,Config.KIND, Sensation.WALLE) exception ' + str(e))
 
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.INSTANCE):
                 self.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.REAL)
-                changes=True
+                self.is_changes=True
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION,Config.KIND, Sensation.WALLE) exception ' + str(e))
 
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.HOSTS):
                 self.set(Config.DEFAULT_SECTION,Config.HOSTS, Config.EMPTY)
-                changes=True
+                self.is_changes=True
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION,Config.HOSTS, Config.EMPTY) exception ' + str(e))
 
@@ -500,63 +502,63 @@ class Config(ConfigParser):
                     self.set(Config.DEFAULT_SECTION,Config.SUBINSTANCES, Config.DEFAULT_SUBINSTANCES)
                 else:
                     self.set(Config.DEFAULT_SECTION,Config.SUBINSTANCES, Config.EMPTY)
-                changes=True
+                self.is_changes=True
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION,Config.HOSTS, Config.EMPTY) exception ' + str(e))
 
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.VIRTUALINSTANCES):
                 self.set(Config.DEFAULT_SECTION,Config.VIRTUALINSTANCES, Config.EMPTY)
-                changes=True
+                self.is_changes=True
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION,Config.HOSTS, Config.EMPTY) exception ' + str(e))
 
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.MICROPHONE):
                 self.set(Config.DEFAULT_SECTION, Config.MICROPHONE, Config.EMPTY)
-                changes=True
+                self.is_changes=True
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION, Config.MICROPHONE, Config.EMPTY) exception ' + str(e))
             
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.MICROPHONE_VOICE_LEVEL_AVERAGE):
                 self.set(Config.DEFAULT_SECTION, Config.MICROPHONE_VOICE_LEVEL_AVERAGE, Config.MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT)
-                changes=True
+                self.is_changes=True
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION, Config.MICROPHONE_VOICE_LEVEL_AVERAGE, Config.MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT) ' + str(e))
             
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.MICROPHONE_LEFT):
                 self.set(Config.DEFAULT_SECTION, Config.MICROPHONE_LEFT, Config.EMPTY)
-                changes=True
+                self.is_changes=True
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION, Config.MICROPHONE_LEFT, Config.EMPTY) exception ' + str(e))
             
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.MICROPHONE_RIGHT):
                 self.set(Config.DEFAULT_SECTION,Config.MICROPHONE_RIGHT, Config.EMPTY)
-                changes=True
+                self.is_changes=True
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION, Config.MICROPHONE_RIGHT, Config.EMPTY) exception ' + str(e))
 
         try:                
             if not self.has_option(Config.DEFAULT_SECTION,Config.MICROPHONE_CALIBRATING_ZERO):
                 self.set(Config.DEFAULT_SECTION,Config.MICROPHONE_CALIBRATING_ZERO, Config.ZERO)
-                changes=True
+                self.is_changes=True
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION,Config.MICROPHONE_CALIBRATING_ZERO, Config.ZERO) exception ' + str(e))
 
         try:                
             if not self.has_option(Config.DEFAULT_SECTION,Config.MICROPHONE_CALIBRATING_FACTOR):
                 self.set(Config.DEFAULT_SECTION,Config.MICROPHONE_CALIBRATING_FACTOR, Config.ZERO)
-                changes=True
+                self.is_changes=True
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION,Config.MICROPHONE_CALIBRATING_FACTOR, Config.ZERO) exception ' + str(e))
             
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.PLAYBACK):
                 self.set(Config.DEFAULT_SECTION, Config.PLAYBACK, Config.EMPTY)
-                changes=True
+                self.is_changes=True
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION, Config.PLAYBACK, Config.EMPTY) exception ' + str(e))
             
@@ -565,7 +567,7 @@ class Config(ConfigParser):
                 instance = self.get(Config.DEFAULT_SECTION, Config.INSTANCE)
                 if instance != Sensation.VIRTUAL:          
                     self.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.VIRTUAL)
-                    changes=True
+                    self.is_changes=True
             except Exception as e:
                     print('self.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.VIRTUAL) exception ' + str(e))
         if self.is_subInstance:                
@@ -573,7 +575,7 @@ class Config(ConfigParser):
                 instance = self.get(Config.DEFAULT_SECTION, Config.INSTANCE)
                 if instance != Sensation.SUBINSTANCE:          
                     self.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.SUBINSTANCE)
-                    changes=True
+                    self.is_changes=True
             except Exception as e:
                     print('self.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.VIRTUAL) exception ' + str(e))
         
@@ -581,7 +583,7 @@ class Config(ConfigParser):
         if not self.has_section(Config.LOCALHOST):
             try:
                 self.add_section(Config.LOCALHOST)
-                changes=True
+                self.is_changes=True
 
             except MissingSectionHeaderError as e:
                     print('self.add_section configparser.MissingSectionHeaderError ' + str(e))
@@ -592,13 +594,7 @@ class Config(ConfigParser):
             except Exception as e:
                     print('self.add_section exception ' + str(e))
 
-        if changes:
-            try:
-                configfile = open(self.config_file_path, 'w')
-                self.write(configfile)
-                configfile.close()
-            except Exception as e:
-                print('self.write(configfile) ' + str(e))
+        self.commit()
                 
 #         try:
 #             can=self.canHear()
@@ -687,19 +683,15 @@ class Config(ConfigParser):
             print('self.getfloat(section=section, option=self.MICROPHONE_VOICE_LEVEL_AVERAGE)' + str(e))
             return None
         
-    def setMicrophoneVoiceAvegageLevel(self, section=LOCALHOST, voiceLevelAverage=MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT):
+    def setMicrophoneVoiceAvegageLevel(self, section=LOCALHOST, voiceLevelAverage=MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT, commit=True):
         try:
             self.set(section=section, option=self.MICROPHONE_VOICE_LEVEL_AVERAGE, value=str(voiceLevelAverage))
+            self.is_changes = True
         except Exception as e:
             print('self.set(section=section, option=self.MICROPHONE_VOICE_LEVEL_AVERAGE, value=str(voiceLevelAverage))' + str(e))
-        try:
-            configfile = open(self.config_file_path, 'w')
-            print('self.write(' + self.config_file_path + ')')
-            self.write(configfile)
-            configfile.close()
-        except Exception as e:
-            print('self.write(' + self.config_file_path + ') ' + str(e))
- 
+        if commit:
+            self.commit()
+
     def getMicrophone(self, section=LOCALHOST):
         try:
             return self.get(section=section, option=self.MICROPHONE)
@@ -811,10 +803,15 @@ class Capabilities():
         return self.directions[direction][memory][sensationType]
  
     '''
-    Setter to get if single capability is set
+    Setter to set if single capability is set
     '''
-    def setCapanility(self, direction, memory, sensationType, is_set):
+    def setCapanility(self, direction, memory, sensationType, is_set, commit=True):
         self.directions[direction][memory][sensationType] = is_set
+        # TODO change is only in our data sytucture, so configure file would not be changed
+#         self.is_chages = True
+#         if commit:
+#             self.commit()
+        
         
         
 '''
