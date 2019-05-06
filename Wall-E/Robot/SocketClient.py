@@ -1,83 +1,61 @@
 '''
 Created on Feb 24, 2013
-Updated on Mar 8, 2014
+Updated on 06.05.2019
 
-@author: reijo
+@author: reijo.korhonen@gmail.com
+
+SocketCilent is a Robot that puts its sensations behind network to another
+Robot
+
+TODO Capabilities come from network
+
 '''
 
-from threading import Thread
-import signal
-import sys
-import getopt
+
 import socket
-import math
-import time
 
-import daemon
-import lockfile
-
-#from Axon import Axon
+from Robot import  Robot
+from Config import Config, Capabilities
 from Sensation import Sensation
-#from Romeo import Romeo
-#from ManualRomeo import ManualRomeo
-#from Hearing import Hear
 
 
 
 
 
-class SocketClient(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
-    def __init__(self, queue, socket, address):
-        Thread.__init__(self)
+class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+
+    def __init__(self,
+                 address,
+                 socket = None,
+                 parent=None,
+                 instance=None,
+                 is_virtualInstance=False,
+                 is_subInstance=False,
+                 level=0):
+        Robot.__init__(self,
+                       parent=parent,
+                       instance=instance,
+                       is_virtualInstance=is_virtualInstance,
+                       is_subInstance=is_subInstance,
+                       level=level)
+
+        print("We are in SocketClient, not Robot")
         self.queue=queue
         self.socket=socket
         self.address=address
         self.name = str(address)
         self.running=False
-       
-    def run(self):
-        print("Starting " + self.name)
         
-        # starting other threads/senders/capabilities
-        
-        self.running=True
- 
-        while self.running:
-            print("SocketClient waiting size of next Sensation from queue")
-            sensation = self.queue.get()
-            self.running = SocketClient.sendSensation(sensation, self.socket, self.address)
-#             sensation_string = str(sensation)
-#             length =len(sensation_string)
-#             length_string = str(length)
-#             length_ok = True
-#             try:
-#                 l = self.socket.send(length_string) # message length section
-#                 print("SocketClient wrote length of Sensation to " + str(self.address))
-#             except:
-#                 print("SocketClient error writing length of Sensation to, closing socket " + str(self.address))
-#                 self.running=False
-#                 length_ok = False
-#             if length_ok:
-#                 try:
-#                     l = self.socket.send(sensation_string)  # message data section
-#                     print("SocketClient wrote Sensation to " + str(self.address))
-#                     if length != l:
-#                         print("SocketClient length " + str(l) + " != " + length_string + " error writing to " + str(self.address))
-#                 except:
-#                     print("SocketClient error writing Sensation to, closing socket " + str(self.address))
-#                     self.running=False
-#             if self.running:
-#                 try:
-#                     l = self.socket.send(Sensation.SEPARATOR)  # message separator section
-#                     if Sensation.SEPARATOR_SIZE == l:
-#                         print("SocketClient wrote separator to " + str(self.address))
-#                     else:
-#                         print("SocketClient length " + str(l) + " != " + str(Sensation.SEPARATOR_SIZE) + " error writing to " + str(self.address))
-#                 except:
-#                     print("SocketClient error writing Sensation to, closing socket " + str(self.address))
-#                     self.running=False
-                
+    def process(self, sensation):
+        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + sensation.toDebugStr())
+        if sensation.getSensationType() == Sensation.SensationType.Stop:
+            self.log('process: SensationSensationType.Stop')      
+            self.stop()
+
+        # We hanhandle only sensarion going in-direction
+        elif sensation.getDirection() == Sensation.Direction.In:
+             self.running = SocketClient.sendSensation(sensation, self.socket, self.address)                
 
         self.socket.close()
 
@@ -135,6 +113,8 @@ class SocketClient(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServ
         print(self.name + ":stop") 
         SocketClient.sendSensation(sensation=Sensation(number=0, sensationType = Sensation.SensationType.Stop), socket=self.socket, address=self.address)
         self.running = False
+
+        self.socket.close()
 
     '''
     Global method for stopping remote host

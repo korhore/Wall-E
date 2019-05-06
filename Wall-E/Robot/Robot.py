@@ -1,8 +1,8 @@
 '''
 Created on Feb 24, 2013
-Updated on Mar 8, 2014
+Updated on 08.05.2019
 
-@author: reijo
+Updated on 06.05.2019
 '''
 
 import os
@@ -21,8 +21,8 @@ import lockfile
 import importlib
 
 from Axon import Axon
-from TCPServer import TCPServer
-from SocketClient import SocketClient
+# from TCPServer import TCPServer
+# from SocketClient import SocketClient
 from Sensation import Sensation
 from Romeo import Romeo
 from ManualRomeo import ManualRomeo
@@ -37,9 +37,10 @@ if 'Seeing.See' not in sys.modules:
 #if 'Config' not in sys.modules:
 from Config import Config, Capabilities
 
-# HOST = '0.0.0.0'
-# PORT = 2000
-# PICTURE_PORT = 2001
+HOST = '0.0.0.0'
+PORT = 2000
+ADDRESS_FAMILY = socket.AF_INET
+SOCKET_TYPE = socket.SOCK_STREAM
 
 DAEMON=False
 START=False
@@ -161,6 +162,23 @@ class Robot(Thread):
                           level=self.level)
                           #outAxon=self.inAxon)
             self.subInstances.append(robot)
+        
+        # in main robot, set up TCPServer
+        if self.level == 1:
+            self.tcpServer=TCPServer(parent=self,
+                                     instance='TCPServer',
+                                     is_virtualInstance=False,
+                                     is_subInstance=True,
+                                     level=self.level,
+                                     address=(HOST,PORT))
+            # for testing purposes, make SocketClient also
+            self.socketClient=SocketClient(parent=self,
+                                     instance='SocketClient',
+                                     is_virtualInstance=False,
+                                     is_subInstance=True,
+                                     level=self.level,
+                                     address=('localhost',PORT))
+
             
     def getParent(self):
         return self.parent
@@ -240,7 +258,12 @@ class Robot(Thread):
         # start subInstances and virtual instances here
         for robot in self.subInstances:
             robot.start()
-            
+        " main robot starts tcpServer"
+        if self.level == 1:
+            self.tcpServer.start()
+            # for testing purposes, start SocketClient also
+            self.socketClient.start()
+           
         # study own identity
         # starting point of robot is always to study what it knows himself
         self.studyOwnIdentity()
@@ -553,7 +576,370 @@ class Robot(Thread):
             
         return leftPower, rightPower
         
+'''
+TCPserver is a Robot that gets connections from other Robots behind network
+and delivers them to main Robot. This is done as sensation, because main
+robot is a robot that reads sensations.
+
+Another possibility is handle these subrots locally here, but it may be better to
+handle all sunrobot sensastion routing things in main robot
+TODO Capabilities come from network
+
+'''
         
+class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+    allow_reuse_address = True
+    
+    # inhered
+#    address_family = socket.AF_INET
+#    socket_type = socket.SOCK_STREAM
+    request_queue_size = 5
+    #allow_reuse_address = False
+
+
+#    def __init__(self, out_axon, in_axon, server_address):
+    def __init__(self,
+                 address,
+                 parent=None,
+                 instance=None,
+                 is_virtualInstance=False,
+                 is_subInstance=False,
+                 level=0):
+
+        Robot.__init__(self,
+                       parent=parent,
+                       instance=instance,
+                       is_virtualInstance=is_virtualInstance,
+                       is_subInstance=is_subInstance,
+                       level=level)
+        
+        print("We are in TCPServer, not Robot")
+        self.address=address
+        self.name = str(address)
+
+        Thread.__init__(self)
+        self.name = "TCPServer"
+        self.log('__init__: creating socket' )
+        self.socket = socket.socket(family=ADDRESS_FAMILY,
+                                    type=SOCKET_TYPE)
+        self.socket.setblocking(1)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.socketServers = []
+        self.socketClients = []
+        self.running=False
+       
+    def run(self):
+        self.log('run: Starting')
+               
+        self.running=True
+#        if self.allow_reuse_address:
+#            self.socket.setsockopt(socket.SOL_TCP, socket.SO_REUSEADDR, 1)
+#            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+#        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+          
+        self.log('run: bind '+ str(self.address))
+        self.socket.bind(self.address)
+        self.server_address = self.socket.getsockname()
+        self.socket.listen(self.request_queue_size)
+ 
+        while self.running:
+            self.log('run: waiting self.socket.accept()')
+            socket, address = self.socket.accept()
+            self.log('run: self.socket.accept() '+ str(address))
+            socketServer = self.createSocketServer(socket=socket, address=address)
+            socketServer.start()
+            time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
+            if self.running:
+                socketClient = self.createSocketClient(socket=socket, address=address)
+                socketClient.start()
+                time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
+
+    def stop(self):
+        self.log('stop')
+        print(self.name + ":stop") 
+        self.running = False
+        for socketServer in self.socketServers:
+            if socketServer.running:
+                socketServer.stop()
+        
+    def createSocketServer(self, socket, address):
+        socketServer =  None
+        for socketServerCandidate in self.socketServers:
+            if not socketServerCandidate.running:
+                socketServer = socketServerCandidate
+                self.log('createSocketServer: found SocketServer not running')
+                socketServer.__init__(parent=self.parent,
+                                      instance='SocketServert',
+                                      is_virtualInstance=False,
+                                      is_subInstance=True,
+                                      level=self.level,
+                                      address=address,
+                                      socket=socket)
+                break
+        if not socketServer:
+            self.log('createSocketServer: creating new SocketServer')
+            socketServer = SocketServer(parent=self.parent,
+                                        instance='SocketServert',
+                                        is_virtualInstance=False,
+                                        is_subInstance=True,
+                                        level=self.level,
+                                        address=address,
+                                        socket=socket)
+
+            self.socketServers.append(socketServer)
+        return socketServer
+
+    def createSocketClient(self, socket, address):
+        socketClient =  None
+        for socketClientCandidate in self.socketClients:
+            if not socketClientCandidate.running:
+                socketClient = socketClientCandidate
+                self.log('createSocketClient: found SocketClient not running')
+                socketClient.__init__(queue, socket, address)
+                break
+        if not socketClient:
+            self.log('createSSocketClientocketClient: creating new SocketClient')
+            socketClient = SocketClient(parent=self.parent,
+                                     instance='SocketClient',
+                                     is_virtualInstance=False,
+                                     is_subInstance=True,
+                                     level=self.level,
+                                     address=address,
+                                     sock=socket)
+            self.socketClients.append(socketClient)
+        return socketClient
+
+class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+
+    def __init__(self,
+                 address = None,
+                 sock = None,
+                 parent=None,
+                 instance=None,
+                 is_virtualInstance=False,
+                 is_subInstance=False,
+                 level=0):
+        Robot.__init__(self,
+                       parent=parent,
+                       instance=instance,
+                       is_virtualInstance=is_virtualInstance,
+                       is_subInstance=is_subInstance,
+                       level=level)
+
+        print("We are in SocketClient, not Robot")
+        self.socket=sock
+        self.address=address
+        self.name = 'SocketClient:'+str(address)
+        self.running=False
+ 
+#         if self.socket is None:       
+#             self.socket = socket.socket(family=ADDRESS_FAMILY,
+#                                         type=SOCKET_TYPE)
+#             try:
+#                 self.log('self.socket.connect('  + str(self.address) + ')')
+#                 self.socket.connect(self.address)
+#                 self.log('sobe self.socket.connect('  + str(self.address) + ')')
+#             except Exception as e:
+#                 self.log("self.socket.connect(self.address) exception " + str(e))
+ 
+    '''
+    remove this test run implementation when connection is done OK
+    '''               
+    def run(self):
+        self.log("run: Starting")
+        if self.socket is None:       
+            self.socket = socket.socket(family=ADDRESS_FAMILY,
+                                        type=SOCKET_TYPE)
+            try:
+                self.log('run:  self.socket.connect('  + str(self.address) + ')')
+                self.socket.connect(self.address)
+                self.log('run: done self.socket.connect('  + str(self.address) + ')')
+                try:
+                    sensation=Sensation(sensationType = Sensation.SensationType.Stop)
+                    self.log('run: sendSensation(sensation=Sensation(sensationType = Sensation.SensationType.Stop), socket=self.socket,'  + str(self.address) + ')')
+                    SocketClient.sendSensation(sensation=sensation, socket=self.socket, address=self.address)
+                    self.log('run: done sendSensation(sensation=Sensation(sensationType = Sensation.SensationType.Stop), socket=self.socket,'  + str(self.address) + ')')
+                except Exception as e:
+                    self.log("run: SocketClient.sendSensation) exception " + str(e))
+            except Exception as e:
+                self.log("run: self.socket.connect(self.address) exception " + str(e))
+       
+        # starting other threads/senders/capabilities
+
+        
+    def process(self, sensation):
+        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + sensation.toDebugStr())
+        if sensation.getSensationType() == Sensation.SensationType.Stop:
+            self.log('process: SensationSensationType.Stop')      
+            self.stop()
+
+        # We can handle only sensarion going in-direction
+        elif sensation.getDirection() == Sensation.Direction.In:
+             self.running = SocketClient.sendSensation(sensation, self.socket, self.address)                
+
+        self.socket.close()
+
+    '''
+    Global method for sending a sensation
+    '''
+        
+    def sendSensation(sensation, socket, address):
+        print('SocketClient.sendSensation')
+        
+#         sensation_string = str(sensation)
+#         length =len(sensation_string)
+#         length_string = Sensation.LENGTH_FORMAT.format(length)
+        bytes = sensation.bytes()
+        length =len(bytes)
+        length_bytes = length.to_bytes(Sensation.NUMBER_SIZE, byteorder=Sensation.BYTEORDER)
+
+        ok = True
+        try:
+            l = socket.send(Sensation.SEPARATOR.encode('utf-8'))        # message separator section
+            if Sensation.SEPARATOR_SIZE == l:
+                print('SocketClient wrote separator to ' + str(address))
+            else:
+                print("SocketClient length " + str(l) + " != " + str(Sensation.SEPARATOR_SIZE) + " error writing to " + str(address))
+                ok = False
+        except Exception as err:
+            print("SocketClient error writing Sensation.SEPARATOR to " + str(address)  + " error " + str(err))
+            ok=False
+        if ok:
+            try:
+#                l = socket.send(length_string.encode('utf-8'))          # message length section
+                l = socket.send(length_bytes)                            # message length section
+                print("SocketClient wrote length " + str(length) + " of Sensation to " + str(address))
+            except Exception as err:
+                print("SocketClient error writing length of Sensation to " + str(address) + " error " + str(err))
+                ok = False
+            if ok:
+                try:
+#                    l = socket.send(sensation_string.encode('utf-8'))  # message data section
+                    l = socket.send(bytes)                              # message data section
+                    print("SocketClient wrote Sensation to " + str(address))
+                    if length != l:
+                        print("SocketClient length " + str(l) + " != " + str(length) + " error writing to " + str(address))
+                        ok = False
+                except Exception as err:
+                    print("SocketClient error writing Sensation to " + str(address) + " error " + str(err))
+                    ok = False
+        return ok
+
+    '''
+    Method for stopping remote host
+    and after that us
+    '''
+    def stop(self):
+        self.log("stop(self)") 
+        SocketClient.sendSensation(sensation=Sensation(sensationType = Sensation.SensationType.Stop), socket=self.socket, address=self.address)
+        self.running = False
+
+        self.socket.close()
+
+    '''
+    Global method for stopping remote host
+    '''
+    def stop(socket, address):
+        print("SocketClient: stop(socket, address") 
+        SocketClient.sendSensation(sensation=Sensation(number=0, sensationType = Sensation.SensationType.Stop), socket=socket, address=address)
+
+class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+
+    def __init__(self,
+                 socket, 
+                 address,
+                 parent=None,
+                 instance=None,
+                 is_virtualInstance=False,
+                 is_subInstance=False,
+                 level=0):
+
+        Robot.__init__(self,
+                       parent=parent,
+                       instance=instance,
+                       is_virtualInstance=is_virtualInstance,
+                       is_subInstance=is_subInstance,
+                       level=level)
+        
+        print("We are in SocketServer, not Robot")
+        self.socket=socket
+        self.address=address
+        self.name = str(address)
+       
+    def run(self):
+        self.log("run: Starting")
+        
+        # starting other threads/senders/capabilities
+        
+        self.running=True
+ 
+        while self.running:
+            self.log("run: waiting next Sensation from" + str(self.address))
+            synced = False
+            self.data = self.socket.recv(Sensation.SEPARATOR_SIZE).strip().decode('utf-8')  # message separator section
+            if len(self.data) == 0:
+                synced = True# Test
+                #self.running = False
+            #print "WalleSocketServer separator l " + str(len(self.data)) + ' ' + str(len(Sensation.SEPARATOR))
+            while not synced and self.running:
+                if len(self.data) == len(Sensation.SEPARATOR):
+                    if self.data[0] is Sensation.SEPARATOR[0]:    # this also syncs to next message, if we get socket transmit errors
+                        synced = True
+                if not synced:
+                    self.data = self.socket.recv(Sensation.SEPARATOR_SIZE).strip().decode('utf-8')  # message separator section
+                    #print "WalleSocketServer separator l " + str(len(self.data)) + ' ' + str(len(Sensation.SEPARATOR))
+                    if len(self.data) == 0:
+                        self.running = False               
+
+            if synced and self.running:
+                self.log("run: waiting size of next Sensation from " + str(self.address))
+                #self.data = self.socket.recv(Sensation.LENGTH_SIZE).strip().decode('utf-8') # message length section
+                self.data = self.socket.recv(Sensation.NUMBER_SIZE)                         # message length section
+                if len(self.data) == 0:
+                    self.running = False
+                else:
+                    #length = int.from_bytes(self.data, Sensation.BYTEORDER)
+                    #print("SocketServer Client " + str(self.address) + " wrote " + self.data)
+                    length_ok = True
+                    try:
+                        #sensation_length = int(self.data)
+                        sensation_length = int.from_bytes(self.data, Sensation.BYTEORDER)
+                    except:
+                        self.log("run: SocketServer Client protocol error, no valid length resyncing " + str(self.address) + " wrote " + self.data)
+                        length_ok = False
+                        
+                    if length_ok:
+                        self.log("run: SocketServer Client " + str(self.address) + " wrote " + str(sensation_length))
+                        #print "SocketServer of next Sensation from " + str(self.address)
+                        self.data=None
+                        while sensation_length > 0:
+                            #data = self.socket.recv(sensation_length).strip().decode('utf-8') # message data section
+                            data = self.socket.recv(sensation_length)                       # message data section
+                            if len(data) == 0:
+                                self.running = False
+                            else:
+                                if self.data is None:
+                                    self.data = data
+                                else:
+                                    self.data = self.data+data
+                                sensation_length = sensation_length - len(data)
+                                #print "SocketServer Sensation data from " + str(self.address)+ ' ' + self.data + ' left ' + str(sensation_length)
+                                
+                                
+                        if self.running:
+                            #print "SocketServer string " + self.data
+                            #sensation=Sensation(self.data)
+                            sensation=Sensation(bytes=self.data)
+                            self.log("run: SocketServer got sensation" + str(sensation))
+                            self.process(sensation)
+            
+
+        self.socket.close()
+
+    def stop(self):
+        self.log("stop(self)")
+        ok = SocketClient.stop(socket = self.socket, address=self.address)
+        self.running = False
 
 
 

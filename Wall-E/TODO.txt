@@ -26,31 +26,29 @@ Main architecture
   can know about us and what we handle from them. All network robots capabilities
   should be False by default
 
+- Make tcp-clients to be virtual insyances of Robot
   
-  - OK CONFIG_FILE_PATH from config.py
-  - OK toBytes - method to code sensation
-    as bytes ans ecode method to oppisite way
     
- - Make Capabilities-class. Can be iplemented in Config. In confif should be
+ - OK Make Capabilities-class. Can be iplemented in Config. In confif should be
    anyway hosts, property, where we Aass hosts that have contacted us and
    hosts that we add manually. Start with this.
    
-- Implement Identity and Virtual instance. That way we can test Walle to meet Eva
+- OK Implement Identity and Virtual instance. That way we can test Walle to meet Eva
   in same process with threads, so developing will be much faster than using
   many physical servers, but functionality will be exactly same.
   Need some changes to Confif, Axen etc. Rename main class as Robot(Server)
   
-  Weneed also functional status od robot, StudyOwnIdentity, Sleeping, Normal, etc
+  We need also functional status od robot, StudyOwnIdentity, Sleeping, Normal, etc
   
-- Axon should have sunAxons with capanility and direction to handle sensation routing.
+- OK Robot n to handle sensation routing.
 
-- Seems, that Calibrating logic with direction will become broken, when direction is set
+- OK Seems, that Calibrating logic with direction will become broken, when direction is set
   to Sensation. Fix this later, because we donnt yet have hardware suitable for
   direction hearing. This has been experimental any way
   
-  - Move moving to its own submodule and fix Sensation in Romeo.
+  - OK Move moving to its own submodule and fix Sensation in Romeo.
     This module should process all moving and observation Sensations
     
-- Robot start 3! times!!!!!!!!!
-- correct this in Config so that one instance of it handles only one config,
+- OK Robot start 3! times!!!!!!!!!
+- OK correct this in Config so that one instance of it handles only one config,
   but can start otser instance for virtual and subrobots

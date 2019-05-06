@@ -1,33 +1,43 @@
 '''
 Created on Feb 24, 2013
-Updated on Mar 8, 2014
+Updated on 06.05.2019
 
-@author: reijo
+@author: reijo.korhonen@gmail.com
+
+Socketserver is a Robot that gets sensations from a Robot behind network
+TODO Capabilities come from network
 '''
 
-from Axon import Axon
+import socket
+
+from Robot import  Robot
+from Config import Config, Capabilities
 from Sensation import Sensation
 from SocketClient import SocketClient
-from threading import Thread
-import signal
-import sys
-import getopt
-import socket
-import math
-import time
 
-import daemon
-import lockfile
 
-class SocketServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
-    def __init__(self, queue, socket, address):
-        Thread.__init__(self)
-        self.queue=queue
+    def __init__(self,
+                 socket, 
+                 address,
+                 parent=None,
+                 instance=None,
+                 is_virtualInstance=False,
+                 is_subInstance=False,
+                 level=0):
+
+        Robot.__init__(self,
+                       parent=parent,
+                       instance=instance,
+                       is_virtualInstance=is_virtualInstance,
+                       is_subInstance=is_subInstance,
+                       level=level)
+        
+        print("We are in SocketServer, not Robot")
         self.socket=socket
         self.address=address
         self.name = str(address)
-        self.running=False
        
     def run(self):
         print("Starting " + self.name)
@@ -93,9 +103,8 @@ class SocketServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServ
                             #print "SocketServer string " + self.data
                             #sensation=Sensation(self.data)
                             sensation=Sensation(bytes=self.data)
-                            print("SocketServer " + str(sensation))
-                            if sensation.getSensationType() is not Sensation.SensationType.Unknown:
-                                self.queue.put(sensation)
+                            self.log("SocketServer got sensation" + str(sensation))
+                            self.process(sensation)
             
 
         self.socket.close()

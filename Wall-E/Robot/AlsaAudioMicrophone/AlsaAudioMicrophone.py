@@ -106,7 +106,7 @@ class AlsaAudioMicrophone(Robot):
                        voice_l += l
                 else:
                     if voice_data is not None:
-                        self.log("self.outAxon.put(sensation)")
+                        self.log("self.getParent().getAxon().put(sensation)")
                         sensation = Sensation.create(sensationType = Sensation.SensationType.VoiceData, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, voiceSize=voice_l, voiceData=voice_data)
                         self.getParent().getAxon().put(sensation) # or self.process
                         voice_data=None

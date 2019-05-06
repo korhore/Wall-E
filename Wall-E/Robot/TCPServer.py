@@ -1,8 +1,17 @@
 '''
 Created on Feb 24, 2013
-Updated on Mar 8, 2014
+Updated on 06.05.2019
 
-@author: reijo
+@author: reijo.korhonen@gmail.com
+
+TCPserver is a Robot that gets connections from other Robots behind network
+and delivers them to main Robot. This is done as sensation, because main
+robot is a robot that reads sensations.
+
+Another possibility is handle these subrots locally here, but it may be better to
+handle all sunrobot sensastion routing things in main robot
+TODO Capabilities come from network
+
 '''
 
 from threading import Thread
@@ -36,7 +45,7 @@ from SocketClient import SocketClient
 #MANUAL=False
 
      
-class TCPServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     allow_reuse_address = True
     
     # inhered
@@ -46,7 +55,28 @@ class TCPServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer)
     #allow_reuse_address = False
 
 
-    def __init__(self, out_axon, in_axon, server_address):
+#    def __init__(self, out_axon, in_axon, server_address):
+    def __init__(self,
+                 socket, 
+                 address,
+                 parent=None,
+                 instance=None,
+                 is_virtualInstance=False,
+                 is_subInstance=False,
+                 level=0):
+
+        Robot.__init__(self,
+                       parent=parent,
+                       instance=instance,
+                       is_virtualInstance=is_virtualInstance,
+                       is_subInstance=is_subInstance,
+                       level=level)
+        
+        print("We are in TCPServer, not Robot")
+        self.socket=socket
+        self.address=address
+        self.name = str(address)
+
         Thread.__init__(self)
         self.name = "TCPServer"
         self.out_axon = out_axon
@@ -71,8 +101,8 @@ class TCPServer(Thread): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer)
 #            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 #        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
           
-        print(self.name + "; bind " + str(self.server_address))
-        self.socket.bind(self.server_address)
+        print(self.name + "; bind " + str(self.address))
+        self.socket.bind(self.address)
         self.server_address = self.socket.getsockname()
         self.socket.listen(self.request_queue_size)
  
