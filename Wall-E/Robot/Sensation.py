@@ -5,15 +5,12 @@ Edited on 04.05.2019
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
 
+import sys
 import time as systemTime
 import traceback
 from enum import Enum
 import struct
 import random
-#from distlib.resources import cache
-#from _ast import If
-#from builtins import None
-
 
 #def enum(**enums):
 #    return type('Enum', (), enums)
@@ -242,7 +239,8 @@ class Sensation(object):
                  imageSize=0,                                               # when image is transferred we use size of it technically in transmission
                  imageData=None,                                               # TODO Don'tyyet know what kind data this is
                  calibrateSensationType = SensationType.Unknown,
-                 capabilities = []):                         # capabilitis of sensorys, direction what way sensation go
+                 capabilities = None):                         # capabilitis of sensorys, direction what way sensation go
+        from Config import Capabilities
         self.time=time
         self.reference_time = reference_time
         if self.time == None:
@@ -398,7 +396,7 @@ class Sensation(object):
                         elif self.sensationType == Sensation.SensationType.Capability:
                             if len(params) >= 7:
                                 # TODO uncode string of params
-                                self.capabilities = params[6]
+                                self.capabilities = Capabilities(string=params[6])
                                 last_param=7
                                 #print str(self.capabilities)
             
@@ -515,7 +513,7 @@ class Sensation(object):
                     capabilities_size = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
                     print("capabilities_size " + str(capabilities_size))
                     i += Sensation.NUMBER_SIZE
-                    self.capabilities = bytesToStr(bytes[i:i+capabilities_size])
+                    self.capabilities = Capabilities(bytes=bytes[i:i+capabilities_size])
                     i += capabilities_size
                     
                 reference_number = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
@@ -568,7 +566,7 @@ class Sensation(object):
                  imageSize=0,                                               # when image is transferred we use size of it technically in transmission
                  imageData=None,                                            # TODO datatype of this
                  calibrateSensationType = SensationType.Unknown,
-                 capabilities = []):                                        # capabilitis of sensorys, direction what way sensation go
+                 capabilities = None):                                        # capabilitis of sensorys, direction what way sensation go
         
         if sensation is not None:             # not an update, create new one
             print("Create new sensation instance this one ")
@@ -726,9 +724,9 @@ class Sensation(object):
                                         last_param=8
                                 print(("Calibrate hearDirection " + str(sensation.hearDirection)))
                         elif sensation.sensationType == Sensation.SensationType.Capability:
-                            if len(params) >= 5:
+                            if len(params) >= 7:
                                 # TODO uncode string of params
-                                sensation.capabilities = params[6]
+                                sensation.capabilities = Capabilities(string=params[6])
                                 last_param=7
                                 #print str(sensation.capabilities)
             
@@ -845,7 +843,7 @@ class Sensation(object):
                     capabilities_size = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
                     print("capabilities_size " + str(capabilities_size))
                     i += Sensation.NUMBER_SIZE
-                    sensation.capabilities = bytesToStr(bytes[i:i+capabilities_size])
+                    sensation.capabilities = Capabilities(bytes=bytes[i:i+capabilities_size])
                     i += capabilities_size
                         
                 reference_number = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
@@ -905,7 +903,7 @@ class Sensation(object):
             else:
                 s = str(self.number) + ' ' + self.memory + ' ' + self.direction + ' ' +  Sensation.SensationType.Unknown
         elif self.sensationType == Sensation.SensationType.Capability:
-            s +=  ' ' + self.getStrCapabilities()
+            s +=  ' ' + self.getCapabilities().toString()
             
 #         elif self.sensationType == Sensation.SensationType.Stop:
 #             pass
@@ -978,9 +976,10 @@ class Sensation(object):
 #             else:
 #                 return str(self.number) + ' ' + self.memory + ' ' + self.direction + ' ' + Sensation.SensationType.Unknown
         elif self.sensationType == Sensation.SensationType.Capability:
-            capabilities_size=len(self.getStrCapabilities())
+            bytes = self.getCapabilities().toBytes()
+            capabilities_size=len(bytes)
             b += capabilities_size.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
-            b += StrToBytes(self.getStrCapabilities())
+            b += bytes
             
         #  at the end references (numbers)
         reference_number=len(self.references)
@@ -1165,28 +1164,29 @@ class Sensation(object):
     def getCapabilities(self):
         return self.capabilities
     
-    def setStrCapabilities(self, string):
-        #str_capabilities = string.split()
-        self.capabilities=[]
-        for capability in string:
-            self.capabilities.add(capability)
-        self.capabilities = capabilities
-    def getStrCapabilities(self):
-        capabilities = ""
-        for capability in self.capabilities:
-            capabilities += str(capability)
-        return capabilities
+#     def setStrCapabilities(self, string):
+#         #str_capabilities = string.split()
+#         self.capabilities=[]
+#         for capability in string:
+#             self.capabilities.add(capability)
+#         self.capabilities = capabilities
+#     def getStrCapabilities(self):
+#         return self.capabilities.toString()
     
-    def hasCapability(self, directionStr,memoryStr,capabilityStr):
-        if self.getSensationType() == SensationType.Capability:
-            option=self.getOptionName(directionStr,memoryStr,capabilityStr)
-            return self.getboolean(section, option)
-        return False
+#     def hasCapability(self, directionStr,memoryStr,capabilityStr):
+#         if self.getSensationType() == SensationType.Capability:
+#             option=self.getOptionName(directionStr,memoryStr,capabilityStr)
+#             return self.getboolean(section, option)
+#         return False
 
 
         
 if __name__ == '__main__':
 # testing
+
+    from Config import Config, Capabilities
+    config = Config()
+    capabilities = Capabilities(config=config)
     
     s_Drive=Sensation(sensationType = Sensation.SensationType.Drive, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, leftPower = 0.77, rightPower = 0.55)
     print(("str s  " + str(s_Drive)))
@@ -1427,7 +1427,8 @@ if __name__ == '__main__':
     print("Sensation.create: " + str(s_Calibrate_create == s2))
     print()
 
-    s_Capability=Sensation(references=[s_Calibrate,s_VoiceData,s_VoiceFilePath,s_ImageData,s_ImageFilePath,s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.Capability, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = [Sensation.SensationType.Drive, Sensation.SensationType.HearDirection, Sensation.SensationType.Azimuth])
+#    s_Capability=Sensation(references=[s_Calibrate,s_VoiceData,s_VoiceFilePath,s_ImageData,s_ImageFilePath,s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.Capability, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = [Sensation.SensationType.Drive, Sensation.SensationType.HearDirection, Sensation.SensationType.Azimuth])
+    s_Capability=Sensation(references=[s_Calibrate,s_VoiceData,s_VoiceFilePath,s_ImageData,s_ImageFilePath,s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.Capability, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = capabilities)
     print(("str s  " + str(s_Capability)))
     print("str(Sensation(str(s))) " + str(Sensation(string=str(s_Capability))))
     b=s_Capability.bytes()
@@ -1437,7 +1438,7 @@ if __name__ == '__main__':
     
      #test with create
     print("test with create")
-    s_Capability_create=Sensation.create(references=[s_Calibrate_create,s_VoiceData_create,s_VoiceFilePath_create,s_ImageData_create,s_ImageFilePath_create,s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], sensationType = Sensation.SensationType.Capability, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = [Sensation.SensationType.Drive, Sensation.SensationType.HearDirection, Sensation.SensationType.Azimuth])
+    s_Capability_create=Sensation.create(references=[s_Calibrate_create,s_VoiceData_create,s_VoiceFilePath_create,s_ImageData_create,s_ImageFilePath_create,s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], sensationType = Sensation.SensationType.Capability, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = capabilities)
     print(("Sensation.create: str s  " + str(s_Capability_create)))
     print("Sensation.create: str(Sensation(str(s))) " + str(Sensation.create(string=str(s_Capability_create))))
     b=s_Capability_create.bytes()
