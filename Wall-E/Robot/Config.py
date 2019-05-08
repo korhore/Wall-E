@@ -93,13 +93,13 @@ class Config(ConfigParser):
      
 #    def __init__(self, config_file_path=CONFIG_FILE_PATH,
     def __init__(self,
-                 instance=None,
+                 instanceName=None,
                  is_virtualInstance=False,
                  is_subInstance=False,
                  level=0):
         from Sensation import Sensation
         ConfigParser.__init__(self)
-        self.instance=instance
+        self.instanceName=instanceName
         self.is_virtualInstance=is_virtualInstance
         self.is_subInstance=is_subInstance
         self.level=level+1
@@ -109,11 +109,11 @@ class Config(ConfigParser):
               " is_virtualInstance " + str(self.is_virtualInstance) + 
               " is_subInstance " + str(self.is_subInstance) )
        
-        if  self.instance is None:
-            self.instance = Config.DEFAULT_INSTANCE
+        if  self.instanceName is None:
+            self.instanceName = Config.DEFAULT_INSTANCE
             directory = '.'
         else:
-            directory = instance
+            directory = instanceName
             if not os.path.exists(directory):
                 print('os.makedirs ' + directory)
                 os.makedirs(directory)
@@ -125,7 +125,7 @@ class Config(ConfigParser):
             
         self.config_file_path = directory + '/' + Config.CONFIG_FILE_PATH
         
-        print("Config instance " + self.instance +
+        print("Config instanceName " + self.instanceName +
               " level " + str(self.level) + ' ' + self.config_file_path + 
               " is_virtualInstance " + str(self.is_virtualInstance) + 
               " is_subInstance " + str(self.is_subInstance) +
@@ -188,21 +188,21 @@ class Config(ConfigParser):
          # handle subInstances (senses, muscles)
          # for two levels
         if self.level <= 3:
-            for instance in self.getVirtualInstances():
-                config=Config(instance=instance,
+            for instanceName in self.getVirtualInstanceNames():
+                config=Config(instanceName=instanceName,
                               is_virtualInstance=True,
                               is_subInstance=False,
                               level=self.level)
                 
-            for instance in self.getSubInstances():
-                config=Config(instance=instance,
+            for instanceName in self.getSubInstanceNames():
+                config=Config(instanceName=instanceName,
                               is_virtualInstance=False,
                               is_subInstance=True,
                               level=self.level)
 #             self.handleSubInstances(is_virtualInstance=False,
 #                                     is_subInstance=False)
 # 
-#             # handle virtual instances
+#             # handle virtual instanceNames
 #             self.handleSubInstances(is_virtualInstance=True)
 
                      
@@ -210,46 +210,46 @@ class Config(ConfigParser):
                     
     def handleSubInstances(self, is_virtualInstance):
         if is_virtualInstance:
-            instances=self.getVirtualInstances()
+            instanceNames=self.getVirtualInstanceNames()
         else:
-            instances=self.getSubInstances()
+            instanceNames=self.getSubInstanceNames()
 
-        # relational subdirectory for virtual instance
-        for instance in instances:
-            print('Handle  instance ' + instance)
+        # relational subdirectory for virtual instanceName
+        for instanceName in instanceNames:
+            print('Handle  instanceName ' + instanceName)
             if is_virtualInstance:
-                directory = self.VIRTUALINSTANCES+'/'+instance
+                directory = self.VIRTUALINSTANCES+'/'+instanceName
             else:
-                directory = instance
+                directory = instanceName
             if not os.path.exists(directory):
                 print('os.makedirs ' + directory)
                 os.makedirs(directory)
             config_file_path=directory + '/' + Config.CONFIG_FILE_PATH
             etc_directory = directory +'/etc'
             
-            # relational subdirectory for virtual instance
+            # relational subdirectory for virtual instanceName
             if not os.path.exists(etc_directory):
                 print('os.makedirs ' + etc_directory)
                 os.makedirs(etc_directory)
-            #finallu create or update default config file for virtual instance 
+            #finallu create or update default config file for virtual instanceName 
             print('Config(' + config_file_path +')')
             # TODO Here we should make onlt onle level morem because otherwise we get
             #endless loop
             config = Config(config_file_path=config_file_path, level=self.level)
-           # finally set default that this is virtual instance
+           # finally set default that this is virtual instanceName
             #changes = False
             if is_virtualInstance:                
                 try:
-                    instance = config.get(Config.DEFAULT_SECTION, Config.INSTANCE)
-                    if instance != Sensation.VIRTUAL:          
+                    instanceName = config.get(Config.DEFAULT_SECTION, Config.INSTANCE)
+                    if instanceName != Sensation.VIRTUAL:          
                         config.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.VIRTUAL)
                         self.is_changes=True
                 except Exception as e:
                         print('config.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.VIRTUAL) exception ' + str(e))
             else:
                 try:
-                    instance = config.get(Config.DEFAULT_SECTION, Config.INSTANCE)
-                    if instance != Sensation.SUBINSTANCE:          
+                    instanceName = config.get(Config.DEFAULT_SECTION, Config.INSTANCE)
+                    if instanceName != Sensation.SUBINSTANCE:          
                         config.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.SUBINSTANCE)
                         self.is_changes=True
                 except Exception as e:
@@ -272,8 +272,8 @@ class Config(ConfigParser):
     def getVirtualinstanceConfigFilePath(self, virtualinstance):
         return virtualinstance + '/' + Config.CONFIG_FILE_PATH
         
-    def getSubinstanceConfigFilePath(self, instance):
-        return instance + '/' + Config.CONFIG_FILE_PATH
+    def getSubinstanceConfigFilePath(self, instanceName):
+        return instanceName + '/' + Config.CONFIG_FILE_PATH
 
                 
             
@@ -578,16 +578,16 @@ class Config(ConfigParser):
             
         if self.is_virtualInstance:                
             try:
-                instance = self.get(Config.DEFAULT_SECTION, Config.INSTANCE)
-                if instance != Sensation.VIRTUAL:          
+                instanceName = self.get(Config.DEFAULT_SECTION, Config.INSTANCE)
+                if instanceName != Sensation.VIRTUAL:          
                     self.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.VIRTUAL)
                     self.is_changes=True
             except Exception as e:
                     print('self.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.VIRTUAL) exception ' + str(e))
         if self.is_subInstance:                
             try:
-                instance = self.get(Config.DEFAULT_SECTION, Config.INSTANCE)
-                if instance != Sensation.SUBINSTANCE:          
+                instanceName = self.get(Config.DEFAULT_SECTION, Config.INSTANCE)
+                if instanceName != Sensation.SUBINSTANCE:          
                     self.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.SUBINSTANCE)
                     self.is_changes=True
             except Exception as e:
@@ -637,21 +637,21 @@ class Config(ConfigParser):
         return self.getboolean(section, option)
 
              
-    def getSubInstances(self, section=LOCALHOST):
-        self.subInstances=[]
-        subInstances = self.get(section=section, option=self.SUBINSTANCES)
-        if subInstances != None and len(subInstances) > 0:
-            self.subInstances = subInstances.split()
+    def getSubInstanceNames(self, section=LOCALHOST):
+        self.subInstanceNames=[]
+        subInstanceNames = self.get(section=section, option=self.SUBINSTANCES)
+        if subInstanceNames != None and len(subInstanceNames) > 0:
+            self.subInstanceNames = subInstanceNames.split()
             
-        return self.subInstances
+        return self.subInstanceNames
 
-    def getVirtualInstances(self, section=LOCALHOST):
-        self.virtualInstances=[]
-        virtualInstances = self.get(section=section, option=self.VIRTUALINSTANCES)
-        if virtualInstances != None and len(virtualInstances) > 0:
-            self.virtualInstances = virtualInstances.split()
+    def getVirtualInstanceNames(self, section=LOCALHOST):
+        self.virtualInstanceNames=[]
+        virtualInstanceNames = self.get(section=section, option=self.VIRTUALINSTANCES)
+        if virtualInstanceNames != None and len(virtualInstanceNames) > 0:
+            self.virtualInstanceNames = virtualInstanceNames.split()
             
-        return self.virtualInstances
+        return self.virtualInstanceNames
     
     def getWho(self, section=LOCALHOST):
         who = self.get(section=section, option=self.WHO)
@@ -671,19 +671,19 @@ class Config(ConfigParser):
                 self.kind = Sensation.Kind.Other
         return self.kind
 
-    def getInstance(self, section=LOCALHOST):
+    def getInstanceType(self, section=LOCALHOST):
         from Sensation import Sensation
-        self.instance = Sensation.Instance.Real
-        instance = self.get(section=section, option=self.INSTANCE)
-        if instance != None and len(instance) > 0:
-            if instance == Sensation.Instances[Sensation.Instance.Real]:
-                self.instance = Sensation.Instance.Real
-            if instance == Sensation.Instances[Sensation.Instance.SubInstance]:
-                self.instance = Sensation.Instance.SubInstance
+        instanceType = Sensation.InstanceType.Real
+        instanceName = self.get(section=section, option=self.INSTANCE)
+        if instanceName != None and len(instanceName) > 0:
+            if instanceName == Sensation.InstanceTypes[Sensation.InstanceType.Real]:
+                instanceType = Sensation.InstanceType.Real
+            if instanceName == Sensation.InstanceTypes[Sensation.InstanceType.SubInstance]:
+                instanceType = Sensation.InstanceType.SubInstance
             else:
-                self.instance = Sensation.Instance.Virtual
+                instanceType = Sensation.InstanceType.Virtual
           
-        return self.instance
+        return instanceType
     
     def getMicrophone(self, section=LOCALHOST):
         try:
@@ -756,9 +756,21 @@ class Config(ConfigParser):
 
 class Capabilities():
     
-    def __init__(self, string=None, bytes=None, config=None):
+    def __init__(self,
+                 string=None,
+                 bytes=None,
+                 config=None,
+                 Or =None,
+                 And=None,
+                 deepCopy=None):
         if string is not None:
             self.fromString(string=string)
+        elif Or is not None:
+            self.Or(self, Or)
+        elif And is not None:
+            self.And(self, And)
+        elif deepCopy is not None:
+            self.deepCopy(self)
         else:            
             if bytes == None:
                 if config is None:
@@ -855,6 +867,65 @@ class Capabilities():
 #         self.is_chages = True
 #         if commit:
 #             self.commit()
+
+    '''
+    return capabilities that are true, is this one has a capability or other has it
+    '''
+    def Or(first, second):
+        from Sensation import Sensation
+        self.directions={}
+        i=0
+        # create three level dictionary about capabilitys by direction, by memory, by sensation type
+        for direction, _ in Sensation.Directions.items():
+            memorys={}
+            self.directions[direction] = memorys
+            for memory, _ in Sensation.Memorys.items():
+                capabilitys={}
+                memorys[memory] = capabilitys
+                for capability, _ in Sensation.SensationTypes.items():
+                    capabilitys[capability] = \
+                        first.directions[direction][memory][sensationType] or \
+                        second.directions[direction][memory][sensationType]
+                    i=i+1
+        
+    '''
+    return capabilities that are true, is this one has a capability and other has it
+    '''
+    def And(first, second):
+        from Sensation import Sensation
+        self.directions={}
+        i=0
+        # create three level dictionary about capabilitys by direction, by memory, by sensation type
+        for direction, _ in Sensation.Directions.items():
+            memorys={}
+            self.directions[direction] = memorys
+            for memory, _ in Sensation.Memorys.items():
+                capabilitys={}
+                memorys[memory] = capabilitys
+                for capability, _ in Sensation.SensationTypes.items():
+                    capabilitys[capability] = \
+                        first.directions[direction][memory][sensationType] and \
+                        second.directions[direction][memory][sensationType]
+                    i=i+1
+                    
+    '''
+    return deep copy of capabilities
+    '''
+    def deepCopy(capabilities):
+        from Sensation import Sensation
+        self.directions={}
+        i=0
+        # create three level dictionary about capabilitys by direction, by memory, by sensation type
+        for direction, _ in Sensation.Directions.items():
+            memorys={}
+            self.directions[direction] = memorys
+            for memory, _ in Sensation.Memorys.items():
+                capabilitys={}
+                memorys[memory] = capabilitys
+                for capability, _ in Sensation.SensationTypes.items():
+                    capabilitys[capability] = \
+                        capabilities.directions[direction][memory][sensationType] 
+                    i=i+1
         
         
         
@@ -886,17 +957,17 @@ if __name__ == '__main__':
     string=config.toString()
     config.fromString(string=string,section='string')
     
-    instance= config.getInstance()
-    print('Instance ' + str(instance))
+    instanceType= config.getInstanceType()
+    print('InstanceType ' + str(instanceType))
  
     kind= config.getKind()
     print('Kind ' + str(kind))
     
-    subInstances=  config.getSubInstances()
-    print('subInstances ' + str(subInstances))
+    subInstanceNames=  config.getSubInstanceNames()
+    print('subInstanceNames ' + str(subInstanceNames))
 
-    virtualInstances=  config.getVirtualInstances()
-    print('VirtualInstances ' + str(virtualInstances))
+    virtualInstanceNames=  config.getVirtualInstanceNames()
+    print('VirtualInstanceNames ' + str(virtualInstanceNames))
     
 
     

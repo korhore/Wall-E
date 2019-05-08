@@ -40,13 +40,13 @@ class AlsaAudioMicrophone(Robot):
 
     def __init__(self,
                  parent=None,
-                 instance=None,
+                 instanceName=None,
                  is_virtualInstance=False,
                  is_subInstance=False,
                  level=0):
         Robot.__init__(self,
                        parent=parent,
-                       instance=instance,
+                       instanceName=instanceName,
                        is_virtualInstance=is_virtualInstance,
                        is_subInstance=is_subInstance,
                        level=level)
@@ -81,7 +81,7 @@ class AlsaAudioMicrophone(Robot):
         self.debug_time=time.time()
         
     def run(self):
-        self.log(" Starting robot who " + self.config.getWho() + " kind " + self.config.getKind() + " instance " + self.config.getInstance())      
+        self.log(" Starting robot who " + self.config.getWho() + " kind " + self.config.getKind() + " instanceName " + self.config.getInstanceName())      
         
         # starting other threads/senders/capabilities
         
@@ -118,7 +118,7 @@ class AlsaAudioMicrophone(Robot):
         self.config.setMicrophoneVoiceAvegageLevel(voiceLevelAverage=self.average)
     
 
-         # stop virtual instances here, when main instance is not running any more
+         # stop virtual instances here, when main instanceName is not running any more
         for robot in self.subInstances:
             robot.stop()
        

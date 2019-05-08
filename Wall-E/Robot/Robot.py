@@ -73,7 +73,7 @@ class Robot(Thread):
 
     def __init__(self,
                  parent=None,
-                 instance=None,
+                 instanceName=None,
                  is_virtualInstance=False,
                  is_subInstance=False,
                  level=0):
@@ -85,9 +85,9 @@ class Robot(Thread):
         Thread.__init__(self)
         self.mode = Sensation.Mode.Starting
         self.parent = parent
-        self.instance=instance
-        if  self.instance is None:
-            self.instance = Config.DEFAULT_INSTANCE
+        self.instanceName=instanceName
+        if  self.instanceName is None:
+            self.instanceName = Config.DEFAULT_INSTANCE
         self.is_virtualInstance=is_virtualInstance
         self.is_subInstance=is_subInstance
         self.level=level+1
@@ -109,13 +109,13 @@ class Robot(Thread):
 
        
  
-        self.config = Config(instance=self.instance,
+        self.config = Config(instanceName=self.instanceName,
                  is_virtualInstance=self.is_virtualInstance,
                  is_subInstance=self.is_subInstance,
                  level=level)   # don't increase level, it has increased yet and Config has its own levels (that are same)
 
         self.capabilities = Capabilities(config=self.config)
-        self.log("init robot who " + self.getWho() + " kind " + self.config.getKind() + " instance " + self.config.getInstance())
+        self.log("init robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + self.config.getInstanceType())
         self.name = self.getWho()
         # global queue for senses and other robots to put sensations to robot
         # we create self.inAxon always ourselves, it is newer shared by others
@@ -130,13 +130,13 @@ class Robot(Thread):
         # Study our config. What subInstances we have.
              
                 #and create virtual instances
-        for subInstance in self.config.getSubInstances():
+        for subInstanceName in self.config.getSubInstanceNames():
             try:
-                module = subInstance+ '.' +subInstance
+                module = subInstanceName+ '.' + subInstanceName
                 imported_module = importlib.import_module(module)
-                print('init ' + subInstance)
-                robot = getattr(imported_module, subInstance)(parent=self,
-                                                              instance=subInstance,
+                print('init ' + subInstanceName)
+                robot = getattr(imported_module, subInstanceName)(parent=self,
+                                                              instanceName=subInstanceName,
                                                               is_virtualInstance=False,
                                                               is_subInstance=True,
                                                               level=self.level)
@@ -147,13 +147,13 @@ class Robot(Thread):
             except ImportError as e:
                 print("Import error, using default Robot for " + module + ' fix this ' + str(e))
 
-                robot = Robot(configFilePath=self.config.getSubinstanceConfigFilePath(subInstance),
+                robot = Robot(configFilePath=self.config.getSubinstanceConfigFilePath(subInstanceName),
                               parent=self)
                               #outAxon=self.inAxon)
             self.subInstances.append(robot)
 
-        for virtualInstance in self.config.getVirtualInstances():
-            robot = Robot(instance=virtualInstance,
+        for instanceName in self.config.getVirtualInstanceNames():
+            robot = Robot(instanceName=instanceName,
                           parent=self,
                           is_virtualInstance=True,
                           subInstance=False,
@@ -164,14 +164,14 @@ class Robot(Thread):
         # in main robot, set up TCPServer
         if self.level == 1:
             self.tcpServer=TCPServer(parent=self,
-                                     instance='TCPServer',
+                                     instanceName='TCPServer',
                                      is_virtualInstance=False,
                                      is_subInstance=True,
                                      level=self.level,
                                      address=(HOST,PORT))
             # for testing purposes, make SocketClient also
             self.socketClient=SocketClient(parent=self,
-                                     instance='testSocketClient',
+                                     instanceName='testSocketClient',
                                      is_virtualInstance=False,
                                      is_subInstance=True,
                                      level=self.level,
@@ -209,7 +209,19 @@ class Robot(Thread):
         return self.capabilities
     def setCapabilities(self, capabilities):
         self.capabilities = capabilities
+ 
+    def getMasterCapabilities(self):
+        if self.getParent() is not None:
+            return self.getParent().getMasterCapabilities()
         
+        return self.capabilities
+
+    def getLocalMasterCapabilities(self):
+        if self.getParent() is not None:
+            return self.getParent().getLocalMasterCapabilities()
+        
+        return self.capabilities
+       
     '''
     Has this instance this capability
     ''' 
@@ -245,7 +257,7 @@ class Robot(Thread):
 
     def run(self):
         self.running=True
-        self.log("run: Starting robot who " + self.getWho() + " kind " + self.config.getKind() + " instance " + self.config.getInstance())      
+        self.log("run: Starting robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + self.config.getInstanceType())      
         
         # starting other threads/senders/capabilities
         for robot in self.subInstances:
@@ -598,14 +610,14 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     def __init__(self,
                  address,
                  parent=None,
-                 instance=None,
+                 instanceName=None,
                  is_virtualInstance=False,
                  is_subInstance=False,
                  level=0):
 
         Robot.__init__(self,
                        parent=parent,
-                       instance=instance,
+                       instanceName=instanceName,
                        is_virtualInstance=is_virtualInstance,
                        is_subInstance=is_subInstance,
                        level=level)
@@ -673,7 +685,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                 socketServer = socketServerCandidate
                 self.log('createSocketServer: found SocketServer not running')
                 socketServer.__init__(parent=self.parent,
-                                      instance='SocketServer',
+                                      instanceName='SocketServer',
                                       is_virtualInstance=False,
                                       is_subInstance=True,
                                       level=self.level,
@@ -684,7 +696,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         if not socketServer:
             self.log('createSocketServer: creating new SocketServer')
             socketServer = SocketServer(parent=self.parent,
-                                        instance='SocketServer',
+                                        instanceName='SocketServer',
                                         is_virtualInstance=False,
                                         is_subInstance=True,
                                         level=self.level,
@@ -702,7 +714,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                 socketClient = socketClientCandidate
                 self.log('createSocketClient: found SocketClient not running')
                 socketClient.__init__(parent=self.parent,
-                                      instance='SocketClient',
+                                      instanceName='SocketClient',
                                       is_virtualInstance=False,
                                       is_subInstance=True,
                                       level=self.level,
@@ -713,7 +725,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         if not socketClient:
             self.log('createSocketClient: creating new SocketClient')
             socketClient = SocketClient(parent=self.parent,
-                                        instance='SocketClient',
+                                        instanceName='SocketClient',
                                         is_virtualInstance=False,
                                         is_subInstance=True,
                                         level=self.level,
@@ -729,14 +741,14 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                  address = None,
                  sock = None,
                  parent=None,
-                 instance=None,
+                 instanceName=None,
                  is_virtualInstance=False,
                  is_subInstance=False,
                  level=0,
                  socketServer=None):
         Robot.__init__(self,
                        parent=parent,
-                       instance=instance,
+                       instanceName=instanceName,
                        is_virtualInstance=is_virtualInstance,
                        is_subInstance=is_subInstance,
                        level=level)
@@ -919,7 +931,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                  sock, 
                  address,
                  parent=None,
-                 instance=None,
+                 instanceName=None,
                  is_virtualInstance=False,
                  is_subInstance=False,
                  level=0,
@@ -927,7 +939,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
 
         Robot.__init__(self,
                        parent=parent,
-                       instance=instance,
+                       instanceName=instanceName,
                        is_virtualInstance=is_virtualInstance,
                        is_subInstance=is_subInstance,
                        level=level)

@@ -20,13 +20,13 @@ class Seeing(Robot):
 
     def __init__(self,
                  parent=None,
-                 instance=None,
+                 instanceName=None,
                  is_virtualInstance=False,
                  is_subInstance=False,
                  level=0):
         Robot.__init__(self,
                        parent=parent,
-                       instance=instance,
+                       instanceName=instanceName,
                        is_virtualInstance=is_virtualInstance,
                        is_subInstance=is_subInstance,
                        level=level)
