@@ -31,14 +31,12 @@ class AlsaAudioPlayback(Robot):
     def __init__(self,
                  parent=None,
                  instanceName=None,
-                 is_virtualInstance=False,
-                 is_subInstance=False,
+                 instanceType = Sensation.InstanceType.SubInstance,
                  level=0):
         Robot.__init__(self,
                        parent=parent,
                        instanceName=instanceName,
-                       is_virtualInstance=is_virtualInstance,
-                       is_subInstance=is_subInstance,
+                       instanceType=instanceType,
                        level=level)
         print("We are in AlsaAudioPlayback, not Robot")
 
@@ -63,7 +61,7 @@ class AlsaAudioPlayback(Robot):
         self.debug_time=time.time()
         
     def run(self):
-        self.log(" Starting robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceName " + self.config.getInstanceName())      
+        self.log(" Starting robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))      
         
         
         self.running=True

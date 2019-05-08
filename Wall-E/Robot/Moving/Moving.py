@@ -1,6 +1,6 @@
 '''
 Created on 30.04.2019
-Updated on 01.05.2019
+Updated on 08.05.2019
 
 @author: reijo.korhonen@gmail.com
 '''
@@ -20,14 +20,12 @@ class Moving(Robot):
     def __init__(self,
                  parent=None,
                  instanceName=None,
-                 is_virtualInstance=False,
-                 is_subInstance=False,
+                 instanceType = Sensation.InstanceType.SubInstance,
                  level=0):
         Robot.__init__(self,
                        parent=parent,
                        instanceName=instanceName,
-                       is_virtualInstance=is_virtualInstance,
-                       is_subInstance=is_subInstance,
+                       instanceType=instanceType,
                        level=level)
         print("We are in Moving, not Robot")
         

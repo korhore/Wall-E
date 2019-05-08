@@ -94,20 +94,17 @@ class Config(ConfigParser):
 #    def __init__(self, config_file_path=CONFIG_FILE_PATH,
     def __init__(self,
                  instanceName=None,
-                 is_virtualInstance=False,
-                 is_subInstance=False,
+                 instanceType=None,
                  level=0):
         from Sensation import Sensation
         ConfigParser.__init__(self)
         self.instanceName=instanceName
-        self.is_virtualInstance=is_virtualInstance
-        self.is_subInstance=is_subInstance
+        self.instanceType=instanceType
         self.level=level+1
         self.is_changes=False # do we gave chanhes to save
 
         print("Config level " + str(self.level) + 
-              " is_virtualInstance " + str(self.is_virtualInstance) + 
-              " is_subInstance " + str(self.is_subInstance) )
+              " instanceType " + str(self.instanceType) )
        
         if  self.instanceName is None:
             self.instanceName = Config.DEFAULT_INSTANCE
@@ -127,8 +124,7 @@ class Config(ConfigParser):
         
         print("Config instanceName " + self.instanceName +
               " level " + str(self.level) + ' ' + self.config_file_path + 
-              " is_virtualInstance " + str(self.is_virtualInstance) + 
-              " is_subInstance " + str(self.is_subInstance) +
+              " instanceType " + str(self.instanceType) +
               " config_file_path " + self.config_file_path)
 
         
@@ -190,14 +186,12 @@ class Config(ConfigParser):
         if self.level <= 3:
             for instanceName in self.getVirtualInstanceNames():
                 config=Config(instanceName=instanceName,
-                              is_virtualInstance=True,
-                              is_subInstance=False,
+                              instanceType=Sensation.InstanceType.Virtual,
                               level=self.level)
                 
             for instanceName in self.getSubInstanceNames():
                 config=Config(instanceName=instanceName,
-                              is_virtualInstance=False,
-                              is_subInstance=True,
+                              instanceType=Sensation.InstanceType.SubInstance,
                               level=self.level)
 #             self.handleSubInstances(is_virtualInstance=False,
 #                                     is_subInstance=False)
@@ -208,16 +202,17 @@ class Config(ConfigParser):
                      
                     
                     
-    def handleSubInstances(self, is_virtualInstance):
-        if is_virtualInstance:
+    def handleSubInstances(self, instanceType):
+        instanceNames=[]
+        if instanceType == Sensation.InstanceType.Virtual:
             instanceNames=self.getVirtualInstanceNames()
-        else:
+        elif instanceType == Sensation.InstanceType.SubInstance:
             instanceNames=self.getSubInstanceNames()
 
         # relational subdirectory for virtual instanceName
         for instanceName in instanceNames:
             print('Handle  instanceName ' + instanceName)
-            if is_virtualInstance:
+            if instanceType == Sensation.InstanceType.Virtual:
                 directory = self.VIRTUALINSTANCES+'/'+instanceName
             else:
                 directory = instanceName
@@ -238,7 +233,7 @@ class Config(ConfigParser):
             config = Config(config_file_path=config_file_path, level=self.level)
            # finally set default that this is virtual instanceName
             #changes = False
-            if is_virtualInstance:                
+            if instanceType == Sensation.InstanceType.Virtual:                
                 try:
                     instanceName = config.get(Config.DEFAULT_SECTION, Config.INSTANCE)
                     if instanceName != Sensation.VIRTUAL:          
@@ -576,7 +571,7 @@ class Config(ConfigParser):
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION, Config.PLAYBACK, Config.EMPTY) exception ' + str(e))
             
-        if self.is_virtualInstance:                
+        if self.instanceType == Sensation.InstanceType.Virtual:                
             try:
                 instanceName = self.get(Config.DEFAULT_SECTION, Config.INSTANCE)
                 if instanceName != Sensation.VIRTUAL:          
@@ -584,7 +579,7 @@ class Config(ConfigParser):
                     self.is_changes=True
             except Exception as e:
                     print('self.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.VIRTUAL) exception ' + str(e))
-        if self.is_subInstance:                
+        if self.instanceType == Sensation.InstanceType.SubInstance:                
             try:
                 instanceName = self.get(Config.DEFAULT_SECTION, Config.INSTANCE)
                 if instanceName != Sensation.SUBINSTANCE:          

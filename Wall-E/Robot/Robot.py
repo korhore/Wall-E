@@ -74,8 +74,7 @@ class Robot(Thread):
     def __init__(self,
                  parent=None,
                  instanceName=None,
-                 is_virtualInstance=False,
-                 is_subInstance=False,
+                 instanceType = Sensation.InstanceType.Real,
                  level=0):
 # 
 #                  inAxon=None, # we read this as muscle functionality and getting
@@ -88,8 +87,7 @@ class Robot(Thread):
         self.instanceName=instanceName
         if  self.instanceName is None:
             self.instanceName = Config.DEFAULT_INSTANCE
-        self.is_virtualInstance=is_virtualInstance
-        self.is_subInstance=is_subInstance
+        self.instanceType=instanceType
         self.level=level+1
         
 #         self.inAxon = inAxon      # axon from up we read from up or from subInstances
@@ -110,9 +108,8 @@ class Robot(Thread):
        
  
         self.config = Config(instanceName=self.instanceName,
-                 is_virtualInstance=self.is_virtualInstance,
-                 is_subInstance=self.is_subInstance,
-                 level=level)   # don't increase level, it has increased yet and Config has its own levels (that are same)
+                             instanceType=self.instanceType,
+                             level=level)   # don't increase level, it has increased yet and Config has its own levels (that are same)
 
         self.capabilities = Capabilities(config=self.config)
         self.log("init robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + self.config.getInstanceType())
@@ -136,14 +133,9 @@ class Robot(Thread):
                 imported_module = importlib.import_module(module)
                 print('init ' + subInstanceName)
                 robot = getattr(imported_module, subInstanceName)(parent=self,
-                                                              instanceName=subInstanceName,
-                                                              is_virtualInstance=False,
-                                                              is_subInstance=True,
-                                                              level=self.level)
-                                                              #outAxon=self.inAxon)
-  
-                #robot = imported_module(configFilePath=self.config.getSubinstanceConfigFilePath(subInstance),
-                #                        outAxon=self.inAxon)
+                                                                  instanceName=subInstanceName,
+                                                                  instanceType= Sensation.InstanceType.SubInstance,
+                                                                  level=self.level)
             except ImportError as e:
                 print("Import error, using default Robot for " + module + ' fix this ' + str(e))
 
@@ -155,25 +147,21 @@ class Robot(Thread):
         for instanceName in self.config.getVirtualInstanceNames():
             robot = Robot(instanceName=instanceName,
                           parent=self,
-                          is_virtualInstance=True,
-                          subInstance=False,
+                          instanceType=Sensation.InstanceType.Virtual,
                           level=self.level)
-                          #outAxon=self.inAxon)
             self.subInstances.append(robot)
         
         # in main robot, set up TCPServer
         if self.level == 1:
             self.tcpServer=TCPServer(parent=self,
                                      instanceName='TCPServer',
-                                     is_virtualInstance=False,
-                                     is_subInstance=True,
+                                     instanceType=Sensation.InstanceType.Remote,
                                      level=self.level,
                                      address=(HOST,PORT))
             # for testing purposes, make SocketClient also
             self.socketClient=SocketClient(parent=self,
                                      instanceName='testSocketClient',
-                                     is_virtualInstance=False,
-                                     is_subInstance=True,
+                                     instanceType=Sensation.InstanceType.Remote,
                                      level=self.level,
                                      address=('localhost',PORT))
 
@@ -611,15 +599,13 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                  address,
                  parent=None,
                  instanceName=None,
-                 is_virtualInstance=False,
-                 is_subInstance=False,
+                 instanceType=Sensation.InstanceType.Remote,
                  level=0):
 
         Robot.__init__(self,
                        parent=parent,
                        instanceName=instanceName,
-                       is_virtualInstance=is_virtualInstance,
-                       is_subInstance=is_subInstance,
+                       instanceType=instanceType,
                        level=level)
         
         print("We are in TCPServer, not Robot")
@@ -686,8 +672,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                 self.log('createSocketServer: found SocketServer not running')
                 socketServer.__init__(parent=self.parent,
                                       instanceName='SocketServer',
-                                      is_virtualInstance=False,
-                                      is_subInstance=True,
+                                      instanceType=Sensation.InstanceType.Remote,
                                       level=self.level,
                                       address=address,
                                       sock=socket,
@@ -697,8 +682,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
             self.log('createSocketServer: creating new SocketServer')
             socketServer = SocketServer(parent=self.parent,
                                         instanceName='SocketServer',
-                                        is_virtualInstance=False,
-                                        is_subInstance=True,
+                                        instanceType=Sensation.InstanceType.Remote,
                                         level=self.level,
                                         address=address,
                                         sock=socket,
@@ -715,8 +699,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                 self.log('createSocketClient: found SocketClient not running')
                 socketClient.__init__(parent=self.parent,
                                       instanceName='SocketClient',
-                                      is_virtualInstance=False,
-                                      is_subInstance=True,
+                                      instanceType=Sensation.InstanceType.Remote,
                                       level=self.level,
                                       address=address,
                                       sock=socket,
@@ -726,8 +709,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
             self.log('createSocketClient: creating new SocketClient')
             socketClient = SocketClient(parent=self.parent,
                                         instanceName='SocketClient',
-                                        is_virtualInstance=False,
-                                        is_subInstance=True,
+                                        instanceType=Sensation.InstanceType.Remote,
                                         level=self.level,
                                         address=address,
                                         sock=socket,
@@ -742,15 +724,13 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                  sock = None,
                  parent=None,
                  instanceName=None,
-                 is_virtualInstance=False,
-                 is_subInstance=False,
+                 instanceType=Sensation.InstanceType.Remote,
                  level=0,
                  socketServer=None):
         Robot.__init__(self,
                        parent=parent,
                        instanceName=instanceName,
-                       is_virtualInstance=is_virtualInstance,
-                       is_subInstance=is_subInstance,
+                       instanceType=instanceType,
                        level=level)
 
         print("We are in SocketClient, not Robot")
@@ -932,16 +912,14 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                  address,
                  parent=None,
                  instanceName=None,
-                 is_virtualInstance=False,
-                 is_subInstance=False,
+                 instanceType=Sensation.InstanceType.Remote,
                  level=0,
                  socketClient = None):
 
         Robot.__init__(self,
                        parent=parent,
                        instanceName=instanceName,
-                       is_virtualInstance=is_virtualInstance,
-                       is_subInstance=is_subInstance,
+                       instanceType=instanceType,
                        level=level)
         
         print("We are in SocketServer, not Robot")
