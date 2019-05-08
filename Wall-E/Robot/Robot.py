@@ -145,8 +145,8 @@ class Robot(Thread):
             self.subInstances.append(robot)
 
         for instanceName in self.config.getVirtualInstanceNames():
-            robot = Robot(instanceName=instanceName,
-                          parent=self,
+            robot = Robot(parent=self,
+                          instanceName=instanceName,
                           instanceType=Sensation.InstanceType.Virtual,
                           level=self.level)
             self.subInstances.append(robot)
@@ -177,18 +177,14 @@ class Robot(Thread):
     
     def getAxon(self):
         return self.axon
-#     def setInAxon(self, inAxon):
-#         self.inAxon = inAxon
-# 
-#     def getOutAxon(self):
-#         return self.outAxon
-#     def setOutAxon(self, outAxon):
-#         self.outAxon = outAxon
        
     def getConfig(self):
         return self.config
     def setConfig(self, config):
         self.config = config
+        
+    def getInstanceType(self):
+        return self.config.getInstanceType
         
     def getSubInstances(self):
         return self.subInstances
@@ -198,17 +194,51 @@ class Robot(Thread):
     def setCapabilities(self, capabilities):
         self.capabilities = capabilities
  
+    '''
+    get capabilities that main robot or all Sub,Virtual and Remote instances have
+    We traverse to main robot and get orrred capabilities of all subinstances
+    '''
     def getMasterCapabilities(self):
         if self.getParent() is not None:
-            return self.getParent().getMasterCapabilities()
-        
-        return self.capabilities
-
+            capabilities =  self.getParent().getLocalMasterCapabilities()
+        else:   # we are parent, get our ans subcapalities orred
+            capabilities = Capabilities(deepCopy=self.getCapabilities())
+            for robot in self.getSubInstances():
+                capabilities.Or(robot._getCapabilities())
+                                    
+        return capabilities
+    
+    def _getCapabilities(self):
+        capabilities = Capabilities(deepCopy=self.getCapabilities())
+        for robot in self.getSubInstances():
+            capabilities.Or(robot._getLocalCapabilities())
+                                   
+        return capabilities
+    '''
+    get capabilities that main robot or all Sub and virtual instances have
+    We traverse to main robot and get orrred capabilities of all subinstances not remote
+    '''
+    
     def getLocalMasterCapabilities(self):
         if self.getParent() is not None:
-            return self.getParent().getLocalMasterCapabilities()
-        
-        return self.capabilities
+            capabilities =  self.getParent().getLocalMasterCapabilities()
+        else:   # we are parent, get our ans subcapalities orred
+            capabilities = Capabilities(deepCopy=self.getCapabilities())
+            for robot in self.getSubInstances():
+                if robot.getInstanceType() == Sensation.InstanceType.SubInstance or \
+                   robot.getInstanceType() == Sensation.InstanceType.Virtual:
+                    capabilities.Or(robot._getLocalCapabilities())
+                                    
+        return capabilities
+
+    def _getLocalCapabilities(self):
+        capabilities = Capabilities(deepCopy=self.getCapabilities())
+        for robot in self.getSubInstances():
+            if robot.getInstanceType() == Sensation.InstanceType.SubInstance or \
+               robot.getInstanceType() == Sensation.InstanceType.Virtual:
+                capabilities.Or(robot._getLocalMasterCapabilities())
+                                    
+        return capabilities
        
     '''
     Has this instance this capability
@@ -780,8 +810,13 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
             self.running =  SocketClient.sendSensation(sensation=sensation, socket=self.socket, address=self.address)
             self.log('run: done sendSensation(sensation=Sensation(sensationType = Sensation.SensationType.Who), socket=self.socket,'  + str(self.address) + ')')
             if self.running:
-                 # tell our capabilities
-                capabilities=self.getLocalCapabilities()
+                 # tell our local capabilities
+                 # it is important to deliver only local capabilities to the remote,
+                 # because other way we would deliver back remote's own capabilities we don't have and
+                 # remote would and we to do something that it only can do and
+                 # we would route sensation back to remote, which routes it back to us
+                 # in infinite loop
+                capabilities=self.getLocalMasterCapabilities()
                 self.log('run: capabilities '  + capabilities.toString())
                 sensation=Sensation(sensationType = Sensation.SensationType.Capability, capabilities=self.getLocalCapabilities())
                 self.log('run: Sensation(sensationType = Sensation.SensationType.Capability, capabilities=self.getLocalCapabilities()), socket=self.socket,'  + str(self.address) + ')')

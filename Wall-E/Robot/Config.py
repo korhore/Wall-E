@@ -761,11 +761,11 @@ class Capabilities():
         if string is not None:
             self.fromString(string=string)
         elif Or is not None:
-            self.Or(self, Or)
+            self.Or(Or)
         elif And is not None:
-            self.And(self, And)
+            self.And(And)
         elif deepCopy is not None:
-            self.deepCopy(self)
+            self.deepCopy(deepCopy)
         else:            
             if bytes == None:
                 if config is None:
@@ -856,60 +856,41 @@ class Capabilities():
     '''
     Setter to set if single capability is set
     '''
-    def setCapanility(self, direction, memory, sensationType, is_set, commit=True):
+    def setCapability(self, direction, memory, sensationType, is_set):
         self.directions[direction][memory][sensationType] = is_set
-        # TODO change is only in our data sytucture, so configure file would not be changed
-#         self.is_chages = True
-#         if commit:
-#             self.commit()
 
     '''
     return capabilities that are true, is this one has a capability or other has it
     '''
-    def Or(first, second):
+    def Or(self, other):
         from Sensation import Sensation
-        self.directions={}
-        i=0
         # create three level dictionary about capabilitys by direction, by memory, by sensation type
         for direction, _ in Sensation.Directions.items():
-            memorys={}
-            self.directions[direction] = memorys
             for memory, _ in Sensation.Memorys.items():
-                capabilitys={}
-                memorys[memory] = capabilitys
-                for capability, _ in Sensation.SensationTypes.items():
-                    capabilitys[capability] = \
-                        first.directions[direction][memory][sensationType] or \
-                        second.directions[direction][memory][sensationType]
-                    i=i+1
+                for sensationType, _ in Sensation.SensationTypes.items():
+                    self.directions[direction][memory][sensationType] = \
+                        self.directions[direction][memory][sensationType] or \
+                        other.directions[direction][memory][sensationType]
         
     '''
     return capabilities that are true, is this one has a capability and other has it
     '''
-    def And(first, second):
+    def And(self, other):
         from Sensation import Sensation
-        self.directions={}
-        i=0
         # create three level dictionary about capabilitys by direction, by memory, by sensation type
         for direction, _ in Sensation.Directions.items():
-            memorys={}
-            self.directions[direction] = memorys
             for memory, _ in Sensation.Memorys.items():
-                capabilitys={}
-                memorys[memory] = capabilitys
-                for capability, _ in Sensation.SensationTypes.items():
-                    capabilitys[capability] = \
-                        first.directions[direction][memory][sensationType] and \
-                        second.directions[direction][memory][sensationType]
-                    i=i+1
+                for sensationType, _ in Sensation.SensationTypes.items():
+                    self.directions[direction][memory][sensationType] = \
+                        self.directions[direction][memory][sensationType] and \
+                        other.directions[direction][memory][sensationType]
                     
     '''
     return deep copy of capabilities
     '''
-    def deepCopy(capabilities):
+    def deepCopy(self, capabilities):
         from Sensation import Sensation
         self.directions={}
-        i=0
         # create three level dictionary about capabilitys by direction, by memory, by sensation type
         for direction, _ in Sensation.Directions.items():
             memorys={}
@@ -917,11 +898,29 @@ class Capabilities():
             for memory, _ in Sensation.Memorys.items():
                 capabilitys={}
                 memorys[memory] = capabilitys
-                for capability, _ in Sensation.SensationTypes.items():
-                    capabilitys[capability] = \
-                        capabilities.directions[direction][memory][sensationType] 
-                    i=i+1
+                for sensationType, _ in Sensation.SensationTypes.items():
+#                     #capabilitys[sensationType] = \
+#                         #capabilities.directions[direction][memory][sensationType]
+#                         print("deepCopy direction " + str(direction) + " memory " + str(memory) + " sensationType " + str(sensationType))
+#                         directionDict=capabilities.directions[direction]
+#                         mem=directionDict[memory]
+#                         sens=mem[sensationType]
+#                         capabilitys[sensationType] = sens
+                        capabilitys[sensationType] = capabilities.directions[direction][memory][sensationType]
         
+#         for direction in list(Sensation.Direction):
+#             memorys={}
+#             self.directions[direction] = memorys
+#             for memory in list(Sensation.Memory):
+#                 capabilitys={}
+#                 memorys[memory] = capabilitys
+#                 for sensationType in list(Sensation.SensationType):
+#                     #capabilitys[sensationType] = \
+#                         #capabilities.directions[direction][memory][sensationType]
+#                         print("deepCopy direction " + str(direction) + " memory " + str(memory) + " sensationType " + str(sensationType))
+#                         direction=capabilities.directions[direction]
+#                         mem=direction[memory]
+#                         sens=mem[sensationType]
         
         
 '''
@@ -977,32 +976,49 @@ if __name__ == '__main__':
     print('b2 ' + str(b))
     print ('should be b == b2 True ', str(b==b2))
     
+    capabilities2 = Capabilities(bytes=b)
+    b2 = capabilities2.toBytes()
+    print('b2 ' + str(b))
+    print ('should be b == b2 True ', str(b==b2))
+    print ('should be capabilities == capabilities2 True ', str(capabilities==capabilities2))
+
+    
     string = capabilities.toString()
     print('string  ' + string)
     capabilities.fromString(string=string)
     string2 = capabilities.toString()
     print('string2 ' + string2)
     print ('should be string == string2 True ', str(string == string2))
+    
+    test(name="original", capabilities=capabilities)
+    capabilities2 = Capabilities(deepCopy=capabilities)
+    test(name="deepCopy", capabilities=capabilities2)
+    print ('should be deepCopy capabilities  == capabilities2 True ', str(capabilities == capabilities2))
 
     
     #test
-    test(name="default", capabilities=capabilities)
+    test(name="capabilities", capabilities=capabilities)
+    test(name="capabilities2", capabilities=capabilities2)
  
     # set all True 
     print ("Set all True")
     for direction, directionStr in Sensation.Directions.items():
         for memory, memoryStr in Sensation.Memorys.items():
             for capability, capabilityStr in Sensation.SensationTypes.items():
-                capabilities.setCapanility(direction, memory, capability, True)
+                capabilities.setCapability(direction, memory, capability, True)
     test(name="Set all True", capabilities=capabilities)
+    capabilities.And(other=capabilities2)
+    test(name="Set all True capabilities And capabilities2", capabilities=capabilities)
 
      # set all False 
     print ("Set all False")
     for direction, directionStr in Sensation.Directions.items():
         for memory, memoryStr in Sensation.Memorys.items():
             for capability, capabilityStr in Sensation.SensationTypes.items():
-                capabilities.setCapanility(direction, memory, capability, False)
+                capabilities.setCapability(direction, memory, capability, False)
     test(name="Set all False", capabilities=capabilities)
+    capabilities.Or(other=capabilities2)
+    test(name="Set all False Or capabilities2", capabilities=capabilities)
 
     #config=Config()
     capabilities=Capabilities(config=config)

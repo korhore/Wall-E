@@ -102,6 +102,7 @@ class Sensation(object):
     IMAGEDATA="ImageData"
     CALIBRATE="Calibrate"
     CAPABILITY="Capability"
+    UNKNOWN="Unknown"
     KIND="Kind"
     WALLE="Wall-E"
     EVA="Eva"
@@ -130,12 +131,13 @@ class Sensation(object):
                SensationType.Acceleration: ACCELERATION,
                SensationType.Observation: OBSERVATION,
                SensationType.HearDirection: HEARDIRECTION,
-               SensationType.VoiceFilePath:VOICEFILEPATH,
-               SensationType.VoiceData:VOICEDATA,
+               SensationType.VoiceFilePath: VOICEFILEPATH,
+               SensationType.VoiceData: VOICEDATA,
                SensationType.ImageFilePath: IMAGEFILEPATH,
                SensationType.ImageData: IMAGEDATA,
                SensationType.Calibrate: CALIBRATE,
-               SensationType.Capability: CAPABILITY}
+               SensationType.Capability: CAPABILITY,
+               SensationType.Unknown: UNKNOWN}
     Kinds={Kind.WallE: WALLE,
            Kind.Eva: EVA,
            Kind.Other: OTHER}
