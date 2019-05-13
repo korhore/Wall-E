@@ -57,13 +57,13 @@ class Config(ConfigParser):
     LOCALHOST =         'localhost' 
     MEMORY =            'memory'
 #    Microphones =       'MICROPHONES' 
-    HOSTS =             'hosts' 
     WHO =               'Who' 
     WALLE =             'Wall-E'
     KIND =              "Kind"
     INSTANCE =          "Instance"
     VIRTUALINSTANCES =  "Virtualinstances"
     SUBINSTANCES =      "Subinstances"
+    HOSTS =             "Hosts"
     IDENTITYS =         "Identitys"
 
     MICROPHONE =                   'microphone'
@@ -82,6 +82,8 @@ class Config(ConfigParser):
     FALSE=              'False'
     NONE=               'None'
     EMPTY=              ''
+    RASPBERRY=          'raspberry'
+    #RASPBERRY=          '127.0.0.1'
     ZERO=               '0.0'
     DEFAULT_SUBINSTANCES=  'Seeing Hearing Moving'
   
@@ -258,6 +260,8 @@ class Config(ConfigParser):
                 except Exception as e:
                     print('config.write(configfile) ' + str(e))
 
+    def getConfigFilePath(self):
+        return self.config_file_path
                     
     def getIdentityDirPath(self, kind):
         from Sensation import Sensation
@@ -500,7 +504,8 @@ class Config(ConfigParser):
 
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.HOSTS):
-                self.set(Config.DEFAULT_SECTION,Config.HOSTS, Config.EMPTY)
+#                self.set(Config.DEFAULT_SECTION,Config.HOSTS, Config.EMPTY)
+                self.set(Config.DEFAULT_SECTION,Config.HOSTS, Config.RASPBERRY)
                 self.is_changes=True
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION,Config.HOSTS, Config.EMPTY) exception ' + str(e))
@@ -513,14 +518,14 @@ class Config(ConfigParser):
                     self.set(Config.DEFAULT_SECTION,Config.SUBINSTANCES, Config.EMPTY)
                 self.is_changes=True
         except Exception as e:
-            print('self.set(Config.DEFAULT_SECTION,Config.HOSTS, Config.EMPTY) exception ' + str(e))
+            print('self.set(Config.DEFAULT_SECTION,Config.SUBINSTANCES, Config.EMPTY) exception ' + str(e))
 
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.VIRTUALINSTANCES):
                 self.set(Config.DEFAULT_SECTION,Config.VIRTUALINSTANCES, Config.EMPTY)
                 self.is_changes=True
         except Exception as e:
-            print('self.set(Config.DEFAULT_SECTION,Config.HOSTS, Config.EMPTY) exception ' + str(e))
+            print('self.set(Config.DEFAULT_SECTION,Config.VIRTUALINSTANCES, Config.EMPTY) exception ' + str(e))
 
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.MICROPHONE):
@@ -647,6 +652,17 @@ class Config(ConfigParser):
             self.virtualInstanceNames = virtualInstanceNames.split()
             
         return self.virtualInstanceNames
+    
+    def getHostNames(self, section=LOCALHOST):
+        self.hostNames=[]
+        hostNames = self.get(section=section, option=self.HOSTS)
+        if hostNames != None and len(hostNames) > 0:
+            self.hostNames = hostNames.split()
+        else: #test
+            self.hostNames = [Config.RASPBERRY,]
+            
+            
+        return self.hostNames
     
     def getWho(self, section=LOCALHOST):
         who = self.get(section=section, option=self.WHO)
@@ -948,7 +964,7 @@ if __name__ == '__main__':
     b=config.toBytes()
     config.fromBytes(b=b,section='bytes')
 
-    string=config.toString()
+    string = config.toString()
     config.fromString(string=string,section='string')
     
     instanceType= config.getInstanceType()
@@ -957,12 +973,14 @@ if __name__ == '__main__':
     kind= config.getKind()
     print('Kind ' + str(kind))
     
-    subInstanceNames=  config.getSubInstanceNames()
+    subInstanceNames = config.getSubInstanceNames()
     print('subInstanceNames ' + str(subInstanceNames))
 
-    virtualInstanceNames=  config.getVirtualInstanceNames()
+    virtualInstanceNames = config.getVirtualInstanceNames()
     print('VirtualInstanceNames ' + str(virtualInstanceNames))
     
+    hostNames = config.getHostNames()
+    print('HostNames ' + str(hostNames))
 
     
     #capabilities

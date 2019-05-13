@@ -26,8 +26,9 @@ from Sensation import Sensation
 class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
     def __init__(self,
-                 address,
-                 socket = None,
+                 address = None,
+                 remoteHost=None,
+                 sock = None,
                  parent=None,
                  instance=None,
                  is_virtualInstance=False,
@@ -42,10 +43,24 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
 
         print("We are in SocketClient, not Robot")
         self.queue=queue
-        self.socket=socket
+        self.socket=sock
         self.address=address
         self.name = str(address)
+        self.remoteHost=remoteHost
+
         self.running=False
+ 
+        if self.socket is None:       
+            try:
+                self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                # Connect to server
+                self.log('__init__: ' + 'self.socket.connect(' + str(self.address) + ')')
+                self.address=(self.remoteHost, PORT)
+                self.socket.connect(self.address)
+                self.log('__init__: ' + 'connected' + str(self.address))
+            except Exception as err: 
+                self.log('__init__: ' + 'elf.socket.connect error ' + str(err))
+
         
     def process(self, sensation):
         self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + sensation.toDebugStr())

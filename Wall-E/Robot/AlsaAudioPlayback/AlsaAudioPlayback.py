@@ -45,15 +45,23 @@ class AlsaAudioPlayback(Robot):
         self.channels=AlsaAudioPlayback.CHANNELS
         self.rate = AlsaAudioPlayback.RATE
         self.format = AlsaAudioPlayback.FORMAT
+        
+        try:
+            self.log("alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK, mode=alsaaudio.PCM_NORMAL, device=" + self.device + ')')
+            self.outp = alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK, mode=alsaaudio.PCM_NORMAL, device=self.device)
+            # Set attributes: Mono, 44100 Hz, 16 bit little endian samples
+            self.log("self.outp.setchannels(self.channels")
+            self.outp.setchannels(self.channels)
+            self.outp.setrate(self.rate)
+            self.outp.setformat(self.format)
+            self.outp.setperiodsize(2048) #32 160
+            self.ok=True
+            self.log('cardname ' + self.outp.cardname())
+        except Exception as e:
+            print ("AlsaAudioPlayback exception " + str(e))
+            self.ok=False
+
  
-        self.outp = alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK, mode=alsaaudio.PCM_NORMAL, device=self.device)
-        # Set attributes: Mono, 44100 Hz, 16 bit little endian samples
-        self.outp.setchannels(self.channels)
-        self.outp.setrate(self.rate)
-        self.outp.setformat(self.format)
-        self.outp.setperiodsize(2048) #32 160
- 
-        self.log('cardname ' + self.outp.cardname())
 
         self.running=False
         self.on=False
@@ -61,33 +69,33 @@ class AlsaAudioPlayback(Robot):
         self.debug_time=time.time()
         
     def run(self):
-        self.log(" Starting robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))      
-        
-        
-        self.running=True
-                
-        # live until stopped
-        self.mode = Sensation.Mode.Normal
-        while self.running:
-            sensation=self.axon.get()
-            self.log("got sensation from queue " + sensation.toDebugStr())
-            # if we get something we can do    
-            if sensation.getSensationType() == Sensation.SensationType.VoiceData:
-                self.log('run: Sensation.SensationType.VoiceData self.outp.write(sensation.getVoiceData()')
-                self.outp.write(sensation.getVoiceData())
-            elif sensation.getSensationType() == Sensation.SensationType.Stop:
-                self.log('run: SensationSensationType.Stop')      
-                self.stop()
-
-        self.mode = Sensation.Mode.Stopping
-        self.log("Stopping AlsaAudioPlayback")
+        if self.ok:
+            self.log("Starting robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))
+            
+            self.running=True
+                    
+            # live until stopped
+            self.mode = Sensation.Mode.Normal
+            while self.running:
+                sensation=self.axon.get()
+                self.log("got sensation from queue " + sensation.toDebugStr())
+                # if we get something we can do    
+                if sensation.getSensationType() == Sensation.SensationType.VoiceData:
+                    self.log('run: Sensation.SensationType.VoiceData self.outp.write(sensation.getVoiceData()')
+                    self.outp.write(sensation.getVoiceData())
+                elif sensation.getSensationType() == Sensation.SensationType.Stop:
+                    self.log('run: SensationSensationType.Stop')      
+                    self.stop()
     
-
-         # stop virtual instances here, when main instanceName is not running any more
-        for robot in self.subInstances:
-            robot.stop()
-       
-        self.log("run ALL SHUT DOWN")
+            self.mode = Sensation.Mode.Stopping
+            self.log("Stopping AlsaAudioPlayback")
+        
+    
+             # stop virtual instances here, when main instanceName is not running any more
+            for robot in self.subInstances:
+                robot.stop()
+           
+            self.log("run ALL SHUT DOWN")
                     
 
 
