@@ -983,6 +983,7 @@ class Sensation(object):
         elif self.sensationType == Sensation.SensationType.Capability:
             bytes = self.getCapabilities().toBytes()
             capabilities_size=len(bytes)
+            print("capabilities_size " + str(capabilities_size))
             b += capabilities_size.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
             b += bytes
             

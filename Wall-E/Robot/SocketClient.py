@@ -68,7 +68,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
             self.log('process: SensationSensationType.Stop')      
             self.stop()
 
-        # We hanhandle only sensarion going in-direction
+        # We handle only sensation going in-direction
         elif sensation.getDirection() == Sensation.Direction.In:
              self.running = SocketClient.sendSensation(sensation, self.socket, self.address)                
 
@@ -125,16 +125,17 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
     and after that us
     '''
     def stop(self):
-        print(self.name + ":stop") 
+        self.log('stop')
         SocketClient.sendSensation(sensation=Sensation(number=0, sensationType = Sensation.SensationType.Stop), socket=self.socket, address=self.address)
         self.running = False
 
         self.socket.close()
+        super(SocketClient, self).stop()
 
     '''
     Global method for stopping remote host
     '''
-    def stop(socket, address):
-        print("SocketClient:stop") 
-        SocketClient.sendSensation(sensation=Sensation(number=0, sensationType = Sensation.SensationType.Stop), socket=socket, address=address)
+#     def stop(socket, address):
+#         print("SocketClient:stop") 
+#         SocketClient.sendSensation(sensation=Sensation(number=0, sensationType = Sensation.SensationType.Stop), socket=socket, address=address)
 
