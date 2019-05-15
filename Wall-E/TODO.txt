@@ -26,10 +26,13 @@ Main architecture
   can know about us and what we handle from them. All network robots capabilities
   should be False by default
 
-- Make tcp-clients to be virtual insyances of Robot
+- tcp-clients and servers have tyoe remote to distict fron local robots
+
+TODO Add serverpath to Sensations to avoid sensation be tranferred to
+one server and then back again.
   
     
- - OK Make Capabilities-class. Can be iplemented in Config. In confif should be
+ - OK Make Capabilities-class. Can be iplemented in Config. In config should be
    anyway hosts, property, where we Aass hosts that have contacted us and
    hosts that we add manually. Start with this.
    

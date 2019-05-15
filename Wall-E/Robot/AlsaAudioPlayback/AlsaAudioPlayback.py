@@ -80,9 +80,9 @@ class AlsaAudioPlayback(Robot):
                 sensation=self.axon.get()
                 self.log("got sensation from queue " + sensation.toDebugStr())
                 # if we get something we can do    
-                if sensation.getSensationType() == Sensation.SensationType.VoiceData:
+                if sensation.getSensationType() == Sensation.SensationType.Voice:
                     self.log('run: Sensation.SensationType.VoiceData self.outp.write(sensation.getVoiceData()')
-                    self.outp.write(sensation.getVoiceData())
+                    self.outp.write(sensation.getData())
                 elif sensation.getSensationType() == Sensation.SensationType.Stop:
                     self.log('run: SensationSensationType.Stop')      
                     self.stop()
