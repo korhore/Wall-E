@@ -14,6 +14,7 @@ import random
 
 #def enum(**enums):
 #    return type('Enum', (), enums)
+LIST_SEPARATOR=':'
 
 def enum(*sequential, **named):
     enums = dict(zip(sequential, range(len(sequential))), **named)
@@ -29,6 +30,33 @@ def bytesToStr(b):
     except UnicodeDecodeError as e:
         print ('UnicodeDecodeError ' + str(e))
         return ''
+    
+def listToBytes(l):
+    ret_s = ''
+    if l is not None:
+        i=0
+        for s in l:
+            if len(ret_s) > 0:
+                if i == 0:
+                    ret_s = s
+                else:
+                    ret_s += LIST_SEPARATOR + str(s)
+                i = i+1
+            else:
+                ret_s = s
+    return StrToBytes(ret_s)
+    
+def bytesToList(b):
+    ret_s = bytesToStr(b)
+    return ret_s.split(LIST_SEPARATOR)
+
+def strListToFloatList(l):
+    ret_s = []
+    if l is not None:
+        for s in l:
+            ret_s.append(float(s))
+    return ret_s
+
 
 def floatToBytes(f):
     return bytearray(struct.pack(Sensation.FLOAT_PACK_TYPE, f)) 
@@ -117,17 +145,17 @@ class Sensation(object):
       
     Directions={Direction.In: IN,
                 Direction.Out: OUT}
-    DirectionsOrdered=[
+    DirectionsOrdered=(
                 Direction.In,
-                Direction.Out]
+                Direction.Out)
     
     Memorys = {Memory.Sensory: SENSORY,
                Memory.Working: WORKING,
                Memory.LongTerm: LONG_TERM}
-    MemorysOrdered = [
+    MemorysOrdered = (
                Memory.Sensory,
                Memory.Working,
-               Memory.LongTerm]
+               Memory.LongTerm)
     
     SensationTypes={
                SensationType.Drive: DRIVE,
@@ -142,7 +170,7 @@ class Sensation(object):
                SensationType.Calibrate: CALIBRATE,
                SensationType.Capability: CAPABILITY,
                SensationType.Unknown: UNKNOWN}
-    SensationTypesOrdered=[
+    SensationTypesOrdered=(
                SensationType.Drive,
                SensationType.Stop,
                SensationType.Who,
@@ -154,7 +182,7 @@ class Sensation(object):
                SensationType.Image,
                SensationType.Calibrate,
                SensationType.Capability,
-               SensationType.Unknown]
+               SensationType.Unknown)
     
     Kinds={Kind.WallE: WALLE,
            Kind.Eva: EVA,
@@ -249,6 +277,7 @@ class Sensation(object):
                  time=None,
                  reference_time=None,
                  references=[],
+                 receivedFrom=[],
                  sensationType = SensationType.Unknown,
                  memory=Memory.Sensory,
                  direction=Direction.In,
@@ -284,6 +313,7 @@ class Sensation(object):
         # references are always both way
         if sensation is not None:   # copy contructor
             self.references=sensation.references
+            self.receivedFrom=sensation.receivedFrom
             self.sensationType = sensation.sensationType
             self.memory = sensation.memory
             self.direction = sensation.direction
@@ -307,6 +337,12 @@ class Sensation(object):
                 references=[]
             self.references=[]
             self.addReferences(references)
+           
+            if receivedFrom == None:
+                receivedFrom=[]
+            self.receivedFrom=[]
+            self.addReceivedFrom(receivedFrom)
+
                 
             self.sensationType = sensationType
             self.memory = memory
@@ -422,15 +458,25 @@ class Sensation(object):
     #                         self.sensationType = Sensation.SensationType.Unknown
                         #print self.sensationType
     
-                        if len(params) >= last_param:
-                                # TODO uncode string of params
-                            str_reference_numbers = params[last_param:]
-                            reference_numbers=[]
-                            for str_reference_number in str_reference_numbers:
-                                print("reference number:"  + str_reference_number)
-                                reference_numbers.append(float(str_reference_number))
-                            self.addReferenceNumbers(reference_numbers)
-    
+#                         if len(params) >= last_param:
+#                                 # TODO uncode string of params
+#                             str_reference_numbers = params[last_param]
+#                             reference_numbers=[]
+#                             for str_reference_number in str_reference_numbers:
+#                                 print("reference number:"  + str_reference_number)
+#                                 reference_numbers.append(float(str_reference_number))
+#                             self.addReferenceNumbers(reference_numbers)
+                            
+                        if len(params) > last_param:
+                            reference_numbers = strListToFloatList(params[last_param].split(LIST_SEPARATOR))
+                            self.addReferenceNumbers(reference_numbers)                      
+                            last_param = last_param+1
+                        
+                        if len(params) > last_param:
+                            receivedFrom = params[last_param].split(LIST_SEPARATOR)
+                            self.addReceivedFrom(receivedFrom)
+                            last_param = last_param+1
+   
                 except (ValueError):
                     print((traceback.format_exc()))
                     self.sensationType = Sensation.SensationType.Unknown
@@ -540,14 +586,14 @@ class Sensation(object):
         #Sensation.getSensationTypeStrings() # test
 
     '''
-    Constructor that take care, that we have only one instace
+    Constructor that take care, that we have only one instance
     per Sensation per number
     
     This is needed if we want handle references properly.
     It is not allowed to have many instances of same Sensation,
     because it brakes sensation associations.
     
-    Parameters are exactly same than in default constsructor
+    Parameters are exactly same than in default constructor
     '''
        
     def create(  sensation=None,
@@ -557,6 +603,7 @@ class Sensation(object):
                  time=None,
                  reference_time=None,
                  references=[],
+                 receivedFrom=[],
                  sensationType = SensationType.Unknown,
                  memory=Memory.Sensory,
                  direction=Direction.In,
@@ -593,6 +640,7 @@ class Sensation(object):
                  time=time,
                  reference_time=reference_time,
                  references=references,
+                 receivedFrom=receivedFrom,
                  sensationType = sensationType,
                  memory=memory,
                  direction=direction,
@@ -618,6 +666,11 @@ class Sensation(object):
             references=[]
         sensation.references=[]
         sensation.addReferences(references)
+                
+        if receivedFrom == None:
+            receivedFrom=[]
+        sensation.receivedFrom=[]
+        sensation.addReceivedFrom(receivedFrom)
                 
         sensation.sensationType = sensationType
         sensation.memory = memory
@@ -731,15 +784,25 @@ class Sensation(object):
         #                     else:
         #                         sensation.sensationType = Sensation.SensationType.Unknown
                             #print sensation.sensationType
-        
-                        if len(params) >= last_param:
-                                # TODO uncode string of params
-                            str_reference_numbers = params[last_param:]
-                            reference_numbers=[]
-                            for str_reference_number in str_reference_numbers:
-                                print("reference number:"  + str_reference_number)
-                                reference_numbers.append(float(str_reference_number))
-                            sensation.addReferenceNumbers(reference_numbers)
+                        if len(params) > last_param:
+                            reference_numbers = strListToFloatList(params[last_param].split(LIST_SEPARATOR))
+                            sensation.addReferenceNumbers(reference_numbers)                      
+                            last_param = last_param+1
+                        
+                        if len(params) > last_param:
+                            receivedFrom = params[last_param].split(LIST_SEPARATOR)
+                            sensation.addReceivedFrom(receivedFrom)
+                            last_param = last_param+1
+                        
+       
+#                         if len(params) >= last_param:
+#                                 # TODO uncode string of params
+#                             str_reference_numbers = params[last_param:]
+#                             reference_numbers=[]
+#                             for str_reference_number in str_reference_numbers:
+#                                 print("reference number:"  + str_reference_number)
+#                                 reference_numbers.append(float(str_reference_number))
+#                             sensation.addReferenceNumbers(reference_numbers)
         
                 except (ValueError):
                     print((traceback.format_exc()))
@@ -840,8 +903,13 @@ class Sensation(object):
                     referenceNumbers.append(bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE]))
                     i += Sensation.FLOAT_PACK_SIZE
                 sensation.addReferenceNumbers(referenceNumbers)
-    
-     
+                
+                 #  at the end receivedFros (list of words)
+                receivedFrom_size = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
+                print("receivedFrom_size " + str(receivedFrom_size))
+                i += Sensation.NUMBER_SIZE
+                sensation.receivedFrom = bytesToList(bytes[i:i+receivedFrom_size])
+                i += receivedFrom_size
     
             except (ValueError):
                 sensation.sensationType = Sensation.SensationType.Unknown
@@ -894,16 +962,32 @@ class Sensation(object):
 #         else:
 #             pass
 
-#        # at the end references (numbers)
+#        # at the end references (numbers) TODO
+        s += ' '
+        i=0
         for reference in self.references:
-            s +=  ' ' + str(reference.getNumber())
+            if i == 0:
+                 s += str(reference.getNumber())
+            else:
+                s += LIST_SEPARATOR + str(reference.getNumber())
+            i = i+1
+#        # at the end receivedFrom
+        s += ' '
+        i=0
+        for host in self.receivedFrom:
+            if i == 0:
+                 s += host
+            else:
+                s += LIST_SEPARATOR + host
+            i = i+1
+            
         return s
 
     '''
     Printable string
     '''
     def toDebugStr(self):
-        # we cand make yet printable bytes, but as a debug purpuses, it is rare neended
+        # we cand make yet printable bytes, but as a debug purposes, it is rare neended
         if self.sensationType == Sensation.SensationType.Voice:
             s=str(self.number) + ' ' + str(self.time) + ' ' + str(self.reference_time) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType
         elif self.sensationType == Sensation.SensationType.Image:
@@ -932,9 +1016,11 @@ class Sensation(object):
         elif self.sensationType == Sensation.SensationType.Observation:
             b +=  floatToBytes(self.observationDirection) + floatToBytes(self.observationDistance)
         elif self.sensationType == Sensation.SensationType.Voice:
-            filePath_size=len(self.filePath)
+            bfilePath =  StrToBytes(self.filePath)
+            filePath_size=len(bfilePath)
             b +=  filePath_size.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
-            b +=  StrToBytes(self.filePath)
+            b += bfilePath
+            
             data_size=len(self.data)
             b +=  data_size.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
             b +=  self.data
@@ -963,6 +1049,12 @@ class Sensation(object):
         b +=  reference_number.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
         for j in range(reference_number):
             b +=  floatToBytes(self.references[j].getNumber())
+        #  at the end receivedFrom (list of words)
+        blist = listToBytes(self.receivedFrom)
+        blist_size=len(blist)
+        b +=  blist_size.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
+        b += blist
+        
 
 # all other done
 #         elif self.sensationType == Sensation.SensationType.Stop:
@@ -1008,7 +1100,7 @@ class Sensation(object):
         
     '''
     Add single reference
-    References are alwaystwo sided, but not referencing to self
+    References are always two sided, but not referencing to self
     '''
     def addReference(self, reference):
         if reference is not self and \
@@ -1045,6 +1137,40 @@ class Sensation(object):
             references = Sensation.getSensationsFromSensationMemory(referenceNumber)
             self.addReferences(references)
         self.setReferenceTime()
+  
+    def setReceivedFrom(self, receivedFrom):
+        self.receivedFrom = receivedFrom
+        
+    '''
+    Add single receivedFrom
+    '''
+    def addReceived(self, host):
+        if host not in self.receivedFrom:
+            self.receivedFrom.append(host)
+         
+    '''
+    Add many receiveds
+    '''
+    def addReceivedFrom(self, receivedFrom):
+        for host in receivedFrom:
+            self.addReceived(host)
+
+    def getReceivedFrom(self):
+        return self.receivedFrom
+    
+    '''
+    returns True, if this Sensation is received from this host
+    Method is uded to avoid sendinmg Senation back fron some host, even if
+    if has been originally setn from this host. This situation causes
+    circulating Senastions for ever between hosts that have same capability to handle
+    same Senastion type with same Memory level, so we must avoid it.
+    
+    Still it in allowed to process same senmsation type sensations with different
+    menory level in different hosts, so we mustset self.receivedFrom, when we
+    chage SEnsations menory level (or copy sensation to different meemory level.
+    '''
+    def isReceivedFrom(self, host):
+        return host in self.receivedFrom
            
     def setSensationType(self, sensationType):
         self.sensationType = sensationType
@@ -1143,6 +1269,12 @@ class Sensation(object):
         
 if __name__ == '__main__':
 # testing
+# TODO fromString(Sensation.toString) -tests are deprecated
+# Sensation data in transferred by menory or by byte with tcp
+# and str form is for debugging purposes
+# Most importand sensations are now voice and image and string form does not handle
+# parameters any more. Can be fixed if im plementing parameter type in string
+# but it mo more vice to concentrate to byte tranfer for str test will be removed soon.
 
     from Config import Config, Capabilities
     config = Config()
@@ -1213,7 +1345,7 @@ if __name__ == '__main__':
     print()
 
     
-    s_HearDirection=Sensation(references=[s_Drive], sensationType = Sensation.SensationType.HearDirection, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, hearDirection = 0.85)
+    s_HearDirection=Sensation(references=[s_Drive], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.HearDirection, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, hearDirection = 0.85)
     print(("str s  " + str(s_HearDirection)))
     print("str(Sensation(str(s))) " + str(Sensation(string=str(s_HearDirection))))
     b=s_HearDirection.bytes()
@@ -1223,7 +1355,7 @@ if __name__ == '__main__':
 
     #test with create
     print("test with create")
-    s_HearDirection_create=Sensation.create(references=[s_Drive_create], sensationType = Sensation.SensationType.HearDirection, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, hearDirection = 0.85)
+    s_HearDirection_create=Sensation.create(references=[s_Drive_create], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.HearDirection, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, hearDirection = 0.85)
     print(("Sensation.create: str s  " + str(s_HearDirection_create)))
     print("Sensation.create: str(Sensation(str(s))) " + str(Sensation.create(string=str(s_HearDirection_create))))
     b=s_HearDirection_create.bytes()
@@ -1232,7 +1364,7 @@ if __name__ == '__main__':
     print("Sensation.create: " + str(s_HearDirection_create == s2))
     print()
 
-    s_Azimuth=Sensation(references=[s_HearDirection], sensationType = Sensation.SensationType.Azimuth, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, azimuth = -0.85)
+    s_Azimuth=Sensation(references=[s_HearDirection], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.Azimuth, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, azimuth = -0.85)
     print(("str s  " + str(s_Azimuth)))
     print("str(Sensation(str(s))) " + str(Sensation(string=str(s_Azimuth))))
     b=s_Azimuth.bytes()
@@ -1242,7 +1374,7 @@ if __name__ == '__main__':
 
     #test with create
     print("test with create")
-    s_Azimuth_create=Sensation.create(references=[s_Who_create], sensationType = Sensation.SensationType.Azimuth, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, azimuth = -0.85)
+    s_Azimuth_create=Sensation.create(references=[s_Who_create], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.Azimuth, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, azimuth = -0.85)
     print(("Sensation.create: str s  " + str(s_Azimuth_create)))
     print("Sensation.create: str(Sensation(str(s))) " + str(Sensation.create(string=str(s_Azimuth_create))))
     b=s_Azimuth_create.bytes()
@@ -1251,7 +1383,7 @@ if __name__ == '__main__':
     print("Sensation.create: " + str(s_Azimuth_create == s2))
     print()
 
-    s_Acceleration=Sensation(references=[s_HearDirection,s_Azimuth], sensationType = Sensation.SensationType.Acceleration, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, accelerationX = -0.85, accelerationY = 2.33, accelerationZ = -0.085)
+    s_Acceleration=Sensation(references=[s_HearDirection,s_Azimuth], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.Acceleration, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, accelerationX = -0.85, accelerationY = 2.33, accelerationZ = -0.085)
     print(("str s  " + str(s_Acceleration)))
     print("str(Sensation(str(s))) " + str(Sensation(string=str(s_Acceleration))))
     b=s_Acceleration.bytes()
@@ -1261,7 +1393,7 @@ if __name__ == '__main__':
 
     #test with create
     print("test with create")
-    s_Acceleration_create=Sensation.create(references=[s_HearDirection_create,s_Azimuth_create], sensationType = Sensation.SensationType.Acceleration, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, accelerationX = -0.85, accelerationY = 2.33, accelerationZ = -0.085)
+    s_Acceleration_create=Sensation.create(references=[s_HearDirection_create,s_Azimuth_create], receivedFrom=['localhost', 'raspberry', 'virtualWalle'], sensationType = Sensation.SensationType.Acceleration, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, accelerationX = -0.85, accelerationY = 2.33, accelerationZ = -0.085)
     print(("Sensation.create: str s  " + str(s_Acceleration_create)))
     print("Sensation.create: str(Sensation(str(s))) " + str(Sensation.create(string=str(s_Acceleration_create))))
     b=s_Acceleration_create.bytes()
@@ -1271,7 +1403,7 @@ if __name__ == '__main__':
     print()
 
     
-    s_Observation=Sensation(references=[s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.Observation, memory = Sensation.Memory.Working, direction = Sensation.Direction.In, observationDirection= -0.85, observationDistance=-3.75)
+    s_Observation=Sensation(references=[s_HearDirection,s_Azimuth,s_Acceleration], receivedFrom=['localhost', 'raspberry', 'virtualWalle'], sensationType = Sensation.SensationType.Observation, memory = Sensation.Memory.Working, direction = Sensation.Direction.In, observationDirection= -0.85, observationDistance=-3.75)
     print(("str s  " + str(s_Observation)))
     print("str(Sensation(str(s))) " + str(Sensation(string=str(s_Observation))))
     b=s_Observation.bytes()
@@ -1281,7 +1413,7 @@ if __name__ == '__main__':
 
     #test with create
     print("test with create")
-    s_Observation_create=Sensation.create(references=[s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], sensationType = Sensation.SensationType.Observation, memory = Sensation.Memory.Working, direction = Sensation.Direction.In, observationDirection= -0.85, observationDistance=-3.75)
+    s_Observation_create=Sensation.create(references=[s_HearDirection_create,s_Azimuth_create,s_Acceleration_create],  receivedFrom=['localhost', 'raspberry', 'virtualWalle',  'remoteWalle'], sensationType = Sensation.SensationType.Observation, memory = Sensation.Memory.Working, direction = Sensation.Direction.In, observationDirection= -0.85, observationDistance=-3.75)
     print(("Sensation.create: str s  " + str(s_Observation_create)))
     print("Sensation.create: str(Sensation(str(s))) " + str(Sensation.create(string=str(s_Observation_create))))
     b=s_Observation_create.bytes()
@@ -1291,9 +1423,9 @@ if __name__ == '__main__':
     print()
     
     # voice
-    s_VoiceFilePath=Sensation(references=[s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
+    s_VoiceFilePath=Sensation(references=[s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
     print(("str s  " + str(s_VoiceFilePath)))
-    print("str(Sensation(str(s))) " + str(Sensation(string=str(s_VoiceFilePath))))
+#     print("str(Sensation(str(s))) " + str(Sensation(string=str(s_VoiceFilePath))))
     b=s_VoiceFilePath.bytes()
     s2=Sensation(bytes=b)
     print(("str s2 " + str(s2)))
@@ -1301,18 +1433,18 @@ if __name__ == '__main__':
 
     #test with create
     print("test with create")
-    s_VoiceFilePath_create=Sensation.create(references=[s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
+    s_VoiceFilePath_create=Sensation.create(references=[s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
     print(("Sensation.create: str s  " + str(s_VoiceFilePath_create)))
-    print("Sensation.create: str(Sensation(str(s))) " + str(Sensation.create(string=str(s_VoiceFilePath_create))))
+#     print("Sensation.create: str(Sensation(str(s))) " + str(Sensation.create(string=str(s_VoiceFilePath_create))))
     b=s_VoiceFilePath_create.bytes()
     s2=Sensation.create(bytes=b)
     print(("Sensation.create: str s2 " + str(s2)))
     print("Sensation.create: " + str(s_VoiceFilePath_create == s2))
     print()
 
-    s_VoiceData=Sensation(references=[s_VoiceFilePath,s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, data=b'\x01\x02\x03\x04\x05')
+    s_VoiceData=Sensation(references=[s_VoiceFilePath,s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, data=b'\x01\x02\x03\x04\x05')
     print(("str s  " + str(s_VoiceData)))
-    print("str(Sensation(str(s))) " + str(Sensation(string=str(s_VoiceData))))
+#     print("str(Sensation(str(s))) " + str(Sensation(string=str(s_VoiceData))))
     b=s_VoiceData.bytes()
     s2=Sensation(bytes=b)
     print(("str s2 " + str(s2)))
@@ -1320,9 +1452,9 @@ if __name__ == '__main__':
 
     #test with create
     print("test with create")
-    s_VoiceData_create=Sensation.create(references=[s_VoiceFilePath_create,s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In,  data=b'\x01\x02\x03\x04\x05')
+    s_VoiceData_create=Sensation.create(references=[s_VoiceFilePath_create,s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In,  data=b'\x01\x02\x03\x04\x05')
     print(("Sensation.create: str s  " + str(s_VoiceData_create)))
-    print("Sensation.create: str(Sensation(str(s))) " + str(Sensation.create(string=str(s_VoiceData_create))))
+#     print("Sensation.create: str(Sensation(str(s))) " + str(Sensation.create(string=str(s_VoiceData_create))))
     b=s_VoiceData_create.bytes()
     s2=Sensation.create(bytes=b)
     print(("Sensation.create: str s2 " + str(s2)))
@@ -1330,9 +1462,9 @@ if __name__ == '__main__':
     print()
     
     # image    
-    s_ImageFilePath=Sensation(references=[s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
+    s_ImageFilePath=Sensation(references=[s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
     print(("str s  " + str(s_ImageFilePath)))
-    print("str(Sensation(str(s))) " + str(Sensation(string=str(s_ImageFilePath))))
+#     print("str(Sensation(str(s))) " + str(Sensation(string=str(s_ImageFilePath))))
     b=s_ImageFilePath.bytes()
     s2=Sensation(bytes=b)
     print(("str s2 " + str(s2)))
@@ -1340,9 +1472,9 @@ if __name__ == '__main__':
 
     #test with create
     print("test with create")
-    s_ImageFilePath_create=Sensation.create(references=[s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
+    s_ImageFilePath_create=Sensation.create(references=[s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
     print(("Sensation.create: str s  " + str(s_ImageFilePath_create)))
-    print("Sensation.create: str(Sensation(str(s))) " + str(Sensation.create(string=str(s_ImageFilePath_create))))
+#     print("Sensation.create: str(Sensation(str(s))) " + str(Sensation.create(string=str(s_ImageFilePath_create))))
     b=s_ImageFilePath_create.bytes()
     s2=Sensation.create(bytes=b)
     print(("Sensation.create: str s2 " + str(s2)))
@@ -1351,7 +1483,7 @@ if __name__ == '__main__':
 
     s_ImageData=Sensation(references=[s_ImageFilePath,s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, data=b'\x01\x02\x03\x04\x05')
     print(("str s  " + str(s_ImageData)))
-    print("str(Sensation(str(s))) " + str(Sensation(string=str(s_ImageData))))
+#     print("str(Sensation(str(s))) " + str(Sensation(string=str(s_ImageData))))
     b=s_ImageData.bytes()
     s2=Sensation(bytes=b)
     print(("str s2 " + str(s2)))
@@ -1361,7 +1493,7 @@ if __name__ == '__main__':
     print("test with create")
     s_ImageData_create=Sensation.create(references=[s_ImageFilePath_create,s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, data=b'\x01\x02\x03\x04\x05')
     print(("Sensation.create: str s  " + str(s_ImageData_create)))
-    print("Sensation.create: str(Sensation(str(s))) " + str(Sensation.create(string=str(s_ImageData_create))))
+#     print("Sensation.create: str(Sensation(str(s))) " + str(Sensation.create(string=str(s_ImageData_create))))
     b=s_ImageData_create.bytes()
     s2=Sensation.create(bytes=b)
     print(("Sensation.create: str s2 " + str(s2)))
@@ -1388,7 +1520,7 @@ if __name__ == '__main__':
     print()
 
 #    s_Capability=Sensation(references=[s_Calibrate,s_VoiceData,s_VoiceFilePath,s_ImageData,s_ImageFilePath,s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.Capability, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = [Sensation.SensationType.Drive, Sensation.SensationType.HearDirection, Sensation.SensationType.Azimuth])
-    s_Capability=Sensation(references=[s_Calibrate,s_VoiceData,s_VoiceFilePath,s_ImageData,s_ImageFilePath,s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.Capability, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = capabilities)
+    s_Capability=Sensation(references=[s_Calibrate,s_VoiceData,s_VoiceFilePath,s_ImageData,s_ImageFilePath,s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Capability, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = capabilities)
     print(("str s  " + str(s_Capability)))
     print("str(Sensation(str(s))) " + str(Sensation(string=str(s_Capability))))
     b=s_Capability.bytes()
@@ -1398,7 +1530,7 @@ if __name__ == '__main__':
     
      #test with create
     print("test with create")
-    s_Capability_create=Sensation.create(references=[s_Calibrate_create,s_VoiceData_create,s_VoiceFilePath_create,s_ImageData_create,s_ImageFilePath_create,s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], sensationType = Sensation.SensationType.Capability, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = capabilities)
+    s_Capability_create=Sensation.create(references=[s_Calibrate_create,s_VoiceData_create,s_VoiceFilePath_create,s_ImageData_create,s_ImageFilePath_create,s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Capability, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = capabilities)
     print(("Sensation.create: str s  " + str(s_Capability_create)))
     print("Sensation.create: str(Sensation(str(s))) " + str(Sensation.create(string=str(s_Capability_create))))
     b=s_Capability_create.bytes()

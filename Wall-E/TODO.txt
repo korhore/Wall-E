@@ -1,3 +1,14 @@
+We must study main architectre
+1) We need one direction path in(out directrion handling of sensation
+2) Do we have dedicated robots for bot way for both way or
+3) Do we have one robot that handles both ways with ywo deficated robots, one fot in and one for ont way.
+4) In and out have their own rtpe process-mehod
+5) WE could also have one common robot, that simple can be dedicated for in/out/both ways processing.
+   Maybe this is best way, act as cells do, dedicate as needed. Examples are now for Voice and Sockets.
+   
+Capabilities handling for sockets is now broke, Capabilities as empty for SocketClient.
+Study, whar is selds.
+
 Main architecture
 - all capability implementation like Seeing, Hearting, Moving, Networking, etc
   are subclasses of Robot
