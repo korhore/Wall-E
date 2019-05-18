@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 15.05.2019
+Updated on 19.05.2019
 
 This class Main robot
 that start and manages all subrobots
@@ -67,11 +67,6 @@ class MainRobot(Robot):
                  instanceName=None,
                  instanceType = Sensation.InstanceType.Real,
                  level=0):
-# 
-#                  inAxon=None, # we read this as muscle functionality and getting
-#                               # sensationsfron ot subInstances (Senses)
-#                               # write to this when submitting things to subInstances
-#                  outAxon=None):
         print("We are in MainRobot, not Robot")
  
         Robot.__init__(self,
@@ -126,30 +121,6 @@ class MainRobot(Robot):
        
         self.log("run ALL SHUT DOWN")      
         
-#     def log(self, logStr):
-#          print(self.name + ":" + str( self.config.level) + ":" + Sensation.Modes[self.mode] + ": " + logStr)
-# 
-#     def stop(self):
-#         self.log("Stopping robot")      
-#         if self.level == 1:
-#             self.tcpServer.stop()
-# 
-#          # stop virtual instances here, when main instance is not running any more
-#         for robot in self.subInstances:
-#             robot.stop()
-#         self.running = False    # this in not real, but we wait for Sensation,
-#                                 # so give  us one stop sensation
-#         self.axon.put(Sensation(sensationType = Sensation.SensationType.Stop))
-# 
-# 
-#     '''
-#     DoStop is used to stop server process and its subprocesses (threads)
-#     Technique is just give Stop Sensation to process.
-#     With same technique remote machines can stop us and we scan stop them
-#     '''
-#             
-#     def doStop(self):
-#         self.axon.put(Sensation(sensationType = Sensation.SensationType.Stop))
         
     def studyOwnIdentity(self):
         self.mode = Sensation.Mode.StudyOwnIdentity
@@ -780,10 +751,6 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
           sensation.isReceivedFrom(self.getSocketServer().getHost()):
             self.log('socketClient.sendSensation asked to send sensation back to sensation original host. We Don\'t recycle it!')
         else:
-        
-#         sensation_string = str(sensation)
-#         length =len(sensation_string)
-#         length_string = Sensation.LENGTH_FORMAT.format(length)
             bytes = sensation.bytes()
             length =len(bytes)
             length_bytes = length.to_bytes(Sensation.NUMBER_SIZE, byteorder=Sensation.BYTEORDER)
@@ -800,7 +767,6 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                 ok=False
             if ok:
                 try:
-    #                l = sock.send(length_string.encode('utf-8'))          # message length section
                     l = sock.send(length_bytes)                            # message length section
                     print("SocketClient wrote length " + str(length) + " of Sensation to " + str(address))
                 except Exception as err:
@@ -808,7 +774,6 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                     ok = False
                 if ok:
                     try:
-    #                    l = sock.send(sensation_string.encode('utf-8'))  # message data section
                         l = sock.send(bytes)                              # message data section
                         self.log("SocketClient wrote Sensation to " + str(address))
                         if length != l:
@@ -894,8 +859,6 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
             self.data = self.sock.recv(Sensation.SEPARATOR_SIZE).strip().decode('utf-8')  # message separator section
             if len(self.data) == 0:
                 synced = True# Test
-                #self.running = False
-            #print "WalleSocketServer separator l " + str(len(self.data)) + ' ' + str(len(Sensation.SEPARATOR))
             while not synced and self.running:
                 if len(self.data) == len(Sensation.SEPARATOR):
                     if self.data[0] is Sensation.SEPARATOR[0]:    # this also syncs to next message, if we get sock transmit errors
@@ -908,16 +871,12 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
 
             if synced and self.running:
                 self.log("run: waiting size of next Sensation from " + str(self.address))
-                #self.data = self.sock.recv(Sensation.LENGTH_SIZE).strip().decode('utf-8') # message length section
                 self.data = self.sock.recv(Sensation.NUMBER_SIZE)                         # message length section
                 if len(self.data) == 0:
                     self.running = False
                 else:
-                    #length = int.from_bytes(self.data, Sensation.BYTEORDER)
-                    #print("SocketServer Client " + str(self.address) + " wrote " + self.data)
                     length_ok = True
                     try:
-                        #sensation_length = int(self.data)
                         sensation_length = int.from_bytes(self.data, Sensation.BYTEORDER)
                     except:
                         self.log("run: SocketServer Client protocol error, no valid length resyncing " + str(self.address) + " wrote " + self.data)
@@ -925,10 +884,8 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                         
                     if length_ok:
                         self.log("run: SocketServer Client " + str(self.address) + " wrote " + str(sensation_length))
-                        #print "SocketServer of next Sensation from " + str(self.address)
                         self.data=None
                         while sensation_length > 0:
-                            #data = self.sock.recv(sensation_length).strip().decode('utf-8') # message data section
                             data = self.sock.recv(sensation_length)                       # message data section
                             if len(data) == 0:
                                 self.running = False
@@ -938,9 +895,6 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                                 else:
                                     self.data = self.data+data
                                 sensation_length = sensation_length - len(data)
-                                #print "SocketServer Sensation data from " + str(self.address)+ ' ' + self.data + ' left ' + str(sensation_length)
-                                
-                                
                         if self.running:
                             sensation=Sensation(bytes=self.data)
                             sensation.addReceived(self.getHost())  # remember route
