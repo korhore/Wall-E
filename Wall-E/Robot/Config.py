@@ -1,6 +1,6 @@
 '''
 Created on 28.04.2019
-Edited 15.05.2019
+Edited 18.05.2019
 
 @author: reijo.korhonen@gmail.com
 
@@ -51,7 +51,8 @@ class Config(ConfigParser):
     ETC_DIRECTORY =    'etc'
     CONFIG_FILE_PATH = 'etc/Robot.cfg'
     DEFAULT_INSTANCE = 'Robot'
-    
+    MAIN_INSTANCE =    'MainRobot'
+   
     
     # Configuratioon Section and Option names
     LOCALHOST =         'localhost' 

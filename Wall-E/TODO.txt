@@ -6,10 +6,17 @@ We must study main architectre
 5) WE could also have one common robot, that simple can be dedicated for in/out/both ways processing.
    Maybe this is best way, act as cells do, dedicate as needed. Examples are now for Voice and Sockets.
    
-Capabilities handling for sockets is now broke, Capabilities as empty for SocketClient.
-Study, whar is selds.
+OK Capabilities handling for sockets
 
 Main architecture
+- Simplity removing Seeing, Hearing and Moving layers. Keep just working subinstances
+- Make basic class Robot, with
+- derived MainRobot for highest level Robot, including TCPSocket functionality
+- derivedd leaf-subrobots as they are now
+- Robot has default functionality for in or out directions.
+  Decision is by capabilities, is this subInstance In or Out direection.
+  If no capabiliyies, then no functionality.
+
 - all capability implementation like Seeing, Hearting, Moving, Networking, etc
   are subclasses of Robot
 - Robot handles Sensastions and its subrobots using settings from a config file,
