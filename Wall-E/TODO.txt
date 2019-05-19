@@ -6,7 +6,19 @@ We must study main architectre
 5) WE could also have one common robot, that simple can be dedicated for in/out/both ways processing.
    Maybe this is best way, act as cells do, dedicate as needed. Examples are now for Voice and Sockets.
    
-OK Capabilities handling for sockets
+Maybe best architecture is use main middle and leaf-architecture for Robot.
+- Main and Leaf are implemented atready
+- Middle 
+-- WorMemenory processng
+-- uses two direction Axon
+-- Leafs are mucle and sense
+-- change Robot.process to support this
+   
+? Capabilities handling for sockets
+- OK, if two servers are started fron down
+- NOK if if one server is running and other is stopped ans started many times.
+
+Implement two sides Axon. Robot delivers sensation by direction.
 
 Main architecture
 - Simplity removing Seeing, Hearing and Moving layers. Keep just working subinstances
