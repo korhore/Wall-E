@@ -1,6 +1,7 @@
 '''
 Created on Feb 24, 2013
 Updated on 15.05.2019
+@author: reijo.korhonen@gmail.com
 '''
 
 import os
@@ -81,7 +82,7 @@ class Robot(Thread):
         self.name = self.getWho()
         self.log("init robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + self.config.getInstanceType() + self.capabilities.toDebugString())
         # global queue for senses and other robots to put sensations to robot
-        self.axon = Axon(config=self.config)
+        self.axon = Axon()
         #a nd create virtual instances
         for subInstanceName in self.config.getSubInstanceNames():
             try:

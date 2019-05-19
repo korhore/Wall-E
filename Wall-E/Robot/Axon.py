@@ -24,7 +24,6 @@ class Axon():
         self.queue.put(sensation)
         
     def get(self):
-        sensation = self.queue.get();
         return self.queue.get()
         
     def empty(self):

@@ -1,6 +1,7 @@
 '''
 Created on Feb 24, 2013
 Updated on 19.05.2019
+@author: reijo.korhonen@gmail.com
 
 This class Main robot
 that start and manages all subrobots
