@@ -33,18 +33,6 @@ if 'Hearing.Hear' not in sys.modules:
 if 'Seeing.See' not in sys.modules:
     from Seeing.See import See
 
-#HOST = '0.0.0.0'
-#HOST = '127.0.0.1'
-HOST = ''
-PORT = 2000
-ADDRESS_FAMILY = socket.AF_INET
-SOCKET_TYPE = socket.SOCK_STREAM
-
-DAEMON=False
-START=False
-STOP=False
-MANUAL=False
-
 
 class Robot(Thread):
     """
@@ -60,27 +48,11 @@ class Robot(Thread):
     External Sensorys are handled using sockets.
     """
     
-    TURN_ACCURACYFACTOR = math.pi * 10.0/180.0
-    FULL_TURN_FACTOR = math.pi * 45.0/180.0
-    
-    DEFAULT_OBSERVATION_DISTANCE = 3.0
-    
-    ACTION_TIME=1.0
-
-#     TRUE_VALUE="True"
-#    FALSE_VALUE="False"
-  
-
     def __init__(self,
                  parent=None,
                  instanceName=None,
                  instanceType = Sensation.InstanceType.Real,
                  level=0):
-# 
-#                  inAxon=None, # we read this as muscle functionality and getting
-#                               # sensationsfron ot subInstances (Senses)
-#                               # write to this when submitting things to subInstances
-#                  outAxon=None):
         print("Robot 1")
         Thread.__init__(self)
         self.mode = Sensation.Mode.Starting
@@ -91,10 +63,7 @@ class Robot(Thread):
         self.instanceType=instanceType
         self.level=level+1
         
-#         self.inAxon = inAxon      # axon from up we read from up or from subInstances
-#         self.outAxon = outAxon    # axon we write for up
-                                  # down goes always by subInstances inAxon
-        self.subInstances = []     # subInstance contain a outAxon we write muscle sensations
+        self.subInstances = []  # subInstance contain a outAxon we write muscle sensations
                                 # for subrobot this axon in inAxon
                                 # We ask subInstance to report its Sensations to
                                 # inAxon, so our live is reading inAxon
@@ -102,12 +71,6 @@ class Robot(Thread):
                                 # or give in this method
         self.running=False
 
-       
-#         Capabilities = 'Capabilities' 
-#         Memory =       'Memory'
-
-       
- 
         print("Robot 2")
         self.config = Config(instanceName=self.instanceName,
                              instanceType=self.instanceType,
@@ -118,18 +81,8 @@ class Robot(Thread):
         self.name = self.getWho()
         self.log("init robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + self.config.getInstanceType() + self.capabilities.toDebugString())
         # global queue for senses and other robots to put sensations to robot
-        # we create self.inAxon always ourselves, it is newer shared by others
-        # other way than others write to it
-        #if self.inAxon is None:
         self.axon = Axon(config=self.config)
-        # outAxon is other inaxon, so this is not used
-        #if self.outAxon is None and self.getLevel() > 1:
-        #    self.outAxon = Axon(config=self.config) 
- 
-        # TODO           
-        # Study our config. What subInstances we have.
-             
-                #and create virtual instances
+        #a nd create virtual instances
         for subInstanceName in self.config.getSubInstanceNames():
             try:
                 module = subInstanceName+ '.' + subInstanceName
