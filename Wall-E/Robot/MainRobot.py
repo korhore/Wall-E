@@ -35,7 +35,6 @@ import socket
 from Robot import Robot
 from Config import Config, Capabilities
 from Sensation import Sensation
-from Sensation import Sensation
 
 HOST = ''
 PORT = 2000
@@ -107,7 +106,7 @@ class MainRobot(Robot):
         # live until stopped
         self.mode = Sensation.Mode.Normal
         while self.running:
-            sensation=self.axon.get()
+            sensation=self.getAxon().get()
             self.log("got sensation from queue " + sensation.toDebugStr())      
             self.process(sensation)
             # as a test, echo everything to external device

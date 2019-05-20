@@ -22,17 +22,15 @@ import importlib
 from Axon import Axon
 from Config import Config, Capabilities
 from Sensation import Sensation
-# if 'Sensation' not in sys.modules:
-#     from Sensation import Sensation
-from Romeo import Romeo
-from ManualRomeo import ManualRomeo
-from dbus.mainloop.glib import threads_init
-from xdg.IconTheme import theme_cache
-from _ast import Or
-if 'Hearing.Hear' not in sys.modules:
-    from Hearing.Hear import Hear
-if 'Seeing.See' not in sys.modules:
-    from Seeing.See import See
+# from Romeo import Romeo
+# from ManualRomeo import ManualRomeo
+# from dbus.mainloop.glib import threads_init
+# from xdg.IconTheme import theme_cache
+# from _ast import Or
+# if 'Hearing.Hear' not in sys.modules:
+#     from Hearing.Hear import Hear
+# if 'Seeing.See' not in sys.modules:
+#     from Seeing.See import See
 
 
 class Robot(Thread):
@@ -237,10 +235,6 @@ class Robot(Thread):
         for robot in self.subInstances:
             if robot.getInstanceType() != Sensation.InstanceType.Remote:
                 robot.start()
-#         # main robot starts tcpServer first so clients gets connection
-#         if self.level == 1:
-#             self.tcpServer.start()
-           
         # study own identity
         # starting point of robot is always to study what it knows himself
         self.studyOwnIdentity()
@@ -248,7 +242,7 @@ class Robot(Thread):
         # live until stopped
         self.mode = Sensation.Mode.Normal
         while self.running:
-            sensation=self.axon.get()
+            sensation=self.getAxon().get()
             self.log("got sensation from queue " + sensation.toDebugStr())      
             self.process(sensation)
             # as a test, echo everything to external device
@@ -268,15 +262,13 @@ class Robot(Thread):
 
     def stop(self):
         self.log("Stopping robot")      
-        if self.level == 1:
-            self.tcpServer.stop()
 
          # stop virtual instances here, when main instance is not running any more
         for robot in self.subInstances:
             robot.stop()
         self.running = False    # this in not real, but we wait for Sensation,
                                 # so give  us one stop sensation
-        self.axon.put(Sensation(sensationType = Sensation.SensationType.Stop))
+        self.getAxon().put(Sensation(sensationType = Sensation.SensationType.Stop))
 
 
     '''
@@ -286,7 +278,7 @@ class Robot(Thread):
     '''
             
     def doStop(self):
-        self.axon.put(Sensation(sensationType = Sensation.SensationType.Stop))
+        self.getAxon().put(Sensation(sensationType = Sensation.SensationType.Stop))
         
     def studyOwnIdentity(self):
         self.mode = Sensation.Mode.StudyOwnIdentity

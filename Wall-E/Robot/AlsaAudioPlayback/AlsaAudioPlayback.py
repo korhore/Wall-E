@@ -77,24 +77,18 @@ class AlsaAudioPlayback(Robot):
             # live until stopped
             self.mode = Sensation.Mode.Normal
             while self.running:
-                sensation=self.axon.get()
+                sensation=self.getAxon().get()
                 self.log("got sensation from queue " + sensation.toDebugStr())
                 # if we get something we can do    
                 if sensation.getSensationType() == Sensation.SensationType.Voice:
                     self.log('run: Sensation.SensationType.VoiceData self.outp.write(sensation.getVoiceData()')
                     self.outp.write(sensation.getData())
-                elif sensation.getSensationType() == Sensation.SensationType.Stop:
-                    self.log('run: SensationSensationType.Stop')      
-                    self.stop()
+                else:
+                    # default processing
+                    self.process(sensation)
     
-            self.mode = Sensation.Mode.Stopping
             self.log("Stopping AlsaAudioPlayback")
-        
-    
-             # stop virtual instances here, when main instanceName is not running any more
-            for robot in self.subInstances:
-                robot.stop()
-           
+            self.mode = Sensation.Mode.Stopping        
             self.log("run ALL SHUT DOWN")
                     
 

@@ -43,12 +43,12 @@ class AlsaAudioMicrophone(Robot):
                  instanceName=None,
                  instanceType = Sensation.InstanceType.SubInstance,
                  level=0):
+        print("We are in AlsaAudioMicrophone, not Robot")
         Robot.__init__(self,
                        parent=parent,
                        instanceName=instanceName,
                        instanceType=instanceType,
                        level=level)
-        print("We are in AlsaAudioMicrophone, not Robot")
 
         # from settings        
         self.device= self.config.getMicrophone()
@@ -90,35 +90,38 @@ class AlsaAudioMicrophone(Robot):
         voice_data=None
         voice_l=0
         while self.running:
-            # blocking read data from device
-            #print "reading " + self.name
-            l, data = self.inp.read() # l int, data bytes
-            if l > 0:
-                # collect voice data as long we hear a voice and send it then
-                if self.analyzeData(l, data, self.CONVERSION_FORMAT):
-                    if voice_data is None:
-                        voice_data = data
-                        voice_l = l
+            # as a leaf sensor robot default processing for sensation we have got
+            # in practice we can get stop sensation
+            if not self.getAxon().empty():
+                sensation=self.getAxon().get()
+                self.log("got sensation from queue " + sensation.toDebugStr())      
+                self.process(sensation)
+            else:
+            #otherwise we have time to read our sesses
+                # blocking read data from device
+                #print "reading " + self.name
+                l, data = self.inp.read() # l int, data bytes
+                if l > 0:
+                    # collect voice data as long we hear a voice and send it then
+                    if self.analyzeData(l, data, self.CONVERSION_FORMAT):
+                        if voice_data is None:
+                            voice_data = data
+                            voice_l = l
+                        else:
+                           voice_data += data
+                           voice_l += l
                     else:
-                       voice_data += data
-                       voice_l += l
-                else:
-                    if voice_data is not None:
-                        self.log("self.getParent().getAxon().put(sensation)")
-                        sensation = Sensation.create(sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=voice_data)
-                        self.getParent().getAxon().put(sensation) # or self.process
-                        voice_data=None
-                        voice_l=0
+                        if voice_data is not None:
+                            self.log("self.getParent().getAxon().put(sensation)")
+                            sensation = Sensation.create(sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=voice_data)
+                            self.getParent().getAxon().put(sensation) # or self.process
+                            voice_data=None
+                            voice_l=0
 
-        self.mode = Sensation.Mode.Stopping
         self.log("Stopping AlsaAudioMicrophone")
+        self.mode = Sensation.Mode.Stopping
         self.log("self.config.setMicrophoneVoiceAvegageLevel(voiceLevelAverage=self.average)")
         self.config.setMicrophoneVoiceAvegageLevel(voiceLevelAverage=self.average)
-    
-
-         # stop virtual instances here, when main instanceName is not running any more
-        for robot in self.subInstances:
-            robot.stop()
        
         self.log("run ALL SHUT DOWN")
         
