@@ -85,3 +85,11 @@ one server and then back again.
 - OK Robot start 3! times!!!!!!!!!
 - OK correct this in Config so that one instance of it handles only one config,
   but can start otser instance for virtual and subrobots
+  
+  dependencies: for pillow (pip3 install pillow)
+ sudo apt-get install libjpeg-dev -y
+sudo apt-get install zlib1g-dev -y
+sudo apt-get install libfreetype6-dev -y
+sudo apt-get install liblcms1-dev -y
+sudo apt-get install libopenjp2-7 -y
+sudo apt-get install libtiff5 -y

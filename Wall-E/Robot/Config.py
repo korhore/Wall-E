@@ -878,7 +878,7 @@ class Capabilities():
     '''
     Getter to get if single capability is set
     '''
-    def hasCapanility(self, direction, memory, sensationType):
+    def hasCapability(self, direction, memory, sensationType):
         return self.directions[direction][memory][sensationType]
  
     '''
@@ -964,13 +964,13 @@ class Capabilities():
             for direction in Sensation.DirectionsOrdered:
                 for memory in Sensation.MemorysOrdered:
                     for sensationType in Sensation.SensationTypesOrdered:
-                        is_set = capabilities.hasCapanility(direction, memory, sensationType)
+                        is_set = capabilities.hasCapability(direction, memory, sensationType)
                         if is_set:
                             print (name + " capabilities : " + Sensation.getDirectionString(direction) + ' ' + Sensation.getMemoryString(memory) + ' ' + Sensation.getSensationTypeString(sensationType) + ': True')
         for direction in Sensation.DirectionsOrdered:
             for memory in Sensation.MemorysOrdered:
                 for sensationType in Sensation.SensationTypesOrdered:
-                    is_set = self.hasCapanility(direction, memory, sensationType)
+                    is_set = self.hasCapability(direction, memory, sensationType)
                     if is_set:
                         print (name + " self : " + Sensation.getDirectionString(direction) + ' ' + Sensation.getMemoryString(memory) + ' ' + Sensation.getSensationTypeString(sensationType) + ': True')
 
@@ -983,7 +983,7 @@ def test(name, capabilities):
     for direction in Sensation.DirectionsOrdered:
         for memory in Sensation.MemorysOrdered:
             for sensationType in Sensation.SensationTypesOrdered:
-                is_set = capabilities.hasCapanility(direction, memory, sensationType)
+                is_set = capabilities.hasCapability(direction, memory, sensationType)
                 if is_set:
                     print (name + ": " + Sensation.getDirectionString(direction) + ' ' + Sensation.getMemoryString(memory) + ' ' + Sensation.getSensationTypeString(sensationType) + ': True')
                     some_set=True

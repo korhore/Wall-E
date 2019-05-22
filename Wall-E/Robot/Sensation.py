@@ -738,9 +738,7 @@ class Sensation(object):
     '''
     def toDebugStr(self):
         # we can't make yet printable bytes, but as a debug purposes, it is rare neended
-        if self.sensationType == Sensation.SensationType.Voice:
-            s=str(self.number) + ' ' + str(self.time) + ' ' + str(self.reference_time) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType
-        elif self.sensationType == Sensation.SensationType.Image:
+        if self.sensationType == Sensation.SensationType.Voice or self.sensationType == Sensation.SensationType.Image :
             s=str(self.number) + ' ' + str(self.time) + ' ' + str(self.reference_time) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType
         else:
             s=self.__str__()

@@ -196,33 +196,33 @@ class Robot(Thread):
     '''
     Has this instance this capability
     ''' 
-    def hasCapanility(self, direction, memory, sensationType):
+    def hasCapability(self, direction, memory, sensationType):
         hasCapalility = False
         if self.getCapabilities() is not None:
-            hasCapalility = self.getCapabilities().hasCapanility(direction, memory, sensationType)
-            self.log("hasCapanility direction " + str(direction) + " memory " + str(memory) + " sensationType " + str(sensationType) + ' ' + str(hasCapalility))      
+            hasCapalility = self.getCapabilities().hasCapability(direction, memory, sensationType)
+            self.log("hasCapability direction " + str(direction) + " memory " + str(memory) + " sensationType " + str(sensationType) + ' ' + str(hasCapalility))      
         return hasCapalility
     '''
     Has this instance or at least one of its subinstabces this capability
     ''' 
-    def hasSubCapanility(self, direction, memory, sensationType):
-        #self.log("hasSubCapanility direction " + str(direction) + " memory " + str(memory) + " sensationType " + str(sensationType))
-        if self.hasCapanility(direction, memory, sensationType):
-            self.log('hasSubCapanility self has direction ' + str(direction) + ' memory ' + str(memory) + ' sensationType ' + str(sensationType) + ' True')      
+    def hasSubCapability(self, direction, memory, sensationType):
+        #self.log("hasSubCapability direction " + str(direction) + " memory " + str(memory) + " sensationType " + str(sensationType))
+        if self.hasCapability(direction, memory, sensationType):
+            self.log('hasSubCapability self has direction ' + str(direction) + ' memory ' + str(memory) + ' sensationType ' + str(sensationType) + ' True')      
             return True    
         for robot in self.getSubInstances():
-            if robot.getCapabilities().hasCapanility(direction, memory, sensationType) or \
-               robot.hasSubCapanility(direction, memory, sensationType):
-                self.log('hasSubCapanility subInstance ' + robot.getWho() + ' direction ' + str(direction) + ' memory ' + str(memory) + ' sensationType ' + str(sensationType) + ' True')      
+            if robot.getCapabilities().hasCapability(direction, memory, sensationType) or \
+               robot.hasSubCapability(direction, memory, sensationType):
+                self.log('hasSubCapability subInstance ' + robot.getWho() + ' direction ' + str(direction) + ' memory ' + str(memory) + ' sensationType ' + str(sensationType) + ' True')      
                 return True
-        #self.log('hasSubCapanility direction ' + str(direction) + ' memory ' + str(memory) + ' sensationType ' + str(sensationType) + ' False')      
+        #self.log('hasSubCapability direction ' + str(direction) + ' memory ' + str(memory) + ' sensationType ' + str(sensationType) + ' False')      
         return False
    
     def getSubCapabiliyInstances(self, direction, memory, sensationType):
         robots=[]
         for robot in self.getSubInstances():
-            if robot.hasCapanility(direction, memory, sensationType) or \
-                robot.hasSubCapanility(direction, memory, sensationType):
+            if robot.hasCapability(direction, memory, sensationType) or \
+                robot.hasSubCapability(direction, memory, sensationType):
                 robots.append(robot)
         return robots
 

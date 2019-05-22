@@ -83,13 +83,13 @@ class Capabilities():
     '''
     Getter to get if single capability is set
     '''
-    def hasCapanility(self, direction, memory, sensationType):
+    def hasCapability(self, direction, memory, sensationType):
         return self.directions[direction][memory][sensationType]
  
     '''
     Setter to get if single capability is set
     '''
-    def setCapanility(self, direction, memory, sensationType, is_set):
+    def setCapability(self, direction, memory, sensationType, is_set):
         self.directions[direction][memory][sensationType] = is_set
         
         
@@ -100,7 +100,7 @@ def test(name, capabilities):
     for direction, directionStr in Sensation.Directions.items():
         for memory, memoryStr in Sensation.Memorys.items():
             for capability, capabilityStr in Sensation.SensationTypes.items():
-                is_set = capabilities.hasCapanility(direction, memory, capability)
+                is_set = capabilities.hasCapability(direction, memory, capability)
                 if is_set:
                     print (name + ": " + str(directionStr) + ' ' + str(memoryStr) + ' ' + str(capabilityStr) + ': True')
 
@@ -120,7 +120,7 @@ if __name__ == '__main__':
     for direction, directionStr in Sensation.Directions.items():
         for memory, memoryStr in Sensation.Memorys.items():
             for capability, capabilityStr in Sensation.SensationTypes.items():
-                capabilities.setCapanility(direction, memory, capability, True)
+                capabilities.setCapability(direction, memory, capability, True)
     test(name="Set all True", capabilities=capabilities)
 
      # set all False 
@@ -128,7 +128,7 @@ if __name__ == '__main__':
     for direction, directionStr in Sensation.Directions.items():
         for memory, memoryStr in Sensation.Memorys.items():
             for capability, capabilityStr in Sensation.SensationTypes.items():
-                capabilities.setCapanility(direction, memory, capability, False)
+                capabilities.setCapability(direction, memory, capability, False)
     test(name="Set all False", capabilities=capabilities)
 
     config=Config()
