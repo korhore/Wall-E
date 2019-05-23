@@ -81,22 +81,20 @@ class Robot(Thread):
         self.log("init robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + self.config.getInstanceType() + self.capabilities.toDebugString())
         # global queue for senses and other robots to put sensations to robot
         self.axon = Axon()
-        #a nd create virtual instances
+        #and create virtual instances
         for subInstanceName in self.config.getSubInstanceNames():
             try:
                 module = subInstanceName+ '.' + subInstanceName
                 imported_module = importlib.import_module(module)
-                print('init ' + subInstanceName)
+                self.log('init ' + subInstanceName)
                 robot = getattr(imported_module, subInstanceName)(parent=self,
                                                                   instanceName=subInstanceName,
                                                                   instanceType= Sensation.InstanceType.SubInstance,
                                                                   level=self.level)
             except ImportError as e:
-                print("Import error, using default Robot for " + module + ' fix this ' + str(e))
-
-                robot = Robot(configFilePath=self.config.getSubinstanceConfigFilePath(subInstanceName),
-                              parent=self)
-                              #outAxon=self.inAxon)
+                self.log("Import error, implement " + module + ' to fix this ' + str(e))
+                self.log("Import error, implement " + module + ' ignored, not initiated or not will be started until corrected!')
+                robot = None
             if robot is not None:
                 self.subInstances.append(robot)
             else:

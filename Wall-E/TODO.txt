@@ -93,3 +93,16 @@ sudo apt-get install libfreetype6-dev -y
 sudo apt-get install liblcms1-dev -y
 sudo apt-get install libopenjp2-7 -y
 sudo apt-get install libtiff5 -y
+
+MainRobot needs
+pip3 install daemon
+pip3 install lockfile
+pip3 install pyyaml # Required to save tensorflow models in YAML format
+
+raspberry pi 3
+tensorflow==1.8
+Ubuntu 18.5
+tensorflow==1.5
+Ubuntu 14.04
+sudo -H pip3 install --upgrade tensorflow --ignore-installed six
+-- will get tensorflow 1.13
