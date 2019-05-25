@@ -86,6 +86,9 @@ one server and then back again.
 - OK correct this in Config so that one instance of it handles only one config,
   but can start otser instance for virtual and subrobots
   
+  Use git/tensorflow/models/research/object_detection in this level
+  independently of Wall-E/Wall-E/Robot
+  
   dependencies: for pillow (pip3 install pillow)
  sudo apt-get install libjpeg-dev -y
 sudo apt-get install zlib1g-dev -y
@@ -106,3 +109,8 @@ tensorflow==1.5
 Ubuntu 14.04
 sudo -H pip3 install --upgrade tensorflow --ignore-installed six
 -- will get tensorflow 1.13
+requires
+google.protobuf
+matplotlib==2.1.0
+requires
+- sudo apt-get install libfreetype6-dev

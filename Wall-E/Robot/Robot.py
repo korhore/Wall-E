@@ -18,6 +18,8 @@ import configparser
 import daemon
 import lockfile
 import importlib
+import traceback
+
 
 from Axon import Axon
 from Config import Config, Capabilities
@@ -92,7 +94,7 @@ class Robot(Thread):
                                                                   instanceType= Sensation.InstanceType.SubInstance,
                                                                   level=self.level)
             except ImportError as e:
-                self.log("Import error, implement " + module + ' to fix this ' + str(e))
+                self.log("Import error, implement " + module + ' to fix this ' + str(e) + ' ' + str(traceback.format_exc()))
                 self.log("Import error, implement " + module + ' ignored, not initiated or not will be started until corrected!')
                 robot = None
             if robot is not None:
