@@ -90,6 +90,7 @@ class Sensation(object):
  
     #number=0                # sensation number for referencing
     FORMAT='jpeg'
+    MODE='RGB'
     LOWPOINT_NUMBERVARIANCE=-100.0
     HIGHPOINT_NUMBERVARIANCE=100.0
     
@@ -1220,7 +1221,7 @@ if __name__ == '__main__':
     print("Sensation.create: " + str(s_ImageFilePath_create == s2))
     print()
 
-    s_ImageData=Sensation(references=[s_ImageFilePath,s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, image=PIL_Image.new(mode='RGB', size=(10,10)))
+    s_ImageData=Sensation(references=[s_ImageFilePath,s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, image=PIL_Image.new(mode=Sensation.MODE, size=(10,10)))
     print("str s  " + str(s_ImageData))
     b=s_ImageData.bytes()
     s2=Sensation(bytes=b)
@@ -1229,7 +1230,7 @@ if __name__ == '__main__':
 
     #test with create
     print("test with create")
-    s_ImageData_create=Sensation.create(references=[s_ImageFilePath_create,s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, image=PIL_Image.new(mode='RGB', size=(10,10)))
+    s_ImageData_create=Sensation.create(references=[s_ImageFilePath_create,s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, image=PIL_Image.new(mode=Sensation.MODE, size=(10,10)))
     print("Sensation.create: str s  " + str(s_ImageData_create))
     b=s_ImageData_create.bytes()
     s2=Sensation.create(bytes=b)
