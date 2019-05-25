@@ -130,23 +130,23 @@ class TensorFlowClassification(Robot):
 #         model.evaluate(x_test, y_test)
 
         
-        opener = urllib.request.URLopener()
-        opener.retrieve(TensorFlowClassification.DOWNLOAD_BASE + TensorFlowClassification.MODEL_FILE, TensorFlowClassification.MODEL_FILE)
-        tar_file = tarfile.open(TensorFlowClassification.MODEL_FILE)
-        for file in tar_file.getmembers():
-            file_name = os.path.basename(file.name)
-            if 'frozen_inference_graph.pb' in file_name:
-                tar_file.extract(file, os.getcwd())
-                
-        TensorFlowClassification.detection_graph = tf.Graph()
-        with TensorFlowClassification.detection_graph.as_default():
-            od_graph_def = tf.GraphDef()
-            with tf.gfile.GFile(TensorFlowClassification.PATH_TO_FROZEN_GRAPH, 'rb') as fid:
-                serialized_graph = fid.read()
-                od_graph_def.ParseFromString(serialized_graph)
-                tf.import_graph_def(od_graph_def, name='')
-                
-        TensorFlowClassification.category_index = label_map_util.create_category_index_from_labelmap(TensorFlowClassification.PATH_TO_LABELS, use_display_name=True)
+#         opener = urllib.request.URLopener()
+#         opener.retrieve(TensorFlowClassification.DOWNLOAD_BASE + TensorFlowClassification.MODEL_FILE, TensorFlowClassification.MODEL_FILE)
+#         tar_file = tarfile.open(TensorFlowClassification.MODEL_FILE)
+#         for file in tar_file.getmembers():
+#             file_name = os.path.basename(file.name)
+#             if 'frozen_inference_graph.pb' in file_name:
+#                 tar_file.extract(file, os.getcwd())
+#                 
+#         TensorFlowClassification.detection_graph = tf.Graph()
+#         with TensorFlowClassification.detection_graph.as_default():
+#             od_graph_def = tf.GraphDef()
+#             with tf.gfile.GFile(TensorFlowClassification.PATH_TO_FROZEN_GRAPH, 'rb') as fid:
+#                 serialized_graph = fid.read()
+#                 od_graph_def.ParseFromString(serialized_graph)
+#                 tf.import_graph_def(od_graph_def, name='')
+#                 
+#         TensorFlowClassification.category_index = label_map_util.create_category_index_from_labelmap(TensorFlowClassification.PATH_TO_LABELS, use_display_name=True)
         #TensorFlowClassification.category_index = TensorFlowClassification.create_category_index_from_labelmap(TensorFlowClassification.PATH_TO_LABELS, use_display_name=True)
 
     def load_image_into_numpy_array(image):
@@ -209,6 +209,24 @@ class TensorFlowClassification(Robot):
         
         # starting other threads/senders/capabilities
         
+        opener = urllib.request.URLopener()
+        opener.retrieve(TensorFlowClassification.DOWNLOAD_BASE + TensorFlowClassification.MODEL_FILE, TensorFlowClassification.MODEL_FILE)
+        tar_file = tarfile.open(TensorFlowClassification.MODEL_FILE)
+        for file in tar_file.getmembers():
+            file_name = os.path.basename(file.name)
+            if 'frozen_inference_graph.pb' in file_name:
+                tar_file.extract(file, os.getcwd())
+                
+        TensorFlowClassification.detection_graph = tf.Graph()
+        with TensorFlowClassification.detection_graph.as_default():
+            od_graph_def = tf.GraphDef()
+            with tf.gfile.GFile(TensorFlowClassification.PATH_TO_FROZEN_GRAPH, 'rb') as fid:
+                serialized_graph = fid.read()
+                od_graph_def.ParseFromString(serialized_graph)
+                tf.import_graph_def(od_graph_def, name='')
+                
+        TensorFlowClassification.category_index = label_map_util.create_category_index_from_labelmap(TensorFlowClassification.PATH_TO_LABELS, use_display_name=True)
+
         self.running=False
                 
         # live until stopped

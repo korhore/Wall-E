@@ -26,5 +26,4 @@ class Image(Robot):
                        instanceName=instanceName,
                        instanceType=instanceType,
                        level=level)
-        print("We are in Image, not Robot")
     
