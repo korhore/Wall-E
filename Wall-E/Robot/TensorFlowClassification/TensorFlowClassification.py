@@ -248,29 +248,12 @@ class TensorFlowClassification(Robot):
             # Actual detection.
             # TODO detection_graph where it is defined
             output_dict = self.run_inference_for_single_image(image_np_expanded, self.detection_graph)
-            # Visualization of the results of a detection.
-# rko commented out, this is very hard to get working with Ubuntu 14.04, because of denpendecies
-# Study vis_util.visualize_boxes_and_labels_on_image_array
-#             vis_util.visualize_boxes_and_labels_on_image_array(
-#                 mage_np,
-#                 output_dict['detection_boxes'],
-#                 output_dict['detection_classes'],
-#                 output_dict['detection_scores'],
-#                 self.category_index,
-#                 instance_masks=output_dict.get('detection_masks'),
-#                 use_normalized_coordinates=True,
-#                 line_thickness=8)
-#             plt.figure(figsize=self.IMAGE_SIZE)
-#             plt.imshow(image_np)
-            
             i=0  
             for classInd in output_dict[self.DETECTION_CLASSES]:
                 self.log("image className " + self.category_index[classInd][self.NAME] + ' score ' + str(output_dict[self.DETECTION_SCORES][i]) + ' box ' + str(output_dict[self.DETECTION_BOXES][i]))
                 i = i+1   
 
         while self.running:
-            # as a leaf sensor robot default processing for sensation we have got
-            # in practice we can get stop sensation
             sensation=self.getAxon().get()
             self.log("got sensation from queue " + sensation.toDebugStr())      
             self.process(sensation)
@@ -305,6 +288,16 @@ class TensorFlowClassification(Robot):
                 for classInd in output_dict[self.DETECTION_CLASSES]:
                     if output_dict[self.DETECTION_SCORES][i] > TensorFlowClassification.DETECTION_SCORE_LIMIT:
                         self.log("SEEN image FOR SURE className " + self.category_index[classInd][self.NAME] + ' score ' + str(output_dict[self.DETECTION_SCORES][i]) + ' box ' + str(output_dict[self.DETECTION_BOXES][i]))
+                        # create new sensation of detected area and category
+                        # subimage
+                        im_width, im_height = sensation.getImage().size
+                        ymin, xmin, ymax, xmax = output_dict[self.DETECTION_BOXES][i]
+                        size = (xmin * im_width, ymin * im_height,
+                                xmax * im_width, ymax * im_height)
+                        self.log("SEEN image FOR SURE className " + self.category_index[classInd][self.NAME] + ' score ' + str(output_dict[self.DETECTION_SCORES][i]) + ' box ' + str(output_dict[self.DETECTION_BOXES][i]) + ' size ' + str(size))
+                        subimage = sensation.getImage().crop(size)
+                        subsensation = Sensation.create(sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out, image=subimage, references=[sensation])
+                        subsensation.save()
 #                     else:
 #                         self.log("SEEN image not sure className " + self.category_index[classInd][self.NAME] + ' score ' + str(output_dict[self.DETECTION_SCORES][i]) + ' box ' + str(output_dict[self.DETECTION_BOXES][i]))                        
                     i = i+1   
