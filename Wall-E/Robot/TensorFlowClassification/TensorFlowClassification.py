@@ -71,15 +71,20 @@ class TensorFlowClassification(Robot):
     # If you want to test the code with your images, just add path to the images to the TEST_IMAGE_PATHS.
     
     # What model to download.
-    MODEL_NAME = 'ssd_mobilenet_v1_coco_2017_11_17'
-    MODEL_FILE = MODEL_NAME + '.tar.gz'
-    DOWNLOAD_BASE = 'http://download.tensorflow.org/models/object_detection/'
+    MODEL_NAME =            'ssd_mobilenet_v1_coco_2017_11_17'
+    MODEL_FILE =            MODEL_NAME + '.tar.gz'
+    DOWNLOAD_BASE =         'http://download.tensorflow.org/models/object_detection/'
+    FROZEN_GRAPH_PB_NAME =  'frozen_inference_graph.pb'
+    LIVE_GRAPH_PB_NAME =    'live_inference_graph.pb'
 
+    PATH_TO_GRAPH_DIR = os.path.join(Sensation.DATADIR, MODEL_NAME)
     # Path to frozen detection graph. This is the actual model that is used for the object detection.
-    PATH_TO_FROZEN_GRAPH = MODEL_NAME + '/frozen_inference_graph.pb'
+    PATH_TO_FROZEN_GRAPH = os.path.join(Sensation.DATADIR, MODEL_NAME, FROZEN_GRAPH_PB_NAME)
+    # Path to frozen detection graph. This will the actual model that is used for the object detection.
+    PATH_TO_LIVE_GRAPH = os.path.join(PATH_TO_GRAPH_DIR, LIVE_GRAPH_PB_NAME)
 
     # List of the strings that is used to add correct label for each box.
-    PATH_TO_LABELS = os.path.join('data', 'mscoco_label_map.pbtxt')
+    PATH_TO_LABELS = os.path.join(Sensation.DATADIR, 'mscoco_label_map.pbtxt')
 
     PATH_TO_TEST_IMAGES_DIR = 'test_images'
     #TEST_IMAGE_PATHS = [ os.path.join(PATH_TO_TEST_IMAGES_DIR, 'image{}.jpg'.format(i)) for i in range(1, 3) ]
@@ -209,15 +214,18 @@ class TensorFlowClassification(Robot):
         self.log(" Starting robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))      
         
         # starting other threads/senders/capabilities
-        
-        opener = urllib.request.URLopener()
-        opener.retrieve(TensorFlowClassification.DOWNLOAD_BASE + TensorFlowClassification.MODEL_FILE, TensorFlowClassification.MODEL_FILE)
-        tar_file = tarfile.open(TensorFlowClassification.MODEL_FILE)
-        for file in tar_file.getmembers():
-            file_name = os.path.basename(file.name)
-            if 'frozen_inference_graph.pb' in file_name:
-                tar_file.extract(file, os.getcwd())
-                
+ 
+        # TODO, save this somewhere, it does not change
+        if not os.path.exists(TensorFlowClassification.PATH_TO_FROZEN_GRAPH):
+            opener = urllib.request.URLopener()
+            opener.retrieve(TensorFlowClassification.DOWNLOAD_BASE + TensorFlowClassification.MODEL_FILE, TensorFlowClassification.MODEL_FILE)
+            tar_file = tarfile.open(TensorFlowClassification.MODEL_FILE)
+            for file in tar_file.getmembers():
+                file_name = os.path.basename(file.name)
+                if TensorFlowClassification.FROZEN_GRAPH_PB_NAME in file_name:
+#                    tar_file.extract(file, os.getcwd())
+                    tar_file.extract(file, Sensation.DATADIR)
+                    
         TensorFlowClassification.detection_graph = tf.Graph()
         with TensorFlowClassification.detection_graph.as_default():
             od_graph_def = tf.GraphDef()
