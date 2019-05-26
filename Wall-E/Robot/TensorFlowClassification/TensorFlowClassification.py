@@ -76,6 +76,7 @@ class TensorFlowClassification(Robot):
     DOWNLOAD_BASE =         'http://download.tensorflow.org/models/object_detection/'
     FROZEN_GRAPH_PB_NAME =  'frozen_inference_graph.pb'
     LIVE_GRAPH_PB_NAME =    'live_inference_graph.pb'
+    DETECTION_SCORE_LIMIT = 0.1 #may be too low, but for testing purposes we want to detect something
 
     PATH_TO_GRAPH_DIR = os.path.join(Sensation.DATADIR, MODEL_NAME)
     # Path to frozen detection graph. This is the actual model that is used for the object detection.
@@ -213,9 +214,6 @@ class TensorFlowClassification(Robot):
     def run(self):
         self.log(" Starting robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))      
         
-        # starting other threads/senders/capabilities
- 
-        # TODO, save this somewhere, it does not change
         if not os.path.exists(TensorFlowClassification.PATH_TO_FROZEN_GRAPH):
             opener = urllib.request.URLopener()
             opener.retrieve(TensorFlowClassification.DOWNLOAD_BASE + TensorFlowClassification.MODEL_FILE, TensorFlowClassification.MODEL_FILE)
@@ -223,7 +221,6 @@ class TensorFlowClassification(Robot):
             for file in tar_file.getmembers():
                 file_name = os.path.basename(file.name)
                 if TensorFlowClassification.FROZEN_GRAPH_PB_NAME in file_name:
-#                    tar_file.extract(file, os.getcwd())
                     tar_file.extract(file, Sensation.DATADIR)
                     
         TensorFlowClassification.detection_graph = tf.Graph()
@@ -236,7 +233,7 @@ class TensorFlowClassification(Robot):
                 
         TensorFlowClassification.category_index = label_map_util.create_category_index_from_labelmap(TensorFlowClassification.PATH_TO_LABELS, use_display_name=True)
 
-        self.running=False
+        self.running=True
                 
         # live until stopped
         self.mode = Sensation.Mode.Normal
@@ -274,32 +271,43 @@ class TensorFlowClassification(Robot):
         while self.running:
             # as a leaf sensor robot default processing for sensation we have got
             # in practice we can get stop sensation
-            if not self.getAxon().empty():
-                sensation=self.getAxon().get()
-                self.log("got sensation from queue " + sensation.toDebugStr())      
-                self.process(sensation)
-            else:
-                self.log("self.camera.capture_continuous(stream, format=FORMAT)")
-                stream = io.BytesIO()
-                self.camera.capture(stream, format=Sensation.FORMAT)
-                self.camera.stop_preview()
-                stream.seek(0)
-                image = PIL_Image.open(stream)
-                if self.isChangedImage(image):
-                    self.log("self.getParent().getAxon().put(sensation) stream {}".format(len(stream.getvalue())))
-                    sensation = Sensation.create(sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=stream.getvalue())
-                    self.log("self.getParent().getAxon().put(sensation) getData")
-#                    self.saveData(sensation)
-                    self.saveData(sensation=sensation, image=image)
-                    self.getParent().getAxon().put(sensation) # or self.process
-                    self.camera.start_preview()
-                time.sleep(self.SLEEP_TIME)
+            sensation=self.getAxon().get()
+            self.log("got sensation from queue " + sensation.toDebugStr())      
+            self.process(sensation)
         self.log("Stopping TensorFlowClassification")
         self.mode = Sensation.Mode.Stopping
 #         self.camera.close() 
        
         self.log("run ALL SHUT DOWN")
 
+    def process(self, sensation):
+        #run default implementation first
+        super(TensorFlowClassification, self).process(sensation)
+        if self.running:    # if still running
+            self.log('TensorFlowClassification process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + sensation.toDebugStr())
+            # we can process this
+            if sensation.getDirection() == Sensation.Direction.In and \
+               sensation.getSensationType() == Sensation.SensationType.Image and \
+               sensation.getMemory() == Sensation.Memory.Sensory:
+                #sensation.save()    # save to file TODO, not needed, but we need
+                                    # numpy representation and example code does it from a file
+                                    #Nope, just det it
+                # image = PIL_Image.open(image_path)
+                # the array based representation of the image will be used later in order to prepare the
+                # result image with boxes and labels on it.
+                image_np = self.load_image_into_numpy_array(sensation.getImage())
+                # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
+                image_np_expanded = np.expand_dims(image_np, axis=0)
+                # Actual detection.
+                # TODO detection_graph where it is defined
+                output_dict = self.run_inference_for_single_image(image_np_expanded, self.detection_graph)
+                i=0  
+                for classInd in output_dict[self.DETECTION_CLASSES]:
+                    if output_dict[self.DETECTION_SCORES][i] > TensorFlowClassification.DETECTION_SCORE_LIMIT:
+                        self.log("SEEN image FOR SURE className " + self.category_index[classInd][self.NAME] + ' score ' + str(output_dict[self.DETECTION_SCORES][i]) + ' box ' + str(output_dict[self.DETECTION_BOXES][i]))
+#                     else:
+#                         self.log("SEEN image not sure className " + self.category_index[classInd][self.NAME] + ' score ' + str(output_dict[self.DETECTION_SCORES][i]) + ' box ' + str(output_dict[self.DETECTION_BOXES][i]))                        
+                    i = i+1   
       
 
 if __name__ == "__main__":

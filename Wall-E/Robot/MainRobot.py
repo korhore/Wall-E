@@ -172,12 +172,13 @@ class MainRobot(Robot):
             else:
                 # do some basic processing of main robot level and testing
                 #Voidedata can be played back, if we have a subcapability for it
-                if sensation.getSensationType() == Sensation.SensationType.Voice:
-                    self.log('process: Main root Sensation.SensationType.Voice Out')
+                if sensation.getSensationType() == Sensation.SensationType.Voice or \
+                   sensation.getSensationType() == Sensation.SensationType.Image:
+                    self.log('process: Main root Sensation.SensationType.Voice or Image Out')
                     # basically we don't know how to handle going in sensation, but
                     # subInstances can know. Check which subinsces can process this and deliver sensation to them.
                     # Also subclasses can implement their own implementation for processing        
-                    robots = self.getSubCapabiliyInstances(direction=Sensation.Direction.In, memory=sensation.getMemory(), sensationType=Sensation.SensationType.Voice)
+                    robots = self.getSubCapabiliyInstances(direction=Sensation.Direction.In, memory=sensation.getMemory(), sensationType=sensation.getSensationType())
                     self.log('Sensation.Direction.Out -> In self.getSubCapabiliyInstances' + str(robots))
                     for robot in robots:
                         sensation.setDirection(Sensation.Direction.In)# todo, we should create new in-direction instance and reference it
@@ -201,6 +202,8 @@ class MainRobot(Robot):
             # Also subclasses can implement their own implementation for processing        
             if sensation.getSensationType() == Sensation.SensationType.Voice:
                 self.log('process: Main root Sensation.SensationType.Voice In')
+            if sensation.getSensationType() == Sensation.SensationType.Image:
+                self.log('process: Main root Sensation.SensationType.Image In')
             robots = self.getSubCapabiliyInstances(direction=Sensation.Direction.In, memory=sensation.getMemory(), sensationType=sensation.getSensationType())
             self.log('Sensation.Direction.In self.getSubCapabiliyInstances' + str(robots))
             for robot in robots:

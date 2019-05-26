@@ -1037,17 +1037,15 @@ class Sensation(object):
             os.makedirs(Sensation.DATADIR)
             
         if self.getSensationType() == Sensation.SensationType.Image:       
-            fileName = Sensation.DATADIR + '/' + '{}'.format(sensation.getNumber()) + \
+            fileName = Sensation.DATADIR + '/' + '{}'.format(self.getNumber()) + \
                        '.' +  Sensation.FORMAT
             self.setFilePath(fileName)
             try:
                 with open(fileName, "wb") as f:
-                    if image is None:
-                        image = self.getImage()
                     try:
-                        image.save(f)
+                        self.getImage().save(f)
                     except IOError as e:
-                        self.log("image.save(f) error " + str(e))
+                        self.log("self.getImage().save(f)) error " + str(e))
                     finally:
                         f.close()
             except Exception as e:
