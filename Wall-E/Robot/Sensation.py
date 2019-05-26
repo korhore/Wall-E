@@ -1,11 +1,12 @@
 '''
 Created on Feb 25, 2013
-Edited on 25.05.2019
+Edited on 26.05.2019
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
 
 import sys
+import os
 import time as systemTime
 from enum import Enum
 import struct
@@ -89,22 +90,23 @@ class Sensation(object):
                             # what is has seen. 
  
     #number=0                # sensation number for referencing
-    FORMAT='jpeg'
-    MODE='RGB'
+    FORMAT =            'jpeg'
+    MODE =              'RGB'       # PIL_IMAGE mode, not used now, but this it is
+    DATADIR =           'data'
     LOWPOINT_NUMBERVARIANCE=-100.0
     HIGHPOINT_NUMBERVARIANCE=100.0
     
-    CACHE_TIME = 300.0;       # cache sensation 300 seconds = 5 mins (may be changed)
-    LENGTH_SIZE=2   # Sensation as string can only be 99 character long
-    LENGTH_FORMAT = "{0:2d}"
-    SEPARATOR='|'  # Separator between messages
-    SEPARATOR_SIZE=1  # Separator length
+    CACHE_TIME =        300.0;       # cache sensation 300 seconds = 5 mins (may be changed)
+    LENGTH_SIZE =       2   # Sensation as string can only be 99 character long
+    LENGTH_FORMAT =     "{0:2d}"
+    SEPARATOR =         '|'  # Separator between messages
+    SEPARATOR_SIZE =    1  # Separator length
     
-    ENUM_SIZE=1
-    NUMBER_SIZE=4
-    BYTEORDER="little"
-    FLOAT_PACK_TYPE="d"
-    FLOAT_PACK_SIZE=8
+    ENUM_SIZE =         1
+    NUMBER_SIZE =       4
+    BYTEORDER =         "little"
+    FLOAT_PACK_TYPE =   "d"
+    FLOAT_PACK_SIZE =   8
  
     # so many sensationtypes, that first letter is not good idea any more  
     SensationType = enum(Drive='a', Stop='b', Who='c', Azimuth='d', Acceleration='e', Observation='f', HearDirection='g', Voice='h', Image='i',  Calibrate='j', Capability='k', Unknown='l')
@@ -1025,6 +1027,32 @@ class Sensation(object):
         self.capabilities = capabilities
     def getCapabilities(self):
         return self.capabilities
+
+    '''
+    save sensation data permanently
+    Not yet implemented, but partly for debugging
+    '''  
+    def save(self):
+        if not os.path.exists(Sensation.DATADIR):
+            os.makedirs(Sensation.DATADIR)
+            
+        if self.getSensationType() == Sensation.SensationType.Image:       
+            fileName = Sensation.DATADIR + '/' + '{}'.format(sensation.getNumber()) + \
+                       '.' +  Sensation.FORMAT
+            self.setFilePath(fileName)
+            try:
+                with open(fileName, "wb") as f:
+                    if image is None:
+                        image = self.getImage()
+                    try:
+                        image.save(f)
+                    except IOError as e:
+                        self.log("image.save(f) error " + str(e))
+                    finally:
+                        f.close()
+            except Exception as e:
+                    self.log("open(fileName, wb) as f error " + str(e))
+    
     
        
 if __name__ == '__main__':

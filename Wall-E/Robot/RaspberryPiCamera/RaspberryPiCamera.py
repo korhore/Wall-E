@@ -63,9 +63,10 @@ class RaspberryPiCamera(Robot):
         self.camera = picamera.PiCamera()
         self.camera.rotation = 180
         self.lastImage = None
-        
-        if not os.path.exists(self.DATADIR):
-            os.makedirs(self.DATADIR)
+
+        # TODO to Sensatio        
+        if not os.path.exists(Sensation.DATADIR):
+            os.makedirs(Sensation.DATADIR)
 
       
         self.running=False
@@ -104,7 +105,7 @@ class RaspberryPiCamera(Robot):
                     sensation = Sensation.create(sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image)
                     self.log("self.getParent().getAxon().put(sensation) getData")
 #                    self.saveData(sensation)
-                    self.saveData(sensation=sensation, image=image)
+                    sensation.save()
                     self.getParent().getAxon().put(sensation) # or self.process
                     self.camera.start_preview()
                 time.sleep(self.SLEEP_TIME)
@@ -148,33 +149,6 @@ class RaspberryPiCamera(Robot):
                 self.lastImage = image
                 return True
             return False
-
-
-        
-    def saveData(self, sensation, image=None):
-        fileName = self.DATADIR + '/' + '{}'.format(sensation.getNumber()) + \
-                   '.' +  Sensation.FORMAT
-        try:
-            with open(fileName, "wb") as f:
-                if image is None:
-                    written=0
-                    data = sensation.getData()
-                    try:
-                        while written < len(data):
-                            written = written + f.write(data[written:])
-                    except IOError as e:
-                        self.log("f.write(data[written:]) error " + str(e))
-                    finally:
-                        f.close()
-                else:
-                    try:
-                        image.save(f)
-                    except IOError as e:
-                        self.log("image.save(f) error " + str(e))
-                    finally:
-                        f.close()
-        except Exception as e:
-                self.log("open(fileName, wb) as f error " + str(e))
       
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 '''
 Created on 30.04.2019
-Updated on 20.05.2019
+Updated on 26.05.2019
 
 @author: reijo.korhonen@gmail.com
 '''
@@ -20,7 +20,7 @@ import tarfile
 import tensorflow as tf
 #import zipfile
 
-from distutils.version import StrictVersion
+#from distutils.version import StrictVersion
 #from collections import defaultdict
 #from io import StringIO
 #from matplotlib import pyplot as plt
@@ -57,12 +57,13 @@ class TensorFlowClassification(Robot):
     Moving Sensory and should be move to those implementations.  
     '''
     
-    
-    FORMAT='jpeg'
-    DATADIR='data'
-    COMPARE_SQUARES=20
-    CHANGE_RANGE=3000000
-    SLEEP_TIME=10
+    NAME =              'name'
+    DETECTION_SCORES =  'detection_scores'
+    NUM_DETECTIONS =    'num_detections'
+    DETECTION_CLASSES = 'detection_classes'
+    DETECTION_BOXES =   'detection_boxes'
+    DETECTION_MASKS =   'detection_masks'
+    IMAGE_TENSOR =      'image_tensor:0'
     
     # For the sake of simplicity we will use only 2 images:
     # image1.jpg
@@ -149,13 +150,13 @@ class TensorFlowClassification(Robot):
 #         TensorFlowClassification.category_index = label_map_util.create_category_index_from_labelmap(TensorFlowClassification.PATH_TO_LABELS, use_display_name=True)
         #TensorFlowClassification.category_index = TensorFlowClassification.create_category_index_from_labelmap(TensorFlowClassification.PATH_TO_LABELS, use_display_name=True)
 
-    def load_image_into_numpy_array(image):
+    def load_image_into_numpy_array(self, image):
       (im_width, im_height) = image.size
       return np.array(image.getdata()).reshape(
           (im_height, im_width, 3)).astype(np.uint8)
 
               
-    def run_inference_for_single_image(image, graph):
+    def run_inference_for_single_image(self, image, graph):
         with graph.as_default():
             with tf.Session() as sess:
                 # Get handles to input and output tensors
@@ -163,19 +164,19 @@ class TensorFlowClassification(Robot):
                 all_tensor_names = {output.name for op in ops for output in op.outputs}
                 tensor_dict = {}
                 for key in [
-                    'num_detections', 'detection_boxes', 'detection_scores',
-                    'detection_classes', 'detection_masks'
+                    self.NUM_DETECTIONS, self.DETECTION_BOXES, self.DETECTION_SCORES,
+                    self.DETECTION_CLASSES, self.DETECTION_MASKS
                     ]:
                     tensor_name = key + ':0'
                     if tensor_name in all_tensor_names:
                         tensor_dict[key] = tf.get_default_graph().get_tensor_by_name(
                             tensor_name)
-                if 'detection_masks' in tensor_dict:
+                if self.DETECTION_MASKS in tensor_dict:
                     # The following processing is only for single image
-                    detection_boxes = tf.squeeze(tensor_dict['detection_boxes'], [0])
-                    detection_masks = tf.squeeze(tensor_dict['detection_masks'], [0])
+                    detection_boxes = tf.squeeze(tensor_dict[self.DETECTION_BOXES], [0])
+                    detection_masks = tf.squeeze(tensor_dict[self.DETECTION_MASKS], [0])
                     # Reframe is required to translate mask from box coordinates to image coordinates and fit the image size.
-                    real_num_detection = tf.cast(tensor_dict['num_detections'][0], tf.int32)
+                    real_num_detection = tf.cast(tensor_dict[self.NUM_DETECTIONS][0], tf.int32)
                     detection_boxes = tf.slice(detection_boxes, [0, 0], [real_num_detection, -1])
                     detection_masks = tf.slice(detection_masks, [0, 0, 0], [real_num_detection, -1, -1])
                     detection_masks_reframed = utils_ops.reframe_box_masks_to_image_masks(
@@ -183,22 +184,22 @@ class TensorFlowClassification(Robot):
                     detection_masks_reframed = tf.cast(
                         tf.greater(detection_masks_reframed, 0.5), tf.uint8)
                     # Follow the convention by adding back the batch dimension
-                    tensor_dict['detection_masks'] = tf.expand_dims(
+                    tensor_dict[self.DETECTION_MASKS] = tf.expand_dims(
                         detection_masks_reframed, 0)
-                image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
+                image_tensor = tf.get_default_graph().get_tensor_by_name(self.IMAGE_TENSOR)
 
                 # Run inference
                 output_dict = sess.run(tensor_dict,
                              feed_dict={image_tensor: image})
 
                 # all outputs are float32 numpy arrays, so convert types as appropriate
-                output_dict['num_detections'] = int(output_dict['num_detections'][0])
-                output_dict['detection_classes'] = output_dict[
-                    'detection_classes'][0].astype(np.int64)
-                output_dict['detection_boxes'] = output_dict['detection_boxes'][0]
-                output_dict['detection_scores'] = output_dict['detection_scores'][0]
-                if 'detection_masks' in output_dict:
-                    output_dict['detection_masks'] = output_dict['detection_masks'][0]
+                output_dict[self.NUM_DETECTIONS] = int(output_dict[self.NUM_DETECTIONS][0])
+                output_dict[self.DETECTION_CLASSES] = output_dict[
+                    self.DETECTION_CLASSES][0].astype(np.int64)
+                output_dict[self.DETECTION_BOXES] = output_dict[self.DETECTION_BOXES][0]
+                output_dict[self.DETECTION_SCORES] = output_dict[self.DETECTION_SCORES][0]
+                if self.DETECTION_MASKS in output_dict:
+                    output_dict[self.DETECTION_MASKS] = output_dict[self.DETECTION_MASKS][0]
         return output_dict
     
     
@@ -236,12 +237,12 @@ class TensorFlowClassification(Robot):
             image = PIL_Image.open(image_path)
             # the array based representation of the image will be used later in order to prepare the
             # result image with boxes and labels on it.
-            image_np = TensorFlowClassification.load_image_into_numpy_array(image)
+            image_np = self.load_image_into_numpy_array(image)
             # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
             image_np_expanded = np.expand_dims(image_np, axis=0)
             # Actual detection.
             # TODO detection_graph where it is defined
-            output_dict = TensorFlowClassification.run_inference_for_single_image(image_np_expanded, self.detection_graph)
+            output_dict = self.run_inference_for_single_image(image_np_expanded, self.detection_graph)
             # Visualization of the results of a detection.
 # rko commented out, this is very hard to get working with Ubuntu 14.04, because of denpendecies
 # Study vis_util.visualize_boxes_and_labels_on_image_array
@@ -257,13 +258,9 @@ class TensorFlowClassification(Robot):
 #             plt.figure(figsize=self.IMAGE_SIZE)
 #             plt.imshow(image_np)
             
-            classNames = self.getClassNames(
-                output_dict['detection_classes'],
-                self.category_index)
-            self.log("image classnames " + str(classNames))
             i=0  
-            for className in classNames:
-                self.log("image className " + className + ' score ' + str(output_dict['detection_scores'][i]) + ' box ' + str(output_dict['detection_boxes'][i]))
+            for classInd in output_dict[self.DETECTION_CLASSES]:
+                self.log("image className " + self.category_index[classInd][self.NAME] + ' score ' + str(output_dict[self.DETECTION_SCORES][i]) + ' box ' + str(output_dict[self.DETECTION_BOXES][i]))
                 i = i+1   
 
         while self.running:
@@ -276,7 +273,7 @@ class TensorFlowClassification(Robot):
             else:
                 self.log("self.camera.capture_continuous(stream, format=FORMAT)")
                 stream = io.BytesIO()
-                self.camera.capture(stream, format=self.FORMAT)
+                self.camera.capture(stream, format=Sensation.FORMAT)
                 self.camera.stop_preview()
                 stream.seek(0)
                 image = PIL_Image.open(stream)
@@ -295,229 +292,6 @@ class TensorFlowClassification(Robot):
        
         self.log("run ALL SHUT DOWN")
 
-    '''
-    compare image to previous one
-    '''
-
-    #def visualize_boxes_and_labels_on_image_array(self,
-#         image,
-#         boxes,
-    def getClassNames(self,
-         classes,
-#         scores,
-         category_index):
-        
-        class_names=[]
-        
-        for c in classes:
-            class_name = category_index[c]['name']
-            class_names.append(class_name)
-        return class_names
-
-
-#         instance_masks=None,
-#         instance_boundaries=None,
-#         keypoints=None,
-#         track_ids=None,
-#         use_normalized_coordinates=False,
-#         max_boxes_to_draw=20,
-#         min_score_thresh=.5,
-#         agnostic_mode=False,
-#         line_thickness=4,
-#         groundtruth_box_visualization_color='black',
-#         skip_scores=False,
-#         skip_labels=False,
-#         skip_track_ids=False):
-    """Overlay labeled boxes on an image with formatted scores and label names.
-    
-      This function groups boxes that correspond to the same location
-      and creates a display string for each detection and overlays these
-      on the image. Note that this function modifies the image in place, and returns
-      that same image.
-    
-      Args:
-        image: uint8 numpy array with shape (img_height, img_width, 3)
-        boxes: a numpy array of shape [N, 4]
-        classes: a numpy array of shape [N]. Note that class indices are 1-based,
-          and match the keys in the label map.
-        scores: a numpy array of shape [N] or None.  If scores=None, then
-          this function assumes that the boxes to be plotted are groundtruth
-          boxes and plot all boxes as black with no classes or scores.
-        category_index: a dict containing category dictionaries (each holding
-          category index `id` and category name `name`) keyed by category indices.
-        instance_masks: a numpy array of shape [N, image_height, image_width] with
-          values ranging between 0 and 1, can be None.
-        instance_boundaries: a numpy array of shape [N, image_height, image_width]
-          with values ranging between 0 and 1, can be None.
-        keypoints: a numpy array of shape [N, num_keypoints, 2], can
-          be None
-        track_ids: a numpy array of shape [N] with unique track ids. If provided,
-          color-coding of boxes will be determined by these ids, and not the class
-          indices.
-        use_normalized_coordinates: whether boxes is to be interpreted as
-          normalized coordinates or not.
-        max_boxes_to_draw: maximum number of boxes to visualize.  If None, draw
-          all boxes.
-        min_score_thresh: minimum score threshold for a box to be visualized
-        agnostic_mode: boolean (default: False) controlling whether to evaluate in
-          class-agnostic mode or not.  This mode will display scores but ignore
-          classes.
-        line_thickness: integer (default: 4) controlling line width of the boxes.
-        groundtruth_box_visualization_color: box color for visualizing groundtruth
-          boxes
-        skip_scores: whether to skip score when drawing a single detection
-        skip_labels: whether to skip label when drawing a single detection
-        skip_track_ids: whether to skip track id when drawing a single detection
-    
-      Returns:
-        uint8 numpy array with shape (img_height, img_width, 3) with overlaid boxes.
-      """
-      # Create a display string (and color) for every box location, group any boxes
-      # that correspond to the same location.
-#       box_to_display_str_map = collections.defaultdict(list)
-#       box_to_color_map = collections.defaultdict(str)
-#       box_to_instance_masks_map = {}
-#       box_to_instance_boundaries_map = {}
-#       box_to_keypoints_map = collections.defaultdict(list)
-#       box_to_track_ids_map = {}
-#       if not max_boxes_to_draw:
-#         max_boxes_to_draw = boxes.shape[0]
-#       for i in range(min(max_boxes_to_draw, boxes.shape[0])):
-#         if scores is None or scores[i] > min_score_thresh:
-#           box = tuple(boxes[i].tolist())
-#           if instance_masks is not None:
-#             box_to_instance_masks_map[box] = instance_masks[i]
-#           if instance_boundaries is not None:
-#             box_to_instance_boundaries_map[box] = instance_boundaries[i]
-#           if keypoints is not None:
-#             box_to_keypoints_map[box].extend(keypoints[i])
-#           if track_ids is not None:
-#             box_to_track_ids_map[box] = track_ids[i]
-#           if scores is None:
-#             box_to_color_map[box] = groundtruth_box_visualization_color
-#           else:
-#             display_str = ''
-#             if not skip_labels:
-#               if not agnostic_mode:
-#                 if classes[i] in category_index.keys():
-#                   class_name = category_index[classes[i]]['name']
-#                 else:
-#                   class_name = 'N/A'
-#                 display_str = str(class_name)
-#             if not skip_scores:
-#               if not display_str:
-#                 display_str = '{}%'.format(int(100*scores[i]))
-#               else:
-#                 display_str = '{}: {}%'.format(display_str, int(100*scores[i]))
-#             if not skip_track_ids and track_ids is not None:
-#               if not display_str:
-#                 display_str = 'ID {}'.format(track_ids[i])
-#               else:
-#                 display_str = '{}: ID {}'.format(display_str, track_ids[i])
-#             box_to_display_str_map[box].append(display_str)
-#             if agnostic_mode:
-#               box_to_color_map[box] = 'DarkOrange'
-#             elif track_ids is not None:
-#               prime_multipler = _get_multiplier_for_color_randomness()
-#               box_to_color_map[box] = STANDARD_COLORS[
-#                   (prime_multipler * track_ids[i]) % len(STANDARD_COLORS)]
-#             else:
-#               box_to_color_map[box] = STANDARD_COLORS[
-#                   classes[i] % len(STANDARD_COLORS)]
-#     
-#       # Draw all boxes onto image.
-#       for box, color in box_to_color_map.items():
-#         ymin, xmin, ymax, xmax = box
-#         if instance_masks is not None:
-#           draw_mask_on_image_array(
-#               image,
-#               box_to_instance_masks_map[box],
-#               color=color
-#           )
-#         if instance_boundaries is not None:
-#           draw_mask_on_image_array(
-#               image,
-#               box_to_instance_boundaries_map[box],
-#               color='red',
-#               alpha=1.0
-#           )
-#         draw_bounding_box_on_image_array(
-#             image,
-#             ymin,
-#             xmin,
-#             ymax,
-#             xmax,
-#             color=color,
-#             thickness=line_thickness,
-#             display_str_list=box_to_display_str_map[box],
-#             use_normalized_coordinates=use_normalized_coordinates)
-#         if keypoints is not None:
-#           draw_keypoints_on_image_array(
-#               image,
-#               box_to_keypoints_map[box],
-#               color=color,
-#               radius=line_thickness / 2,
-#               use_normalized_coordinates=use_normalized_coordinates)
-#     
-#       return image
-           
-    def isChangedImage(self, image):
-        if self.lastImage is None:
-            self.lastImage = image
-            return True
-        else:
-            # calculate histogram change by squares color
-            # we simply multiply color byt ins pixel count so we get roughly
-            # how dark this square is
-            y_size = image.size[1]/self.COMPARE_SQUARES
-            x_size = image.size[0]/self.COMPARE_SQUARES
-            change = 0
-            for y in range(0,self.COMPARE_SQUARES):
-                for x in range(0,self.COMPARE_SQUARES):
-                    box = (x*x_size, y*y_size, (x+1)*x_size, (y+1)*y_size)
-                    region = image.crop(box)
-                    histogram = region.histogram()
-                    last_region = self.lastImage.crop(box)
-                    last_histogram = last_region.histogram()
-                    sum=0
-                    last_sum=0
-                    for i in range(0,len(histogram)):
-                        sum = sum+i*histogram[i]
-                        last_sum = last_sum+i*last_histogram[i]
-                    change = change + abs(sum-last_sum)
-
-#             self.log("isChangedImage final change " + str(change) + ' change > self.CHANGE_RANGE '+ str(change > self.CHANGE_RANGE))
-            if change > self.CHANGE_RANGE:
-                self.lastImage = image
-                return True
-            return False
-
-
-        
-    def saveData(self, sensation, image=None):
-        fileName = self.DATADIR + '/' + '{}'.format(sensation.getNumber()) + \
-                   '.' +  self.FORMAT
-        try:
-            with open(fileName, "wb") as f:
-                if image is None:
-                    written=0
-                    data = sensation.getData()
-                    try:
-                        while written < len(data):
-                            written = written + f.write(data[written:])
-                    except IOError as e:
-                        self.log("f.write(data[written:]) error " + str(e))
-                    finally:
-                        f.close()
-                else:
-                    try:
-                        image.save(f)
-                    except IOError as e:
-                        self.log("image.save(f) error " + str(e))
-                    finally:
-                        f.close()
-        except Exception as e:
-                self.log("open(fileName, wb) as f error " + str(e))
       
 
 if __name__ == "__main__":
