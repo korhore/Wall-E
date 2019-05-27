@@ -171,7 +171,7 @@ class MainRobot(Robot):
                 self.getParent().getAxon().put(sensation)
             else:
                 # do some basic processing of main robot level and testing
-                #Voidedata can be played back, if we have a subcapability for it
+                #Voicedata can be played back, if we have a subcapability for it
                 if sensation.getSensationType() == Sensation.SensationType.Voice or \
                    sensation.getSensationType() == Sensation.SensationType.Image:
                     self.log('process: Main root Sensation.SensationType.Voice or Image Out')

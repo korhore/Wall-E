@@ -68,26 +68,6 @@ def bytesToFloat(b):
 
 
 class Sensation(object):
-    sensationMemory=[]      # short time Sensation cache
-                            # The idea is keep Sensation in runtime memory if
-                            # there is a reference for them for instance 10 mins
-                            #
-                            # After that we can produce higher level Sensations
-                            # with memory attribute in higher level,
-                            # Working or Memory, that reference to basic
-                            # memory level, that is Sensory level.
-                            # That way we can produce meanings is higher level
-                            # of low level sensations. For instance we can get
-                            # a image (Sensory) and process it with tnsorFlow
-                            # which classifies it as get words and get
-                            # Working or Memory level Sensations that refers
-                            # to the original hearing, a Image, meaning
-                            # that robot has seen it at certain time.
-                            # THigher level Sensation can be processed also and
-                            # we can save original image in a file with
-                            # its classified names. After that our robot
-                            # knows how those classifies names look like,
-                            # what is has seen. 
  
     #number=0                # sensation number for referencing
     FORMAT =            'jpeg'
@@ -96,7 +76,9 @@ class Sensation(object):
     LOWPOINT_NUMBERVARIANCE=-100.0
     HIGHPOINT_NUMBERVARIANCE=100.0
     
-    CACHE_TIME =        300.0;       # cache sensation 300 seconds = 5 mins (may be changed)
+    SENSORY_CACHE_TIME =        300.0;       # cache sensation 300 seconds = 5 mins (may be changed)
+    WORKING_CACHE_TIME =        600.0;       # cache sensation 600 seconds = 10 mins (may be changed)
+    LONG_TERM_CACHE_TIME =        3000.0;       # cache sensation 3000 seconds = 50 mins (may be changed)
     LENGTH_SIZE =       2   # Sensation as string can only be 99 character long
     LENGTH_FORMAT =     "{0:2d}"
     SEPARATOR =         '|'  # Separator between messages
@@ -109,7 +91,7 @@ class Sensation(object):
     FLOAT_PACK_SIZE =   8
  
     # so many sensationtypes, that first letter is not good idea any more  
-    SensationType = enum(Drive='a', Stop='b', Who='c', Azimuth='d', Acceleration='e', Observation='f', HearDirection='g', Voice='h', Image='i',  Calibrate='j', Capability='k', Unknown='l')
+    SensationType = enum(Drive='a', Stop='b', Who='c', Azimuth='d', Acceleration='e', Observation='f', HearDirection='g', Voice='h', Image='i',  Calibrate='j', Capability='k', Item='l', Unknown='m')
     Direction = enum(In='I', Out='O')
     Memory = enum(Sensory='S', Working='W', LongTerm='L' )
     Kind = enum(WallE='w', Eva='e', Other='o')
@@ -133,6 +115,7 @@ class Sensation(object):
     IMAGE="Image"
     CALIBRATE="Calibrate"
     CAPABILITY="Capability"
+    ITEM="Item"
     UNKNOWN="Unknown"
     KIND="Kind"
     WALLE="Wall-E"
@@ -174,6 +157,7 @@ class Sensation(object):
                SensationType.Image: IMAGE,
                SensationType.Calibrate: CALIBRATE,
                SensationType.Capability: CAPABILITY,
+               SensationType.Item: ITEM,
                SensationType.Unknown: UNKNOWN}
     SensationTypesOrdered=(
                SensationType.Drive,
@@ -187,6 +171,7 @@ class Sensation(object):
                SensationType.Image,
                SensationType.Calibrate,
                SensationType.Capability,
+               SensationType.Item,
                SensationType.Unknown)
     
     Kinds={Kind.WallE: WALLE,
@@ -202,6 +187,38 @@ class Sensation(object):
            Mode.Sleeping: SLEEPING,
            Mode.Starting: STARTING,
            Mode.Stopping: STOPPING }
+    
+    sensationMemorys={                      # Sensation caches
+        Memory.Sensory:  [],                # short time Sensation cache
+        Memory.Working:  [],                # middle time Sensation cache
+        Memory.LongTerm: [] }               # long time Sensation cache
+
+    sensationMemoryCacheTimes={             # Sensation cache times
+        Memory.Sensory:  SENSORY_CACHE_TIME,
+        Memory.Working:  WORKING_CACHE_TIME, 
+        Memory.LongTerm: LONG_TERM_CACHE_TIME }
+
+
+                            # The idea is keep Sensation in runtime memory if
+                            # there is a reference for them for instance 10 mins
+                            #
+                            # After that we can produce higher level Sensations
+                            # with memory attribute in higher level,
+                            # Working or Memory, that reference to basic
+                            # memory level, that is Sensory level.
+                            # That way we can produce meanings is higher level
+                            # of low level sensations. For instance we can get
+                            # a image (Sensory) and process it with tnsorFlow
+                            # which classifies it as get words and get
+                            # Working or Memory level Sensations that refers
+                            # to the original hearing, a Image, meaning
+                            # that robot has seen it at certain time.
+                            # THigher level Sensation can be processed also and
+                            # we can save original image in a file with
+                            # its classified names. After that our robot
+                            # knows how those classifies names look like,
+                            # what is has seen. 
+
     
     def getDirectionString(direction):
         ret = Sensation.Directions.get(direction)
@@ -227,7 +244,9 @@ class Sensation(object):
     
     def addToSensationMemory(sensation):
         # add new sensation
-        Sensation.sensationMemory.append(sensation)
+        memory = Sensation.sensationMemorys[sensation.getMemory()]
+        cacheTime = Sensation.sensationMemoryCacheTimes[sensation.getMemory()]
+        memory.append(sensation)
         
         # remove too old ones
         now = systemTime.time()
@@ -236,25 +255,27 @@ class Sensation(object):
         # there are less referenced, that keep in the memory too long time.
         # Maybe this is not a big problem. This simple implementation keeps
         # sensation creation efficient
-        while len(Sensation.sensationMemory) > 0 and now - Sensation.sensationMemory[0].getReferenceTime() > Sensation.CACHE_TIME:
-            print('delete from sensation cache ' + str(sensation.getNumber()))
-            del Sensation.sensationMemory[0]
+        while len(memory) > 0 and now - memory[0].getReferenceTime() > cacheTime:
+            print('delete from sensation cache ' + str(sensation.getMemory()) + ' ' + str(sensation.getNumber()))
+            del memory[0]
                 
     def getSensationFromSensationMemory(number):
-        if len(Sensation.sensationMemory) > 0:
-            for sensation in Sensation.sensationMemory:
-                if sensation.getNumber() == number:
-                    return sensation
+        for key, sensationMemory in Sensation.sensationMemorys.items():
+            if len(sensationMemory) > 0:
+                for sensation in sensationMemory:
+                    if sensation.getNumber() == number:
+                        return sensation
         return None
 
     def getSensationsFromSensationMemory(referenceNumber):
         sensations=[]
-        if len(Sensation.sensationMemory) > 0:
-            for sensation in Sensation.sensationMemory:
-                if sensation.getNumber() == referenceNumber or \
-                   referenceNumber in sensation.getReferenceNumbers():
-                    if not sensation in sensations:
-                        sensations.append(sensation)
+        for key, sensationMemory in Sensation.sensationMemorys.items():
+            if len(sensationMemory) > 0:
+                for sensation in sensationMemory:
+                    if sensation.getNumber() == referenceNumber or \
+                       referenceNumber in sensation.getReferenceNumbers():
+                        if not sensation in sensations:
+                            sensations.append(sensation)
         return sensations
                
          
@@ -295,7 +316,9 @@ class Sensation(object):
                  data=b'',                                                  # ALSA voice is string (uncompressed voice information)
                  image=None,                                                # Image internal representation is PIl.Image 
                  calibrateSensationType = SensationType.Unknown,
-                 capabilities = None):                         # capabilitis of sensorys, direction what way sensation go
+                 capabilities = None,                                       # capabilitis of sensorys, direction what way sensation go
+                 name = '',                                               # name on item, subitem, name of a thing,string
+                 score = 0.0):                                             # score of reference, used at least witn item, float
         from Config import Capabilities
         self.time=time
         self.reference_time = reference_time
@@ -337,6 +360,10 @@ class Sensation(object):
             self.image = sensation.image
             self.calibrateSensationType = sensation.calibrateSensationType
             self.capabilities = sensation.capabilities
+            self.name = sensation.name
+            self.score = sensation.score
+
+
         else:
             # references are always both way
             if references == None:
@@ -368,6 +395,8 @@ class Sensation(object):
             self.image = image
             self.calibrateSensationType = calibrateSensationType
             self.capabilities = capabilities
+            self.name = name
+            self.score = score
 
         if bytes != None:
             try:
@@ -455,6 +484,14 @@ class Sensation(object):
                     i += Sensation.NUMBER_SIZE
                     self.capabilities = Capabilities(bytes=bytes[i:i+capabilities_size])
                     i += capabilities_size
+                elif self.sensationType is Sensation.SensationType.Item:
+                    name_size = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
+                    print("name_size " + str(name_size))
+                    i += Sensation.NUMBER_SIZE
+                    self.name =bytesToStr(bytes[i:i+name_size])
+                    i += name_size
+                    self.score = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    i += Sensation.FLOAT_PACK_SIZE
                     
                 reference_number = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
                 print("reference_number " + str(reference_number))
@@ -502,7 +539,9 @@ class Sensation(object):
                  data=b'',
                  image=None,
                  calibrateSensationType = SensationType.Unknown,
-                 capabilities = None):                                        # capabilitis of sensorys, direction what way sensation go
+                 capabilities = None,                                       # capabilitis of sensorys, direction what way sensation go
+                 name='',
+                 score=0.0):
         
         if sensation is not None:             # not an update, create new one
             print("Create new sensation instance this one ")
@@ -537,7 +576,9 @@ class Sensation(object):
                  data=data,
                  image=image,
                  calibrateSensationType = calibrateSensationType,
-                 capabilities = capabilities)
+                 capabilities = capabilities,
+                 name=name,
+                 score=score)
             
         print("Update existing sensation")
         # update existing one    
@@ -574,6 +615,8 @@ class Sensation(object):
         sensation.image = image
         sensation.calibrateSensationType = calibrateSensationType
         sensation.capabilities = capabilities
+        sensation.name=name
+        sensation.score=score
           
         if bytes != None:
             try:
@@ -661,6 +704,14 @@ class Sensation(object):
                     i += Sensation.NUMBER_SIZE
                     sensation.capabilities = Capabilities(bytes=bytes[i:i+capabilities_size])
                     i += capabilities_size
+                elif sensation.sensationType is Sensation.SensationType.Item:
+                    name_size = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
+                    print("name_size " + str(name_size))
+                    i += Sensation.NUMBER_SIZE
+                    sensation.name =bytesToStr(bytes[i:i+name_size])
+                    i += name_size
+                    sensation.score = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    i += Sensation.FLOAT_PACK_SIZE
                         
                 reference_number = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
                 print("reference_number " + str(reference_number))
@@ -722,7 +773,9 @@ class Sensation(object):
                 s = str(self.number) + ' ' + self.memory + ' ' + self.direction + ' ' +  Sensation.SensationType.Unknown
         elif self.sensationType == Sensation.SensationType.Capability:
             s +=  ' ' + self.getCapabilities().toString()
-            
+        elif self.sensationType == Sensation.SensationType.Item:
+            s +=  ' ' + self.name + ' ' + str(self.score)
+           
 #         elif self.sensationType == Sensation.SensationType.Stop:
 #             pass
 #         elif self.sensationType == Sensation.SensationType.Who:
@@ -790,7 +843,6 @@ class Sensation(object):
             data_size=len(self.data)
             b +=  data_size.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
             b +=  self.data
-        # TODO send real image
         elif self.sensationType == Sensation.SensationType.Image:
             filePath_size=len(self.filePath)
             b +=  filePath_size.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
@@ -815,6 +867,11 @@ class Sensation(object):
             print("capabilities_size " + str(capabilities_size))
             b += capabilities_size.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
             b += bytes
+        elif self.sensationType == Sensation.SensationType.Item:
+            name_size=len(self.name)
+            b +=  name_size.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
+            b +=  StrToBytes(self.name)
+            b += floatToBytes(self.score)
             
         #  at the end references (numbers)
         reference_number=len(self.references)
@@ -1027,6 +1084,16 @@ class Sensation(object):
         self.capabilities = capabilities
     def getCapabilities(self):
         return self.capabilities
+
+    def setName(self, name):
+        self.name = name
+    def getName(self):
+        return self.name
+
+    def setScore(self, score):
+        self.score = score
+    def getScore(self):
+        return self.score
 
     '''
     save sensation data permanently
@@ -1297,4 +1364,23 @@ if __name__ == '__main__':
     s2=Sensation.create(bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " + str(s_Capability_create == s2))
+    
+    # item
+    
+    s_Item=Sensation(references=[s_Calibrate,s_VoiceData,s_VoiceFilePath,s_ImageData,s_ImageFilePath,s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, name='person', score=0.5)
+    print(("str s  " + str(s_Item)))
+    b=s_Item.bytes()
+    s2=Sensation(bytes=b)
+    print("str s2 " + str(s2))
+    print(str(s_Item == s2))
+    
+     #test with create
+    print("test with create")
+    s_Item_create=Sensation.create(references=[s_Calibrate_create,s_VoiceData_create,s_VoiceFilePath_create,s_ImageData_create,s_ImageFilePath_create,s_Observation_create,s_HearDirection_create,s_Azimuth_create,s_Acceleration_create], sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, name='person', score=0.5)
+    print(("Sensation.create: str s  " + str(s_Item_create)))
+    b=s_Item_create.bytes()
+    s2=Sensation.create(bytes=b)
+    print("Sensation.create: str s2 " + str(s2))
+    print("Sensation.create: " + str(s_Item_create == s2))
+    
    
