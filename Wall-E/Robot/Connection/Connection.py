@@ -40,13 +40,29 @@ class Connection(Robot):
                        level=level)
  
     def process(self, sensation):
-        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + sensation.toDebugStr())
         #run default implementation first
         super(Connection, self).process(sensation)
             # if still running and we can process this
-        sensatiosToConnect = Sensation.getNewerSensations(sensation.getTime()-Connection.CONNECTION_INTERVAL)
-        if len(sensatiosToConnect) > 0:
-            self.log('process: Sensation ' + sensation.toDebugStr() + ' will be connected to:')
-            for sens in sensatiosToConnect:
-                self.log(sens.toDebugStr())
-                sensation.addReferences(sensatiosToConnect)
+        candidate_sensatiosToConnect = Sensation.getNewerSensations(sensation.getTime()-Connection.CONNECTION_INTERVAL)
+        # connect different Items to each other or
+        # connect other thing to different Items, but best of item name found
+        # to get reasonable connections
+        if len(candidate_sensatiosToConnect) > 0:
+            sensatiosToConnect={}
+            for sens in candidate_sensatiosToConnect:
+                if sens.getSensationType() == Sensation.SensationType.Item:
+                    # if we have already Item with this name, then update
+                    # name with better one candidate
+                    if sens.getName() in sensatiosToConnect:
+                        # avoid connecting items with same name
+                        if sens.getScore() > sensatiosToConnect[sens.getName()].getScore() and \
+                           (sensation.getSensationType() is not Sensation.SensationType.Item or \
+                            sensation.getName() != sens.getName()):
+                            sensatiosToConnect[sens.getName()] = sens
+                    else:
+                        sensatiosToConnect[sens.getName()] = sens
+            if len(sensatiosToConnect) > 0:
+                self.log('process: Sensation ' + sensation.toDebugStr() + ' will be connected to:')
+                for sens in sensatiosToConnect.values():
+                     self.log(sens.toDebugStr())
+                sensation.addReferences(sensatiosToConnect.values())

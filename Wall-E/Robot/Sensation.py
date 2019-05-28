@@ -825,6 +825,8 @@ class Sensation(object):
 #         else:
 #             s=self.__str__()
         s=str(self.number) + ' ' + str(self.time) + ' ' + str(self.reference_time) + ' ' + Sensation.getMemoryString(self.memory) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
+        if self.sensationType == Sensation.SensationType.Item:
+            s = s + ' ' + self.name
         return s
 
     def bytes(self):
