@@ -70,9 +70,10 @@ def bytesToFloat(b):
 class Sensation(object):
  
     #number=0                # sensation number for referencing
-    FORMAT =            'jpeg'
+    IMAGE_FORMAT =      'jpeg'
     MODE =              'RGB'       # PIL_IMAGE mode, not used now, but this it is
     DATADIR =           'data'
+    VOICE_FORMAT =      'wav'
     LOWPOINT_NUMBERVARIANCE=-100.0
     HIGHPOINT_NUMBERVARIANCE=100.0
     
@@ -257,6 +258,7 @@ class Sensation(object):
         # sensation creation efficient
         while len(memory) > 0 and now - memory[0].getReferenceTime() > cacheTime:
             print('delete from sensation cache ' + str(sensation.getMemory()) + ' ' + str(sensation.getNumber()))
+            memory[0].delete()
             del memory[0]
                 
     def getSensationFromSensationMemory(number):
@@ -851,7 +853,7 @@ class Sensation(object):
             if self.image is None:
                 data = b''
             else:
-                self.image.save(fp=stream, format=Sensation.FORMAT)
+                self.image.save(fp=stream, format=Sensation.IMAGE_FORMAT)
                 data=stream.getvalue()
             data_size=len(data)
             b +=  data_size.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
@@ -1097,7 +1099,6 @@ class Sensation(object):
 
     '''
     save sensation data permanently
-    Not yet implemented, but partly for debugging
     '''  
     def save(self):
         if not os.path.exists(Sensation.DATADIR):
@@ -1105,19 +1106,50 @@ class Sensation(object):
             
         if self.getSensationType() == Sensation.SensationType.Image:       
             fileName = Sensation.DATADIR + '/' + '{}'.format(self.getNumber()) + \
-                       '.' +  Sensation.FORMAT
+                       '.' +  Sensation.IMAGE_FORMAT
             self.setFilePath(fileName)
             try:
                 with open(fileName, "wb") as f:
                     try:
                         self.getImage().save(f)
                     except IOError as e:
-                        self.log("self.getImage().save(f)) error " + str(e))
+                        print("self.getImage().save(f)) error " + str(e))
                     finally:
                         f.close()
             except Exception as e:
-                    self.log("open(fileName, wb) as f error " + str(e))
-    
+                    print("open(fileName, wb) as f error " + str(e))
+        elif self.getSensationType() == Sensation.SensationType.Voice:       
+            fileName = Sensation.DATADIR + '/' + '{}'.format(self.getNumber()) + \
+                       '.' +  Sensation.VOICE_FORMAT
+            self.setFilePath(fileName)
+            try:
+                with open(fileName, "wb") as f:
+                    try:
+                        f.write(self.getData())
+                    except IOError as e:
+                        print("f.write(self.getData()) error " + str(e))
+                    finally:
+                        f.close()
+            except Exception as e:
+                    print("open(fileName, wb) as f error " + str(e))
+     
+    '''
+    delete sensation data permanently
+    but sensation will be remained to be deteted dy del
+    You should call first 'sensation.delte()' and right a way 'del sensation'
+    '''  
+    def delete(self):
+        if not os.path.exists(Sensation.DATADIR):
+            os.makedirs(Sensation.DATADIR)
+
+        # first delete files this sensation has created            
+        if self.getSensationType() == Sensation.SensationType.Image or \
+           self.getSensationType() == Sensation.SensationType.Voice:
+            if os.path.exists(self.getFilePath()): 
+                try:
+                    os.remove(self.getFilePath())
+                except Exception as e:
+                    print("os.remove(self.getFilePath() error " + str(e))
     
        
 if __name__ == '__main__':

@@ -298,8 +298,10 @@ class TensorFlowClassification(Robot):
                         subimage = sensation.getImage().crop(size)
                         subsensation = Sensation.create(sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out, image=subimage, references=[sensation])
                         subsensation.save()
+                        # Item
                         itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out, name=self.category_index[classInd][self.NAME], score=output_dict[self.DETECTION_SCORES][i], references=[sensation])
                         self.log("Created LongTerm subImage- and item sensation for this")
+                        # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
                     i = i+1   
       
 

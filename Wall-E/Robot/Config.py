@@ -84,7 +84,7 @@ class Config(ConfigParser):
     NONE=               'None'
     EMPTY=              ''
     ZERO=               '0.0'
-    DEFAULT_SUBINSTANCES=  'Image Hearing Moving'
+    DEFAULT_SUBINSTANCES=  'Image Voice Moving'
   
     TRUE_ENCODED =      b'\x01'
     FALSE_ENCODED =     b'\x00'

@@ -64,11 +64,6 @@ class RaspberryPiCamera(Robot):
         self.camera.rotation = 180
         self.lastImage = None
 
-        # TODO to Sensatio        
-        if not os.path.exists(Sensation.DATADIR):
-            os.makedirs(Sensation.DATADIR)
-
-      
         self.running=False
         self.debug_time=time.time()
         
@@ -94,9 +89,9 @@ class RaspberryPiCamera(Robot):
                 self.log("got sensation from queue " + sensation.toDebugStr())      
                 self.process(sensation)
             else:
-                self.log("self.camera.capture_continuous(stream, format=Sensation.FORMAT)")
+                self.log("self.camera.capture_continuous(stream, format=Sensation.IMAGE_FORMAT)")
                 stream = io.BytesIO()
-                self.camera.capture(stream, format=Sensation.FORMAT)
+                self.camera.capture(stream, format=Sensation.IMAGE_FORMAT)
                 self.camera.stop_preview()
                 stream.seek(0)
                 image = PIL_Image.open(stream)
@@ -104,8 +99,7 @@ class RaspberryPiCamera(Robot):
                     self.log("self.getParent().getAxon().put(sensation) stream {}".format(len(stream.getvalue())))
                     sensation = Sensation.create(sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image)
                     self.log("self.getParent().getAxon().put(sensation) getData")
-#                    self.saveData(sensation)
-                    sensation.save()
+#                    sensation.save()
                     self.getParent().getAxon().put(sensation) # or self.process
                     self.camera.start_preview()
                 time.sleep(self.SLEEP_TIME)

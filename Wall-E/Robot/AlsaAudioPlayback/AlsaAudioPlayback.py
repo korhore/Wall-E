@@ -83,6 +83,7 @@ class AlsaAudioPlayback(Robot):
                 if sensation.getSensationType() == Sensation.SensationType.Voice:
                     self.log('run: Sensation.SensationType.VoiceData self.outp.write(sensation.getVoiceData()')
                     self.outp.write(sensation.getData())
+                    sensation.save()    #remember what we played
                 else:
                     # default processing
                     self.process(sensation)
