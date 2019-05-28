@@ -13,10 +13,6 @@ import alsaaudio
 import numpy
 import math
 
-from threading import Thread
-from threading import Timer
-
-
 from Robot import Robot
 from Config import Config, Capabilities
 from Sensation import Sensation
@@ -36,6 +32,8 @@ class AlsaAudioMicrophone(Robot):
     FORMAT = alsaaudio.PCM_FORMAT_S16_LE
     AVERAGE_PERIOD=100.0                # used as period in seconds
     SHORT_AVERAGE_PERIOD=1.0             # used as period in seconds
+    
+    DEBUG_INTERVAL=60.0
 
 
     def __init__(self,
@@ -158,7 +156,7 @@ class AlsaAudioMicrophone(Robot):
             square_a = float(a) * float(a)
             self.average = math.sqrt(( (self.average * self.average * (self.average_devider - 1.0))  + square_a)/self.average_devider)
             self.short_average = math.sqrt(( (self.short_average * self.short_average * (self.short_average_devider - 1.0))  + square_a)/self.short_average_devider)
-            if time.time() > self.debug_time + 60.0:
+            if time.time() > self.debug_time + AlsaAudioMicrophone.DEBUG_INTERVAL:
                 self.log("average " + str(self.average) + ' short_average ' + str(self.short_average))
                 self.debug_time = time.time()
                 

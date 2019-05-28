@@ -173,8 +173,9 @@ class MainRobot(Robot):
                 # do some basic processing of main robot level and testing
                 #Voicedata can be played back, if we have a subcapability for it
                 if sensation.getSensationType() == Sensation.SensationType.Voice or \
-                   sensation.getSensationType() == Sensation.SensationType.Image:
-                    self.log('process: Main root Sensation.SensationType.Voice or Image Out')
+                   sensation.getSensationType() == Sensation.SensationType.Image or \
+                    sensation.getSensationType() == Sensation.SensationType.Item:
+                    self.log('process: Main root Sensation.SensationType.Voice, Image or Item Out')
                     # basically we don't know how to handle going in sensation, but
                     # subInstances can know. Check which subinsces can process this and deliver sensation to them.
                     # Also subclasses can implement their own implementation for processing        

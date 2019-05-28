@@ -61,38 +61,20 @@ class AlsaAudioPlayback(Robot):
             print ("AlsaAudioPlayback exception " + str(e))
             self.ok=False
 
- 
-
+        # not yet running
         self.running=False
-        self.on=False
         
-        self.debug_time=time.time()
-        
-    def run(self):
-        if self.ok:
-            self.log("Starting robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))
-            
-            self.running=True
                     
-            # live until stopped
-            self.mode = Sensation.Mode.Normal
-            while self.running:
-                sensation=self.getAxon().get()
-                self.log("got sensation from queue " + sensation.toDebugStr())
-                # if we get something we can do    
-                if sensation.getSensationType() == Sensation.SensationType.Voice:
-                    self.log('run: Sensation.SensationType.VoiceData self.outp.write(sensation.getVoiceData()')
-                    self.outp.write(sensation.getData())
-                    sensation.save()    #remember what we played
-                else:
-                    # default processing
-                    self.process(sensation)
-    
-            self.log("Stopping AlsaAudioPlayback")
-            self.mode = Sensation.Mode.Stopping        
-            self.log("run ALL SHUT DOWN")
-                    
-
+    def process(self, sensation):
+        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + sensation.toDebugStr())
+        #run default implementation first
+        super(AlsaAudioPlayback, self).process(sensation)
+            # if still running and we can process this
+        if self.ok and self.running and sensation.getSensationType() == Sensation.SensationType.Voice:
+            if sensation.getSensationType() == Sensation.SensationType.Voice:
+                self.log('process: Sensation.SensationType.VoiceData self.outp.write(sensation.getVoiceData()')
+                self.outp.write(sensation.getData())
+                sensation.save()    #remember what we played
 
 if __name__ == "__main__":
     alsaAudioPlayback = AlsaAudioPlayback()

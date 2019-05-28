@@ -280,6 +280,15 @@ class Sensation(object):
                             sensations.append(sensation)
         return sensations
                
+    def getNewerSensations(timelimit):
+        sensations=[]
+        for key, sensationMemory in Sensation.sensationMemorys.items():
+            if len(sensationMemory) > 0:
+                for sensation in sensationMemory:
+                    if sensation.getTime() > timelimit:
+                        if not sensation in sensations:
+                            sensations.append(sensation)
+        return sensations
          
 #     def nextNumber():
 #        Sensation.number=Sensation.number+1
@@ -811,10 +820,11 @@ class Sensation(object):
     '''
     def toDebugStr(self):
         # we can't make yet printable bytes, but as a debug purposes, it is rare neended
-        if self.sensationType == Sensation.SensationType.Voice or self.sensationType == Sensation.SensationType.Image :
-            s=str(self.number) + ' ' + str(self.time) + ' ' + str(self.reference_time) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType
-        else:
-            s=self.__str__()
+#         if self.sensationType == Sensation.SensationType.Voice or self.sensationType == Sensation.SensationType.Image :
+#             s=str(self.number) + ' ' + str(self.time) + ' ' + str(self.reference_time) + ' ' + Sensation.getMemoryString(self.memory) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
+#         else:
+#             s=self.__str__()
+        s=str(self.number) + ' ' + str(self.time) + ' ' + str(self.reference_time) + ' ' + Sensation.getMemoryString(self.memory) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
         return s
 
     def bytes(self):
@@ -941,7 +951,7 @@ class Sensation(object):
         self.setReferenceTime()
         
     '''
-    Add many referencew
+    Add many references
     '''
     def addReferences(self, references):
         for reference in references:
