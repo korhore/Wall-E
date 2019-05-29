@@ -1,95 +1,68 @@
-We must study main architectre
-1) We need one direction path in(out directrion handling of sensation
-2) Do we have dedicated robots for bot way for both way or
-3) Do we have one robot that handles both ways with ywo deficated robots, one fot in and one for ont way.
-4) In and out have their own rtpe process-mehod
-5) WE could also have one common robot, that simple can be dedicated for in/out/both ways processing.
-   Maybe this is best way, act as cells do, dedicate as needed. Examples are now for Voice and Sockets.
+What is done
+------------
+
+- Architecture, that is
+-- devided into Robots that are implemented by Bobots, meaning
+--- inheritance
+---- Robot can be anywhere in one running instance
+--- multihosted, Robots can be anywhere in the world, in any host
+-- identity
+--- Robot knows some details of itself
+-- Virtual instances
+--- this is for testing purposes
+---- We can create sensations to our Real instance and study how it reacts
+     meaning that we can finally start to implement thast our Robots gets Sensations
+     that nake to fall in love, our final goal, make a Robot that can feel.
+     But before that we have some to do.
+-- Static LongTerm Memory
+---- All whar Robot knows about this worlds in imlemented as Senmation class
+    instances which are connected with each other. Anything other way is used.
+    This momocs human memory. 
+--- When a rub stoppes, we can save satus of memory and kload it back, when
+    new run starts 
+-- Item
+--- This is a Sensation connected to other Sensation, just a name of a thing
+    and a  score for this
+-- Tensorflow classification to analyse Images Robot gets. This produces
+   Items connected to subImages, cropped from camera Images is Classification
+   results. This proces gives to Robot capability so see thing and give a name
+   to the seen things and capability to connect other Sensations like voices
+   to this Item. This mimics our brain main functionality: we are good at 
+   processing visual things and that is most that our brains do. That will be
+   main thing Robot will do, just process Images and think what it has seen.
    
-Maybe best architecture is use main middle and leaf-architecture for Robot.
-- Main and Leaf are implemented atready
-- Middle 
--- WorMemenory processng
--- uses two direction Axon
--- Leafs are mucle and sense
--- change Robot.process to support this
+What is not done and needs implementation
+-----------------------------------------
+
+- We can name of main class of a seen thing. Names are like 'person',
+  'dining table', 'bicycle', 'tv' etc., but we cant yet identity things inside
+  main class like 'John' is a 'person'. So Robot don't know id it sees 'John' or
+  'Joan', it sees just 'person'.
+-- implementing this needs
+--- live Tesorflow model. We use now foren one. Learning means that we should
+    find out characteristic things between 'John' and 'Joan'. These can be voice
+    or some statistical thing in images like colors.
+- Live Tensorflow model for voices. Image gives a name of seen thing. We connect
+  name to voice heard same time thing has been seen. Most potential way to
+  implement this kind Ternsorflow learning model for voices is use converting
+  scalar voice information as one channel (blachwhite) image information as
+  describet in Tensorflow voice analysing totorial pages.
+- Expectations.
+-- We can study statistically what is happening in hours of day,
+  days in week, etc. and make Robot to wait that same kind thins happen and if
+  Robot finds out that thing are going on in normal way, make Robot happy. We
+  are implementing Feelings. We are near out goal are'nt we?
+-- When something happens like we hear a voice identified to Sensorflow to
+   a class name, meaning on Item with this name, connected to other kind Sensation
+   like Image, we can implement expectation: if something happens, then it
+   is expected to happen also something else. Here we can make our Robot happy
+   if Robot is right and it has leaned something of thos world. We are even closer
+   to our goal, are'nt we?
    
-? Capabilities handling for sockets
-- OK, if two servers are started fron down
-- NOK if if one server is running and other is stopped ans started many times.
+Depemdencies
+------------  
 
-Implement two sides Axon. Robot delivers sensation by direction.
-
-Main architecture
-- Simplity removing Seeing, Hearing and Moving layers. Keep just working subinstances
-- Make basic class Robot, with
-- derived MainRobot for highest level Robot, including TCPSocket functionality
-- derivedd leaf-subrobots as they are now
-- Robot has default functionality for in or out directions.
-  Decision is by capabilities, is this subInstance In or Out direection.
-  If no capabiliyies, then no functionality.
-
-- all capability implementation like Seeing, Hearting, Moving, Networking, etc
-  are subclasses of Robot
-- Robot handles Sensastions and its subrobots using settings from a config file,
-  or/and fron subRobot itself, which tells its capabilitis
-- Robot has one outAxon (except Inteelligence capability) which handles
-  all Sensation for "out" direction
-- Robot has many inAxons for subRobots that are in samre time these Robots
-  inAxons.
-- Finally there are leafRobots that dont have any more subRobots. Thesae are
-  sinal implementation of one (basically or more) capability
-  
-- arrange code by copabilities as modules without denpendencies: moving,
-  hearing, seeing, sensing, etc. This can solve import problem,
-  but it would be easier to develop capabilities anyway.
-  
-- MainRobot is final mainRobot
-- Subrobots use their own working subdirectory and they are thread
-- Subrobots have their own implementation subdirectory,
-  so they can be started there. Implementation is still unclear, can we use same
-  class name "Robot" and if not, how we can import subSobits implementation
-  to be started. Lets see.
-
-- networking clients use also trheir own subdirectories.
-- There must be way to override capabilities so we can restricy what Robots over
-  can know about us and what we handle from them. All network robots capabilities
-  should be False by default
-
-- tcp-clients and servers have tyoe remote to distict fron local robots
-
-TODO Add serverpath to Sensations to avoid sensation be tranferred to
-one server and then back again.
-  
-    
- - OK Make Capabilities-class. Can be iplemented in Config. In config should be
-   anyway hosts, property, where we Aass hosts that have contacted us and
-   hosts that we add manually. Start with this.
-   
-- OK Implement Identity and Virtual instance. That way we can test Walle to meet Eva
-  in same process with threads, so developing will be much faster than using
-  many physical servers, but functionality will be exactly same.
-  Need some changes to Confif, Axen etc. Rename main class as Robot(Server)
-  
-  We need also functional status od robot, StudyOwnIdentity, Sleeping, Normal, etc
-  
-- OK Robot n to handle sensation routing.
-
-- OK Seems, that Calibrating logic with direction will become broken, when direction is set
-  to Sensation. Fix this later, because we donnt yet have hardware suitable for
-  direction hearing. This has been experimental any way
-  
-  - OK Move moving to its own submodule and fix Sensation in Romeo.
-    This module should process all moving and observation Sensations
-    
-- OK Robot start 3! times!!!!!!!!!
-- OK correct this in Config so that one instance of it handles only one config,
-  but can start otser instance for virtual and subrobots
-  
-  Use git/tensorflow/models/research/object_detection in this level
-  independently of Wall-E/Wall-E/Robot
-  
-  dependencies: for pillow (pip3 install pillow)
+dependencies: for pillow (pip3 install pillow)
  sudo apt-get install libjpeg-dev -y
 sudo apt-get install zlib1g-dev -y
 sudo apt-get install libfreetype6-dev -y

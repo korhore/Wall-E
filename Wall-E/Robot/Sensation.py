@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 26.05.2019
+Edited on 28.05.2019
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -13,6 +13,12 @@ import struct
 import random
 from PIL import Image as PIL_Image
 import io
+try:
+    import cPickle as pickle
+#except ModuleNotFoundError:
+except Exception as e:
+    print ("import cPickle as pickle error " + str(e))
+    import pickle
 
 #def enum(**enums):
 #    return type('Enum', (), enums)
@@ -74,6 +80,8 @@ class Sensation(object):
     MODE =              'RGB'       # PIL_IMAGE mode, not used now, but this it is
     DATADIR =           'data'
     VOICE_FORMAT =      'wav'
+    PICLE_FILENAME =    'Sensation.pkl'
+    PATH_TO_PICLE_FILE = os.path.join(DATADIR, PICLE_FILENAME)
     LOWPOINT_NUMBERVARIANCE=-100.0
     HIGHPOINT_NUMBERVARIANCE=100.0
     
@@ -1162,6 +1170,49 @@ class Sensation(object):
                     os.remove(self.getFilePath())
                 except Exception as e:
                     print("os.remove(self.getFilePath() error " + str(e))
+                    
+    '''
+    save all LongTerm Memory sensation instances and data permanently
+    so they can be loaded, when running app again
+    '''  
+    def saveLongTermMemory():
+        # save sensation data to files
+        for sensation in Sensation.sensationMemorys[Memory.LongTerm]:
+            sensation.save()
+        # save sensation instances
+        if not os.path.exists(Sensation.DATADIR):
+            os.makedirs(Sensation.DATADIR)
+            
+        try:
+            with open(Sensation.PATH_TO_PICLE_FILE, "wb") as f:
+                try:
+                    pickler = pickle.Pickler(f, -1)
+                    pickler.dump(Sensation.sensationMemorys[Memory.LongTerm])
+                except IOError as e:
+                    print('pickler.dump(Sensation.sensationMemorys[Memory.LongTerm]) error ' + str(e))
+                finally:
+                    f.close()
+        except Exception as e:
+                print("open(fileName, wb) as f error " + str(e))
+
+    '''
+    load LongTerm Memory sensation instances
+    '''  
+    def loadLongTermMemory():
+        # save sensation data to files
+        if os.path.exists(Sensation.DATADIR):
+            try:
+                with open(Sensation.PATH_TO_PICLE_FILE, "rb") as f:
+                    try:
+                        Sensation.sensationMemorys[Memory.LongTerm] = \
+                            pickle.load(f)
+                    except IOError as e:
+                        print("pickle.load(f) error " + str(e))
+                    finally:
+                        f.close()
+            except Exception as e:
+                    print('with open(' + 'Sensation.PATH_TO_PICLE_FILE, "rb")  as f error ' + str(e))
+            
     
        
 if __name__ == '__main__':

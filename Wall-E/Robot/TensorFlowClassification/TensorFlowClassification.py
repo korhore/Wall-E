@@ -287,7 +287,6 @@ class TensorFlowClassification(Robot):
                 i=0  
                 for classInd in output_dict[self.DETECTION_CLASSES]:
                     if output_dict[self.DETECTION_SCORES][i] > TensorFlowClassification.DETECTION_SCORE_LIMIT:
-                        self.log("SEEN image FOR SURE className " + self.category_index[classInd][self.NAME] + ' score ' + str(output_dict[self.DETECTION_SCORES][i]) + ' box ' + str(output_dict[self.DETECTION_BOXES][i]))
                         # create new sensation of detected area and category
                         # subimage
                         im_width, im_height = sensation.getImage().size

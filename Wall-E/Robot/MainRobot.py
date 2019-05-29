@@ -76,8 +76,9 @@ class MainRobot(Robot):
                        level=level)
         print("We are in MainRobot, not Robot")
         
-        # in main robot, set up TCPServer
+        # in main robot, set uo Long_tem Memory and set up TCPServer
         if self.level == 1:
+            Sensation.loadLongTermMemory()
             self.tcpServer=TCPServer(parent=self,
                                      hostNames=self.config.getHostNames(),
                                      instanceName='TCPServer',
@@ -118,7 +119,13 @@ class MainRobot(Robot):
          # stop virtual instances here, when main instance is not running any more
         for robot in self.subInstances:
             robot.stop()
-       
+            
+        # main robot starts tcpServer first so clients gets connection
+        if self.level == 1:
+            self.tcpServer.stop()
+            # finally save memories
+            Sensation.saveLongTermMemory()
+
         self.log("run ALL SHUT DOWN")      
         
         
