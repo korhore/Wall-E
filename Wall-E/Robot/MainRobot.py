@@ -114,14 +114,16 @@ class MainRobot(Robot):
             #self.out_axon.put(sensation)
  
         self.mode = Sensation.Mode.Stopping
-        self.log("Stopping robot")      
+        self.log("Stopping MainRobot")      
 
          # stop virtual instances here, when main instance is not running any more
         for robot in self.subInstances:
+            self.log("MainRobot Stopping " + robot.getWho())      
             robot.stop()
             
         # main robot starts tcpServer first so clients gets connection
         if self.level == 1:
+            self.log("MainRobot Stopping self.tcpServer " + self.tcpServer.getWho())      
             self.tcpServer.stop()
             # finally save memories
             Sensation.saveLongTermMemory()
@@ -210,7 +212,9 @@ class MainRobot(Robot):
             # Also subclasses can implement their own implementation for processing        
             if sensation.getSensationType() == Sensation.SensationType.Voice:
                 self.log('process: Main root Sensation.SensationType.Voice In')
-            if sensation.getSensationType() == Sensation.SensationType.Image:
+            elif sensation.getSensationType() == Sensation.SensationType.Image:
+                self.log('process: Main root Sensation.SensationType.Image In')
+            elif sensation.getSensationType() == Sensation.SensationType.Item:
                 self.log('process: Main root Sensation.SensationType.Image In')
             robots = self.getSubCapabiliyInstances(direction=Sensation.Direction.In, memory=sensation.getMemory(), sensationType=sensation.getSensationType())
             self.log('Sensation.Direction.In self.getSubCapabiliyInstances' + str(robots))
@@ -226,208 +230,6 @@ class MainRobot(Robot):
                 else:
                     self.log('Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
                     robot.getAxon().put(sensation)
- #             # for testing purposes write this back to all out subInstances playback gets it
-#             for robot in self.subInstances:
-#                 if robot.getWho() == "Speaking":
-#                     # TODO should we make a copy, because we should not change original sensation
-#                     sensation.setDirection(Sensation.Direction.In)
-#                     self.log('process: Sensation.SensationType.Voice Speaking robot.getInAxon().put(sensation)')
-#                     robot.getInAxon().put(sensation)
-#                     return  
-
-        # TODO This old stuf is not needed   
-#         if sensation.getSensationType() == Sensation.SensationType.Drive:
-#             self.log('process: Sensation.SensationType.Drive')      
-#         elif sensation.getSensationType() == Sensation.SensationType.Stop:
-#             self.log('process: SensationSensationType.Stop')      
-#             self.stop()
-#         elif sensation.getSensationType() == Sensation.SensationType.Who:
-#             print (self.name + ": Robotserver.process Sensation.SensationType.Who")
-#             
-#         # TODO study what capabilities out subrobots have ins put sensation to them
-#         elif self.config.canHear() and sensation.getSensationType() == Sensation.SensationType.HearDirection:
-#             self.log('process: SensationType.HearDirection')      
-#              #inform external senses that we remember now hearing          
-#             self.out_axon.put(sensation)
-#             self.hearing_angle = sensation.getHearDirection()
-#             if self.calibrating:
-#                 self.log("process: Calibrating hearing_angle " + str(self.hearing_angle) + " calibrating_angle " + str(self.calibrating_angle))      
-#             else:
-#                 self.observation_angle = self.add_radian(original_radian=self.azimuth, added_radian=self.hearing_angle) # object in this angle
-#                 self.log("process: create Sensation.SensationType.Observation")
-#                 observation = Sensation(sensationType = Sensation.SensationType.Observation,
-#                                         memory=Memory.Work,
-#                                         observationDirection= self.observation_angle,
-#                                         observationDistance=Robot.DEFAULT_OBSERVATION_DISTANCE,
-#                                         reference=sensation)
-#                 # process internally
-#                 self.log("process: put Observation to in_axon")
-#                 self.inAxon.put(observation)
-#                 
-#                 #process by remote robotes
-#                 # mark hearing sensation to be processed to set direction out of memory, we forget it
-#                 sensation.setDirection(Sensation.Direction.Out)
-#                 observation.setDirection(Sensation.Direction.Out)
-#                 #inform external senses that we don't remember hearing any more           
-#                 self.log("process: put HearDirection to out_axon")
-#                 self.out_axon.put(sensation)
-#                 # seems that out_axon is handled when observation is processed internally here
-#                 #self.log("process: put Observation to out_axon")
-#                 #self.out_axon.put(observation)
-#         elif sensation.getSensationType() == Sensation.SensationType.Azimuth:
-#             if not self.calibrating:
-#                 self.log('process: Sensation.SensationType.Azimuth')      
-#                 #inform external senses that we remember now azimuth          
-#                 #self.out_axon.put(sensation)
-#                 self.azimuth = sensation.getAzimuth()
-#                 self.turn()
-#         elif sensation.getSensationType() == Sensation.SensationType.Observation:
-#             if not self.calibrating:
-#                 self.log('process: Sensation.SensationType.Observation')      
-#                 #inform external senses that we remember now observation          
-#                 self.observation_angle = sensation.getObservationDirection()
-#                 self.turn()
-#                 self.log("process: put Observation to out_axon")
-#                 sensation.setDirection(Sensation.Direction.Out)
-#                 self.out_axon.put(sensation)
-#         elif sensation.getSensationType() == Sensation.SensationType.ImageFilePath:
-#             self.log('process: Sensation.SensationType.ImageFilePath')      
-#         elif sensation.getSensationType() == Sensation.SensationType.Calibrate:
-#             self.log('process: Sensation.SensationType.Calibrate')      
-#             if sensation.getMemory() == Sensation.Memory.Working:
-#                 if sensation.getDirection() == Sensation.Direction.In:
-#                     self.log('process: asked to start calibrating mode')      
-#                     self.calibrating = True
-#                 else:
-#                     self.log('process: asked to stop calibrating mode')      
-#                     self.calibrating = False
-#                 # ask external senses to to set same calibrating mode          
-#                 self.out_axon.put(sensation)
-#             elif sensation.getMemory() == Sensation.Memory.Sensory:
-#                 if self.config.canHear() and self.calibrating:
-#                     if self.turning_to_object:
-#                         print (self.name + ": Robotserver.process turning_to_object, can't start calibrate activity yet")
-#                     else:
-#                         # allow requester to start calibration activaties
-#                         if sensation.getDirection() == Sensation.Direction.In:
-#                             self.log('process: asked to start calibrating activity')      
-#                             self.calibrating_angle = sensation.getHearDirection()
-#                             self.hearing.setCalibrating(calibrating=True, calibrating_angle=self.calibrating_angle)
-#                             sensation.setDirection(Sensation.Direction.In)
-#                             self.log('process: calibrating put HearDirection to out_axon')      
-#                             self.out_axon.put(sensation)
-#                             #self.calibratingTimer = Timer(Robot.ACTION_TIME, self.stopCalibrating)
-#                             #self.calibratingTimer.start()
-#                         else:
-#                             self.log('process: asked to stop calibrating activity')      
-#                             self.hearing.setCalibrating(calibrating=False, calibrating_angle=self.calibrating_angle)
-#                             #self.calibratingTimer.cancel()
-#                 else:
-#                     self.log('process: asked calibrating activity WITHOUT calibrate mode, IGNORED')      
-# 
-# 
-#         elif sensation.getSensationType() == Sensation.SensationType.Capability:
-#             self.log('process: Sensation.SensationType.Capability')      
-#         elif sensation.getSensationType() == Sensation.SensationType.Unknown:
-#             self.log('process: Sensation.SensationType.Unknown')
- 
-        # Finally just put sensation to our parent (if we have one)
-#         if self.getLevel() > 1:
-#             self.outAxon.put(sensation)
-  
-#     def turn(self):
-#         # calculate new power to turn or continue turning
-#         if self.config.canMove() and self.romeo.exitst(): # if we have moving capability
-#             self.leftPower, self.rightPower = self.getPower()
-#             if self.turning_to_object:
-#                 self.log("turn: self.hearing_angle " + str(self.hearing_angle) + " self.azimuth " + str(self.azimuth))      
-#                 self.log("turn: turn to " + str(self.observation_angle))      
-#                 if math.fabs(self.leftPower) < Romeo.MINPOWER or math.fabs(self.rightPower) < Romeo.MINPOWER:
-#                     self.stopTurn()
-#                     self.log("turn: Turn is ended")      
-#                     self.turnTimer.cancel()
-#                 else:
-#                     self.log("turn: powers adjusted to " + str(self.leftPower) + ' ' + str(self.rightPower))      
-#                     sensation, picture = self.romeo.processSensation(Sensation(sensationType='D', leftPower = self.leftPower, rightPower = self.rightPower))
-#                     self.leftPower = sensation.getLeftPower()           # set motors in opposite power to turn in place
-#                     self.rightPower = sensation.getRightPower()           # set motors in opposite power to turn in place
-#                     
-#             else:
-#                 if math.fabs(self.leftPower) >= Romeo.MINPOWER or math.fabs(self.rightPower) >= Romeo.MINPOWER:
-#                     self.turning_to_object = True
-#                     # adjust hearing
-#                     # if turn, don't hear sound, because we are giving moving sound
-#                     # we want hear only sounds from other objects
-#                     if self.config.canHear():
-#                         self.hearing.setOn(not self.turning_to_object)
-#                     self.log("turn: powers initial to " + str(self.leftPower) + ' ' + str(self.rightPower))      
-#                     sensation, picture = self.romeo.processSensation(Sensation(sensationType='D', leftPower = self.leftPower, rightPower = self.rightPower))
-#                     self.leftPower = sensation.getLeftPower()           # set motors in opposite power to turn in place
-#                     self.rightPower = sensation.getRightPower()           # set motors in opposite power to turn in place
-#                     self.turnTimer = Timer(Robot.ACTION_TIME, self.stopTurn)
-#                     self.turnTimer.start()
-# 
-#             
-#     def stopTurn(self):
-#         if self.config.canMove() and self.romeo.exitst(): # if we have moving capability
-#             self.turning_to_object = False
-#             self.leftPower = 0.0           # set motors in opposite power to turn in place
-#             self.rightPower = 0.0
-#             self.log("stopTurn: Turn is stopped/cancelled")      
-#             self.log("stopTurn: powers to " + str(self.leftPower) + ' ' + str(self.rightPower))      
-#                 
-#             if self.config.canHear():
-#                 self.hearing.setOn(not self.turning_to_object)
-#                 
-#             #test=Sensation.SensationType.Drive
-#             sensation, picture = self.romeo.processSensation(Sensation(sensationType='D', leftPower = self.leftPower, rightPower = self.rightPower))
-#             self.leftPower = sensation.getLeftPower()           # set motors in opposite power to turn in place
-#             self.rightPower = sensation.getRightPower()
-#             self.log("stopTurn: powers set to " + str(self.leftPower) + ' ' + str(self.rightPower))      
-# 
-# 
-#  #   def stopCalibrating(self):
-#  #       self.calibrating=False
-#  #       print( self.name + ": Robot.stopCalibrating: Calibrating mode is stopped/cancelled")
-# 
-# 
-#     def add_radian(self, original_radian, added_radian):
-#         result = original_radian + added_radian
-#         if (result > math.pi):
-#             return -math.pi + (result - math.pi)
-#         if (result < -math.pi):
-#             return math.pi - (result - math.pi)
-#         return result
-# 
-# 
-#     def getPower(self):
-#         leftPower = 0.0           # set motor in opposite power to turn in place
-#         rightPower = 0.0
-#         
-#         if math.fabs(self.observation_angle - self.azimuth) > Robot.TURN_ACCURACYFACTOR:
-#             power = (self.observation_angle - self.azimuth)/Robot.FULL_TURN_FACTOR
-#             if power > 1.0:
-#                 power = 1.0
-#             if power < -1.0:
-#                 power = -1.0
-#             if math.fabs(power) < Romeo.MINPOWER:
-#                 power = 0.0
-#             leftPower = power           # set motor in opposite power to turn in place
-#             rightPower = -power
-#         if math.fabs(leftPower) < Romeo.MINPOWER or math.fabs(rightPower) < Romeo.MINPOWER:
-#             leftPower = 0.0           # set motors in opposite power to turn in place
-#             rightPower = 0.0
-#  
-#         # test system has so little power, that we must run it at full speed           
-#  #       if leftPower > Romeo.MINPOWER:
-#  #           leftPower = 1.0           # set motorn in opposite pover to turn in place
-#  #           rightPower = -1.0
-#  #       elif leftPower < -Romeo.MINPOWER:
-#  #           leftPower = -1.0           # set motorn in opposite pover to turn in place
-#  #           rightPower = 1.0
-#             
-#             
-#         return leftPower, rightPower
         
 '''
 TCPserver is a Robot that gets connections from other Robots behind network
@@ -442,15 +244,9 @@ TODO Capabilities come from network
         
 class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     allow_reuse_address = True
-    
-    # inhered
-#    address_family = socket.AF_INET
-#    socket_type = socket.SOCK_STREAM
     request_queue_size = 5
     #allow_reuse_address = False
 
-
-#    def __init__(self, out_axon, in_axon, server_address):
     def __init__(self,
                  address,
                  hostNames,
@@ -486,11 +282,6 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                
         self.running=True
         self.mode = Sensation.Mode.Normal
-
-#        if self.allow_reuse_address:
-#            self.socket.setsockopt(socket.SOL_TCP, socket.SO_REUSEADDR, 1)
-#            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-#        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
           
         try:
             self.log('run: bind '+ str(self.address))
@@ -536,34 +327,51 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
             self.log('run: waiting self.sock.accept()')
             sock, address = self.sock.accept()
             self.log('run: self.sock.accept() '+ str(address))
-            socketServer = self.createSocketServer(sock=sock, address=address)
-            socketClient = self.createSocketClient(sock=sock, address=address, socketServer=socketServer)
-            socketServer.setSocketClient(socketClient)
-            #self.parent.subInstances.append(socketServer)
-            self.parent.subInstances.append(socketClient) # Note to parent subInstances
-
-
             if self.running:
-                self.log('run: socketServer.start()')
-                socketServer.start()
-                time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
-            if self.running:
-                self.log('run: socketClient.start()')
-                socketClient.start()
-                time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
+                socketServer = self.createSocketServer(sock=sock, address=address)
+                socketClient = self.createSocketClient(sock=sock, address=address, socketServer=socketServer)
+                socketServer.setSocketClient(socketClient)
+                #self.parent.subInstances.append(socketServer)
+                self.parent.subInstances.append(socketClient) # Note to parent subInstances
+    
+    
+                if self.running:
+                    self.log('run: socketServer.start()')
+                    socketServer.start()
+                    time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
+                if self.running:
+                    self.log('run: socketClient.start()')
+                    socketClient.start()
+                    time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
+        self.log('run: STOPPED')
 
     def stop(self):
         self.log('stop')
-        print(self.name + ":stop") 
         self.running = False
         self.mode = Sensation.Mode.Stopping
         for socketServer in self.socketServers:
             if socketServer.running:
+                self.log('stop: socketServer.stop()')
                 socketServer.stop()
         for socketClient in self.socketClients:
             if socketClient.running:
+                self.log('stop: socketClient.stop()')
                 socketClient.stop()
-        
+        # Connect to ourselves as a fake client
+        # so server gets connection and closes it
+        self.log('stop: s.connect(self.address)')
+        # Connect to ourselves as a fake client.
+        address=('localhost', PORT)
+        sock = socket.socket(family=ADDRESS_FAMILY,
+                             type=SOCKET_TYPE)
+        try:
+            self.log('run: sock.connect('  + str(address) + ')')
+            sock.connect(address)
+            self.log('run: done sock.connect('  + str(address) + ')')
+        except Exception as e:
+            self.log("run: sock.connect(" + str(address) + ') exception ' + str(e))
+ 
+                   
     def createSocketServer(self, sock, address, socketClient=None):
         socketServer =  None
         for socketServerCandidate in self.socketServers:
@@ -653,19 +461,6 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
     def getSocketServer(self):
         return self.socketServer
 
-#         if self.sock is None:       
-#             self.sock = socket.socket(family=ADDRESS_FAMILY,
-#                                         type=SOCKET_TYPE)
-#             try:
-#                 self.log('self.sock.connect('  + str(self.address) + ')')
-#                 self.sock.connect(self.address)
-#                 self.log('sobe self.sock.connect('  + str(self.address) + ')')
-#             except Exception as e:
-#                 self.log("self.sock.connect(self.address) exception " + str(e))
- 
-    '''
-    remove this test run implementation when connection is done OK
-    '''               
     def run(self):
         self.running=True
         self.mode = Sensation.Mode.Normal
@@ -696,8 +491,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
             self.log("run: SocketClient.sendSensation exception " + str(e))
             self.running = False
 
-        # Nope, can't do anything like below code
-#         # finally normal run from Robot-class
+        # finally normal run from Robot-class
         if self.running:
             super(SocketClient, self).run()
 
@@ -710,14 +504,6 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         # We can handle only sensation going in-direction
         if sensation.getDirection() == Sensation.Direction.In:
              self.running = self.sendSensation(sensation, self.sock, self.address) 
-        # stop and stop remote also
-        if sensation.getSensationType() == Sensation.SensationType.Stop:
-            self.log('process: SensationSensationType.Stop')
-            self.getSocketServer().stop()   # stop SockerServer also  
-            self.stop()
-
-
-        #self.sock.close()
 
     '''
     Overwrite local method. This way we can use remote Robot
@@ -740,16 +526,6 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         return self.capabilities
 
    
-    '''
-    ask capabilities from our remote host
-    tell our capabilities to remote tells it's
-    '''
-        
-#     def askCapabilities(self):
-#         self.log('askCapabilities')
-#         sensation=Sensation(sensationType=Sensation.SensationType.Capability, capabilities=self.getCapabilities())
-#         SocketClient.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
-
     '''
     method for sending a sensation
     '''
@@ -804,7 +580,11 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
     and after that us
     '''
     def stop(self):
-        self.log("stop") 
+        # We should first stop or SocketServer because it is not in Robots subinstaves list
+        self.log("stop")
+        self.getSocketServer().stop() # socketser cant close itset, we must send a stop sensation to it
+        self.sendStop(self.getSocketServer().getSocket(), self.getSocketServer().getAddress())
+        # stop remote
         self.sendSensation(sensation=Sensation(sensationType = Sensation.SensationType.Stop), sock=self.sock, address=self.address)
         self.running = False
         self.mode = Sensation.Mode.Stopping
@@ -817,7 +597,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
     '''
     def sendStop(self, sock, address):
         self.log("stop") 
-        print("SocketClient: stop(sock, address") 
+        print("SocketClient: stop(sock, address)") 
         self.sendSensation(sensation=Sensation(sensationType = Sensation.SensationType.Stop), sock=sock, address=address)
 
 class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
@@ -842,7 +622,12 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         self.address=address
         self.socketClient = socketClient
         self.name = 'SocketServer:' + str(address)
-        
+    
+    def getSocket(self):
+        return self.sock
+    def getAddress(self):
+        return self.address
+       
     def getHost(self):
         return self.address[0]
        
@@ -867,68 +652,76 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         while self.running:
             self.log("run: waiting next Sensation from" + str(self.address))
             synced = False
-            self.data = self.sock.recv(Sensation.SEPARATOR_SIZE).strip().decode('utf-8')  # message separator section
-            if len(self.data) == 0:
-                synced = True# Test
             while not synced and self.running:
-                if len(self.data) == len(Sensation.SEPARATOR):
-                    if self.data[0] is Sensation.SEPARATOR[0]:    # this also syncs to next message, if we get sock transmit errors
-                        synced = True
-                if not synced:
+                try:
                     self.data = self.sock.recv(Sensation.SEPARATOR_SIZE).strip().decode('utf-8')  # message separator section
-                    #print "WalleSocketServer separator l " + str(len(self.data)) + ' ' + str(len(Sensation.SEPARATOR))
-                    if len(self.data) == 0:
-                        self.running = False               
-
-            if synced and self.running:
-                self.log("run: waiting size of next Sensation from " + str(self.address))
-                self.data = self.sock.recv(Sensation.NUMBER_SIZE)                         # message length section
-                if len(self.data) == 0:
+                    if len(self.data) == len(Sensation.SEPARATOR) and self.data[0] is Sensation.SEPARATOR[0]:
+                        synced = True
+                except Exception as err:
+                    self.log("self.sock.recv SEPARATOR " + str(self.address) + " error " + str(err))
                     self.running = False
-                else:
-                    length_ok = True
+    
+                if synced and self.running:
+                    self.log("run: waiting size of next Sensation from " + str(self.address))
                     try:
-                        sensation_length = int.from_bytes(self.data, Sensation.BYTEORDER)
-                    except:
-                        self.log("run: SocketServer Client protocol error, no valid length resyncing " + str(self.address) + " wrote " + self.data)
-                        length_ok = False
-                        
-                    if length_ok:
-                        self.log("run: SocketServer Client " + str(self.address) + " wrote " + str(sensation_length))
-                        self.data=None
-                        while sensation_length > 0:
-                            data = self.sock.recv(sensation_length)                       # message data section
-                            if len(data) == 0:
-                                self.running = False
-                            else:
-                                if self.data is None:
-                                    self.data = data
-                                else:
-                                    self.data = self.data+data
-                                sensation_length = sensation_length - len(data)
-                        if self.running:
-                            sensation=Sensation(bytes=self.data)
-                            sensation.addReceived(self.getHost())  # remember route
-                            if sensation.getSensationType() == Sensation.SensationType.Capability:
-                                self.log("run: SocketServer got Capability sensation " + sensation.getCapabilities().toDebugString('SocketServer'))
-                                self.process(sensation)
-                            else:
-                                self.log("run: SocketServer got sensation " + sensation.toDebugStr())
-                                if sensation.getSensationType() == Sensation.SensationType.Voice:
-                                    self.log("run: SocketServer got Voice sensation")
-                                self.getParent().getParent().getAxon().put(sensation) # write sensation to TCPServers Parent, because TCPServer does not read its Axon
-                                if sensation.getSensationType() == Sensation.SensationType.Voice:
-                                    self.log("run: SocketServer got Voice sensation")
-            
+                        self.data = self.sock.recv(Sensation.NUMBER_SIZE)                         # message length section
+                        if len(self.data) == 0:
+                            self.running = False
+                        else:
+                            length_ok = True
+                            try:
+                                sensation_length = int.from_bytes(self.data, Sensation.BYTEORDER)
+                            except:
+                                self.log("run: SocketServer Client protocol error, no valid length resyncing " + str(self.address) + " wrote " + self.data)
+                                length_ok = False
+                                
+                            if length_ok:
+                                self.log("run: SocketServer Client " + str(self.address) + " wrote " + str(sensation_length))
+                                self.data=None
+                                while sensation_length > 0:
+                                    try:
+                                        data = self.sock.recv(sensation_length)                       # message data section
+                                        if len(data) == 0:
+                                            self.running = False
+                                        else:
+                                            if self.data is None:
+                                                self.data = data
+                                            else:
+                                                self.data = self.data+data
+                                        sensation_length = sensation_length - len(data)
+                                    except:
+                                        self.log("run: self.sock.recv(sensation_length) error " + str(self.address) + " " + str(err))
+                                        self.running = False
+                                if self.running:
+                                    sensation=Sensation(bytes=self.data)
+                                    sensation.addReceived(self.getHost())  # remember route
+                                    if sensation.getSensationType() == Sensation.SensationType.Capability:
+                                        self.log("run: SocketServer got Capability sensation " + sensation.getCapabilities().toDebugString('SocketServer'))
+                                        self.process(sensation)
+                                    else:
+                                        self.log("run: SocketServer got sensation " + sensation.toDebugStr())
+                                        if sensation.getSensationType() == Sensation.SensationType.Voice:
+                                            self.log("run: SocketServer got Voice sensation")
+                                        self.getParent().getParent().getAxon().put(sensation) # write sensation to TCPServers Parent, because TCPServer does not read its Axon
+                                        if sensation.getSensationType() == Sensation.SensationType.Voice:
+                                            self.log("run: SocketServer got Voice sensation")
+                    except Exception as err:
+                        self.log("self.sock.recv size of next Sensation " + str(self.address) + " error " + str(err))
+                        self.running = False
 
-        self.sock.close()
+        try:
+            self.sock.close()
+        except Exception as err:
+            self.log("self.sock.close() " + str(self.address) + " error " + str(err))
 
     def stop(self):
         self.log("stop")
-        self.getSocketClient().sendStop(sock = self.sock, address=self.address)
+#         self.getSocketClient().sendStop(sock = self.sock, address=self.address)
         self.running = False
         self.mode = Sensation.Mode.Stopping
-        self.sock.close()
+# closing our socket should stop socket waiting, so we should stop with error
+# unfortunately this does not help, we must write to out socket Stop sensation
+#         self.sock.close()
 
         super(SocketServer, self).stop()
 
@@ -971,6 +764,8 @@ def signal_handler(signal, frame):
     print ('signal_handler: You pressed Ctrl+C!')
     
     mainRobot.doStop()
+    print ('signal_handler: ended!')
+#     exit()
     
 #     print ('signal_handler: Shutting down sensation server ...')
 #     RobotRequestHandler.server.serving =False
@@ -995,7 +790,8 @@ def start(is_daemon):
                                       pidfile=pidfile):
                 do_server()
         else:
-           do_server()
+            do_server()
+            print ("start: stopped")
 
     
 def stop():
@@ -1075,6 +871,7 @@ if __name__ == "__main__":
              
     print ("__main__ exit")
     exit()
+    print ("__main__ exit has been done so this should not be printed")
 
 
 

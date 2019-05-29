@@ -1177,7 +1177,7 @@ class Sensation(object):
     '''  
     def saveLongTermMemory():
         # save sensation data to files
-        for sensation in Sensation.sensationMemorys[Memory.LongTerm]:
+        for sensation in Sensation.sensationMemorys[Sensation.Memory.LongTerm]:
             sensation.save()
         # save sensation instances
         if not os.path.exists(Sensation.DATADIR):
@@ -1187,7 +1187,8 @@ class Sensation(object):
             with open(Sensation.PATH_TO_PICLE_FILE, "wb") as f:
                 try:
                     pickler = pickle.Pickler(f, -1)
-                    pickler.dump(Sensation.sensationMemorys[Memory.LongTerm])
+                    pickler.dump(Sensation.sensationMemorys[Sensation.Memory.LongTerm])
+                    print ('saveLongTermMemory dumped ' + str(len(Sensation.sensationMemorys[Sensation.Memory.LongTerm])))
                 except IOError as e:
                     print('pickler.dump(Sensation.sensationMemorys[Memory.LongTerm]) error ' + str(e))
                 finally:
@@ -1204,8 +1205,9 @@ class Sensation(object):
             try:
                 with open(Sensation.PATH_TO_PICLE_FILE, "rb") as f:
                     try:
-                        Sensation.sensationMemorys[Memory.LongTerm] = \
+                        Sensation.sensationMemorys[Sensation.Memory.LongTerm] = \
                             pickle.load(f)
+                        print ('loadLongTermMemory loaded ' + str(len(Sensation.sensationMemorys[Sensation.Memory.LongTerm])))
                     except IOError as e:
                         print("pickle.load(f) error " + str(e))
                     finally:

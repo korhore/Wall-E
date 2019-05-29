@@ -75,6 +75,7 @@ class AlsaAudioPlayback(Robot):
                 self.log('process: Sensation.SensationType.VoiceData self.outp.write(sensation.getVoiceData()')
                 self.outp.write(sensation.getData())
                 sensation.save()    #remember what we played
+        self.log("self.running " + str(self.running))      
 
 if __name__ == "__main__":
     alsaAudioPlayback = AlsaAudioPlayback()

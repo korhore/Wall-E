@@ -266,8 +266,10 @@ class Robot(Thread):
          # stop virtual instances here, when main instance is not running any more
         for robot in self.subInstances:
             robot.stop()
+        self.log("self.running = False")      
         self.running = False    # this in not real, but we wait for Sensation,
                                 # so give  us one stop sensation
+        self.log("self.getAxon().put(Sensation(sensationType = Sensation.SensationType.Stop))")      
         self.getAxon().put(Sensation(sensationType = Sensation.SensationType.Stop))
 
 
