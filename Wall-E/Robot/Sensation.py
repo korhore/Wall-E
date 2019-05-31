@@ -287,13 +287,18 @@ class Sensation(object):
                         if not sensation in sensations:
                             sensations.append(sensation)
         return sensations
-               
-    def getNewerSensations(timelimit):
+ 
+    '''
+    Get sensation in time window, from time min to time max
+    We get sensation that are happened in at same moment
+    '''              
+    def getNearbySensations(timemin, timemax):
         sensations=[]
         for key, sensationMemory in Sensation.sensationMemorys.items():
             if len(sensationMemory) > 0:
                 for sensation in sensationMemory:
-                    if sensation.getTime() > timelimit:
+                    if sensation.getTime() > timemin and\
+                       sensation.getTime() < timemax:
                         if not sensation in sensations:
                             sensations.append(sensation)
         return sensations
@@ -1129,29 +1134,37 @@ class Sensation(object):
                        '.' +  Sensation.IMAGE_FORMAT
             self.setFilePath(fileName)
             try:
-                with open(fileName, "wb") as f:
+                if not os.path.exists(fileName):
                     try:
-                        self.getImage().save(f)
-                    except IOError as e:
-                        print("self.getImage().save(f)) error " + str(e))
-                    finally:
-                        f.close()
+                        with open(fileName, "wb") as f:
+                            try:
+                                self.getImage().save(f)
+                            except IOError as e:
+                                print("self.getImage().save(f)) error " + str(e))
+                            finally:
+                                f.close()
+                    except Exception as e:
+                        print('os.path.exists(' + fileName + ') error ' + str(e))
             except Exception as e:
-                    print("open(fileName, wb) as f error " + str(e))
+                print("open(fileName, wb) as f error " + str(e))
         elif self.getSensationType() == Sensation.SensationType.Voice:       
             fileName = Sensation.DATADIR + '/' + '{}'.format(self.getNumber()) + \
                        '.' +  Sensation.VOICE_FORMAT
             self.setFilePath(fileName)
             try:
-                with open(fileName, "wb") as f:
+                if not os.path.exists(fileName):
                     try:
-                        f.write(self.getData())
-                    except IOError as e:
-                        print("f.write(self.getData()) error " + str(e))
-                    finally:
-                        f.close()
+                        with open(fileName, "wb") as f:
+                            try:
+                                f.write(self.getData())
+                            except IOError as e:
+                                print("f.write(self.getData()) error " + str(e))
+                            finally:
+                                f.close()
+                    except Exception as e:
+                            print("open(fileName, wb) as f error " + str(e))
             except Exception as e:
-                    print("open(fileName, wb) as f error " + str(e))
+                print("open(fileName, wb) as f error " + str(e))
      
     '''
     delete sensation data permanently
@@ -1200,7 +1213,7 @@ class Sensation(object):
     load LongTerm Memory sensation instances
     '''  
     def loadLongTermMemory():
-        # save sensation data to files
+        # load sensation data from files
         if os.path.exists(Sensation.DATADIR):
             try:
                 with open(Sensation.PATH_TO_PICLE_FILE, "rb") as f:
@@ -1214,6 +1227,38 @@ class Sensation(object):
                         f.close()
             except Exception as e:
                     print('with open(' + 'Sensation.PATH_TO_PICLE_FILE, "rb")  as f error ' + str(e))
+ 
+    '''
+    Clean data directory fron data files, that are not connected to any sensation.
+    '''  
+    def CleanDataDirectory():
+        # load sensation data from files
+        print('CleanDataDirectory')
+        if os.path.exists(Sensation.DATADIR):
+            try:
+                for filename in os.listdir(Sensation.DATADIR):
+                    # There can be image or voice files not any more needed
+                    if filename.endswith('.'+Sensation.IMAGE_FORMAT) or\
+                       filename.endswith('.'+Sensation.VOICE_FORMAT):
+                        filepath = os.path.join(Sensation.DATADIR, filename)
+                        if not Sensation.hasOwner(filepath):
+                            print('os.remove(' + filepath + ')')
+                            try:
+                                os.remove(filepath)
+                            except Exception as e:
+                                print('os.remove(' + filepath + ') error ' + str(e))
+            except Exception as e:
+                    print('os.listdir error ' + str(e))
+                    
+    def hasOwner(filepath):
+        for key, sensationMemory in Sensation.sensationMemorys.items():
+            if len(sensationMemory) > 0:
+                for sensation in sensationMemory:
+                    if sensation.getSensationType() == Sensation.SensationType.Image or\
+                       sensation.getSensationType() == Sensation.SensationType.Voice:
+                        if sensation.getFilePath() == filepath:
+                            return True
+        return False
             
     
        

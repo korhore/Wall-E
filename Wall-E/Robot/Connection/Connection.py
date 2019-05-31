@@ -43,7 +43,7 @@ class Connection(Robot):
         #run default implementation first
         super(Connection, self).process(sensation)
             # if still running and we can process this
-        candidate_sensatiosToConnect = Sensation.getNewerSensations(sensation.getTime()-Connection.CONNECTION_INTERVAL)
+        candidate_sensatiosToConnect = Sensation.getNearbySensations(sensation.getTime()-Connection.CONNECTION_INTERVAL, sensation.getTime()+Connection.CONNECTION_INTERVAL)
         # connect different Items to each other or
         # connect other thing to different Items, but best of item name found
         # to get reasonable connections
@@ -63,6 +63,8 @@ class Connection(Robot):
                         sensatiosToConnect[sens.getName()] = sens
             if len(sensatiosToConnect) > 0:
                 self.log('process: Sensation ' + sensation.toDebugStr() + ' will be connected to:')
+                sensation.save()    # this is worth to save its data
                 for sens in sensatiosToConnect.values():
                      self.log(sens.toDebugStr())
+                     sens.save()    # this is worth to save its data
                 sensation.addReferences(sensatiosToConnect.values())

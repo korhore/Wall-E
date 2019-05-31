@@ -24,6 +24,8 @@ import time
 import sys
 import signal
 import getopt
+import daemon
+import lockfile
 
 from threading import Thread
 from threading import Timer
@@ -68,6 +70,9 @@ class MainRobot(Robot):
                  instanceType = Sensation.InstanceType.Real,
                  level=0):
         print("We are in MainRobot, not Robot")
+        cwd = os.getcwd()
+        print("cwd " + cwd)
+
  
         Robot.__init__(self,
                        parent = None,                            # Main robot can't have parent
@@ -79,6 +84,7 @@ class MainRobot(Robot):
         # in main robot, set uo Long_tem Memory and set up TCPServer
         if self.level == 1:
             Sensation.loadLongTermMemory()
+            Sensation.CleanDataDirectory()
             self.tcpServer=TCPServer(parent=self,
                                      hostNames=self.config.getHostNames(),
                                      instanceName='TCPServer',
@@ -545,9 +551,9 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
             try:
                 l = sock.send(Sensation.SEPARATOR.encode('utf-8'))        # message separator section
                 if Sensation.SEPARATOR_SIZE == l:
-                    print('SocketClient wrote separator to ' + str(address))
+                    self.log('SocketClient wrote separator to ' + str(address))
                 else:
-                    print("SocketClient length " + str(l) + " != " + str(Sensation.SEPARATOR_SIZE) + " error writing to " + str(address))
+                    self.log("SocketClient length " + str(l) + " != " + str(Sensation.SEPARATOR_SIZE) + " error writing to " + str(address))
                     ok = False
             except Exception as err:
                 self.log("SocketClient error writing Sensation.SEPARATOR to " + str(address)  + " error " + str(err))
@@ -555,7 +561,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
             if ok:
                 try:
                     l = sock.send(length_bytes)                            # message length section
-                    print("SocketClient wrote length " + str(length) + " of Sensation to " + str(address))
+                    self.log("SocketClient wrote length " + str(length) + " of Sensation to " + str(address))
                 except Exception as err:
                     self.log("SocketClient error writing length of Sensation to " + str(address) + " error " + str(err))
                     ok = False
@@ -564,7 +570,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                         l = sock.send(bytes)                              # message data section
                         self.log("SocketClient wrote Sensation to " + str(address))
                         if length != l:
-                            print("SocketClient length " + str(l) + " != " + str(length) + " error writing to " + str(address))
+                            self.log("SocketClient length " + str(l) + " != " + str(length) + " error writing to " + str(address))
                             ok = False
                     except Exception as err:
                         self.log("SocketClient error writing Sensation to " + str(address) + " error " + str(err))
@@ -582,23 +588,60 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
     def stop(self):
         # We should first stop or SocketServer because it is not in Robots subinstaves list
         self.log("stop")
-        self.getSocketServer().stop() # socketser cant close itset, we must send a stop sensation to it
-        self.sendStop(self.getSocketServer().getSocket(), self.getSocketServer().getAddress())
-        # stop remote
-        self.sendSensation(sensation=Sensation(sensationType = Sensation.SensationType.Stop), sock=self.sock, address=self.address)
         self.running = False
         self.mode = Sensation.Mode.Stopping
-        self.sock.close()
         
+        # socketserver can't close itself, just put it to closing mode
+        self.getSocketServer().stop() # socketserver can't close itself, we must send a stop sensation to it
+        # we must send a stop sensation to it
+        self.sendSensation(sensation=Sensation(sensationType = Sensation.SensationType.Stop), sock=self.getSocketServer().getSocket(), address=self.getSocketServer().getAddress())
+        # stop remote with same technic
+        self.sendSensation(sensation=Sensation(sensationType = Sensation.SensationType.Stop), sock=self.sock, address=self.address)
+        self.sock.close()
+         
         super(SocketClient, self).stop()
 
     '''
     Global method for stopping remote host
     '''
-    def sendStop(self, sock, address):
-        self.log("stop") 
-        print("SocketClient: stop(sock, address)") 
-        self.sendSensation(sensation=Sensation(sensationType = Sensation.SensationType.Stop), sock=sock, address=address)
+    def sendStop(sock, address):
+        print("SocketClient: sendStop(sock, address)") 
+        sensation=Sensation(sensationType = Sensation.SensationType.Stop)
+
+        bytes = sensation.bytes()
+        length =len(bytes)
+        length_bytes = length.to_bytes(Sensation.NUMBER_SIZE, byteorder=Sensation.BYTEORDER)
+    
+        ok = True
+        try:
+            l = sock.send(Sensation.SEPARATOR.encode('utf-8'))        # message separator section
+            if Sensation.SEPARATOR_SIZE == l:
+                print('SocketClient wrote separator to ' + str(address))
+            else:
+                print("SocketClient length " + str(l) + " != " + str(Sensation.SEPARATOR_SIZE) + " error writing to " + str(address))
+                ok = False
+        except Exception as err:
+            print("SocketClient error writing Sensation.SEPARATOR to " + str(address)  + " error " + str(err))
+            ok=False
+        if ok:
+            try:
+                l = sock.send(length_bytes)                            # message length section
+                print("SocketClient wrote length " + str(length) + " of Sensation to " + str(address))
+            except Exception as err:
+                self.log("SocketClient error writing length of Sensation to " + str(address) + " error " + str(err))
+                ok = False
+            if ok:
+                try:
+                    l = sock.send(bytes)                              # message data section
+                    print("SocketClient wrote Sensation to " + str(address))
+                    if length != l:
+                        print("SocketClient length " + str(l) + " != " + str(length) + " error writing to " + str(address))
+                        ok = False
+                except Exception as err:
+                    print("SocketClient error writing Sensation to " + str(address) + " error " + str(err))
+                    ok = False
+        return ok
+        
 
 class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
@@ -719,11 +762,8 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
 #         self.getSocketClient().sendStop(sock = self.sock, address=self.address)
         self.running = False
         self.mode = Sensation.Mode.Stopping
-# closing our socket should stop socket waiting, so we should stop with error
-# unfortunately this does not help, we must write to out socket Stop sensation
-#         self.sock.close()
+        
 
-        super(SocketServer, self).stop()
 
 
 def threaded_server(arg):
@@ -785,7 +825,12 @@ def start(is_daemon):
             stderr=open('/tmp/Robot_Server.stderr', 'w+')
             #remove('/var/run/Robot_Server.pid.lock')
             pidfile=lockfile.FileLock('/var/run/Robot_Server.pid')
-            with daemon.DaemonContext(stdout=stdout,
+            cwd = os.getcwd()   #work at that directory we are when calling this
+                                # We have data and config directories there
+                                # so it is important where we are
+
+            with daemon.DaemonContext(working_directory=cwd,
+                                      stdout=stdout,
                                       stderr=stderr,
                                       pidfile=pidfile):
                 do_server()
@@ -806,13 +851,8 @@ def stop():
             address=('localhost', PORT)
             sock.connect(address)
             print ("stop: connected")
-            print ("stop: SocketClient.stop")
-            ok = SocketClient.stop(sock = sock, address=address)
-            if ok:
-                # Receive data from the server
-                print ("stop: sock.recv(1024)")
-                received = sock.recv(1024)
-                print ('stop: received answer ' + received)
+            print ("stop: SocketClient.stop(sock = sock, address=address)")
+            ok = SocketClient.sendStop(sock = sock, address=address)
         except Exception as err: 
             print ("stop: sock connect, cannot stop localhost, error " + str(err))
             return
