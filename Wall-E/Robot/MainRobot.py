@@ -824,7 +824,7 @@ def start(is_daemon):
             stdout=open('/tmp/Robot_Server.stdout', 'w+')
             stderr=open('/tmp/Robot_Server.stderr', 'w+')
             #remove('/var/run/Robot_Server.pid.lock')
-            pidfile=lockfile.FileLock('/var/run/Robot_Server.pid')
+            pidfile=lockfile.FileLock('/var/run/Robot.pid')
             cwd = os.getcwd()   #work at that directory we are when calling this
                                 # We have data and config directories there
                                 # so it is important where we are

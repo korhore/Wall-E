@@ -1,9 +1,11 @@
 Critical
 --------
-ImportError: No module named 'object_detection'
-OK AlsaAudioPlayback keeps running, needs StopSensation
-TCPServer, SocketServer, SocketCliend don't stop
-TCPServer OK SocketServer remains
+- session based Robot run dies. We should use daemom mode.
+OK. daemon mode recreated
+- ImportError: No module named 'object_detection', Not known if works as daemon
+OK, Server script updated to set PYTPATH when starting daemo mode
+- Robot should share its knowladge - Long Term Memory - with other hosts,
+  when it starts
 
 What is done
 ------------
@@ -70,7 +72,7 @@ Dependencies
 ------------  
 
 dependencies: for pillow (pip3 install pillow)
- sudo apt-get install libjpeg-dev -y
+sudo apt-get install libjpeg-dev -y
 sudo apt-get install zlib1g-dev -y
 sudo apt-get install libfreetype6-dev -y
 sudo apt-get install liblcms1-dev -y

@@ -250,7 +250,8 @@ class TensorFlowClassification(Robot):
             output_dict = self.run_inference_for_single_image(image_np_expanded, self.detection_graph)
             i=0  
             for classInd in output_dict[self.DETECTION_CLASSES]:
-                self.log("image className " + self.category_index[classInd][self.NAME] + ' score ' + str(output_dict[self.DETECTION_SCORES][i]) + ' box ' + str(output_dict[self.DETECTION_BOXES][i]))
+                self.log("image className " + self.category_index[classInd][self.NAME] + ' score ' + str(output_dict[self.DETECTION_SCORES][i]) +\
+                         ' box ' + str(output_dict[self.DETECTION_BOXES][i]))
                 i = i+1   
 
         while self.running:
@@ -293,12 +294,15 @@ class TensorFlowClassification(Robot):
                         ymin, xmin, ymax, xmax = output_dict[self.DETECTION_BOXES][i]
                         size = (xmin * im_width, ymin * im_height,
                                 xmax * im_width, ymax * im_height)
-                        self.log("SEEN image FOR SURE className " + self.category_index[classInd][self.NAME] + ' score ' + str(output_dict[self.DETECTION_SCORES][i]) + ' box ' + str(output_dict[self.DETECTION_BOXES][i]) + ' size ' + str(size))
+                        self.log('SEEN image FOR SURE className ' + self.category_index[classInd][self.NAME] + ' score ' + str(output_dict[self.DETECTION_SCORES][i]) + \
+                                 ' box ' + str(output_dict[self.DETECTION_BOXES][i]) + ' size ' + str(size))
                         subimage = sensation.getImage().crop(size)
-                        subsensation = Sensation.create(sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out, image=subimage, references=[sensation])
+                        subsensation = Sensation.create(sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out,\
+                                                        image=subimage, references=[sensation])
                         subsensation.save()
                         # Item
-                        itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out, name=self.category_index[classInd][self.NAME], score=output_dict[self.DETECTION_SCORES][i], references=[sensation])
+                        itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out,\
+                                                         name=self.category_index[classInd][self.NAME], score=output_dict[self.DETECTION_SCORES][i], references=[sensation])
                         self.getParent().getAxon().put(subsensation)
                         self.getParent().getAxon().put(itemsensation)
                         self.log("Created LongTerm subImage and item sensation for this")

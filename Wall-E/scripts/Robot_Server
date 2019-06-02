@@ -1,25 +1,39 @@
 #! /bin/sh
+### BEGIN INIT INFO
+# Provides:          Wall-E_server
+# Required-Start:
+# Required-Stop:
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Wall-E Robot
+# Description:       Wall-E Robot uses camera, microphoe, sensors,
+#                    physical capabilities like movinf, etc.
+#                    to sense its environment and behave as a robot.
+### END INIT INFO
 # /etc/init.d/Robot_server
 #
 
-SERVER='/usr/local/lib/python2.7/dist-packages/Robot_Server/RobotServer.py'
+#SERVER='/usr/local/lib/python3.5/dist-packages/Robot/MainRobot.py'
+cd /home/reijo/Wall-E/
+SERVER='/home/reijo/Wall-E/Robot/MainRobot.py'
+PYPATH='PYTHONPATH=/home/reijo/git/tensorflow/models/research/'
 
 # Some things that run always
-touch /var/lock/Robot_server
+touch /var/lock/Robot
 
 # Carry out specific functions when asked to by the system
 case "$1" in
   start)
     echo "Starting script Robot_server"
-    /usr/bin/env python $SERVER --start --daemon
+    /usr/bin/env $PYPATH python3 $SERVER --start --daemon
     ;;
   stop)
     echo "Stopping script Robot_server"
-    /usr/bin/env python $SERVER --stop
+    /usr/bin/env $PYPATH python3 $SERVER --stop
     ;;
   restart)
     echo "Starting script Robot_server"
-    /usr/bin/env python $SERVER --restart --daemon
+    /usr/bin/env $PYPATH python3 $SERVER --restart --daemon
     ;;
   *)
     echo "Usage: /etc/init.d/Robot_server {start|stop|restart}"
