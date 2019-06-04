@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 19.05.2019
+Updated on 03.06.2019
 @author: reijo.korhonen@gmail.com
 
 This class Main robot
@@ -198,7 +198,7 @@ class MainRobot(Robot):
                     self.log('Sensation.Direction.Out -> In self.getSubCapabiliyInstances' + str(robots))
                     for robot in robots:
                         sensation.setDirection(Sensation.Direction.In)# todo, we should create new in-direction instance and reference it
-                        playbackSensation = Sensation.create(sensation=sensation, references=[sensation], direction=Sensation.Direction.In) # new instance or sensation for playback
+                        playbackSensation = Sensation.create(sensation=sensation, connections=[Sensation.Connection(sensation=sensation)], direction=Sensation.Direction.In) # new instance or sensation for playback
                         
                         if robot.getInstanceType() == Sensation.InstanceType.Remote:
                             # if this sensation comes from sockrServers host
@@ -241,11 +241,6 @@ class MainRobot(Robot):
 TCPserver is a Robot that gets connections from other Robots behind network
 and delivers them to main Robot. This is done as sensation, because main
 robot is a robot that reads sensations.
-
-Another possibility is handle these subrots locally here, but it may be better to
-handle all sunrobot sensastion routing things in main robot
-TODO Capabilities come from network
-
 '''
         
 class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
@@ -317,7 +312,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                     socketClient = self.createSocketClient(sock=sock, address=address, socketServer=socketServer)
                     socketServer.setSocketClient(socketClient)
                     # add only socketClients to subInstances, because they give us capabilities
-                    # but we give capabilities to thers with socketServer
+                    # but we give capabilities to others with socketServer
                     #self.parent.subInstances.append(socketServer)
                     self.parent.subInstances.append(socketClient)  # Note to parent subInstances
                     socketServer.start()
@@ -531,7 +526,15 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
     def getLocalCapabilities(self):
         return self.capabilities
 
-   
+    '''
+    share out knowledge of sensation memory out client has capabilities   
+    '''
+    def shareSensations(self, capabilities):
+        for sensation in Sensation.getSensations(capabilities):
+            self.running =  self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
+            if not self.running:
+                break
+
     '''
     method for sending a sensation
     '''
@@ -741,6 +744,10 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                                     if sensation.getSensationType() == Sensation.SensationType.Capability:
                                         self.log("run: SocketServer got Capability sensation " + sensation.getCapabilities().toDebugString('SocketServer'))
                                         self.process(sensation)
+                                        # share here sensations from our memory that this host has capabilities
+                                        # We wan't always share our all knowledge with all other robots
+                                        if self.getSocketClient() is not None:
+                                            self.getSocketClient().shareSensations(self.getCapabilities())
                                     else:
                                         self.log("run: SocketServer got sensation " + sensation.toDebugStr())
                                         if sensation.getSensationType() == Sensation.SensationType.Voice:

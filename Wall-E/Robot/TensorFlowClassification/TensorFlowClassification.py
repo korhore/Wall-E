@@ -294,15 +294,16 @@ class TensorFlowClassification(Robot):
                         ymin, xmin, ymax, xmax = output_dict[self.DETECTION_BOXES][i]
                         size = (xmin * im_width, ymin * im_height,
                                 xmax * im_width, ymax * im_height)
-                        self.log('SEEN image FOR SURE className ' + self.category_index[classInd][self.NAME] + ' score ' + str(output_dict[self.DETECTION_SCORES][i]) + \
+                        score = output_dict[self.DETECTION_SCORES][i]
+                        self.log('SEEN image FOR SURE className ' + self.category_index[classInd][self.NAME] + ' score ' + str(score) + \
                                  ' box ' + str(output_dict[self.DETECTION_BOXES][i]) + ' size ' + str(size))
                         subimage = sensation.getImage().crop(size)
                         subsensation = Sensation.create(sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out,\
-                                                        image=subimage, references=[sensation])
+                                                        image=subimage, connections=[Sensation.Connection(sensation=sensation, score=score)])
                         subsensation.save()
                         # Item
                         itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out,\
-                                                         name=self.category_index[classInd][self.NAME], score=output_dict[self.DETECTION_SCORES][i], references=[sensation])
+                                                         name=self.category_index[classInd][self.NAME], connections=[Sensation.Connection(sensation=subsensation, score=score)])
                         self.getParent().getAxon().put(subsensation)
                         self.getParent().getAxon().put(itemsensation)
                         self.log("Created LongTerm subImage and item sensation for this")

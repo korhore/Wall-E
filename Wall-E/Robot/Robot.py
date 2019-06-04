@@ -331,7 +331,10 @@ class Robot(Thread):
                 self.log('process: sensation.getSensationType() == Sensation.SensationType.Capability')      
                 self.log('process: self.setCapabilities(Capabilities(capabilities=sensation.getCapabilities() ' + sensation.getCapabilities().toDebugString('capabilities'))      
                 self.setCapabilities(Capabilities(deepCopy=sensation.getCapabilities()))
-                self.log('process: capabilities: ' + self.getCapabilities().toDebugString('saved capabilities'))      
+                self.log('process: capabilities: ' + self.getCapabilities().toDebugString('saved capabilities'))
+                # Share here our sensations this host has capabilities
+                if self.getSocketClient() is not None:
+                   self.getSocketClient().shareSensations(self.getCapabilities()) 
             elif self.getParent() is not None: # if sensation is going up  and we have a parent
                 self.log('process: self.getParent().getAxon().put(sensation)')      
                 self.getParent().getAxon().put(sensation)
