@@ -47,7 +47,9 @@ class Connection(Robot):
         #run default implementation first
         super(Connection, self).process(sensation)
             # if still running and we can process this
-        candidate_sensatiosToConnect = Sensation.getNearbySensations(sensation.getTime()-Connection.CONNECTION_INTERVAL, sensation.getTime()+Connection.CONNECTION_INTERVAL)
+        candidate_sensatiosToConnect = Sensation.getSensations(capabilities=self.getCapabilities(),
+                                                               timemin=sensation.getTime()-Connection.CONNECTION_INTERVAL,
+                                                               timemax=sensation.getTime()+Connection.CONNECTION_INTERVAL)
         # connect different Items to each other or
         # connect other thing to different Items, but best of item name found
         # to get reasonable connections

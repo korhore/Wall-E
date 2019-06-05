@@ -275,39 +275,6 @@ class Sensation(object):
             memory[0].delete()
             del memory[0]
                 
-    def getSensationFromSensationMemory(number):
-        for key, sensationMemory in Sensation.sensationMemorys.items():
-            if len(sensationMemory) > 0:
-                for sensation in sensationMemory:
-                    if sensation.getNumber() == number:
-                        return sensation
-        return None
-
-    def getSensationsFromSensationMemory(connectionNumber):
-        sensations=[]
-        for key, sensationMemory in Sensation.sensationMemorys.items():
-            if len(sensationMemory) > 0:
-                for sensation in sensationMemory:
-                    if sensation.getNumber() == connectionNumber or \
-                       connectionNumber in sensation.getConnectionNumbers():
-                        if not sensation in sensations:
-                            sensations.append(sensation)
-        return sensations
- 
-    '''
-    Get sensation in time window, from time min to time max
-    We get sensation that are happened in at same moment
-    '''              
-    def getNearbySensations(timemin, timemax):
-        sensations=[]
-        for key, sensationMemory in Sensation.sensationMemorys.items():
-            if len(sensationMemory) > 0:
-                for sensation in sensationMemory:
-                    if sensation.getTime() > timemin and\
-                       sensation.getTime() < timemax:
-                        if not sensation in sensations:
-                            sensations.append(sensation)
-        return sensations
          
     '''
     Connection is connection between two sensations
@@ -1230,16 +1197,42 @@ class Sensation(object):
                     print("os.remove(self.getFilePath() error " + str(e))
                     
     '''
-    get sensations from sensation memory that are set in capabilities
+    sensation getters
+    '''
+    def getSensationFromSensationMemory(number):
+        for key, sensationMemory in Sensation.sensationMemorys.items():
+            if len(sensationMemory) > 0:
+                for sensation in sensationMemory:
+                    if sensation.getNumber() == number:
+                        return sensation
+        return None
+
+    def getSensationsFromSensationMemory(connectionNumber):
+        sensations=[]
+        for key, sensationMemory in Sensation.sensationMemorys.items():
+            if len(sensationMemory) > 0:
+                for sensation in sensationMemory:
+                    if sensation.getNumber() == connectionNumber or \
+                       connectionNumber in sensation.getConnectionNumbers():
+                        if not sensation in sensations:
+                            sensations.append(sensation)
+        return sensations
+                     
+    '''
+    Get sensations from sensation memory that are set in capabilities
+    
+    Time window can be set seperatly min, max or both,
+    from time min to time max, to get sensations that are happened at same moment.   
     '''  
-    def getSensations(capabilities):
+    def getSensations(capabilities, timemin=None, timemax=None):
         sensations=[]
         for key, sensationMemory in Sensation.sensationMemorys.items():
             for sensation in sensationMemory:
                 if capabilities.hasCapability(direction=sensation.getDirection(),
                                               memory=sensation.getMemory(),
-                                              sensationType=sensation.getSensationType()):
-
+                                              sensationType=sensation.getSensationType()) and\
+                   (timemin is None or sensation.getTime() > timemin) and\
+                   (timemax is None or sensation.getTime() < timemax):
                     sensations.append(sensation)
         return sensations
     

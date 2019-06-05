@@ -582,7 +582,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                 self.log("send SocketClient wrote sensation " + sensation.toDebugStr())
             if not ok:
                 self.log("send SocketClient error, try to reconnect after sleep ")
-                sleep(MainRobot.SOCKET_ERROR_WAIT_TIME)
+                time.sleep(MainRobot.SOCKET_ERROR_WAIT_TIME)
                 self.log("send: sock.connect(" + str(address) +")")
                 try:
                     sock.connect(address)
@@ -773,7 +773,6 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                         self.log("self.sock.recv size of next Sensation " + str(self.address) + " error " + str(err))
                         self.running = False
                         ok = False
-
 
         try:
             self.sock.close()

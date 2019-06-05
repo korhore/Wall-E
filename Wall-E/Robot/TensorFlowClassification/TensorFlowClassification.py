@@ -93,6 +93,10 @@ class TensorFlowClassification(Robot):
     
     # Size, in inches, of the output images.
     IMAGE_SIZE = (12, 8)
+
+    # Seems that at least raspberry keep to restart it very often when riing thos Rpbot,
+    # So the to sleep between runs    
+    SLEEP_TIME_BETWEEN_PROCESSES =   60.0
   
     def __init__(self,
                  parent=None,
@@ -309,8 +313,12 @@ class TensorFlowClassification(Robot):
                         self.log("Created LongTerm subImage and item sensation for this")
                         # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
                     i = i+1   
-      
-
+                # Seems that at least raspberry keep to restart it very often when riing thos Rpbot,
+                # So the to sleep between runs
+                # TODO, if this works, make sleep time as Configuration parameter  
+                self.log("Sleeping " + str(TensorFlowClassification.SLEEP_TIME_BETWEEN_PROCESSES))
+                time.sleep(TensorFlowClassification.SLEEP_TIME_BETWEEN_PROCESSES)
+            
 if __name__ == "__main__":
     TensorFlowClassification = tensorFlowClassification()
 #    tensorFlowClassification.start()  
