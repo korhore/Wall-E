@@ -1247,22 +1247,22 @@ class Sensation(object):
     '''
     for debugging reasons log what connections there is in our Lng Term Memory
     '''  
-    def logConnections():
+    def logConnections(sensation):
         print("Connections")
 
-        for sensation in Sensation.sensationMemorys[Sensation.Memory.LongTerm]:
-            if sensation.getSensationType() is Sensation.SensationType.Item:
-                print(sensation.getName())
-                parents=[sensation]
-                Sensation.logRefConnections(level=1, parents=parents, sensations=sensation.getConnections())
+        if sensation.getSensationType() is Sensation.SensationType.Item:
+            print(sensation.getName())
+            parents=[sensation]
+            Sensation.logSensationConnections(level=1, parents=parents, connections=sensation.getConnections())
     '''
     for debugging reasons log what connections there is in our Lng Term Memory
     '''  
-    def logRefConnections(level, parents, sensations):
+    def logSensationConnections(level, parents, connections):
         tag=''
         for i in range(0,level):
             tag=tag+'-'
-        for sensation in sensations:
+        for connection in connections:
+            sensation = connection.getSensation()
             if sensation not in parents:
                 if sensation.getSensationType() is Sensation.SensationType.Item:
                     print(tag + ' Item: ' + sensation.getName())
@@ -1270,7 +1270,7 @@ class Sensation(object):
                     print(tag + ' ' + Sensation.SensationTypes[sensation.getSensationType()])
                 parents.append(sensation)
                 
-                Sensation.logRefConnections(level=level+1, parents=parents, sensations=sensation.getConnections())
+                Sensation.logSensationConnections(level=level+1, parents=parents, connections=sensation.getConnections())
 
 
     '''

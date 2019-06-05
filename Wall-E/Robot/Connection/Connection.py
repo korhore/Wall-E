@@ -51,6 +51,7 @@ class Connection(Robot):
         # connect different Items to each other or
         # connect other thing to different Items, but best of item name found
         # to get reasonable connections
+        new_connection=False
         if len(candidate_sensatiosToConnect) > 0:
             # find out highest scored Item and Connect it with other
             sensatiosToConnect={}
@@ -69,11 +70,13 @@ class Connection(Robot):
                             sensatiosToConnect[sens.getName()] = sens
                 if len(sensatiosToConnect) > 0:
                     self.log('process: Sensation ' + sensation.toDebugStr() + ' will be connected to:')
+                    new_connection=True
                     sensation.save()    # this is worth to save its data
                     for sens in sensatiosToConnect.values():
                          self.log(sens.toDebugStr())
                          sens.save()    # this is worth to save its data
                          sensation.addConnection(Sensation.Connection(sensation=sens, score=sens.getScore()))
 
-        # for debugging reasons we log what connections we have now                
-        Sensation.logConnections()
+        # for debugging reasons we log what connections we have now
+        if new_connection:
+            Sensation.logConnections(sensation)
