@@ -1,5 +1,8 @@
 Critical
 --------
+- SocketServer:('raspberry', 2000):3:Normal: self.sock.recv size of next Sensation ('raspberry', 2000) error unpack requires a bytes object of length 8
+Maybe error in Sensation.Connection handling
+
 - session based Robot run dies. We should use daemom mode.
 OK. daemon mode recreated
 - ImportError: No module named 'object_detection', Not known if works as daemon
