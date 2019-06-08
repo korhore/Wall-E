@@ -1,6 +1,6 @@
 '''
 Created on 30.04.2019
-Updated on 20.05.2019
+Updated on 08.06.2019
 
 @author: reijo.korhonen@gmail.com
 '''
@@ -85,9 +85,9 @@ class RaspberryPiCamera(Robot):
             # as a leaf sensor robot default processing for sensation we have got
             # in practice we can get stop sensation
             if not self.getAxon().empty():
-                sensation=self.getAxon().get()
-                self.log("got sensation from queue " + sensation.toDebugStr())      
-                self.process(sensation)
+                transferDirection, sensation = self.getAxon().get()
+                self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
+                self.process(transferDirection=transferDirection, sensation=sensation)
             else:
                 self.log("self.camera.capture_continuous(stream, format=Sensation.IMAGE_FORMAT)")
                 stream = io.BytesIO()
@@ -100,7 +100,7 @@ class RaspberryPiCamera(Robot):
                     sensation = Sensation.create(sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image)
                     self.log("self.getParent().getAxon().put(sensation) getData")
 #                    sensation.save()
-                    self.getParent().getAxon().put(sensation) # or self.process
+                    self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # or self.process
                     self.camera.start_preview()
                 time.sleep(self.SLEEP_TIME)
         self.log("Stopping RaspberryPiCamera")

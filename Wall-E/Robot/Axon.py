@@ -1,6 +1,6 @@
 '''
 Created on Jan 19, 2014
-Updated on 19.05.2019
+Updated on 08.056.2019
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -10,21 +10,25 @@ from Sensation import Sensation
 class Axon():
     """
     Axon transfers sensation from one Robot to other Robot
-    All Robots have Axon and they caal Get to get next Sensation tp process
-    Leaf Rpbots put Sensatio(s) they create to the parent Robots Axon out-direction
-    Middle layer  Sesation(s) to In direction Robots
-    until there is and Muscle (Leaf)Robots
+    All Robots have Axon and they call Get to get next Sensation to process.
+    Leaf Robots put Sensation(s) they create to the parent Robots Axon Up TransferDirection
+    to Middle layer Robots until MainRobot is reached.
+    
+    MainRobot transfers Sensatations it gets to Down TransferDirection to SubRobots that have
+    capability (or subrobots subrobot has capability) to process this Sensation
+    until Leaf Robot is reached-
   """
     
 
     def __init__(self):
         self.queue = Queue()
        
-    def put(self, sensation):
-        self.queue.put(sensation)
+    def put(self, transferDirection, sensation):
+        self.queue.put((transferDirection, sensation))
         
     def get(self):
-        return self.queue.get()
+        (transferDirection, sensation) = self.queue.get()
+        return transferDirection, sensation
         
     def empty(self):
         return self.queue.empty()

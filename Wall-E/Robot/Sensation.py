@@ -107,7 +107,11 @@ class Sensation(object):
  
     # so many sensationtypes, that first letter is not good idea any more  
     SensationType = enum(Drive='a', Stop='b', Who='c', Azimuth='d', Acceleration='e', Observation='f', HearDirection='g', Voice='h', Image='i',  Calibrate='j', Capability='k', Item='l', Unknown='m')
+    # Direction of a sensation. Example in Voice: In: Speaking,  Out: Hearing
     Direction = enum(In='I', Out='O')
+    # Direction of a sensation transferring, used with Axon. Up: going up like fron AlsaMicroPhone to MainRobot, Down: going down from MainRobot to leaf Robots like AlsaPlayback
+    TransferDirection = enum(Up='U', Down='D')
+
     Memory = enum(Sensory='S', Working='W', LongTerm='L' )
     Kind = enum(WallE='w', Eva='e', Other='o')
     InstanceType = enum(Real='r', SubInstance='s', Virtual='v', Remote='e')
@@ -558,7 +562,7 @@ class Sensation(object):
                  name=''):                                                  # name of Item
         
         if sensation is not None:             # not an update, create new one
-            print("Create new sensation instance this one ")
+            print("Sensation.create Create new sensation instance this one ")
             return Sensation(sensation=sensation)
 
         if bytes != None:               # if bytes, we get number there

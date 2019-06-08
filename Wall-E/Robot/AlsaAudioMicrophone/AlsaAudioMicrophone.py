@@ -1,6 +1,6 @@
 '''
 Created on 01.05.2019
-Updated on 04.05.2019
+Updated on 08.06.2019
 
 @author: reijo.korhonen@gmail.com
 
@@ -91,9 +91,9 @@ class AlsaAudioMicrophone(Robot):
             # as a leaf sensor robot default processing for sensation we have got
             # in practice we can get stop sensation
             if not self.getAxon().empty():
-                sensation=self.getAxon().get()
-                self.log("got sensation from queue " + sensation.toDebugStr())      
-                self.process(sensation)
+                transferDirection, sensation = self.getAxon().get()
+                self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
+                self.process(transferDirection=transferDirection, sensation=sensation)
             else:
             #otherwise we have time to read our sesses
                 # blocking read data from device
@@ -112,7 +112,7 @@ class AlsaAudioMicrophone(Robot):
                         if voice_data is not None:
                             self.log("self.getParent().getAxon().put(sensation)")
                             sensation = Sensation.create(sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=voice_data)
-                            self.getParent().getAxon().put(sensation) # or self.process
+                            self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # or self.process
                             voice_data=None
                             voice_l=0
 

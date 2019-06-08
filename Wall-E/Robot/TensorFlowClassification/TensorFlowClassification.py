@@ -96,7 +96,7 @@ class TensorFlowClassification(Robot):
 
     # Seems that at least raspberry keep to restart it very often when riing thos Rpbot,
     # So the to sleep between runs    
-    SLEEP_TIME_BETWEEN_PROCESSES =   60.0
+    SLEEP_TIME_BETWEEN_PROCESSES =   20.0
   
     def __init__(self,
                  parent=None,
@@ -259,16 +259,16 @@ class TensorFlowClassification(Robot):
                 i = i+1   
 
         while self.running:
-            sensation=self.getAxon().get()
-            self.log("got sensation from queue " + sensation.toDebugStr())      
-            self.process(sensation)
+            transferDirection, sensation = self.getAxon().get()
+            self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
+            self.process(transferDirection=transferDirection, sensation=sensation)
         self.log("Stopping TensorFlowClassification")
         self.mode = Sensation.Mode.Stopping
 #         self.camera.close() 
        
         self.log("run ALL SHUT DOWN")
 
-    def process(self, sensation):
+    def process(self, transferDirection, sensation):
         #run default implementation first
         super(TensorFlowClassification, self).process(sensation)
         if self.running:    # if still running
@@ -308,8 +308,8 @@ class TensorFlowClassification(Robot):
                         # Item
                         itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out,\
                                                          name=self.category_index[classInd][self.NAME], connections=[Sensation.Connection(sensation=subsensation, score=score)])
-                        self.getParent().getAxon().put(subsensation)
-                        self.getParent().getAxon().put(itemsensation)
+                        self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
+                        self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
                         self.log("Created LongTerm subImage and item sensation for this")
                         # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
                     i = i+1   

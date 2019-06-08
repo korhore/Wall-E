@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 03.06.2019
+Updated on 08.06.2019
 @author: reijo.korhonen@gmail.com
 
 This class Main robot
@@ -114,9 +114,9 @@ class MainRobot(Robot):
         # live until stopped
         self.mode = Sensation.Mode.Normal
         while self.running:
-            sensation=self.getAxon().get()
-            self.log("got sensation from queue " + sensation.toDebugStr())      
-            self.process(sensation)
+            transferDirection, sensation = self.getAxon().get()
+            self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
+            self.process(transferDirection=transferDirection, sensation=sensation)
             # as a test, echo everything to external device
             #self.out_axon.put(sensation)
  
@@ -169,74 +169,93 @@ class MainRobot(Robot):
     
     '''
             
+# all process logic in Robot.py
             
-    def process(self, sensation):
-        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + sensation.toDebugStr())
-        if sensation.getSensationType() == Sensation.SensationType.Stop:
-            self.log('process: SensationSensationType.Stop')      
-            self.stop()
-
-        elif sensation.getDirection() == Sensation.Direction.Out:
-            if sensation.getSensationType() == Sensation.SensationType.Capability:
-                self.log('process: sensation.getSensationType() == Sensation.SensationType.Capability')      
-                self.log('process: self.setCapabilities(Capabilities(capabilities=sensation.getCapabilities() ' + sensation.getCapabilities().toDebugString('capabilities'))      
-                self.setCapabilities(Capabilities(deepCopy=sensation.getCapabilities()))
-                self.log('process: capabilities: ' + self.getCapabilities().toDebugString('saved capabilities'))      
-            elif self.getParent() is not None: # if sensation is going up  and we have a parent
-                self.log('process: self.getParent().getAxon().put(sensation)')      
-                self.getParent().getAxon().put(sensation)
-            else:
-                # do some basic processing of main robot level and testing
-                #Voicedata can be played back, if we have a subcapability for it
-                if sensation.getSensationType() == Sensation.SensationType.Voice or \
-                   sensation.getSensationType() == Sensation.SensationType.Image or \
-                    sensation.getSensationType() == Sensation.SensationType.Item:
-                    self.log('process: Main root Sensation.SensationType.Voice, Image or Item Out')
-                    # basically we don't know how to handle going in sensation, but
-                    # subInstances can know. Check which subinsces can process this and deliver sensation to them.
-                    # Also subclasses can implement their own implementation for processing        
-                    robots = self.getSubCapabiliyInstances(direction=Sensation.Direction.In, memory=sensation.getMemory(), sensationType=sensation.getSensationType())
-                    self.log('Sensation.Direction.Out -> In self.getSubCapabiliyInstances' + str(robots))
-                    for robot in robots:
-                        sensation.setDirection(Sensation.Direction.In)# todo, we should create new in-direction instance and reference it
-                        playbackSensation = Sensation.create(sensation=sensation, connections=[Sensation.Connection(sensation=sensation)], direction=Sensation.Direction.In) # new instance or sensation for playback
-                        
-                        if robot.getInstanceType() == Sensation.InstanceType.Remote:
-                            # if this sensation comes from sockrServers host
-                            if sensation.isReceivedFrom(robot.getHost()) or \
-                               sensation.isReceivedFrom(robot.getSocketServer().getHost()):
-                                self.log('Remote robot ' + robot.getWho() + 'has capability for this, but sensation comes from it self. Don\'t recycle it')
-                            else:
-                                self.log('Remote robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
-                                robot.getAxon().put(playbackSensation)
-                        else:
-                            self.log('Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
-                            robot.getAxon().put(playbackSensation)
-                       
-        else:
-            # basically we don't know how to handle going in sensation, but
-            # subInstances can know. Check which subinsces can process this and deliver sensation to them.
-            # Also subclasses can implement their own implementation for processing        
-            if sensation.getSensationType() == Sensation.SensationType.Voice:
-                self.log('process: Main root Sensation.SensationType.Voice In')
-            elif sensation.getSensationType() == Sensation.SensationType.Image:
-                self.log('process: Main root Sensation.SensationType.Image In')
-            elif sensation.getSensationType() == Sensation.SensationType.Item:
-                self.log('process: Main root Sensation.SensationType.Image In')
-            robots = self.getSubCapabiliyInstances(direction=Sensation.Direction.In, memory=sensation.getMemory(), sensationType=sensation.getSensationType())
-            self.log('Sensation.Direction.In self.getSubCapabiliyInstances' + str(robots))
-            for robot in robots:
-                if robot.getInstanceType() == Sensation.InstanceType.Remote:
-                    # if this sensation comes from sockrServers host
-                    if sensation.isReceivedFrom(robot.getHost()) or \
-                       sensation.isReceivedFrom(robot.getSocketServer().getHost()):
-                        self.log('Remote robot ' + robot.getWho() + 'has capability for this, but sensation comes from it self. Don\'t recycle it')
-                    else:
-                        self.log('Remote robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
-                        robot.getAxon().put(sensation)
-                else:
-                    self.log('Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
-                    robot.getAxon().put(sensation)
+#     def process(self, transferDirection, sensation):
+#         self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + sensation.toDebugStr())
+#         if sensation.getSensationType() == Sensation.SensationType.Stop:
+#             self.log('process: SensationSensationType.Stop')      
+#             self.stop()
+#         else:
+#             # check if we have subrobot that has capability to process this sensation
+#             robots = self.getSubCapabilityInstanceses(direction=sensation.getDirection(), memory=sensation.getMemory(), sensationType=sensation.getSensationType())
+#             self.log('process for ' + sensation.toDebugStr() + ' robots ' + str(robots))
+#             for robot in robots:
+#                 if robot.getInstanceType() == Sensation.InstanceType.Remote:
+#                     # if this sensation comes from sockrServers host
+#                     if sensation.isReceivedFrom(robot.getHost()) or \
+#                         sensation.isReceivedFrom(robot.getSocketServer().getHost()):
+#                         self.log('Remote robot ' + robot.getWho() + 'has capability for this, but sensation comes from it self. Don\'t recycle it')
+#                     else:
+#                         self.log('Remote robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
+#                         robot.getAxon().put(sensation)
+#                 else:
+#                     self.log('Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
+#                     # new instance or sensation for process
+#                     processSensation = Sensation.create(sensation=sensation, connections=[Sensation.Connection(sensation=sensation)], direction=Sensation.Direction.In)                        
+#                     robot.getAxon().put(sensation)
+                    
+        # Note remove old playback logic. Just process sensations as they are                     
+#            
+# 
+#         elif sensation.getDirection() == Sensation.Direction.Out:
+#             if sensation.getSensationType() == Sensation.SensationType.Capability:
+#                 self.log('process: sensation.getSensationType() == Sensation.SensationType.Capability')      
+#                 self.log('process: self.setCapabilities(Capabilities(capabilities=sensation.getCapabilities() ' + sensation.getCapabilities().toDebugString('capabilities'))      
+#                 self.setCapabilities(Capabilities(deepCopy=sensation.getCapabilities()))
+#                 self.log('process: capabilities: ' + self.getCapabilities().toDebugString('saved capabilities'))      
+#             else:
+#                 # do some basic processing of main robot level and testing
+#                 #Voicedata can be played back, if we have a subcapability for it
+#                 if sensation.getSensationType() == Sensation.SensationType.Voice or \
+#                    sensation.getSensationType() == Sensation.SensationType.Image or \
+#                     sensation.getSensationType() == Sensation.SensationType.Item:
+#                     self.log('process: Main root Sensation.SensationType.Voice, Image or Item Out')
+#                 # basically we don't know how to handle going in sensation, but
+#                 # subInstances can know. Check which subinsces can process this and deliver sensation to them.
+#                 # Also subclasses can implement their own implementation for processing        
+#                 robots = self.getSubCapabilityInstanceses(direction=Sensation.Direction.In, memory=sensation.getMemory(), sensationType=sensation.getSensationType())
+#                 self.log('Sensation.Direction.Out -> In self.getSubCapabilityInstanceses' + str(robots))
+#                 for robot in robots:
+#                     if robot.getInstanceType() == Sensation.InstanceType.Remote:
+#                         # if this sensation comes from sockrServers host
+#                         if sensation.isReceivedFrom(robot.getHost()) or \
+#                            sensation.isReceivedFrom(robot.getSocketServer().getHost()):
+#                            self.log('Remote robot ' + robot.getWho() + 'has capability for this, but sensation comes from it self. Don\'t recycle it')
+#                         else:
+#                             self.log('Remote robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
+#                             # new instance or sensation for process
+#                             processSensation = Sensation.create(sensation=sensation, connections=[Sensation.Connection(sensation=sensation)], direction=Sensation.Direction.In)                        
+#                             robot.getAxon().put(processSensation )
+#                     else:
+#                         self.log('Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
+#                             # new instance or sensation for process
+#                         processSensation = Sensation.create(sensation=sensation, connections=[Sensation.Connection(sensation=sensation)], direction=Sensation.Direction.In)                        
+#                         robot.getAxon().put(processSensation )                      
+#         else:
+#             # basically we don't know how to handle going in sensation, but
+#             # subInstances can know. Check which subinsces can process this and deliver sensation to them.
+#             # Also subclasses can implement their own implementation for processing        
+#             if sensation.getSensationType() == Sensation.SensationType.Voice:
+#                 self.log('process: Main root Sensation.SensationType.Voice In')
+#             elif sensation.getSensationType() == Sensation.SensationType.Image:
+#                 self.log('process: Main root Sensation.SensationType.Image In')
+#             elif sensation.getSensationType() == Sensation.SensationType.Item:
+#                 self.log('process: Main root Sensation.SensationType.Image In')
+#             robots = self.getSubCapabilityInstanceses(direction=Sensation.Direction.In, memory=sensation.getMemory(), sensationType=sensation.getSensationType())
+#             self.log('Sensation.Direction.In self.getSubCapabilityInstanceses' + str(robots))
+#             for robot in robots:
+#                 if robot.getInstanceType() == Sensation.InstanceType.Remote:
+#                     # if this sensation comes from sockrServers host
+#                     if sensation.isReceivedFrom(robot.getHost()) or \
+#                        sensation.isReceivedFrom(robot.getSocketServer().getHost()):
+#                         self.log('Remote robot ' + robot.getWho() + 'has capability for this, but sensation comes from it self. Don\'t recycle it')
+#                     else:
+#                         self.log('Remote robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
+#                         robot.getAxon().put(sensation)
+#                 else:
+#                     self.log('Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
+#                     robot.getAxon().put(sensation)
         
 '''
 TCPserver is a Robot that gets connections from other Robots behind network
@@ -768,7 +787,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                                     self.log("run: SocketServer got sensation " + sensation.toDebugStr())
                                     if sensation.getSensationType() == Sensation.SensationType.Voice:
                                         self.log("run: SocketServer got Voice sensation")
-                                    self.getParent().getParent().getAxon().put(sensation) # write sensation to TCPServers Parent, because TCPServer does not read its Axon
+                                    self.getParent().getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # write sensation to TCPServers Parent, because TCPServer does not read its Axon
                 except Exception as err:
                         self.log("self.sock.recv size of next Sensation " + str(self.address) + " error " + str(err))
                         self.running = False
@@ -798,6 +817,8 @@ def threaded_server(arg):
 def do_server():
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGHUP, signal_handler)
+    signal.signal(signal.SIGQUIT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
 
     print ("do_server: create MainRobot")
     global mainRobot

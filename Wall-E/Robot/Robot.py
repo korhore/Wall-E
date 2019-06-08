@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 15.05.2019
+Updated on 08.06.2019
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -218,7 +218,7 @@ class Robot(Thread):
         #self.log('hasSubCapability direction ' + str(direction) + ' memory ' + str(memory) + ' sensationType ' + str(sensationType) + ' False')      
         return False
    
-    def getSubCapabiliyInstances(self, direction, memory, sensationType):
+    def getSubCapabilityInstanceses(self, direction, memory, sensationType):
         robots=[]
         for robot in self.getSubInstances():
             if robot.hasCapability(direction, memory, sensationType) or \
@@ -242,9 +242,9 @@ class Robot(Thread):
         # live until stopped
         self.mode = Sensation.Mode.Normal
         while self.running:
-            sensation=self.getAxon().get()
-            self.log("got sensation from queue " + sensation.toDebugStr())      
-            self.process(sensation)
+            transferDirection, sensation = self.getAxon().get()
+            self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
+            self.process(transferDirection=transferDirection, sensation=sensation)
             # as a test, echo everything to external device
             #self.out_axon.put(sensation)
  
@@ -269,8 +269,8 @@ class Robot(Thread):
         self.log("self.running = False")      
         self.running = False    # this in not real, but we wait for Sensation,
                                 # so give  us one stop sensation
-        self.log("self.getAxon().put(Sensation(sensationType = Sensation.SensationType.Stop))")      
-        self.getAxon().put(Sensation(sensationType = Sensation.SensationType.Stop))
+        self.log("self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(sensationType = Sensation.SensationType.Stop))")      
+        self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(sensationType = Sensation.SensationType.Stop))
 
 
     '''
@@ -280,7 +280,7 @@ class Robot(Thread):
     '''
             
     def doStop(self):
-        self.getAxon().put(Sensation(sensationType = Sensation.SensationType.Stop))
+        self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(sensationType = Sensation.SensationType.Stop))
         
     def studyOwnIdentity(self):
         self.mode = Sensation.Mode.StudyOwnIdentity
@@ -320,33 +320,39 @@ class Robot(Thread):
         
     '''
             
-    def process(self, sensation):
-        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + sensation.toDebugStr())
+    def process(self, transferDirection, sensation):
+        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         if sensation.getSensationType() == Sensation.SensationType.Stop:
             self.log('process: SensationSensationType.Stop')      
             self.stop()
         # sensation going up
-        elif sensation.getDirection() == Sensation.Direction.Out:
-            if sensation.getSensationType() == Sensation.SensationType.Capability:
-                self.log('process: sensation.getSensationType() == Sensation.SensationType.Capability')      
-                self.log('process: self.setCapabilities(Capabilities(capabilities=sensation.getCapabilities() ' + sensation.getCapabilities().toDebugString('capabilities'))      
-                self.setCapabilities(Capabilities(deepCopy=sensation.getCapabilities()))
-                self.log('process: capabilities: ' + self.getCapabilities().toDebugString('saved capabilities'))
-                # Share here our sensations this host has capabilities
-                if self.getSocketClient() is not None:
-                   self.getSocketClient().shareSensations(self.getCapabilities()) 
-            elif self.getParent() is not None: # if sensation is going up  and we have a parent
-                self.log('process: self.getParent().getAxon().put(sensation)')      
-                self.getParent().getAxon().put(sensation)
-            # finally check, if we con process this sensation as in-direction sensation
-            # maybe this is not a good idea, b ecause  MainRobot will send this sensation to us anyway
-            robots = self.getSubCapabiliyInstances(direction=Sensation.Direction.In, memory=sensation.getMemory(), sensationType=sensation.getSensationType())
-            self.log('Sensation.Direction.In self.getSubCapabiliyInstances' + str(robots))
-        # sensation going in
+        elif transferDirection == Sensation.TransferDirection.Up:
+            if self.getParent() is not None: # if sensation is going up  and we have a parent
+                self.log('process: self.getParent().getAxon().put(transferDirection=transferDirection, sensation=sensation))')      
+                self.getParent().getAxon().put(transferDirection=transferDirection, sensation=sensation)
+            else: # we are main Robot
+                # check if we have subrobot that has capability to process this sensation
+                self.log('process: self.getSubCapabilityInstanceses')      
+                robots = self.getSubCapabilityInstanceses(direction=sensation.getDirection(), memory=sensation.getMemory(), sensationType=sensation.getSensationType())
+                self.log('process for ' + sensation.toDebugStr() + ' robots ' + str(robots))
+                for robot in robots:
+                    if robot.getInstanceType() == Sensation.InstanceType.Remote:
+                        # if this sensation comes from sockrServers host
+                        if sensation.isReceivedFrom(robot.getHost()) or \
+                            sensation.isReceivedFrom(robot.getSocketServer().getHost()):
+                            self.log('Remote robot ' + robot.getWho() + 'has capability for this, but sensation comes from it self. Don\'t recycle it')
+                        else:
+                            self.log('Remote robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)')
+                            robot.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
+                    else:
+                        self.log('Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)')
+                        # new instance or sensation for process
+                        robot.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
+        # sensation going down
         else:
             # which subinstances can process this
-            robots = self.getSubCapabiliyInstances(direction=Sensation.Direction.In, memory=sensation.getMemory(), sensationType=sensation.getSensationType())
-            self.log('Sensation.Direction.In self.getSubCapabiliyInstances' + str(robots))
+            robots = self.getSubCapabilityInstanceses(direction=Sensation.Direction.In, memory=sensation.getMemory(), sensationType=sensation.getSensationType())
+            self.log('Sensation.Direction.In self.getSubCapabilityInstanceses' + str(robots))
             for robot in robots:
                 if robot.getInstanceType() == Sensation.InstanceType.Remote:
                     # if this sensation comes from sockrServers host
@@ -355,7 +361,7 @@ class Robot(Thread):
                         self.log('Remote robot ' + robot.getWho() + 'has capability for this, but sensation comes from it self. Don\'t recycle it')
                     else:
                         self.log('Remote robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
-                        robot.getAxon().put(sensation)
+                        robot.getAxon().put(transferDirection=transferDirection, sensation=sensation)
                 else:
                     self.log('Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
-                    robot.getAxon().put(sensation)
+                    robot.getAxon().put(transferDirection=transferDirection, sensation=sensation)

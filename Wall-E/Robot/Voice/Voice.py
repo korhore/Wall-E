@@ -11,8 +11,7 @@ from Sensation import Sensation
 
 class Voice(Robot):
     """
-     Study dynamic import
-     Implemenation of this functionality comes later
+     Basic derivation
     """
 
     def __init__(self,

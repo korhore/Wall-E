@@ -1,6 +1,6 @@
 '''
 Created on 04.05.2019
-Updated on 04.05.2019
+Updated on 08.06.2019
 
 @author: reijo.korhonen@gmail.com
 
@@ -65,12 +65,12 @@ class AlsaAudioPlayback(Robot):
         self.running=False
         
                     
-    def process(self, sensation):
-        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + sensation.toDebugStr())
-        #run default implementation first
-        super(AlsaAudioPlayback, self).process(sensation)
-            # if still running and we can process this
-        if self.ok and self.running and sensation.getSensationType() == Sensation.SensationType.Voice:
+    def process(self, transferDirection, sensation):
+        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
+        if sensation.getSensationType() == Sensation.SensationType.Stop:
+            self.log('process: SensationSensationType.Stop')      
+            self.stop()
+        elif self.ok and self.running and sensation.getSensationType() == Sensation.SensationType.Voice:
             if sensation.getSensationType() == Sensation.SensationType.Voice:
                 self.log('process: Sensation.SensationType.VoiceData self.outp.write(sensation.getVoiceData()')
                 self.outp.write(sensation.getData())
