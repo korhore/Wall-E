@@ -4,6 +4,8 @@ Updated on 06.05.2019
 
 @author: reijo.korhonen@gmail.com
 
+Deprecated. Implementation is in MainRobot
+
 SocketCilent is a Robot that puts its sensations behind network to another
 Robot
 

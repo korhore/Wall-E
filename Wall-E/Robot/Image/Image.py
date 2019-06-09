@@ -11,8 +11,7 @@ from Sensation import Sensation
 
 class Image(Robot):
     """
-     Study dynamic import
-     Implemenation of this functionality comes later
+    Basic derivation
     """
 
     def __init__(self,

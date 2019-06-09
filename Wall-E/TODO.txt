@@ -1,6 +1,7 @@
 Critical
 --------
 
+SocketServer/SocketClient Capability handling id broken.
 Make clearer handling with direction In/Out
 - Out, what Sense produces
 - In,  what Muscle listenes,

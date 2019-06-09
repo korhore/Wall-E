@@ -325,6 +325,11 @@ class Robot(Thread):
         if sensation.getSensationType() == Sensation.SensationType.Stop:
             self.log('process: SensationSensationType.Stop')      
             self.stop()
+        elif sensation.getSensationType() == Sensation.SensationType.Capability:
+            self.log('process: sensation.getSensationType() == Sensation.SensationType.Capability')      
+            self.log('process: self.setCapabilities(Capabilities(capabilities=sensation.getCapabilities() ' + sensation.getCapabilities().toDebugString('capabilities'))      
+            self.setCapabilities(Capabilities(deepCopy=sensation.getCapabilities()))
+            self.log('process: capabilities: ' + self.getCapabilities().toDebugString('saved capabilities'))      
         # sensation going up
         elif transferDirection == Sensation.TransferDirection.Up:
             if self.getParent() is not None: # if sensation is going up  and we have a parent

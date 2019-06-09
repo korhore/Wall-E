@@ -270,11 +270,11 @@ class TensorFlowClassification(Robot):
 
     def process(self, transferDirection, sensation):
         #run default implementation first
-        super(TensorFlowClassification, self).process(sensation)
+        super(TensorFlowClassification, self).process(transferDirection=transferDirection, sensation=sensation)
         if self.running:    # if still running
             self.log('TensorFlowClassification process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + sensation.toDebugStr())
             # we can process this
-            if sensation.getDirection() == Sensation.Direction.In and \
+            if sensation.getDirection() == Sensation.Direction.Out and \
                sensation.getSensationType() == Sensation.SensationType.Image and \
                sensation.getMemory() == Sensation.Memory.Sensory:
                 #sensation.save()    # save to file TODO, not needed, but we need

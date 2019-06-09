@@ -520,10 +520,10 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         # starting other threads/senders/capabilities
 
         
-    def process(self, sensation):
-        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + sensation.toDebugStr())
-        # We can handle only sensation going in-direction
-        if sensation.getDirection() == Sensation.Direction.In:
+    def process(self, transferDirection, sensation):
+        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
+        # We can handle only sensation going down tranfer-direction
+        if transferDirection == Sensation.TransferDirection.Down:
              self.running = self.sendSensation(sensation, self.sock, self.address) 
 
     '''
@@ -599,17 +599,18 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                 self.log("send SocketClient Voice sensation")
             else:
                 self.log("send SocketClient wrote sensation " + sensation.toDebugStr())
-            if not ok:
-                self.log("send SocketClient error, try to reconnect after sleep ")
-                time.sleep(MainRobot.SOCKET_ERROR_WAIT_TIME)
-                self.log("send: sock.connect(" + str(address) +")")
-                try:
-                    sock.connect(address)
-                    self.log("send: sock.connect(" + str(address) +") succeeded")
-                    ok = True
-                except Exception as err:
-                    self.log("SocketClient sock.connect(" + str(address) + ") error " + str(err))
-                    ok = False 
+#             if not ok:
+#                 # TODO This logic does not work, because sock is bad file descriptor at this point
+#                 self.log("send SocketClient error, try to reconnect after sleep ")
+#                 time.sleep(MainRobot.SOCKET_ERROR_WAIT_TIME)
+#                 self.log("send: sock.connect(" + str(address) +")")
+#                 try:
+#                     sock.connect(address)
+#                     self.log("send: sock.connect(" + str(address) +") succeeded")
+#                     ok = True
+#                 except Exception as err:
+#                     self.log("SocketClient sock.connect(" + str(address) + ") error " + str(err))
+#                     ok = False 
         return ok
 
     '''
@@ -778,7 +779,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                                 sensation.addReceived(self.getHost())  # remember route
                                 if sensation.getSensationType() == Sensation.SensationType.Capability:
                                     self.log("run: SocketServer got Capability sensation " + sensation.getCapabilities().toDebugString('SocketServer'))
-                                    self.process(sensation)
+                                    self.process(transferDirection=Sensation.TransferDirection.Up, sensation=sensation)
                                     # share here sensations from our memory that this host has capabilities
                                     # We wan't always share our all knowledge with all other robots
                                     if self.getSocketClient() is not None:

@@ -42,7 +42,7 @@ class RaspberryPiCamera(Robot):
     
     DATADIR='data'
     COMPARE_SQUARES=20
-    CHANGE_RANGE=3000000
+    CHANGE_RANGE=1000000
     SLEEP_TIME=10
   
     def __init__(self,
@@ -89,7 +89,7 @@ class RaspberryPiCamera(Robot):
                 self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
                 self.process(transferDirection=transferDirection, sensation=sensation)
             else:
-                self.log("self.camera.capture_continuous(stream, format=Sensation.IMAGE_FORMAT)")
+                self.log("self.camera.capture(stream, format=Sensation.IMAGE_FORMAT)")
                 stream = io.BytesIO()
                 self.camera.capture(stream, format=Sensation.IMAGE_FORMAT)
                 self.camera.stop_preview()
@@ -101,7 +101,9 @@ class RaspberryPiCamera(Robot):
                     self.log("self.getParent().getAxon().put(sensation) getData")
 #                    sensation.save()
                     self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # or self.process
-                    self.camera.start_preview()
+                else:
+                    self.log("no change")
+                self.camera.start_preview()
                 time.sleep(self.SLEEP_TIME)
         self.log("Stopping RaspberryPiCamera")
         self.mode = Sensation.Mode.Stopping
@@ -138,7 +140,7 @@ class RaspberryPiCamera(Robot):
                         last_sum = last_sum+i*last_histogram[i]
                     change = change + abs(sum-last_sum)
 
-#             self.log("isChangedImage final change " + str(change) + ' change > self.CHANGE_RANGE '+ str(change > self.CHANGE_RANGE))
+            self.log("isChangedImage final change " + str(change) + ' change > self.CHANGE_RANGE '+ str(change > self.CHANGE_RANGE))
             if change > self.CHANGE_RANGE:
                 self.lastImage = image
                 return True

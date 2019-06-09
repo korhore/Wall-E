@@ -42,9 +42,10 @@ class Communication(Robot):
                        instanceType=instanceType,
                        level=level)
  
-    def process(self, sensation):
+    def process(self, transferDirection, sensation):
+        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         #run default implementation first
-        super(Communication, self).process(sensation)
+        super(Communication, self).process(transferDirection=transferDirection, sensation=sensation)
         if sensation.getSensationType() == Sensation.SensationType.Item:
             self.log('Communication.process: Item Sensation ' + sensation.toDebugStr())
             for connection in sensation.getConnections():

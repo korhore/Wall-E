@@ -45,15 +45,15 @@ class Connection(Robot):
                        instanceType=instanceType,
                        level=level)
  
-    def process(self, sensation):
+    def process(self, transferDirection, sensation):
+        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         #run default implementation first
-        self.log('Connection.process: Sensation ' + sensation.toDebugStr())
         # if still running and we can process this
         #
         # Connect to Item that has strongest Sensation.Connection
         # Item is name of a thing happening just now, person, table, chair, etc.
-        # This way we Connect characteristic features for thing Thing, what itloks like )Image),
-        # what sound it keeps (Voice), What other  Things are present, when this one is present, ets
+        # This way we Connect characteristic features for thing Thing, what it looks like (Image),
+        # what sound it keeps (Voice), What other  Things are present, when this one is present, etc
         candidate_sensationsToConnect = Sensation.getSensations(capabilities=self.getCapabilities(),
                                                                timemin=sensation.getTime()-Connection.CONNECTION_INTERVAL,
                                                                timemax=sensation.getTime()+Connection.CONNECTION_INTERVAL)

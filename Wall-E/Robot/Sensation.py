@@ -77,7 +77,7 @@ Sensation is something Robot senses
 '''
 
 class Sensation(object):
-    VERSION=1           # version number to chech, if we picle same version
+    VERSION=2           # version number to chech, if we picle same version
                         # instances. Otherwise we get odd errors, with old
                         # version code instances
  
