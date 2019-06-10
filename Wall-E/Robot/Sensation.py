@@ -970,11 +970,21 @@ class Sensation(object):
     def addConnection(self, connection):
         time = systemTime.time()
         if connection.getSensation() is not self and \
-           connection not in self.connections:
+           not self.isConnected(connection):
             self.connections.append(connection)
             connection.time = time
             # TODO howto do reverse connection
             #connection.getSensation().addConnection(Sensation.Connection(sensation=self))
+    '''
+    Is this Sensation in this Connection already connected
+    '''
+    def isConnected(self, connection):
+        is_connected = False
+        for con in self.connections:
+            if con.getSensation() is connection.getSensation():
+                is_connected=True
+                break
+        return is_connected
         
     '''
     Add many connections

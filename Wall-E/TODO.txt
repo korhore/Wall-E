@@ -1,7 +1,8 @@
 Critical
 --------
 
-SocketServer/SocketClient Capability handling id broken.
+Correct Sensation.addConnection to add Connection to same Sensation only once
+OK SocketServer/SocketClient Capability handling is broken.
 Make clearer handling with direction In/Out
 - Out, what Sense produces
 - In,  what Muscle listenes,

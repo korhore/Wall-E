@@ -74,9 +74,9 @@ class Connection(Robot):
                     self.log('process: Sensation ' + sensation.toDebugStr() + ' will be connected to: ' +\
                              candidate_sensationToConnect.toDebugStr())
                     new_connection=True
-                    # if we have found got Sensory sensation, we want to remember this, so Chanbge it as LongTerm-memory sensations
+                    # if we have found got Sensory sensation, we want to remember this, so copy it as LongTerm-memory sensations
                     if sensation.getMemory()==Sensation.Memory.Sensory:
-                        sensation.setMemory(Sensation.Memory.LongTerm)
+                        sensation = Sensation.create(sensation=sensation, memory=Sensation.Memory.LongTerm)
                     sensation.save()    # this is worth to save its data
                     sensation.addConnection(Sensation.Connection(sensation=candidate_sensationToConnect,
                                                                  score=candidate_sensationToConnect.getScore()))

@@ -51,7 +51,7 @@ class Communication(Robot):
             for connection in sensation.getConnections():
                 if connection.getSensation().getSensationType() == Sensation.SensationType.Voice:
                     voiceSensation = Sensation.create(sensation=connection.getSensation(),
-                                                      direction= Sensation.Direction.In,
+                                                      direction= Sensation.Direction.In, # speak
                                                       memory = Sensation.Memory.Sensory)
                     self.log('Communication.process: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)')
                     self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)
