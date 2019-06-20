@@ -1,30 +1,9 @@
 Critical
 --------
 
-Correct Sensation.addConnection to add Connection to same Sensation only once
-OK SocketServer/SocketClient Capability handling is broken.
-Make clearer handling with direction In/Out
-- Out, what Sense produces
-- In,  what Muscle listenes,
-What is Nerve?
-- it cab handles In Or out, no matter, so MainRobot must not echo anytinh making Out -> In
-Solution
-1) TransferDirection Up/Down
-2) ActionDirection  In/Out
-
-What is Capability now?
-- It tels what should be put into its Axon, what it reads. This ligic works now well, but Senses have something more in their Capabilities
-- Some day may be needed to implement Muscle and Sense vapabi9lities separately
-
-- SocketServer:('raspberry', 2000):3:Normal: self.sock.recv size of next Sensation ('raspberry', 2000) error unpack requires a bytes object of length 8
-Maybe error in Sensation.Connection handling
-
-- session based Robot run dies. We should use daemom mode.
-OK. daemon mode recreated
-- ImportError: No module named 'object_detection', Not known if works as daemon
-OK, Server script updated to set PYTPATH when starting daemo mode
-- Robot should share its knowladge - Long Term Memory - with other hosts,
-  when it starts
+Connection: use only one Item.name per connection.
+Find out best Voice, Image etc, per Item.name and connect tohose togetger.
+When better one is found, remove worse connection and connect better one.
 
 What is done
 ------------
@@ -62,6 +41,17 @@ What is done
 What is not done and needs implementation
 -----------------------------------------
 
+- Sensation
+-- Sourcerobot
+
+- LoggerRopbot
+-- interrested of everything
+-- Logges current sensations by order
+-- whows images seen by order, yhese are diffent we show
+-- echoes voices heard, these are different than voices spoken
+
+- LoadSpeakerRobot, for communicating by Voices with Items
+- ViewerRobot, for communication by imeges with Items
 - We can name of main class of a seen thing. Names are like 'person',
   'dining table', 'bicycle', 'tv' etc., but we cant yet identity things inside
   main class like 'John' is a 'person'. So Robot don't know id it sees 'John' or

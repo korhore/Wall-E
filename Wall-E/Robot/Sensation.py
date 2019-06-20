@@ -998,6 +998,17 @@ class Sensation(object):
         for connection in self.connections:
             connection.time = time
         return self.connections
+    
+    '''
+    remove connections from this sensation connected to sensation given as parameter
+    '''
+    def removeConnection(self, sensation):
+        i=0
+        for connection in self.connections:
+            if connection.getSensation() == sensation:
+                del self.connections[i]
+            else:
+                i=i+1
 
     def getConnectionNumbers(self):
         connectionNumbers=[]
@@ -1250,17 +1261,71 @@ class Sensation(object):
                     sensations.append(sensation)
         return sensations
     
+    '''
+    Get best specified sensation from sensation memory
+    
+    Time window can be set seperatly min, max or both,
+    from time min to time max, to get sensations that are happened at same moment.
+    
+    sensationType:  SensationType
+    timemin:        minimum time
+    timemax:        maximun time
+    name:           optional, if SensationTypeis Item, name must be 'name'
+    notName:        optional, if SensationTypeis Item, name must not be 'notName'    
+    '''
+    
+    def getBestSensation( sensationType,
+                          timemin,
+                          timemax,
+                          name = None,
+                          notName = None):
+        bestSensation = None
+        for key, sensationMemory in Sensation.sensationMemorys.items():
+            for sensation in sensationMemory:
+                if sensation.getSensationType() == sensationType and\
+                   (timemin is None or sensation.getTime() > timemin) and\
+                   (timemax is None or sensation.getTime() < timemax):
+                    if sensationType != Sensation.SensationType.Item or\
+                       notName is None and sensation.getName() == name or\
+                       name is None and sensation.getName() != notName or\
+                       name is None and notName is None:
+                        if bestSensation is None or\
+                           sensation.getScore() > bestSensation.getScore():
+                            bestSensation = sensation
+        return bestSensation
+    
+    '''
+    Get best connected sensation from this specified Sensation
+   
+    sensationType:  SensationType
+    name:           optional, if SensationTypeis Item, name must be 'name'
+    '''
+    def getBestConnectedSensation( self,
+                                   sensationType,
+                                   name = None):
+        bestSensation = None
+        for connection in self.getConnections():
+            sensation= connection.getSensation()
+            if sensation.getSensationType() == sensationType:
+                if sensationType != Sensation.SensationType.Item or\
+                   sensation.getName() == name:
+                    if bestSensation is None or\
+                       sensation.getScore() > bestSensation.getScore():
+                        bestSensation = sensation
+        return bestSensation
+    
     
     '''
     for debugging reasons log what connections there is in our Lng Term Memory
     '''  
     def logConnections(sensation):
-        print("Connections")
-
         if sensation.getSensationType() is Sensation.SensationType.Item:
-            print(sensation.getName())
+            print('Connections: ' + sensation.getName())
             parents=[sensation]
-            Sensation.logSensationConnections(level=1, parents=parents, connections=sensation.getConnections())
+            parents = Sensation.logSensationConnections(level=1, parents=parents, connections=sensation.getConnections())
+            print('Connections: ' + sensation.getName() + str(len(parents )) + ' connections')
+
+
     '''
     for debugging reasons log what connections there is in our Lng Term Memory
     '''  
@@ -1277,7 +1342,8 @@ class Sensation(object):
                     print(tag + ' ' + Sensation.SensationTypes[sensation.getSensationType()])
                 parents.append(sensation)
                 
-                Sensation.logSensationConnections(level=level+1, parents=parents, connections=sensation.getConnections())
+                parents = Sensation.logSensationConnections(level=level+1, parents=parents, connections=sensation.getConnections())
+        return parents
 
 
     '''

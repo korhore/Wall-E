@@ -94,9 +94,9 @@ class TensorFlowClassification(Robot):
     # Size, in inches, of the output images.
     IMAGE_SIZE = (12, 8)
 
-    # Seems that at least raspberry keep to restart it very often when riing thos Rpbot,
+    # Seems that at least raspberry keep to restart it very often when running this Rpbot,
     # So the to sleep between runs    
-    SLEEP_TIME_BETWEEN_PROCESSES =   20.0
+    SLEEP_TIME_BETWEEN_PROCESSES =   1.0
   
     def __init__(self,
                  parent=None,

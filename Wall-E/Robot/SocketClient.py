@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 06.05.2019
+Updated on 19.06.2019
 
 @author: reijo.korhonen@gmail.com
 
@@ -81,7 +81,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
     '''
         
     def sendSensation(sensation, socket, address):
-        print("SocketClient.sendSensation")
+        #print("SocketClient.sendSensation")
         
 #         sensation_string = str(sensation)
 #         length =len(sensation_string)
@@ -94,7 +94,8 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         try:
             l = socket.send(Sensation.SEPARATOR.encode('utf-8'))        # message separator section
             if Sensation.SEPARATOR_SIZE == l:
-                print("SocketClient wrote separator to " + str(address))
+                pass
+                #print("SocketClient wrote separator to " + str(address))
             else:
                 print("SocketClient length " + str(l) + " != " + str(Sensation.SEPARATOR_SIZE) + " error writing to " + str(address))
                 ok = False
@@ -105,7 +106,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
             try:
 #                l = socket.send(length_string.encode('utf-8'))          # message length section
                 l = socket.send(length_bytes)                            # message length section
-                print("SocketClient wrote length " + str(length) + " of Sensation to " + str(address))
+                #print("SocketClient wrote length " + str(length) + " of Sensation to " + str(address))
             except Exception as err:
                 print("SocketClient error writing length of Sensation to " + str(address) + " error " + str(err))
                 ok = False

@@ -46,7 +46,7 @@ class Connection(Robot):
                        level=level)
  
     def process(self, transferDirection, sensation):
-        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
+        self.log('1:  process: sensation ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         #run default implementation first
         # if still running and we can process this
         #
@@ -54,33 +54,65 @@ class Connection(Robot):
         # Item is name of a thing happening just now, person, table, chair, etc.
         # This way we Connect characteristic features for thing Thing, what it looks like (Image),
         # what sound it keeps (Voice), What other  Things are present, when this one is present, etc
-        candidate_sensationsToConnect = Sensation.getSensations(capabilities=self.getCapabilities(),
-                                                               timemin=sensation.getTime()-Connection.CONNECTION_INTERVAL,
-                                                               timemax=sensation.getTime()+Connection.CONNECTION_INTERVAL)
+        
+        # If we got Item, then get best Item.name
+        if sensation.getSensationType() == Sensation.SensationType.Item:
+            # choose best Item.name for connections
+            candidate_for_connect = Sensation.getBestSensation( sensationType = Sensation.SensationType.Item,
+                                                                name = sensation.getName(),
+                                                                timemin = sensation.getTime()-Connection.CONNECTION_INTERVAL,
+                                                                timemax = sensation.getTime()+Connection.CONNECTION_INTERVAL)
+            if candidate_for_connect is not None:
+                self.log('2:  process: candidate_for_connect ' + time.ctime(candidate_for_connect.getTime()) + ' ' + candidate_for_connect.toDebugStr())
+            
+            if candidate_for_connect is not None and \
+               candidate_for_connect != sensation and \
+               candidate_for_connect.getScore() > sensation.getScore():
+                sensation = candidate_for_connect
+                self.log('3:  process: sensation ' + time.ctime(sensation.getTime()) + ' ' + sensation.toDebugStr())
+                
+        # if other than Item, we connect it
+        
+        # get candidates from sensation acache, that areIems with different name
+                
+        candidate_to_connect = Sensation.getBestSensation( sensationType = Sensation.SensationType.Item,
+                                                           notName = sensation.getName(),
+                                                           timemin = sensation.getTime()-Connection.CONNECTION_INTERVAL,
+                                                           timemax = sensation.getTime()+Connection.CONNECTION_INTERVAL)
         # connect different Items to each other or
         # connect other thing to different Items, but best of item name found
         # to get reasonable connections
-        new_connection=False
-        candidate_sensationToConnect = None
-        if len(candidate_sensationsToConnect) > 0:
-            # find out highest scored Item and Connect it with other
-            for sens in candidate_sensationsToConnect:
-                if sens.getSensationType() == Sensation.SensationType.Item and\
-                   sens.getScore() > Connection.CONNECTION_SCORE_LIMIT and\
-                   (candidate_sensationToConnect is None or\
-                    sens.getScore() > candidate_sensationToConnect.getScore()):
-                        candidate_sensationToConnect = sens
-            if candidate_sensationToConnect is not None:
-                    self.log('process: Sensation ' + sensation.toDebugStr() + ' will be connected to: ' +\
-                             candidate_sensationToConnect.toDebugStr())
-                    new_connection=True
-                    # if we have found got Sensory sensation, we want to remember this, so copy it as LongTerm-memory sensations
-                    if sensation.getMemory()==Sensation.Memory.Sensory:
-                        sensation = Sensation.create(sensation=sensation, memory=Sensation.Memory.LongTerm)
-                    sensation.save()    # this is worth to save its data
-                    sensation.addConnection(Sensation.Connection(sensation=candidate_sensationToConnect,
-                                                                 score=candidate_sensationToConnect.getScore()))
+        if candidate_to_connect is not None:
+            self.log('4:  process: candidate_to_connect ' + time.ctime(candidate_to_connect.getTime()) + ' ' + candidate_to_connect.toDebugStr())
+            new_connection=False
+            # get current connected Item.name
+            current_connected_sensation = sensation.getBestConnectedSensation( sensationType = Sensation.SensationType.Item,
+                                                                               name = sensation.getName())
+            if current_connected_sensation is None: # if not yet connecter Item.name
+                new_connection=True
+                self.log('5:  process: no current connection')
+            elif candidate_to_connect.getScore() > current_connected_sensation.getScore():
+                new_connection=True
+                # remove old worse connection
+                self.log('6:  process: current_connected_sensation was worse ' + time.ctime(current_connected_sensation.getTime()) + ' ' + current_connected_sensation.toDebugStr())
+                self.log('7:  process: sensation.removeConnection(current_connected_sensation)')
+                sensation.removeConnection(current_connected_sensation)
+                
 
-        # for debugging reasons we log what connections we have now
-        if new_connection:
-            Sensation.logConnections(sensation)
+            if new_connection:                
+                self.log('8:  process: Sensation ' + sensation.toDebugStr() + ' will be connected to: ' +\
+                        candidate_to_connect.toDebugStr())
+                # if we have found got Sensory sensation, we want to remember this, so copy it as LongTerm-memory sensations
+                if sensation.getMemory()==Sensation.Memory.Sensory:
+                    sensation = Sensation.create(sensation=sensation, memory=Sensation.Memory.LongTerm)
+                    sensation.save()    # this is worth to save its data
+                # if we have found candidate_to_connect got Sensory sensation, we want to remember this, so copy it as LongTerm-memory sensations
+                if candidate_to_connect.getMemory()==Sensation.Memory.Sensory:
+                    candidate_to_connect = Sensation.create(sensation=candidate_to_connect, memory=Sensation.Memory.LongTerm)
+                    candidate_to_connect.save()    # this is worth to save its data
+                    
+                sensation.addConnection(Sensation.Connection(sensation=candidate_to_connect,
+                                                             score=candidate_to_connect.getScore()))
+    
+                # for debugging reasons we log what connections we have now
+                Sensation.logConnections(sensation)

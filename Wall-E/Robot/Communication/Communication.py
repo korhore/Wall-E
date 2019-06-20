@@ -48,6 +48,7 @@ class Communication(Robot):
         super(Communication, self).process(transferDirection=transferDirection, sensation=sensation)
         if sensation.getSensationType() == Sensation.SensationType.Item:
             self.log('Communication.process: Item Sensation ' + sensation.toDebugStr())
+            # TODO find out best Voices, not needed direct connections but some level accepted, maybe three
             for connection in sensation.getConnections():
                 if connection.getSensation().getSensationType() == Sensation.SensationType.Voice:
                     voiceSensation = Sensation.create(sensation=connection.getSensation(),
