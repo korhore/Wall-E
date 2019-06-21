@@ -41,16 +41,31 @@ What is done
 What is not done and needs implementation
 -----------------------------------------
 
+Robot.process
+- divide into two phasess
+-- processSensation(sensation)
+--- if there is something in Axon, process it
+    AlsaPlayback is ecaple of implementation and
+    also LoggerRobot explayned below
+-- produceSensation()
+--- when Sensation are processed, we can sense: as a sense produce a sensation
+    default implementation for this is empty, but AlsaMicrophone is an example of implementation,
+    as well raspberryPiCamera
 - Sensation
 -- Sourcerobot
 
-- LoggerRopbot
+- LoggerRobot
 -- interrested of everything
 -- Logges current sensations by order
 -- whows images seen by order, yhese are diffent we show
 -- echoes voices heard, these are different than voices spoken
 
-- LoadSpeakerRobot, for communicating by Voices with Items
+- LoadSpeakerRobot == AlsaAudioPlayBack, for communicating by Voices with Items
+-- TODO howto implement Robot which code is same than other,
+   but work and /etc directory is different?
+--- We can implement links, same way than linux does
+--- or just inherit a robot by import,
+    this gives us possibility to separater technology (AlseSpearker) and role (mouth, logger)
 - ViewerRobot, for communication by imeges with Items
 - We can name of main class of a seen thing. Names are like 'person',
   'dining table', 'bicycle', 'tv' etc., but we cant yet identity things inside

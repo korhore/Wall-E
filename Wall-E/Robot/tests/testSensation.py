@@ -4,6 +4,7 @@ Updated on 10.06.2019
 @author: reijo.korhonen@gmail.com
 
 test Sensation class
+python3 -m unittest tests/testSensation.py
 
 
 '''
