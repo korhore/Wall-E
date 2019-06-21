@@ -14,20 +14,31 @@ from Sensation import Sensation
 from Connection.Connection import Connection
 
 class ConnectionTestCase(unittest.TestCase):
-#    ''' create situation, where we have found
-#        - Wall_E_item
-#        - Image
-#        - voice
-#    '''
+    ''' create situation, where we have found
+        - Wall_E_item
+        - Image
+        - voice
+    '''
     def setUp(self):
         self.Wall_E_item_sensation = Sensation.create(sensationType=Sensation.SensationType.Item, name='Wall-E')
         self.Wall_E_image_sensation = Sensation.create(sensationType=Sensation.SensationType.Image)
+        self.Wall_E_item_sensation.addConnection(Sensation.Connection(sensation=self.Wall_E_image_sensation,
+                                                                      score=0.8))
+
         self.Wall_E_voice_sensation = Sensation.create(sensationType=Sensation.SensationType.Voice)
+        
+        self.connection = Connection(parent=self,
+                                     instanceName='Connection',
+                                     instanceType= Sensation.InstanceType.SubInstance,
+                                     level=2)
+
 
     def tearDown(self):
         self.Wall_E_item_sensation.delete()
         self.Wall_E_image_sensation.delete()
         self.Wall_E_voice_sensation.delete()
+        
+        del self.connection
         
     def test_SensationCreate(self):
         self.assertIsNot(self.Wall_E_item_sensation, None)
@@ -36,20 +47,20 @@ class ConnectionTestCase(unittest.TestCase):
         addSensation = Sensation.create(sensation=self.Wall_E_item_sensation, memory=Sensation.Memory.LongTerm, name='connect_test')
         self.assertIsNot(addSensation, None)
         addSensation.save()    # this is worth to save its data
-        self.assertIs(len(addSensation.getConnections()), 0)
+        self.assertIs(len(addSensation.getConnections()), 1)
         
         connection_number = len(self.Wall_E_item_sensation.getConnections())
 
         self.Wall_E_item_sensation.addConnection(Sensation.Connection(sensation=addSensation,
                                                           score=addSensation.getScore()))
         self.assertIs(len(self.Wall_E_item_sensation.getConnections()), connection_number+1)
-        self.assertIs(len(addSensation.getConnections()), 1)
+        self.assertIs(len(addSensation.getConnections()), 2)
         Sensation.logConnections(self.Wall_E_item_sensation)
         # again, should not add connection twise
         self.Wall_E_item_sensation.addConnection(Sensation.Connection(sensation=addSensation,
                                                           score=addSensation.getScore()))
         self.assertIs(len(self.Wall_E_item_sensation.getConnections()), connection_number+1)
-        self.assertIs(len(addSensation.getConnections()), 1)
+        self.assertIs(len(addSensation.getConnections()), 2)
         Sensation.logConnections(self.Wall_E_item_sensation)
 
 
