@@ -14,7 +14,7 @@ from Sensation import Sensation
 
 class SensationTestCase(unittest.TestCase):
     def setUp(self):
-        self.sensation = Sensation.create(sensationType=Sensation.SensationType.Item, name='test')
+        self.sensation = Sensation.create(connections=[], sensationType=Sensation.SensationType.Item, name='test')
 
     def tearDown(self):
         self.sensation.delete()
@@ -23,7 +23,7 @@ class SensationTestCase(unittest.TestCase):
         self.assertIsNot(self.sensation, None)
         
     def test_AddConnection(self):
-        addSensation = Sensation.create(sensation=self.sensation, memory=Sensation.Memory.LongTerm, name='connect_test')
+        addSensation = Sensation.create(connections=[], sensation=self.sensation, memory=Sensation.Memory.LongTerm, name='connect_test')
         self.assertIsNot(addSensation, None)
         addSensation.save()    # this is worth to save its data
         self.assertIs(len(addSensation.getConnections()), 0)

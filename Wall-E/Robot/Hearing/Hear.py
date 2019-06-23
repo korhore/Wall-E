@@ -420,7 +420,7 @@ class Hear(Thread):
             if Hear.debug:
                 print("Hearing report " + str(self.angle))
             self.number = self.number+1
-            self.report_queue.put(Sensation(number=self.number, sensationType=Sensation.SensationType.HearDirection, hearDirection = self.angle))
+            self.report_queue.put(Sensation(connections=[], number=self.number, sensationType=Sensation.SensationType.HearDirection, hearDirection = self.angle))
             self.reported_angle = self.angle
             self.reported = True
             self.report_time=time.time()

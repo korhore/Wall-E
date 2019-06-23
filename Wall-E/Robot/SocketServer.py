@@ -102,7 +102,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                         if self.running:
                             #print "SocketServer string " + self.data
                             #sensation=Sensation(self.data)
-                            sensation=Sensation(bytes=self.data)
+                            sensation=Sensation(connections=[], bytes=self.data)
                             self.log("SocketServer got sensation" + str(sensation))
                             self.process(sensation)
             

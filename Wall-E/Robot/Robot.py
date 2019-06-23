@@ -270,7 +270,7 @@ class Robot(Thread):
         self.running = False    # this in not real, but we wait for Sensation,
                                 # so give  us one stop sensation
         self.log("self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(sensationType = Sensation.SensationType.Stop))")      
-        self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(sensationType = Sensation.SensationType.Stop))
+        self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(connections=[], sensationType = Sensation.SensationType.Stop))
 
 
     '''
@@ -280,7 +280,7 @@ class Robot(Thread):
     '''
             
     def doStop(self):
-        self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(sensationType = Sensation.SensationType.Stop))
+        self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(connections=[], sensationType = Sensation.SensationType.Stop))
         
     def studyOwnIdentity(self):
         self.mode = Sensation.Mode.StudyOwnIdentity

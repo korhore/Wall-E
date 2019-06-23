@@ -489,7 +489,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                  
         try:
             # tell who we are
-            sensation=Sensation(direction=Sensation.Direction.Out, sensationType = Sensation.SensationType.Who, who=self.getWho())
+            sensation=Sensation(connections=[], direction=Sensation.Direction.Out, sensationType = Sensation.SensationType.Who, who=self.getWho())
             self.log('run: sendSensation(sensation=Sensation(sensationType = Sensation.SensationType.Who), sock=self.sock,'  + str(self.address) + ')')
             self.running =  self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
             self.log('run: done sendSensation(sensation=Sensation(sensationType = Sensation.SensationType.Who), sock=self.sock,'  + str(self.address) + ')')
@@ -504,7 +504,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                 self.log('run: self.getLocalMasterCapabilities() '  + capabilities.toString())
                 self.log('run: self.getLocalMasterCapabilities() ' +capabilities.toDebugString())
 
-                sensation=Sensation(direction=Sensation.Direction.Out, sensationType = Sensation.SensationType.Capability, capabilities=capabilities)
+                sensation=Sensation(connections=[], direction=Sensation.Direction.Out, sensationType = Sensation.SensationType.Capability, capabilities=capabilities)
                 self.log('run: Sensation(sensationType = Sensation.SensationType.Capability, capabilities=self.getLocalCapabilities()), sock=self.sock,'  + str(self.address) + ')')
                 self.running = self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
                 self.log('run: done ' + str(self.address) +  ' '  + sensation.getCapabilities().toDebugString('SocketClient'))
@@ -626,9 +626,9 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         # socketserver can't close itself, just put it to closing mode
         self.getSocketServer().stop() # socketserver can't close itself, we must send a stop sensation to it
         # we must send a stop sensation to it
-        self.sendSensation(sensation=Sensation(sensationType = Sensation.SensationType.Stop), sock=self.getSocketServer().getSocket(), address=self.getSocketServer().getAddress())
+        self.sendSensation(sensation=Sensation(connections=[], sensationType = Sensation.SensationType.Stop), sock=self.getSocketServer().getSocket(), address=self.getSocketServer().getAddress())
         # stop remote with same technic
-        self.sendSensation(sensation=Sensation(sensationType = Sensation.SensationType.Stop), sock=self.sock, address=self.address)
+        self.sendSensation(sensation=Sensation(connections=[], sensationType = Sensation.SensationType.Stop), sock=self.sock, address=self.address)
         self.sock.close()
          
         super(SocketClient, self).stop()
@@ -638,7 +638,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
     '''
     def sendStop(sock, address):
         print("SocketClient: sendStop(sock, address)") 
-        sensation=Sensation(sensationType = Sensation.SensationType.Stop)
+        sensation=Sensation(connections=[], sensationType = Sensation.SensationType.Stop)
 
         bytes = sensation.bytes()
         length =len(bytes)

@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 04.06.2019
+Edited on 23.06.2019
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -329,11 +329,11 @@ class Sensation(object):
     '''
        
     def __init__(self,
+                 connections,                                             # don't allow default connection, because wrong connection will be linked, not copied, study this
                  sensation=None,
                  bytes=None,
                  number=None,
                  time=None,
-                 connections=[],
                  receivedFrom=[],
                  sensationType = SensationType.Unknown,
                  memory=Memory.Sensory,
@@ -349,7 +349,8 @@ class Sensation(object):
                  image=None,                                                # Image internal representation is PIl.Image 
                  calibrateSensationType = SensationType.Unknown,
                  capabilities = None,                                       # capabilitis of sensorys, direction what way sensation go
-                 name = ''):                                                # bame of Item
+                 name = ''):                                                # name of Item
+                                                 
         from Config import Capabilities
         self.time=time
         if self.time == None:
@@ -385,18 +386,7 @@ class Sensation(object):
             self.name = sensation.name
 
 
-        else:
-            # connections are always both way
-            if connections == None:
-                connections=[]
-            self.addConnections(connections)
-           
-            if receivedFrom == None:
-                receivedFrom=[]
-            self.receivedFrom=[]
-            self.addReceivedFrom(receivedFrom)
-
-                
+        else:                
             self.sensationType = sensationType
             self.memory = memory
             self.direction = direction
@@ -416,6 +406,16 @@ class Sensation(object):
             self.calibrateSensationType = calibrateSensationType
             self.capabilities = capabilities
             self.name = name
+            
+            # connections are always both way
+            if connections == None:
+                connections=[]
+            self.addConnections(connections)
+           
+            if receivedFrom == None:
+                receivedFrom=[]
+            self.receivedFrom=[]
+            self.addReceivedFrom(receivedFrom)
 
         if bytes != None:
             try:
@@ -540,11 +540,11 @@ class Sensation(object):
     Parameters are exactly same than in default constructor
     '''
        
-    def create(  sensation=None,
+    def create(  connections,                                             # don't allow default connections
+                 sensation=None,
                  bytes=None,
                  number=None,
                  time=None,
-                 connections=[],
                  receivedFrom=[],
                  sensationType = SensationType.Unknown,
                  memory=Memory.Sensory,
@@ -560,10 +560,11 @@ class Sensation(object):
                  calibrateSensationType = SensationType.Unknown,
                  capabilities = None,                                       # capabilitis of sensorys, direction what way sensation go
                  name=''):                                                  # name of Item
+                                                 
         
         if sensation is not None:             # not an update, create new one
-            print("Sensation.create Create new sensation instance this one ")
-            return Sensation(sensation=sensation)
+            print("Sensation.create Create new sensation instance of this sensation")
+            return Sensation(connections=connections, sensation=sensation)
 
         if bytes != None:               # if bytes, we get number there
             number = bytesToFloat(bytes[0:Sensation.FLOAT_PACK_SIZE])
@@ -574,7 +575,7 @@ class Sensation(object):
 
             
         if sensation == None:             # not an update, create new one
-            print("Create new sensation")
+            print("Create new sensation of parameters")
             return Sensation(
                  bytes=bytes,
                  number=number,
@@ -750,7 +751,16 @@ class Sensation(object):
                 sensation.sensationType = Sensation.SensationType.Unknown
                        
         return sensation
-
+    
+    def __cmp__(self, other):
+        if isinstance(other, self.__class__):
+#            return self.__dict__ == other.__dict__
+            print('__cmp__ self.number == other.number ' +  str(self.number) + ' == ' + str(other.number) + ' ' + str(self.number == other.number))
+            return self.number == other.number
+        else:
+            print('__cmp__ other is not Sensation')
+            return False
+ 
     def nextNumber(self):
         return self.getTime()+random.uniform(Sensation.LOWPOINT_NUMBERVARIANCE, Sensation.HIGHPOINT_NUMBERVARIANCE)
         LOWPOINT_NUMBERVARIANCE=-100.0
@@ -758,8 +768,10 @@ class Sensation(object):
     def __eq__(self, other):
         if isinstance(other, self.__class__):
 #            return self.__dict__ == other.__dict__
+#            print('__eq__ self.number == other.number ' +  str(self.number) + ' == ' + str(other.number) + ' ' + str(self.number == other.number))
             return self.number == other.number
         else:
+#            print('__eq__ other is not Sensation')
             return False
 
     def __ne__(self, other):
@@ -969,21 +981,26 @@ class Sensation(object):
     '''
     def addConnection(self, connection):
         time = systemTime.time()
-        if connection.getSensation() is not self and \
+        if connection.getSensation() != self and \
            not self.isConnected(connection):
+            print('addConnection ' + self.toDebugStr() + ' to ' + connection.getSensation().toDebugStr())
             self.connections.append(connection)
             connection.time = time
+            print('addConnection ' + self.toDebugStr() + ' has ' + str(len(self.connections)) + ' connections')
             # TODO howto do reverse connection
             #connection.getSensation().addConnection(Sensation.Connection(sensation=self))
     '''
     Is this Sensation in this Connection already connected
     '''
     def isConnected(self, connection):
+        print('isConnected ' + self.toDebugStr() + ' has ' + str(len(self.connections)) + ' connections')
         is_connected = False
         for con in self.connections:
-            if con.getSensation() is connection.getSensation():
-                is_connected=True
+            if con.getSensation() == connection.getSensation():
+                is_connected = True
+                print('isConnected ' + self.toDebugStr() + ' found connection to ' + con.getSensation().toDebugStr() + ' == ' + connection.getSensation().toDebugStr() + ' ' + str(is_connected))
                 break
+        print('isConnected ' + self.toDebugStr() + ' to ' + connection.getSensation().toDebugStr() + ' ' + str(is_connected))
         return is_connected
         
     '''
@@ -1323,7 +1340,7 @@ class Sensation(object):
             print('Connections: ' + sensation.getName())
             parents=[sensation]
             parents = Sensation.logSensationConnections(level=1, parents=parents, connections=sensation.getConnections())
-            print('Connections: ' + sensation.getName() + str(len(parents )) + ' connections')
+            print('Connections: ' + sensation.getName() + ' ' + str(len(parents )-1) + ' connections')
 
 
     '''
@@ -1337,9 +1354,9 @@ class Sensation(object):
             sensation = connection.getSensation()
             if sensation not in parents:
                 if sensation.getSensationType() is Sensation.SensationType.Item:
-                    print(tag + ' Item: ' + sensation.getName())
+                    print(tag + ' Item: ' + sensation.getName() + ' ' + str(len(parents )))
                 else:
-                    print(tag + ' ' + Sensation.SensationTypes[sensation.getSensationType()])
+                    print(tag + ' ' + Sensation.SensationTypes[sensation.getSensationType()] + ' ' + str(len(parents )))
                 parents.append(sensation)
                 
                 parents = Sensation.logSensationConnections(level=level+1, parents=parents, connections=sensation.getConnections())
@@ -1433,6 +1450,7 @@ class Sensation(object):
     
        
 if __name__ == '__main__':
+
 # testing
 # TODO fromString(Sensation.toString) -tests are deprecated
 # Sensation data in transferred by menory or by byte with tcp
@@ -1445,60 +1463,60 @@ if __name__ == '__main__':
     config = Config()
     capabilities = Capabilities(config=config)
     
-    s_Drive=Sensation(sensationType = Sensation.SensationType.Drive, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, leftPower = 0.77, rightPower = 0.55)
+    s_Drive=Sensation(connections=[], sensationType = Sensation.SensationType.Drive, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, leftPower = 0.77, rightPower = 0.55)
     print("str s  " + str(s_Drive))
     sensations=Sensation.getSensationsFromSensationMemory(s_Drive.getNumber())
     b=s_Drive.bytes()
     # TODO should s2 be here really connection to s, same instance? maybe
-    s2=Sensation(bytes=b)
+    s2=Sensation(connections=[], bytes=b)
     sensations=Sensation.getSensationsFromSensationMemory(s_Drive.getNumber())
     print("str s2 " + str(s2))
     print(str(s_Drive == s2))
     
     #test with create
     print("test with create")
-    s_Drive_create=Sensation.create(sensationType = Sensation.SensationType.Drive, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, leftPower = 0.77, rightPower = 0.55)
+    s_Drive_create=Sensation.create(connections=[], sensationType = Sensation.SensationType.Drive, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, leftPower = 0.77, rightPower = 0.55)
     print(("Sensation.create: str s  " + str(s_Drive_create)))
     sensations=Sensation.getSensationsFromSensationMemory(s_Drive_create.getNumber())
     b=s_Drive_create.bytes()
     # TODO should s2 be here really connection to s, same instance? maybe
-    s2=Sensation.create(bytes=b)
+    s2=Sensation.create(connections=[], bytes=b)
     sensations=Sensation.getSensationsFromSensationMemory(s_Drive_create.getNumber())
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create:" + str(s_Drive_create == s2))
     print()
 
     
-    s_Stop=Sensation(sensationType = Sensation.SensationType.Stop, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In)
+    s_Stop=Sensation(connections=[], sensationType = Sensation.SensationType.Stop, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In)
     print("str s  " + str(s_Stop))
     b=s_Stop.bytes()
-    s2=Sensation(bytes=b)
+    s2=Sensation(connections=[], bytes=b)
     print("str s2 " + str(s2))
     print(str(s_Stop == s2))
 
     #test with create
     print("test with create")
-    s_Stop_create=Sensation.create(sensationType = Sensation.SensationType.Stop, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In)
+    s_Stop_create=Sensation.create(connections=[], sensationType = Sensation.SensationType.Stop, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In)
     print(("Sensation.create: str s  " + str(s_Stop_create)))
     b=s_Stop_create.bytes()
-    s2=Sensation.create(bytes=b)
+    s2=Sensation.create(connections=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " + str(s_Stop_create == s2))
     print()
     
-    s_Who=Sensation(sensationType = Sensation.SensationType.Who, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In)
+    s_Who=Sensation(connections=[], sensationType = Sensation.SensationType.Who, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In)
     print("str s  " + str(s_Who))
     b=s_Who.bytes()
-    s2=Sensation(bytes=b)
+    s2=Sensation(connections=[], bytes=b)
     print("str s2 " + str(s2))
     print(str(s_Who == s2))
     
     #test with create
     print("test with create")
-    s_Who_create=Sensation.create(sensationType = Sensation.SensationType.Who, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In)
+    s_Who_create=Sensation.create(connections=[], sensationType = Sensation.SensationType.Who, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In)
     print(("Sensation.create: str s  " + str(s_Who_create)))
     b=s_Who_create.bytes()
-    s2=Sensation.create(bytes=b)
+    s2=Sensation.create(connections=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " + str(s_Who_create == s2))
     print()
@@ -1507,7 +1525,7 @@ if __name__ == '__main__':
     s_HearDirection=Sensation(connections=[Sensation.Connection(sensation=s_Drive)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.HearDirection, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, hearDirection = 0.85)
     print(("str s  " + str(s_HearDirection)))
     b=s_HearDirection.bytes()
-    s2=Sensation(bytes=b)
+    s2=Sensation(connections=[], bytes=b)
     print("str s2 " + str(s2))
     print(str(s_HearDirection == s2))
 
@@ -1516,7 +1534,7 @@ if __name__ == '__main__':
     s_HearDirection_create=Sensation.create(connections=[Sensation.Connection(sensation=s_Drive_create)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.HearDirection, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, hearDirection = 0.85)
     print(("Sensation.create: str s  " + str(s_HearDirection_create)))
     b=s_HearDirection_create.bytes()
-    s2=Sensation.create(bytes=b)
+    s2=Sensation.create(connections=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " + str(s_HearDirection_create == s2))
     print()
@@ -1524,7 +1542,7 @@ if __name__ == '__main__':
     s_Azimuth=Sensation(connections=[Sensation.Connection(sensation=s_HearDirection)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.Azimuth, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, azimuth = -0.85)
     print(("str s  " + str(s_Azimuth)))
     b=s_Azimuth.bytes()
-    s2=Sensation(bytes=b)
+    s2=Sensation(connections=[], bytes=b)
     print("str s2 " + str(s2))
     print(str(s_Azimuth == s2))
 
@@ -1533,7 +1551,7 @@ if __name__ == '__main__':
     s_Azimuth_create=Sensation.create(connections=[Sensation.Connection(sensation=s_Who_create)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.Azimuth, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, azimuth = -0.85)
     print(("Sensation.create: str s  " + str(s_Azimuth_create)))
     b=s_Azimuth_create.bytes()
-    s2=Sensation.create(bytes=b)
+    s2=Sensation.create(connections=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " + str(s_Azimuth_create == s2))
     print()
@@ -1541,7 +1559,7 @@ if __name__ == '__main__':
     s_Acceleration=Sensation(connections=[Sensation.Connection(sensation=s_HearDirection),Sensation.Connection(sensation=s_Azimuth)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.Acceleration, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, accelerationX = -0.85, accelerationY = 2.33, accelerationZ = -0.085)
     print(("str s  " + str(s_Acceleration)))
     b=s_Acceleration.bytes()
-    s2=Sensation(bytes=b)
+    s2=Sensation(connections=[], bytes=b)
     print("str s2 " + str(s2))
     print(str(s_Acceleration == s2))
 
@@ -1550,7 +1568,7 @@ if __name__ == '__main__':
     s_Acceleration_create=Sensation.create(connections=[Sensation.Connection(sensation=s_HearDirection_create),Sensation.Connection(sensation=s_Azimuth_create)], receivedFrom=['localhost', 'raspberry', 'virtualWalle'], sensationType = Sensation.SensationType.Acceleration, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, accelerationX = -0.85, accelerationY = 2.33, accelerationZ = -0.085)
     print(("Sensation.create: str s  " + str(s_Acceleration_create)))
     b=s_Acceleration_create.bytes()
-    s2=Sensation.create(bytes=b)
+    s2=Sensation.create(connections=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " +str(s_Acceleration_create == s2))
     print()
@@ -1559,7 +1577,7 @@ if __name__ == '__main__':
     s_Observation=Sensation(connections=[Sensation.Connection(sensation=s_HearDirection),Sensation.Connection(sensation=s_Azimuth),Sensation.Connection(sensation=s_Acceleration)], receivedFrom=['localhost', 'raspberry', 'virtualWalle'], sensationType = Sensation.SensationType.Observation, memory = Sensation.Memory.Working, direction = Sensation.Direction.In, observationDirection= -0.85, observationDistance=-3.75)
     print(("str s  " + str(s_Observation)))
     b=s_Observation.bytes()
-    s2=Sensation(bytes=b)
+    s2=Sensation(connections=[], bytes=b)
     print(("str s2 " + str(s2)))
     print(str(s_Observation == s2))
 
@@ -1568,7 +1586,7 @@ if __name__ == '__main__':
     s_Observation_create=Sensation.create(connections=[Sensation.Connection(sensation=s_HearDirection_create),Sensation.Connection(sensation=s_Azimuth_create),Sensation.Connection(sensation=s_Acceleration_create)],  receivedFrom=['localhost', 'raspberry', 'virtualWalle',  'remoteWalle'], sensationType = Sensation.SensationType.Observation, memory = Sensation.Memory.Working, direction = Sensation.Direction.In, observationDirection= -0.85, observationDistance=-3.75)
     print(("Sensation.create: str s  " + str(s_Observation_create)))
     b=s_Observation_create.bytes()
-    s2=Sensation.create(bytes=b)
+    s2=Sensation.create(connections=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " + str(s_Observation_create == s2))
     print()
@@ -1577,7 +1595,7 @@ if __name__ == '__main__':
     s_VoiceFilePath=Sensation(connections=[Sensation.Connection(sensation=s_Observation),Sensation.Connection(sensation=s_HearDirection),Sensation.Connection(sensation=s_Azimuth),Sensation.Connection(sensation=s_Acceleration)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
     print("str s  " + str(s_VoiceFilePath))
     b=s_VoiceFilePath.bytes()
-    s2=Sensation(bytes=b)
+    s2=Sensation(connections=[], bytes=b)
     print(("str s2 " + str(s2)))
     print(str(s_VoiceFilePath == s2))
 
@@ -1586,7 +1604,7 @@ if __name__ == '__main__':
     s_VoiceFilePath_create=Sensation.create(connections=[Sensation.Connection(sensation=s_Observation_create),Sensation.Connection(sensation=s_HearDirection_create),Sensation.Connection(sensation=s_Azimuth_create),Sensation.Connection(sensation=s_Acceleration_create)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
     print(("Sensation.create: str s  " + str(s_VoiceFilePath_create)))
     b=s_VoiceFilePath_create.bytes()
-    s2=Sensation.create(bytes=b)
+    s2=Sensation.create(connections=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " + str(s_VoiceFilePath_create == s2))
     print()
@@ -1594,7 +1612,7 @@ if __name__ == '__main__':
     s_VoiceData=Sensation(connections=[Sensation.Connection(sensation=s_VoiceFilePath),Sensation.Connection(sensation=s_Observation),Sensation.Connection(sensation=s_HearDirection),Sensation.Connection(sensation=s_Azimuth),Sensation.Connection(sensation=s_Acceleration)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, data=b'\x01\x02\x03\x04\x05')
     print(("str s  " + str(s_VoiceData)))
     b=s_VoiceData.bytes()
-    s2=Sensation(bytes=b)
+    s2=Sensation(connections=[], bytes=b)
     print("str s2 " + str(s2))
     print(str(s_VoiceData == s2))
 
@@ -1603,7 +1621,7 @@ if __name__ == '__main__':
     s_VoiceData_create=Sensation.create(connections=[Sensation.Connection(sensation=s_VoiceFilePath_create),Sensation.Connection(sensation=s_Observation_create),Sensation.Connection(sensation=s_HearDirection_create),Sensation.Connection(sensation=s_Azimuth_create),Sensation.Connection(sensation=s_Acceleration_create)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In,  data=b'\x01\x02\x03\x04\x05')
     print(("Sensation.create: str s  " + str(s_VoiceData_create)))
     b=s_VoiceData_create.bytes()
-    s2=Sensation.create(bytes=b)
+    s2=Sensation.create(connections=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " +str(s_VoiceData_create == s2))
     print()
@@ -1612,7 +1630,7 @@ if __name__ == '__main__':
     s_ImageFilePath=Sensation(connections=[Sensation.Connection(sensation=s_Observation),Sensation.Connection(sensation=s_HearDirection),Sensation.Connection(sensation=s_Azimuth),Sensation.Connection(sensation=s_Acceleration)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
     print(("str s  " + str(s_ImageFilePath)))
     b=s_ImageFilePath.bytes()
-    s2=Sensation(bytes=b)
+    s2=Sensation(connections=[], bytes=b)
     print("str s2 " + str(s2))
     print(str(s_ImageFilePath == s2))
 
@@ -1621,7 +1639,7 @@ if __name__ == '__main__':
     s_ImageFilePath_create=Sensation.create(connections=[Sensation.Connection(sensation=s_Observation_create),Sensation.Connection(sensation=s_HearDirection_create),Sensation.Connection(sensation=s_Azimuth_create),Sensation.Connection(sensation=s_Acceleration_create)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
     print(("Sensation.create: str s  " + str(s_ImageFilePath_create)))
     b=s_ImageFilePath_create.bytes()
-    s2=Sensation.create(bytes=b)
+    s2=Sensation.create(connections=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " + str(s_ImageFilePath_create == s2))
     print()
@@ -1629,7 +1647,7 @@ if __name__ == '__main__':
     s_ImageData=Sensation(connections=[Sensation.Connection(sensation=s_ImageFilePath),Sensation.Connection(sensation=s_Observation),Sensation.Connection(sensation=s_HearDirection),Sensation.Connection(sensation=s_Azimuth),Sensation.Connection(sensation=s_Acceleration)], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, image=PIL_Image.new(mode=Sensation.MODE, size=(10,10)))
     print("str s  " + str(s_ImageData))
     b=s_ImageData.bytes()
-    s2=Sensation(bytes=b)
+    s2=Sensation(connections=[], bytes=b)
     print("str s2 " + str(s2))
     print(str(s_ImageData == s2))
 
@@ -1638,7 +1656,7 @@ if __name__ == '__main__':
     s_ImageData_create=Sensation.create(connections=[Sensation.Connection(sensation=s_ImageFilePath_create),Sensation.Connection(sensation=s_Observation_create),Sensation.Connection(sensation=s_HearDirection_create),Sensation.Connection(sensation=s_Azimuth_create),Sensation.Connection(sensation=s_Acceleration_create)], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, image=PIL_Image.new(mode=Sensation.MODE, size=(10,10)))
     print("Sensation.create: str s  " + str(s_ImageData_create))
     b=s_ImageData_create.bytes()
-    s2=Sensation.create(bytes=b)
+    s2=Sensation.create(connections=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " +str(s_ImageData_create == s2))
     print()
@@ -1646,7 +1664,7 @@ if __name__ == '__main__':
     s_Calibrate=Sensation(connections=[Sensation.Connection(sensation=s_ImageData),Sensation.Connection(sensation=s_ImageFilePath),Sensation.Connection(sensation=s_Observation),Sensation.Connection(sensation=s_HearDirection),Sensation.Connection(sensation=s_Azimuth),Sensation.Connection(sensation=s_Acceleration)], sensationType = Sensation.SensationType.Calibrate, memory = Sensation.Memory.Sensory, calibrateSensationType = Sensation.SensationType.HearDirection, direction = Sensation.Direction.In, hearDirection = 0.85)
     print("str s  " + str(s_Calibrate))
     b=s_Calibrate.bytes()
-    s2=Sensation(bytes=b)
+    s2=Sensation(connections=[], bytes=b)
     print("str s2 " + str(s2))
     print(str(s_Calibrate == s2))
 
@@ -1655,7 +1673,7 @@ if __name__ == '__main__':
     s_Calibrate_create=Sensation.create(connections=[Sensation.Connection(sensation=s_ImageData_create),Sensation.Connection(sensation=s_ImageFilePath_create),Sensation.Connection(sensation=s_Observation_create),Sensation.Connection(sensation=s_HearDirection_create),Sensation.Connection(sensation=s_Azimuth_create),Sensation.Connection(sensation=s_Acceleration_create)], sensationType = Sensation.SensationType.Calibrate, memory = Sensation.Memory.Sensory, calibrateSensationType = Sensation.SensationType.HearDirection, direction = Sensation.Direction.In, hearDirection = 0.85)
     print("Sensation.create: str s  " + str(s_Calibrate_create))
     b=s_Calibrate_create.bytes()
-    s2=Sensation.create(bytes=b)
+    s2=Sensation.create(connections=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " + str(s_Calibrate_create == s2))
     print()
@@ -1664,7 +1682,7 @@ if __name__ == '__main__':
     s_Capability=Sensation(connections=[Sensation.Connection(sensation=s_Calibrate),Sensation.Connection(sensation=s_VoiceData),Sensation.Connection(sensation=s_VoiceFilePath),Sensation.Connection(sensation=s_ImageData),Sensation.Connection(sensation=s_ImageFilePath),Sensation.Connection(sensation=s_Observation),Sensation.Connection(sensation=s_HearDirection),Sensation.Connection(sensation=s_Azimuth),Sensation.Connection(sensation=s_Acceleration)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Capability, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = capabilities)
     print(("str s  " + str(s_Capability)))
     b=s_Capability.bytes()
-    s2=Sensation(bytes=b)
+    s2=Sensation(connections=[], bytes=b)
     print("str s2 " + str(s2))
     print(str(s_Capability == s2))
     
@@ -1673,7 +1691,7 @@ if __name__ == '__main__':
     s_Capability_create=Sensation.create(connections=[Sensation.Connection(sensation=s_Calibrate_create),Sensation.Connection(sensation=s_VoiceData_create),Sensation.Connection(sensation=s_VoiceFilePath_create),Sensation.Connection(sensation=s_ImageData_create),Sensation.Connection(sensation=s_ImageFilePath_create),Sensation.Connection(sensation=s_Observation_create),Sensation.Connection(sensation=s_HearDirection_create),Sensation.Connection(sensation=s_Azimuth_create),Sensation.Connection(sensation=s_Acceleration_create)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Capability, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = capabilities)
     print(("Sensation.create: str s  " + str(s_Capability_create)))
     b=s_Capability_create.bytes()
-    s2=Sensation.create(bytes=b)
+    s2=Sensation.create(connections=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " + str(s_Capability_create == s2))
     
@@ -1682,7 +1700,7 @@ if __name__ == '__main__':
     s_Item=Sensation(connections=[Sensation.Connection(sensation=s_Calibrate),Sensation.Connection(sensation=s_VoiceData),Sensation.Connection(sensation=s_VoiceFilePath),Sensation.Connection(sensation=s_ImageData),Sensation.Connection(sensation=s_ImageFilePath),Sensation.Connection(sensation=s_Observation),Sensation.Connection(sensation=s_HearDirection),Sensation.Connection(sensation=s_Azimuth),Sensation.Connection(sensation=s_Acceleration)], sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, name='person')
     print(("str s  " + str(s_Item)))
     b=s_Item.bytes()
-    s2=Sensation(bytes=b)
+    s2=Sensation(connections=[], bytes=b)
     print("str s2 " + str(s2))
     print(str(s_Item == s2))
     
@@ -1691,7 +1709,7 @@ if __name__ == '__main__':
     s_Item_create=Sensation.create(connections=[Sensation.Connection(sensation=s_Calibrate_create),Sensation.Connection(sensation=s_VoiceData_create),Sensation.Connection(sensation=s_VoiceFilePath_create),Sensation.Connection(sensation=s_ImageData_create),Sensation.Connection(sensation=s_ImageFilePath_create),Sensation.Connection(sensation=s_Observation_create),Sensation.Connection(sensation=s_HearDirection_create),Sensation.Connection(sensation=s_Azimuth_create),Sensation.Connection(sensation=s_Acceleration_create)], sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, name='person')
     print(("Sensation.create: str s  " + str(s_Item_create)))
     b=s_Item_create.bytes()
-    s2=Sensation.create(bytes=b)
+    s2=Sensation.create(connections=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " + str(s_Item_create == s2))
     

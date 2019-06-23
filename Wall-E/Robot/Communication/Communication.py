@@ -51,7 +51,8 @@ class Communication(Robot):
             # TODO find out best Voices, not needed direct connections but some level accepted, maybe three
             for connection in sensation.getConnections():
                 if connection.getSensation().getSensationType() == Sensation.SensationType.Voice:
-                    voiceSensation = Sensation.create(sensation=connection.getSensation(),
+                    voiceSensation = Sensation.create(connections=[],
+                                                      sensation=connection.getSensation(),
                                                       direction= Sensation.Direction.In, # speak
                                                       memory = Sensation.Memory.Sensory)
                     self.log('Communication.process: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)')

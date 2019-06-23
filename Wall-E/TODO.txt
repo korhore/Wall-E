@@ -5,6 +5,13 @@ Connection: use only one Item.name per connection.
 Find out best Voice, Image etc, per Item.name and connect tohose togetger.
 When better one is found, remove worse connection and connect better one.
 
+Sonnections between sensations are neuro-network -like, so we must
+study how to make
+- Voide-tensorflow -model, where Item.name is connectod to a Voice handled
+  like black-white (one-channel) image
+- Item-tensorflow -model, where Item.Name is connected with other Item.name
+  calculating how one thing will be happened same time as other thing
+
 What is done
 ------------
 
