@@ -45,7 +45,7 @@ class Communication(Robot):
     def process(self, transferDirection, sensation):
         self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         #run default implementation first
-        super(Communication, self).process(transferDirection=transferDirection, sensation=sensation)
+        #super(Communication, self).process(transferDirection=transferDirection, sensation=sensation)
         if sensation.getSensationType() == Sensation.SensationType.Item:
             self.log('Communication.process: Item Sensation ' + sensation.toDebugStr())
             # TODO find out best Voices, not needed direct connections but some level accepted, maybe three
