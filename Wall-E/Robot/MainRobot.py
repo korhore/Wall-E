@@ -522,7 +522,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         
     def process(self, transferDirection, sensation):
         self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
-        # We can handle only sensation going down tranfer-direction
+        # We can handle only sensation going down transfer-direction
         if transferDirection == Sensation.TransferDirection.Down:
              self.running = self.sendSensation(sensation, self.sock, self.address) 
 
@@ -775,7 +775,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                                     self.running = False
                                     ok = False
                             if self.running and ok:
-                                sensation=Sensation(bytes=self.data)
+                                sensation=Sensation(connections=[], bytes=self.data)
                                 sensation.addReceived(self.getHost())  # remember route
                                 if sensation.getSensationType() == Sensation.SensationType.Capability:
                                     self.log("run: SocketServer got Capability sensation " + sensation.getCapabilities().toDebugString('SocketServer'))
