@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 23.06.2019
+Edited on 26.06.2019
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -1052,7 +1052,19 @@ class Sensation(object):
         for connectionNumber in connectionNumbers:
             connections = Sensation.getSensationsFromSensationMemory(connectionNumber)
             self.addConnections(connections)
-   
+
+    '''
+    Has sensation connection to other Sensation
+    which SensationType is 'connectionSensationType'
+    '''
+    def hasConnectionSensationType(self, connectionSensationType):
+        has=False
+        for connection in self.connections:
+            if connection.getSensation().getSensationType() == connectionSensationType:
+                has=True
+                break       
+        return has
+     
     def setReceivedFrom(self, receivedFrom):
         self.receivedFrom = receivedFrom
         
@@ -1295,11 +1307,13 @@ class Sensation(object):
                           timemin,
                           timemax,
                           name = None,
-                          notName = None):
+                          notName = None,
+                          connectionSensationType = None):
         bestSensation = None
         for key, sensationMemory in Sensation.sensationMemorys.items():
             for sensation in sensationMemory:
                 if sensation.getSensationType() == sensationType and\
+                   sensation.hasConnectionSensationType(connectionSensationType=connectionSensationType) and\
                    (timemin is None or sensation.getTime() > timemin) and\
                    (timemax is None or sensation.getTime() < timemax):
                     if sensationType != Sensation.SensationType.Item or\

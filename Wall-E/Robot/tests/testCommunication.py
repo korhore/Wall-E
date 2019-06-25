@@ -115,7 +115,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.assertEqual(len(Wall_E_image_sensation.getConnections()), 1)
         # TODO this verifies test, but not implementation
         '''
-        Commented out, so cn correct implementation
+        Commented out, so we can  correct implementation
         # simulate Connection has connected an voice to Item and Image 
         Wall_E_voice_sensation = Sensation.create(sensationType=Sensation.SensationType.Voice, 
                                                        connections=[Sensation.Connection(sensation=Wall_E_image_sensation,
@@ -139,16 +139,13 @@ class CommunicationTestCase(unittest.TestCase):
 
         self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
         # We have Voice to be spoken out
-        # minimun is that we get something
+        # minimum is that we get something
         self.assertNotEqual(self.getAxon().empty(), True, 'Axon should not be empty')
         tranferDirection, sensation=self.getAxon().get()
         #Voice
         self.assertEqual(sensation.getSensationType(),Sensation.SensationType.Voice, 'should get Voice')
         # to be spoken
         self.assertEqual(sensation.getDirection(),Sensation.Direction.In, 'should get Voice to be spoken')
-
-
-        # TODO, test what get in Axon
         
 if __name__ == '__main__':
     unittest.main()

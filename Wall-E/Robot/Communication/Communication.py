@@ -48,14 +48,24 @@ class Communication(Robot):
         #super(Communication, self).process(transferDirection=transferDirection, sensation=sensation)
         if sensation.getSensationType() == Sensation.SensationType.Item:
             self.log('Communication.process: Item Sensation ' + sensation.toDebugStr())
-            # TODO find out best Voices, not needed direct connections but some level accepted, maybe three
-            for connection in sensation.getConnections():
-                if connection.getSensation().getSensationType() == Sensation.SensationType.Voice:
-                    voiceSensation = Sensation.create(connections=[],
-                                                      sensation=connection.getSensation(),
-                                                      direction= Sensation.Direction.In, # speak
-                                                      memory = Sensation.Memory.Sensory)
-                    self.log('Communication.process: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)')
-                    self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)
+            # try to find best item.Name with Voice
+            candidate_for_communication = Sensation.getBestSensation( sensationType = Sensation.SensationType.Item,
+                                                                name = sensation.getName(),
+                                                                timemin = None,
+                                                                timemax = None,
+                                                                connectionSensationType=Sensation.SensationType.Voice)
+            if candidate_for_communication is not None:
+                for connection in candidate_for_communication.getConnections():
+                    if connection.getSensation().getSensationType() == Sensation.SensationType.Voice:
+                        voiceSensation = Sensation.create(connections=[],
+                                                          sensation=connection.getSensation(),
+                                                          direction= Sensation.Direction.In, # speak
+                                                          memory = Sensation.Memory.Sensory)
+                        sensation.addConnection(Sensation.Connection(sensation=voiceSensation,
+                                                             score=candidate_for_communication.getScore()))
+                        self.log('Communication.process: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)')
+                        self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)
+                        
+                        # TODO We should wait answer ans communicate as long other part wants
 
  
