@@ -77,7 +77,7 @@ Sensation is something Robot senses
 '''
 
 class Sensation(object):
-    VERSION=2           # version number to chech, if we picle same version
+    VERSION=3           # version number to check, if we picle same version
                         # instances. Otherwise we get odd errors, with old
                         # version code instances
  
@@ -112,7 +112,8 @@ class Sensation(object):
     # Direction of a sensation transferring, used with Axon. Up: going up like fron AlsaMicroPhone to MainRobot, Down: going down from MainRobot to leaf Robots like AlsaPlayback
     TransferDirection = enum(Up='U', Down='D')
 
-    Memory = enum(Sensory='S', Working='W', LongTerm='L' )
+    #Memory = enum(Sensory='S', Working='W', LongTerm='L' )
+    Memory = enum(Sensory='S', LongTerm='L' )
     Kind = enum(WallE='w', Eva='e', Other='o')
     InstanceType = enum(Real='r', SubInstance='s', Virtual='v', Remote='e')
     Mode = enum(Normal='n', StudyOwnIdentity='i',Sleeping='l',Starting='s', Stopping='p')
@@ -121,7 +122,7 @@ class Sensation(object):
     OUT="Out"
     MEMORY_SECTION="Memory"
     SENSORY="Sensory"
-    WORKING="Working"
+    #WORKING="Working"
     LONG_TERM="LongTerm"
     DRIVE="Drive"
     STOP="Stop"
@@ -157,11 +158,11 @@ class Sensation(object):
                 Direction.Out)
     
     Memorys = {Memory.Sensory: SENSORY,
-               Memory.Working: WORKING,
+               #Memory.Working: WORKING,
                Memory.LongTerm: LONG_TERM}
     MemorysOrdered = (
                Memory.Sensory,
-               Memory.Working,
+               #Memory.Working,
                Memory.LongTerm)
     
     SensationTypes={
@@ -209,12 +210,12 @@ class Sensation(object):
     
     sensationMemorys={                      # Sensation caches
         Memory.Sensory:  [],                # short time Sensation cache
-        Memory.Working:  [],                # middle time Sensation cache
+        #Memory.Working:  [],                # middle time Sensation cache
         Memory.LongTerm: [] }               # long time Sensation cache
 
     sensationMemoryCacheTimes={             # Sensation cache times
         Memory.Sensory:  SENSORY_CACHE_TIME,
-        Memory.Working:  WORKING_CACHE_TIME, 
+        #Memory.Working:  WORKING_CACHE_TIME, 
         Memory.LongTerm: LONG_TERM_CACHE_TIME }
 
 
@@ -1588,7 +1589,7 @@ if __name__ == '__main__':
     print()
 
     
-    s_Observation=Sensation(connections=[Sensation.Connection(sensation=s_HearDirection),Sensation.Connection(sensation=s_Azimuth),Sensation.Connection(sensation=s_Acceleration)], receivedFrom=['localhost', 'raspberry', 'virtualWalle'], sensationType = Sensation.SensationType.Observation, memory = Sensation.Memory.Working, direction = Sensation.Direction.In, observationDirection= -0.85, observationDistance=-3.75)
+    s_Observation=Sensation(connections=[Sensation.Connection(sensation=s_HearDirection),Sensation.Connection(sensation=s_Azimuth),Sensation.Connection(sensation=s_Acceleration)], receivedFrom=['localhost', 'raspberry', 'virtualWalle'], sensationType = Sensation.SensationType.Observation, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, observationDirection= -0.85, observationDistance=-3.75)
     print(("str s  " + str(s_Observation)))
     b=s_Observation.bytes()
     s2=Sensation(connections=[], bytes=b)
@@ -1597,7 +1598,7 @@ if __name__ == '__main__':
 
     #test with create
     print("test with create")
-    s_Observation_create=Sensation.create(connections=[Sensation.Connection(sensation=s_HearDirection_create),Sensation.Connection(sensation=s_Azimuth_create),Sensation.Connection(sensation=s_Acceleration_create)],  receivedFrom=['localhost', 'raspberry', 'virtualWalle',  'remoteWalle'], sensationType = Sensation.SensationType.Observation, memory = Sensation.Memory.Working, direction = Sensation.Direction.In, observationDirection= -0.85, observationDistance=-3.75)
+    s_Observation_create=Sensation.create(connections=[Sensation.Connection(sensation=s_HearDirection_create),Sensation.Connection(sensation=s_Azimuth_create),Sensation.Connection(sensation=s_Acceleration_create)],  receivedFrom=['localhost', 'raspberry', 'virtualWalle',  'remoteWalle'], sensationType = Sensation.SensationType.Observation, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, observationDirection= -0.85, observationDistance=-3.75)
     print(("Sensation.create: str s  " + str(s_Observation_create)))
     b=s_Observation_create.bytes()
     s2=Sensation.create(connections=[], bytes=b)
