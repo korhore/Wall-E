@@ -301,11 +301,16 @@ class Robot(Thread):
         # live until stopped
         self.mode = Sensation.Mode.Normal
         while self.running:
-            transferDirection, sensation = self.getAxon().get()
-            self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
-            self.process(transferDirection=transferDirection, sensation=sensation)
-            # as a test, echo everything to external device
-            #self.out_axon.put(sensation)
+            # if we cant sense, the we wait until we get aomething into Axon
+            # or if we can sense, but there is someting in our xon, proces it
+            if not self.getAxon().empty() or not self.canSense():
+                transferDirection, sensation = self.getAxon().get()
+                self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
+                self.process(transferDirection=transferDirection, sensation=sensation)
+                # as a test, echo everything to external device
+                #self.out_axon.put(sensation)
+            else:
+                self.sense()
  
         self.mode = Sensation.Mode.Stopping
         self.log("Stopping robot")      
@@ -314,7 +319,21 @@ class Robot(Thread):
         for robot in self.subInstances:
             robot.stop()
        
-        self.log("run ALL SHUT DOWN")      
+        self.log("run ALL SHUT DOWN")
+
+    '''
+    Default implementation can not sense
+    Override this when derived into Sense type Robot
+    '''        
+    def canSense(self):
+        return False  
+        '''
+    Default implementation can not sense
+    Override this when derived into Sense type Robot
+    '''        
+    def sense(self):
+        pass    
+  
         
     def log(self, logStr):
          print(self.name + ":" + str( self.config.level) + ":" + Sensation.Modes[self.mode] + ": " + logStr)

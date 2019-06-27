@@ -1,6 +1,15 @@
 Critical
 --------
 
+SocketClient:('raspberry', 2000):3:Normal: got sensation from queue D 1561676916.788302 1561677006.4107625 Sensory Out Voice
+SocketClient:('raspberry', 2000):3:Normal: process: Fri Jun 28 02:10:06 2019 D 1561676916.788302 1561677006.4107625 Sensory Out Voice
+SocketClient:('raspberry', 2000):3:Normal: SocketClient.sendSensation
+SocketClient:('raspberry', 2000):3:Normal: SocketClient error writing Sensation.SEPARATOR to ('raspberry', 2000) error [Errno 32] Broken pipe
+SocketClient:('raspberry', 2000):3:Normal: send SocketClient Voice sensation
+SocketClient:('raspberry', 2000):3:Stopping: Stopping robot
+SocketClient:('raspberry', 2000):3:Stopping: run ALL SHUT DOWN
+
+
 Connection: use only one Item.name per connection.
 Find out best Voice, Image etc, per Item.name and connect tohose togetger.
 When better one is found, remove worse connection and connect better one.

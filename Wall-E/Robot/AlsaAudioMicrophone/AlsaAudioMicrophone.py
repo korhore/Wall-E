@@ -75,6 +75,11 @@ class AlsaAudioMicrophone(Robot):
         self.on=False
         
         self.debug_time=time.time()
+
+        # buffer variables for voice        
+        self.voice_data=None
+        self.voice_l=0
+
         
     def run(self):
         self.log(" Starting robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))      
@@ -85,8 +90,8 @@ class AlsaAudioMicrophone(Robot):
                 
         # live until stopped
         self.mode = Sensation.Mode.Normal
-        voice_data=None
-        voice_l=0
+#         voice_data=None
+#         voice_l=0
         while self.running:
             # as a leaf sensor robot default processing for sensation we have got
             # in practice we can get stop sensation
@@ -95,26 +100,27 @@ class AlsaAudioMicrophone(Robot):
                 self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
                 self.process(transferDirection=transferDirection, sensation=sensation)
             else:
-            #otherwise we have time to read our sesses
-                # blocking read data from device
-                #print "reading " + self.name
-                l, data = self.inp.read() # l int, data bytes
-                if l > 0:
-                    # collect voice data as long we hear a voice and send it then
-                    if self.analyzeData(l, data, self.CONVERSION_FORMAT):
-                        if voice_data is None:
-                            voice_data = data
-                            voice_l = l
-                        else:
-                           voice_data += data
-                           voice_l += l
-                    else:
-                        if voice_data is not None:
-                            self.log("self.getParent().getAxon().put(sensation)")
-                            sensation = Sensation.create(connections=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=voice_data)
-                            self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # or self.process
-                            voice_data=None
-                            voice_l=0
+                self.sense()
+#             #otherwise we have time to read our senses
+#                 # blocking read data from device
+#                 #print "reading " + self.name
+#                 l, data = self.inp.read() # l int, data bytes
+#                 if l > 0:
+#                     # collect voice data as long we hear a voice and send it then
+#                     if self.analyzeData(l, data, self.CONVERSION_FORMAT):
+#                         if voice_data is None:
+#                             voice_data = data
+#                             voice_l = l
+#                         else:
+#                            voice_data += data
+#                            voice_l += l
+#                     else:
+#                         if voice_data is not None:
+#                             self.log("self.getParent().getAxon().put(sensation)")
+#                             sensation = Sensation.create(connections=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=voice_data)
+#                             self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # or self.process
+#                             voice_data=None
+#                             voice_l=0
 
         self.log("Stopping AlsaAudioMicrophone")
         self.mode = Sensation.Mode.Stopping
@@ -122,6 +128,40 @@ class AlsaAudioMicrophone(Robot):
         self.config.setMicrophoneVoiceAvegageLevel(voiceLevelAverage=self.average)
        
         self.log("run ALL SHUT DOWN")
+        
+    '''
+    We can sense
+    We are Sense type Robot
+    '''        
+    def canSense(self):
+        return True 
+     
+    '''
+    We can sense
+    We are Sense type Robot
+    '''        
+    def sense(self):
+        # blocking read data from device
+        #print "reading " + self.name
+        l, data = self.inp.read() # l int, data bytes
+        if l > 0:
+            # collect voice data as long we hear a voice and send it then
+            if self.analyzeData(l, data, self.CONVERSION_FORMAT):
+                if self.voice_data is None:
+                    self.voice_data = data
+                    self.voice_l = l
+                else:
+                    self.voice_data += data
+                    self.voice_l += l
+            else:
+                if self.voice_data is not None:
+                    self.log("self.getParent().getAxon().put(sensation)")
+                    # put direction out (heard voice) to the parent Axon going up to main Robot
+                    sensation = Sensation.create(connections=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=self.voice_data)
+                    self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # or self.process
+                    self.voice_data=None
+                    self.voice_l=0
+
         
         '''
         Analyze voice sample

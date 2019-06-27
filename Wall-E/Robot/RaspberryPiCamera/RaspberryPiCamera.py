@@ -1,6 +1,6 @@
 '''
 Created on 30.04.2019
-Updated on 08.06.2019
+Updated on 28.06.2019
 
 @author: reijo.korhonen@gmail.com
 '''
@@ -43,7 +43,7 @@ class RaspberryPiCamera(Robot):
     DATADIR='data'
     COMPARE_SQUARES=20
     CHANGE_RANGE=1000000
-    SLEEP_TIME=10
+    SLEEP_TIME=5
   
     def __init__(self,
                  parent=None,
@@ -79,7 +79,7 @@ class RaspberryPiCamera(Robot):
         #stream = io.BytesIO()
         self.camera.start_preview()
         # Camera warm-up time
-        time.sleep(2)
+        time.sleep(self.SLEEP_TIME)
 
         while self.running:
             # as a leaf sensor robot default processing for sensation we have got
@@ -89,27 +89,57 @@ class RaspberryPiCamera(Robot):
                 self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
                 self.process(transferDirection=transferDirection, sensation=sensation)
             else:
-                self.log("self.camera.capture(stream, format=Sensation.IMAGE_FORMAT)")
-                stream = io.BytesIO()
-                self.camera.capture(stream, format=Sensation.IMAGE_FORMAT)
-                self.camera.stop_preview()
-                stream.seek(0)
-                image = PIL_Image.open(stream)
-                if self.isChangedImage(image):
-                    self.log("self.getParent().getAxon().put(sensation) stream {}".format(len(stream.getvalue())))
-                    sensation = Sensation.create(connections=[], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image)
-                    self.log("self.getParent().getAxon().put(sensation) getData")
-#                    sensation.save()
-                    self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # or self.process
-                else:
-                    self.log("no change")
-                self.camera.start_preview()
-                time.sleep(self.SLEEP_TIME)
+                self.sense()
+#                 stream = io.BytesIO()
+#                 self.camera.capture(stream, format=Sensation.IMAGE_FORMAT)
+#                 self.camera.stop_preview()
+#                 stream.seek(0)
+#                 image = PIL_Image.open(stream)
+#                 if self.isChangedImage(image):
+#                     self.log("self.getParent().getAxon().put(sensation) stream {}".format(len(stream.getvalue())))
+#                     sensation = Sensation.create(connections=[], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image)
+#                     self.log("self.getParent().getAxon().put(sensation) getData")
+# #                    sensation.save()
+#                     self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # or self.process
+#                 else:
+#                     self.log("no change")
+#                 self.camera.start_preview()
+#                 time.sleep(self.SLEEP_TIME)
         self.log("Stopping RaspberryPiCamera")
         self.mode = Sensation.Mode.Stopping
         self.camera.close() 
        
         self.log("run ALL SHUT DOWN")
+        
+    '''
+    We can sense
+    We are Sense type Robot
+    '''        
+    def canSense(self):
+        return True 
+     
+    '''
+    We can sense
+    We are Sense type Robot
+    '''        
+    def sense(self):
+        stream = io.BytesIO()
+        self.camera.capture(stream, format=Sensation.IMAGE_FORMAT)
+        self.camera.stop_preview()
+        stream.seek(0)
+        image = PIL_Image.open(stream)
+        if self.isChangedImage(image):
+            self.log("sense self.getParent().getAxon().put(sensation) stream {}".format(len(stream.getvalue())))
+            # put direction out (seen image) to the parent Axon going up to main Robot
+            sensation = Sensation.create(connections=[], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image)
+#            sensation.save()
+            self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation)
+        else:
+             self.log("sense no change")
+        self.camera.start_preview()
+        # Camera warm-up time
+        time.sleep(self.SLEEP_TIME)
+
 
     '''
     compare image to previous one
