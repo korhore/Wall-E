@@ -116,7 +116,7 @@ class Sensation(object):
     Memory = enum(Sensory='S', LongTerm='L' )
     Kind = enum(WallE='w', Eva='e', Other='o')
     InstanceType = enum(Real='r', SubInstance='s', Virtual='v', Remote='e')
-    Mode = enum(Normal='n', StudyOwnIdentity='i',Sleeping='l',Starting='s', Stopping='p')
+    Mode = enum(Normal='n', StudyOwnIdentity='t',Sleeping='l',Starting='s', Stopping='p', Interrupted='i')
 # enum items as strings    
     IN="In"
     OUT="Out"
@@ -150,6 +150,7 @@ class Sensation(object):
     SLEEPING="Sleeping"
     STARTING="Starting"
     STOPPING="Stopping"
+    INTERRUPTED="Interrupted"
       
     Directions={Direction.In: IN,
                 Direction.Out: OUT}
@@ -206,7 +207,8 @@ class Sensation(object):
            Mode.StudyOwnIdentity: STUDYOWNIDENTITY,
            Mode.Sleeping: SLEEPING,
            Mode.Starting: STARTING,
-           Mode.Stopping: STOPPING }
+           Mode.Stopping: STOPPING,
+           Mode.Interrupted: INTERRUPTED}
     
     sensationMemorys={                      # Sensation caches
         Memory.Sensory:  [],                # short time Sensation cache

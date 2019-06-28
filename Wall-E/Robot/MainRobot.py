@@ -312,33 +312,34 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
             
             self.log("TCPServer for hostName in self.hostNames")
             for hostName in self.hostNames:
-                self.log("TCPServer hostname " + hostName)
-                address=(hostName, PORT)
-                sock = socket.socket(family=ADDRESS_FAMILY,
-                                     type=SOCKET_TYPE)
-                
-                connected=False
-                try:
-                    self.log('run: sock.connect('  + str(address) + ')')
-                    sock.connect(address)
-                    connected=True
-                    self.log('run: done sock.connect('  + str(address) + ')')
-                except Exception as e:
-                    self.log("run: sock.connect(" + str(address) + ') exception ' + str(e))
-                    connected = False
-    
-                if connected:
-                    socketServer = self.createSocketServer(sock=sock, address=address)
-                    socketClient = self.createSocketClient(sock=sock, address=address, socketServer=socketServer)
-                    socketServer.setSocketClient(socketClient)
-                    # add only socketClients to subInstances, because they give us capabilities
-                    # but we give capabilities to others with socketServer
-                    #self.parent.subInstances.append(socketServer)
-                    self.parent.subInstances.append(socketClient)  # Note to parent subInstances
-                    socketServer.start()
-                    time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
-                    socketClient.start()
-                    time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
+                self.connectToHost(hostName)
+#                 self.log("TCPServer hostname " + hostName)
+#                 address=(hostName, PORT)
+#                 sock = socket.socket(family=ADDRESS_FAMILY,
+#                                      type=SOCKET_TYPE)
+#                 
+#                 connected=False
+#                 try:
+#                     self.log('run: sock.connect('  + str(address) + ')')
+#                     sock.connect(address)
+#                     connected=True
+#                     self.log('run: done sock.connect('  + str(address) + ')')
+#                 except Exception as e:
+#                     self.log("run: sock.connect(" + str(address) + ') exception ' + str(e))
+#                     connected = False
+#     
+#                 if connected:
+#                     socketServer = self.createSocketServer(sock=sock, address=address)
+#                     socketClient = self.createSocketClient(sock=sock, address=address, socketServer=socketServer)
+#                     socketServer.setSocketClient(socketClient)
+#                     # add only socketClients to subInstances, because they give us capabilities
+#                     # but we give capabilities to others with socketServer
+#                     #self.parent.subInstances.append(socketServer)
+#                     self.parent.subInstances.append(socketClient)  # Note to parent subInstances
+#                     socketServer.start()
+#                     time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
+#                     socketClient.start()
+#                     time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
         except Exception as e:
                 self.log("run: sock.bind, listen exception " + str(e))
                 self.running = False
@@ -365,6 +366,41 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                     socketClient.start()
                     time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
         self.log('run: STOPPED')
+        
+    '''
+    Connect to host by creating SockerClient and SocketServer
+    '''
+        
+    def connectToHost(self, hostName):
+        self.log("connectToHost hostName " + hostName)
+        address=(hostName, PORT)
+        sock = socket.socket(family=ADDRESS_FAMILY,
+                             type=SOCKET_TYPE)
+                
+        connected=False
+        try:
+            self.log('connectToHost: sock.connect('  + str(address) + ')')
+            sock.connect(address)
+            connected=True
+            self.log('connectToHost: done sock.connect('  + str(address) + ')')
+        except Exception as e:
+            self.log("connectToHost: sock.connect(" + str(address) + ') exception ' + str(e))
+            connected = False
+    
+        if connected:
+            socketServer = self.createSocketServer(sock=sock, address=address)
+            socketClient = self.createSocketClient(sock=sock, address=address, socketServer=socketServer, tcpServer=self)
+            socketServer.setSocketClient(socketClient)
+            # add only socketClients to subInstances, because they give us capabilities
+            # but we give capabilities to others with socketServer
+            #self.parent.subInstances.append(socketServer)
+            self.parent.subInstances.append(socketClient)  # Note to parent subInstances
+            socketServer.start()
+            time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
+            socketClient.start()
+            time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
+        return connected
+        
 
     def stop(self):
         self.log('stop')
@@ -420,7 +456,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
             self.socketServers.append(socketServer)
         return socketServer
 
-    def createSocketClient(self, sock, address, socketServer=None):
+    def createSocketClient(self, sock, address, tcpServer, socketServer=None):
         socketClient =  None
         for socketClientCandidate in self.socketClients:
             if not socketClientCandidate.running:
@@ -432,7 +468,8 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                                       level=self.level,
                                       address=address,
                                       sock=sock,
-                                      socketServer=socketServer)
+                                      socketServer=socketServer,
+                                      tcpServer=tcpServer)
                 break
         if not socketClient:
             self.log('createSocketClient: creating new SocketClient')
@@ -442,13 +479,15 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                                         level=self.level,
                                         address=address,
                                         sock=sock,
-                                        socketServer=socketServer)
+                                        socketServer=socketServer,
+                                        tcpServer=tcpServer)
             self.socketClients.append(socketClient)
         return socketClient
 
 class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
     def __init__(self,
+                 tcpServer,
                  address = None,
                  remoteHost=None,
                  sock = None,
@@ -464,6 +503,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                        level=level)
 
         print("We are in SocketClient, not Robot")
+        self.tcpServer = tcpServer
         self.sock = sock
         self.address = address
         self.remoteHost=remoteHost
@@ -524,7 +564,20 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         # We can handle only sensation going down transfer-direction
         if transferDirection == Sensation.TransferDirection.Down:
-             self.running = self.sendSensation(sensation, self.sock, self.address) 
+             self.running = self.sendSensation(sensation, self.sock, self.address)
+             # if we have got broken pipe -error, meaning that socket writing does not work any more
+             # then try to get new connection, meaning that ask TCPServer to give us a new open socket
+             if not self.running and self.mode == Sensansation.Mode.Interrupted:
+                 connected = False
+                 tries=10
+                 while not connected and tries < 10:
+                     connected = self.tcpServer.connectToHost(self.getHost())
+                     if not connected:
+                         time.sleep(60)
+                         tries=tries+1
+                # we are stopped anyway, if we are lucky we have new SockerServer and SockerClient now to our host
+                # don't touch anythimg, if we are reused
+
 
     '''
     Overwrite local method. This way we can use remote Robot
@@ -581,6 +634,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
             except Exception as err:
                 self.log("SocketClient error writing Sensation.SEPARATOR to " + str(address)  + " error " + str(err))
                 ok=False
+                self.mode = Sensation.Mode.Interrupted
             if ok:
                 try:
                     l = sock.send(length_bytes)                            # message length section
@@ -592,13 +646,11 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                     try:
                         sock.sendall(bytes)                              # message data section
                         self.log("SocketClient wrote Sensation to " + str(address))
+                        self.log("send SocketClient wrote sensation " + sensation.toDebugStr())
                     except Exception as err:
                         self.log("SocketClient error writing Sensation to " + str(address) + " error " + str(err))
                         ok = False
-            if sensation.getSensationType() == Sensation.SensationType.Voice:
-                self.log("send SocketClient Voice sensation")
-            else:
-                self.log("send SocketClient wrote sensation " + sensation.toDebugStr())
+                        self.mode = Sensation.Mode.Interrupted
 #             if not ok:
 #                 # TODO This logic does not work, because sock is bad file descriptor at this point
 #                 self.log("send SocketClient error, try to reconnect after sleep ")
@@ -655,6 +707,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         except Exception as err:
             print("SocketClient error writing Sensation.SEPARATOR to " + str(address)  + " error " + str(err))
             ok=False
+            self.mode = Sensation.Mode.Interrupted
         if ok:
             try:
                 l = sock.send(length_bytes)                            # message length section
@@ -672,6 +725,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                 except Exception as err:
                     print("SocketClient error writing Sensation to " + str(address) + " error " + str(err))
                     ok = False
+                    self.mode = Sensation.Mode.Interrupted
         return ok
         
 

@@ -1,5 +1,8 @@
 Critical
 --------
+How to handle Socker writing errors?
+- if error, sensation back to Axons
+- connect again by TCPServer?
 
 SocketClient:('raspberry', 2000):3:Normal: got sensation from queue D 1561676916.788302 1561677006.4107625 Sensory Out Voice
 SocketClient:('raspberry', 2000):3:Normal: process: Fri Jun 28 02:10:06 2019 D 1561676916.788302 1561677006.4107625 Sensory Out Voice
