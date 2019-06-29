@@ -1,8 +1,29 @@
 Critical
 --------
-How to handle Socker writing errors?
+
+OK TCPServer does not start SocketServer after accept and creating SocketClient
+
+How to handle Socket writing errors?
 - if error, sensation back to Axons
 - connect again by TCPServer?
+
+Last, maybe this situation comes too soon to handle
+SocketClient:('192.168.117.20', 47668):3:Normal: run: Starting robot who SocketClient kind w instanceType s
+SocketClient:('192.168.117.20', 47668):3:StudyOwnIdentity: My name is SocketClient:('192.168.117.20', 47668)
+SocketClient:('192.168.117.20', 47668):3:StudyOwnIdentity: My kind is w
+SocketClient:('192.168.117.20', 47668):3:StudyOwnIdentity: My identitypath is Identitys/Wall-E
+SocketClient:('192.168.117.20', 47668):3:StudyOwnIdentity: SocketClient wrote Sensation to ('192.168.117.20', 47668)
+SocketClient:('192.168.117.20', 47668):3:StudyOwnIdentity: send SocketClient wrote sensation 1561805117.3777726 1561805078.4400356 LongTerm Out Image
+SocketClient:('192.168.117.20', 47668):3:StudyOwnIdentity: SocketClient.sendSensation
+SocketClient:('192.168.117.20', 47668):3:StudyOwnIdentity: SocketClient error writing Sensation.SEPARATOR to ('192.168.117.20', 47668) error [Errno 104] Connection reset by peer
+SocketServer:('192.168.117.20', 47668):3:Normal: run: waiting next Sensation from('192.168.117.20', 47668)
+SocketClient:('192.168.117.20', 47668):3:Interrupted: Found directory: Identitys/Wall-E
+SocketClient:('192.168.117.20', 47668):3:Interrupted:   Wall-E.png
+SocketClient:('192.168.117.20', 47668):3:Interrupted:   wall-e-gives_flower.jpg
+SocketClient:('192.168.117.20', 47668):3:Stopping: Stopping robot
+SocketClient:('192.168.117.20', 47668):3:Stopping: run ALL SHUT DOWN
+
+previous
 
 SocketClient:('raspberry', 2000):3:Normal: got sensation from queue D 1561676916.788302 1561677006.4107625 Sensory Out Voice
 SocketClient:('raspberry', 2000):3:Normal: process: Fri Jun 28 02:10:06 2019 D 1561676916.788302 1561677006.4107625 Sensory Out Voice

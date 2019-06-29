@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 08.06.2019
+Updated on 29.06.2019
 @author: reijo.korhonen@gmail.com
 
 This class Main robot
@@ -63,7 +63,11 @@ class MainRobot(Robot):
     External Sensorys are handled using sockets.
     """
  
-    SOCKET_ERROR_WAIT_TIME  = 60.0
+    SOCKET_ERROR_WAIT_TIME  =   60.0
+    HOST_RECONNECT_MAX_TRIES =  10
+    IS_SOCKET_ERROR_TEST =      False
+    SOCKET_ERROR_TEST_RATE =    5
+    SOCKET_ERROR_TEST_NUMBER =  0
 
     def __init__(self,
                  parent=None,
@@ -350,8 +354,11 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
             sock, address = self.sock.accept()
             self.log('run: self.sock.accept() '+ str(address))
             if self.running:
+                self.log('run: socketServer = self.createSocketServer'+ str(address))
                 socketServer = self.createSocketServer(sock=sock, address=address)
-                socketClient = self.createSocketClient(sock=sock, address=address, socketServer=socketServer)
+                self.log('run: socketClient = self.createSocketClient'+ str(address))
+                socketClient = self.createSocketClient(sock=sock, address=address, socketServer=socketServer, tcpServer=self)
+                self.log('run: socketServer.setSocketClient(socketClient)'+ str(address))
                 socketServer.setSocketClient(socketClient)
                 #self.parent.subInstances.append(socketServer)
                 self.parent.subInstances.append(socketClient) # Note to parent subInstances
@@ -368,7 +375,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         self.log('run: STOPPED')
         
     '''
-    Connect to host by creating SockerClient and SocketServer
+    Connect to host by creating SocketClient and SocketServer
     '''
         
     def connectToHost(self, hostName):
@@ -454,6 +461,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                                         socketClient=socketClient)
 
             self.socketServers.append(socketServer)
+        self.log('createSocketServer: return socketServer')
         return socketServer
 
     def createSocketClient(self, sock, address, tcpServer, socketServer=None):
@@ -567,16 +575,16 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
              self.running = self.sendSensation(sensation, self.sock, self.address)
              # if we have got broken pipe -error, meaning that socket writing does not work any more
              # then try to get new connection, meaning that ask TCPServer to give us a new open socket
-             if not self.running and self.mode == Sensansation.Mode.Interrupted:
+             if not self.running and self.mode == Sensation.Mode.Interrupted:
                  connected = False
-                 tries=10
-                 while not connected and tries < 10:
+                 tries=0
+                 while not connected and tries < MainRobot.HOST_RECONNECT_MAX_TRIES:
                      connected = self.tcpServer.connectToHost(self.getHost())
                      if not connected:
-                         time.sleep(60)
+                         time.sleep(MainRobot.SOCKET_ERROR_WAIT_TIME)
                          tries=tries+1
-                # we are stopped anyway, if we are lucky we have new SockerServer and SockerClient now to our host
-                # don't touch anythimg, if we are reused
+                # we are stopped anyway, if we are lucky we have new SocketServer and SocketClient now to our host
+                # don't touch anything, if we are reused
 
 
     '''
@@ -635,6 +643,12 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                 self.log("SocketClient error writing Sensation.SEPARATOR to " + str(address)  + " error " + str(err))
                 ok=False
                 self.mode = Sensation.Mode.Interrupted
+            ## if we test, then we cause error time by time by us
+            if MainRobot.IS_SOCKET_ERROR_TEST:
+                MainRobot.SOCKET_ERROR_TEST_NUMBER = MainRobot.SOCKET_ERROR_TEST_NUMBER+1
+                self.log("SocketClient MainRobot.IS_SOCKET_ERROR_TEST MainRobot.SOCKET_ERROR_TEST_NUMBER % MainRobot.SOCKET_ERROR_TEST_RATE: " + str(MainRobot.SOCKET_ERROR_TEST_NUMBER % MainRobot.SOCKET_ERROR_TEST_RATE))
+                if MainRobot.SOCKET_ERROR_TEST_NUMBER % MainRobot.SOCKET_ERROR_TEST_RATE == 0:
+                    sock.close()
             if ok:
                 try:
                     l = sock.send(length_bytes)                            # message length section

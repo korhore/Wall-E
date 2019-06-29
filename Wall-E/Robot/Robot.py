@@ -259,7 +259,8 @@ class Robot(Thread):
         hasCapalility = False
         if self.getCapabilities() is not None:
             hasCapalility = self.getCapabilities().hasCapability(direction, memory, sensationType)
-            self.log("hasCapability direction " + str(direction) + " memory " + str(memory) + " sensationType " + str(sensationType) + ' ' + str(hasCapalility))      
+            if hasCapalility:
+                self.log("hasCapability direction " + str(direction) + " memory " + str(memory) + " sensationType " + str(sensationType) + ' ' + str(hasCapalility))      
         return hasCapalility
     '''
     Has this instance or at least one of its subinstabces this capability
@@ -272,7 +273,7 @@ class Robot(Thread):
         for robot in self.getSubInstances():
             if robot.getCapabilities().hasCapability(direction, memory, sensationType) or \
                robot.hasSubCapability(direction, memory, sensationType):
-                self.log('hasSubCapability subInstance ' + robot.getWho() + ' direction ' + str(direction) + ' memory ' + str(memory) + ' sensationType ' + str(sensationType) + ' True')      
+                self.log('hasSubCapability subInstance ' + robot.getWho() + ' has direction ' + str(direction) + ' memory ' + str(memory) + ' sensationType ' + str(sensationType) + ' True')      
                 return True
         #self.log('hasSubCapability direction ' + str(direction) + ' memory ' + str(memory) + ' sensationType ' + str(sensationType) + ' False')      
         return False
