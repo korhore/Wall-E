@@ -80,6 +80,12 @@ class Sensation(object):
     VERSION=3           # version number to check, if we picle same version
                         # instances. Otherwise we get odd errors, with old
                         # version code instances
+
+    # Connection logging max-values                      
+    CONNECTIONS_LOG_MAX_LEVEL =   10
+    CONNECTIONS_LOG_MAX_PARENTS = 50           
+    CONNECTIONS_MAX_CONNECTIONS = 100           
+
  
     #number=0                # sensation number for referencing
     IMAGE_FORMAT =      'jpeg'
@@ -92,7 +98,7 @@ class Sensation(object):
     HIGHPOINT_NUMBERVARIANCE=100.0
     
     SENSORY_CACHE_TIME =        300.0;       # cache sensation 300 seconds = 5 mins (may be changed)
-    WORKING_CACHE_TIME =        600.0;       # cache sensation 600 seconds = 10 mins (may be changed)
+    #WORKING_CACHE_TIME =        600.0;       # cache sensation 600 seconds = 10 mins (may be changed)
     LONG_TERM_CACHE_TIME =        3000.0;       # cache sensation 3000 seconds = 50 mins (may be changed)
     LENGTH_SIZE =       2   # Sensation as string can only be 99 character long
     LENGTH_FORMAT =     "{0:2d}"
@@ -1376,8 +1382,9 @@ class Sensation(object):
                 else:
                     print(tag + Sensation.SensationTypes[sensation.getSensationType()] + ' ' + str(len(parents )))
                 parents.append(sensation)
-                
-                parents = Sensation.logSensationConnections(level=level+1, parents=parents, connections=sensation.getConnections())
+ 
+                if level < Sensation.CONNECTIONS_LOG_MAX_LEVEL and len(parents) < Sensation.CONNECTIONS_LOG_MAX_PARENTS:            
+                    parents = Sensation.logSensationConnections(level=level+1, parents=parents, connections=sensation.getConnections())
         return parents
 
 

@@ -1,11 +1,11 @@
 '''
 Created on 04.05.2019
-Updated on 08.06.2019
+Updated on 02.07.2019
 
 @author: reijo.korhonen@gmail.com
 
 This class is low level sensory (muscle) for speaking
-implemented by alasaaudio and need usb-speaker hardware
+implemented by alsaaudio and need usb-speaker hardware
 
 '''
 import time
@@ -71,10 +71,9 @@ class AlsaAudioPlayback(Robot):
             self.log('process: SensationSensationType.Stop')      
             self.stop()
         elif self.ok and self.running and sensation.getSensationType() == Sensation.SensationType.Voice:
-            if sensation.getSensationType() == Sensation.SensationType.Voice:
-                self.log('process: Sensation.SensationType.VoiceData self.outp.write(sensation.getVoiceData()')
-                self.outp.write(sensation.getData())
-                sensation.save()    #remember what we played
+            self.log('process: Sensation.SensationType.VoiceData self.outp.write(sensation.getVoiceData()')
+            self.outp.write(sensation.getData())
+            sensation.save()    #remember what we played
         self.log("self.running " + str(self.running))      
 
 if __name__ == "__main__":

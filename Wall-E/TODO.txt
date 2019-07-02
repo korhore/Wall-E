@@ -7,6 +7,9 @@ How to handle Socket writing errors?
 - if error, sensation back to Axons
 - connect again by TCPServer?
 
+Study raspberry output.
+Same connection is not detected,when creating a new one!
+
 Last, maybe this situation comes too soon to handle
 SocketClient:('192.168.117.20', 47668):3:Normal: run: Starting robot who SocketClient kind w instanceType s
 SocketClient:('192.168.117.20', 47668):3:StudyOwnIdentity: My name is SocketClient:('192.168.117.20', 47668)

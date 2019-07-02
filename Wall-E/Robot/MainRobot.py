@@ -86,7 +86,7 @@ class MainRobot(Robot):
                        level=level)
         print("We are in MainRobot, not Robot")
         
-        # in main robot, set uo Long_tem Memory and set up TCPServer
+        # in main robot, set up Long_tem Memory and set up TCPServer
         if self.level == 1:
             Sensation.loadLongTermMemory()
             Sensation.CleanDataDirectory()
@@ -119,8 +119,9 @@ class MainRobot(Robot):
         self.mode = Sensation.Mode.Normal
         while self.running:
             transferDirection, sensation = self.getAxon().get()
-            self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
-            self.process(transferDirection=transferDirection, sensation=sensation)
+            self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
+            # We are main Robot, so sensation hoes always down to be processed    
+            self.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
             # as a test, echo everything to external device
             #self.out_axon.put(sensation)
  
@@ -437,9 +438,11 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
  
                    
     def createSocketServer(self, sock, address, socketClient=None):
-        socketServer =  None
+        socketServer = None
         for socketServerCandidate in self.socketServers:
-            if not socketServerCandidate.running:
+            #if not socketServerCandidate.running:
+            # use python default implementation method instead
+            if not socketServerCandidate.is_alive():
                 socketServer = socketServerCandidate
                 self.log('createSocketServer: found SocketServer not running')
                 socketServer.__init__(parent=self,
@@ -450,7 +453,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                                       sock=sock,
                                       socketClient=socketClient)
                 break
-        if not socketServer:
+        if  socketServer == None:
             self.log('createSocketServer: creating new SocketServer')
             socketServer = SocketServer(parent=self,
                                         instanceName='SocketServer',
@@ -467,7 +470,9 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     def createSocketClient(self, sock, address, tcpServer, socketServer=None):
         socketClient =  None
         for socketClientCandidate in self.socketClients:
-            if not socketClientCandidate.running:
+            #if not socketClientCandidate.running:
+            # use python default implementation method instead
+            if not socketClientCandidate.is_alive():
                 socketClient = socketClientCandidate
                 self.log('createSocketClient: found SocketClient not running')
                 socketClient.__init__(parent=self.parent,
@@ -479,7 +484,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                                       socketServer=socketServer,
                                       tcpServer=tcpServer)
                 break
-        if not socketClient:
+        if socketClient == None:
             self.log('createSocketClient: creating new SocketClient')
             socketClient = SocketClient(parent=self.parent,
                                         instanceName='SocketClient',
@@ -536,8 +541,8 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         self.log("run: Starting")
                  
         try:
-            # tell who we are
-            sensation=Sensation(connections=[], direction=Sensation.Direction.Out, sensationType = Sensation.SensationType.Who, who=self.getWho())
+            # tell who we are, speaking
+            sensation=Sensation(connections=[], direction=Sensation.Direction.In, sensationType = Sensation.SensationType.Who, who=self.getWho())
             self.log('run: sendSensation(sensation=Sensation(sensationType = Sensation.SensationType.Who), sock=self.sock,'  + str(self.address) + ')')
             self.running =  self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
             self.log('run: done sendSensation(sensation=Sensation(sensationType = Sensation.SensationType.Who), sock=self.sock,'  + str(self.address) + ')')
@@ -552,7 +557,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                 self.log('run: self.getLocalMasterCapabilities() '  + capabilities.toString())
                 self.log('run: self.getLocalMasterCapabilities() ' +capabilities.toDebugString())
 
-                sensation=Sensation(connections=[], direction=Sensation.Direction.Out, sensationType = Sensation.SensationType.Capability, capabilities=capabilities)
+                sensation=Sensation(connections=[], direction=Sensation.Direction.In, sensationType = Sensation.SensationType.Capability, capabilities=capabilities)
                 self.log('run: Sensation(sensationType = Sensation.SensationType.Capability, capabilities=self.getLocalCapabilities()), sock=self.sock,'  + str(self.address) + ')')
                 self.running = self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
                 self.log('run: done ' + str(self.address) +  ' '  + sensation.getCapabilities().toDebugString('SocketClient'))
@@ -656,6 +661,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                 except Exception as err:
                     self.log("SocketClient error writing length of Sensation to " + str(address) + " error " + str(err))
                     ok = False
+                    self.mode = Sensation.Mode.Interrupted
                 if ok:
                     try:
                         sock.sendall(bytes)                              # message data section
@@ -806,7 +812,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                     self.log("self.sock.recv SEPARATOR " + str(self.address) + " error " + str(err))
                     self.running = False
                     ok = False
-   
+                    self.mode = Sensation.Mode.Interrupted   
             if synced and self.running:
                 self.log("run: waiting size of next Sensation from " + str(self.address))
                 try:
@@ -842,6 +848,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                                     self.log("run: self.sock.recv(sensation_length) error " + str(self.address) + " " + str(err))
                                     self.running = False
                                     ok = False
+                                    self.mode = Sensation.Mode.Interrupted
                             if self.running and ok:
                                 sensation=Sensation(connections=[], bytes=self.data)
                                 sensation.addReceived(self.getHost())  # remember route
@@ -861,6 +868,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                         self.log("self.sock.recv size of next Sensation " + str(self.address) + " error " + str(err))
                         self.running = False
                         ok = False
+                        self.mode = Sensation.Mode.Interrupted
 
         try:
             self.sock.close()

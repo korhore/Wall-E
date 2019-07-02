@@ -21,10 +21,9 @@ import time
 from Robot import  Robot
 from Sensation import Sensation
 
-
 class Communication(Robot):
 
-    CONNECTION_INTERVAL=10.0    # time window plus/minus in seconds 
+    CONNECTION_INTERVAL=60.0    # time window plus/minus in seconds 
                                 # for  sensations we connect together
     CONNECTION_SCORE_LIMIT=0.1  # how strong connection sensation should have
                                 # if we we connect it together with others sensations
@@ -36,6 +35,9 @@ class Communication(Robot):
                  instanceType = Sensation.InstanceType.Real,
                  level=0):
         print("We are in Communication, not Robot")
+        self.spokenVoiceSensation = None
+        self.itemSensation = None
+        
         Robot.__init__(self,
                        parent=parent,
                        instanceName=instanceName,
@@ -57,15 +59,17 @@ class Communication(Robot):
             if candidate_for_communication is not None:
                 for connection in candidate_for_communication.getConnections():
                     if connection.getSensation().getSensationType() == Sensation.SensationType.Voice:
-                        voiceSensation = Sensation.create(connections=[],
-                                                          sensation=connection.getSensation(),
-                                                          direction= Sensation.Direction.In, # speak
+                        voiceSensation = Sensation.create(connections = [],
+                                                          sensation = connection.getSensation(),
+                                                          direction = Sensation.Direction.In, # speak
                                                           memory = Sensation.Memory.Sensory)
-                        sensation.addConnection(Sensation.Connection(sensation=voiceSensation,
-                                                             score=candidate_for_communication.getScore()))
+# Not needed to remember, that we tried to speak
+# this make too many connections
+#                        candidate_for_communication.addConnection(Sensation.Connection(sensation=voiceSensation,
+#                                                                                       score=candidate_for_communication.getScore()))
                         self.log('Communication.process: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)')
                         self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)
                         
-                        # TODO We should wait answer ans communicate as long other part wants
+                        # TODO We should wait answer and communicate as long other part wants
 
  
