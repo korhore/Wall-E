@@ -299,7 +299,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         self.log('__init__: creating socket' )
         self.sock = socket.socket(family=ADDRESS_FAMILY,
                                   type=SOCKET_TYPE)
-        self.sock.setblocking(1)
+        self.sock.setblocking(True)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socketServers = []
         self.socketClients = []
@@ -560,9 +560,9 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                 self.log('run: self.getLocalMasterCapabilities() ' +capabilities.toDebugString())
 
                 sensation=Sensation(connections=[], direction=Sensation.Direction.In, sensationType = Sensation.SensationType.Capability, capabilities=capabilities)
-                self.log('run: Sensation(sensationType = Sensation.SensationType.Capability, capabilities=self.getLocalCapabilities()), sock=self.sock,'  + str(self.address) + ')')
+                self.log('run: sendSensation(sensationType = Sensation.SensationType.Capability, capabilities=self.getLocalCapabilities()), sock=self.sock,'  + str(self.address) + ')')
                 self.running = self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
-                self.log('run: done ' + str(self.address) +  ' '  + sensation.getCapabilities().toDebugString('SocketClient'))
+                self.log('run: sendSensation Sensation.SensationType.Capability done ' + str(self.address) +  ' '  + sensation.getCapabilities().toDebugString('SocketClient'))
         except Exception as e:
             self.log("run: SocketClient.sendSensation exception " + str(e))
             self.running = False
@@ -622,16 +622,16 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         return self.capabilities
 
     '''
-    share out knowledge of sensation memory out client has capabilities   
+    share out knowledge of sensation memory out client has capabilities
+       
+    This is happening when SocketServer is calling it and we don't know if
+    SocketClient is running so best way can be just put all sensations into our Axon
     '''
     def shareSensations(self, capabilities):
-        # this is a problem if we test socket error handling, but should be done in normal run
-        if not MainRobot.IS_SOCKET_ERROR_TEST and\
-           self.getHost() not in MainRobot.sharedSensationHosts:
+        if self.getHost() not in MainRobot.sharedSensationHosts:
             for sensation in Sensation.getSensations(capabilities):
-                self.running =  self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
-                if not self.running:
-                    break
+                 self.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
+
             MainRobot.sharedSensationHosts.append(self.getHost())
 
     '''
@@ -832,61 +832,73 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                     ok = False
                     self.mode = Sensation.Mode.Interrupted   
             if synced and self.running:
+                # message length section
                 self.log("run: waiting size of next Sensation from " + str(self.address))
-                try:
-                    self.data = self.sock.recv(Sensation.NUMBER_SIZE)                         # message length section
-                    if len(self.data) == 0:
-                        self.running = False
-                        ok = False
-                    else:
-                        length_ok = True
-                        try:
-                            sensation_length = int.from_bytes(self.data, Sensation.BYTEORDER)
-                        except:
-                            self.log("run: SocketServer Client protocol error, no valid length resyncing " + str(self.address) + " wrote " + self.data)
-                            length_ok = False
-                            synced = False
-                                
-                        if length_ok:
-                            self.log("run: SocketServer Client " + str(self.address) + " wrote " + str(sensation_length))
-                            self.data=None
-                            while sensation_length > 0:
-                                try:
-                                    data = self.sock.recv(sensation_length)                       # message data section
-                                    if len(data) == 0:
-                                        self.running = False
-                                        ok = False
-                                    else:
-                                        if self.data is None:
-                                            self.data = data
-                                        else:
-                                            self.data = self.data+data
-                                    sensation_length = sensation_length - len(data)
-                                except:
-                                    self.log("run: self.sock.recv(sensation_length) error " + str(self.address) + " " + str(err))
-                                    self.running = False
-                                    ok = False
-                                    self.mode = Sensation.Mode.Interrupted
-                            if self.running and ok:
-                                sensation=Sensation(connections=[], bytes=self.data)
-                                sensation.addReceived(self.getHost())  # remember route
-                                if sensation.getSensationType() == Sensation.SensationType.Capability:
-                                    self.log("run: SocketServer got Capability sensation " + sensation.getCapabilities().toDebugString('SocketServer'))
-                                    self.process(transferDirection=Sensation.TransferDirection.Up, sensation=sensation)
-                                    # share here sensations from our memory that this host has capabilities
-                                    # We wan't always share our all knowledge with all other robots
-                                    if self.getSocketClient() is not None:
-                                        self.getSocketClient().shareSensations(self.getCapabilities())
-                                else:
-                                    self.log("run: SocketServer got sensation " + sensation.toDebugStr())
-                                    if sensation.getSensationType() == Sensation.SensationType.Voice:
-                                        self.log("run: SocketServer got Voice sensation")
-                                    self.getParent().getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # write sensation to TCPServers Parent, because TCPServer does not read its Axon
-                except Exception as err:
-                        self.log("self.sock.recv size of next Sensation " + str(self.address) + " error " + str(err))
+                # we can get number of sensation in many pieces
+                sensation_length_length = Sensation.NUMBER_SIZE
+                self.data = None
+                while sensation_length_length > 0 and self.running:
+                    try:
+                        data = self.sock.recv(sensation_length_length)                       # message data section
+                        if len(data) == 0:
+                            self.running = False
+                            ok = False
+                        else:
+                            if self.data is None:
+                                self.data = data
+                            else:
+                                self.data = self.data+data
+                        sensation_length_length = sensation_length_length - len(data)
+                    except:
+                        self.log("run: self.sock.recv(sensation_length_length) Interrupted error " + str(self.address) + " " + str(err))
                         self.running = False
                         ok = False
                         self.mode = Sensation.Mode.Interrupted
+########################################
+                if ok:
+                    length_ok = True
+                    try:
+                        sensation_length = int.from_bytes(self.data, Sensation.BYTEORDER)
+                    except:
+                        self.log("run: SocketServer Client protocol error, no valid length resyncing " + str(self.address) + " wrote " + self.data)
+                        length_ok = False
+                        synced = False
+                                
+                    if length_ok:
+                        self.log("run: SocketServer Client " + str(self.address) + " wrote " + str(sensation_length))
+                        self.data=None
+                        while sensation_length > 0:
+                            try:
+                                data = self.sock.recv(sensation_length)                       # message data section
+                                if len(data) == 0:
+                                    self.running = False
+                                    ok = False
+                                else:
+                                    if self.data is None:
+                                        self.data = data
+                                    else:
+                                        self.data = self.data+data
+                                sensation_length = sensation_length - len(data)
+                            except:
+                                self.log("run: self.sock.recv(sensation_length) Interrupted error " + str(self.address) + " " + str(err))
+                                self.running = False
+                                ok = False
+                                self.mode = Sensation.Mode.Interrupted
+                        if self.running and ok:
+                            sensation=Sensation(connections=[], bytes=self.data)
+                            sensation.addReceived(self.getHost())  # remember route
+                            if sensation.getSensationType() == Sensation.SensationType.Capability:
+                                self.log("run: SocketServer got Capability sensation " + sensation.getCapabilities().toDebugString('SocketServer'))
+                                self.process(transferDirection=Sensation.TransferDirection.Up, sensation=sensation)
+                                # share here sensations from our memory that this host has capabilities
+                                # We wan't always share our all knowledge with all other robots
+                                if self.getSocketClient() is not None:
+                                    self.getSocketClient().shareSensations(self.getCapabilities())
+                            else:
+                                self.log("run: SocketServer got sensation " + sensation.toDebugStr())
+                                if sensation.getSensationType() == Sensation.SensationType.Voice:
+                                    self.log("run: SocketServer got Voice sensation")
+                                self.getParent().getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # write sensation to TCPServers Parent, because TCPServer does not read its Axon
 
         try:
             self.sock.close()
