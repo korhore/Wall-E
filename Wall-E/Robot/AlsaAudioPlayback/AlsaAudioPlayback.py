@@ -70,10 +70,13 @@ class AlsaAudioPlayback(Robot):
         if sensation.getSensationType() == Sensation.SensationType.Stop:
             self.log('process: SensationSensationType.Stop')      
             self.stop()
-        elif self.ok and self.running and sensation.getSensationType() == Sensation.SensationType.Voice:
+        # we can speak
+        elif self.ok and self.running and sensation.getSensationType() == Sensation.SensationType.Voice and sensation.getDirection() == Sensation.Direction.In:
             self.log('process: Sensation.SensationType.VoiceData self.outp.write(sensation.getVoiceData()')
             self.outp.write(sensation.getData())
             sensation.save()    #remember what we played
+        else:
+            self.log('process: got sensation we this robot can\'t process')
         self.log("self.running " + str(self.running))      
 
 if __name__ == "__main__":

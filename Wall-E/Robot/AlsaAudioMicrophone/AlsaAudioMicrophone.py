@@ -178,7 +178,6 @@ class AlsaAudioMicrophone(Robot):
         '''
         
     def analyzeData(self, l, data, dtype):
-        sensation = None
 #        self.log("analyzeData")      
         minim=9999
         maxim=-9999

@@ -63,6 +63,9 @@ class Communication(Robot):
                                                           sensation = connection.getSensation(),
                                                           direction = Sensation.Direction.In, # speak
                                                           memory = Sensation.Memory.Sensory)
+                        # to be sure
+                        voiceSensation.SetDirection(Sensation.Direction.In)
+                        voiceSensation.SetMemory(Sensation.Memory.Sensory)
 # Not needed to remember, that we tried to speak
 # this make too many connections
 #                        candidate_for_communication.addConnection(Sensation.Connection(sensation=voiceSensation,

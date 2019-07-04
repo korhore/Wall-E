@@ -435,8 +435,8 @@ class Robot(Thread):
         # sensation going down
         else:
             # which subinstances can process this
-            robots = self.getSubCapabilityInstanceses(direction=Sensation.Direction.In, memory=sensation.getMemory(), sensationType=sensation.getSensationType())
-            self.log('Sensation.Direction.In self.getSubCapabilityInstanceses' + str(robots))
+            robots = self.getSubCapabilityInstanceses(direction=sensation.getDirection(), memory=sensation.getMemory(), sensationType=sensation.getSensationType())
+            self.log('process: self.getSubCapabilityInstanceses' + str(robots))
             for robot in robots:
                 if robot.getInstanceType() == Sensation.InstanceType.Remote:
                     # if this sensation comes from sockrServers host

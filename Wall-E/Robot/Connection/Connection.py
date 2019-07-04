@@ -27,7 +27,7 @@ from Sensation import Sensation
 
 class Connection(Robot):
 
-    CONNECTION_INTERVAL=10.0    # time window plus/minus in seconds 
+    CONNECTION_INTERVAL=30.0    # time window plus/minus in seconds 
                                 # for  sensations we connect together
     CONNECTION_SCORE_LIMIT=0.1  # how strong connection sensation should have
                                 # if we we connect it together with others sensations
@@ -160,7 +160,8 @@ class Connection(Robot):
                     new_connection = True
                     # TODO
                     # At this point we could also start communicating if sensation is Item and candidate_to_connect is Voice or opposite way
-                    # At this point we haven't implmented Communication status fot detecting if we get a response from the item we are communicating with
+                    # At this point we haven't implemented Communication status fot detecting if we get a response from the item we are communicating with
+                    # disabled
                     if sensation.getSensationType() == Sensation.SensationType.Item and \
                        candidate_to_connect.getSensationType() == Sensation.SensationType.Voice:
                         voiceSensation = Sensation.create(connections=[],

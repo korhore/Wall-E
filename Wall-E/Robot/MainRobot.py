@@ -66,8 +66,10 @@ class MainRobot(Robot):
     SOCKET_ERROR_WAIT_TIME  =   60.0
     HOST_RECONNECT_MAX_TRIES =  10
     IS_SOCKET_ERROR_TEST =      False
-    SOCKET_ERROR_TEST_RATE =    5
+    SOCKET_ERROR_TEST_RATE =    10
     SOCKET_ERROR_TEST_NUMBER =  0
+    
+    sharedSensationHosts = []                # hosts with we have already shared our sensations
 
     def __init__(self,
                  parent=None,
@@ -577,17 +579,24 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         # We can handle only sensation going down transfer-direction
         if transferDirection == Sensation.TransferDirection.Down:
-             self.running = self.sendSensation(sensation, self.sock, self.address)
-             # if we have got broken pipe -error, meaning that socket writing does not work any more
-             # then try to get new connection, meaning that ask TCPServer to give us a new open socket
-             if not self.running and self.mode == Sensation.Mode.Interrupted:
-                 connected = False
-                 tries=0
-                 while not connected and tries < MainRobot.HOST_RECONNECT_MAX_TRIES:
-                     connected = self.tcpServer.connectToHost(self.getHost())
-                     if not connected:
-                         time.sleep(MainRobot.SOCKET_ERROR_WAIT_TIME)
-                         tries=tries+1
+            self.running = self.sendSensation(sensation, self.sock, self.address)
+            # if we have got broken pipe -error, meaning that socket writing does not work any more
+            # then try to get new connection, meaning that ask TCPServer to give us a new open socket
+            if not self.running and self.mode == Sensation.Mode.Interrupted:
+                self.log('process: interrupted')
+                connected = False
+                tries=0
+                while not connected and tries < MainRobot.HOST_RECONNECT_MAX_TRIES:
+                    self.log('process: interrupted self.tcpServer.connectToHost ' + str(self.getHost()))
+                    connected = self.tcpServer.connectToHost(self.getHost())
+                    if not connected:
+                        self.log('process: interrupted self.tcpServer.connectToHost did not succeed ' + str(self.getHost()) + ' time.sleep(MainRobot.SOCKET_ERROR_WAIT_TIME)')
+                        time.sleep(MainRobot.SOCKET_ERROR_WAIT_TIME)
+                        tries=tries+1
+                if connected:
+                    self.log('process: interrupted self.tcpServer.connectToHost SUCCEEDED to ' + str(self.getHost()))
+                else:
+                    self.log('process: interrupted self.tcpServer.connectToHost did not succeed FINAL, no more tries to ' + str(self.getHost()))
                 # we are stopped anyway, if we are lucky we have new SocketServer and SocketClient now to our host
                 # don't touch anything, if we are reused
 
@@ -616,22 +625,27 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
     share out knowledge of sensation memory out client has capabilities   
     '''
     def shareSensations(self, capabilities):
-        for sensation in Sensation.getSensations(capabilities):
-            self.running =  self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
-            if not self.running:
-                break
+        # this is a problem if we test socket error handling, but should be done in normal run
+        if not MainRobot.IS_SOCKET_ERROR_TEST and\
+           self.getHost() not in MainRobot.sharedSensationHosts:
+            for sensation in Sensation.getSensations(capabilities):
+                self.running =  self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
+                if not self.running:
+                    break
+            MainRobot.sharedSensationHosts.append(self.getHost())
 
     '''
     method for sending a sensation
     '''
         
     def sendSensation(self, sensation, sock, address):
-        self.log('SocketClient.sendSensation')
+        #self.log('SocketClient.sendSensation')
         ok = True
         
         if sensation.isReceivedFrom(self.getHost()) or \
           sensation.isReceivedFrom(self.getSocketServer().getHost()):
-            self.log('socketClient.sendSensation asked to send sensation back to sensation original host. We Don\'t recycle it!')
+            pass
+            #self.log('socketClient.sendSensation asked to send sensation back to sensation original host. We Don\'t recycle it!')
         else:
             bytes = sensation.bytes()
             length =len(bytes)
@@ -640,35 +654,39 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
             try:
                 l = sock.send(Sensation.SEPARATOR.encode('utf-8'))        # message separator section
                 if Sensation.SEPARATOR_SIZE == l:
-                    self.log('SocketClient wrote separator to ' + str(address))
+                    pass
+                    #self.log('SocketClient.sendSensation wrote separator to ' + str(address))
                 else:
-                    self.log("SocketClient length " + str(l) + " != " + str(Sensation.SEPARATOR_SIZE) + " error writing to " + str(address))
+                    self.log("SocketClient.sendSensation length " + str(l) + " != " + str(Sensation.SEPARATOR_SIZE) + " error writing to " + str(address))
                     ok = False
             except Exception as err:
-                self.log("SocketClient error writing Sensation.SEPARATOR to " + str(address)  + " error " + str(err))
+                self.log("SocketClient.sendSensationt error writing Sensation.SEPARATOR to " + str(address)  + " error " + str(err))
                 ok=False
                 self.mode = Sensation.Mode.Interrupted
             ## if we test, then we cause error time by time by us
-            if MainRobot.IS_SOCKET_ERROR_TEST:
+            if MainRobot.IS_SOCKET_ERROR_TEST and self.mode == Sensation.Mode.Normal and\
+               self.getSocketServer().mode == Sensation.Mode.Normal:
                 MainRobot.SOCKET_ERROR_TEST_NUMBER = MainRobot.SOCKET_ERROR_TEST_NUMBER+1
-                self.log("SocketClient MainRobot.IS_SOCKET_ERROR_TEST MainRobot.SOCKET_ERROR_TEST_NUMBER % MainRobot.SOCKET_ERROR_TEST_RATE: " + str(MainRobot.SOCKET_ERROR_TEST_NUMBER % MainRobot.SOCKET_ERROR_TEST_RATE))
+                self.log("SocketClient.sendSensation MainRobot.IS_SOCKET_ERROR_TEST MainRobot.SOCKET_ERROR_TEST_NUMBER % MainRobot.SOCKET_ERROR_TEST_RATE: " + str(MainRobot.SOCKET_ERROR_TEST_NUMBER % MainRobot.SOCKET_ERROR_TEST_RATE))
                 if MainRobot.SOCKET_ERROR_TEST_NUMBER % MainRobot.SOCKET_ERROR_TEST_RATE == 0:
+                    self.log("SocketClient.sendSensation MainRobot.IS_SOCKET_ERROR_TEST sock.close()")
                     sock.close()
             if ok:
                 try:
                     l = sock.send(length_bytes)                            # message length section
-                    self.log("SocketClient wrote length " + str(length) + " of Sensation to " + str(address))
+                    #self.log("SocketClient wrote length " + str(length) + " of Sensation to " + str(address))
                 except Exception as err:
-                    self.log("SocketClient error writing length of Sensation to " + str(address) + " error " + str(err))
+                    self.log("SocketClient.sendSensation error writing length of Sensation to " + str(address) + " error " + str(err))
                     ok = False
                     self.mode = Sensation.Mode.Interrupted
+                    self.log("SocketClient.sendSensation self.mode = Sensation.Mode.Interrupted " + str(address))
                 if ok:
                     try:
                         sock.sendall(bytes)                              # message data section
-                        self.log("SocketClient wrote Sensation to " + str(address))
-                        self.log("send SocketClient wrote sensation " + sensation.toDebugStr())
+                        #self.log("SocketClient wrote Sensation to " + str(address))
+                        self.log("SocketClient.sendSensationt wrote sensation " + sensation.toDebugStr() + " to " + str(address))
                     except Exception as err:
-                        self.log("SocketClient error writing Sensation to " + str(address) + " error " + str(err))
+                        self.log("SocketClient.sendSensationt error writing Sensation to " + str(address) + " error " + str(err))
                         ok = False
                         self.mode = Sensation.Mode.Interrupted
 #             if not ok:
@@ -709,7 +727,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
     Global method for stopping remote host
     '''
     def sendStop(sock, address):
-        print("SocketClient: sendStop(sock, address)") 
+        print("SocketClient.sendStop(sock, address)") 
         sensation=Sensation(connections=[], sensationType = Sensation.SensationType.Stop)
 
         bytes = sensation.bytes()
@@ -720,30 +738,30 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         try:
             l = sock.send(Sensation.SEPARATOR.encode('utf-8'))        # message separator section
             if Sensation.SEPARATOR_SIZE == l:
-                print('SocketClient wrote separator to ' + str(address))
+                print('SocketClient.sendStop wrote separator to ' + str(address))
             else:
-                print("SocketClient length " + str(l) + " != " + str(Sensation.SEPARATOR_SIZE) + " error writing to " + str(address))
+                print("SocketClient.sendStop length " + str(l) + " != " + str(Sensation.SEPARATOR_SIZE) + " error writing to " + str(address))
                 ok = False
         except Exception as err:
-            print("SocketClient error writing Sensation.SEPARATOR to " + str(address)  + " error " + str(err))
+            print("SocketClient.sendStop error writing Sensation.SEPARATOR to " + str(address)  + " error " + str(err))
             ok=False
             self.mode = Sensation.Mode.Interrupted
         if ok:
             try:
                 l = sock.send(length_bytes)                            # message length section
-                print("SocketClient wrote length " + str(length) + " of Sensation to " + str(address))
+                print("SocketClient.sendStop wrote length " + str(length) + " of Sensation to " + str(address))
             except Exception as err:
-                self.log("SocketClient error writing length of Sensation to " + str(address) + " error " + str(err))
+                self.log("SocketClient.sendStop error writing length of Sensation to " + str(address) + " error " + str(err))
                 ok = False
             if ok:
                 try:
                     l = sock.send(bytes)                              # message data section
-                    print("SocketClient wrote Sensation to " + str(address))
+                    print("SocketClient.sendStop wrote Sensation to " + str(address))
                     if length != l:
-                        print("SocketClient length " + str(l) + " != " + str(length) + " error writing to " + str(address))
+                        print("SocketClient.sendStop length " + str(l) + " != " + str(length) + " error writing to " + str(address))
                         ok = False
                 except Exception as err:
-                    print("SocketClient error writing Sensation to " + str(address) + " error " + str(err))
+                    print("SocketClient.sendStop error writing Sensation to " + str(address) + " error " + str(err))
                     ok = False
                     self.mode = Sensation.Mode.Interrupted
         return ok
