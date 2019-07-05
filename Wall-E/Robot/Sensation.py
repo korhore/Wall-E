@@ -284,7 +284,7 @@ class Sensation(object):
         # Maybe this is not a big problem. This simple implementation keeps
         # sensation creation efficient
         while len(memory) > 0 and now - memory[0].getLatestTime() > cacheTime:
-            print('delete from sensation cache ' + str(sensation.getMemory()) + ' ' + str(sensation.getNumber()))
+            print('delete from sensation cache ' + sensation.toDebugStr())
             memory[0].delete()
             del memory[0]
                 
@@ -474,23 +474,23 @@ class Sensation(object):
                     i += Sensation.FLOAT_PACK_SIZE
                 elif self.sensationType is Sensation.SensationType.Voice:
                     filePath_size = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
-                    print("filePath_size " + str(filePath_size))
+                    #print("filePath_size " + str(filePath_size))
                     i += Sensation.NUMBER_SIZE
                     self.filePath =bytesToStr(bytes[i:i+filePath_size])
                     i += filePath_size
                     data_size = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
-                    print("data_size " + str(data_size))
+                    #print("data_size " + str(data_size))
                     i += Sensation.NUMBER_SIZE
                     self.data = bytes[i:i+data_size]
                     i += data_size
                 elif self.sensationType is Sensation.SensationType.Image:
                     filePath_size = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
-                    print("filePath_size " + str(filePath_size))
+                    #print("filePath_size " + str(filePath_size))
                     i += Sensation.NUMBER_SIZE
                     self.filePath =bytesToStr(bytes[i:i+filePath_size])
                     i += filePath_size
                     data_size = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
-                    print("data_size " + str(data_size))
+                    #print("data_size " + str(data_size))
                     i += Sensation.NUMBER_SIZE
                     if data_size > 0:
                         self.image = PIL_Image.open(io.BytesIO(bytes[i:i+data_size]))
@@ -517,7 +517,7 @@ class Sensation(object):
                     i += name_size
                     
                 connection_number = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
-                print("connection_number " + str(connection_number))
+                #print("connection_number " + str(connection_number))
                 i += Sensation.NUMBER_SIZE
                 for j in range(connection_number):
                     sensation_number=bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
@@ -851,7 +851,7 @@ class Sensation(object):
 #             s=str(self.number) + ' ' + str(self.time) + ' ' + str(self.connection_time) + ' ' + Sensation.getMemoryString(self.memory) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
 #         else:
 #             s=self.__str__()
-        s=str(self.number) + ' ' + str(self.time) + ' ' + Sensation.getMemoryString(self.memory) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
+        s = systemTime.ctime(self.time) + ' ' + str(self.number) + ' ' + Sensation.getMemoryString(self.memory) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
         if self.sensationType == Sensation.SensationType.Item:
             s = s + ' ' + self.name
         return s
@@ -985,6 +985,39 @@ class Sensation(object):
             connection.time = time
         
     '''
+    for debugging reasons log what connections there is in our Long Term Memory
+    '''  
+    def logConnections(sensation):
+        if sensation.getSensationType() is Sensation.SensationType.Item:
+            print('Connections: ' + sensation.getName())
+            parents=[sensation]
+            parents = Sensation.logSensationConnections(level=1, parents=parents, connections=sensation.getConnections())
+            print('Connections: ' + sensation.getName() + ' ' + str(len(parents )-1) + ' connections')
+
+
+    '''
+    for debugging reasons log what connections there is in our Lng Term Memory
+    '''  
+    def logSensationConnections(level, parents, connections):
+#         tag=''
+#         for i in range(0,level):
+#             tag=tag+'-'
+        tag=str(level)+': '
+        for connection in connections:
+            sensation = connection.getSensation()
+            if sensation not in parents:
+                if sensation.getSensationType() is Sensation.SensationType.Item:
+                    print(tag + ' Item: ' + sensation.getName() + ' ' + str(len(parents )))
+                else:
+                    print(tag + Sensation.SensationTypes[sensation.getSensationType()] + ' ' + str(len(parents )))
+                parents.append(sensation)
+ 
+                if level < Sensation.CONNECTIONS_LOG_MAX_LEVEL and len(parents) < Sensation.CONNECTIONS_LOG_MAX_PARENTS:            
+                    parents = Sensation.logSensationConnections(level=level+1, parents=parents, connections=sensation.getConnections())
+        return parents
+
+    
+    '''
     Add single connection
     Connections are always two sided, but not referencing to self
     '''
@@ -992,24 +1025,56 @@ class Sensation(object):
         time = systemTime.time()
         if connection.getSensation() != self and \
            not self.isConnected(connection):
-            print('addConnection ' + self.toDebugStr() + ' to ' + connection.getSensation().toDebugStr())
+            #print('addConnection ' + self.toDebugStr() + ' to ' + connection.getSensation().toDebugStr())
             self.connections.append(connection)
             connection.time = time
-            print('addConnection ' + self.toDebugStr() + ' has ' + str(len(self.connections)) + ' connections')
-            # TODO howto do reverse connection
+            if self.getSensationType() == Sensation.SensationType.Item and\
+               connection.getSensation().getSensationType() == Sensation.SensationType.Voice:
+                print('addConnection Item connected to a Voice ' + self.toDebugStr() + ' has ' + str(len(self.connections)) + ' connections')
+                Sensation.logConnections(self)
+                # TODO remove test
+                # should find at least this one
+                candidate_for_communication = Sensation.getBestSensation( sensationType = Sensation.SensationType.Item,
+                                                                          name = self.getName(),
+                                                                          timemin = None,
+                                                                          timemax = None,
+                                                                          connectionSensationType=Sensation.SensationType.Voice)
+                if candidate_for_communication is None:
+                    print('addConnection Item connected to a Voice something ODD with Sensation.getBestSensation, not found' + self.toDebugStr() + ' has ' + str(len(self.connections)) + ' connections')
+                else:
+                    print('addConnection Item connected to a Voice Sensation.getBestSensation ' + candidate_for_communication.toDebugStr() + ' has ' + str(len(candidate_for_communication.connections)) + ' connections')
+                    Sensation.logConnections(candidate_for_communication)
+            elif self.getSensationType() == Sensation.SensationType.Voice and\
+               connection.getSensation().getSensationType() == Sensation.SensationType.Item:
+                print('addConnection Voice connected to an Item ' + self.toDebugStr() + ' has ' + str(len(self.connections)) + ' connections')
+                Sensation.logConnections(connection.getSensation())
+                # TODO remove test
+                # should find at least connection
+                candidate_for_communication = Sensation.getBestSensation( sensationType = Sensation.SensationType.Item,
+                                                                          name = connection.getSensation().getName(),
+                                                                          timemin = None,
+                                                                          timemax = None,
+                                                                          connectionSensationType=Sensation.SensationType.Voice)
+                if candidate_for_communication is None:
+                    print('addConnection Voice connected to an Item something ODD with Sensation.getBestSensation, not found' + self.toDebugStr() + ' has ' + str(len(self.connections)) + ' connections')
+                else:
+                    print('addConnection Voice connected to an Item Sensation.getBestSensation ' + candidate_for_communication.toDebugStr() + ' has ' + str(len(candidate_for_communication.connections)) + ' connections')
+                    Sensation.logConnections(candidate_for_communication)
+            #print('addConnection ' + self.toDebugStr() + ' has ' + str(len(self.connections)) + ' connections')
+            ## TODO howto do reverse connection
             #connection.getSensation().addConnection(Sensation.Connection(sensation=self))
     '''
     Is this Sensation in this Connection already connected
     '''
     def isConnected(self, connection):
-        print('isConnected ' + self.toDebugStr() + ' has ' + str(len(self.connections)) + ' connections')
+        #print('isConnected ' + self.toDebugStr() + ' has ' + str(len(self.connections)) + ' connections')
         is_connected = False
         for con in self.connections:
             if con.getSensation() == connection.getSensation():
                 is_connected = True
-                print('isConnected ' + self.toDebugStr() + ' found connection to ' + con.getSensation().toDebugStr() + ' == ' + connection.getSensation().toDebugStr() + ' ' + str(is_connected))
+                #print('isConnected ' + self.toDebugStr() + ' found connection to ' + con.getSensation().toDebugStr() + ' == ' + connection.getSensation().toDebugStr() + ' ' + str(is_connected))
                 break
-        print('isConnected ' + self.toDebugStr() + ' to ' + connection.getSensation().toDebugStr() + ' ' + str(is_connected))
+        #print('isConnected ' + self.toDebugStr() + ' to ' + connection.getSensation().toDebugStr() + ' ' + str(is_connected))
         return is_connected
         
     '''
@@ -1355,37 +1420,6 @@ class Sensation(object):
         return bestSensation
     
     
-    '''
-    for debugging reasons log what connections there is in our Lng Term Memory
-    '''  
-    def logConnections(sensation):
-        if sensation.getSensationType() is Sensation.SensationType.Item:
-            print('Connections: ' + sensation.getName())
-            parents=[sensation]
-            parents = Sensation.logSensationConnections(level=1, parents=parents, connections=sensation.getConnections())
-            print('Connections: ' + sensation.getName() + ' ' + str(len(parents )-1) + ' connections')
-
-
-    '''
-    for debugging reasons log what connections there is in our Lng Term Memory
-    '''  
-    def logSensationConnections(level, parents, connections):
-#         tag=''
-#         for i in range(0,level):
-#             tag=tag+'-'
-        tag=str(level)+': '
-        for connection in connections:
-            sensation = connection.getSensation()
-            if sensation not in parents:
-                if sensation.getSensationType() is Sensation.SensationType.Item:
-                    print(tag + ' Item: ' + sensation.getName() + ' ' + str(len(parents )))
-                else:
-                    print(tag + Sensation.SensationTypes[sensation.getSensationType()] + ' ' + str(len(parents )))
-                parents.append(sensation)
- 
-                if level < Sensation.CONNECTIONS_LOG_MAX_LEVEL and len(parents) < Sensation.CONNECTIONS_LOG_MAX_PARENTS:            
-                    parents = Sensation.logSensationConnections(level=level+1, parents=parents, connections=sensation.getConnections())
-        return parents
 
 
     '''

@@ -292,7 +292,10 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         print("We are in TCPServer, not Robot")
         self.address=address
         self.name = str(address)
-        self.hostNames = hostNames
+        # convert hostnames to IP addresses so same thing has always same name
+        self.hostNames = []
+        for hostname in hostNames:
+            self.hostNames.append(socket.gethostbyname(hostname))
 
         Thread.__init__(self)
         self.name = "TCPServer"
@@ -854,7 +857,6 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                         self.running = False
                         ok = False
                         self.mode = Sensation.Mode.Interrupted
-########################################
                 if ok:
                     length_ok = True
                     try:
@@ -896,8 +898,6 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                                     self.getSocketClient().shareSensations(self.getCapabilities())
                             else:
                                 self.log("run: SocketServer got sensation " + sensation.toDebugStr())
-                                if sensation.getSensationType() == Sensation.SensationType.Voice:
-                                    self.log("run: SocketServer got Voice sensation")
                                 self.getParent().getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # write sensation to TCPServers Parent, because TCPServer does not read its Axon
 
         try:

@@ -14,6 +14,7 @@ import socket
 import math
 import time
 import configparser
+from enum import Enum
 
 import daemon
 import lockfile
@@ -34,6 +35,9 @@ from Sensation import Sensation
 # if 'Seeing.See' not in sys.modules:
 #     from Seeing.See import See
 
+def enum(*sequential, **named):
+    enums = dict(zip(sequential, range(len(sequential))), **named)
+    return type('Enum', (), enums)
 
 class Robot(Thread):
     """
@@ -107,12 +111,15 @@ class Robot(Thread):
     Every sensory runs in its own thread as real sensorys, independently.
     External Sensorys are handled using sockets.
     """
-    
+ 
+    LogLevel = enum(Critical='a', Error='b', Normal='c', Detailed='d', Verbose='e')
+   
     def __init__(self,
                  parent=None,
                  instanceName=None,
                  instanceType = Sensation.InstanceType.Real,
-                 level=0):
+                 level=0,
+                 logLevel=LogLevel.Normal):
         print("Robot 1")
         Thread.__init__(self)
         self.mode = Sensation.Mode.Starting
@@ -122,6 +129,7 @@ class Robot(Thread):
             self.instanceName = Config.DEFAULT_INSTANCE
         self.instanceType=instanceType
         self.level=level+1
+        self.logLevel=logLevel
         
         self.subInstances = []  # subInstance contain a outAxon we write muscle sensations
                                 # for subrobot this axon in inAxon
@@ -139,7 +147,7 @@ class Robot(Thread):
         self.capabilities = Capabilities(config=self.config)
         print("Robot 4")
         self.name = self.getWho()
-        self.log("init robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + self.config.getInstanceType() + self.capabilities.toDebugString())
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + self.config.getInstanceType() + self.capabilities.toDebugString())
         # global queue for senses and other robots to put sensations to robot
         self.axon = Axon()
         #and create virtual instances
@@ -147,19 +155,19 @@ class Robot(Thread):
             try:
                 module = subInstanceName+ '.' + subInstanceName
                 imported_module = importlib.import_module(module)
-                self.log('init ' + subInstanceName)
+                self.log(logLevel=Robot.LogLevel.Detailed, logStr='init ' + subInstanceName)
                 robot = getattr(imported_module, subInstanceName)(parent=self,
                                                                   instanceName=subInstanceName,
                                                                   instanceType= Sensation.InstanceType.SubInstance,
                                                                   level=self.level)
             except ImportError as e:
-                self.log("Import error, implement " + module + ' to fix this ' + str(e) + ' ' + str(traceback.format_exc()))
-                self.log("Import error, implement " + module + ' ignored, not initiated or not will be started until corrected!')
+                self.log(logLevel=Robot.LogLevel.Critical, logStr="Import error, implement " + module + ' to fix this ' + str(e) + ' ' + str(traceback.format_exc()))
+                self.log(logLevel=Robot.LogLevel.Critical, logStr="Import error, implement " + module + ' ignored, not initiated or not will be started until corrected!')
                 robot = None
             if robot is not None:
                 self.subInstances.append(robot)
             else:
-                self.log("init robot sub instanceName " + subInstanceName + " is None")
+                self.log(logLevel=Robot.LogLevel.Verbose, logStr="init robot sub instanceName " + subInstanceName + " is None")
 
         for instanceName in self.config.getVirtualInstanceNames():
             robot = Robot(parent=self,
@@ -169,7 +177,7 @@ class Robot(Thread):
             if robot is not None:
                 self.subInstances.append(robot)
             else:
-                self.log("init robot virtual instanceName " + instanceName + " is None")
+                self.log(logLevel=Robot.LogLevel.Verbose, logStr="init robot virtual instanceName " + instanceName + " is None")
         
 
             
@@ -216,7 +224,7 @@ class Robot(Thread):
             for robot in self.getSubInstances():
                 capabilities.Or(robot._getCapabilities())
                                     
-        self.log('getMasterCapabilities ' +capabilities.toDebugString())
+        self.log(logLevel=Robot.LogLevel.Verbose, logStr='getMasterCapabilities ' +capabilities.toDebugString())
         return capabilities
     
     def _getCapabilities(self):
@@ -224,7 +232,7 @@ class Robot(Thread):
         for robot in self.getSubInstances():
             capabilities.Or(robot._getLocalCapabilities())
                                    
-        self.log('_getCapabilities ' +capabilities.toDebugString())
+        self.log(logLevel=Robot.LogLevel.Verbose, logStr='_getCapabilities ' +capabilities.toDebugString())
         return capabilities
     '''
     get capabilities that main robot or all Sub and virtual instances have
@@ -240,7 +248,7 @@ class Robot(Thread):
                 if robot.getInstanceType() != Sensation.InstanceType.Remote:
                     capabilities.Or(robot._getLocalCapabilities())
                                     
-        self.log('getLocalMasterCapabilities ' +capabilities.toDebugString())
+        self.log(logLevel=Robot.LogLevel.Verbose, logStr='getLocalMasterCapabilities ' +capabilities.toDebugString())
         return capabilities
 
     def _getLocalCapabilities(self):
@@ -249,7 +257,7 @@ class Robot(Thread):
             if robot.getInstanceType() != Sensation.InstanceType.Remote:
                 capabilities.Or(robot._getLocalCapabilities())
                                     
-        self.log('_getLocalCapabilities ' +capabilities.toDebugString())
+        self.log(logLevel=Robot.LogLevel.Verbose, logStr='_getLocalCapabilities ' +capabilities.toDebugString())
         return capabilities
        
     '''
@@ -260,22 +268,22 @@ class Robot(Thread):
         if self.getCapabilities() is not None:
             hasCapalility = self.getCapabilities().hasCapability(direction, memory, sensationType)
             if hasCapalility:
-                self.log("hasCapability direction " + str(direction) + " memory " + str(memory) + " sensationType " + str(sensationType) + ' ' + str(hasCapalility))      
+                self.log(logLevel=Robot.LogLevel.Verbose, logStr="hasCapability direction " + str(direction) + " memory " + str(memory) + " sensationType " + str(sensationType) + ' ' + str(hasCapalility))      
         return hasCapalility
     '''
     Has this instance or at least one of its subinstabces this capability
     ''' 
     def hasSubCapability(self, direction, memory, sensationType):
-        #self.log("hasSubCapability direction " + str(direction) + " memory " + str(memory) + " sensationType " + str(sensationType))
+        #self.log(logLevel=Robot.LogLevel.Verbose, logStr="hasSubCapability direction " + str(direction) + " memory " + str(memory) + " sensationType " + str(sensationType))
         if self.hasCapability(direction, memory, sensationType):
-            self.log('hasSubCapability self has direction ' + str(direction) + ' memory ' + str(memory) + ' sensationType ' + str(sensationType) + ' True')      
+            self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability self has direction ' + str(direction) + ' memory ' + str(memory) + ' sensationType ' + str(sensationType) + ' True')      
             return True    
         for robot in self.getSubInstances():
             if robot.getCapabilities().hasCapability(direction, memory, sensationType) or \
                robot.hasSubCapability(direction, memory, sensationType):
-                self.log('hasSubCapability subInstance ' + robot.getWho() + ' has direction ' + str(direction) + ' memory ' + str(memory) + ' sensationType ' + str(sensationType) + ' True')      
+                self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability subInstance ' + robot.getWho() + ' has direction ' + str(direction) + ' memory ' + str(memory) + ' sensationType ' + str(sensationType) + ' True')      
                 return True
-        #self.log('hasSubCapability direction ' + str(direction) + ' memory ' + str(memory) + ' sensationType ' + str(sensationType) + ' False')      
+        #self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability direction ' + str(direction) + ' memory ' + str(memory) + ' sensationType ' + str(sensationType) + ' False')      
         return False
    
     def getSubCapabilityInstanceses(self, direction, memory, sensationType):
@@ -289,7 +297,7 @@ class Robot(Thread):
 
     def run(self):
         self.running=True
-        self.log("run: Starting robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + self.config.getInstanceType())      
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="run: Starting robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + self.config.getInstanceType())      
         
         # starting other threads/senders/capabilities
         for robot in self.subInstances:
@@ -306,7 +314,7 @@ class Robot(Thread):
             # or if we can sense, but there is someting in our xon, proces it
             if not self.getAxon().empty() or not self.canSense():
                 transferDirection, sensation = self.getAxon().get()
-                self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
                 self.process(transferDirection=transferDirection, sensation=sensation)
                 # as a test, echo everything to external device
                 #self.out_axon.put(sensation)
@@ -314,13 +322,13 @@ class Robot(Thread):
                 self.sense()
  
         self.mode = Sensation.Mode.Stopping
-        self.log("Stopping robot")      
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="Stopping robot")      
 
          # stop virtual instances here, when main instance is not running any more
         for robot in self.subInstances:
             robot.stop()
        
-        self.log("run ALL SHUT DOWN")
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="run ALL SHUT DOWN")
 
     '''
     Default implementation can not sense
@@ -336,19 +344,20 @@ class Robot(Thread):
         pass    
   
         
-    def log(self, logStr):
-         print(self.name + ":" + str( self.config.level) + ":" + Sensation.Modes[self.mode] + ": " + logStr)
+    def log(self, logStr, logLevel=LogLevel.Normal):
+         if logLevel <= self.logLevel:
+             print(self.name + ":" + str( self.config.level) + ":" + Sensation.Modes[self.mode] + ": " + logStr)
 
     def stop(self):
-        self.log("Stopping robot")      
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="Stopping robot")      
 
          # stop virtual instances here, when main instance is not running any more
         for robot in self.subInstances:
             robot.stop()
-        self.log("self.running = False")      
+        self.log(logLevel=Robot.LogLevel.Verbose, logStr="self.running = False")      
         self.running = False    # this in not real, but we wait for Sensation,
                                 # so give  us one stop sensation
-        self.log("self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(sensationType = Sensation.SensationType.Stop))")      
+        self.log(logLevel=Robot.LogLevel.Verbose, logStr="self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(sensationType = Sensation.SensationType.Stop))")      
         self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(connections=[], sensationType = Sensation.SensationType.Stop))
 
 
@@ -363,15 +372,15 @@ class Robot(Thread):
         
     def studyOwnIdentity(self):
         self.mode = Sensation.Mode.StudyOwnIdentity
-        self.log("My name is " + self.name)      
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="My name is " + self.name)      
         self.kind = self.config.getKind()
-        self.log("My kind is " + str(self.kind))      
+        self.log(logLevel=Robot.LogLevel.Detailed, logStr="My kind is " + str(self.kind))      
         self.identitypath = self.config.getIdentityDirPath(self.kind)
-        self.log('My identitypath is ' + self.identitypath)      
+        self.log(logLevel=Robot.LogLevel.Detailed, logStr='My identitypath is ' + self.identitypath)      
         for dirName, subdirList, fileList in os.walk(self.identitypath):
-            self.log('Found directory: %s' % dirName)      
+            self.log(logLevel=Robot.LogLevel.Verbose, logStr='Found directory: %s' % dirName)      
             for fname in fileList:
-                self.log('\t%s' % fname)      
+                self.log(logLevel=Robot.LogLevel.Verbose, logStr='\t%s' % fname)      
 
     '''
     In basic class Sensation processing in not implemented, but this the place
@@ -400,52 +409,52 @@ class Robot(Thread):
     '''
             
     def process(self, transferDirection, sensation):
-        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
+        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         if sensation.getSensationType() == Sensation.SensationType.Stop:
-            self.log('process: SensationSensationType.Stop')      
+            self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: SensationSensationType.Stop')      
             self.stop()
         elif sensation.getSensationType() == Sensation.SensationType.Capability:
-            self.log('process: sensation.getSensationType() == Sensation.SensationType.Capability')      
-            self.log('process: self.setCapabilities(Capabilities(capabilities=sensation.getCapabilities() ' + sensation.getCapabilities().toDebugString('capabilities'))      
+            self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: sensation.getSensationType() == Sensation.SensationType.Capability')      
+            self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.setCapabilities(Capabilities(capabilities=sensation.getCapabilities() ' + sensation.getCapabilities().toDebugString('capabilities'))      
             self.setCapabilities(Capabilities(deepCopy=sensation.getCapabilities()))
-            self.log('process: capabilities: ' + self.getCapabilities().toDebugString('saved capabilities'))      
+            self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: capabilities: ' + self.getCapabilities().toDebugString('saved capabilities'))      
         # sensation going up
         elif transferDirection == Sensation.TransferDirection.Up:
             if self.getParent() is not None: # if sensation is going up  and we have a parent
-                self.log('process: self.getParent().getAxon().put(transferDirection=transferDirection, sensation=sensation))')      
+                self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getParent().getAxon().put(transferDirection=transferDirection, sensation=sensation))')      
                 self.getParent().getAxon().put(transferDirection=transferDirection, sensation=sensation)
             else: # we are main Robot
                 # check if we have subrobot that has capability to process this sensation
-                self.log('process: self.getSubCapabilityInstanceses')      
+                self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.getSubCapabilityInstanceses')      
                 robots = self.getSubCapabilityInstanceses(direction=sensation.getDirection(), memory=sensation.getMemory(), sensationType=sensation.getSensationType())
-                self.log('process for ' + sensation.toDebugStr() + ' robots ' + str(robots))
+                self.log(logLevel=Robot.LogLevel.Verbose, logStr='process for ' + sensation.toDebugStr() + ' robots ' + str(robots))
                 for robot in robots:
                     if robot.getInstanceType() == Sensation.InstanceType.Remote:
                         # if this sensation comes from sockrServers host
                         if sensation.isReceivedFrom(robot.getHost()) or \
                             sensation.isReceivedFrom(robot.getSocketServer().getHost()):
-                            self.log('Remote robot ' + robot.getWho() + 'has capability for this, but sensation comes from it self. Don\'t recycle it')
+                            self.log(logLevel=Robot.LogLevel.Verbose, logStr='Remote robot ' + robot.getWho() + 'has capability for this, but sensation comes from it self. Don\'t recycle it')
                         else:
-                            self.log('Remote robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)')
+                            self.log(logLevel=Robot.LogLevel.Verbose, logStr='Remote robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)')
                             robot.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
                     else:
-                        self.log('Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)')
+                        self.log(logLevel=Robot.LogLevel.Verbose, logStr='Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)')
                         # new instance or sensation for process
                         robot.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
         # sensation going down
         else:
             # which subinstances can process this
             robots = self.getSubCapabilityInstanceses(direction=sensation.getDirection(), memory=sensation.getMemory(), sensationType=sensation.getSensationType())
-            self.log('process: self.getSubCapabilityInstanceses' + str(robots))
+            self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getSubCapabilityInstanceses' + str(robots))
             for robot in robots:
                 if robot.getInstanceType() == Sensation.InstanceType.Remote:
                     # if this sensation comes from sockrServers host
                     if sensation.isReceivedFrom(robot.getHost()) or \
                        sensation.isReceivedFrom(robot.getSocketServer().getHost()):
-                        self.log('Remote robot ' + robot.getWho() + 'has capability for this, but sensation comes from it self. Don\'t recycle it')
+                        self.log(logLevel=Robot.LogLevel.Verbose, logStr='Remote robot ' + robot.getWho() + 'has capability for this, but sensation comes from it self. Don\'t recycle it')
                     else:
-                        self.log('Remote robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
+                        self.log(logLevel=Robot.LogLevel.Detailed, logStr='Remote robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
                         robot.getAxon().put(transferDirection=transferDirection, sensation=sensation)
                 else:
-                    self.log('Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
+                    self.log(logLevel=Robot.LogLevel.Verbose, logStr='Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
                     robot.getAxon().put(transferDirection=transferDirection, sensation=sensation)

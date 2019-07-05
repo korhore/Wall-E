@@ -1,14 +1,24 @@
 Critical
 --------
 
-OK TCPServer does not start SocketServer after accept and creating SocketClient
+Created 3 SocketServer and 3 SockertClient threads/instances. 1 +1 is enough.
 
-How to handle Socket writing errors?
+Communication
+  Sensation.getBestSensation( sensationType = Sensation.SensationType.Item,
+                                                                name = sensation.getName(),
+                                                                timemin = None,
+                                                                timemax = None,
+                                                                connectionSensationType=Sensation.SensationType.Voice)
+  Newer gets sensation, so there is no way to communicate. Are voices connected to Items or not?
+  Ceate an logger to detect, when Voice is connected to an Item
+
+
+OK How to handle Socket writing errors?
 - if error, sensation back to Axons
 - connect again by TCPServer?
 
 Study raspberry output.
-Same connection is not detected,when creating a new one!
+Same connection is not detected, when creating a new one!
 
 Last, maybe this situation comes too soon to handle
 SocketClient:('192.168.117.20', 47668):3:Normal: run: Starting robot who SocketClient kind w instanceType s

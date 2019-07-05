@@ -27,7 +27,7 @@ from Sensation import Sensation
 
 class Connection(Robot):
 
-    CONNECTION_INTERVAL=30.0    # time window plus/minus in seconds 
+    CONNECTION_INTERVAL=60.0    # time window plus/minus in seconds 
                                 # for  sensations we connect together
     CONNECTION_SCORE_LIMIT=0.1  # how strong connection sensation should have
                                 # if we we connect it together with others sensations
@@ -140,21 +140,21 @@ class Connection(Robot):
                     # if we have found got Sensory sensation, we want to remember this, so copy it as LongTerm-memory sensations
                     if sensation.getMemory()==Sensation.Memory.Sensory:
                         sensation.setMemory(Sensation.Memory.LongTerm)
-                        self.log('10:  process: sensation.setMemory(Sensation.Memory.LongTerm) ' + sensation.toDebugStr())
+                        self.log('10: process: sensation.setMemory(Sensation.Memory.LongTerm) ' + sensation.toDebugStr())
     #                     sensation = Sensation.create(sensation=sensation, memory=Sensation.Memory.LongTerm)
                         sensation.save()    # this is worth to save its data
                     # if we have found candidate_to_connect got Sensory sensation, we want to remember this, so copy it as LongTerm-memory sensations
                     if candidate_to_connect.getMemory()==Sensation.Memory.Sensory:
                         candidate_to_connect.setMemory(Sensation.Memory.LongTerm)
-                        self.log('11:  process: candidate_to_connect.setMemory(Sensation.Memory.LongTerm) ' + candidate_to_connect.toDebugStr())
+                        self.log('11: process: candidate_to_connect.setMemory(Sensation.Memory.LongTerm) ' + candidate_to_connect.toDebugStr())
     #                     candidate_to_connect = Sensation.create(sensation=candidate_to_connect, memory=Sensation.Memory.LongTerm)
                         candidate_to_connect.save()    # this is worth to save its data
                             
-                    self.log('12:  process: sensation.addConnection(Sensation.Connection(sensation=candidate_to_connect ' + sensation.toDebugStr())
+                    self.log('12: process: sensation.addConnection(Sensation.Connection(sensation=candidate_to_connect ' + sensation.toDebugStr())
                     sensation.addConnection(Sensation.Connection(sensation=candidate_to_connect,
                                                                  score=candidate_to_connect.getScore()))
                     # TODO this is now needed, but should it? Connection is ment to be two sided.
-                    self.log('13:  process: candidate_to_connect.addConnection(Sensation.Connection(sensation=sensation ' + candidate_to_connect.toDebugStr())
+                    self.log('13: process: candidate_to_connect.addConnection(Sensation.Connection(sensation=sensation ' + candidate_to_connect.toDebugStr())
                     candidate_to_connect.addConnection(Sensation.Connection(sensation=sensation,
                                                                             score=sensation.getScore()))
                     new_connection = True
@@ -162,30 +162,30 @@ class Connection(Robot):
                     # At this point we could also start communicating if sensation is Item and candidate_to_connect is Voice or opposite way
                     # At this point we haven't implemented Communication status fot detecting if we get a response from the item we are communicating with
                     # disabled
-                    if sensation.getSensationType() == Sensation.SensationType.Item and \
-                       candidate_to_connect.getSensationType() == Sensation.SensationType.Voice:
-                        voiceSensation = Sensation.create(connections=[],
-                                                          sensation=candidate_to_connect,
-                                                          direction= Sensation.Direction.In, # speak
-                                                          memory = Sensation.Memory.Sensory)
-# TODO Not needed to remember that we tries to speak with Item
-# This makes too many Connections
-#                        sensation.addConnection(Sensation.Connection(sensation=voiceSensation,
-#                                                                     score=sensation.getScore()))
-                        self.log('14:  process: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)')
-                        self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)
-                    elif sensation.getSensationType() == Sensation.SensationType.Voice and \
-                         candidate_to_connect.getSensationType() == Sensation.SensationType.Item:
-                        voiceSensation = Sensation.create(connections=[],
-                                                          sensation=sensation,
-                                                          direction= Sensation.Direction.In, # speak
-                                                          memory = Sensation.Memory.Sensory)
-# TODO Not needed to remember that we tries to speak with Item
-# This makes too many Connections
-#                        candidate_to_connect.addConnection(Sensation.Connection(sensation=voiceSensation,
-#                                                                                score=candidate_to_connect.getScore()))
-                        self.log('15:  process: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)')
-                        self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)
+#                     if sensation.getSensationType() == Sensation.SensationType.Item and \
+#                        candidate_to_connect.getSensationType() == Sensation.SensationType.Voice:
+#                         voiceSensation = Sensation.create(connections=[],
+#                                                           sensation=candidate_to_connect,
+#                                                           direction= Sensation.Direction.In, # speak
+#                                                           memory = Sensation.Memory.Sensory)
+# # TODO Not needed to remember that we tries to speak with Item
+# # This makes too many Connections
+# #                        sensation.addConnection(Sensation.Connection(sensation=voiceSensation,
+# #                                                                     score=sensation.getScore()))
+#                         self.log('14:  process: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)')
+#                         self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)
+#                     elif sensation.getSensationType() == Sensation.SensationType.Voice and \
+#                          candidate_to_connect.getSensationType() == Sensation.SensationType.Item:
+#                         voiceSensation = Sensation.create(connections=[],
+#                                                           sensation=sensation,
+#                                                           direction= Sensation.Direction.In, # speak
+#                                                           memory = Sensation.Memory.Sensory)
+# # TODO Not needed to remember that we tries to speak with Item
+# # This makes too many Connections
+# #                        candidate_to_connect.addConnection(Sensation.Connection(sensation=voiceSensation,
+# #                                                                                score=candidate_to_connect.getScore()))
+#                         self.log('15:  process: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)')
+#                         self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)
                 
             if new_connection:
                 # for debugging reasons we log what connections we have now
