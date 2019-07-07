@@ -365,7 +365,7 @@ class Sensation(object):
                  receivedFrom=[],
                  sensationType = SensationType.Unknown,
                  memory=Memory.Sensory,
-                 direction=Direction.In,
+                 direction=Direction.Out,
                  who=None,
                  leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
                  azimuth = 0.0,                                             # Walle direction relative to magnetic north pole
@@ -1306,6 +1306,9 @@ class Sensation(object):
     You should call first 'sensation.delte()' and right a way 'del sensation'
     '''  
     def delete(self):
+        for association in self.getAssociations():
+            association.getSensation().removeAssociation(self)
+
         if not os.path.exists(Sensation.DATADIR):
             os.makedirs(Sensation.DATADIR)
 

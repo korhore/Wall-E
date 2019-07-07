@@ -65,19 +65,20 @@ class Communication(Robot):
                        level=level)
  
     def process(self, transferDirection, sensation):
-        self.log('process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
+        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         #run default implementation first
         #super(Communication, self).process(transferDirection=transferDirection, sensation=sensation)
         # don't communicate with history Sensation Items, we are comunicating Item.name just seen.
         if sensation.getSensationType() == Sensation.SensationType.Item and\
             systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL:
-            self.log('Communication.process: Item Sensation ' + sensation.toDebugStr())
+            self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process: Item Sensation ' + sensation.toDebugStr())
             # try to find best item.Name with Voice
             candidate_for_communication = Sensation.getBestSensation( sensationType = Sensation.SensationType.Item,
-                                                                name = sensation.getName(),
-                                                                timemin = None,
-                                                                timemax = None,
-                                                                associationSensationType=Sensation.SensationType.Voice)
+                                                                      name = sensation.getName(),
+                                                                      notName = None,
+                                                                      timemin = None,
+                                                                      timemax = None,
+                                                                      associationSensationType=Sensation.SensationType.Voice)
             if candidate_for_communication is not None:
                 for association in candidate_for_communication.getAssociations():
                     if association.getSensation().getSensationType() == Sensation.SensationType.Voice:
@@ -100,5 +101,9 @@ class Communication(Robot):
                         self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)
                         
                         # TODO We should wait answer and communicate as long other part wants
+            else:
+                self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process: No  candidate_for_communication for ' + sensation.toDebugStr())
+        else:
+            self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process: too old sensation or not Item ' + sensation.toDebugStr())
 
  
