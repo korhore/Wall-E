@@ -117,7 +117,7 @@ class AlsaAudioMicrophone(Robot):
 #                     else:
 #                         if voice_data is not None:
 #                             self.log("self.getParent().getAxon().put(sensation)")
-#                             sensation = Sensation.create(connections=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=voice_data)
+#                             sensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=voice_data)
 #                             self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # or self.process
 #                             voice_data=None
 #                             voice_l=0
@@ -157,7 +157,7 @@ class AlsaAudioMicrophone(Robot):
                 if self.voice_data is not None:
                     self.log("self.getParent().getAxon().put(sensation)")
                     # put direction out (heard voice) to the parent Axon going up to main Robot
-                    sensation = Sensation.create(connections=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=self.voice_data)
+                    sensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=self.voice_data)
                     self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # or self.process
                     self.voice_data=None
                     self.voice_l=0

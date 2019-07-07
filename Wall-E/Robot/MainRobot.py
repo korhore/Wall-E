@@ -109,7 +109,7 @@ class MainRobot(Robot):
             if robot.getInstanceType() != Sensation.InstanceType.Remote:
                 robot.start()
 
-        # main robot starts tcpServer first so clients gets connection
+        # main robot starts tcpServer first so clients gets association
         if self.level == 1:
             self.tcpServer.start()
            
@@ -135,7 +135,7 @@ class MainRobot(Robot):
             self.log("MainRobot Stopping " + robot.getWho())      
             robot.stop()
             
-        # main robot starts tcpServer first so clients gets connection
+        # main robot starts tcpServer first so clients gets association
         if self.level == 1:
             self.log("MainRobot Stopping self.tcpServer " + self.tcpServer.getWho())      
             self.tcpServer.stop()
@@ -199,7 +199,7 @@ class MainRobot(Robot):
 #                 else:
 #                     self.log('Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
 #                     # new instance or sensation for process
-#                     processSensation = Sensation.create(sensation=sensation, connections=[Sensation.Connection(sensation=sensation)], direction=Sensation.Direction.In)                        
+#                     processSensation = Sensation.create(sensation=sensation, associations=[Sensation.Association(sensation=sensation)], direction=Sensation.Direction.In)                        
 #                     robot.getAxon().put(sensation)
                     
         # Note remove old playback logic. Just process sensations as they are                     
@@ -232,12 +232,12 @@ class MainRobot(Robot):
 #                         else:
 #                             self.log('Remote robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
 #                             # new instance or sensation for process
-#                             processSensation = Sensation.create(sensation=sensation, connections=[Sensation.Connection(sensation=sensation)], direction=Sensation.Direction.In)                        
+#                             processSensation = Sensation.create(sensation=sensation, associations=[Sensation.Association(sensation=sensation)], direction=Sensation.Direction.In)                        
 #                             robot.getAxon().put(processSensation )
 #                     else:
 #                         self.log('Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
 #                             # new instance or sensation for process
-#                         processSensation = Sensation.create(sensation=sensation, connections=[Sensation.Connection(sensation=sensation)], direction=Sensation.Direction.In)                        
+#                         processSensation = Sensation.create(sensation=sensation, associations=[Sensation.Association(sensation=sensation)], direction=Sensation.Direction.In)                        
 #                         robot.getAxon().put(processSensation )                      
 #         else:
 #             # basically we don't know how to handle going in sensation, but
@@ -265,7 +265,7 @@ class MainRobot(Robot):
 #                     robot.getAxon().put(sensation)
         
 '''
-TCPserver is a Robot that gets connections from other Robots behind network
+TCPserver is a Robot that gets associations from other Robots behind network
 and delivers them to main Robot. This is done as sensation, because main
 robot is a robot that reads sensations.
 '''
@@ -428,7 +428,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                 self.log('stop: socketClient.stop()')
                 socketClient.stop()
         # Connect to ourselves as a fake client
-        # so server gets connection and closes it
+        # so server gets association and closes it
         self.log('stop: s.connect(self.address)')
         # Connect to ourselves as a fake client.
         address=('localhost', PORT)
@@ -547,7 +547,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                  
         try:
             # tell who we are, speaking
-            sensation=Sensation(connections=[], direction=Sensation.Direction.In, sensationType = Sensation.SensationType.Who, who=self.getWho())
+            sensation=Sensation(associations=[], direction=Sensation.Direction.In, sensationType = Sensation.SensationType.Who, who=self.getWho())
             self.log('run: sendSensation(sensation=Sensation(sensationType = Sensation.SensationType.Who), sock=self.sock,'  + str(self.address) + ')')
             self.running =  self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
             self.log('run: done sendSensation(sensation=Sensation(sensationType = Sensation.SensationType.Who), sock=self.sock,'  + str(self.address) + ')')
@@ -562,7 +562,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                 self.log('run: self.getLocalMasterCapabilities() '  + capabilities.toString())
                 self.log('run: self.getLocalMasterCapabilities() ' +capabilities.toDebugString())
 
-                sensation=Sensation(connections=[], direction=Sensation.Direction.In, sensationType = Sensation.SensationType.Capability, capabilities=capabilities)
+                sensation=Sensation(associations=[], direction=Sensation.Direction.In, sensationType = Sensation.SensationType.Capability, capabilities=capabilities)
                 self.log('run: sendSensation(sensationType = Sensation.SensationType.Capability, capabilities=self.getLocalCapabilities()), sock=self.sock,'  + str(self.address) + ')')
                 self.running = self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
                 self.log('run: sendSensation Sensation.SensationType.Capability done ' + str(self.address) +  ' '  + sensation.getCapabilities().toDebugString('SocketClient'))
@@ -584,7 +584,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         if transferDirection == Sensation.TransferDirection.Down:
             self.running = self.sendSensation(sensation, self.sock, self.address)
             # if we have got broken pipe -error, meaning that socket writing does not work any more
-            # then try to get new connection, meaning that ask TCPServer to give us a new open socket
+            # then try to get new association, meaning that ask TCPServer to give us a new open socket
             if not self.running and self.mode == Sensation.Mode.Interrupted:
                 self.log('process: interrupted')
                 connected = False
@@ -719,9 +719,9 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         # socketserver can't close itself, just put it to closing mode
         self.getSocketServer().stop() # socketserver can't close itself, we must send a stop sensation to it
         # we must send a stop sensation to it
-        self.sendSensation(sensation=Sensation(connections=[], sensationType = Sensation.SensationType.Stop), sock=self.getSocketServer().getSocket(), address=self.getSocketServer().getAddress())
+        self.sendSensation(sensation=Sensation(associations=[], sensationType = Sensation.SensationType.Stop), sock=self.getSocketServer().getSocket(), address=self.getSocketServer().getAddress())
         # stop remote with same technic
-        self.sendSensation(sensation=Sensation(connections=[], sensationType = Sensation.SensationType.Stop), sock=self.sock, address=self.address)
+        self.sendSensation(sensation=Sensation(associations=[], sensationType = Sensation.SensationType.Stop), sock=self.sock, address=self.address)
         self.sock.close()
          
         super(SocketClient, self).stop()
@@ -731,7 +731,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
     '''
     def sendStop(sock, address):
         print("SocketClient.sendStop(sock, address)") 
-        sensation=Sensation(connections=[], sensationType = Sensation.SensationType.Stop)
+        sensation=Sensation(associations=[], sensationType = Sensation.SensationType.Stop)
 
         bytes = sensation.bytes()
         length =len(bytes)
@@ -887,7 +887,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                                 ok = False
                                 self.mode = Sensation.Mode.Interrupted
                         if self.running and ok:
-                            sensation=Sensation(connections=[], bytes=self.data)
+                            sensation=Sensation(associations=[], bytes=self.data)
                             sensation.addReceived(self.getHost())  # remember route
                             if sensation.getSensationType() == Sensation.SensationType.Capability:
                                 self.log("run: SocketServer got Capability sensation " + sensation.getCapabilities().toDebugString('SocketServer'))
@@ -1019,7 +1019,7 @@ def stop():
 
 
 if __name__ == "__main__":
-    #RobotRequestHandler.romeo = None    # no romeo device connection yet
+    #RobotRequestHandler.romeo = None    # no romeo device association yet
     cwd = os.getcwd()
     print("cwd " + cwd)
 

@@ -3,8 +3,8 @@ Created on 21.06.2019
 Updated on 21.06.2019
 @author: reijo.korhonen@gmail.com
 
-test Connection class
-python3 -m unittest tests/testConnection.py
+test Association class
+python3 -m unittest tests/testAssociation.py
 
 
 '''
@@ -13,7 +13,7 @@ import time as systemTime
 import unittest
 from Sensation import Sensation
 from Communication.Communication import Communication
-from Connection.Connection import Connection
+from Association.Association import Association
 from Axon import Axon
 
 from PIL import Image as PIL_Image
@@ -43,34 +43,34 @@ class CommunicationTestCase(unittest.TestCase):
         self.axon = Axon()
 
         # define time in history, that is different than in all tests
-        sensationTime = systemTime.time() -10*Connection.CONNECTION_INTERVAL
+        sensationTime = systemTime.time() -10*Association.ASSOCIATION_INTERVAL
 
         # simulate item and image are connected each other with TensorflowClassifivation
-        self.Wall_E_item_sensation = Sensation.create(time=sensationTime, sensationType=Sensation.SensationType.Item, name=CommunicationTestCase.NAME, connections=[])
-        self.Wall_E_image_sensation = Sensation.create(time=sensationTime, sensationType=Sensation.SensationType.Image, connections=[Sensation.Connection(sensation=self.Wall_E_item_sensation,
+        self.Wall_E_item_sensation = Sensation.create(time=sensationTime, sensationType=Sensation.SensationType.Item, name=CommunicationTestCase.NAME, associations=[])
+        self.Wall_E_image_sensation = Sensation.create(time=sensationTime, sensationType=Sensation.SensationType.Image, associations=[Sensation.Association(sensation=self.Wall_E_item_sensation,
                                                                                          score=CommunicationTestCase.SCORE)])
-        self.Wall_E_item_sensation.addConnection(Sensation.Connection(sensation=self.Wall_E_image_sensation,
+        self.Wall_E_item_sensation.addAssociation(Sensation.Association(sensation=self.Wall_E_image_sensation,
                                                                       score=CommunicationTestCase.SCORE))
         # these connected each other
-        self.assertEqual(len(self.Wall_E_item_sensation.getConnections()), 1)
-        self.assertEqual(len(self.Wall_E_image_sensation.getConnections()), 1)
+        self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 1)
+        self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 1)
        
-        # simulate Connection has connected an voice to Item and Image 
+        # simulate Association has connected an voice to Item and Image 
         self.Wall_E_voice_sensation = Sensation.create(time=sensationTime, sensationType=Sensation.SensationType.Voice, 
-                                                       connections=[Sensation.Connection(sensation=self.Wall_E_image_sensation,
+                                                       associations=[Sensation.Association(sensation=self.Wall_E_image_sensation,
                                                                                          score=CommunicationTestCase.SCORE),
-                                                                    Sensation.Connection(sensation=self.Wall_E_item_sensation,
+                                                                    Sensation.Association(sensation=self.Wall_E_item_sensation,
                                                                                          score=CommunicationTestCase.SCORE)])
          # test that all is OK for tests
-        self.assertEqual(len(self.Wall_E_voice_sensation.getConnections()), 2)
-        # add missing connections test that all is OK for tests
-        self.Wall_E_image_sensation.addConnection(Sensation.Connection(sensation=self.Wall_E_voice_sensation,
+        self.assertEqual(len(self.Wall_E_voice_sensation.getAssociations()), 2)
+        # add missing associations test that all is OK for tests
+        self.Wall_E_image_sensation.addAssociation(Sensation.Association(sensation=self.Wall_E_voice_sensation,
                                                                        score=CommunicationTestCase.SCORE))
-        self.assertEqual(len(self.Wall_E_image_sensation.getConnections()), 2)
-        # add missing connections test that all is OK for tests
-        self.Wall_E_item_sensation.addConnection(Sensation.Connection(sensation=self.Wall_E_voice_sensation,
+        self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 2)
+        # add missing associations test that all is OK for tests
+        self.Wall_E_item_sensation.addAssociation(Sensation.Association(sensation=self.Wall_E_voice_sensation,
                                                                       score=CommunicationTestCase.SCORE))
-        self.assertEqual(len(self.Wall_E_item_sensation.getConnections()), 2)
+        self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 2)
         
         self.communication = Communication(parent=self,
                                      instanceName='Communication',
@@ -103,35 +103,35 @@ class CommunicationTestCase(unittest.TestCase):
         Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.LongTerm,
                                                  sensationType=Sensation.SensationType.Item,
                                                  name=CommunicationTestCase.NAME,
-                                                 connections=[])
+                                                 associations=[])
         Wall_E_image_sensation = Sensation.create(memory=Sensation.Memory.LongTerm,
                                                   sensationType=Sensation.SensationType.Image,
-                                                  connections=[Sensation.Connection(sensation=Wall_E_item_sensation,
+                                                  associations=[Sensation.Association(sensation=Wall_E_item_sensation,
                                                                                     score=CommunicationTestCase.SCORE)])
-        Wall_E_item_sensation.addConnection(Sensation.Connection(sensation=Wall_E_image_sensation,
+        Wall_E_item_sensation.addAssociation(Sensation.Association(sensation=Wall_E_image_sensation,
                                                                 score=CommunicationTestCase.SCORE))
         # these connected each other
-        self.assertEqual(len(Wall_E_item_sensation.getConnections()), 1)
-        self.assertEqual(len(Wall_E_image_sensation.getConnections()), 1)
+        self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 1)
+        self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 1)
         # TODO this verifies test, but not implementation
         '''
         Commented out, so we can  correct implementation
-        # simulate Connection has connected an voice to Item and Image 
+        # simulate Association has connected an voice to Item and Image 
         Wall_E_voice_sensation = Sensation.create(sensationType=Sensation.SensationType.Voice, 
-                                                       connections=[Sensation.Connection(sensation=Wall_E_image_sensation,
+                                                       associations=[Sensation.Association(sensation=Wall_E_image_sensation,
                                                                                          score=CommunicationTestCase.SCORE),
-                                                                    Sensation.Connection(sensation=Wall_E_item_sensation,
+                                                                    Sensation.Association(sensation=Wall_E_item_sensation,
                                                                                          score=CommunicationTestCase.SCORE)])
          # test that all is OK for tests
-        self.assertEqual(len(Wall_E_voice_sensation.getConnections()), 2)
-        # add missing connections test that all is OK for tests
-        Wall_E_image_sensation.addConnection(Sensation.Connection(sensation=Wall_E_voice_sensation,
+        self.assertEqual(len(Wall_E_voice_sensation.getAssociations()), 2)
+        # add missing associations test that all is OK for tests
+        Wall_E_image_sensation.addAssociation(Sensation.Association(sensation=Wall_E_voice_sensation,
                                                                        score=CommunicationTestCase.SCORE))
-        self.assertEqual(len(Wall_E_image_sensation.getConnections()), 2)
-        # add missing connections test that all is OK for tests
-        Wall_E_item_sensation.addConnection(Sensation.Connection(sensation=Wall_E_voice_sensation,
+        self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 2)
+        # add missing associations test that all is OK for tests
+        Wall_E_item_sensation.addAssociation(Sensation.Association(sensation=Wall_E_voice_sensation,
                                                                       score=CommunicationTestCase.SCORE))
-        self.assertEqual(len(Wall_E_item_sensation.getConnections()), 2)
+        self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 2)
 
         
         #######################

@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 26.06.2019
+Edited on 07.07.2019
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -77,14 +77,14 @@ Sensation is something Robot senses
 '''
 
 class Sensation(object):
-    VERSION=3           # version number to check, if we picle same version
+    VERSION=4           # version number to check, if we picle same version
                         # instances. Otherwise we get odd errors, with old
                         # version code instances
 
-    # Connection logging max-values                      
-    CONNECTIONS_LOG_MAX_LEVEL =   10
-    CONNECTIONS_LOG_MAX_PARENTS = 50           
-    CONNECTIONS_MAX_CONNECTIONS = 100           
+    # Association logging max-values                      
+    ASSOCIATIONS_LOG_MAX_LEVEL =   10
+    ASSOCIATIONS_LOG_MAX_PARENTS = 10           
+    ASSOCIATIONS_MAX_ASSOCIATIONS = 50           
 
  
     #number=0                # sensation number for referencing
@@ -228,11 +228,11 @@ class Sensation(object):
 
 
                             # The idea is keep Sensation in runtime memory if
-                            # there is a connection for them for instance 10 mins
+                            # there is a association for them for instance 10 mins
                             #
                             # After that we can produce higher level Sensations
                             # with memory attribute in higher level,
-                            # Working or Memory, that connection to basic
+                            # Working or Memory, that association to basic
                             # memory level, that is Sensory level.
                             # That way we can produce meanings is higher level
                             # of low level sensations. For instance we can get
@@ -278,7 +278,7 @@ class Sensation(object):
         
         # remove too old ones
         now = systemTime.time()
-        # TODO When use connection_time, then it is possible that
+        # TODO When use association_time, then it is possible that
         # at the start there is much connected sensation, and after that
         # there are less connected, that keep in the memory too long time.
         # Maybe this is not a big problem. This simple implementation keeps
@@ -290,21 +290,21 @@ class Sensation(object):
                 
          
     '''
-    Connection is connection between two sensations
-    There is score and time when used, so we cab calculate strength of this connection.
-    Connection can be only with Long Term and Work Memory Sensations, because Sensory
+    Association is a association between two sensations
+    There is score and time when used, so we cab calculate strength of this association.
+    Association can be only with Long Term and Work Memory Sensations, because Sensory
     sensations don't live that long.
-    Work Memory Connections can't be save but Long Term Memory Connection can.
-    Owner is nor mentioned, so we have only one sensation in one connection
-    Connection are identical in both sides, so reverse Connection is found
+    Work Memory Associations can't be save but Long Term Memory Association can.
+    Owner is nor mentioned, so we have only one sensation in one association
+    Association are identical in both sides, so reverse Association is found
     in connected Sensation.
     '''
         
-    class Connection(object):
+    class Association(object):
         def __init__(self,
                      sensation,        # sensation to connect
                      time=None,     # last used
-                     score = 0.0):  # score of connection, used at least witn item, float
+                     score = 0.0):  # score of association, used at least witn item, float
             self.time=time
             if self.time == None:
                 self.time = systemTime.time()
@@ -338,7 +338,7 @@ class Sensation(object):
     '''
        
     def __init__(self,
-                 connections,                                             # don't allow default connection, because wrong connection will be linked, not copied, study this
+                 associations,                                             # don't allow default association, because wrong association will be linked, not copied, study this
                  sensation=None,
                  bytes=None,
                  number=None,
@@ -368,11 +368,11 @@ class Sensation(object):
         self.number = number
         if self.number == None:
             self.number = self.nextNumber()
-        self.connections=connections
+        self.associations=associations
 
-        # connections are always both way
+        # associations are always both way
         if sensation is not None:   # copy contructor
-            self.connections=sensation.connections
+            self.associations=sensation.associations
             self.receivedFrom=sensation.receivedFrom
             self.sensationType = sensation.sensationType
             self.memory = sensation.memory
@@ -416,10 +416,10 @@ class Sensation(object):
             self.capabilities = capabilities
             self.name = name
             
-            # connections are always both way
-            if connections == None:
-                connections=[]
-            self.addConnections(connections)
+            # associations are always both way
+            if associations == None:
+                associations=[]
+            self.addAssociations(associations)
            
             if receivedFrom == None:
                 receivedFrom=[]
@@ -516,10 +516,10 @@ class Sensation(object):
                     self.name =bytesToStr(bytes[i:i+name_size])
                     i += name_size
                     
-                connection_number = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
-                #print("connection_number " + str(connection_number))
+                association_number = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
+                #print("association_number " + str(association_number))
                 i += Sensation.NUMBER_SIZE
-                for j in range(connection_number):
+                for j in range(association_number):
                     sensation_number=bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
                
@@ -531,7 +531,7 @@ class Sensation(object):
                     
                     sensation=Sensation.getSensationFromSensationMemory(number=sensation_number)
                     if sensation is not None:
-                        self.addConnection(Sensation.Connection(sensation=sensation,time=time,score=score))
+                        self.addAssociation(Sensation.Association(sensation=sensation,time=time,score=score))
                 
             except (ValueError):
                 self.sensationType = Sensation.SensationType.Unknown
@@ -542,14 +542,14 @@ class Sensation(object):
     Constructor that takes care, that we have only one instance
     per Sensation per number
     
-    This is needed if we want handle connections properly.
+    This is needed if we want handle associations properly.
     It is not allowed to have many instances of same Sensation,
     because it brakes sensation associations.
     
     Parameters are exactly same than in default constructor
     '''
        
-    def create(  connections,                                             # don't allow default connections
+    def create(  associations,                                             # don't allow default associations
                  sensation=None,
                  bytes=None,
                  number=None,
@@ -573,7 +573,7 @@ class Sensation(object):
         
         if sensation is not None:             # not an update, create new one
             print("Sensation.create Create new sensation instance of this sensation")
-            return Sensation(connections=connections, sensation=sensation)
+            return Sensation(associations=associations, sensation=sensation)
 
         if bytes != None:               # if bytes, we get number there
             number = bytesToFloat(bytes[0:Sensation.FLOAT_PACK_SIZE])
@@ -589,7 +589,7 @@ class Sensation(object):
                  bytes=bytes,
                  number=number,
                  time=time,
-                 connections=connections,
+                 associations=associations,
                  receivedFrom=receivedFrom,
                  sensationType = sensationType,
                  memory=memory,
@@ -612,11 +612,11 @@ class Sensation(object):
         if sensation.time == None:
             sensation.time = systemTime.time()
 
-        # connections are always both way
-        if connections == None:
-            connections=[]
-        sensation.connections=[]
-        sensation.addConnections(connections)
+        # associations are always both way
+        if associations == None:
+            associations=[]
+        sensation.associations=[]
+        sensation.addAssociations(associations)
                 
         if receivedFrom == None:
             receivedFrom=[]
@@ -732,10 +732,10 @@ class Sensation(object):
                     sensation.name =bytesToStr(bytes[i:i+name_size])
                     i += name_size
                         
-                connection_number = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
-                print("connection_number " + str(connection_number))
+                association_number = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
+                print("association_number " + str(association_number))
                 i += Sensation.NUMBER_SIZE
-                for j in range(connection_number):
+                for j in range(association_number):
                     sensation_number=bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
                
@@ -747,7 +747,7 @@ class Sensation(object):
 
                     connected_sensation=Sensation.getSensationFromSensationMemory(number=sensation_number)
                     if connected_sensation is not None:
-                        sensation.addConnection(Sensation.Connection(sensation=connected_sensation,time=time,score=score))
+                        sensation.addAssociation(Sensation.Association(sensation=connected_sensation,time=time,score=score))
                 
                  #  at the end receivedFros (list of words)
                 receivedFrom_size = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
@@ -821,14 +821,14 @@ class Sensation(object):
 #         else:
 #             pass
 
-#        # at the end connections (numbers) TODO
+#        # at the end associations (numbers) TODO
         s += ' '
         i=0
-        for connection in self.connections:
+        for association in self.associations:
             if i == 0:
-                 s += str(connection.getSensation().getNumber())
+                 s += str(association.getSensation().getNumber())
             else:
-                s += LIST_SEPARATOR + str(connection.getSensation().getNumber())
+                s += LIST_SEPARATOR + str(association.getSensation().getNumber())
             i = i+1
 #        # at the end receivedFrom
         s += ' '
@@ -848,7 +848,7 @@ class Sensation(object):
     def toDebugStr(self):
         # we can't make yet printable bytes, but as a debug purposes, it is rare neended
 #         if self.sensationType == Sensation.SensationType.Voice or self.sensationType == Sensation.SensationType.Image :
-#             s=str(self.number) + ' ' + str(self.time) + ' ' + str(self.connection_time) + ' ' + Sensation.getMemoryString(self.memory) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
+#             s=str(self.number) + ' ' + str(self.time) + ' ' + str(self.association_time) + ' ' + Sensation.getMemoryString(self.memory) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
 #         else:
 #             s=self.__str__()
         s = systemTime.ctime(self.time) + ' ' + str(self.number) + ' ' + Sensation.getMemoryString(self.memory) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
@@ -912,13 +912,13 @@ class Sensation(object):
             b +=  name_size.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
             b +=  StrToBytes(self.name)
             
-        #  at the end connections (numbers)
-        connection_number=len(self.connections)
-        b +=  connection_number.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
-        for j in range(connection_number):
-            b +=  floatToBytes(self.connections[j].getSensation().getNumber())
-            b +=  floatToBytes(self.connections[j].getTime())
-            b +=  floatToBytes(self.connections[j].getScore())
+        #  at the end associations (numbers)
+        association_number=len(self.associations)
+        b +=  association_number.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
+        for j in range(association_number):
+            b +=  floatToBytes(self.associations[j].getSensation().getNumber())
+            b +=  floatToBytes(self.associations[j].getTime())
+            b +=  floatToBytes(self.associations[j].getScore())
        #  at the end receivedFrom (list of words)
         blist = listToBytes(self.receivedFrom)
         blist_size=len(blist)
@@ -950,27 +950,27 @@ class Sensation(object):
     '''
     def getLatestTime(self):
         latest_time=self.time
-        for connection in self.connections:
-            # TODO we could also recursive check all connections when one was latest used, but ...
-            if connection.getTime() > latest_time:
-                latest_time=connection.getTime()
+        for association in self.associations:
+            # TODO we could also recursive check all associations when one was latest used, but ...
+            if association.getTime() > latest_time:
+                latest_time=association.getTime()
         return latest_time
     
-    # TODO Connection time logic is different
+    # TODO Association time logic is different
     
-#     def setConnectionTime(self, parents=None, connection_time = None):
-#         if connection_time == None:
-#             connection_time = systemTime.time()
-#         self.connection_time = connection_time
+#     def setAssociationTime(self, parents=None, association_time = None):
+#         if association_time == None:
+#             association_time = systemTime.time()
+#         self.association_time = association_time
 #         if parents is None:
 #             parents=[]
 #         parents.append(self)
-#         for connection in self.connections:
-# #            connection.setConnectionTime(connection_time)
+#         for association in self.associations:
+# #            association.setAssociationTime(association_time)
 # #            TODO comes infinite loop
 # #            Below works, if we have refenece as a star
-#             if parents is None or connection not in  parents:
-#                 connection.setConnectionTime(parents=parents, connection_time=connection_time)
+#             if parents is None or association not in  parents:
+#                 association.setAssociationTime(parents=parents, association_time=association_time)
 
 
     def setNumber(self, number):
@@ -978,33 +978,33 @@ class Sensation(object):
     def getNumber(self):
         return self.number
     
-    def setConnections(self, connections):
-        self.connections = connections
+    def setAssociations(self, associations):
+        self.associations = associations
         time = systemTime.time()
-        for connection in self.connections:
-            connection.time = time
+        for association in self.associations:
+            association.time = time
         
     '''
-    for debugging reasons log what connections there is in our Long Term Memory
+    for debugging reasons log what associations there is in our Long Term Memory
     '''  
-    def logConnections(sensation):
+    def logAssociations(sensation):
         if sensation.getSensationType() is Sensation.SensationType.Item:
-            print('Connections: ' + sensation.getName())
+            print('Associations: ' + sensation.getName())
             parents=[sensation]
-            parents = Sensation.logSensationConnections(level=1, parents=parents, connections=sensation.getConnections())
-            print('Connections: ' + sensation.getName() + ' ' + str(len(parents )-1) + ' connections')
+            parents = Sensation.logSensationAssociations(level=1, parents=parents, associations=sensation.getAssociations())
+            print('Associations: ' + sensation.getName() + ' >= ' + str(len(parents )-1) + ' associations')
 
 
     '''
-    for debugging reasons log what connections there is in our Lng Term Memory
+    for debugging reasons log what associations there is in our Lng Term Memory
     '''  
-    def logSensationConnections(level, parents, connections):
+    def logSensationAssociations(level, parents, associations):
 #         tag=''
 #         for i in range(0,level):
 #             tag=tag+'-'
         tag=str(level)+': '
-        for connection in connections:
-            sensation = connection.getSensation()
+        for association in associations:
+            sensation = association.getSensation()
             if sensation not in parents:
                 if sensation.getSensationType() is Sensation.SensationType.Item:
                     print(tag + ' Item: ' + sensation.getName() + ' ' + str(len(parents )))
@@ -1012,129 +1012,96 @@ class Sensation(object):
                     print(tag + Sensation.SensationTypes[sensation.getSensationType()] + ' ' + str(len(parents )))
                 parents.append(sensation)
  
-                if level < Sensation.CONNECTIONS_LOG_MAX_LEVEL and len(parents) < Sensation.CONNECTIONS_LOG_MAX_PARENTS:            
-                    parents = Sensation.logSensationConnections(level=level+1, parents=parents, connections=sensation.getConnections())
+                if level < Sensation.ASSOCIATIONS_LOG_MAX_LEVEL and len(parents) < Sensation.ASSOCIATIONS_LOG_MAX_PARENTS:            
+                    parents = Sensation.logSensationAssociations(level=level+1, parents=parents, associations=sensation.getAssociations())
         return parents
 
     
     '''
-    Add single connection
-    Connections are always two sided, but not referencing to self
+    Add single association
+    Associations are always two sided, but not referencing to self
     '''
-    def addConnection(self, connection):
+    def addAssociation(self, association):
         time = systemTime.time()
-        if connection.getSensation() != self and \
-           not self.isConnected(connection):
-            #print('addConnection ' + self.toDebugStr() + ' to ' + connection.getSensation().toDebugStr())
-            self.connections.append(connection)
-            connection.time = time
-            if self.getSensationType() == Sensation.SensationType.Item and\
-               connection.getSensation().getSensationType() == Sensation.SensationType.Voice:
-                print('addConnection Item connected to a Voice ' + self.toDebugStr() + ' has ' + str(len(self.connections)) + ' connections')
-                Sensation.logConnections(self)
-                # TODO remove test
-                # should find at least this one
-                candidate_for_communication = Sensation.getBestSensation( sensationType = Sensation.SensationType.Item,
-                                                                          name = self.getName(),
-                                                                          timemin = None,
-                                                                          timemax = None,
-                                                                          connectionSensationType=Sensation.SensationType.Voice)
-                if candidate_for_communication is None:
-                    print('addConnection Item connected to a Voice something ODD with Sensation.getBestSensation, not found' + self.toDebugStr() + ' has ' + str(len(self.connections)) + ' connections')
-                else:
-                    print('addConnection Item connected to a Voice Sensation.getBestSensation ' + candidate_for_communication.toDebugStr() + ' has ' + str(len(candidate_for_communication.connections)) + ' connections')
-                    Sensation.logConnections(candidate_for_communication)
-            elif self.getSensationType() == Sensation.SensationType.Voice and\
-               connection.getSensation().getSensationType() == Sensation.SensationType.Item:
-                print('addConnection Voice connected to an Item ' + self.toDebugStr() + ' has ' + str(len(self.connections)) + ' connections')
-                Sensation.logConnections(connection.getSensation())
-                # TODO remove test
-                # should find at least connection
-                candidate_for_communication = Sensation.getBestSensation( sensationType = Sensation.SensationType.Item,
-                                                                          name = connection.getSensation().getName(),
-                                                                          timemin = None,
-                                                                          timemax = None,
-                                                                          connectionSensationType=Sensation.SensationType.Voice)
-                if candidate_for_communication is None:
-                    print('addConnection Voice connected to an Item something ODD with Sensation.getBestSensation, not found' + self.toDebugStr() + ' has ' + str(len(self.connections)) + ' connections')
-                else:
-                    print('addConnection Voice connected to an Item Sensation.getBestSensation ' + candidate_for_communication.toDebugStr() + ' has ' + str(len(candidate_for_communication.connections)) + ' connections')
-                    Sensation.logConnections(candidate_for_communication)
-            #print('addConnection ' + self.toDebugStr() + ' has ' + str(len(self.connections)) + ' connections')
-            ## TODO howto do reverse connection
-            #connection.getSensation().addConnection(Sensation.Connection(sensation=self))
+        if association.getSensation() != self and \
+           not self.isConnected(association):
+            #print('addAssociation ' + self.toDebugStr() + ' to ' + association.getSensation().toDebugStr())
+            self.associations.append(association)
+            association.time = time
+            ## TODO howto do reverse association
+            #association.getSensation().addAssociation(Sensation.Association(sensation=self))
     '''
-    Is this Sensation in this Connection already connected
+    Is this Sensation in this Association already connected
     '''
-    def isConnected(self, connection):
-        #print('isConnected ' + self.toDebugStr() + ' has ' + str(len(self.connections)) + ' connections')
+    def isConnected(self, association):
+        #print('isConnected ' + self.toDebugStr() + ' has ' + str(len(self.associations)) + ' associations')
         is_connected = False
-        for con in self.connections:
-            if con.getSensation() == connection.getSensation():
+        for con in self.associations:
+            if con.getSensation() == association.getSensation():
                 is_connected = True
-                #print('isConnected ' + self.toDebugStr() + ' found connection to ' + con.getSensation().toDebugStr() + ' == ' + connection.getSensation().toDebugStr() + ' ' + str(is_connected))
+                #print('isConnected ' + self.toDebugStr() + ' found association to ' + con.getSensation().toDebugStr() + ' == ' + association.getSensation().toDebugStr() + ' ' + str(is_connected))
                 break
-        #print('isConnected ' + self.toDebugStr() + ' to ' + connection.getSensation().toDebugStr() + ' ' + str(is_connected))
+        #print('isConnected ' + self.toDebugStr() + ' to ' + association.getSensation().toDebugStr() + ' ' + str(is_connected))
         return is_connected
         
     '''
-    Add many connections
+    Add many associations
     '''
-    def addConnections(self, connections):
-        for connection in connections:
-            self.addConnection(connection)
+    def addAssociations(self, associations):
+        for association in associations:
+            self.addAssociation(association)
 
-    def getConnections(self):
+    def getAssociations(self):
         time = systemTime.time()
-        for connection in self.connections:
-            connection.time = time
-        return self.connections
+        for association in self.associations:
+            association.time = time
+        return self.associations
     
     '''
-    remove connections from this sensation connected to sensation given as parameter
+    remove associations from this sensation connected to sensation given as parameter
     '''
-    def removeConnection(self, sensation):
+    def removeAssociation(self, sensation):
         i=0
-        for connection in self.connections:
-            if connection.getSensation() == sensation:
-                del self.connections[i]
+        for association in self.associations:
+            if association.getSensation() == sensation:
+                del self.associations[i]
             else:
                 i=i+1
 
-    def getConnectionNumbers(self):
-        connectionNumbers=[]
+    def getAssociationNumbers(self):
+        associationNumbers=[]
         time = systemTime.time()
-        for connection in self.connections:
-            connectionNumbers.append(connection.getSesation().getNumber())
-            connection.time = time
-        return connectionNumbers
+        for association in self.associations:
+            associationNumbers.append(association.getSesation().getNumber())
+            association.time = time
+        return associationNumbers
  
     def getScore(self):
         score = 0.0
         time = systemTime.time()
-        # one level connections
-        for connection in self.connections:
-            if connection.getScore() > score:
-                score = connection.getScore()
-            connection.time = time
+        # one level associations
+        for association in self.associations:
+            if association.getScore() > score:
+                score = association.getScore()
+            association.time = time
         return score
     '''
-    Add many connections by connection numbers
-    connections and connections to then are found from connection cache
+    Add many associations by association numbers
+    associations and associations to then are found from association cache
     '''
-    def addConnectionNumbers(self, connectionNumbers):
-        for connectionNumber in connectionNumbers:
-            connections = Sensation.getSensationsFromSensationMemory(connectionNumber)
-            self.addConnections(connections)
+    def addAssociationNumbers(self, associationNumbers):
+        for associationNumber in associationNumbers:
+            associations = Sensation.getSensationsFromSensationMemory(associationNumber)
+            self.addAssociations(associations)
 
     '''
-    Has sensation connection to other Sensation
-    which SensationType is 'connectionSensationType'
+    Has sensation association to other Sensation
+    which SensationType is 'associationSensationType'
     '''
-    def hasConnectionSensationType(self, connectionSensationType):
+    def hasAssociationSensationType(self, associationSensationType):
         has=False
-        for connection in self.connections:
-            if connection.getSensation().getSensationType() == connectionSensationType:
+        for association in self.associations:
+            if association.getSensation().getSensationType() == associationSensationType:
                 has=True
                 break       
         return has
@@ -1335,13 +1302,13 @@ class Sensation(object):
                         return sensation
         return None
 
-    def getSensationsFromSensationMemory(connectionNumber):
+    def getSensationsFromSensationMemory(associationNumber):
         sensations=[]
         for key, sensationMemory in Sensation.sensationMemorys.items():
             if len(sensationMemory) > 0:
                 for sensation in sensationMemory:
-                    if sensation.getNumber() == connectionNumber or \
-                       connectionNumber in sensation.getConnectionNumbers():
+                    if sensation.getNumber() == associationNumber or \
+                       associationNumber in sensation.getAssociationNumbers():
                         if not sensation in sensations:
                             sensations.append(sensation)
         return sensations
@@ -1382,12 +1349,12 @@ class Sensation(object):
                           timemax,
                           name = None,
                           notName = None,
-                          connectionSensationType = None):
+                          associationSensationType = None):
         bestSensation = None
         for key, sensationMemory in Sensation.sensationMemorys.items():
             for sensation in sensationMemory:
                 if sensation.getSensationType() == sensationType and\
-                   sensation.hasConnectionSensationType(connectionSensationType=connectionSensationType) and\
+                   sensation.hasAssociationSensationType(associationSensationType=associationSensationType) and\
                    (timemin is None or sensation.getTime() > timemin) and\
                    (timemax is None or sensation.getTime() < timemax):
                     if sensationType != Sensation.SensationType.Item or\
@@ -1409,8 +1376,8 @@ class Sensation(object):
                                    sensationType,
                                    name = None):
         bestSensation = None
-        for connection in self.getConnections():
-            sensation= connection.getSensation()
+        for association in self.getAssociations():
+            sensation= association.getSensation()
             if sensation.getSensationType() == sensationType:
                 if sensationType != Sensation.SensationType.Item or\
                    sensation.getName() == name:
@@ -1522,253 +1489,253 @@ if __name__ == '__main__':
     config = Config()
     capabilities = Capabilities(config=config)
     
-    s_Drive=Sensation(connections=[], sensationType = Sensation.SensationType.Drive, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, leftPower = 0.77, rightPower = 0.55)
+    s_Drive=Sensation(associations=[], sensationType = Sensation.SensationType.Drive, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, leftPower = 0.77, rightPower = 0.55)
     print("str s  " + str(s_Drive))
     sensations=Sensation.getSensationsFromSensationMemory(s_Drive.getNumber())
     b=s_Drive.bytes()
-    # TODO should s2 be here really connection to s, same instance? maybe
-    s2=Sensation(connections=[], bytes=b)
+    # TODO should s2 be here really association to s, same instance? maybe
+    s2=Sensation(associations=[], bytes=b)
     sensations=Sensation.getSensationsFromSensationMemory(s_Drive.getNumber())
     print("str s2 " + str(s2))
     print(str(s_Drive == s2))
     
     #test with create
     print("test with create")
-    s_Drive_create=Sensation.create(connections=[], sensationType = Sensation.SensationType.Drive, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, leftPower = 0.77, rightPower = 0.55)
+    s_Drive_create=Sensation.create(associations=[], sensationType = Sensation.SensationType.Drive, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, leftPower = 0.77, rightPower = 0.55)
     print(("Sensation.create: str s  " + str(s_Drive_create)))
     sensations=Sensation.getSensationsFromSensationMemory(s_Drive_create.getNumber())
     b=s_Drive_create.bytes()
-    # TODO should s2 be here really connection to s, same instance? maybe
-    s2=Sensation.create(connections=[], bytes=b)
+    # TODO should s2 be here really association to s, same instance? maybe
+    s2=Sensation.create(associations=[], bytes=b)
     sensations=Sensation.getSensationsFromSensationMemory(s_Drive_create.getNumber())
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create:" + str(s_Drive_create == s2))
     print()
 
     
-    s_Stop=Sensation(connections=[], sensationType = Sensation.SensationType.Stop, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In)
+    s_Stop=Sensation(associations=[], sensationType = Sensation.SensationType.Stop, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In)
     print("str s  " + str(s_Stop))
     b=s_Stop.bytes()
-    s2=Sensation(connections=[], bytes=b)
+    s2=Sensation(associations=[], bytes=b)
     print("str s2 " + str(s2))
     print(str(s_Stop == s2))
 
     #test with create
     print("test with create")
-    s_Stop_create=Sensation.create(connections=[], sensationType = Sensation.SensationType.Stop, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In)
+    s_Stop_create=Sensation.create(associations=[], sensationType = Sensation.SensationType.Stop, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In)
     print(("Sensation.create: str s  " + str(s_Stop_create)))
     b=s_Stop_create.bytes()
-    s2=Sensation.create(connections=[], bytes=b)
+    s2=Sensation.create(associations=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " + str(s_Stop_create == s2))
     print()
     
-    s_Who=Sensation(connections=[], sensationType = Sensation.SensationType.Who, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In)
+    s_Who=Sensation(associations=[], sensationType = Sensation.SensationType.Who, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In)
     print("str s  " + str(s_Who))
     b=s_Who.bytes()
-    s2=Sensation(connections=[], bytes=b)
+    s2=Sensation(associations=[], bytes=b)
     print("str s2 " + str(s2))
     print(str(s_Who == s2))
     
     #test with create
     print("test with create")
-    s_Who_create=Sensation.create(connections=[], sensationType = Sensation.SensationType.Who, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In)
+    s_Who_create=Sensation.create(associations=[], sensationType = Sensation.SensationType.Who, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In)
     print(("Sensation.create: str s  " + str(s_Who_create)))
     b=s_Who_create.bytes()
-    s2=Sensation.create(connections=[], bytes=b)
+    s2=Sensation.create(associations=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " + str(s_Who_create == s2))
     print()
 
     
-    s_HearDirection=Sensation(connections=[Sensation.Connection(sensation=s_Drive)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.HearDirection, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, hearDirection = 0.85)
+    s_HearDirection=Sensation(associations=[Sensation.Association(sensation=s_Drive)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.HearDirection, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, hearDirection = 0.85)
     print(("str s  " + str(s_HearDirection)))
     b=s_HearDirection.bytes()
-    s2=Sensation(connections=[], bytes=b)
+    s2=Sensation(associations=[], bytes=b)
     print("str s2 " + str(s2))
     print(str(s_HearDirection == s2))
 
     #test with create
     print("test with create")
-    s_HearDirection_create=Sensation.create(connections=[Sensation.Connection(sensation=s_Drive_create)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.HearDirection, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, hearDirection = 0.85)
+    s_HearDirection_create=Sensation.create(associations=[Sensation.Association(sensation=s_Drive_create)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.HearDirection, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, hearDirection = 0.85)
     print(("Sensation.create: str s  " + str(s_HearDirection_create)))
     b=s_HearDirection_create.bytes()
-    s2=Sensation.create(connections=[], bytes=b)
+    s2=Sensation.create(associations=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " + str(s_HearDirection_create == s2))
     print()
 
-    s_Azimuth=Sensation(connections=[Sensation.Connection(sensation=s_HearDirection)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.Azimuth, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, azimuth = -0.85)
+    s_Azimuth=Sensation(associations=[Sensation.Association(sensation=s_HearDirection)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.Azimuth, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, azimuth = -0.85)
     print(("str s  " + str(s_Azimuth)))
     b=s_Azimuth.bytes()
-    s2=Sensation(connections=[], bytes=b)
+    s2=Sensation(associations=[], bytes=b)
     print("str s2 " + str(s2))
     print(str(s_Azimuth == s2))
 
     #test with create
     print("test with create")
-    s_Azimuth_create=Sensation.create(connections=[Sensation.Connection(sensation=s_Who_create)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.Azimuth, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, azimuth = -0.85)
+    s_Azimuth_create=Sensation.create(associations=[Sensation.Association(sensation=s_Who_create)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.Azimuth, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, azimuth = -0.85)
     print(("Sensation.create: str s  " + str(s_Azimuth_create)))
     b=s_Azimuth_create.bytes()
-    s2=Sensation.create(connections=[], bytes=b)
+    s2=Sensation.create(associations=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " + str(s_Azimuth_create == s2))
     print()
 
-    s_Acceleration=Sensation(connections=[Sensation.Connection(sensation=s_HearDirection),Sensation.Connection(sensation=s_Azimuth)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.Acceleration, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, accelerationX = -0.85, accelerationY = 2.33, accelerationZ = -0.085)
+    s_Acceleration=Sensation(associations=[Sensation.Association(sensation=s_HearDirection),Sensation.Association(sensation=s_Azimuth)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.Acceleration, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, accelerationX = -0.85, accelerationY = 2.33, accelerationZ = -0.085)
     print(("str s  " + str(s_Acceleration)))
     b=s_Acceleration.bytes()
-    s2=Sensation(connections=[], bytes=b)
+    s2=Sensation(associations=[], bytes=b)
     print("str s2 " + str(s2))
     print(str(s_Acceleration == s2))
 
     #test with create
     print("test with create")
-    s_Acceleration_create=Sensation.create(connections=[Sensation.Connection(sensation=s_HearDirection_create),Sensation.Connection(sensation=s_Azimuth_create)], receivedFrom=['localhost', 'raspberry', 'virtualWalle'], sensationType = Sensation.SensationType.Acceleration, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, accelerationX = -0.85, accelerationY = 2.33, accelerationZ = -0.085)
+    s_Acceleration_create=Sensation.create(associations=[Sensation.Association(sensation=s_HearDirection_create),Sensation.Association(sensation=s_Azimuth_create)], receivedFrom=['localhost', 'raspberry', 'virtualWalle'], sensationType = Sensation.SensationType.Acceleration, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, accelerationX = -0.85, accelerationY = 2.33, accelerationZ = -0.085)
     print(("Sensation.create: str s  " + str(s_Acceleration_create)))
     b=s_Acceleration_create.bytes()
-    s2=Sensation.create(connections=[], bytes=b)
+    s2=Sensation.create(associations=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " +str(s_Acceleration_create == s2))
     print()
 
     
-    s_Observation=Sensation(connections=[Sensation.Connection(sensation=s_HearDirection),Sensation.Connection(sensation=s_Azimuth),Sensation.Connection(sensation=s_Acceleration)], receivedFrom=['localhost', 'raspberry', 'virtualWalle'], sensationType = Sensation.SensationType.Observation, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, observationDirection= -0.85, observationDistance=-3.75)
+    s_Observation=Sensation(associations=[Sensation.Association(sensation=s_HearDirection),Sensation.Association(sensation=s_Azimuth),Sensation.Association(sensation=s_Acceleration)], receivedFrom=['localhost', 'raspberry', 'virtualWalle'], sensationType = Sensation.SensationType.Observation, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, observationDirection= -0.85, observationDistance=-3.75)
     print(("str s  " + str(s_Observation)))
     b=s_Observation.bytes()
-    s2=Sensation(connections=[], bytes=b)
+    s2=Sensation(associations=[], bytes=b)
     print(("str s2 " + str(s2)))
     print(str(s_Observation == s2))
 
     #test with create
     print("test with create")
-    s_Observation_create=Sensation.create(connections=[Sensation.Connection(sensation=s_HearDirection_create),Sensation.Connection(sensation=s_Azimuth_create),Sensation.Connection(sensation=s_Acceleration_create)],  receivedFrom=['localhost', 'raspberry', 'virtualWalle',  'remoteWalle'], sensationType = Sensation.SensationType.Observation, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, observationDirection= -0.85, observationDistance=-3.75)
+    s_Observation_create=Sensation.create(associations=[Sensation.Association(sensation=s_HearDirection_create),Sensation.Association(sensation=s_Azimuth_create),Sensation.Association(sensation=s_Acceleration_create)],  receivedFrom=['localhost', 'raspberry', 'virtualWalle',  'remoteWalle'], sensationType = Sensation.SensationType.Observation, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, observationDirection= -0.85, observationDistance=-3.75)
     print(("Sensation.create: str s  " + str(s_Observation_create)))
     b=s_Observation_create.bytes()
-    s2=Sensation.create(connections=[], bytes=b)
+    s2=Sensation.create(associations=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " + str(s_Observation_create == s2))
     print()
     
     # voice
-    s_VoiceFilePath=Sensation(connections=[Sensation.Connection(sensation=s_Observation),Sensation.Connection(sensation=s_HearDirection),Sensation.Connection(sensation=s_Azimuth),Sensation.Connection(sensation=s_Acceleration)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
+    s_VoiceFilePath=Sensation(associations=[Sensation.Association(sensation=s_Observation),Sensation.Association(sensation=s_HearDirection),Sensation.Association(sensation=s_Azimuth),Sensation.Association(sensation=s_Acceleration)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
     print("str s  " + str(s_VoiceFilePath))
     b=s_VoiceFilePath.bytes()
-    s2=Sensation(connections=[], bytes=b)
+    s2=Sensation(associations=[], bytes=b)
     print(("str s2 " + str(s2)))
     print(str(s_VoiceFilePath == s2))
 
     #test with create
     print("test with create")
-    s_VoiceFilePath_create=Sensation.create(connections=[Sensation.Connection(sensation=s_Observation_create),Sensation.Connection(sensation=s_HearDirection_create),Sensation.Connection(sensation=s_Azimuth_create),Sensation.Connection(sensation=s_Acceleration_create)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
+    s_VoiceFilePath_create=Sensation.create(associations=[Sensation.Association(sensation=s_Observation_create),Sensation.Association(sensation=s_HearDirection_create),Sensation.Association(sensation=s_Azimuth_create),Sensation.Association(sensation=s_Acceleration_create)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
     print(("Sensation.create: str s  " + str(s_VoiceFilePath_create)))
     b=s_VoiceFilePath_create.bytes()
-    s2=Sensation.create(connections=[], bytes=b)
+    s2=Sensation.create(associations=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " + str(s_VoiceFilePath_create == s2))
     print()
 
-    s_VoiceData=Sensation(connections=[Sensation.Connection(sensation=s_VoiceFilePath),Sensation.Connection(sensation=s_Observation),Sensation.Connection(sensation=s_HearDirection),Sensation.Connection(sensation=s_Azimuth),Sensation.Connection(sensation=s_Acceleration)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, data=b'\x01\x02\x03\x04\x05')
+    s_VoiceData=Sensation(associations=[Sensation.Association(sensation=s_VoiceFilePath),Sensation.Association(sensation=s_Observation),Sensation.Association(sensation=s_HearDirection),Sensation.Association(sensation=s_Azimuth),Sensation.Association(sensation=s_Acceleration)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, data=b'\x01\x02\x03\x04\x05')
     print(("str s  " + str(s_VoiceData)))
     b=s_VoiceData.bytes()
-    s2=Sensation(connections=[], bytes=b)
+    s2=Sensation(associations=[], bytes=b)
     print("str s2 " + str(s2))
     print(str(s_VoiceData == s2))
 
     #test with create
     print("test with create")
-    s_VoiceData_create=Sensation.create(connections=[Sensation.Connection(sensation=s_VoiceFilePath_create),Sensation.Connection(sensation=s_Observation_create),Sensation.Connection(sensation=s_HearDirection_create),Sensation.Connection(sensation=s_Azimuth_create),Sensation.Connection(sensation=s_Acceleration_create)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In,  data=b'\x01\x02\x03\x04\x05')
+    s_VoiceData_create=Sensation.create(associations=[Sensation.Association(sensation=s_VoiceFilePath_create),Sensation.Association(sensation=s_Observation_create),Sensation.Association(sensation=s_HearDirection_create),Sensation.Association(sensation=s_Azimuth_create),Sensation.Association(sensation=s_Acceleration_create)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In,  data=b'\x01\x02\x03\x04\x05')
     print(("Sensation.create: str s  " + str(s_VoiceData_create)))
     b=s_VoiceData_create.bytes()
-    s2=Sensation.create(connections=[], bytes=b)
+    s2=Sensation.create(associations=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " +str(s_VoiceData_create == s2))
     print()
     
     # image    
-    s_ImageFilePath=Sensation(connections=[Sensation.Connection(sensation=s_Observation),Sensation.Connection(sensation=s_HearDirection),Sensation.Connection(sensation=s_Azimuth),Sensation.Connection(sensation=s_Acceleration)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
+    s_ImageFilePath=Sensation(associations=[Sensation.Association(sensation=s_Observation),Sensation.Association(sensation=s_HearDirection),Sensation.Association(sensation=s_Azimuth),Sensation.Association(sensation=s_Acceleration)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
     print(("str s  " + str(s_ImageFilePath)))
     b=s_ImageFilePath.bytes()
-    s2=Sensation(connections=[], bytes=b)
+    s2=Sensation(associations=[], bytes=b)
     print("str s2 " + str(s2))
     print(str(s_ImageFilePath == s2))
 
     #test with create
     print("test with create")
-    s_ImageFilePath_create=Sensation.create(connections=[Sensation.Connection(sensation=s_Observation_create),Sensation.Connection(sensation=s_HearDirection_create),Sensation.Connection(sensation=s_Azimuth_create),Sensation.Connection(sensation=s_Acceleration_create)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
+    s_ImageFilePath_create=Sensation.create(associations=[Sensation.Association(sensation=s_Observation_create),Sensation.Association(sensation=s_HearDirection_create),Sensation.Association(sensation=s_Azimuth_create),Sensation.Association(sensation=s_Acceleration_create)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
     print(("Sensation.create: str s  " + str(s_ImageFilePath_create)))
     b=s_ImageFilePath_create.bytes()
-    s2=Sensation.create(connections=[], bytes=b)
+    s2=Sensation.create(associations=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " + str(s_ImageFilePath_create == s2))
     print()
 
-    s_ImageData=Sensation(connections=[Sensation.Connection(sensation=s_ImageFilePath),Sensation.Connection(sensation=s_Observation),Sensation.Connection(sensation=s_HearDirection),Sensation.Connection(sensation=s_Azimuth),Sensation.Connection(sensation=s_Acceleration)], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, image=PIL_Image.new(mode=Sensation.MODE, size=(10,10)))
+    s_ImageData=Sensation(associations=[Sensation.Association(sensation=s_ImageFilePath),Sensation.Association(sensation=s_Observation),Sensation.Association(sensation=s_HearDirection),Sensation.Association(sensation=s_Azimuth),Sensation.Association(sensation=s_Acceleration)], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, image=PIL_Image.new(mode=Sensation.MODE, size=(10,10)))
     print("str s  " + str(s_ImageData))
     b=s_ImageData.bytes()
-    s2=Sensation(connections=[], bytes=b)
+    s2=Sensation(associations=[], bytes=b)
     print("str s2 " + str(s2))
     print(str(s_ImageData == s2))
 
     #test with create
     print("test with create")
-    s_ImageData_create=Sensation.create(connections=[Sensation.Connection(sensation=s_ImageFilePath_create),Sensation.Connection(sensation=s_Observation_create),Sensation.Connection(sensation=s_HearDirection_create),Sensation.Connection(sensation=s_Azimuth_create),Sensation.Connection(sensation=s_Acceleration_create)], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, image=PIL_Image.new(mode=Sensation.MODE, size=(10,10)))
+    s_ImageData_create=Sensation.create(associations=[Sensation.Association(sensation=s_ImageFilePath_create),Sensation.Association(sensation=s_Observation_create),Sensation.Association(sensation=s_HearDirection_create),Sensation.Association(sensation=s_Azimuth_create),Sensation.Association(sensation=s_Acceleration_create)], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, image=PIL_Image.new(mode=Sensation.MODE, size=(10,10)))
     print("Sensation.create: str s  " + str(s_ImageData_create))
     b=s_ImageData_create.bytes()
-    s2=Sensation.create(connections=[], bytes=b)
+    s2=Sensation.create(associations=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " +str(s_ImageData_create == s2))
     print()
 
-    s_Calibrate=Sensation(connections=[Sensation.Connection(sensation=s_ImageData),Sensation.Connection(sensation=s_ImageFilePath),Sensation.Connection(sensation=s_Observation),Sensation.Connection(sensation=s_HearDirection),Sensation.Connection(sensation=s_Azimuth),Sensation.Connection(sensation=s_Acceleration)], sensationType = Sensation.SensationType.Calibrate, memory = Sensation.Memory.Sensory, calibrateSensationType = Sensation.SensationType.HearDirection, direction = Sensation.Direction.In, hearDirection = 0.85)
+    s_Calibrate=Sensation(associations=[Sensation.Association(sensation=s_ImageData),Sensation.Association(sensation=s_ImageFilePath),Sensation.Association(sensation=s_Observation),Sensation.Association(sensation=s_HearDirection),Sensation.Association(sensation=s_Azimuth),Sensation.Association(sensation=s_Acceleration)], sensationType = Sensation.SensationType.Calibrate, memory = Sensation.Memory.Sensory, calibrateSensationType = Sensation.SensationType.HearDirection, direction = Sensation.Direction.In, hearDirection = 0.85)
     print("str s  " + str(s_Calibrate))
     b=s_Calibrate.bytes()
-    s2=Sensation(connections=[], bytes=b)
+    s2=Sensation(associations=[], bytes=b)
     print("str s2 " + str(s2))
     print(str(s_Calibrate == s2))
 
     #test with create
     print("test with create")
-    s_Calibrate_create=Sensation.create(connections=[Sensation.Connection(sensation=s_ImageData_create),Sensation.Connection(sensation=s_ImageFilePath_create),Sensation.Connection(sensation=s_Observation_create),Sensation.Connection(sensation=s_HearDirection_create),Sensation.Connection(sensation=s_Azimuth_create),Sensation.Connection(sensation=s_Acceleration_create)], sensationType = Sensation.SensationType.Calibrate, memory = Sensation.Memory.Sensory, calibrateSensationType = Sensation.SensationType.HearDirection, direction = Sensation.Direction.In, hearDirection = 0.85)
+    s_Calibrate_create=Sensation.create(associations=[Sensation.Association(sensation=s_ImageData_create),Sensation.Association(sensation=s_ImageFilePath_create),Sensation.Association(sensation=s_Observation_create),Sensation.Association(sensation=s_HearDirection_create),Sensation.Association(sensation=s_Azimuth_create),Sensation.Association(sensation=s_Acceleration_create)], sensationType = Sensation.SensationType.Calibrate, memory = Sensation.Memory.Sensory, calibrateSensationType = Sensation.SensationType.HearDirection, direction = Sensation.Direction.In, hearDirection = 0.85)
     print("Sensation.create: str s  " + str(s_Calibrate_create))
     b=s_Calibrate_create.bytes()
-    s2=Sensation.create(connections=[], bytes=b)
+    s2=Sensation.create(associations=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " + str(s_Calibrate_create == s2))
     print()
 
-#    s_Capability=Sensation(connections=[s_Calibrate,s_VoiceData,s_VoiceFilePath,s_ImageData,s_ImageFilePath,s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.Capability, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = [Sensation.SensationType.Drive, Sensation.SensationType.HearDirection, Sensation.SensationType.Azimuth])
-    s_Capability=Sensation(connections=[Sensation.Connection(sensation=s_Calibrate),Sensation.Connection(sensation=s_VoiceData),Sensation.Connection(sensation=s_VoiceFilePath),Sensation.Connection(sensation=s_ImageData),Sensation.Connection(sensation=s_ImageFilePath),Sensation.Connection(sensation=s_Observation),Sensation.Connection(sensation=s_HearDirection),Sensation.Connection(sensation=s_Azimuth),Sensation.Connection(sensation=s_Acceleration)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Capability, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = capabilities)
+#    s_Capability=Sensation(associations=[s_Calibrate,s_VoiceData,s_VoiceFilePath,s_ImageData,s_ImageFilePath,s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.Capability, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = [Sensation.SensationType.Drive, Sensation.SensationType.HearDirection, Sensation.SensationType.Azimuth])
+    s_Capability=Sensation(associations=[Sensation.Association(sensation=s_Calibrate),Sensation.Association(sensation=s_VoiceData),Sensation.Association(sensation=s_VoiceFilePath),Sensation.Association(sensation=s_ImageData),Sensation.Association(sensation=s_ImageFilePath),Sensation.Association(sensation=s_Observation),Sensation.Association(sensation=s_HearDirection),Sensation.Association(sensation=s_Azimuth),Sensation.Association(sensation=s_Acceleration)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Capability, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = capabilities)
     print(("str s  " + str(s_Capability)))
     b=s_Capability.bytes()
-    s2=Sensation(connections=[], bytes=b)
+    s2=Sensation(associations=[], bytes=b)
     print("str s2 " + str(s2))
     print(str(s_Capability == s2))
     
      #test with create
     print("test with create")
-    s_Capability_create=Sensation.create(connections=[Sensation.Connection(sensation=s_Calibrate_create),Sensation.Connection(sensation=s_VoiceData_create),Sensation.Connection(sensation=s_VoiceFilePath_create),Sensation.Connection(sensation=s_ImageData_create),Sensation.Connection(sensation=s_ImageFilePath_create),Sensation.Connection(sensation=s_Observation_create),Sensation.Connection(sensation=s_HearDirection_create),Sensation.Connection(sensation=s_Azimuth_create),Sensation.Connection(sensation=s_Acceleration_create)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Capability, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = capabilities)
+    s_Capability_create=Sensation.create(associations=[Sensation.Association(sensation=s_Calibrate_create),Sensation.Association(sensation=s_VoiceData_create),Sensation.Association(sensation=s_VoiceFilePath_create),Sensation.Association(sensation=s_ImageData_create),Sensation.Association(sensation=s_ImageFilePath_create),Sensation.Association(sensation=s_Observation_create),Sensation.Association(sensation=s_HearDirection_create),Sensation.Association(sensation=s_Azimuth_create),Sensation.Association(sensation=s_Acceleration_create)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Capability, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, capabilities = capabilities)
     print(("Sensation.create: str s  " + str(s_Capability_create)))
     b=s_Capability_create.bytes()
-    s2=Sensation.create(connections=[], bytes=b)
+    s2=Sensation.create(associations=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " + str(s_Capability_create == s2))
     
     # item
     
-    s_Item=Sensation(connections=[Sensation.Connection(sensation=s_Calibrate),Sensation.Connection(sensation=s_VoiceData),Sensation.Connection(sensation=s_VoiceFilePath),Sensation.Connection(sensation=s_ImageData),Sensation.Connection(sensation=s_ImageFilePath),Sensation.Connection(sensation=s_Observation),Sensation.Connection(sensation=s_HearDirection),Sensation.Connection(sensation=s_Azimuth),Sensation.Connection(sensation=s_Acceleration)], sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, name='person')
+    s_Item=Sensation(associations=[Sensation.Association(sensation=s_Calibrate),Sensation.Association(sensation=s_VoiceData),Sensation.Association(sensation=s_VoiceFilePath),Sensation.Association(sensation=s_ImageData),Sensation.Association(sensation=s_ImageFilePath),Sensation.Association(sensation=s_Observation),Sensation.Association(sensation=s_HearDirection),Sensation.Association(sensation=s_Azimuth),Sensation.Association(sensation=s_Acceleration)], sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, name='person')
     print(("str s  " + str(s_Item)))
     b=s_Item.bytes()
-    s2=Sensation(connections=[], bytes=b)
+    s2=Sensation(associations=[], bytes=b)
     print("str s2 " + str(s2))
     print(str(s_Item == s2))
     
      #test with create
     print("test with create")
-    s_Item_create=Sensation.create(connections=[Sensation.Connection(sensation=s_Calibrate_create),Sensation.Connection(sensation=s_VoiceData_create),Sensation.Connection(sensation=s_VoiceFilePath_create),Sensation.Connection(sensation=s_ImageData_create),Sensation.Connection(sensation=s_ImageFilePath_create),Sensation.Connection(sensation=s_Observation_create),Sensation.Connection(sensation=s_HearDirection_create),Sensation.Connection(sensation=s_Azimuth_create),Sensation.Connection(sensation=s_Acceleration_create)], sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, name='person')
+    s_Item_create=Sensation.create(associations=[Sensation.Association(sensation=s_Calibrate_create),Sensation.Association(sensation=s_VoiceData_create),Sensation.Association(sensation=s_VoiceFilePath_create),Sensation.Association(sensation=s_ImageData_create),Sensation.Association(sensation=s_ImageFilePath_create),Sensation.Association(sensation=s_Observation_create),Sensation.Association(sensation=s_HearDirection_create),Sensation.Association(sensation=s_Azimuth_create),Sensation.Association(sensation=s_Acceleration_create)], sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, name='person')
     print(("Sensation.create: str s  " + str(s_Item_create)))
     b=s_Item_create.bytes()
-    s2=Sensation.create(connections=[], bytes=b)
+    s2=Sensation.create(associations=[], bytes=b)
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create: " + str(s_Item_create == s2))
     

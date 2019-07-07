@@ -129,7 +129,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
     '''
     def stop(self):
         self.log('stop')
-        SocketClient.sendSensation(connections=[], sensation=Sensation(number=0, sensationType = Sensation.SensationType.Stop), socket=self.socket, address=self.address)
+        SocketClient.sendSensation(associations=[], sensation=Sensation(number=0, sensationType = Sensation.SensationType.Stop), socket=self.socket, address=self.address)
         self.running = False
 
         self.socket.close()

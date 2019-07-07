@@ -1,57 +1,28 @@
 Critical
 --------
 
+Gets situation,where vonnection are dine repeatedly until we get max.
+We must connect only best associations.
+
 Created 3 SocketServer and 3 SockertClient threads/instances. 1 +1 is enough.
 
 Communication
-  Sensation.getBestSensation( sensationType = Sensation.SensationType.Item,
+  OK Sensation.getBestSensation( sensationType = Sensation.SensationType.Item,
                                                                 name = sensation.getName(),
                                                                 timemin = None,
                                                                 timemax = None,
-                                                                connectionSensationType=Sensation.SensationType.Voice)
+                                                                associationSensationType=Sensation.SensationType.Voice)
   Newer gets sensation, so there is no way to communicate. Are voices connected to Items or not?
   Ceate an logger to detect, when Voice is connected to an Item
 
 
-OK How to handle Socket writing errors?
-- if error, sensation back to Axons
-- connect again by TCPServer?
-
-Study raspberry output.
-Same connection is not detected, when creating a new one!
-
-Last, maybe this situation comes too soon to handle
-SocketClient:('192.168.117.20', 47668):3:Normal: run: Starting robot who SocketClient kind w instanceType s
-SocketClient:('192.168.117.20', 47668):3:StudyOwnIdentity: My name is SocketClient:('192.168.117.20', 47668)
-SocketClient:('192.168.117.20', 47668):3:StudyOwnIdentity: My kind is w
-SocketClient:('192.168.117.20', 47668):3:StudyOwnIdentity: My identitypath is Identitys/Wall-E
-SocketClient:('192.168.117.20', 47668):3:StudyOwnIdentity: SocketClient wrote Sensation to ('192.168.117.20', 47668)
-SocketClient:('192.168.117.20', 47668):3:StudyOwnIdentity: send SocketClient wrote sensation 1561805117.3777726 1561805078.4400356 LongTerm Out Image
-SocketClient:('192.168.117.20', 47668):3:StudyOwnIdentity: SocketClient.sendSensation
-SocketClient:('192.168.117.20', 47668):3:StudyOwnIdentity: SocketClient error writing Sensation.SEPARATOR to ('192.168.117.20', 47668) error [Errno 104] Connection reset by peer
-SocketServer:('192.168.117.20', 47668):3:Normal: run: waiting next Sensation from('192.168.117.20', 47668)
-SocketClient:('192.168.117.20', 47668):3:Interrupted: Found directory: Identitys/Wall-E
-SocketClient:('192.168.117.20', 47668):3:Interrupted:   Wall-E.png
-SocketClient:('192.168.117.20', 47668):3:Interrupted:   wall-e-gives_flower.jpg
-SocketClient:('192.168.117.20', 47668):3:Stopping: Stopping robot
-SocketClient:('192.168.117.20', 47668):3:Stopping: run ALL SHUT DOWN
-
-previous
-
-SocketClient:('raspberry', 2000):3:Normal: got sensation from queue D 1561676916.788302 1561677006.4107625 Sensory Out Voice
-SocketClient:('raspberry', 2000):3:Normal: process: Fri Jun 28 02:10:06 2019 D 1561676916.788302 1561677006.4107625 Sensory Out Voice
-SocketClient:('raspberry', 2000):3:Normal: SocketClient.sendSensation
-SocketClient:('raspberry', 2000):3:Normal: SocketClient error writing Sensation.SEPARATOR to ('raspberry', 2000) error [Errno 32] Broken pipe
-SocketClient:('raspberry', 2000):3:Normal: send SocketClient Voice sensation
-SocketClient:('raspberry', 2000):3:Stopping: Stopping robot
-SocketClient:('raspberry', 2000):3:Stopping: run ALL SHUT DOWN
 
 
-Connection: use only one Item.name per connection.
+Association: use only one Item.name per association.
 Find out best Voice, Image etc, per Item.name and connect tohose togetger.
-When better one is found, remove worse connection and connect better one.
+When better one is found, remove worse association and connect better one.
 
-Sonnections between sensations are neuro-network -like, so we must
+Associations between sensations are neuro-network -like, so we must
 study how to make
 - Voide-tensorflow -model, where Item.name is connectod to a Voice handled
   like black-white (one-channel) image

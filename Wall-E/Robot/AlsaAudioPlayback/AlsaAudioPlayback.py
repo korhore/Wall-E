@@ -8,7 +8,7 @@ This class is low level sensory (muscle) for speaking
 implemented by alsaaudio and need usb-speaker hardware
 
 '''
-import time
+import time as systemTime
 import alsaaudio
 
 from threading import Thread
@@ -27,6 +27,9 @@ class AlsaAudioPlayback(Robot):
     CHANNELS=1
     RATE = 44100
     FORMAT = alsaaudio.PCM_FORMAT_S16_LE
+    
+    COMMUNICATION_INTERVAL=60.0     # time window to history 
+                                    # for sensations we communicate
 
     def __init__(self,
                  parent=None,
@@ -46,6 +49,9 @@ class AlsaAudioPlayback(Robot):
         self.rate = AlsaAudioPlayback.RATE
         self.format = AlsaAudioPlayback.FORMAT
         
+        self.last_datalen=0
+        self.last_write_time = systemTime.time()
+       
         try:
             self.log("alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK, mode=alsaaudio.PCM_NORMAL, device=" + self.device + ')')
             self.outp = alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK, mode=alsaaudio.PCM_NORMAL, device=self.device)
@@ -66,18 +72,26 @@ class AlsaAudioPlayback(Robot):
         
                     
     def process(self, transferDirection, sensation):
-        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
+        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         if sensation.getSensationType() == Sensation.SensationType.Stop:
-            self.log('process: SensationSensationType.Stop')      
+            self.log(logLevel=Robot.LogLevel.Normal, logStr='process: SensationSensationType.Stop')      
             self.stop()
-        # we can speak
+        # we can speak, but only if sensation is new enough
         elif self.ok and self.running and sensation.getSensationType() == Sensation.SensationType.Voice and sensation.getDirection() == Sensation.Direction.In:
-            self.log('process: Sensation.SensationType.VoiceData self.outp.write(sensation.getVoiceData()')
-            self.outp.write(sensation.getData())
-            sensation.save()    #remember what we played
+            if systemTime.time() - sensation.getTime() < AlsaAudioPlayback.COMMUNICATION_INTERVAL:
+                if self.last_datalen != len(sensation.getData()) or systemTime.time() - self.last_write_time > AlsaAudioPlayback.COMMUNICATION_INTERVAL:
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr='process: Sensation.SensationType.VoiceData self.outp.write(sensation.getVoiceData()')
+                    self.outp.write(sensation.getData())
+                    sensation.save()    #remember what we played
+                    self.last_datalen = len(sensation.getData())
+                    self.last_write_time = systemTime.time()
+                else:
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr='process: this Voice already played in this interval')
+            else:
+                self.log(logLevel=Robot.LogLevel.Normal, logStr='process: got too old Voice to play')
         else:
-            self.log('process: got sensation we this robot can\'t process')
-        self.log("self.running " + str(self.running))      
+            self.log(logLevel=Robot.LogLevel.Error, logStr='process: got sensation we this robot can\'t process')
+        self.log(logLevel=Robot.LogLevel.Detailed, logStr="self.running " + str(self.running))      
 
 if __name__ == "__main__":
     alsaAudioPlayback = AlsaAudioPlayback()

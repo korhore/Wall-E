@@ -80,9 +80,9 @@ class Robot(Thread):
     and 'chair' and heard certain voice at that moment.
     
     This a point, where we can start to build intelligence to our Robot. subRobot can be build to process Sensations likke Items, sunImages and Voices.
-    WE have made Connection-naming subrobot, that connects together Sensations that happen at same moment. For example we have Item named 'Human'
+    WE have made Association-naming subrobot, that connects together Sensations that happen at same moment. For example we have Item named 'Human'
     and Voice-sensation at same moment. We have build also Communnication-naming subRobot that can process Item-Sensations and if it finds one,
-    it tries to find out connection to a Voice. If it finds out this knd connection made before, it speaks it out and listens.
+    it tries to find out association to a Voice. If it finds out this knd association made before, it speaks it out and listens.
     If it hears a voice as a response, it remembers this and will be very, very happy (Sense a sensationtype 'feeling')
     
     This is a moment we have implemented a Robot that can feel and communicate.
@@ -187,6 +187,12 @@ class Robot(Thread):
     def getLevel(self):
         return self.level
     
+    def getLogLevel(self):
+        return self.logLevel
+
+    def setLogLevel(self, logLevel):
+        self.logLevel = logLevel
+
     def getWho(self):
         return self.config.getWho()
     
@@ -345,7 +351,7 @@ class Robot(Thread):
   
         
     def log(self, logStr, logLevel=LogLevel.Normal):
-         if logLevel <= self.logLevel:
+         if logLevel <= self.getLogLevel():
              print(self.name + ":" + str( self.config.level) + ":" + Sensation.Modes[self.mode] + ": " + logStr)
 
     def stop(self):
@@ -358,7 +364,7 @@ class Robot(Thread):
         self.running = False    # this in not real, but we wait for Sensation,
                                 # so give  us one stop sensation
         self.log(logLevel=Robot.LogLevel.Verbose, logStr="self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(sensationType = Sensation.SensationType.Stop))")      
-        self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(connections=[], sensationType = Sensation.SensationType.Stop))
+        self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(associations=[], sensationType = Sensation.SensationType.Stop))
 
 
     '''
@@ -368,7 +374,7 @@ class Robot(Thread):
     '''
             
     def doStop(self):
-        self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(connections=[], sensationType = Sensation.SensationType.Stop))
+        self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(associations=[], sensationType = Sensation.SensationType.Stop))
         
     def studyOwnIdentity(self):
         self.mode = Sensation.Mode.StudyOwnIdentity

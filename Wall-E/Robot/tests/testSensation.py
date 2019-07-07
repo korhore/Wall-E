@@ -14,7 +14,7 @@ from Sensation import Sensation
 
 class SensationTestCase(unittest.TestCase):
     def setUp(self):
-        self.sensation = Sensation.create(connections=[], sensationType=Sensation.SensationType.Item, name='test')
+        self.sensation = Sensation.create(associations=[], sensationType=Sensation.SensationType.Item, name='test')
 
     def tearDown(self):
         self.sensation.delete()
@@ -22,25 +22,25 @@ class SensationTestCase(unittest.TestCase):
     def test_SensationCreate(self):
         self.assertIsNot(self.sensation, None)
         
-    def test_AddConnection(self):
-        addSensation = Sensation.create(connections=[], sensation=self.sensation, memory=Sensation.Memory.LongTerm, name='connect_test')
+    def test_AddAssociation(self):
+        addSensation = Sensation.create(associations=[], sensation=self.sensation, memory=Sensation.Memory.LongTerm, name='connect_test')
         self.assertIsNot(addSensation, None)
         addSensation.save()    # this is worth to save its data
-        self.assertIs(len(addSensation.getConnections()), 0)
+        self.assertIs(len(addSensation.getAssociations()), 0)
         
-        connection_number = len(self.sensation.getConnections())
+        association_number = len(self.sensation.getAssociations())
 
-        self.sensation.addConnection(Sensation.Connection(sensation=addSensation,
+        self.sensation.addAssociation(Sensation.Association(sensation=addSensation,
                                                           score=addSensation.getScore()))
-        self.assertIs(len(self.sensation.getConnections()), connection_number+1)
-        self.assertIs(len(addSensation.getConnections()), 1)
-        Sensation.logConnections(self.sensation)
-        # again, should not add connection twise
-        self.sensation.addConnection(Sensation.Connection(sensation=addSensation,
+        self.assertIs(len(self.sensation.getAssociations()), association_number+1)
+        self.assertIs(len(addSensation.getAssociations()), 1)
+        Sensation.logAssociations(self.sensation)
+        # again, should not add association twise
+        self.sensation.addAssociation(Sensation.Association(sensation=addSensation,
                                                           score=addSensation.getScore()))
-        self.assertIs(len(self.sensation.getConnections()), connection_number+1)
-        self.assertIs(len(addSensation.getConnections()), 1)
-        Sensation.logConnections(self.sensation)
+        self.assertIs(len(self.sensation.getAssociations()), association_number+1)
+        self.assertIs(len(addSensation.getAssociations()), 1)
+        Sensation.logAssociations(self.sensation)
 
 
 
