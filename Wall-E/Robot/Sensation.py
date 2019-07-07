@@ -77,7 +77,7 @@ Sensation is something Robot senses
 '''
 
 class Sensation(object):
-    VERSION=4           # version number to check, if we picle same version
+    VERSION=5           # version number to check, if we picle same version
                         # instances. Otherwise we get odd errors, with old
                         # version code instances
 
@@ -301,15 +301,29 @@ class Sensation(object):
     '''
         
     class Association(object):
+        
+        # Feeling, Feelings can be positive or negative, stronger or weaker
+        Feeling = enum(Terrified=-5, Afraid=-3, Disappointed=-2, Worried=-1, Neutral=0, Normal=1, Good=2, Happy=3, InLove=5)
+        
         def __init__(self,
-                     sensation,        # sensation to connect
-                     time=None,     # last used
-                     score = 0.0):  # score of association, used at least witn item, float
+                     sensation,                             # sensation to connect
+                     time=None,                             # last used
+                     score = 0.0,                           # score of association, used at least with item, float
+                     feeling = Feeling.Neutral):            # feeling of association two sensations
+                                                            # stronger feeling make us (and robots) to remember association
+                                                            # longer than neutral associations
+                                                            # our behaver (and) robots has to goal to get good feelings
+                                                            # and avoid negative ones
+                                                            # first usage of feeling is wit Communication-Robot, make it
+                                                            # classify Voices with good feeling when it gets responses
+                                                            # and feel CVoice use with bad feeling, if it does not
+                                                            # get a rsponse
             self.time=time
             if self.time == None:
                 self.time = systemTime.time()
             self.sensation = sensation
             self.score = score
+            self.feeling = feeling
     
         def getTime(self):
             return self.time
@@ -331,6 +345,11 @@ class Sensation(object):
         def setScore(self, score):
              self.score = score
 
+        def getFeeling(self):
+            return self.feeling
+    
+        def setFeeling(self, feeling):
+             self.feeling = feeling
 
 
     '''
@@ -371,7 +390,7 @@ class Sensation(object):
         self.associations=associations
 
         # associations are always both way
-        if sensation is not None:   # copy contructor
+        if sensation is not None:   # copy constructor
             self.associations=sensation.associations
             self.receivedFrom=sensation.receivedFrom
             self.sensationType = sensation.sensationType
@@ -529,9 +548,12 @@ class Sensation(object):
                     score = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
                     
+                    feeling = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER)
+                    i += Sensation.NUMBER_SIZE
+
                     sensation=Sensation.getSensationFromSensationMemory(number=sensation_number)
                     if sensation is not None:
-                        self.addAssociation(Sensation.Association(sensation=sensation,time=time,score=score))
+                        self.addAssociation(Sensation.Association(sensation=sensation,time=time,score=score, feeling=feeling))
                 
             except (ValueError):
                 self.sensationType = Sensation.SensationType.Unknown
@@ -744,10 +766,13 @@ class Sensation(object):
                 
                     score = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
+                    
+                    feeling = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER)
+                    i += Sensation.NUMBER_SIZE
 
                     connected_sensation=Sensation.getSensationFromSensationMemory(number=sensation_number)
                     if connected_sensation is not None:
-                        sensation.addAssociation(Sensation.Association(sensation=connected_sensation,time=time,score=score))
+                        sensation.addAssociation(Sensation.Association(sensation=connected_sensation, time=time, score=score, feeling=feeling))
                 
                  #  at the end receivedFros (list of words)
                 receivedFrom_size = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
@@ -919,6 +944,7 @@ class Sensation(object):
             b +=  floatToBytes(self.associations[j].getSensation().getNumber())
             b +=  floatToBytes(self.associations[j].getTime())
             b +=  floatToBytes(self.associations[j].getScore())
+            b +=  self.associations[j].getFeeling().to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
        #  at the end receivedFrom (list of words)
         blist = listToBytes(self.receivedFrom)
         blist_size=len(blist)
@@ -1083,8 +1109,9 @@ class Sensation(object):
         for association in self.associations:
             if association.getScore() > score:
                 score = association.getScore()
-            association.time = time
+                association.time = time
         return score
+    
     '''
     Add many associations by association numbers
     associations and associations to then are found from association cache
