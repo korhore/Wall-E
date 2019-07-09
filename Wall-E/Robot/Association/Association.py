@@ -123,8 +123,9 @@ class Association(Robot):
     #                    candidate_to_connect = Sensation.create(sensation=candidate_to_connect, memory=Sensation.Memory.LongTerm)
                         candidate_to_connect.save()    # this is worth to save its data
                         
-                    sensation.addAssociation(Sensation.Association(sensation=candidate_to_connect,
-                                                                 score=candidate_to_connect.getScore()))
+                    sensation.addAssociation(Sensation.Association(self_sensation=sensation,
+                                                                   sensation=candidate_to_connect,
+                                                                   score=candidate_to_connect.getScore()))
         
                     # for debugging reasons we log what associations we have now
                     #Sensation.logAssociations(sensation)
@@ -149,14 +150,18 @@ class Association(Robot):
                         self.log('11: process: candidate_to_connect.setMemory(Sensation.Memory.LongTerm) ' + candidate_to_connect.toDebugStr())
     #                     candidate_to_connect = Sensation.create(sensation=candidate_to_connect, memory=Sensation.Memory.LongTerm)
                         candidate_to_connect.save()    # this is worth to save its data
+                        
+                    # TODO study which score we will get
                             
                     self.log('12: process: sensation.addAssociation(Sensation.Association(sensation=candidate_to_connect ' + sensation.toDebugStr())
-                    sensation.addAssociation(Sensation.Association(sensation=candidate_to_connect,
-                                                                 score=candidate_to_connect.getScore()))
-                    # TODO this is now needed, but should it? Association is ment to be two sided.
-                    self.log('13: process: candidate_to_connect.addAssociation(Sensation.Association(sensation=sensation ' + candidate_to_connect.toDebugStr())
-                    candidate_to_connect.addAssociation(Sensation.Association(sensation=sensation,
-                                                                            score=sensation.getScore()))
+                    sensation.addAssociation(Sensation.Association(self_sensation=sensation,
+                                                                   sensation=candidate_to_connect,
+                                                                   score=candidate_to_connect.getScore()))
+#                     # TODO this is now needed, but should it? Association is ment to be two sided.
+#                     self.log('13: process: candidate_to_connect.addAssociation(Sensation.Association(sensation=sensation ' + candidate_to_connect.toDebugStr())
+#                     candidate_to_connect.addAssociation(Sensation.Association(self_sensation=candidate_to_connect,
+#                                                                               sensation=sensation,
+#                                                                               score=sensation.getScore()))
                     new_association = True
                     # TODO
                     # At this point we could also start communicating if sensation is Item and candidate_to_connect is Voice or opposite way

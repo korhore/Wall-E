@@ -306,24 +306,50 @@ class Sensation(object):
         Feeling = enum(Terrified=-5, Afraid=-3, Disappointed=-2, Worried=-1, Neutral=0, Normal=1, Good=2, Happy=3, InLove=5)
         
         def __init__(self,
+                     self_sensation,                        # this side of Association
                      sensation,                             # sensation to connect
                      time=None,                             # last used
                      score = 0.0,                           # score of association, used at least with item, float
-                     feeling = Feeling.Neutral):            # feeling of association two sensations
-                                                            # stronger feeling make us (and robots) to remember association
+                     feeling = Feeling.Neutral,             # feeling of association two sensations
+                     two_sided = True):                     # stronger feeling make us (and robots) to remember association
                                                             # longer than neutral associations
                                                             # our behaver (and) robots has to goal to get good feelings
                                                             # and avoid negative ones
                                                             # first usage of feeling is wit Communication-Robot, make it
                                                             # classify Voices with good feeling when it gets responses
                                                             # and feel CVoice use with bad feeling, if it does not
-                                                            # get a rsponse
-            self.time=time
+                                                            # get a response
+            self.time = time
             if self.time == None:
                 self.time = systemTime.time()
+            self.self_sensation = self_sensation
             self.sensation = sensation
             self.score = score
             self.feeling = feeling
+            if two_sided:
+                # other part
+                association = self.getAssociation(self.sensation)
+                # for some reason we find this association at other side
+                if association is not None:
+                    association.time = self.time
+                    association.score = self.score
+                    association.feeling = self.feeling
+                else: # normal case, make association of other side looking to us
+                    association = Association (sensation = self.self_sensation,
+                                               time=self.time,                             
+                                               score = self.score,                           
+                                               feeling = self.feeling,             
+                                               two_sided = False)
+                    sensation.associatons.append(association)
+
+        '''
+        get other part association
+        '''            
+        def getAssociation(self, sensation):
+            for association in sensation.getAssociations():
+                if self == association.getSensation():
+                    return association
+            return self
     
         def getTime(self):
             return self.time
@@ -332,24 +358,48 @@ class Sensation(object):
             if time == None:
                 time = systemTime.time()
             self.time = time
+            # other part
+            association = self.getAssociation(self.sensation)
+            association.time = time
      
         def getSensation(self):
             return self.sensation
-    
+
+        ''''
+        setSensation is tricky
+        We should first remove old Association from Association.sensation
+        and add this new Association
+        so for now this is not allowed, but should be done explicit way
+        
         def setSensation(self, sensation):
-             self.sensation = sensation
+            self.sensation = sensation
+            # other part
+            association = self.getAssociation(self.sensation)
+            if association is None:
+               self.sensation.addAssociation(self) 
+            else:
+                association.time = self.time
+                association.score = self.score
+                association.feeling = self.feeling
+        '''
              
         def getScore(self):
             return self.score
     
         def setScore(self, score):
-             self.score = score
+            self.score = score
+            # other part
+            association = self.getAssociation(self.sensation)
+            association.score = score
 
         def getFeeling(self):
             return self.feeling
     
         def setFeeling(self, feeling):
-             self.feeling = feeling
+            self.feeling = feeling
+            # other part
+            association = self.getAssociation(self.sensation)
+            association.feeling = feeling
 
 
     '''
@@ -1048,12 +1098,27 @@ class Sensation(object):
     Associations are always two sided, but not referencing to self
     '''
     def addAssociation(self, association):
+        # this side
         time = systemTime.time()
         if association.getSensation() != self and \
            not self.isConnected(association):
             #print('addAssociation ' + self.toDebugStr() + ' to ' + association.getSensation().toDebugStr())
             self.associations.append(association)
             association.time = time
+        # other side
+# temporary test
+        other_association = Sensation.Association(self_sensation=association.getSensation(),
+                                                  sensation=self,
+                                                  time=association.getTime(),
+                                                  score=association.getScore(),
+                                                  feeling=association.getFeeling(),
+                                                  two_sided=False)
+        if not other_association.getSensation().isConnected(association):
+            #print('addAssociation ' + self.toDebugStr() + ' to ' + association.getSensation().toDebugStr())
+            association.getSensation().associations.append(other_association)
+#             other_association.time = time
+        
+        
             ## TODO howto do reverse association
             #association.getSensation().addAssociation(Sensation.Association(sensation=self))
     '''
@@ -1112,6 +1177,16 @@ class Sensation(object):
                 association.time = time
         return score
     
+    def getFeeling(self):
+        feeling = Sensation.Association.Feeling.Neutral
+        time = systemTime.time()
+        # one level associations
+        for association in self.associations:
+            if abs(association.getFeeling()) > abs(feeling):
+                feeling = association.getFeeling()
+                association.time = time
+        return feeling
+
     '''
     Add many associations by association numbers
     associations and associations to then are found from association cache
@@ -1394,6 +1469,7 @@ class Sensation(object):
                         if bestSensation is None or\
                            sensation.getScore() > bestSensation.getScore():
                             bestSensation = sensation
+                            print("getBestSensation " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getScore()))
         return bestSensation
     
     '''

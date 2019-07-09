@@ -96,8 +96,10 @@ class AssociationTestCase(unittest.TestCase):
         print('4 len(Wall_E_item_sensation.getAssociations()) ' + str(len(Wall_E_item_sensation.getAssociations())))
         self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 0)
        # TensorflowCalssification Connects image and Item, so we simulate it
-        Wall_E_item_sensation.addAssociation(Sensation.Association(sensation=Wall_E_image_sensation,
-                                                                 score=AssociationTestCase.SCORE))
+        Wall_E_item_sensation.addAssociation(Sensation.Association(self_sensation = Wall_E_item_sensation,
+                                                                   sensation=Wall_E_image_sensation,
+                                                                   score=AssociationTestCase.SCORE))
+        self.assertEqual(Wall_E_item_sensation.getAssociations()[0].getScore(), AssociationTestCase.SCORE)
 # TODO this should not do anything, but it does!
 # left away, to test that all sensatons will finally get 2 associations with each other
         #Wall_E_image_sensation.addAssociation(Sensation.Association(sensation=Wall_E_item_sensation,
@@ -105,7 +107,7 @@ class AssociationTestCase(unittest.TestCase):
 
         print('5 len(Wall_E_image_sensation.getAssociations()) ' + str(len(Wall_E_image_sensation.getAssociations())))
         print('6 len(Wall_E_item_sensation.getAssociations()) ' + str(len(Wall_E_item_sensation.getAssociations())))
-        self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 1)
+        self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 2) #1
         self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 1)
         # this connectin should be connected to a Voice now, when we process new Item created
         self.association.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
@@ -131,8 +133,12 @@ class AssociationTestCase(unittest.TestCase):
         self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 3)
          
         #self.assertIs(Wall_E_voice_sensation.getAssociations()[0].getSensation(), self.Wall_E_item_sensation)
+        # TODO Correct implementaation of score
         self.assertEqual(Eva_item_sensation.getAssociations()[0].getScore(), AssociationTestCase.SCORE)
- 
+        self.assertEqual(Wall_E_voice_sensation.getAssociations()[0].getScore(), AssociationTestCase.SCORE)
+        self.assertEqual(Wall_E_image_sensation.getAssociations()[0].getScore(), AssociationTestCase.SCORE)
+        self.assertEqual(Wall_E_item_sensation.getAssociations()[0].getScore(), AssociationTestCase.SCORE)
+
     '''
     1) Image
     2) Simulate Item creation from Image and Connect Image and Item
@@ -155,12 +161,13 @@ class AssociationTestCase(unittest.TestCase):
         print('2 len(Wall_E_item_sensation.getAssociations()) ' + str(len(Wall_E_item_sensation.getAssociations())))
         self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 0)
        # TensorflowCalssification Connects image and Item, so we simulate it
-        Wall_E_item_sensation.addAssociation(Sensation.Association(sensation=Wall_E_image_sensation,
-                                                                 score=AssociationTestCase.SCORE))
+        Wall_E_item_sensation.addAssociation(Sensation.Association(self_sensation = Wall_E_item_sensation,
+                                                                   sensation=Wall_E_image_sensation,
+                                                                   score=AssociationTestCase.SCORE))
 
         print('3 len(Wall_E_image_sensation.getAssociations()) ' + str(len(Wall_E_image_sensation.getAssociations())))
         print('4 len(Wall_E_item_sensation.getAssociations()) ' + str(len(Wall_E_item_sensation.getAssociations())))
-        self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 0)
+        self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 1) #
         self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 1)
         self.association.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_image_sensation)
         self.association.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
@@ -246,12 +253,13 @@ class AssociationTestCase(unittest.TestCase):
         print('7 len(Wall_E_item_sensation.getAssociations()) ' + str(len(Wall_E_item_sensation.getAssociations())))
         self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 0)
        # TensorflowCalssification Connects image and Item, so we simulate it
-        Wall_E_item_sensation.addAssociation(Sensation.Association(sensation=Wall_E_image_sensation,
-                                                                 score=AssociationTestCase.SCORE))
+        Wall_E_item_sensation.addAssociation(Sensation.Association(self_sensation = Wall_E_item_sensation,
+                                                                   sensation = Wall_E_image_sensation,
+                                                                   score = AssociationTestCase.SCORE))
 
         print('8 len(Wall_E_image_sensation.getAssociations()) ' + str(len(Wall_E_image_sensation.getAssociations())))
         print('9 len(Wall_E_item_sensation.getAssociations()) ' + str(len(Wall_E_item_sensation.getAssociations())))
-        self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 2)
+        self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 3) #2
         self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 1)
         self.association.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_image_sensation)
         self.association.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)

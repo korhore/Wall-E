@@ -1,6 +1,8 @@
 Critical
 --------
 
+Make Association really duplex. creating assosiotion in both side Sensations.
+
 Gets situation,where vonnection are dine repeatedly until we get max.
 We must connect only best associations.
 
