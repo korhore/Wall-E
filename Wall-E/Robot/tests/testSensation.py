@@ -48,17 +48,20 @@ class SensationTestCase(unittest.TestCase):
         #print('\nlogAssociations 2: test_AddAssociation')
         Sensation.logAssociations(addSensation)
         
-        addAssociation = Sensation.Association(self_sensation=self.sensation,
-                                               sensation=addSensation,
-                                               score=SensationTestCase.SCORE,
-                                               feeling=self.feeling)
-        
-
-        self.sensation.addAssociation(addAssociation)
-        #print('\nlogAssociations 3: test_AddAssociation')
-        Sensation.logAssociations(self.sensation)
-        #print('\nlogAssociations 4: test_AddAssociation')
-        Sensation.logAssociations(addSensation)
+        self.sensation.associate(sensation=addSensation,
+                                 score=SensationTestCase.SCORE,
+                                 feeling=self.feeling)
+#         addAssociation = Sensation.Association(self_sensation=self.sensation,
+#                                                sensation=addSensation,
+#                                                score=SensationTestCase.SCORE,
+#                                                feeling=self.feeling)
+#         
+# 
+#         self.sensation.addAssociation(addAssociation)
+#         #print('\nlogAssociations 3: test_AddAssociation')
+#         Sensation.logAssociations(self.sensation)
+#         #print('\nlogAssociations 4: test_AddAssociation')
+#         Sensation.logAssociations(addSensation)
         
         #for association in self.sensation.getAssociations():
             #print ('self.sensation association ' + str(dir(association)))
@@ -72,6 +75,8 @@ class SensationTestCase(unittest.TestCase):
         self.assertIs(len(addSensation.getAssociations()), association_number+1)
         self.assertIs(addSensation.getScore(), SensationTestCase.SCORE)
         self.assertIs(addSensation.getFeeling(), self.feeling)
+        
+        # TODO rest if the test
 
         #print('\nlogAssociations 5: test_AddAssociation')
         Sensation.logAssociations(self.sensation)

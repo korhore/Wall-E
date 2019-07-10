@@ -67,8 +67,7 @@ class AssociationTestCase(unittest.TestCase):
         self.association.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_voice_sensation)
         self.assertEqual(len(Wall_E_voice_sensation.getAssociations()), 0)
         
-#         #then image and Item
-#         Wall_E_item_sensation = Sensation.create(sensationType=Sensation.SensationType.Item, direction=Sensation.Direction.Out. name='Wall-E')
+        #then image and Item
         Wall_E_image_sensation = Sensation.create(sensationType=Sensation.SensationType.Image,  direction=Sensation.Direction.Out, image=PIL_Image.new(mode='RGB',size=(1,1)), associations=[])
 #        Wall_E_image_sensation = Sensation.create(sensationType=Sensation.SensationType.Image, image=PIL_Image.new(mode='RGB',size=(1,1)))
         print("-2 len(Wall_E_voice_sensation.getAssociations()) " + str(len(Wall_E_voice_sensation.getAssociations())))
@@ -167,7 +166,7 @@ class AssociationTestCase(unittest.TestCase):
 
         print('3 len(Wall_E_image_sensation.getAssociations()) ' + str(len(Wall_E_image_sensation.getAssociations())))
         print('4 len(Wall_E_item_sensation.getAssociations()) ' + str(len(Wall_E_item_sensation.getAssociations())))
-        self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 1) #
+        self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 1)
         self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 1)
         self.association.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_image_sensation)
         self.association.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)

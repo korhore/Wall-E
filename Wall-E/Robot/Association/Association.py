@@ -153,10 +153,22 @@ class Association(Robot):
                         
                     # TODO study which score we will get
                             
-                    self.log('12: process: sensation.addAssociation(Sensation.Association(sensation=candidate_to_connect ' + sensation.toDebugStr())
+                    self.log('12: process: sensation.addAssociation(Sensation.Association(self_sensation==sensation ' +  sensation.toDebugStr() + ' sensation=candidate_to_connect ' + candidate_to_connect.toDebugStr())
+                    print("12 before len(sensation.getAssociations()) " + str(len(sensation.getAssociations())))
+                    print("12 before len(candidate_to_connect.getAssociations()) " + str(len(candidate_to_connect.getAssociations())))
                     sensation.addAssociation(Sensation.Association(self_sensation=sensation,
                                                                    sensation=candidate_to_connect,
                                                                    score=candidate_to_connect.getScore()))
+                    print("12 after  len(sensation.getAssociations()) " + str(len(sensation.getAssociations())))
+                    print("12 after  len(candidate_to_connect.getAssociations()) " + str(len(candidate_to_connect.getAssociations())))
+                    
+                    # for testing purposes try other way
+                    candidate_to_connect.addAssociation(Sensation.Association(self_sensation=candidate_to_connect,
+                                                                   sensation=sensation,
+                                                                   score=candidate_to_connect.getScore()))
+                    print("12 after2  len(sensation.getAssociations()) " + str(len(sensation.getAssociations())))
+                    print("12 after2  len(candidate_to_connect.getAssociations()) " + str(len(candidate_to_connect.getAssociations())))
+
 #                     # TODO this is now needed, but should it? Association is ment to be two sided.
 #                     self.log('13: process: candidate_to_connect.addAssociation(Sensation.Association(sensation=sensation ' + candidate_to_connect.toDebugStr())
 #                     candidate_to_connect.addAssociation(Sensation.Association(self_sensation=candidate_to_connect,
