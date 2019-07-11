@@ -50,7 +50,8 @@ class CommunicationTestCase(unittest.TestCase):
         self.axon = Axon()
 
         # define time in history, that is different than in all tests
-        self.history_sensationTime = systemTime.time() -10*Association.ASSOCIATION_INTERVAL
+        # not too far away in history, so sensation will not be deleted
+        self.history_sensationTime = systemTime.time() -2*Association.ASSOCIATION_INTERVAL
 
         # simulate item and image are connected each other with TensorflowClassifivation
         # Item is in LongTerm memory
@@ -58,18 +59,18 @@ class CommunicationTestCase(unittest.TestCase):
                                                       memory=Sensation.Memory.LongTerm,
                                                       sensationType=Sensation.SensationType.Item,
                                                       direction=Sensation.Direction.Out,
-                                                      name=CommunicationTestCase.NAME,
-                                                      associations=[])
-        # Image is in LongTerm memory, it comes from TensorflowCallification and is crop of original big image
+                                                      name=CommunicationTestCase.NAME)
+        # Image is in LongTerm memory, it comes from TensorflowClassification and is crop of original big image
         self.Wall_E_image_sensation = Sensation.create(time=self.history_sensationTime,
-#                                                      memory=Sensation.Memory.LongTerm,
-                                                       memory=Sensation.Memory.Sensory,
+                                                       memory=Sensation.Memory.LongTerm,
+                                                       #memory=Sensation.Memory.Sensory,
                                                        sensationType=Sensation.SensationType.Image,
-                                                       direction=Sensation.Direction.Out,
-                                                       associations=[Sensation.Association(sensation=self.Wall_E_item_sensation,
-                                                                                           score=CommunicationTestCase.SCORE_1)])
-        self.Wall_E_item_sensation.addAssociation(Sensation.Association(sensation=self.Wall_E_image_sensation,
-                                                                        score=CommunicationTestCase.SCORE_1))
+                                                       direction=Sensation.Direction.Out)
+        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation,
+                                             score=CommunicationTestCase.SCORE_1)
+        # set association also to history
+        self.Wall_E_item_sensation.getAssociation(sensation=self.Wall_E_image_sensation).setTime(time=self.history_sensationTime)
+        
         # these connected each other
         self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 1)
         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 1)
@@ -79,7 +80,12 @@ class CommunicationTestCase(unittest.TestCase):
                                            instanceName='Communication',
                                            instanceType= Sensation.InstanceType.SubInstance,
                                            level=2)
+        self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 1)
+        self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 1)
         
+        self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
+        self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
+       
 
 
     def tearDown(self):
@@ -96,54 +102,68 @@ class CommunicationTestCase(unittest.TestCase):
     3) parent Axon should get self.Wall_E_voice_sensation
     '''
 
-    def test_ProcessItemSensoryVoice(self):
-        self.do_test_ProcessItemSensoryVoice(memory=Sensation.Memory.Sensory)
-        self.do_test_ProcessItemSensoryVoice(memory=Sensation.Memory.LongTerm)
+    def test_ProcessItemVoice(self):
+        self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), self.Wall_E_item_sensation_association_len)
+        self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), self.Wall_E_image_sensation_association_len)
+
+        print('self.do_test_ProcessItemVoice(memory=Sensation.Memory.LongTerm)')
+        self.do_test_ProcessItemVoice(memory=Sensation.Memory.LongTerm)
+        print('self.do_test_ProcessItemVoice(memory=Sensation.Memory.Sensory)')
+        self.do_test_ProcessItemVoice(memory=Sensation.Memory.Sensory)
 
        
-    def do_test_ProcessItemSensoryVoice(self, memory):
- # Make Voice to the history by parameter Memory type       
+    def do_test_ProcessItemVoice(self, memory):
+        # Make Voice to the history by parameter Memory type       
         # simulate Association has connected an voice to Item and Image 
         # Voice is in Sensory Memory, it is not used in Communication yet or
-        # it can be in n LongTerm memory, classified ti be a good Voice
+        # it can be in n LongTerm memory, classified to be a good Voice
         # Make two test of these 
+        self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), self.Wall_E_item_sensation_association_len)
+        self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), self.Wall_E_image_sensation_association_len)
+
         Wall_E_voice_sensation_1 = Sensation.create(time=self.history_sensationTime,
-                                                       memory=memory,
-                                                       sensationType=Sensation.SensationType.Voice,
-                                                       direction=Sensation.Direction.Out, 
-                                                       associations=[Sensation.Association(sensation=self.Wall_E_image_sensation,
-                                                                                           score=CommunicationTestCase.SCORE_1),
-                                                                     Sensation.Association(sensation=self.Wall_E_item_sensation,
-                                                                                           score=CommunicationTestCase.SCORE_1)])
-        Wall_E_voice_sensation_2 = Sensation.create(time=self.history_sensationTime,
-                                                       memory=memory,
-                                                       sensationType=Sensation.SensationType.Voice,
-                                                       direction=Sensation.Direction.Out, 
-                                                       associations=[Sensation.Association(sensation=self.Wall_E_image_sensation,
-                                                                                           score=CommunicationTestCase.SCORE_2),
-                                                                     Sensation.Association(sensation=self.Wall_E_item_sensation,
-                                                                                           score=CommunicationTestCase.SCORE_2)])
-         # test that all is OK for tests
+                                                    memory=memory,
+                                                    sensationType=Sensation.SensationType.Voice,
+                                                    direction=Sensation.Direction.Out)
+        self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), self.Wall_E_item_sensation_association_len)
+        self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), self.Wall_E_image_sensation_association_len)
+        
+        self.assertEqual(len(Wall_E_voice_sensation_1.getAssociations()), 0)
+        self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), self.Wall_E_image_sensation_association_len)
+        
+        Wall_E_voice_sensation_1.associate(sensation=self.Wall_E_image_sensation,
+                                           score=CommunicationTestCase.SCORE_1)
+                                                                     
+        self.assertEqual(len(Wall_E_voice_sensation_1.getAssociations()), 1)
+        self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), self.Wall_E_image_sensation_association_len+1)
+        self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
+        
+        Wall_E_voice_sensation_1.associate(sensation=self.Wall_E_item_sensation,
+                                           score=CommunicationTestCase.SCORE_1)
         self.assertEqual(len(Wall_E_voice_sensation_1.getAssociations()), 2)
-        # add missing associations test that all is OK for tests
-        self.Wall_E_image_sensation.addAssociation(Sensation.Association(sensation=Wall_E_voice_sensation_1,
-                                                                         score=CommunicationTestCase.SCORE_1))
-        self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 2)
-        # add missing associations test that all is OK for tests
-        self.Wall_E_item_sensation.addAssociation(Sensation.Association(sensation=Wall_E_voice_sensation_1,
-                                                                        score=CommunicationTestCase.SCORE_1))
-        self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 2)
-       
-         # test that all is OK for tests
+        self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), self.Wall_E_item_sensation_association_len+1)
+        self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
+        
+        
+        Wall_E_voice_sensation_2 = Sensation.create(time=self.history_sensationTime,
+                                                    memory=memory,
+                                                    sensationType=Sensation.SensationType.Voice,
+                                                    direction=Sensation.Direction.Out)
+        
+        Wall_E_voice_sensation_2.associate(sensation=self.Wall_E_image_sensation,
+                                           score=CommunicationTestCase.SCORE_2)
+        self.assertEqual(len(Wall_E_voice_sensation_2.getAssociations()), 1)
+        self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), self.Wall_E_image_sensation_association_len+1)
+        self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
+        
+        Wall_E_voice_sensation_2.associate(sensation=self.Wall_E_item_sensation,
+                                           score=CommunicationTestCase.SCORE_2)
         self.assertEqual(len(Wall_E_voice_sensation_2.getAssociations()), 2)
-        # add missing associations test that all is OK for tests
-        self.Wall_E_image_sensation.addAssociation(Sensation.Association(sensation=Wall_E_voice_sensation_2,
-                                                                         score=CommunicationTestCase.SCORE_2))
-        self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 3)
-        # add missing associations test that all is OK for tests
-        self.Wall_E_item_sensation.addAssociation(Sensation.Association(sensation=Wall_E_voice_sensation_2,
-                                                                        score=CommunicationTestCase.SCORE_2))
-        self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 3)
+        self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), self.Wall_E_item_sensation_association_len+1)
+        self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
+        
+        
+        
 
         ## test part
                 
@@ -156,11 +176,10 @@ class CommunicationTestCase(unittest.TestCase):
                                                  associations=[])
         Wall_E_image_sensation = Sensation.create(memory=Sensation.Memory.LongTerm,
                                                   sensationType=Sensation.SensationType.Image,
-                                                  direction=Sensation.Direction.Out, 
-                                                  associations=[Sensation.Association(sensation=Wall_E_item_sensation,
-                                                                                      score=CommunicationTestCase.SCORE_1)])
-        Wall_E_item_sensation.addAssociation(Sensation.Association(sensation=Wall_E_image_sensation,
-                                                                   score=CommunicationTestCase.SCORE_1))
+                                                  direction=Sensation.Direction.Out)
+        
+        Wall_E_image_sensation.associate(sensation=Wall_E_item_sensation,
+                                         score=CommunicationTestCase.SCORE_1)
         # these connected each other
         self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 1)
         self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 1)
@@ -204,6 +223,10 @@ class CommunicationTestCase(unittest.TestCase):
         
         Wall_E_voice_sensation_1.delete()
         Wall_E_voice_sensation_2.delete()
+        
+        self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
+        self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
+
         
 if __name__ == '__main__':
     unittest.main()

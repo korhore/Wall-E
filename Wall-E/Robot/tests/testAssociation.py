@@ -1,6 +1,6 @@
 '''
 Created on 21.06.2019
-Updated on 21.06.2019
+Updated on 11.07.2019
 @author: reijo.korhonen@gmail.com
 
 test Association class
@@ -30,8 +30,8 @@ class AssociationTestCase(unittest.TestCase):
         self.axon = Axon()
 #         self.Wall_E_item_sensation = Sensation.create(sensationType=Sensation.SensationType.Item,  direction=Sensation.Direction.Out, name='Wall-E')
 #         self.Wall_E_image_sensation = Sensation.create(sensationType=Sensation.SensationType.Image, direction=Sensation.Direction.Out)
-#         self.Wall_E_item_sensation.addAssociation(Sensation.Association(sensation=self.Wall_E_image_sensation,
-#                                                                       score=AssociationTestCase.SCORE))
+#         self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation,
+#                                              score=AssociationTestCase.SCORE)
         
         self.association = Association(parent=self,
                                        instanceName='Association',
@@ -58,8 +58,7 @@ class AssociationTestCase(unittest.TestCase):
        
     def test_ProcessItem(self):
         # First voice
-        Wall_E_voice_sensation = Sensation.create(sensationType=Sensation.SensationType.Voice, direction=Sensation.Direction.Out, associations=[])
-#        Wall_E_voice_sensation = Sensation.create(sensationType=Sensation.SensationType.Voice,  direction=Sensation.Direction.Out)
+        Wall_E_voice_sensation = Sensation.create(sensationType=Sensation.SensationType.Voice, direction=Sensation.Direction.Out)
         print("1 len(Wall_E_voice_sensation.getAssociations()) " + str(len(Wall_E_voice_sensation.getAssociations())))
               
         self.assertEqual(len(Wall_E_voice_sensation.getAssociations()), 0)
@@ -68,12 +67,11 @@ class AssociationTestCase(unittest.TestCase):
         self.assertEqual(len(Wall_E_voice_sensation.getAssociations()), 0)
         
         #then image and Item
-        Wall_E_image_sensation = Sensation.create(sensationType=Sensation.SensationType.Image,  direction=Sensation.Direction.Out, image=PIL_Image.new(mode='RGB',size=(1,1)), associations=[])
-#        Wall_E_image_sensation = Sensation.create(sensationType=Sensation.SensationType.Image, image=PIL_Image.new(mode='RGB',size=(1,1)))
+        Wall_E_image_sensation = Sensation.create(sensationType=Sensation.SensationType.Image,  direction=Sensation.Direction.Out, image=PIL_Image.new(mode='RGB',size=(1,1)),)
         print("-2 len(Wall_E_voice_sensation.getAssociations()) " + str(len(Wall_E_voice_sensation.getAssociations())))
         print('-3 len(Wall_E_image_sensation.getAssociations()) ' + str(len(Wall_E_image_sensation.getAssociations())))
-#         Wall_E_item_sensation.addAssociation(Sensation.Association(sensation=self.Wall_E_image_sensation,
-#                                                                       score=AssociationTestCase.SCORE))
+#         Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation,
+#                                         score=AssociationTestCase.SCORE)
         self.association.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_image_sensation)
         print("2 len(Wall_E_voice_sensation.getAssociations()) " + str(len(Wall_E_voice_sensation.getAssociations())))
         for association in Wall_E_voice_sensation.getAssociations():
@@ -91,24 +89,28 @@ class AssociationTestCase(unittest.TestCase):
 #         self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 1)
 
         #finally  Item
-        Wall_E_item_sensation = Sensation.create(sensationType=Sensation.SensationType.Item,  direction=Sensation.Direction.Out, name='Wall-E', associations=[])
+        Wall_E_item_sensation = Sensation.create(sensationType=Sensation.SensationType.Item,  direction=Sensation.Direction.Out, name='Wall-E')
         print('4 len(Wall_E_item_sensation.getAssociations()) ' + str(len(Wall_E_item_sensation.getAssociations())))
         self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 0)
        # TensorflowCalssification Connects image and Item, so we simulate it
-        Wall_E_item_sensation.addAssociation(Sensation.Association(self_sensation = Wall_E_item_sensation,
-                                                                   sensation=Wall_E_image_sensation,
-                                                                   score=AssociationTestCase.SCORE))
+        Wall_E_item_sensation.associate(sensation=Wall_E_image_sensation,
+                                        score=AssociationTestCase.SCORE)
+        self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 1)
+        self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 2)
         self.assertEqual(Wall_E_item_sensation.getAssociations()[0].getScore(), AssociationTestCase.SCORE)
-# TODO this should not do anything, but it does!
-# left away, to test that all sensatons will finally get 2 associations with each other
-        #Wall_E_image_sensation.addAssociation(Sensation.Association(sensation=Wall_E_item_sensation,
-        #                                                          score=AssociationTestCase.SCORE))
+        self.assertEqual(Wall_E_item_sensation.getScore(), AssociationTestCase.SCORE)
+
+        # again, this should not do anything
+        Wall_E_image_sensation.associate(sensation=Wall_E_item_sensation,
+                                         score=AssociationTestCase.SCORE)
+        self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 1)
+        self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 2)
+        self.assertEqual(Wall_E_item_sensation.getAssociations()[0].getScore(), AssociationTestCase.SCORE)
+        self.assertEqual(Wall_E_item_sensation.getScore(), AssociationTestCase.SCORE)
 
         print('5 len(Wall_E_image_sensation.getAssociations()) ' + str(len(Wall_E_image_sensation.getAssociations())))
         print('6 len(Wall_E_item_sensation.getAssociations()) ' + str(len(Wall_E_item_sensation.getAssociations())))
-        self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 2) #1
-        self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 1)
-        # this connectin should be connected to a Voice now, when we process new Item created
+        # this connection should be connected to a Voice now, when we process new Item created
         self.association.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
         # Voice, Image and Item are Connected
         print('7 len(Wall_E_voice_sensation.getAssociations()) ' + str(len(Wall_E_voice_sensation.getAssociations())))
@@ -118,11 +120,18 @@ class AssociationTestCase(unittest.TestCase):
         self.assertEqual(len(Wall_E_voice_sensation.getAssociations()), 2)
         self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 2)
         self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 2)
-       
         
-        Eva_item_sensation = Sensation.create(sensationType=Sensation.SensationType.Item,  direction=Sensation.Direction.Out, name='Eva', associations=[])
-#        Eva_item_sensation = Sensation.create(sensationType=Sensation.SensationType.Item,  direction=Sensation.Direction.Out, name='Eva')
+        self.assertEqual(Wall_E_item_sensation.getScore(), AssociationTestCase.SCORE)
+        self.assertEqual(Wall_E_image_sensation.getScore(), AssociationTestCase.SCORE)
+        self.assertEqual(Wall_E_voice_sensation.getScore(), 0.0) # 0.0. is OK, if Association-Robot does not touch on Scores, but only associates
+      
+        
+        Eva_item_sensation = Sensation.create(sensationType=Sensation.SensationType.Item,  direction=Sensation.Direction.Out, name='Eva')
         print('10 len(Eva_item_sensation.getAssociations()) ' + str(len(Eva_item_sensation.getAssociations())))
+        
+        self.assertEqual(Wall_E_voice_sensation.getScore(), 0.0)
+        self.assertEqual(Wall_E_image_sensation.getScore(), AssociationTestCase.SCORE)
+        self.assertEqual(Wall_E_item_sensation.getScore(), AssociationTestCase.SCORE)
 
         self.association.process(transferDirection=Sensation.TransferDirection.Up, sensation=Eva_item_sensation)
         print('11 len(Eva_item_sensation.getAssociations()) ' + str(len(Eva_item_sensation.getAssociations())))
@@ -130,13 +139,11 @@ class AssociationTestCase(unittest.TestCase):
         self.assertEqual(len(Wall_E_voice_sensation.getAssociations()), 3)
         self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 3)
         self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 3)
-         
-        #self.assertIs(Wall_E_voice_sensation.getAssociations()[0].getSensation(), self.Wall_E_item_sensation)
-        # TODO Correct implementaation of score
-        self.assertEqual(Eva_item_sensation.getAssociations()[0].getScore(), AssociationTestCase.SCORE)
-        self.assertEqual(Wall_E_voice_sensation.getAssociations()[0].getScore(), AssociationTestCase.SCORE)
-        self.assertEqual(Wall_E_image_sensation.getAssociations()[0].getScore(), AssociationTestCase.SCORE)
-        self.assertEqual(Wall_E_item_sensation.getAssociations()[0].getScore(), AssociationTestCase.SCORE)
+                 
+        self.assertEqual(Eva_item_sensation.getScore(),  AssociationTestCase.SCORE)  # 0.0. is OK, if Association-Robot does not touch on Scores, but only associates
+        self.assertEqual(Wall_E_voice_sensation.getScore(), 0.0)
+        self.assertEqual(Wall_E_image_sensation.getScore(), AssociationTestCase.SCORE)
+        self.assertEqual(Wall_E_item_sensation.getScore(), AssociationTestCase.SCORE)
 
     '''
     1) Image
@@ -149,20 +156,19 @@ class AssociationTestCase(unittest.TestCase):
         # define time, that is different than in others tests
         sensationTime = systemTime.time() + 2*Association.ASSOCIATION_INTERVAL
 #         #First image and Item
-        Wall_E_image_sensation = Sensation.create(time=sensationTime, sensationType=Sensation.SensationType.Image,  direction=Sensation.Direction.Out, image=PIL_Image.new(mode='RGB',size=(1,1)), associations=[])
+        Wall_E_image_sensation = Sensation.create(time=sensationTime, sensationType=Sensation.SensationType.Image,  direction=Sensation.Direction.Out, image=PIL_Image.new(mode='RGB',size=(1,1)))
         self.association.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_image_sensation)
         print('1 len(Wall_E_image_sensation.getAssociations()) ' + str(len(Wall_E_image_sensation.getAssociations())))
         # item is not connected to Image, because we don,t have Item yet/connected together
         self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 0)
         
         # then Item
-        Wall_E_item_sensation = Sensation.create(time=sensationTime, sensationType=Sensation.SensationType.Item, name='Wall-E',  direction=Sensation.Direction.Out, associations=[])
+        Wall_E_item_sensation = Sensation.create(time=sensationTime, sensationType=Sensation.SensationType.Item, name='Wall-E',  direction=Sensation.Direction.Out)
         print('2 len(Wall_E_item_sensation.getAssociations()) ' + str(len(Wall_E_item_sensation.getAssociations())))
         self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 0)
        # TensorflowCalssification Connects image and Item, so we simulate it
-        Wall_E_item_sensation.addAssociation(Sensation.Association(self_sensation = Wall_E_item_sensation,
-                                                                   sensation=Wall_E_image_sensation,
-                                                                   score=AssociationTestCase.SCORE))
+        Wall_E_item_sensation.associate(sensation=Wall_E_image_sensation,
+                                        score=AssociationTestCase.SCORE)
 
         print('3 len(Wall_E_image_sensation.getAssociations()) ' + str(len(Wall_E_image_sensation.getAssociations())))
         print('4 len(Wall_E_item_sensation.getAssociations()) ' + str(len(Wall_E_item_sensation.getAssociations())))
@@ -180,8 +186,7 @@ class AssociationTestCase(unittest.TestCase):
 ##############################################################################################
         
         # last voice
-        Wall_E_voice_sensation = Sensation.create(time=sensationTime, sensationType=Sensation.SensationType.Voice,  direction=Sensation.Direction.Out, associations=[])
-#        Wall_E_voice_sensation = Sensation.create(sensationType=Sensation.SensationType.Voice)
+        Wall_E_voice_sensation = Sensation.create(time=sensationTime, sensationType=Sensation.SensationType.Voice,  direction=Sensation.Direction.Out)
         print("7 len(Wall_E_voice_sensation.getAssociations()) " + str(len(Wall_E_voice_sensation.getAssociations())))
               
         self.assertEqual(len(Wall_E_voice_sensation.getAssociations()), 0)
@@ -191,8 +196,7 @@ class AssociationTestCase(unittest.TestCase):
         self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 2)
         self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 2)      
         
-        Eva_item_sensation = Sensation.create(time=sensationTime, sensationType=Sensation.SensationType.Item, name='Eva',  direction=Sensation.Direction.Out, associations=[])
-#        Eva_item_sensation = Sensation.create(sensationType=Sensation.SensationType.Item, name='Eva')
+        Eva_item_sensation = Sensation.create(time=sensationTime, sensationType=Sensation.SensationType.Item, name='Eva',  direction=Sensation.Direction.Out)
         print('8 len(Eva_item_sensation.getAssociations()) ' + str(len(Eva_item_sensation.getAssociations())))
 
         self.association.process(transferDirection=Sensation.TransferDirection.Up, sensation=Eva_item_sensation)
@@ -202,8 +206,10 @@ class AssociationTestCase(unittest.TestCase):
         self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 3)
         self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 3)
          
-        #self.assertIs(Wall_E_voice_sensation.getAssociations()[0].getSensation(), self.Wall_E_item_sensation)
-        self.assertEqual(Eva_item_sensation.getAssociations()[0].getScore(), AssociationTestCase.SCORE)
+        self.assertEqual(Eva_item_sensation.getScore(), AssociationTestCase.SCORE)
+        self.assertEqual(Wall_E_voice_sensation.getScore(), AssociationTestCase.SCORE)
+        self.assertEqual(Wall_E_image_sensation.getScore(), AssociationTestCase.SCORE)
+        self.assertEqual(Wall_E_item_sensation.getScore(), AssociationTestCase.SCORE)
       
     '''
     1) Item2 found
@@ -216,7 +222,7 @@ class AssociationTestCase(unittest.TestCase):
         # define time, that is different than in others tests
         sensationTime = systemTime.time() + 4*Association.ASSOCIATION_INTERVAL
 #         #First Item2
-        Eva_item_sensation = Sensation.create(time=sensationTime, sensationType=Sensation.SensationType.Item,  direction=Sensation.Direction.Out, name='Eva', associations=[])
+        Eva_item_sensation = Sensation.create(time=sensationTime, sensationType=Sensation.SensationType.Item,  direction=Sensation.Direction.Out, name='Eva')
         print('1 len(Eva_item_sensation.getAssociations()) ' + str(len(Eva_item_sensation.getAssociations())))
         self.association.process(transferDirection=Sensation.TransferDirection.Up, sensation=Eva_item_sensation)
         print('2 len(Eva_item_sensation.getAssociations()) ' + str(len(Eva_item_sensation.getAssociations())))
@@ -224,8 +230,7 @@ class AssociationTestCase(unittest.TestCase):
         self.assertEqual(len(Eva_item_sensation.getAssociations()), 0)
         
         # then voice
-        Wall_E_voice_sensation = Sensation.create(time=sensationTime, sensationType=Sensation.SensationType.Voice,  direction=Sensation.Direction.Out, associations=[])
-#        Wall_E_voice_sensation = Sensation.create(sensationType=Sensation.SensationType.Voice)
+        Wall_E_voice_sensation = Sensation.create(time=sensationTime, sensationType=Sensation.SensationType.Voice,  direction=Sensation.Direction.Out)
         print("3 len(Wall_E_voice_sensation.getAssociations()) " + str(len(Wall_E_voice_sensation.getAssociations())))              
         self.assertEqual(len(Wall_E_voice_sensation.getAssociations()), 0)
         # process situation, where voice is happened same time than Item2
@@ -236,7 +241,7 @@ class AssociationTestCase(unittest.TestCase):
         
 
         # Simulate We get Image and create an Item
-        Wall_E_image_sensation = Sensation.create(time=sensationTime, sensationType=Sensation.SensationType.Image,  direction=Sensation.Direction.Out, image=PIL_Image.new(mode='RGB',size=(1,1)), associations=[])
+        Wall_E_image_sensation = Sensation.create(time=sensationTime, sensationType=Sensation.SensationType.Image,  direction=Sensation.Direction.Out, image=PIL_Image.new(mode='RGB',size=(1,1)))
         self.association.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_image_sensation)
         print('4 len(Wall_E_image_sensation.getAssociations()) ' + str(len(Wall_E_image_sensation.getAssociations())))
         print('5 len(Eva_item_sensation.getAssociations()) ' + str(len(Eva_item_sensation.getAssociations())))
@@ -248,17 +253,16 @@ class AssociationTestCase(unittest.TestCase):
         self.assertEqual(len(Wall_E_voice_sensation.getAssociations()), 2)
         
         # finally we simulate Item is created from image
-        Wall_E_item_sensation = Sensation.create(time=sensationTime, sensationType=Sensation.SensationType.Item,  direction=Sensation.Direction.Out, name='Wall-E', associations=[])
+        Wall_E_item_sensation = Sensation.create(time=sensationTime, sensationType=Sensation.SensationType.Item,  direction=Sensation.Direction.Out, name='Wall-E')
         print('7 len(Wall_E_item_sensation.getAssociations()) ' + str(len(Wall_E_item_sensation.getAssociations())))
         self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 0)
        # TensorflowCalssification Connects image and Item, so we simulate it
-        Wall_E_item_sensation.addAssociation(Sensation.Association(self_sensation = Wall_E_item_sensation,
-                                                                   sensation = Wall_E_image_sensation,
-                                                                   score = AssociationTestCase.SCORE))
+        Wall_E_item_sensation.associate(sensation = Wall_E_image_sensation,
+                                        score = AssociationTestCase.SCORE)
 
         print('8 len(Wall_E_image_sensation.getAssociations()) ' + str(len(Wall_E_image_sensation.getAssociations())))
         print('9 len(Wall_E_item_sensation.getAssociations()) ' + str(len(Wall_E_item_sensation.getAssociations())))
-        self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 3) #2
+        self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 3)
         self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 1)
         self.association.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_image_sensation)
         self.association.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
@@ -274,6 +278,10 @@ class AssociationTestCase(unittest.TestCase):
         self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 3)
         self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 3)
 
+        self.assertEqual(Eva_item_sensation.getScore(), 0.0)  # 0.0. is OK, if Association-Robot does not touch on Scores, but only associates
+        self.assertEqual(Wall_E_voice_sensation.getScore(), 0.0)
+        self.assertEqual(Wall_E_image_sensation.getScore(), AssociationTestCase.SCORE)
+        self.assertEqual(Wall_E_item_sensation.getScore(), AssociationTestCase.SCORE)
         
 if __name__ == '__main__':
     unittest.main()

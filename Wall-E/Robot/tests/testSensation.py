@@ -21,7 +21,7 @@ class SensationTestCase(unittest.TestCase):
     FEELING2 = Sensation.Association.Feeling.Terrified
 
     def setUp(self):
-        self.sensation = Sensation.create(associations=[], sensationType=Sensation.SensationType.Item, name='test')
+        self.sensation = Sensation.create(associations=None, sensationType=Sensation.SensationType.Item, name='test')
         self.assertIsNot(self.sensation, None)
         self.assertIs(len(self.sensation.getAssociations()), 0)
         #print('\nlogAssociations 1: setUp')
@@ -38,7 +38,7 @@ class SensationTestCase(unittest.TestCase):
 
         
     def do_test_AddAssociation(self):
-        addSensation = Sensation.create(associations=[], sensation=self.sensation, memory=Sensation.Memory.LongTerm, name='connect_test')
+        addSensation = Sensation.create(associations=None, sensation=self.sensation, memory=Sensation.Memory.LongTerm, name='connect_test')
         self.assertIsNot(addSensation, None)
         
         addSensation.setName('connect_test')
@@ -98,7 +98,12 @@ class SensationTestCase(unittest.TestCase):
         
         # better feeling
         self.feeling = SensationTestCase.BETTER_FEELING
+        addAssociation = addSensation.getAssociation(self.sensation)
+        self.assertIsNot(addAssociation, None)
+
+        # change feeling in association        
         addAssociation.setFeeling(self.feeling)
+        # and it should be changed in both way association in both ways
         self.assertIs(self.sensation.getFeeling(), self.feeling)
         self.assertIs(addSensation.getFeeling(), self.feeling)
 

@@ -113,19 +113,20 @@ class Communication(Robot):
                 if voiceSensation  is not None:
                     # create new Voice to speak and associate it to this sensation so
                     # we remember that we spoke it now
-                    association = Sensation.Association(sensation=sensation,
-                                                        score=voiceSensation.getScore())
-                    voiceSensation = Sensation.create(associations = [association],
-                                                      sensation = voiceSensation,
-                                                      direction = Sensation.Direction.In, # speak
-                                                      memory = Sensation.Memory.Sensory)
+#                     association = Sensation.Association(sensation=sensation,
+#                                                         score=voiceSensation.getScore())
+                    spoke_voiceSensation = Sensation.create(sensation = voiceSensation,
+                                                            direction = Sensation.Direction.In, # speak
+                                                            memory = Sensation.Memory.Sensory)
                     # NOTE This is needed now, because Sensation.create parameters direction and memory parameters are  overwritten by sensation parameters
-                    voiceSensation.setDirection(Sensation.Direction.In)
-                    voiceSensation.setMemory(Sensation.Memory.Sensory)
-                    # association other way
-                    association = Sensation.Association(sensation=voiceSensation,
-                                                        score=voiceSensation.getScore())
-                    voiceSensation.addAssociation(association)
+                    spoke_voiceSensation.setDirection(Sensation.Direction.In)
+                    spoke_voiceSensation.setMemory(Sensation.Memory.Sensory)
+                    spoke_voiceSensation.associate(sensation = voiceSensation,
+                                                   score=voiceSensation.getScore())
+                    sensation.associate(sensation = voiceSensation,
+                                        score = sensation.getScore())
+                    sensation.associate(sensation = spoke_voiceSensation,
+                                        score = sensation.getScore())
 
 # Not needed to remember, that we tried to speak
 # this make too many associations
@@ -134,13 +135,13 @@ class Communication(Robot):
 # still in a loop
 #                         candidate_for_communication.addAssociation(Sensation.Association(sensation=voiceSensation,
 #                                                                                        score=candidate_for_communication.getScore()))
-                    self.log('Communication.process: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)')
+                    self.log('Communication.process: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=spoke_voiceSensation)')
 
-                    self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)                    
+                    self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=spoke_voiceSensation)                    
                     # now we wait for a response for this
-                    self.communicationItems.append(CommunicationItem(sensation = sensation,
-                                                                     time,
-                                                                     association = association))
+#                     self.communicationItems.append(Communication.CommunicationItem(sensation = sensation,
+#                                                                                    time = systemTime.time(),
+#                                                                                    association = sensation.getAssociation(sensation=spoke_voiceSensation) ))
                     # for this long
                     
                      # TODO We should wait answer and communicate as long other part wants
@@ -149,4 +150,6 @@ class Communication(Robot):
         else:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process: too old sensation or not Item ' + sensation.toDebugStr())
 
-     def stopWaitingResponse(self):
+    # TODO
+    def stopWaitingResponse(self):
+        pass
