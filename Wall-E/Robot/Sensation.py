@@ -1322,7 +1322,12 @@ class Sensation(object):
         return feeling
     
     def getImportance(self, positive=True, negative=False, absolute=False):
-        importance = 0.0
+        if positive:
+            importance = Sensation.Association.Feeling.Terrified
+        if negative:
+             importance = Sensation.Feeling.InLove
+        if absolute:
+            importance = 0.0
         # one level associations
         best_association = None
         for association in self.associations:
@@ -1341,7 +1346,7 @@ class Sensation(object):
         if best_association is not None:
             best_association.time = systemTime.time()
             
-        return importance
+        return self.getMemorability() * importance
 
     '''
     Add many associations by association numbers
