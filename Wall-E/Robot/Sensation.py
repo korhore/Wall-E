@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 11.07.2019
+Edited on 13.07.2019
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -11,6 +11,7 @@ import time as systemTime
 from enum import Enum
 import struct
 import random
+import math
 from PIL import Image as PIL_Image
 import io
 try:
@@ -97,9 +98,9 @@ class Sensation(object):
     LOWPOINT_NUMBERVARIANCE=-100.0
     HIGHPOINT_NUMBERVARIANCE=100.0
     
-    SENSORY_CACHE_TIME =        300.0;       # cache sensation 300 seconds = 5 mins (may be changed)
-    #WORKING_CACHE_TIME =        600.0;       # cache sensation 600 seconds = 10 mins (may be changed)
-    LONG_TERM_CACHE_TIME =        3000.0;       # cache sensation 3000 seconds = 50 mins (may be changed)
+    SENSORY_LIVE_TIME =     300.0;       # sensation live3s 300 seconds = 5 mins (may be changed)
+    #WORKING_LIVE_TIME =        600.0;       # cache sensation 600 seconds = 10 mins (may be changed)
+    LONG_TERM_LIVE_TIME =   3000.0;       # cache sensation 3000 seconds = 50 mins (may be changed)
     LENGTH_SIZE =       2   # Sensation as string can only be 99 character long
     LENGTH_FORMAT =     "{0:2d}"
     SEPARATOR =         '|'  # Separator between messages
@@ -221,10 +222,10 @@ class Sensation(object):
         #Memory.Working:  [],                # middle time Sensation cache
         Memory.LongTerm: [] }               # long time Sensation cache
 
-    sensationMemoryCacheTimes={             # Sensation cache times
-        Memory.Sensory:  SENSORY_CACHE_TIME,
-        #Memory.Working:  WORKING_CACHE_TIME, 
-        Memory.LongTerm: LONG_TERM_CACHE_TIME }
+    sensationMemoryLiveTimes={             # Sensation cache times
+        Memory.Sensory:  SENSORY_LIVE_TIME,
+        #Memory.Working:  WORKING_CACHE_TIME, SENSORY_LIVE_TIME
+        Memory.LongTerm: LONG_TERM_LIVE_TIME }
 
 
                             # The idea is keep Sensation in runtime memory if
@@ -273,7 +274,7 @@ class Sensation(object):
     def addToSensationMemory(sensation):
         # add new sensation
         memory = Sensation.sensationMemorys[sensation.getMemory()]
-        cacheTime = Sensation.sensationMemoryCacheTimes[sensation.getMemory()]
+        cacheTime = Sensation.sensationMemoryLiveTimes[sensation.getMemory()]
         memory.append(sensation)
         
         # remove too old ones
@@ -394,7 +395,21 @@ class Sensation(object):
             # other part
             association = self.sensation.getAssociation(self.self_sensation)
             association.feeling = feeling
+            
 
+        '''
+        How important this association is.
+        
+        Pleasant most important Associations get high positive value,
+        unpleasant most important Association get high negative value and
+        meaningless Association get value near zero.
+        
+        Uses now Feeling as main factor and score as minor factor.
+        Should use also time, so old Associations are not so important than
+        new ones.
+       '''
+        def getImportance(self):
+            return float(self.feeling) * (1.0 + self.score)
 
     '''
     default constructor for Sensation
@@ -1056,6 +1071,50 @@ class Sensation(object):
                 latest_time=association.getTime()
         return latest_time
     
+    '''
+    How much livetime as a ratio there is left (1.0 -> 0.0) for this sensation
+    
+    Note, that when Sensation is referenced, used its reference-time is renewed
+    and it get full livetime again    
+    '''
+    def getLiveTimeLeftRatio(self):
+        liveTimeLeftRatio = \
+                (Sensation.sensationMemoryLiveTimes[self.getMemory()] - (systemTime.time()-self.getLatestTime())) / \
+                Sensation.sensationMemoryLiveTimes[self.getMemory()]
+        if liveTimeLeftRatio < 0.0:
+            liveTimeLeftRatio = 0.0
+            
+        return liveTimeLeftRatio
+        
+    
+    '''
+    Memorability of this Sensation
+        
+    Memorability goes down by time. We use logarithm and Memory type
+    Sensory Sensations have very high Memorability when Sensation has low age
+    but memorability goes down in very short time.
+    Here we use log10(livetimeratio left)
+        
+    LongTerm Sensation have low memorability when the are created,
+    but memorability goes down with a long time.
+    Here we use ln(livetimeratio left)
+
+       '''
+    def getMemorability(self):
+        try:
+            if self.getMemory() == Sensation.Memory.Sensory:
+                memorability =  10.0 * (math.log10(10.0 + 10.0 * self.getLiveTimeLeftRatio()) -1.0)
+            else:
+                memorability =  math.e * (math.log(math.e + math.e * self.getLiveTimeLeftRatio()) - 1.0)
+        except Exception as e:
+            #print("getMemorability error " + str(e))
+            memorability = 0.0
+        if memorability < 0.0:
+             memorability = 0.0
+           
+        return memorability
+
+    
     # TODO Association time logic is different
     
 #     def setAssociationTime(self, parents=None, association_time = None):
@@ -1261,6 +1320,28 @@ class Sensation(object):
             best_association.time = systemTime.time()
             
         return feeling
+    
+    def getImportance(self, positive=True, negative=False, absolute=False):
+        importance = 0.0
+        # one level associations
+        best_association = None
+        for association in self.associations:
+            if positive:
+                if association.getImportance() > importance:
+                    importance= association.getImportance()
+                    best_association = association
+            if negative:
+                if association.getImportance() < importance:
+                    importance= association.getImportance()
+                    best_association = association
+            if absolute:
+                if abs(association.getImportance()) < abs(importance):
+                    importance=  association.getImportance()
+                    best_association = association
+        if best_association is not None:
+            best_association.time = systemTime.time()
+            
+        return importance
 
     '''
     Add many associations by association numbers
@@ -1514,7 +1595,7 @@ class Sensation(object):
         return sensations
     
     '''
-    Get best specified sensation from sensation memory
+    Get best specified sensation from sensation memory by score
     
     Time window can be set seperatly min, max or both,
     from time min to time max, to get sensations that are happened at same moment.
@@ -1550,7 +1631,7 @@ class Sensation(object):
         return bestSensation
     
     '''
-    Get best connected sensation from this specified Sensation
+    Get best connected sensation by score from this specified Sensation
    
     sensationType:  SensationType
     name:           optional, if SensationTypeis Item, name must be 'name'
@@ -1570,7 +1651,61 @@ class Sensation(object):
         return bestSensation
     
     
+    '''
+    Get most important sensation from sensation memory by feeling and score
+    
+    Time window can be set seperatly min, max or both,
+    from time min to time max, to get sensations that are happened at same moment.
+    
+    sensationType:  SensationType
+    timemin:        minimum time
+    timemax:        maximun time
+    name:           optional, if SensationTypeis Item, name must be 'name'
+    notName:        optional, if SensationTypeis Item, name must not be 'notName'    
+    '''
+    
+    def getMostImportantSensation( sensationType,
+                                   timemin,
+                                   timemax,
+                                   name = None,
+                                   notName = None,
+                                   associationSensationType = None):
+        bestSensation = None
+        for key, sensationMemory in Sensation.sensationMemorys.items():
+            for sensation in sensationMemory:
+                if sensation.getSensationType() == sensationType and\
+                   sensation.hasAssociationSensationType(associationSensationType=associationSensationType) and\
+                   (timemin is None or sensation.getTime() > timemin) and\
+                   (timemax is None or sensation.getTime() < timemax):
+                    if sensationType != Sensation.SensationType.Item or\
+                       notName is None and sensation.getName() == name or\
+                       name is None and sensation.getName() != notName or\
+                       name is None and notName is None:
+                        if bestSensation is None or\
+                           sensation.getImportance() > bestSensation.getImportance():
+                            bestSensation = sensation
+                            print("getBestSensation " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getImportance()))
+        return bestSensation
 
+    '''
+    Get most important connected sensation by feeling and score from this specified Sensation
+   
+    sensationType:  SensationType
+    name:           optional, if SensationTypeis Item, name must be 'name'
+    '''
+    def getMostImportantConnectedSensation( self,
+                                            sensationType,
+                                            name = None):
+        bestSensation = None
+        for association in self.getAssociations():
+            sensation= association.getSensation()
+            if sensation.getSensationType() == sensationType:
+                if sensationType != Sensation.SensationType.Item or\
+                   sensation.getName() == name:
+                    if bestSensation is None or\
+                       sensation.getImportance() > bestSensation.getImportance():
+                        bestSensation = sensation
+        return bestSensation
 
     '''
     save all LongTerm Memory sensation instances and data permanently
