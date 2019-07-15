@@ -303,11 +303,14 @@ class TensorFlowClassification(Robot):
                                  ' box ' + str(output_dict[self.DETECTION_BOXES][i]) + ' size ' + str(size))
                         subimage = sensation.getImage().crop(size)
                         subsensation = Sensation.create(sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out,\
-                                                        image=subimage, associations=[Sensation.Association(sensation=sensation, score=score)])
+                                                        image=subimage)
+                        subsensation.associate(sensation=sensation, score=score)
                         subsensation.save()
                         # Item
                         itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out,\
-                                                         name=self.category_index[classInd][self.NAME], associations=[Sensation.Association(sensation=subsensation, score=score)])
+                                                         name=self.category_index[classInd][self.NAME])
+                        itemsensation.associate(sensation=subsensation, score=score)
+
                         self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
                         self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
                         self.log("Created LongTerm subImage and item sensation for this")
