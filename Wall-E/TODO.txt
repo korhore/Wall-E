@@ -1,9 +1,14 @@
 Critical
 --------
+OK Create does not set time correctly
+Should be OK, but still something odd with Sensation.create
 
-Make Association really duplex. creating assosiotion in both side Sensations.
+Still much to do with Communication. Continue with test.
+Change Sensation Memory to use Importance instead of pure time
+ 
+OK Make Association really duplex. creating assosiotion in both side Sensations.
 
-Gets situation,where vonnection are dine repeatedly until we get max.
+OK Gets situation,where connection are done repeatedly until we get max.
 We must connect only best associations.
 
 Created 3 SocketServer and 3 SockertClient threads/instances. 1 +1 is enough.

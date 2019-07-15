@@ -57,20 +57,17 @@ from Sensation import Sensation
 
 class Communication(Robot):
 
-    COMMUNICATION_INTERVAL=60.0     # time window to history 
+    #COMMUNICATION_INTERVAL=60.0     # time window to history 
                                     # for sensations we communicate
-    COMMUNICATION_SCORE_LIMIT=0.1   # how strong association sensation should have
-                                    # if sensations are connected  with others sensations
-                                    # in time window
-    TEST_RESPONSE_TIME=2.5
+    COMMUNICATION_INTERVAL=2.5      # time window to history for test to be run quicker
                                     
     class CommunicationItem():
         def __init__(self,
-                    sensation,
-                    voiceSensation,
-                    time,
-                    association,
-                    timer = None):
+                     sensation,
+                     voiceSensation,
+                     time,
+                     association,
+                     timer = None):
             self.sensation = sensation
             self.voiceSensation = voiceSensation
             self.time  = time
@@ -110,6 +107,8 @@ class Communication(Robot):
                  level=0):
         print("We are in Communication, not Robot")
         self.communicationItems = []
+        self.usedVoices = []    # Voices we have used in this conversation
+                                # always say something, that we have not yet said
         
         Robot.__init__(self,
                        parent=parent,
@@ -122,31 +121,42 @@ class Communication(Robot):
         #run default implementation first
         #super(Communication, self).process(transferDirection=transferDirection, sensation=sensation)
         # don't communicate with history Sensation Items, we are comunicating Item.name just seen.
+        print("systemTime.time() " + str(systemTime.time()) + ' -  sensation.getTime() ' + str(sensation.getTime()) + ' < Communication.COMMUNICATION_INTERVAL ' + str(Communication.COMMUNICATION_INTERVAL))
+        print(str(systemTime.time() - sensation.getTime()) + ' < ' + str(Communication.COMMUNICATION_INTERVAL))
         if sensation.getSensationType() == Sensation.SensationType.Item and\
             systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL:
             self.speakToItem(itemSensation=sensation)
         elif sensation.getSensationType() == Sensation.SensationType.Voice and\
             sensation.getDirection() == Sensation.Direction.Out and\
             systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL:
+            print("systemTime.time() " + str(systemTime.time()) + ' -  sensation.getTime() ' + str(sensation.getTime()) + ' < Communication.COMMUNICATION_INTERVAL ' + str(Communication.COMMUNICATION_INTERVAL))
+            print(str(systemTime.time() - sensation.getTime()) + ' < ' + str(Communication.COMMUNICATION_INTERVAL))
+            i=0
             for communicationItem in self.communicationItems:
+                print("sensation.getTime() " + str(sensation.getTime()) + '  > communicationItem.getTime() ' + str(communicationItem.getTime()))
                 if sensation.getTime() > communicationItem.getTime():   # is this a response
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: got a voice response for ' + communicationItem.getSensation().toDebugStr())
                     communicationItem.getTimer().cancel()
                     responce_voiceSensation = Sensation.create(sensation = sensation,
                                                                direction = Sensation.Direction.Out, # heard
                                                                memory = Sensation.Memory.LongTerm)
-                    # NOTE This is needed now, because Sensation.create parameters direction and memory parameters are  overwritten by sensation parameters
+#                     # NOTE This is needed now, because Sensation.create parameters direction and memory parameters are  overwritten by sensation parameters
                     responce_voiceSensation.setDirection(Sensation.Direction.Out)
                     responce_voiceSensation.setMemory(Sensation.Memory.LongTerm)
                     responce_voiceSensation.associate(sensation = communicationItem.getSensation(),
-                                                      feeling=Sensation.Association.Feeling.Good)
-                    self.log(logLevel=Robot.LogLevel.Normal, logStr='process: created a voice feeling good  ' + responce_voiceSensation.toDebugStr())
-                    sensation=communicationItem.getSensation
+                                                      feeling=communicationItem.getAssociation().getFeeling())
+                    # Change feeling of this voice even better
+                    communicationItem.getAssociation().changeFeeling(positive=True)
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr='process: created a voice of feeling even better  ' + responce_voiceSensation.toDebugStr())
+                    sensation=communicationItem.getSensation()
 
-                    del communicationItem
+                    del self.communicationItems[i]
                     
                     #response
                     self.speakToItem(itemSensation=sensation)
+                else:
+                    print("i=i+1")
+                    i = i+1
                     
         else:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process: too old sensation or not Item ' + sensation.toDebugStr())
@@ -159,7 +169,8 @@ class Communication(Robot):
                                                                            notName = None,
                                                                            timemin = None,
                                                                            timemax = None,
-                                                                           associationSensationType=Sensation.SensationType.Voice)
+                                                                           associationSensationType=Sensation.SensationType.Voice,
+                                                                           ignoredSensations = self.usedVoices)
         if candidate_for_communication is not None:
             # get best Voice
             voiceSensation = None
@@ -167,7 +178,7 @@ class Communication(Robot):
                 if association.getSensation().getSensationType() == Sensation.SensationType.Voice:
                     if voiceSensation is None or association.getImportance() > voiceSensation.getImportance():
                         voiceSensation = association.getSensation()
-            if voiceSensation  is not None:
+            if voiceSensation is not None:
                 # create new Voice to speak and associate it to this sensation so
                 # we remember that we spoke it now
 #                association = Sensation.Association(sensation=sensation,
@@ -175,7 +186,7 @@ class Communication(Robot):
                 spoke_voiceSensation = Sensation.create(sensation = voiceSensation,
                                                         direction = Sensation.Direction.In, # speak
                                                         memory = Sensation.Memory.Sensory)
-                # NOTE This is needed now, because Sensation.create parameters direction and memory parameters are  overwritten by sensation parameters
+#                 # NOTE This is needed now, because Sensation.create parameters direction and memory parameters are  overwritten by sensation parameters
                 spoke_voiceSensation.setDirection(Sensation.Direction.In)
                 spoke_voiceSensation.setMemory(Sensation.Memory.Sensory)
                 spoke_voiceSensation.associate(sensation = voiceSensation,
@@ -194,36 +205,33 @@ class Communication(Robot):
 #                                                                                        score=candidate_for_communication.getScore()))
                 self.log('Communication.process: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=spoke_voiceSensation)')
 
-                self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=spoke_voiceSensation)                    
-                    # now we wait for a response for this
+                self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=spoke_voiceSensation)
+                self.usedVoices.append(spoke_voiceSensation)                    
+                self.usedVoices.append(voiceSensation)                    
+                   # now we wait for a response for this
                 association = itemSensation.getAssociation(sensation=spoke_voiceSensation)
                 communicationItem = Communication.CommunicationItem(sensation = itemSensation,
                                                                     voiceSensation = spoke_voiceSensation,
                                                                     time = systemTime.time(),
                                                                     association = association)
                 self.communicationItems.append(communicationItem)
-                # test
-                timer = threading.Timer(interval=Communication.TEST_RESPONSE_TIME, function=self.stopWaitingResponse, args = (communicationItem,))
+                timer = threading.Timer(interval=Communication.COMMUNICATION_INTERVAL, function=self.stopWaitingResponse, args = (communicationItem,))
                 communicationItem.setTimer(timer=timer)
-                # real
-                #timer = threading.Timer(interval=Communication.COMMUNICATION_INTERVAL, function=self.stopWaitingResponse)
                 timer.start()
-                # for this long
-                    
-                # TODO We should wait answer and communicate as long other part wants
-                return True
-        return False
         
-    # TODO
     def stopWaitingResponse(self, communicationItem):
         print("We did not get response. Do something!")
  
         i = 0       
         for commItem in self.communicationItems:
             if  commItem == communicationItem:
-                print("commItem.getTimer().cancel() && del self.communicationItems[i]")
+                self.log("stopWaitingResponse: commItem.getAssociation().changeFeeling(negative=True)")
+                commItem.getAssociation().changeFeeling(negative=True)
+                self.log("stopWaitingResponse: commItem.getTimer().cancel() && del self.communicationItems[i]")
                 commItem.getTimer().cancel()
                 del self.communicationItems[i]
+                if len(self.communicationItems) == 0:   # conversation is ended
+                    self.usedVoices = []                # we are free to use voices used at ended conversations
             else:
                 print("i=i+1")
                 i=i+1
