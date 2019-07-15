@@ -57,9 +57,9 @@ from Sensation import Sensation
 
 class Communication(Robot):
 
-    #COMMUNICATION_INTERVAL=60.0     # time window to history 
+    COMMUNICATION_INTERVAL=60.0     # time window to history 
                                     # for sensations we communicate
-    COMMUNICATION_INTERVAL=2.5      # time window to history for test to be run quicker
+    #COMMUNICATION_INTERVAL=2.5      # time window to history for test to be run quicker
                                     
     class CommunicationItem():
         def __init__(self,
