@@ -302,9 +302,28 @@ class Sensation(object):
     '''
         
     class Association(object):
-        
+        Terrified='Terrified' 
+        Afraid='Afraid'
+        Disappointed='Disappointed'
+        Worried='Worried'
+        Neutral='Neutral'
+        Normal='Normal'
+        Good='Good'
+        Happy='Happy'
+        InLove='InLove'
         # Feeling, Feelings can be positive or negative, stronger or weaker
         Feeling = enum(Terrified=-5, Afraid=-3, Disappointed=-2, Worried=-1, Neutral=0, Normal=1, Good=2, Happy=3, InLove=5)
+        Feelings = {
+            Feeling.Terrified : Terrified,
+            Feeling.Afraid : Afraid,
+            Feeling.Disappointed : Disappointed,
+            Feeling.Worried : Worried,
+            Feeling.Neutral : Neutral,
+            Feeling.Normal : Normal,
+            Feeling.Good : Good,
+            Feeling.Happy : Happy,
+            Feeling.InLove : InLove
+        }
         
         def __init__(self,
                      self_sensation,                        # this side of Association
@@ -444,6 +463,10 @@ class Sensation(object):
                     association.feeling = association.Feeling.Good
                 elif association.feeling == association.Feeling.InLove:
                     association.feeling = association.Feeling.Happy
+
+            # TODO Cannot reference this way, how?                    
+            #print('association.feeling ' + Association.Feelings[association.feeling])
+            print('association.feeling ' + str(association.feeling))
 
         '''
         How important this association is.

@@ -297,7 +297,7 @@ class CommunicationTestCase(unittest.TestCase):
         # should be run and self.communication.communicationItems) ashould be empty
         # wait some time
         print("test is sleeping " + str(Communication.COMMUNICATION_INTERVAL+ 1.0) + " until continuing. To get faster test change temporarely Communication.COMMUNICATION_INTERVAL\n(Test logic does not change, but functionality is for testing only, not for human communication then, so change it back)")       
-        systemTime.sleep(Communication.COMMUNICATION_INTERVAL+ 1.0)
+        systemTime.sleep(Communication.COMMUNICATION_INTERVAL+ 2.0)
         # no communicationItems should be left in 
         self.assertEqual(len(self.communication.communicationItems),0, 'no communicationItems should be left in Communication ')
 

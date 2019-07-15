@@ -27,7 +27,7 @@ from Sensation import Sensation
 
 class Association(Robot):
 
-    ASSOCIATION_INTERVAL=60.0    # time window plus/minus in seconds 
+    ASSOCIATION_INTERVAL=10.0    # time window plus/minus in seconds 
                                 # for  sensations we connect together
     ASSOCIATION_SCORE_LIMIT=0.1  # how strong association sensation should have
                                 # if we we connect it together with others sensations
