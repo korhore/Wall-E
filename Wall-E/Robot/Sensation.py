@@ -78,7 +78,7 @@ Sensation is something Robot senses
 '''
 
 class Sensation(object):
-    VERSION=8           # version number to check, if we picle same version
+    VERSION=9           # version number to check, if we picle same version
                         # instances. Otherwise we get odd errors, with old
                         # version code instances
 
@@ -100,7 +100,8 @@ class Sensation(object):
     
     SENSORY_LIVE_TIME =     300.0;       # sensation live3s 300 seconds = 5 mins (may be changed)
     #WORKING_LIVE_TIME =        600.0;       # cache sensation 600 seconds = 10 mins (may be changed)
-    LONG_TERM_LIVE_TIME =   3000.0;       # cache sensation 3000 seconds = 50 mins (may be changed)
+    #LONG_TERM_LIVE_TIME =   3000.0;       # cache sensation 3000 seconds = 50 mins (may be changed)
+    LONG_TERM_LIVE_TIME =   24.0*3600.0;  # cache sensation 24h (may be changed)
     LENGTH_SIZE =       2   # Sensation as string can only be 99 character long
     LENGTH_FORMAT =     "{0:2d}"
     SEPARATOR =         '|'  # Separator between messages
@@ -118,6 +119,8 @@ class Sensation(object):
     Direction = enum(In='I', Out='O')
     # Direction of a sensation transferring, used with Axon. Up: going up like fron AlsaMicroPhone to MainRobot, Down: going down from MainRobot to leaf Robots like AlsaPlayback
     TransferDirection = enum(Up='U', Down='D')
+    # Presence of Item  
+    Presence = enum(Entering='a', Present='b', Exiting='c', Absent='d', Unknown='e')
 
     #Memory = enum(Sensory='S', Working='W', LongTerm='L' )
     Memory = enum(Sensory='S', LongTerm='L' )
@@ -507,7 +510,8 @@ class Sensation(object):
                  image=None,                                                # Image internal representation is PIl.Image 
                  calibrateSensationType = SensationType.Unknown,
                  capabilities = None,                                       # capabilitis of sensorys, direction what way sensation go
-                 name = ''):                                                # name of Item
+                 name = '',                                                 # name of Item
+                 presence = Presence.Unknown):                              # presence of Item
                                                  
         from Config import Capabilities
         self.time=time
@@ -556,7 +560,12 @@ class Sensation(object):
             self.calibrateSensationType = sensation.calibrateSensationType
             self.capabilities = sensation.capabilities
             self.name = sensation.name
-
+            self.presence = sensation.presence
+            
+            # We have here put values from sensation, but we should
+            # also set values that are overwritten
+            # and we don't know them exactly
+            # so we don't set then, but code should use set methods itself explicitly
 
         else:                
             self.sensationType = sensationType
@@ -578,6 +587,7 @@ class Sensation(object):
             self.calibrateSensationType = calibrateSensationType
             self.capabilities = capabilities
             self.name = name
+            self.presence = presence
             
             # associate makes both sides
             for association in associations:
@@ -680,6 +690,8 @@ class Sensation(object):
                     i += Sensation.NUMBER_SIZE
                     self.name =bytesToStr(bytes[i:i+name_size])
                     i += name_size
+                    self.presence = bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                    i += Sensation.ENUM_SIZE
                     
                 association_number = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
                 #print("association_number " + str(association_number))
@@ -741,7 +753,8 @@ class Sensation(object):
                  image=None,
                  calibrateSensationType = SensationType.Unknown,
                  capabilities = None,                                       # capabilities of sensorys, direction what way sensation go
-                 name=''):                                                  # name of Item
+                 name='',                                                   # name of Item
+                 presence=Presence.Unknown):                              # presence of Item
                                                  
         
         if sensation == None:             # not an update, create new one
@@ -769,7 +782,8 @@ class Sensation(object):
                  image=image,
                  calibrateSensationType = calibrateSensationType,
                  capabilities = capabilities,
-                 name=name)
+                 name=name,
+                 presence=presence)
         
         return sensation
 
@@ -1034,6 +1048,7 @@ class Sensation(object):
             s +=  ' ' + self.getCapabilities().toString()
         elif self.sensationType == Sensation.SensationType.Item:
             s +=  ' ' + self.name
+            s +=  ' ' + self.presence
            
 #         elif self.sensationType == Sensation.SensationType.Stop:
 #             pass
@@ -1074,7 +1089,7 @@ class Sensation(object):
 #             s=self.__str__()
         s = systemTime.ctime(self.time) + ' ' + str(self.number) + ' ' + Sensation.getMemoryString(self.memory) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
         if self.sensationType == Sensation.SensationType.Item:
-            s = s + ' ' + self.name
+            s = s + ' ' + self.name + ' ' + self.presence
         return s
 
     def bytes(self):
@@ -1132,6 +1147,7 @@ class Sensation(object):
             name_size=len(self.name)
             b +=  name_size.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
             b +=  StrToBytes(self.name)
+            b +=  StrToBytes(self.presence)
             
         #  at the end associations (numbers)
         association_number=len(self.associations)
@@ -1470,10 +1486,11 @@ class Sensation(object):
     Has sensation association to other Sensation
     which SensationType is 'associationSensationType'
     '''
-    def hasAssociationSensationType(self, associationSensationType):
+    def hasAssociationSensationType(self, associationSensationType, ignoredSensations=[]):
         has=False
         for association in self.associations:
-            if association.getSensation().getSensationType() == associationSensationType:
+            if association.getSensation() not in ignoredSensations and\
+               association.getSensation().getSensationType() == associationSensationType:
                 has=True
                 break       
         return has
@@ -1600,6 +1617,11 @@ class Sensation(object):
         self.name = name
     def getName(self):
         return self.name
+
+    def setPresence(self, presence):
+        self.presence = presence
+    def getPresence(self):
+        return self.presence
 
     '''
     save sensation data permanently
@@ -1788,7 +1810,7 @@ class Sensation(object):
             for sensation in sensationMemory:
                 if sensation not in ignoredSensations and\
                    sensation.getSensationType() == sensationType and\
-                   sensation.hasAssociationSensationType(associationSensationType=associationSensationType) and\
+                   sensation.hasAssociationSensationType(associationSensationType=associationSensationType, ignoredSensations=ignoredSensations) and\
                    (timemin is None or sensation.getTime() > timemin) and\
                    (timemax is None or sensation.getTime() < timemax):
                     if sensationType != Sensation.SensationType.Item or\
@@ -1798,7 +1820,12 @@ class Sensation(object):
                         if bestSensation is None or\
                            sensation.getImportance() > bestSensation.getImportance():
                             bestSensation = sensation
-                            print("getBestSensation " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getImportance()))
+                            print("getMostImportantSensation found candidate " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getImportance()))
+        if bestSensation is not None:
+            print("getMostImportantSensation found " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getImportance()))
+        else:
+            print("getMostImportantSensation did not find any")
+            
         return bestSensation
 
     '''

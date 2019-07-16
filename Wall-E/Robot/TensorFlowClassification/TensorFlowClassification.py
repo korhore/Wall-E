@@ -1,6 +1,6 @@
 '''
 Created on 30.04.2019
-Updated on 26.05.2019
+Updated on 16.07.2019
 
 @author: reijo.korhonen@gmail.com
 '''
@@ -97,6 +97,8 @@ class TensorFlowClassification(Robot):
     # Seems that at least raspberry keep to restart it very often when running this Rpbot,
     # So the to sleep between runs    
     SLEEP_TIME_BETWEEN_PROCESSES =   1.0
+    
+    present = []        # which items are present
   
     def __init__(self,
                  parent=None,
@@ -277,6 +279,8 @@ class TensorFlowClassification(Robot):
             if sensation.getDirection() == Sensation.Direction.Out and \
                sensation.getSensationType() == Sensation.SensationType.Image and \
                sensation.getMemory() == Sensation.Memory.Sensory:
+                
+                current_present = []
                 #sensation.save()    # save to file TODO, not needed, but we need
                                     # numpy representation and example code does it from a file
                                     #Nope, just det it
@@ -307,21 +311,37 @@ class TensorFlowClassification(Robot):
                         subsensation.associate(sensation=sensation, score=score)
                         subsensation.save()
                         # Item
-                        itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out,\
-                                                         name=self.category_index[classInd][self.NAME])
+                        name = self.category_index[classInd][self.NAME]
+                        current_present.append(name)
+                        itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out, name=name)
                         itemsensation.associate(sensation=subsensation, score=score)
 
                         self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
                         self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
                         self.log("Created LongTerm subImage and item sensation for this")
                         # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
-                    i = i+1   
+                    i = i+1
+                self.logPresent(present=current_present)  
                 # Seems that at least raspberry keep to restart it very often when riing thos Rpbot,
                 # So the to sleep between runs
                 # TODO, if this works, make sleep time as Configuration parameter  
                 self.log("Sleeping " + str(TensorFlowClassification.SLEEP_TIME_BETWEEN_PROCESSES))
                 time.sleep(TensorFlowClassification.SLEEP_TIME_BETWEEN_PROCESSES)
-            
+                
+    def logPresent(self, present):
+        i=0
+        for name in TensorFlowClassification.present:
+            if name not in present:
+                self.log("Name " + name + " exited")
+                del TensorFlowClassification.present[i]
+            else:
+                self.log("Name " + name + " still present")
+                i = i +1
+        for name in present:
+            if name not in TensorFlowClassification.present:
+                self.log("Name " + name + " entered")
+                TensorFlowClassification.present.append(name)
+          
 if __name__ == "__main__":
     TensorFlowClassification = tensorFlowClassification()
 #    tensorFlowClassification.start()  

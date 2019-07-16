@@ -22,7 +22,8 @@ class SensationTestCase(unittest.TestCase):
     TERRIFIED_FEELING = Sensation.Association.Feeling.Terrified
 
     def setUp(self):
-        self.sensation = Sensation.create(associations=None, sensationType=Sensation.SensationType.Item, memory=Sensation.Memory.Sensory, name='test')
+        self.sensation = Sensation.create(associations=None, sensationType=Sensation.SensationType.Item, memory=Sensation.Memory.Sensory, name='test', presence=Sensation.Presence.Entering)
+        self.assertIs(self.sensation.getPresence(), Sensation.Presence.Entering, "should be entering")
         self.assertIsNot(self.sensation, None)
         self.assertIs(len(self.sensation.getAssociations()), 0)
         #print('\nlogAssociations 1: setUp')
@@ -34,7 +35,8 @@ class SensationTestCase(unittest.TestCase):
         self.sensation.delete()
         
     def test_Memorybility(self):        
-        longTermSensation = Sensation.create(associations=None, sensationType=Sensation.SensationType.Item, memory=Sensation.Memory.LongTerm, name='LongTerm_test')
+        longTermSensation = Sensation.create(associations=None, sensationType=Sensation.SensationType.Item, memory=Sensation.Memory.LongTerm, name='LongTerm_test',presence=Sensation.Presence.Exiting)
+        self.assertIs(longTermSensation.getPresence(), Sensation.Presence.Exiting, "should be exiting")
         self.assertIsNot(longTermSensation, None)
         self.assertIs(len(longTermSensation.getAssociations()), 0)
 
@@ -148,7 +150,8 @@ class SensationTestCase(unittest.TestCase):
 
     def test_Importance(self):        
         print("\ntest_Importance")
-        longTermSensation = Sensation.create(associations=None, sensationType=Sensation.SensationType.Item, memory=Sensation.Memory.LongTerm, name='LongTerm_Importance_test')
+        longTermSensation = Sensation.create(associations=None, sensationType=Sensation.SensationType.Item, memory=Sensation.Memory.LongTerm, name='LongTerm_Importance_test',presence=Sensation.Presence.Present)
+        self.assertIs(longTermSensation.getPresence(), Sensation.Presence.Present, "should be present")
         self.assertIsNot(longTermSensation, None)
         self.assertIs(len(longTermSensation.getAssociations()), 0)
         longTermSensation.associate(sensation=self.sensation,
@@ -194,8 +197,15 @@ class SensationTestCase(unittest.TestCase):
 
         
     def do_test_AddAssociation(self):
-        addSensation = Sensation.create(associations=None, sensation=self.sensation, memory=Sensation.Memory.LongTerm, name='connect_test')
+        # when we create sensation=self.sensation, other parameters can't be used
+        addSensation = Sensation.create(associations=None, sensation=self.sensation)
         self.assertIsNot(addSensation, None)
+        addSensation.setName(name='connect_test')
+        self.assertIs(addSensation.getName(), 'connect_test', "should be \'connect_test\' ")
+        addSensation.setMemory(memory=Sensation.Memory.LongTerm)
+        self.assertIs(addSensation.getMemory(), Sensation.Memory.LongTerm, "should be Sensation.Memory.LongTerm")
+        addSensation.setPresence(presence=Sensation.Presence.Present)
+        self.assertIs(addSensation.getPresence(), Sensation.Presence.Present, "should be present")
         
         addSensation.setName('connect_test')
         addSensation.setMemory(Sensation.Memory.LongTerm)

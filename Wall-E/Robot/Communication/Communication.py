@@ -57,7 +57,7 @@ from Sensation import Sensation
 
 class Communication(Robot):
 
-    COMMUNICATION_INTERVAL=10.0     # time window to history 
+    COMMUNICATION_INTERVAL=30.0     # time window to history 
                                     # for sensations we communicate
     #COMMUNICATION_INTERVAL=2.5      # time window to history for test to be run quicker
                                     
@@ -118,9 +118,7 @@ class Communication(Robot):
  
     def process(self, transferDirection, sensation):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
-        #run default implementation first
-        #super(Communication, self).process(transferDirection=transferDirection, sensation=sensation)
-        # don't communicate with history Sensation Items, we are comunicating Item.name just seen.
+        # don't communicate with history Sensation Items, we are communicating Item.name just seen.
         self.log(logLevel=Robot.LogLevel.Normal, logStr="process: systemTime.time() " + str(systemTime.time()) + ' -  sensation.getTime() ' + str(sensation.getTime()) + ' < Communication.COMMUNICATION_INTERVAL ' + str(Communication.COMMUNICATION_INTERVAL))
         self.log(logLevel=Robot.LogLevel.Normal, logStr="process: " + str(systemTime.time() - sensation.getTime()) + ' < ' + str(Communication.COMMUNICATION_INTERVAL))
         if sensation.getSensationType() == Sensation.SensationType.Item and\
@@ -132,18 +130,16 @@ class Communication(Robot):
 #             print("systemTime.time() " + str(systemTime.time()) + ' -  sensation.getTime() ' + str(sensation.getTime()) + ' < Communication.COMMUNICATION_INTERVAL ' + str(Communication.COMMUNICATION_INTERVAL))
 #             print(str(systemTime.time() - sensation.getTime()) + ' < ' + str(Communication.COMMUNICATION_INTERVAL))
             # get best response for this response, but do not respond voice with same just heard voice
-            self.usedVoices.append(sensation)                    
-            responceVoiceSensation=self.getBestResponce(sensation=sensation)
+            self.usedVoices.append(sensation)
+            responceVoiceSensation=None                 
+            voiceSensation=self.getBestResponse(sensation=sensation)
             score=0.0
-            if responceVoiceSensation is not None:
-                score = responceVoiceSensation.getScore()
-                voiceSensation = Sensation.create(sensation = responceVoiceSensation,
-                                                  direction = Sensation.Direction.In, # speak
-                                                  memory = Sensation.Memory.Sensory)
-    #                 # NOTE This is needed now, because Sensation.create parameters direction and memory parameters are  overwritten by sensation parameters
-                voiceSensation.setDirection(Sensation.Direction.In)
-                voiceSensation.setMemory(Sensation.Memory.Sensory)
-                responceVoiceSensation = voiceSensation
+            if voiceSensation is not None:
+                score = voiceSensation.getScore()
+                responceVoiceSensation = Sensation.create(sensation = voiceSensation)
+    #           # NOTE This is needed now, because Sensation.create parameters direction and memory parameters are  overwritten by sensation parameters
+                responceVoiceSensation.setDirection(Sensation.Direction.In) # speak
+                responceVoiceSensation.setMemory(Sensation.Memory.Sensory)
                 
             i = 0
             new_communicationItems=[]
@@ -155,12 +151,13 @@ class Communication(Robot):
                     if responceVoiceSensation is not None:
                         # update communicationItem
                         feeling = communicationItem.getAssociation().getFeeling()
+                        communicationItem.getSensation().associate(voiceSensation,
+                                                                   score=score,
+                                                                   feeling=feeling)
                         communicationItem.getSensation().associate(responceVoiceSensation,
                                                                    score=score,
                                                                    feeling=feeling)
                         association = communicationItem.getSensation().getAssociation(sensation=responceVoiceSensation)
-                        communicationItem.voiceSensation==responceVoiceSensation
-                        communicationItem.time = systemTime.time()
                         
                         new_communicationItem = Communication.CommunicationItem(sensation = communicationItem.getSensation(),
                                                                                 voiceSensation = responceVoiceSensation,
@@ -174,6 +171,7 @@ class Communication(Robot):
                     i = i+1
             # speak once for all items in discussion
             if len(new_communicationItems) > 0 and responceVoiceSensation is not None:
+                self.log('Communication.process: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=responceVoiceSensation)')
                 self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=responceVoiceSensation)
                 self.usedVoices.append(responceVoiceSensation)
                                     
@@ -207,23 +205,19 @@ class Communication(Robot):
             if candidate_for_communication is not None:
                 # get best Voice
                 voiceSensation = None
-                importance=-100
                 for association in candidate_for_communication.getAssociations():
                     if association.getSensation().getSensationType() == Sensation.SensationType.Voice and\
                        association.getSensation() not in self.usedVoices:
                         if voiceSensation is None or association.getImportance() > voiceSensation.getImportance():
                             voiceSensation = association.getSensation()
-                            importance = voiceSensation.getImportance()
                 if voiceSensation is not None:
                     # create new Voice to speak and associate it to this sensation so
                     # we remember that we spoke it now
     #                association = Sensation.Association(sensation=sensation,
     #                                                         score=voiceSensation.getScore())
-                    spoke_voiceSensation = Sensation.create(sensation = voiceSensation,
-                                                            direction = Sensation.Direction.In, # speak
-                                                            memory = Sensation.Memory.Sensory)
-    #                 # NOTE This is needed now, because Sensation.create parameters direction and memory parameters are  overwritten by sensation parameters
-                    spoke_voiceSensation.setDirection(Sensation.Direction.In)
+                    spoke_voiceSensation = Sensation.create(sensation = voiceSensation)
+    #                # NOTE This is needed now, because Sensation.create parameters direction and memory parameters are  overwritten by sensation parameters
+                    spoke_voiceSensation.setDirection(Sensation.Direction.In)  # speak
                     spoke_voiceSensation.setMemory(Sensation.Memory.Sensory)
                     spoke_voiceSensation.associate(sensation = voiceSensation,
                                                    score=voiceSensation.getScore())
@@ -247,10 +241,13 @@ class Communication(Robot):
                     timer = threading.Timer(interval=Communication.COMMUNICATION_INTERVAL, function=self.stopWaitingResponse, args = (communicationItem,))
                     communicationItem.setTimer(timer=timer)
                     timer.start()
+            else:
+                self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process startSpeakingToItem: Did not find Sensation.getMostImportantSensation! Can\'t start communication!')
+                
     '''
     Get common best response for response of items we are discussing, but don't know which one is speaking
     '''          
-    def getBestResponce(self, sensation):
+    def getBestResponse(self, sensation):
         responceVoiceSensation=None
         for communicationItem in self.communicationItems:
             if sensation.getTime() > communicationItem.getTime():   # is this a response
@@ -266,8 +263,10 @@ class Communication(Robot):
                     for association in candidate_for_communication.getAssociations():
                         if association.getSensation().getSensationType() == Sensation.SensationType.Voice and\
                            association.getSensation() not in self.usedVoices:
-                            if responceVoiceSensation is None or association.getImportance() > responceVoiceSensation.getImportance():
+                            if responceVoiceSensation is None or association.getSensation().getImportance() > responceVoiceSensation.getImportance():
                                 responceVoiceSensation = association.getSensation()
+        if responceVoiceSensation ==None:
+            self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process getBestResponse: Did not find response! Can\'t continue communication!')
         return responceVoiceSensation
 
         

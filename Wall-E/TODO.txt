@@ -1,5 +1,19 @@
 Critical
 --------
+
+Implement presense.
+- Is something prent of is it gone
+- Is this a sentsation or something in memory
+- Tensorflow knows when it sees an item.name
+-- when a change in camera, we get an pisture, where we get list of item.names
+-- we can compare siuation after prrvious one and detect, if item.nme
+   enters or exits
+- presense can be used with communication and with Association
+-- Association
+---Accociate heard voices to present Item.names
+-- Communication
+--- When we speak, present Item.names can hear us and responses come from them
+    (which one, we don't know, but some statistical analysis can be implemented
 OK Create does not set time correctly
 Should be OK, but still something odd with Sensation.create
 
