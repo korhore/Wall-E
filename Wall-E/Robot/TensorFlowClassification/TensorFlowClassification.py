@@ -315,7 +315,7 @@ class TensorFlowClassification(Robot):
                         name = self.category_index[classInd][self.NAME]
                         current_present.append(name)
                         itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out, name=name,\
-                                                         presense = self.getPresense(name=name))
+                                                         presence = self.getPresence(name=name))
                         itemsensation.associate(sensation=subsensation, score=score)
                         self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
 
@@ -331,7 +331,7 @@ class TensorFlowClassification(Robot):
                 self.log("Sleeping " + str(TensorFlowClassification.SLEEP_TIME_BETWEEN_PROCESSES))
                 time.sleep(TensorFlowClassification.SLEEP_TIME_BETWEEN_PROCESSES)
                 
-    def getPresense(self, name):
+    def getPresence(self, name):
             if name not in TensorFlowClassification.present:
                 self.log("Name " + name + " Entering")
                 TensorFlowClassification.present.append(name)
@@ -346,7 +346,7 @@ class TensorFlowClassification(Robot):
             if name not in present:
                 del TensorFlowClassification.present[i]
                 itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out, name=name,\
-                                                 presense = Sensation.Presence.Absent)
+                                                 presence = Sensation.Presence.Absent)
                 self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
                 self.log("process created absent itemsensation " + itemsensation.toDebugStr())
           
