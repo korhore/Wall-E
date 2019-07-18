@@ -1806,6 +1806,7 @@ class Sensation(object):
                                    associationSensationType = None,
                                    ignoredSensations = []):
         bestSensation = None
+        bestAssociationSensation = None
         for key, sensationMemory in Sensation.sensationMemorys.items():
             for sensation in sensationMemory:
                 if sensation not in ignoredSensations and\
@@ -1823,10 +1824,19 @@ class Sensation(object):
                             print("getMostImportantSensation found candidate " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getImportance()))
         if bestSensation is not None:
             print("getMostImportantSensation found " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getImportance()))
+            bestAssociationSensationImportance = None 
+            for association in bestSensation.getAssociations():
+                if associationSensationType is None or \
+                   association.getSensation().getSensationType() == associationSensationType:
+                    if bestAssociationSensationImportance is None or\
+                       bestAssociationSensationImportance < association.getSensation().getImportance():
+                        bestAssociationSensationImportance = association.getSensation().getImportance()
+                        bestAssociationSensation = association.getSensation()
+                        print("getMostImportantSensation found bestAssociationSensation candidate " + bestAssociationSensation.toDebugStr() + ' ' + str(bestAssociationSensationImportance))
         else:
             print("getMostImportantSensation did not find any")
             
-        return bestSensation
+        return bestSensation, bestAssociationSensation
 
     '''
     Get most important connected sensation by feeling and score from this specified Sensation

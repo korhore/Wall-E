@@ -274,7 +274,7 @@ class TensorFlowClassification(Robot):
         #run default implementation first
         super(TensorFlowClassification, self).process(transferDirection=transferDirection, sensation=sensation)
         if self.running:    # if still running
-            self.log('TensorFlowClassification process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + sensation.toDebugStr())
+            self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + sensation.toDebugStr())
             # we can process this
             if sensation.getDirection() == Sensation.Direction.Out and \
                sensation.getSensationType() == Sensation.SensationType.Image and \
@@ -308,39 +308,47 @@ class TensorFlowClassification(Robot):
                         subimage = sensation.getImage().crop(size)
                         subsensation = Sensation.create(sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out,\
                                                         image=subimage)
+                        self.log("process created subimage sensation " + subsensation.toDebugStr())
                         subsensation.associate(sensation=sensation, score=score)
                         subsensation.save()
                         # Item
                         name = self.category_index[classInd][self.NAME]
                         current_present.append(name)
-                        itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out, name=name)
+                        itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out, name=name,\
+                                                         presense = self.getPresense(name=name))
                         itemsensation.associate(sensation=subsensation, score=score)
+                        self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
 
                         self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
                         self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
                         self.log("Created LongTerm subImage and item sensation for this")
                         # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
                     i = i+1
-                self.logPresent(present=current_present)  
+                self.logAbsents(present=current_present)  
                 # Seems that at least raspberry keep to restart it very often when riing thos Rpbot,
                 # So the to sleep between runs
                 # TODO, if this works, make sleep time as Configuration parameter  
                 self.log("Sleeping " + str(TensorFlowClassification.SLEEP_TIME_BETWEEN_PROCESSES))
                 time.sleep(TensorFlowClassification.SLEEP_TIME_BETWEEN_PROCESSES)
                 
-    def logPresent(self, present):
+    def getPresense(self, name):
+            if name not in TensorFlowClassification.present:
+                self.log("Name " + name + " Entering")
+                TensorFlowClassification.present.append(name)
+                return Sensation.Presence.Entering
+            else:
+                self.log("Name " + name + " Present")
+                return Sensation.Presence.Present
+            
+    def logAbsents(self, present):
         i=0
         for name in TensorFlowClassification.present:
             if name not in present:
-                self.log("Name " + name + " exited")
                 del TensorFlowClassification.present[i]
-            else:
-                self.log("Name " + name + " still present")
-                i = i +1
-        for name in present:
-            if name not in TensorFlowClassification.present:
-                self.log("Name " + name + " entered")
-                TensorFlowClassification.present.append(name)
+                itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out, name=name,\
+                                                 presense = Sensation.Presence.Absent)
+                self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+                self.log("process created absent itemsensation " + itemsensation.toDebugStr())
           
 if __name__ == "__main__":
     TensorFlowClassification = tensorFlowClassification()
