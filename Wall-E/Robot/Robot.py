@@ -150,20 +150,22 @@ class Robot(Thread):
         self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + self.config.getInstanceType() + self.capabilities.toDebugString())
         # global queue for senses and other robots to put sensations to robot
         self.axon = Axon()
-        #and create virtual instances
+        #and create subinstances
         for subInstanceName in self.config.getSubInstanceNames():
-            try:
-                module = subInstanceName+ '.' + subInstanceName
-                imported_module = importlib.import_module(module)
-                self.log(logLevel=Robot.LogLevel.Detailed, logStr='init ' + subInstanceName)
-                robot = getattr(imported_module, subInstanceName)(parent=self,
-                                                                  instanceName=subInstanceName,
-                                                                  instanceType= Sensation.InstanceType.SubInstance,
-                                                                  level=self.level)
-            except ImportError as e:
-                self.log(logLevel=Robot.LogLevel.Critical, logStr="Import error, implement " + module + ' to fix this ' + str(e) + ' ' + str(traceback.format_exc()))
-                self.log(logLevel=Robot.LogLevel.Critical, logStr="Import error, implement " + module + ' ignored, not initiated or not will be started until corrected!')
-                robot = None
+            robot = self.loadSubRobot(subInstanceName=subInstanceName, level=self.level)
+#             try:
+#                 module = subInstanceName+ '.' + subInstanceName
+#                 imported_module = importlib.import_module(module)
+#                 self.log(logLevel=Robot.LogLevel.Detailed, logStr='init ' + subInstanceName)
+# #                self.log(logLevel=Robot.LogLevel.Normal, logStr='init ' + subInstanceName)
+#                 robot = getattr(imported_module, subInstanceName)(parent=self,
+#                                                                   instanceName=subInstanceName,
+#                                                                   instanceType= Sensation.InstanceType.SubInstance,
+#                                                                   level=self.level)
+#             except ImportError as e:
+#                 self.log(logLevel=Robot.LogLevel.Critical, logStr="Import error, implement " + module + ' to fix this ' + str(e) + ' ' + str(traceback.format_exc()))
+#                 self.log(logLevel=Robot.LogLevel.Critical, logStr="Import error, implement " + module + ' ignored, not initiated or not will be started until corrected!')
+#                 robot = None
             if robot is not None:
                 self.subInstances.append(robot)
             else:
@@ -179,10 +181,27 @@ class Robot(Thread):
             else:
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr="init robot virtual instanceName " + instanceName + " is None")
         
-
+    def loadSubRobot(self, subInstanceName, level):
+        robot = None
+        try:
+            module = subInstanceName+ '.' + subInstanceName
+            imported_module = importlib.import_module(module)
+            self.log(logLevel=Robot.LogLevel.Detailed, logStr='init ' + subInstanceName)
+#            self.log(logLevel=Robot.LogLevel.Normal, logStr='init ' + subInstanceName)
+            robot = getattr(imported_module, subInstanceName)(parent=self,
+                                                              instanceName=subInstanceName,
+                                                              instanceType= Sensation.InstanceType.SubInstance,
+                                                              level=level)
+        except ImportError as e:
+             self.log(logLevel=Robot.LogLevel.Critical, logStr="Import error, implement " + module + ' to fix this ' + str(e) + ' ' + str(traceback.format_exc()))
+             self.log(logLevel=Robot.LogLevel.Critical, logStr="Import error, implement " + module + ' ignored, not initiated or not will be started until corrected!')
+        return robot
             
     def getParent(self):
         return self.parent
+
+    def setParent(self, parent):
+        self.parent = parent
 
     def getLevel(self):
         return self.level

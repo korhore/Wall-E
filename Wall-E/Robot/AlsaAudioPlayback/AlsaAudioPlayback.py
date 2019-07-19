@@ -1,6 +1,6 @@
 '''
 Created on 04.05.2019
-Updated on 02.07.2019
+Updated on 19.07.2019
 
 @author: reijo.korhonen@gmail.com
 
@@ -28,7 +28,7 @@ class AlsaAudioPlayback(Robot):
     RATE = 44100
     FORMAT = alsaaudio.PCM_FORMAT_S16_LE
     
-    COMMUNICATION_INTERVAL=60.0     # time window to history 
+    COMMUNICATION_INTERVAL=30.0     # time window to history 
                                     # for sensations we communicate
 
     def __init__(self,
@@ -51,6 +51,7 @@ class AlsaAudioPlayback(Robot):
         
         self.last_datalen=0
         self.last_write_time = systemTime.time()
+        self.playbackTime=0.0
        
         try:
             self.log("alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK, mode=alsaaudio.PCM_NORMAL, device=" + self.device + ')')
@@ -73,6 +74,7 @@ class AlsaAudioPlayback(Robot):
                     
     def process(self, transferDirection, sensation):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
+        self.playbackTime=0.0
         if sensation.getSensationType() == Sensation.SensationType.Stop:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='process: SensationSensationType.Stop')      
             self.stop()
@@ -84,6 +86,7 @@ class AlsaAudioPlayback(Robot):
                     self.outp.write(sensation.getData())
                     sensation.save()    #remember what we played
                     self.last_datalen = len(sensation.getData())
+                    self.playbackTime = float(self.last_datalen)/float(AlsaAudioPlayback.RATE)
                     self.last_write_time = systemTime.time()
                 else:
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: this Voice already played in this interval')
@@ -91,7 +94,10 @@ class AlsaAudioPlayback(Robot):
                 self.log(logLevel=Robot.LogLevel.Normal, logStr='process: got too old Voice to play')
         else:
             self.log(logLevel=Robot.LogLevel.Error, logStr='process: got sensation we this robot can\'t process')
-        self.log(logLevel=Robot.LogLevel.Detailed, logStr="self.running " + str(self.running))      
+        self.log(logLevel=Robot.LogLevel.Detailed, logStr="self.running " + str(self.running))
+        
+    def getPlaybackTime(self):
+        return self.playbackTime
 
 if __name__ == "__main__":
     alsaAudioPlayback = AlsaAudioPlayback()

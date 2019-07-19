@@ -22,7 +22,7 @@ from Sensation import Sensation
 class AlsaAudioMicrophone(Robot):
     """
      Implementation for out Voice sensation at Sensory level
-     using ALSA-library and microphone hardware
+     using ALSA-library and usb-microphone hardware
     """
     
     CONVERSION_FORMAT='<i2'

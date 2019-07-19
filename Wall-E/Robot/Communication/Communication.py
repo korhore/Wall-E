@@ -144,7 +144,7 @@ class Communication(Robot):
         elif sensation.getSensationType() == Sensation.SensationType.Voice and\
             sensation.getDirection() == Sensation.Direction.Out and\
             systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL and\
-            len(self.communicationItems) > 0: # commucniation going and we got a response, nice
+            len(self.communicationItems) > 0: # communication going and we got a response, nice
             if self.timer is not None:
                 self.timer.cancel()
                 self.timer = None
@@ -164,7 +164,7 @@ class Communication(Robot):
                                                                score=communicationItem.getAssociation().getScore())            
             self.startSpeaking()
         else:
-            self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process: too old sensation or not Item or Voice ' + sensation.toDebugStr())
+            self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process: too old sensation or not Item or RESPONSE Voice in communication' + sensation.toDebugStr())
             
     def presence(self, name, presence):
         if presence == Sensation.Presence.Entering or presence == Sensation.Presence.Present:
