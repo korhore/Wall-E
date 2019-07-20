@@ -467,10 +467,6 @@ class Sensation(object):
                 elif association.feeling == association.Feeling.InLove:
                     association.feeling = association.Feeling.Happy
 
-            # TODO Cannot reference this way, how?                    
-            #print('association.feeling ' + Association.Feelings[association.feeling])
-            print('association.feeling ' + str(association.feeling))
-
         '''
         How important this association is.
         

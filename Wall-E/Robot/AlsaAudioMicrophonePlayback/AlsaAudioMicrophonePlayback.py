@@ -58,6 +58,8 @@ class AlsaAudioMicrophonePlayback(Robot):
 
         # not yet running
         self.running=False
+        self.alsaAudioPlayback.running=False
+        self.alsaAudioMicrophone.running=False
         
     def run(self):
         self.log("Starting robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))      
@@ -65,6 +67,8 @@ class AlsaAudioMicrophonePlayback(Robot):
         # starting other threads/senders/capabilities
         
         self.running=True
+        self.alsaAudioPlayback.running=True
+        self.alsaAudioMicrophone.running=True
                 
         # live until stopped
         self.mode = Sensation.Mode.Normal

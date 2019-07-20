@@ -17,7 +17,7 @@ class Image(Robot):
     def __init__(self,
                  parent=None,
                  instanceName=None,
-                 instanceType = Sensation.InstanceType.Real,
+                 instanceType = Sensation.InstanceType.SubInstance,
                  level=0):
         print("We are in Image, not Robot")
         Robot.__init__(self,

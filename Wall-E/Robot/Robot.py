@@ -153,19 +153,6 @@ class Robot(Thread):
         #and create subinstances
         for subInstanceName in self.config.getSubInstanceNames():
             robot = self.loadSubRobot(subInstanceName=subInstanceName, level=self.level)
-#             try:
-#                 module = subInstanceName+ '.' + subInstanceName
-#                 imported_module = importlib.import_module(module)
-#                 self.log(logLevel=Robot.LogLevel.Detailed, logStr='init ' + subInstanceName)
-# #                self.log(logLevel=Robot.LogLevel.Normal, logStr='init ' + subInstanceName)
-#                 robot = getattr(imported_module, subInstanceName)(parent=self,
-#                                                                   instanceName=subInstanceName,
-#                                                                   instanceType= Sensation.InstanceType.SubInstance,
-#                                                                   level=self.level)
-#             except ImportError as e:
-#                 self.log(logLevel=Robot.LogLevel.Critical, logStr="Import error, implement " + module + ' to fix this ' + str(e) + ' ' + str(traceback.format_exc()))
-#                 self.log(logLevel=Robot.LogLevel.Critical, logStr="Import error, implement " + module + ' ignored, not initiated or not will be started until corrected!')
-#                 robot = None
             if robot is not None:
                 self.subInstances.append(robot)
             else:

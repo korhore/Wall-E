@@ -157,6 +157,7 @@ class Communication(Robot):
             for communicationItem in self.communicationItems:
                 if sensation.getTime() > communicationItem.getTime():               # is this a response
                     communicationItem.getAssociation().changeFeeling(positive=True) #last voice was a good one because we got a response
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(communicationItem.getSensation().getTime()) + ' '  + communicationItem.getSensation().toDebugStr() + ' feeling for voice '+ str(communicationItem.getAssociation().getFeeling()))
                     # heard voice is also as good
                     # create new voice we remember
                     communicationItem.getSensation().associate(sensation=sensation,
@@ -244,8 +245,12 @@ class Communication(Robot):
     def stopWaitingResponse(self):
         self.log(logLevel=Robot.LogLevel.Normal, logStr="stopWaitingResponse: We did not get response")
  
-        for commItem in self.communicationItems:
-            commItem.getAssociation().changeFeeling(positive=False, negative=True)
+        for communicationItem in self.communicationItems:
+            communicationItem.getAssociation().changeFeeling(positive=False, negative=True)
+            # feel disappointed or worse about this voice, so we don't use this again easily
+            if communicationItem.getAssociation().getFeeling() > Sensation.Association.Feeling.Disappointed:
+                stopWaitingResponseAssociation().setFeeling(Sensation.Association.Feeling.Disappointed)
+            self.log(logLevel=Robot.LogLevel.Normal, logStr='stopWaitingResponse: ' + systemTime.ctime(communicationItem.getSensation().getTime()) + ' '  + communicationItem.getSensation().toDebugStr() + ' feeling for voice '+ str(communicationItem.getAssociation().getFeeling()))
         del self.communicationItems[:]  #clear old list
 #         self.log(logLevel=Robot.LogLevel.Normal, logStr="stopWaitingResponse: del self.usedVoices[:]")
         del self.usedVoices[:]          # clear used voices, communication is ended, so used voices are free to be used in next conversation.

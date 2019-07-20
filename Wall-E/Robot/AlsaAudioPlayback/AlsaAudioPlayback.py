@@ -80,6 +80,8 @@ class AlsaAudioPlayback(Robot):
             self.stop()
         # we can speak, but only if sensation is new enough
         elif self.ok and self.running and sensation.getSensationType() == Sensation.SensationType.Voice and sensation.getDirection() == Sensation.Direction.In:
+        # Test
+        #elif self.ok and self.running and sensation.getSensationType() == Sensation.SensationType.Voice:
             if systemTime.time() - sensation.getTime() < AlsaAudioPlayback.COMMUNICATION_INTERVAL:
                 if self.last_datalen != len(sensation.getData()) or systemTime.time() - self.last_write_time > AlsaAudioPlayback.COMMUNICATION_INTERVAL:
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: Sensation.SensationType.VoiceData self.outp.write(sensation.getVoiceData()')
@@ -93,7 +95,7 @@ class AlsaAudioPlayback(Robot):
             else:
                 self.log(logLevel=Robot.LogLevel.Normal, logStr='process: got too old Voice to play')
         else:
-            self.log(logLevel=Robot.LogLevel.Error, logStr='process: got sensation we this robot can\'t process')
+            self.log(logLevel=Robot.LogLevel.Error, logStr='process: got sensation this robot can\'t process, NOT a Voice In or not running')
         self.log(logLevel=Robot.LogLevel.Detailed, logStr="self.running " + str(self.running))
         
     def getPlaybackTime(self):
