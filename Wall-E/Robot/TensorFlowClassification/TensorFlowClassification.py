@@ -6,9 +6,8 @@ Updated on 16.07.2019
 '''
 
 import os
-import time
 import io
-import time
+import time as systemTime
 import math
 
 ###
@@ -56,7 +55,10 @@ class TensorFlowClassification(Robot):
     TODO above implementation is mostly for Hearing Sensory and
     Moving Sensory and should be move to those implementations.  
     '''
-    
+
+    TensorFlow_TEST = False                 # TensorFlow code test
+                                            # allow this, if problems
+           
     NAME =              'name'
     DETECTION_SCORES =  'detection_scores'
     NUM_DETECTIONS =    'num_detections'
@@ -76,7 +78,7 @@ class TensorFlowClassification(Robot):
     DOWNLOAD_BASE =         'http://download.tensorflow.org/models/object_detection/'
     FROZEN_GRAPH_PB_NAME =  'frozen_inference_graph.pb'
     LIVE_GRAPH_PB_NAME =    'live_inference_graph.pb'
-    DETECTION_SCORE_LIMIT = 0.1 #may be too low, but for testing purposes we want to detect something
+    DETECTION_SCORE_LIMIT = 0.4 # Maybe this is reasonable limit
 
     PATH_TO_GRAPH_DIR = os.path.join(Sensation.DATADIR, MODEL_NAME)
     # Path to frozen detection graph. This is the actual model that is used for the object detection.
@@ -221,13 +223,16 @@ class TensorFlowClassification(Robot):
         self.log(" Starting robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))      
         
         if not os.path.exists(TensorFlowClassification.PATH_TO_FROZEN_GRAPH):
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="downloading model " + TensorFlowClassification.PATH_TO_FROZEN_GRAPH)      
             opener = urllib.request.URLopener()
             opener.retrieve(TensorFlowClassification.DOWNLOAD_BASE + TensorFlowClassification.MODEL_FILE, TensorFlowClassification.MODEL_FILE)
             tar_file = tarfile.open(TensorFlowClassification.MODEL_FILE)
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="setting model classes")      
             for file in tar_file.getmembers():
                 file_name = os.path.basename(file.name)
                 if TensorFlowClassification.FROZEN_GRAPH_PB_NAME in file_name:
                     tar_file.extract(file, Sensation.DATADIR)
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="model is ready to use")      
                     
         TensorFlowClassification.detection_graph = tf.Graph()
         with TensorFlowClassification.detection_graph.as_default():
@@ -244,21 +249,22 @@ class TensorFlowClassification(Robot):
         # live until stopped
         self.mode = Sensation.Mode.Normal
 
-        for image_path in self.TEST_IMAGE_PATHS:
-            image = PIL_Image.open(image_path)
-            # the array based representation of the image will be used later in order to prepare the
-            # result image with boxes and labels on it.
-            image_np = self.load_image_into_numpy_array(image)
-            # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
-            image_np_expanded = np.expand_dims(image_np, axis=0)
-            # Actual detection.
-            # TODO detection_graph where it is defined
-            output_dict = self.run_inference_for_single_image(image_np_expanded, self.detection_graph)
-            i=0  
-            for classInd in output_dict[self.DETECTION_CLASSES]:
-                self.log("image className " + self.category_index[classInd][self.NAME] + ' score ' + str(output_dict[self.DETECTION_SCORES][i]) +\
-                         ' box ' + str(output_dict[self.DETECTION_BOXES][i]))
-                i = i+1   
+        if TensorFlowClassification.TensorFlow_TEST:
+            for image_path in self.TEST_IMAGE_PATHS:
+                image = PIL_Image.open(image_path)
+                # the array based representation of the image will be used later in order to prepare the
+                # result image with boxes and labels on it.
+                image_np = self.load_image_into_numpy_array(image)
+                # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
+                image_np_expanded = np.expand_dims(image_np, axis=0)
+                # Actual detection.
+                # TODO detection_graph where it is defined
+                output_dict = self.run_inference_for_single_image(image_np_expanded, self.detection_graph)
+                i=0  
+                for classInd in output_dict[self.DETECTION_CLASSES]:
+                    self.log("image className " + self.category_index[classInd][self.NAME] + ' score ' + str(output_dict[self.DETECTION_SCORES][i]) +\
+                             ' box ' + str(output_dict[self.DETECTION_BOXES][i]))
+                    i = i+1   
 
         while self.running:
             transferDirection, sensation = self.getAxon().get()
@@ -271,65 +277,66 @@ class TensorFlowClassification(Robot):
         self.log("run ALL SHUT DOWN")
 
     def process(self, transferDirection, sensation):
-        #run default implementation first
-        super(TensorFlowClassification, self).process(transferDirection=transferDirection, sensation=sensation)
-        if self.running:    # if still running
-            self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + sensation.toDebugStr())
-            # we can process this
-            if sensation.getDirection() == Sensation.Direction.Out and \
+        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
+        if sensation.getSensationType() == Sensation.SensationType.Stop:
+            self.log(logLevel=Robot.LogLevel.Normal, logStr='process: SensationSensationType.Stop')      
+            self.stop()
+        elif sensation.getDirection() == Sensation.Direction.Out and \
                sensation.getSensationType() == Sensation.SensationType.Image and \
                sensation.getMemory() == Sensation.Memory.Sensory:
-                
-                current_present = []
-                #sensation.save()    # save to file TODO, not needed, but we need
+             # we can process this   
+            current_present = []
+             #sensation.save()    # save to file TODO, not needed, but we need
                                     # numpy representation and example code does it from a file
                                     #Nope, just det it
-                # image = PIL_Image.open(image_path)
-                # the array based representation of the image will be used later in order to prepare the
-                # result image with boxes and labels on it.
-                image_np = self.load_image_into_numpy_array(sensation.getImage())
-                # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
-                image_np_expanded = np.expand_dims(image_np, axis=0)
-                # Actual detection.
-                # TODO detection_graph where it is defined
-                output_dict = self.run_inference_for_single_image(image_np_expanded, self.detection_graph)
-                i=0  
-                for classInd in output_dict[self.DETECTION_CLASSES]:
-                    if output_dict[self.DETECTION_SCORES][i] > TensorFlowClassification.DETECTION_SCORE_LIMIT:
-                        # create new sensation of detected area and category
-                        # subimage
-                        im_width, im_height = sensation.getImage().size
-                        ymin, xmin, ymax, xmax = output_dict[self.DETECTION_BOXES][i]
-                        size = (xmin * im_width, ymin * im_height,
-                                xmax * im_width, ymax * im_height)
-                        score = output_dict[self.DETECTION_SCORES][i]
-                        self.log('SEEN image FOR SURE className ' + self.category_index[classInd][self.NAME] + ' score ' + str(score) + \
-                                 ' box ' + str(output_dict[self.DETECTION_BOXES][i]) + ' size ' + str(size))
-                        subimage = sensation.getImage().crop(size)
-                        subsensation = Sensation.create(sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out,\
-                                                        image=subimage)
-                        self.log("process created subimage sensation " + subsensation.toDebugStr())
-                        subsensation.associate(sensation=sensation, score=score)
-                        subsensation.save()
-                        # Item
-                        name = self.category_index[classInd][self.NAME]
+            # image = PIL_Image.open(image_path)
+            # the array based representation of the image will be used later in order to prepare the
+            # result image with boxes and labels on it.
+            image_np = self.load_image_into_numpy_array(sensation.getImage())
+            # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
+            image_np_expanded = np.expand_dims(image_np, axis=0)
+            # Actual detection.
+            # TODO detection_graph where it is defined
+            output_dict = self.run_inference_for_single_image(image_np_expanded, self.detection_graph)
+            i=0  
+            for classInd in output_dict[self.DETECTION_CLASSES]:
+                if output_dict[self.DETECTION_SCORES][i] > TensorFlowClassification.DETECTION_SCORE_LIMIT:
+                    # create new sensation of detected area and category
+                    # subimage
+                    im_width, im_height = sensation.getImage().size
+                    ymin, xmin, ymax, xmax = output_dict[self.DETECTION_BOXES][i]
+                    size = (xmin * im_width, ymin * im_height,
+                            xmax * im_width, ymax * im_height)
+                    score = output_dict[self.DETECTION_SCORES][i]
+                    self.log('SEEN image FOR SURE className ' + self.category_index[classInd][self.NAME] + ' score ' + str(score) + \
+                             ' box ' + str(output_dict[self.DETECTION_BOXES][i]) + ' size ' + str(size))
+                    subimage = sensation.getImage().crop(size)
+                    subsensation = Sensation.create(sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out,\
+                                                    image=subimage)
+                    self.log("process created subimage sensation " + subsensation.toDebugStr())
+                    subsensation.associate(sensation=sensation, score=score)
+                    subsensation.save()
+                    # Item
+                    name = self.category_index[classInd][self.NAME]
+                    if name not in current_present:
                         current_present.append(name)
-                        itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out, name=name,\
-                                                         presence = self.getPresence(name=name))
-                        itemsensation.associate(sensation=subsensation, score=score)
-                        self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
-
-                        self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
-                        self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
-                        self.log("Created LongTerm subImage and item sensation for this")
-                        # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
-                    i = i+1
-                self.logAbsents(present=current_present)  
-                # Seems that at least raspberry keep to restart it very often when riing thos Rpbot,
-                # So the to sleep between runs
-                # TODO, if this works, make sleep time as Configuration parameter  
-                self.log("Sleeping " + str(TensorFlowClassification.SLEEP_TIME_BETWEEN_PROCESSES))
-                time.sleep(TensorFlowClassification.SLEEP_TIME_BETWEEN_PROCESSES)
+                    itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out, name=name,\
+                                                     presence = self.getPresence(name=name))
+                    itemsensation.associate(sensation=subsensation, score=score)
+                    self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
+                    self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
+                    self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+                    self.log("Created LongTerm subImage and item sensation for this")
+                    # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
+                i = i+1
+            self.logAbsents(present=current_present)  
+            # Seems that at least raspberry keep to restart it very often when riing thos Rpbot,
+            # So the to sleep between runs
+            # TODO, if this works, make sleep time as Configuration parameter  
+            self.log("Sleeping " + str(TensorFlowClassification.SLEEP_TIME_BETWEEN_PROCESSES))
+            systemTime.sleep(TensorFlowClassification.SLEEP_TIME_BETWEEN_PROCESSES)
+        else:
+            self.log(logLevel=Robot.LogLevel.Error, logStr='process: got sensation we this robot can\'t process')
                 
     def getPresence(self, name):
             if name not in TensorFlowClassification.present:
@@ -349,6 +356,7 @@ class TensorFlowClassification(Robot):
                                                  presence = Sensation.Presence.Absent)
                 self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
                 self.log("process created absent itemsensation " + itemsensation.toDebugStr())
+                
           
 if __name__ == "__main__":
     TensorFlowClassification = tensorFlowClassification()

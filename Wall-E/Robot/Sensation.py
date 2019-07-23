@@ -161,6 +161,11 @@ class Sensation(object):
     STARTING="Starting"
     STOPPING="Stopping"
     INTERRUPTED="Interrupted"
+    ENTERING="Entering"
+    PRESENT="Present"
+    EXITING="Exiting"
+    ABSENT="Absent"
+
       
     Directions={Direction.In: IN,
                 Direction.Out: OUT}
@@ -220,6 +225,14 @@ class Sensation(object):
            Mode.Stopping: STOPPING,
            Mode.Interrupted: INTERRUPTED}
     
+    Presences = {
+           Presence.Entering: ENTERING,
+           Presence.Present:  PRESENT,
+           Presence.Exiting:  EXITING,
+           Presence.Absent:   ABSENT,
+           Presence.Unknown:  UNKNOWN}
+
+    
     sensationMemorys={                      # Sensation caches
         Memory.Sensory:  [],                # short time Sensation cache
         #Memory.Working:  [],                # middle time Sensation cache
@@ -272,6 +285,11 @@ class Sensation(object):
         return Sensation.SensationTypes.get(sensationType)
     def getSensationTypeStrings():
         return Sensation.SensationTypes.values()
+    
+    def getPresenceString(presence):
+        return Sensation.Presences.get(presence)
+    def getPresenceStrings():
+        return Sensation.Presences.values()
 
     
     def addToSensationMemory(sensation):
@@ -282,13 +300,14 @@ class Sensation(object):
         
         # remove too old ones
         now = systemTime.time()
+        # TODO use abs(assciation.Importacce()) also
         # TODO When use association_time, then it is possible that
         # at the start there is much connected sensation, and after that
         # there are less connected, that keep in the memory too long time.
         # Maybe this is not a big problem. This simple implementation keeps
         # sensation creation efficient
         while len(memory) > 0 and now - memory[0].getLatestTime() > cacheTime:
-            print('delete from sensation cache ' + sensation.toDebugStr())
+            print('delete from sensation cache ' + memory[0].toDebugStr())
             memory[0].delete()
             del memory[0]
                 
@@ -1085,7 +1104,7 @@ class Sensation(object):
 #             s=self.__str__()
         s = systemTime.ctime(self.time) + ' ' + str(self.number) + ' ' + Sensation.getMemoryString(self.memory) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
         if self.sensationType == Sensation.SensationType.Item:
-            s = s + ' ' + self.name + ' ' + self.presence
+            s = s + ' ' + self.name + ' ' + Sensation.getPresenceString(self.presence)
         return s
 
     def bytes(self):
@@ -1802,7 +1821,11 @@ class Sensation(object):
                                    associationSensationType = None,
                                    ignoredSensations = []):
         bestSensation = None
+        bestAssociation = None
         bestAssociationSensation = None
+        # TODO starting with best score is not a good idea
+        # if best scored item.name has only bad voices, we newer can get
+        # goof voices
         for key, sensationMemory in Sensation.sensationMemorys.items():
             for sensation in sensationMemory:
                 if sensation not in ignoredSensations and\
@@ -1827,12 +1850,13 @@ class Sensation(object):
                     if bestAssociationSensationImportance is None or\
                        bestAssociationSensationImportance < association.getSensation().getImportance():
                         bestAssociationSensationImportance = association.getSensation().getImportance()
+                        bestAssociation = association
                         bestAssociationSensation = association.getSensation()
                         print("getMostImportantSensation found bestAssociationSensation candidate " + bestAssociationSensation.toDebugStr() + ' ' + str(bestAssociationSensationImportance))
         else:
             print("getMostImportantSensation did not find any")
             
-        return bestSensation, bestAssociationSensation
+        return bestSensation, bestAssociation, bestAssociationSensation
 
     '''
     Get most important connected sensation by feeling and score from this specified Sensation

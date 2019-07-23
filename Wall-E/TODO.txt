@@ -165,3 +165,10 @@ google.protobuf
 matplotlib==2.1.0
 requires
 - sudo apt-get install libfreetype6-dev
+
+starting MainRobor with Tensorflow by command line needs now
+PYTHONPATH=/home/reijo/models/research python3 MainRobot.py --start
+
+and you should copy git/Tensorflow/models/research to that place
+
+OK also you need models from data, application should download these, but the is an error. TODO
