@@ -1,8 +1,11 @@
 Critical
 --------
 
+TEST negative feeling bytes,1 byte is enough
+Also host-routing information should be sent!
+
 Implement presense.
-- Is something prent of is it gone
+- Is something present of is it gone
 - Is this a sentsation or something in memory
 - Tensorflow knows when it sees an item.name
 -- when a change in camera, we get an pisture, where we get list of item.names

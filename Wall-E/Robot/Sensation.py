@@ -45,18 +45,18 @@ def listToBytes(l):
     if l is not None:
         i=0
         for s in l:
-            if len(ret_s) > 0:
-                if i == 0:
-                    ret_s = s
-                else:
-                    ret_s += LIST_SEPARATOR + str(s)
-                i = i+1
-            else:
+            if i == 0:
                 ret_s = s
+            else:
+                ret_s += LIST_SEPARATOR + s
+            i = i+1
     return StrToBytes(ret_s)
     
 def bytesToList(b):
+    #print('bytesToList b ' +str(b))
+
     ret_s = bytesToStr(b)
+    #print('bytesToList ret_s ' +str(ret_s))
     return ret_s.split(LIST_SEPARATOR)
 
 def strListToFloatList(l):
@@ -78,7 +78,7 @@ Sensation is something Robot senses
 '''
 
 class Sensation(object):
-    VERSION=9           # version number to check, if we picle same version
+    VERSION=10           # version number to check, if we picle same version
                         # instances. Otherwise we get odd errors, with old
                         # version code instances
 
@@ -102,6 +102,7 @@ class Sensation(object):
     #WORKING_LIVE_TIME =        600.0;       # cache sensation 600 seconds = 10 mins (may be changed)
     #LONG_TERM_LIVE_TIME =   3000.0;       # cache sensation 3000 seconds = 50 mins (may be changed)
     LONG_TERM_LIVE_TIME =   24.0*3600.0;  # cache sensation 24h (may be changed)
+    MIN_CACHE_MEMORABILITY = 0.1          # min memorability in sensation cache
     LENGTH_SIZE =       2   # Sensation as string can only be 99 character long
     LENGTH_FORMAT =     "{0:2d}"
     SEPARATOR =         '|'  # Separator between messages
@@ -295,7 +296,7 @@ class Sensation(object):
     def addToSensationMemory(sensation):
         # add new sensation
         memory = Sensation.sensationMemorys[sensation.getMemory()]
-        cacheTime = Sensation.sensationMemoryLiveTimes[sensation.getMemory()]
+#        cacheTime = Sensation.sensationMemoryLiveTimes[sensation.getMemory()]
         memory.append(sensation)
         
         # remove too old ones
@@ -306,7 +307,8 @@ class Sensation(object):
         # there are less connected, that keep in the memory too long time.
         # Maybe this is not a big problem. This simple implementation keeps
         # sensation creation efficient
-        while len(memory) > 0 and now - memory[0].getLatestTime() > cacheTime:
+#        while len(memory) > 0 and now - memory[0].getLatestTime() > cacheTime:
+        while len(memory) > 0 and memory[0].getMemorability() < Sensation.MIN_CACHE_MEMORABILITY:
             print('delete from sensation cache ' + memory[0].toDebugStr())
             memory[0].delete()
             del memory[0]
@@ -695,13 +697,13 @@ class Sensation(object):
                         i += Sensation.FLOAT_PACK_SIZE
                 elif self.sensationType is Sensation.SensationType.Capability:
                     capabilities_size = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
-                    print("capabilities_size " + str(capabilities_size))
+                    #print("capabilities_size " + str(capabilities_size))
                     i += Sensation.NUMBER_SIZE
                     self.capabilities = Capabilities(bytes=bytes[i:i+capabilities_size])
                     i += capabilities_size
                 elif self.sensationType is Sensation.SensationType.Item:
                     name_size = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
-                    print("name_size " + str(name_size))
+                    #print("name_size " + str(name_size))
                     i += Sensation.NUMBER_SIZE
                     self.name =bytesToStr(bytes[i:i+name_size])
                     i += name_size
@@ -721,7 +723,7 @@ class Sensation(object):
                     score = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
                     
-                    feeling = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER)
+                    feeling = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER, signed=True)
                     i += Sensation.NUMBER_SIZE
 
                     sensation=Sensation.getSensationFromSensationMemory(number=sensation_number)
@@ -735,6 +737,14 @@ class Sensation(object):
                 
             except (ValueError):
                 self.sensationType = Sensation.SensationType.Unknown
+                
+           #  at the end receivedFrom (list of words)
+            receivedFrom_size = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
+            #print("receivedFrom_size " + str(receivedFrom_size))
+            i += Sensation.NUMBER_SIZE
+            self.receivedFrom=bytesToList(bytes[i:i+receivedFrom_size])
+            i += receivedFrom_size
+
                
         Sensation.addToSensationMemory(self)
 
@@ -1171,9 +1181,10 @@ class Sensation(object):
             b +=  floatToBytes(self.associations[j].getSensation().getNumber())
             b +=  floatToBytes(self.associations[j].getTime())
             b +=  floatToBytes(self.associations[j].getScore())
-            b +=  self.associations[j].getFeeling().to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
+            b +=  (self.associations[j].getFeeling()).to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER, signed=True)
        #  at the end receivedFrom (list of words)
         blist = listToBytes(self.receivedFrom)
+        #print(' blist ' +str(blist))
         blist_size=len(blist)
         b +=  blist_size.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
         b += blist
@@ -1883,9 +1894,13 @@ class Sensation(object):
     so they can be loaded, when running app again
     '''  
     def saveLongTermMemory():
-        # save sensation data to files
+        # save sensations that are mmorable to a file
         for sensation in Sensation.sensationMemorys[Sensation.Memory.LongTerm]:
-            sensation.save()
+            if sensation.getMemorability() >  Sensation.MIN_CACHE_MEMORABILITY:
+                sensation.save()
+            else:
+                 sensation.delete()
+               
         # save sensation instances
         if not os.path.exists(Sensation.DATADIR):
             os.makedirs(Sensation.DATADIR)
@@ -1918,8 +1933,11 @@ class Sensation(object):
                         i=0
                         while i < len(Sensation.sensationMemorys[Sensation.Memory.LongTerm]):
                             if Sensation.sensationMemorys[Sensation.Memory.LongTerm][i].VERSION != Sensation.VERSION: # if dumped code version and current code version is not same
-                                print('del Sensation.sensationMemorys[Sensation.Memory.LongTerm]['+str(i)+'] with Sensation version ' + str(Sensation.sensationMemorys[Sensation.Memory.LongTerm][i].VERSION))
+                                print('del Sensation.sensationMemorys[Sensation.Memory.LongTerm]['+str(i)+'] with uncompatible Sensation version ' + str(Sensation.sensationMemorys[Sensation.Memory.LongTerm][i].VERSION))
                                 del Sensation.sensationMemorys[Sensation.Memory.LongTerm][i]
+                            elif  Sensation.sensationMemorys[Sensation.Memory.LongTerm][i].getMemorability() <  Sensation.MIN_CACHE_MEMORABILITY:
+                                print('delete Sensation.sensationMemorys[Sensation.Memory.LongTerm]['+str(i)+'] with too low memarability ' + str(Sensation.sensationMemorys[Sensation.Memory.LongTerm][i].getMemorability()))
+                                sensation.delete()
                             else:
                                 i=i+1
                         print ('LongTermMemory after load and verification ' + str(len(Sensation.sensationMemorys[Sensation.Memory.LongTerm])))

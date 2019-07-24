@@ -237,7 +237,20 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
             
             self.log("TCPServer for hostName in self.hostNames")
             for hostName in self.hostNames:
-                self.connectToHost(hostName)
+                connected = False
+                tries=0
+                while not connected and tries < MainRobot.HOST_RECONNECT_MAX_TRIES:
+                    self.log('run: TCPServer.connectToHost ' + str(hostName))
+                    connected = self.connectToHost(hostName)
+
+                    if not connected:
+                        self.log('run: TCPServer.connectToHost did not succeed ' + str(hostName) + ' time.sleep(MainRobot.SOCKET_ERROR_WAIT_TIME)')
+                        time.sleep(MainRobot.SOCKET_ERROR_WAIT_TIME)
+                        tries=tries+1
+                if connected:
+                    self.log('run: self.tcpServer.connectToHost SUCCEEDED to ' + str(hostName))
+                else:
+                    self.log('run: self.tcpServer.connectToHost did not succeed FINAL, no more tries to ' + str(shostName))
         except Exception as e:
                 self.log("run: sock.bind, listen exception " + str(e))
                 self.running = False
@@ -744,7 +757,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                             else:
                                 self.data = self.data+data
                         sensation_length_length = sensation_length_length - len(data)
-                    except:
+                    except Exception as err:
                         self.log("run: self.sock.recv(sensation_length_length) Interrupted error " + str(self.address) + " " + str(err))
                         self.running = False
                         ok = False
@@ -753,7 +766,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                     length_ok = True
                     try:
                         sensation_length = int.from_bytes(self.data, Sensation.BYTEORDER)
-                    except:
+                    except Exception as err:
                         self.log("run: SocketServer Client protocol error, no valid length resyncing " + str(self.address) + " wrote " + self.data)
                         length_ok = False
                         synced = False
@@ -773,7 +786,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                                     else:
                                         self.data = self.data+data
                                 sensation_length = sensation_length - len(data)
-                            except:
+                            except Exception as err:
                                 self.log("run: self.sock.recv(sensation_length) Interrupted error " + str(self.address) + " " + str(err))
                                 self.running = False
                                 ok = False

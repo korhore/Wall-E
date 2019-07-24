@@ -273,6 +273,27 @@ class SensationTestCase(unittest.TestCase):
         self.assertIs(self.sensation.getFeeling(), self.feeling)
         self.assertIs(addSensation.getFeeling(), self.feeling)
 
+    def test_Bytes(self):        
+        print("\ntest_Bytes")
+        longTermSensation = Sensation.create(associations=None, sensationType=Sensation.SensationType.Item, memory=Sensation.Memory.LongTerm, name='LongTerm_Importance_test',presence=Sensation.Presence.Present, receivedFrom=[])
+        self.assertTrue(longTermSensation != None, "should be created")
+        bytes=longTermSensation.bytes()
+        self.assertTrue(bytes != None, "should be get bytes")
+        fromBytesLongTermSensation = Sensation.create(bytes=bytes)
+        self.assertTrue(fromBytesLongTermSensation != None, "should be created")
+        self.assertTrue(fromBytesLongTermSensation == longTermSensation, "should be equal")
+        
+        receivedFrom=['127.0.0.1', '192.168.0.0.1', '10.0.0.1']
+        longTermSensation = Sensation.create(associations=None, sensationType=Sensation.SensationType.Item, memory=Sensation.Memory.LongTerm, name='LongTerm_Importance_test',presence=Sensation.Presence.Present, receivedFrom=receivedFrom)
+        self.assertTrue(longTermSensation != None, "should be created")
+        bytes=longTermSensation.bytes()
+        self.assertTrue(bytes != None, "should be get bytes")
+        fromBytesLongTermSensation = Sensation.create(bytes=bytes)
+        self.assertTrue(fromBytesLongTermSensation != None, "should be created")
+        self.assertTrue(fromBytesLongTermSensation == longTermSensation, "should be equal")
+        self.assertTrue(fromBytesLongTermSensation.getReceivedFrom() == receivedFrom, "should be equal")
+ 
+        print("\ntest_Bytes DONE")
 
 
         
