@@ -1,6 +1,6 @@
 '''
 Created on 23.06.2019
-Updated on 23.07.2019
+Updated on 28.07.2019
 @author: reijo.korhonen@gmail.com
 
 test TensorFlowClassification class
@@ -26,14 +26,14 @@ from PIL import Image as PIL_Image
 class TensorFlowClassificationTestCase(unittest.TestCase):
     
     TEST_MODEL_DOWNLOAD_TIME = 240.0    # can take a long, long time
-    TEST_CLASSIFICATION_TIME = 15.0     # can take a long time
+    TEST_CLASSIFICATION_TIME = 7.0     # can take a long time
     TEST_STOP_TIME = 5.0                # how long to wait Robot read stop from its Axon
     TESTSETUPMODEL=False                # Set this True only if problems to load model
                                         # models are big and this takes a log, log time and can fail
                                         # if we don't wait enough, even if it runs OK
-    TEST_ITEM_NAMES=['dog',
-                     'person',
-                     'kite']
+    TEST_ITEM_NAMES_1=['dog']
+    TEST_ITEM_NAMES_2=['person',
+                       'kite']
     
     
     def getAxon(self):
@@ -83,39 +83,101 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
     def test_Classification(self):
         # Create Image sensation with a test image same way as
         # RaspberryPiCamera does it
+        sensations=[]
+        testImageFileNames=[]
+        names=[TensorFlowClassificationTestCase.TEST_ITEM_NAMES_1, TensorFlowClassificationTestCase.TEST_ITEM_NAMES_2]
         
         for image_path in TensorFlowClassification.TEST_IMAGE_PATHS:
             testImageFileName = '/tmp/'+ntpath.basename(image_path)
+            testImageFileNames.append(testImageFileName)
             shutil.copyfile(image_path, testImageFileName)
             image = PIL_Image.open(testImageFileName)
             image.load()
             print('image filename ' + testImageFileName)
             print('image.size) ' + str(image.size))
 
+            sensations.append(Sensation.create(associations=[], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image, filePath=testImageFileName))
 
-            sensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image, filePath=testImageFileName)
-            self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation)
+        # test Entering, Present and Absent so, then in next picture absent Item,names are from previous picture     
+        self.doTestClassification(imageSensation=sensations[0], names=names[0])   
+        self.doTestClassification(imageSensation=sensations[1], names=names[1], absent_names=names[0])   
+        self.doTestClassification(imageSensation=sensations[0], names=names[0], absent_names=names[1])   
+          
+    def doTestClassification(self, imageSensation, names, absent_names=None):
+        #entering
+        #exiting TODO
+        self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation)
         print('sleep ' + str(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME) + ' to to classify')
         systemTime.sleep(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME)       # give Robot some time to stop
+        
+        self.assertFalse(self.getAxon().empty(), 'self.getAxon().empty() should not be empty')
         itemnames = []
+        found_names = []
+        found_absent_names = []
         while not self.getAxon().empty():
             transferDirection, sensation = self.getAxon().get()
             print("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
             if sensation.getDirection() == Sensation.Direction.Out and \
                 sensation.getSensationType() == Sensation.SensationType.Image:
                 print("got crop image of item " + str(transferDirection) + ' ' + sensation.toDebugStr())
-            elif sensation.getSensationType() == Sensation.SensationType.Item:
-                print("got item " + str(transferDirection) + ' ' + sensation.toDebugStr())
+            elif sensation.getSensationType() == Sensation.SensationType.Item and\
+                sensation.getPresence() == Sensation.Presence.Entering:
+                print("got item Entering " + str(transferDirection) + ' ' + sensation.toDebugStr())
                 if sensation.getName() not in itemnames:
                     itemnames.append(sensation.getName())
-                self.assertTrue(sensation.getName() in TensorFlowClassificationTestCase.TEST_ITEM_NAMES, 'should be in test names')      
+                self.assertTrue(sensation.getName() in names, 'should be in test names')
+                found_names.append(sensation.getName())
+            elif absent_names is not None and sensation.getSensationType() == Sensation.SensationType.Item and\
+                sensation.getPresence() == Sensation.Presence.Exiting:
+                print("got item Absent " + str(transferDirection) + ' ' + sensation.toDebugStr())
+                self.assertTrue(sensation.getName() in absent_names, 'should be in test exiting_names')
+                found_absent_names.append(sensation.getName())
             else:
                print("got something else" + str(transferDirection) + ' ' + sensation.toDebugStr())
+        self.assertEqual(sorted(names), sorted(found_names), 'should get exactly entering items')
+        if absent_names is not None:
+            self.assertEqual(sorted(absent_names), sorted(found_absent_names), 'should get exactly exiting items')
+
+        #present
+        #absent
+        self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation)
+        print('sleep ' + str(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME) + ' to to classify')
+        systemTime.sleep(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME)       # give Robot some time to stop
         
-        print ("found " + str(len(itemnames)) + ' ' + str(itemnames))
-        print ("should found " + str(len(TensorFlowClassificationTestCase.TEST_ITEM_NAMES)) + ' ' + str(TensorFlowClassificationTestCase.TEST_ITEM_NAMES))
-        self.assertTrue(len(TensorFlowClassificationTestCase.TEST_ITEM_NAMES) == len(itemnames), 'exact test names should be found')      
-          
+        self.assertFalse(self.getAxon().empty(), 'self.getAxon().empty() should not be empty')
+        itemnames = []
+        found_names = []
+        found_absent_names = []
+        while not self.getAxon().empty():
+            transferDirection, sensation = self.getAxon().get()
+            print("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
+            if sensation.getDirection() == Sensation.Direction.Out and \
+                sensation.getSensationType() == Sensation.SensationType.Image:
+                print("got crop image of item " + str(transferDirection) + ' ' + sensation.toDebugStr())
+            elif sensation.getSensationType() == Sensation.SensationType.Item and\
+                sensation.getPresence() == Sensation.Presence.Present:
+                print("got item Present " + str(transferDirection) + ' ' + sensation.toDebugStr())
+                if sensation.getName() not in itemnames:
+                    itemnames.append(sensation.getName())
+                self.assertTrue(sensation.getName() in names, 'should be in test names')
+                found_names.append(sensation.getName())
+            elif absent_names is not None and sensation.getSensationType() == Sensation.SensationType.Item and\
+                sensation.getPresence() == Sensation.Presence.Absent:
+                print("got item Absent " + str(transferDirection) + ' ' + sensation.toDebugStr())
+                self.assertTrue(sensation.getName() in absent_names, 'should be in test absent_names')
+                found_absent_names.append(sensation.getName())
+            else:
+               print("got something else" + str(transferDirection) + ' ' + sensation.toDebugStr())
+        self.assertEqual(sorted(names), sorted(found_names), 'should get exactly present items')
+        if absent_names is not None:
+            self.assertEqual(sorted(absent_names), sorted(found_absent_names), 'should get exactly absent items')
+        
+        #no change, because present ones still present and absent ones are gone
+        self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation)
+        print('sleep ' + str(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME) + ' to to classify')
+        systemTime.sleep(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME)       # give Robot some time to stop
+        
+        self.assertTrue(self.getAxon().empty(), 'self.getAxon().empty() should  be empty')
 
 if __name__ == '__main__':
     unittest.main()
