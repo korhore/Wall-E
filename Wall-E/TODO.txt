@@ -1,57 +1,42 @@
 Critical
 --------
 
-TEST negative feeling bytes,1 byte is enough
-Also host-routing information should be sent!
+SocketServer keeps running on error
+SocketServer:('192.168.117.7', 2000):3:Interrupted: run: self.sock.recv(sensation_length) Interrupted error ('192.168.117.7', 2000) [Errno 9] Bad file descriptor
 
-Implement presense.
-- Is something present of is it gone
-- Is this a sentsation or something in memory
-- Tensorflow knows when it sees an item.name
--- when a change in camera, we get an pisture, where we get list of item.names
--- we can compare siuation after prrvious one and detect, if item.nme
-   enters or exits
-- presense can be used with communication and with Association
--- Association
----Accociate heard voices to present Item.names
--- Communication
---- When we speak, present Item.names can hear us and responses come from them
-    (which one, we don't know, but some statistical analysis can be implemented
-OK Create does not set time correctly
-Should be OK, but still something odd with Sensation.create
 
-Still much to do with Communication. Continue with test.
-Change Sensation Memory to use Importance instead of pure time
+Make helper scrits to start and stop MainRobot and write to /tmp/files
+
+SocketClient/SocketServer
+  Check that it tells only pure Capabilities, not Capabilities from remote Robots
+  Other way we get too much traffic. Architecture will be  1:n socket-view
+   
+Tensorflow
+  Implement presense so that it report only presense changes
+  Timestamp should be same than the original Image timestamp
+  
+Assosiation
+  Keep status of present Item.names and assosiate only to present ones, not
+  all the stuff.
+  Time-based logic is not needed any more
+  
+Sensation
+  Report hosts from sensatios is driven
+  
  
-OK Make Association really duplex. creating assosiotion in both side Sensations.
+AlsaAudiMicrophonePlayback does not stop. Add stop-handling
 
-OK Gets situation,where connection are done repeatedly until we get max.
-We must connect only best associations.
+
+Implement manualThreading
+- very light step that can be run, just sense() to queue or precess() from queue
+  -- study gow to do this
+  -- priority of Robots
+  -
+
+
 
 Created 3 SocketServer and 3 SockertClient threads/instances. 1 +1 is enough.
 
-Communication
-  OK Sensation.getBestSensation( sensationType = Sensation.SensationType.Item,
-                                                                name = sensation.getName(),
-                                                                timemin = None,
-                                                                timemax = None,
-                                                                associationSensationType=Sensation.SensationType.Voice)
-  Newer gets sensation, so there is no way to communicate. Are voices connected to Items or not?
-  Ceate an logger to detect, when Voice is connected to an Item
-
-
-
-
-Association: use only one Item.name per association.
-Find out best Voice, Image etc, per Item.name and connect tohose togetger.
-When better one is found, remove worse association and connect better one.
-
-Associations between sensations are neuro-network -like, so we must
-study how to make
-- Voide-tensorflow -model, where Item.name is connectod to a Voice handled
-  like black-white (one-channel) image
-- Item-tensorflow -model, where Item.Name is connected with other Item.name
-  calculating how one thing will be happened same time as other thing
 
 What is done
 ------------

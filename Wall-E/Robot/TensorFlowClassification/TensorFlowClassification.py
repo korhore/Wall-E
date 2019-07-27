@@ -1,6 +1,6 @@
 '''
 Created on 30.04.2019
-Updated on 16.07.2019
+Updated on 28.07.2019
 
 @author: reijo.korhonen@gmail.com
 '''
@@ -10,26 +10,13 @@ import io
 import time as systemTime
 import math
 
-###
 import numpy as np
-#import os
 import six.moves.urllib as urllib
 import sys
 import tarfile
 import tensorflow as tf
-#import zipfile
-
-#from distutils.version import StrictVersion
-#from collections import defaultdict
-#from io import StringIO
-#from matplotlib import pyplot as plt
 from PIL import Image as PIL_Image
 from object_detection.utils import label_map_util
-# from object_detection.utils import visualization_utils as vis_util
-###
-#from cognitive_planning import cognitive_planning
-
-#import tensorflow as tf
 
 from Robot import  Robot
 from Config import Config, Capabilities
@@ -100,7 +87,28 @@ class TensorFlowClassification(Robot):
     # So the to sleep between runs    
     SLEEP_TIME_BETWEEN_PROCESSES =   1.0
     
-    present = []        # which items are present
+    present = {}       # which items are present
+    
+    '''
+    presence of Item.name
+    '''
+    
+    class Item():
+        def __init__(self,
+                     name,
+                     presense):
+            self.name = name
+            self.presence = presence
+            
+        def getName(self):
+            return self.name
+        def setName(self, name):
+            self.name = name
+
+        def getPresence(self):
+            return self.presence
+        def setPresence(self, presence):
+            self.npresence= presence
   
     def __init__(self,
                  parent=None,
@@ -114,55 +122,6 @@ class TensorFlowClassification(Robot):
                        instanceType=instanceType,
                        level=level)
         
-
-#         # this is dataset we use for training the model          
-#         mnist = tf.keras.datasets.mnist
-#         
-#         (x_train, y_train),(x_test, y_test) = mnist.load_data()
-# 
-# #         # Feature columns describe how to use the input.
-# #         my_feature_columns = []
-# #         for key in x_train.keys():
-# #             my_feature_columns.append(tf.feature_column.numeric_column(key=key))
-# #             self.log("key " + str(key))      
-# 
-# 
-#         
-#         x_train, x_test = x_train / 255.0, x_test / 255.0
-#         
-#         model = tf.keras.models.Sequential([
-#           tf.keras.layers.Flatten(input_shape=(28, 28)),
-#           # 512 units
-#           tf.keras.layers.Dense(512, activation=tf.nn.relu),
-#           tf.keras.layers.Dropout(0.2),
-#           tf.keras.layers.Dense(10, activation=tf.nn.softmax)
-#         ])
-#         model.compile(optimizer='adam',
-#                       loss='sparse_categorical_crossentropy',
-#                       metrics=['accuracy'])
-#                    # data. labels, epochs, batch_size
-#         model.fit(x_train, y_train, epochs=5)
-#         model.evaluate(x_test, y_test)
-
-        
-#         opener = urllib.request.URLopener()
-#         opener.retrieve(TensorFlowClassification.DOWNLOAD_BASE + TensorFlowClassification.MODEL_FILE, TensorFlowClassification.MODEL_FILE)
-#         tar_file = tarfile.open(TensorFlowClassification.MODEL_FILE)
-#         for file in tar_file.getmembers():
-#             file_name = os.path.basename(file.name)
-#             if 'frozen_inference_graph.pb' in file_name:
-#                 tar_file.extract(file, os.getcwd())
-#                 
-#         TensorFlowClassification.detection_graph = tf.Graph()
-#         with TensorFlowClassification.detection_graph.as_default():
-#             od_graph_def = tf.GraphDef()
-#             with tf.gfile.GFile(TensorFlowClassification.PATH_TO_FROZEN_GRAPH, 'rb') as fid:
-#                 serialized_graph = fid.read()
-#                 od_graph_def.ParseFromString(serialized_graph)
-#                 tf.import_graph_def(od_graph_def, name='')
-#                 
-#         TensorFlowClassification.category_index = label_map_util.create_category_index_from_labelmap(TensorFlowClassification.PATH_TO_LABELS, use_display_name=True)
-        #TensorFlowClassification.category_index = TensorFlowClassification.create_category_index_from_labelmap(TensorFlowClassification.PATH_TO_LABELS, use_display_name=True)
 
     def load_image_into_numpy_array(self, image):
       (im_width, im_height) = image.size
@@ -285,11 +244,7 @@ class TensorFlowClassification(Robot):
                sensation.getSensationType() == Sensation.SensationType.Image and \
                sensation.getMemory() == Sensation.Memory.Sensory:
              # we can process this   
-            current_present = []
-             #sensation.save()    # save to file TODO, not needed, but we need
-                                    # numpy representation and example code does it from a file
-                                    #Nope, just det it
-            # image = PIL_Image.open(image_path)
+            current_present = {}
             # the array based representation of the image will be used later in order to prepare the
             # result image with boxes and labels on it.
             image_np = self.load_image_into_numpy_array(sensation.getImage())
@@ -298,7 +253,8 @@ class TensorFlowClassification(Robot):
             # Actual detection.
             # TODO detection_graph where it is defined
             output_dict = self.run_inference_for_single_image(image_np_expanded, self.detection_graph)
-            i=0  
+            i=0
+            names=[]
             for classInd in output_dict[self.DETECTION_CLASSES]:
                 if output_dict[self.DETECTION_SCORES][i] > TensorFlowClassification.DETECTION_SCORE_LIMIT:
                     # create new sensation of detected area and category
@@ -310,52 +266,76 @@ class TensorFlowClassification(Robot):
                     score = output_dict[self.DETECTION_SCORES][i]
                     self.log('SEEN image FOR SURE className ' + self.category_index[classInd][self.NAME] + ' score ' + str(score) + \
                              ' box ' + str(output_dict[self.DETECTION_BOXES][i]) + ' size ' + str(size))
-                    subimage = sensation.getImage().crop(size)
-                    subsensation = Sensation.create(sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out,\
-                                                    image=subimage)
-                    self.log("process created subimage sensation " + subsensation.toDebugStr())
-                    subsensation.associate(sensation=sensation, score=score)
-                    subsensation.save()
                     # Item
                     name = self.category_index[classInd][self.NAME]
-                    if name not in current_present:
-                        current_present.append(name)
-                    itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out, name=name,\
-                                                     presence = self.getPresence(name=name))
-                    itemsensation.associate(sensation=subsensation, score=score)
-                    self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
-                    self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
-                    self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
-                    self.log("Created LongTerm subImage and item sensation for this")
+                    #if name not in current_present:
+                    #    current_present.append(name)
+                    change, precence = self.getPresence(name=name,names=names)
+                    current_present[name] = precence
+                    if change:
+                        subimage = sensation.getImage().crop(size)
+                        subsensation = Sensation.create(sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out,\
+                                                        image=subimage)
+                        self.log("process created subimage sensation " + subsensation.toDebugStr())
+                        subsensation.associate(sensation=sensation, score=score)
+                        subsensation.save()
+                        
+                        itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out, name=name,\
+                                                         presence = precence)
+                        itemsensation.associate(sensation=subsensation, score=score)
+                        self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
+                        self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
+                        self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+                        self.log("Created LongTerm subImage and item sensation for this")
                     # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
                 i = i+1
             self.logAbsents(present=current_present)  
-            # Seems that at least raspberry keep to restart it very often when riing thos Rpbot,
+            # Seems that at least raspberry keep to restart it very often when running this Rpbot,
             # So the to sleep between runs
             # TODO, if this works, make sleep time as Configuration parameter  
             self.log("Sleeping " + str(TensorFlowClassification.SLEEP_TIME_BETWEEN_PROCESSES))
             systemTime.sleep(TensorFlowClassification.SLEEP_TIME_BETWEEN_PROCESSES)
         else:
             self.log(logLevel=Robot.LogLevel.Error, logStr='process: got sensation we this robot can\'t process')
-                
-    def getPresence(self, name):
-            if name not in TensorFlowClassification.present:
-                self.log("Name " + name + " Entering")
-                TensorFlowClassification.present.append(name)
-                return Sensation.Presence.Entering
+ 
+    def getPresence(self, name, names):
+            change = False
+            if name not in names:   # we don't calculate detected names count
+                                    # or try to identify name yet
+                names.append(name)
+                if name not in TensorFlowClassification.present:
+                    self.log("Name " + name + " Entering")
+                    TensorFlowClassification.present[name] = Sensation.Presence.Entering
+                    return True, Sensation.Presence.Entering
+                elif TensorFlowClassification.present[name] == Sensation.Presence.Entering:
+                    TensorFlowClassification.present[name] = Sensation.Presence.Present
+                    self.log("Name " + name + " Entering to Present")
+                    return True, Sensation.Presence.Present
+                self.log("Name " + name + " Still Present")
+                return False, Sensation.Presence.Present
             else:
-                self.log("Name " + name + " Present")
-                return Sensation.Presence.Present
-            
+                self.log("Name " + name + " another instance, ignored")
+            return False, None
+           
     def logAbsents(self, present):
-        i=0
-        for name in TensorFlowClassification.present:
+        absent_names=[]
+        for name, presence in TensorFlowClassification.present.items():
             if name not in present:
-                del TensorFlowClassification.present[i]
+                if presence == Sensation.Presence.Exiting:
+                   presence = Sensation.Presence.Absent
+                   absent_names.append(name)
+                else:
+                   presence = Sensation.Presence.Exiting  
+                   TensorFlowClassification.present[name] = presence
                 itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out, name=name,\
-                                                 presence = Sensation.Presence.Absent)
+                                                 presence = presence)
                 self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
-                self.log("process created absent itemsensation " + itemsensation.toDebugStr())
+                self.log("process created exiting/absent itemsensation " + itemsensation.toDebugStr())
+        # can't del in loop, do it here
+        for name in absent_names:
+            del TensorFlowClassification.present[name]
+
+
                 
           
 if __name__ == "__main__":
