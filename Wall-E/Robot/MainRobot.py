@@ -745,7 +745,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                 # we can get number of sensation in many pieces
                 sensation_length_length = Sensation.NUMBER_SIZE
                 self.data = None
-                while sensation_length_length > 0 and self.running:
+                while sensation_length_length > 0 and self.running and ok:
                     try:
                         data = self.sock.recv(sensation_length_length)                       # message data section
                         if len(data) == 0:
@@ -774,7 +774,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                     if length_ok:
                         self.log("run: SocketServer Client " + str(self.address) + " wrote " + str(sensation_length))
                         self.data=None
-                        while sensation_length > 0:
+                        while self.running and ok and sensation_length > 0:
                             try:
                                 data = self.sock.recv(sensation_length)                       # message data section
                                 if len(data) == 0:

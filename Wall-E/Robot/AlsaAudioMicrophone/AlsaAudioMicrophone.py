@@ -244,7 +244,7 @@ class AlsaAudioMicrophone(Robot):
             else:
                 if sensation.getName() in self.present_items:
                     del self.present_items[sensation.getName()]
-                    self.log(ogLevel=Robot.LogLevel.Normal, logStr="absent " + sensation.getName())
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr="absent " + sensation.getName())
             
 
 

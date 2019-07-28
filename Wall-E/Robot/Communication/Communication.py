@@ -56,7 +56,6 @@ from Robot import  Robot
 from Sensation import Sensation
 
 class Communication(Robot):
-    present = []        # which items are present
 
     COMMUNICATION_INTERVAL=30.0     # time window to history 
                                     # for sensations we communicate
@@ -108,6 +107,9 @@ class Communication(Robot):
                  instanceType = Sensation.InstanceType.Real,
                  level=0):
         print("We are in Communication, not Robot")
+        self.present_items={}
+        self.lastItemTime=None
+
         self.communicationItems = []
         self.mostImportantItemSensation = None      # current most important item in conversation
         self.mostImportantVoiceAssociation  = None  # current association most important voice, item said in some previous conversation
@@ -131,9 +133,10 @@ class Communication(Robot):
         # don't communicate with history Sensation Items, we are communicating Item.name just seen.
         self.log(logLevel=Robot.LogLevel.Normal, logStr="process: systemTime.time() " + str(systemTime.time()) + ' -  sensation.getTime() ' + str(sensation.getTime()) + ' < Communication.COMMUNICATION_INTERVAL ' + str(Communication.COMMUNICATION_INTERVAL))
         self.log(logLevel=Robot.LogLevel.Normal, logStr="process: " + str(systemTime.time() - sensation.getTime()) + ' < ' + str(Communication.COMMUNICATION_INTERVAL))
-        if sensation.getSensationType() == Sensation.SensationType.Item and\
-            systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL:
-            isNewItemName = self.presence(name=sensation.getName(), presence=sensation.getPresence())
+        if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.Memory.LongTerm and\
+            sensation.getDirection() == Sensation.Direction.Out:
+            #systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL:
+            isNewItemName = self.tracePresents(sensation)
             self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' present now' + self.presenceToStr())
             self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' communicates now with ' + self.communicationItemsToStr())
             if isNewItemName:
@@ -169,29 +172,15 @@ class Communication(Robot):
                     communicationItem.getSensation().associate(sensation=sensation,
                                                                feeling=communicationItem.getAssociation().getFeeling(),
                                                                score=communicationItem.getAssociation().getScore())
-            if len(Communication.present) > 0:          
+            if len(self.present_items) > 0:          
                 self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' got voice and tries to speak with presents ones' + self.presenceToStr())
                 self.startSpeaking()
         else:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process: too old sensation or not Item or RESPONSE Voice in communication' + sensation.toDebugStr())
             
-    def presence(self, name, presence):
-        if presence == Sensation.Presence.Entering or presence == Sensation.Presence.Present:
-            if name not in Communication.present:
-                Communication.present.append(name)
-                return True
-        elif presence == Sensation.Presence.Absent:
-            i = 0
-            for n in Communication.present:
-                if n == name:
-                    del Communication.present[i]
-                else:
-                    i=i+1
-        return False
-    
     def presenceToStr(self):
         namesStr=''
-        for name in Communication.present:
+        for name, sensation in self.present_items.items():
             namesStr = namesStr + ' ' + name
         return namesStr
             
@@ -222,7 +211,7 @@ class Communication(Robot):
         self.mostImportantVoiceSensation  = None
         self.spokedVoiceSensation = None
         del self.communicationItems[:]  #clear old list
-        for name in Communication.present:
+        for name, sensation in self.present_items.items():
             candidate_for_communication, candidate_for_association, candidate_for_voice = \
                 Sensation.getMostImportantSensation( sensationType = Sensation.SensationType.Item,
                                                      name = name,
@@ -291,3 +280,21 @@ class Communication(Robot):
         self.mostImportantVoiceAssociation = None
         self.mostImportantVoiceSensation = None
         self.spokedVoiceSensation = None
+        
+    def tracePresents(self, sensation):
+        # present means pure Present, all other if handled not present
+        isNewItemName = False
+        if self.lastItemTime is None or sensation.getTime() > self.lastItemTime:    # sensation should come in order
+            self.lastItemTime = sensation.getTime()
+
+            if sensation.getPresence() == Sensation.Presence.Entering or\
+               sensation.getPresence() == Sensation.Presence.Present:
+                isNewItemName = sensation.getName() not in elf.present_item
+                self.present_items[sensation.getName()] = sensation
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="entering or present " + sensation.getName())
+
+            else:
+                if sensation.getName() in self.present_items:
+                    del self.present_items[sensation.getName()]
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr="absent " + sensation.getName())
+        return  isNewItemName

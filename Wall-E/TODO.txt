@@ -1,6 +1,30 @@
 Critical
 --------
 
+Copnnections can be duplicated
+SocketClient:('192.168.117.7', 2000):3:Normal: got sensation from queue D Sun Jul 28 22:29:13 2019 1564342228.0706725 Sensory Out Image
+SocketClient:('192.168.117.7', 2000):3:Normal: process: Sun Jul 28 22:29:13 2019 D Sun Jul 28 22:29:13 2019 1564342228.0706725 Sensory Out Image
+SocketClient:('192.168.117.5', 2000):3:Normal: got sensation from queue D Sun Jul 28 22:29:13 2019 1564342228.0706725 Sensory Out Image
+SocketClient:('192.168.117.5', 2000):3:Normal: process: Sun Jul 28 22:29:13 2019 D Sun Jul 28 22:29:13 2019 1564342228.0706725 Sensory Out Image
+SocketClient:('192.168.117.7', 51518):3:Normal: got sensation from queue D Sun Jul 28 22:29:13 2019 1564342228.0706725 Sensory Out Image
+SocketClient:('192.168.117.7', 51518):3:Normal: process: Sun Jul 28 22:29:13 2019 D Sun Jul 28 22:29:13 2019 1564342228.0706725 Sensory Out Image
+SocketClient:('192.168.117.7', 51518):3:Normal: SocketClient.sendSensationt wrote sensation Sun Jul 28 22:29:13 2019 1564342228.0706725 Sensory Out Image to ('192.168.117.7', 51518)
+SocketServer:('192.168.117.7', 51518):3:Normal: run: waiting size of next Sensation from ('192.168.117.7', 51518)
+SocketServer:('192.168.117.7', 51518):3:Normal: run: SocketServer Client ('192.168.117.7', 51518) wrote 15892
+SocketServer:('192.168.117.7', 51518):3:Normal: run: SocketServer got sensation Sun Jul 28 22:29:13 2019 1564342228.0706725 Sensory Out Image
+SocketServer:('192.168.117.7', 51518):3:Normal: run: waiting next Sensation from('192.168.117.7', 51518)
+
+Develop
+-------
+
+Finalize presense
+- Presence works in Tensorflow and Alsamictophone, associating voices and Images to Item.name present
+
+Comminication need to be implenteds also supporting presense
+- do this test drive
+-- support testTensorlow. so real Image and Item sensations are created
+-- Voices should be added manually, because AlsaAudioMicrophone can't be test.driven yelt, we can't emulate real devices
+
 SocketServer keeps running on error
 SocketServer:('192.168.117.7', 2000):3:Interrupted: run: self.sock.recv(sensation_length) Interrupted error ('192.168.117.7', 2000) [Errno 9] Bad file descriptor
 
