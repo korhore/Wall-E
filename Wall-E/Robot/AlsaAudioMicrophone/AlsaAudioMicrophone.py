@@ -23,6 +23,8 @@ class AlsaAudioMicrophone(Robot):
     """
      Implementation for out Voice sensation at Sensory level
      using ALSA-library and usb-microphone hardware
+     
+     Produces voices connected to present Item.names
     """
     
     CONVERSION_FORMAT='<i2'
@@ -31,9 +33,10 @@ class AlsaAudioMicrophone(Robot):
     RATE = 44100
     FORMAT = alsaaudio.PCM_FORMAT_S16_LE
     AVERAGE_PERIOD=100.0                # used as period in seconds
-    SHORT_AVERAGE_PERIOD=1.0             # used as period in seconds
+    SHORT_AVERAGE_PERIOD=1.0            # used as period in seconds
     
     DEBUG_INTERVAL=60.0
+    SLEEP_TIME=3.0                     # if nothing to do, sleep                     
 
 
     def __init__(self,
@@ -47,6 +50,8 @@ class AlsaAudioMicrophone(Robot):
                        instanceName=instanceName,
                        instanceType=instanceType,
                        level=level)
+        self.present_items={}
+        self.lastItemTime=None
 
         # from settings        
         self.device= self.config.getMicrophone()
@@ -97,34 +102,24 @@ class AlsaAudioMicrophone(Robot):
             # in practice we can get stop sensation
             if not self.getAxon().empty():
                 transferDirection, sensation = self.getAxon().get()
-                self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
-                self.process(transferDirection=transferDirection, sensation=sensation)
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
+                if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.Memory.LongTerm and\
+                   sensation.getDirection() == Sensation.Direction.Out:
+                    self.tracePresents(sensation)
+                else:
+                    self.process(transferDirection=transferDirection, sensation=sensation)
             else:
-                self.sense()
-#             #otherwise we have time to read our senses
-#                 # blocking read data from device
-#                 #print "reading " + self.name
-#                 l, data = self.inp.read() # l int, data bytes
-#                 if l > 0:
-#                     # collect voice data as long we hear a voice and send it then
-#                     if self.analyzeData(l, data, self.CONVERSION_FORMAT):
-#                         if voice_data is None:
-#                             voice_data = data
-#                             voice_l = l
-#                         else:
-#                            voice_data += data
-#                            voice_l += l
-#                     else:
-#                         if voice_data is not None:
-#                             self.log("self.getParent().getAxon().put(sensation)")
-#                             sensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=voice_data)
-#                             self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # or self.process
-#                             voice_data=None
-#                             voice_l=0
+                if len(self.present_items) > 0: # listen is we have items that can speak 
+                    self.log(logLevel=Robot.LogLevel.Verbose, logStr=str(len(self.present_items)) + " items speaking, sense")
+                    self.sense()
+                elif self.getAxon().empty():
+                    self.log(logLevel=Robot.LogLevel.Detailed, logStr="no items speaking, sleeping " + str(AlsaAudioMicrophone.SLEEP_TIME))
+                    time.sleep(AlsaAudioMicrophone.SLEEP_TIME)
+                    
 
         self.log("Stopping AlsaAudioMicrophone")
         self.mode = Sensation.Mode.Stopping
-        self.log("self.config.setMicrophoneVoiceAvegageLevel(voiceLevelAverage=self.average)")
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="self.config.setMicrophoneVoiceAvegageLevel(voiceLevelAverage=self.average)")
         self.config.setMicrophoneVoiceAvegageLevel(voiceLevelAverage=self.average)
        
         self.log("run ALL SHUT DOWN")
@@ -155,10 +150,14 @@ class AlsaAudioMicrophone(Robot):
                     self.voice_l += l
             else:
                 if self.voice_data is not None:
-                    self.log("self.getParent().getAxon().put(sensation)")
                     # put direction out (heard voice) to the parent Axon going up to main Robot
-                    sensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=self.voice_data)
-                    self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # or self.process
+                    # connected to present Item.names
+                    voiceSensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=self.voice_data)
+                    for name, itemSensation in self.present_items.items():
+                        self.log(logLevel=Robot.LogLevel.Normal, logStr="voice from " + name)
+                        itemSensation.associate(sensation=voiceSensation)
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr="self.getParent().getAxon().put(sensation)")
+                    self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)
                     self.voice_data=None
                     self.voice_l=0
 
@@ -196,7 +195,7 @@ class AlsaAudioMicrophone(Robot):
             self.average = math.sqrt(( (self.average * self.average * (self.average_devider - 1.0))  + square_a)/self.average_devider)
             self.short_average = math.sqrt(( (self.short_average * self.short_average * (self.short_average_devider - 1.0))  + square_a)/self.short_average_devider)
             if time.time() > self.debug_time + AlsaAudioMicrophone.DEBUG_INTERVAL:
-                self.log("average " + str(self.average) + ' short_average ' + str(self.short_average))
+                self.log(logLevel=Robot.LogLevel.Verbose, logStr="average " + str(self.average) + ' short_average ' + str(self.short_average))
                 self.debug_time = time.time()
                 
             # TODO this can be much simpler
@@ -207,7 +206,7 @@ class AlsaAudioMicrophone(Robot):
                 minim = a
             if self.voice:
                 if self.short_average <= self.sensitivity * self.average:
-                   self.log("voice stopped at " + time.ctime() + ' ' + str(self.sum/self.n/self.average) + ' ' + str(self.short_average) + ' ' + str(self.average))
+                   self.log(logLevel=Robot.LogLevel.Verbose, logStr="voice stopped at " + time.ctime() + ' ' + str(self.sum/self.n/self.average) + ' ' + str(self.short_average) + ' ' + str(self.average))
                    self.voice = False
                 else:
                    self.sum += self.short_average
@@ -217,7 +216,7 @@ class AlsaAudioMicrophone(Robot):
             else:
                 if self.short_average > self.sensitivity * self.average:
                    self.start_time = time.time() - (float(len(aaa)-i)/self.rate) # sound's start time is when we got sound data minus slots that are not in the sound
-                   self.log( "voice started at " + time.ctime() + ' ' + str(self.start_time) + ' ' + str(self.short_average) + ' ' + str(self.average))
+                   self.log(logLevel=Robot.LogLevel.Verbose, logStr="voice started at " + time.ctime() + ' ' + str(self.start_time) + ' ' + str(self.short_average) + ' ' + str(self.average))
                    self.voice = True
                    self.sum=self.short_average
                    self.n=1.0
@@ -227,7 +226,25 @@ class AlsaAudioMicrophone(Robot):
             i += 1
         
         return  float(voice_items)/length >= 0.5
+    
+    '''
+        Trace present Item.names from sensations
+    '''
   
+    def tracePresents(self, sensation):
+        # present means pure Present, all other if handled not present
+        if self.lastItemTime is None or sensation.getTime() > self.lastItemTime:    # sensation should come in order
+            self.lastItemTime = sensation.getTime()
+
+            if sensation.getPresence() == Sensation.Presence.Entering or\
+               sensation.getPresence() == Sensation.Presence.Present:
+                self.present_items[sensation.getName()] = sensation
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="entering or present " + sensation.getName())
+
+            else:
+                if sensation.getName() in self.present_items:
+                    del self.present_items[sensation.getName()]
+                    self.log(ogLevel=Robot.LogLevel.Normal, logStr="absent " + sensation.getName())
             
 
 

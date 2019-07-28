@@ -121,6 +121,7 @@ class TensorFlowClassification(Robot):
                        instanceName=instanceName,
                        instanceType=instanceType,
                        level=level)
+        self.lastImageTime=None
         
 
     def load_image_into_numpy_array(self, image):
@@ -242,7 +243,9 @@ class TensorFlowClassification(Robot):
             self.stop()
         elif sensation.getDirection() == Sensation.Direction.Out and \
                sensation.getSensationType() == Sensation.SensationType.Image and \
-               sensation.getMemory() == Sensation.Memory.Sensory:
+               sensation.getMemory() == Sensation.Memory.Sensory: # and\ # todo, no ordercontrl for testing
+               #(self.lastImageTime is None or sensation.getTime() > self.lastImageTime):    # sensation should come in order
+            self.lastImageTime = sensation.getTime()
              # we can process this   
             current_present = {}
             # the array based representation of the image will be used later in order to prepare the

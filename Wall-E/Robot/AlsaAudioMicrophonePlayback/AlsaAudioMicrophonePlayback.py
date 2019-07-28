@@ -83,6 +83,12 @@ class AlsaAudioMicrophonePlayback(Robot):
                 if transferDirection == Sensation.TransferDirection.Up:
                     self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getParent().getAxon().put(transferDirection=transferDirection, sensation=sensation))')      
                     self.getParent().getAxon().put(transferDirection=transferDirection, sensation=sensation)
+                elif sensation.getSensationType() == Sensation.SensationType.Stop:
+                    self.alsaAudioMicrophone.getAxon().put(transferDirection=transferDirection, sensation=sensation)
+                    self.alsaAudioPlayback.process(transferDirection=transferDirection, sensation=sensation)
+                elif sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.Memory.LongTerm and\
+                     sensation.getDirection() == Sensation.Direction.Out:
+                    self.alsaAudioMicrophone.getAxon().put(transferDirection=transferDirection, sensation=sensation)
                 else:
                     self.alsaAudioPlayback.process(transferDirection=transferDirection, sensation=sensation)
                     # sleep voice playing length, so we don't sense spoken voices
