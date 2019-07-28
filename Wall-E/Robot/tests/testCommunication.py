@@ -126,7 +126,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
         # Not sure do we always get a voice
         self.assertEqual(self.getAxon().empty(), True, 'Axon should  be empty')
-        self.assertEqual(len(Communication.present), 0, 'len(Communication.present should be 0')
+        self.assertEqual(len(self.communication.present_items), 0, 'len(self.communication.present_items should be 0')
       
         print('\n current Entering')
         Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.LongTerm,
@@ -135,7 +135,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  name=CommunicationTestCase.NAME,
                                                  presence=Sensation.Presence.Entering)
         self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
-        self.assertEqual(len(Communication.present), 1, 'len(Communication.present should be 1')
+        self.assertEqual(len(self.communication.present_items), 1, 'len(self.communication.present_items should be 1')
         self.assertEqual((self.getAxon().empty()), False,  'Axon should not be empty when name entering')
         tranferDirection, sensation = self.getAxon().get()
         #Voice
@@ -151,7 +151,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  presence=Sensation.Presence.Present)
        
         self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
-        self.assertEqual(len(Communication.present), 1, 'len(Communication.presentshould be 1')
+        self.assertEqual(len(self.communication.present_items), 1, 'len(self.communication.present_itemsshould be 1')
         self.assertEqual((self.getAxon().empty()), True,  'Axon should not be empty when entered and present')
 # no voice given so we don't get a voice back
 #         tranferDirection, sensation = self.getAxon().get()
@@ -168,7 +168,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  presence=Sensation.Presence.Present)
        
         self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
-        self.assertEqual(len(Communication.present), 1, 'len(Communication.presentshould be 1')
+        self.assertEqual(len(self.communication.present_items), 1, 'len(self.communication.present_itemsshould be 1')
         self.assertEqual((self.getAxon().empty()), True,  'Axon should not be empty when entered and present')
 # no voice given so we don't get a voice back
 #         tranferDirection, sensation = self.getAxon().get()
@@ -185,7 +185,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  presence=Sensation.Presence.Absent)
        
         self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
-        self.assertEqual(len(Communication.present), 0, 'len(Communication.presentshould be 0')
+        self.assertEqual(len(self.communication.present_items), 0, 'len(self.communication.present_itemsshould be 0')
         self.assertEqual((self.getAxon().empty()), True,  'Axon should be empty')
         
     # #NAME2
@@ -199,7 +199,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  name=CommunicationTestCase.NAME,
                                                  presence=Sensation.Presence.Entering)
         self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
-        self.assertEqual(len(Communication.present), 1, 'len(Communication.presentshould be 1')
+        self.assertEqual(len(self.communication.present_items), 1, 'len(self.communication.present_itemsshould be 1')
         self.assertEqual((self.getAxon().empty()), False,  'Axon should not be empty')
         tranferDirection, sensation = self.getAxon().get()
         #Voice
@@ -214,7 +214,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  name=CommunicationTestCase.NAME2,
                                                  presence=Sensation.Presence.Entering)
         self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
-        self.assertEqual(len(Communication.present), 2, 'len(Communication.presentshould be 2')
+        self.assertEqual(len(self.communication.present_items), 2, 'len(self.communication.present_itemsshould be 2')
         self.assertEqual((self.getAxon().empty()), True,  'Axon should not be empty when entered and present')
 # no voice given so we don't get a voice back
 #         tranferDirection, sensation = self.getAxon().get()
@@ -231,7 +231,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  presence=Sensation.Presence.Present)
        
         self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
-        self.assertEqual(len(Communication.present), 2, 'len(Communication.presentshould be 2')
+        self.assertEqual(len(self.communication.present_items), 2, 'len(self.communication.present_itemsshould be 2')
         self.assertEqual((self.getAxon().empty()), True,  'Axon should  be empty')
 # no voice given so we don't get a voice back
 #         tranferDirection, sensation = self.getAxon().get()
@@ -248,7 +248,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  presence=Sensation.Presence.Present)
        
         self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
-        self.assertEqual(len(Communication.present), 2, 'len(Communication.presentshould be 2')
+        self.assertEqual(len(self.communication.present_items), 2, 'len(self.communication.present_itemsshould be 2')
 # no voice given so we don't get a voice back
 #         tranferDirection, sensation = self.getAxon().get()
 #         #Voice
@@ -265,7 +265,7 @@ class CommunicationTestCase(unittest.TestCase):
        
         self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
         self.assertEqual(self.getAxon().empty(), True, 'Axon should  be empty')
-        self.assertEqual(len(Communication.present), 1, 'len(Communication.present should be 1')
+        self.assertEqual(len(self.communication.present_items), 1, 'len(self.communication.present_items should be 1')
     
         print('\n current Absent')
         Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.LongTerm,
@@ -276,11 +276,11 @@ class CommunicationTestCase(unittest.TestCase):
        
         self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
         self.assertEqual(self.getAxon().empty(), True, 'Axon should  be empty')
-        self.assertEqual(len(Communication.present), 0, 'len(Communication.presentshould be 0')
+        self.assertEqual(len(self.communication.present_items), 0, 'len(self.communication.present_items should be 0')
         
     '''
     1) item.name
-    2) process(item) should get old self.Wall_E_voice_sensation,that will be
+    2) process(item) should get old self.Wall_E_voice_sensation, that will be
        spoken out
     3) parent Axon should get self.Wall_E_voice_sensation
     '''
@@ -292,11 +292,12 @@ class CommunicationTestCase(unittest.TestCase):
 
         print('self.do_test_ProcessItemVoice(memory=Sensation.Memory.LongTerm)')
         self.do_test_ProcessItemVoice(memory=Sensation.Memory.LongTerm)
-        print('self.do_test_ProcessItemVoice(memory=Sensation.Memory.Sensory)')
-
-        self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
-        self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
-        self.do_test_ProcessItemVoice(memory=Sensation.Memory.Sensory)
+        
+        # nope, Memory.Sensory is not ment to work
+#         print('self.do_test_ProcessItemVoice(memory=Sensation.Memory.Sensory)')
+#         self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
+#         self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
+        #self.do_test_ProcessItemVoice(memory=Sensation.Memory.Sensory)
         
         # test again
 
@@ -304,11 +305,12 @@ class CommunicationTestCase(unittest.TestCase):
         self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
         self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
         self.do_test_ProcessItemVoice(memory=Sensation.Memory.LongTerm)
-        print('self.do_test_ProcessItemVoice(memory=Sensation.Memory.Sensory)')
-
-        self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
-        self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
-        self.do_test_ProcessItemVoice(memory=Sensation.Memory.Sensory)
+        
+        # nope, Memory.Sensory is not ment to work
+#         print('self.do_test_ProcessItemVoice(memory=Sensation.Memory.Sensory)')
+#         self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
+#         self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
+#         self.do_test_ProcessItemVoice(memory=Sensation.Memory.Sensory)
 
         # and test again once more 
 
@@ -316,11 +318,12 @@ class CommunicationTestCase(unittest.TestCase):
         self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
         self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
         self.do_test_ProcessItemVoice(memory=Sensation.Memory.LongTerm)
-        print('self.do_test_ProcessItemVoice(memory=Sensation.Memory.Sensory)')
-
-        self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
-        self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
-        self.do_test_ProcessItemVoice(memory=Sensation.Memory.Sensory)
+        
+        # nope, Memory.Sensory is not ment to work
+#         print('self.do_test_ProcessItemVoice(memory=Sensation.Memory.Sensory)')
+#         self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
+#         self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
+#         self.do_test_ProcessItemVoice(memory=Sensation.Memory.Sensory)
 
        
     def do_test_ProcessItemVoice(self, memory):
@@ -480,13 +483,14 @@ class CommunicationTestCase(unittest.TestCase):
         self.assertEqual(sensation.getDirection(),Sensation.Direction.In, 'should get Voice to be spoken')
         
 
-        # we son't renpose any more, so Communication.stopWaitingResponse
+        # we son't response any more, so Communication.stopWaitingResponse
         # should be run and self.communication.communicationItems) ashould be empty
         # wait some time
         print("test is sleeping " + str(Communication.COMMUNICATION_INTERVAL+ 1.0) + " until continuing. To get faster test change temporarely Communication.COMMUNICATION_INTERVAL\n(Test logic does not change, but functionality is for testing only, not for human communication then, so change it back)")       
         systemTime.sleep(Communication.COMMUNICATION_INTERVAL+ 2.0)
         # no communicationItems should be left in 
         self.assertEqual(len(self.communication.communicationItems),0, 'no communicationItems should be left in Communication ')
+        print("test continues, should got  stopWaitingResponse")       
 
         
 if __name__ == '__main__':

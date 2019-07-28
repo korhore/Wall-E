@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 18.07.2019
+Updated on 29.07.2019
 
 @author: reijo.korhonen@gmail.com
 
@@ -59,7 +59,7 @@ class Communication(Robot):
 
     COMMUNICATION_INTERVAL=30.0     # time window to history 
                                     # for sensations we communicate
-    #COMMUNICATION_INTERVAL=2.5      # time window to history for test to be run quicker
+    #COMMUNICATION_INTERVAL=2.5     # time window to history for test to be run quicker
                                     
     class CommunicationItem():
         
@@ -67,13 +67,11 @@ class Communication(Robot):
                      name,
                      sensation,
                      time,
-                     association = None,
-                     timer = None):
+                     association = None):
             self.name = name
             self.sensation = sensation
             self.time = time
             self.association = association
-            self.timer = timer
             
         def getName(self):
             return self.name
@@ -94,12 +92,6 @@ class Communication(Robot):
             return self.association
         def setAssociation(self, association):
             self.association = association
-            
-        def getTimer(self):
-            return self.timer
-        def setTimer(self, timer):
-            self.timer = timer
-       
 
     def __init__(self,
                  parent=None,
@@ -134,19 +126,18 @@ class Communication(Robot):
         self.log(logLevel=Robot.LogLevel.Normal, logStr="process: systemTime.time() " + str(systemTime.time()) + ' -  sensation.getTime() ' + str(sensation.getTime()) + ' < Communication.COMMUNICATION_INTERVAL ' + str(Communication.COMMUNICATION_INTERVAL))
         self.log(logLevel=Robot.LogLevel.Normal, logStr="process: " + str(systemTime.time() - sensation.getTime()) + ' < ' + str(Communication.COMMUNICATION_INTERVAL))
         if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.Memory.LongTerm and\
-            sensation.getDirection() == Sensation.Direction.Out:
-            #systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL:
+           sensation.getDirection() == Sensation.Direction.Out and\
+           systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL:
             isNewItemName = self.tracePresents(sensation)
             self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' present now' + self.presenceToStr())
             self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' communicates now with ' + self.communicationItemsToStr())
-            if isNewItemName:
-                self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' joined to communication')
-                # communication is not going on item.name is comes
-                if len(self.communicationItems) == 0:
-                    self.log(logLevel=Robot.LogLevel.Normal, logStr='process: starting new communication with' +sensation.getName())
-                    self.startSpeaking()#itemSensation=sensation)
-                else:
-                    self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' joined to communication, but don\'t know if heard previous voices. wait someone to speak')
+            self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' joined to communication')
+            # communication is not going on item.name is comes
+            if len(self.communicationItems) == 0:
+                self.log(logLevel=Robot.LogLevel.Normal, logStr='process: starting new communication with' +sensation.getName())
+                self.startSpeaking()#itemSensation=sensation)
+            else:
+                self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' joined to communication, but don\'t know if heard previous voices. wait someone to speak')
             # else maybe change in present iterms, no need other way than keep track on prent items
         elif sensation.getSensationType() == Sensation.SensationType.Voice and\
              sensation.getDirection() == Sensation.Direction.Out and\
@@ -289,7 +280,7 @@ class Communication(Robot):
 
             if sensation.getPresence() == Sensation.Presence.Entering or\
                sensation.getPresence() == Sensation.Presence.Present:
-                isNewItemName = sensation.getName() not in elf.present_item
+                isNewItemName = sensation.getName() not in self.present_items
                 self.present_items[sensation.getName()] = sensation
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="entering or present " + sensation.getName())
 
