@@ -134,7 +134,7 @@ class Communication(Robot):
             self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' joined to communication')
             # communication is not going on item.name is comes
             if len(self.communicationItems) == 0:
-                self.log(logLevel=Robot.LogLevel.Normal, logStr='process: starting new communication with' +sensation.getName())
+                self.log(logLevel=Robot.LogLevel.Normal, logStr='process: starting new communication with ' +sensation.getName())
                 self.startSpeaking()#itemSensation=sensation)
             else:
                 self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' joined to communication, but don\'t know if heard previous voices. wait someone to speak')
@@ -202,6 +202,7 @@ class Communication(Robot):
         self.mostImportantVoiceSensation  = None
         self.spokedVoiceSensation = None
         del self.communicationItems[:]  #clear old list
+        candidate_communicationItems = []
         for name, sensation in self.present_items.items():
             candidate_for_communication, candidate_for_association, candidate_for_voice = \
                 Sensation.getMostImportantSensation( sensationType = Sensation.SensationType.Item,
@@ -223,7 +224,7 @@ class Communication(Robot):
                 communicationItem = Communication.CommunicationItem(name = name,
                                                                     sensation = candidate_for_communication,
                                                                     time = systemTime.time())
-                self.communicationItems.append(communicationItem)
+                candidate_communicationItems.append(communicationItem)
         if self.mostImportantItemSensation is not None:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process startSpeaking: Sensation.getMostImportantSensation did find self.mostImportantItemSensation OK')
             self.spokedVoiceSensation = Sensation.create(sensation = self.mostImportantVoiceSensation )
@@ -233,7 +234,7 @@ class Communication(Robot):
             association = self.mostImportantItemSensation.getAssociation(sensation = self.mostImportantVoiceSensation )
  
             # keep track what we said to whom
-            for communicationItem in self.communicationItems:
+            for communicationItem in candidate_communicationItems:
                 self.spokedVoiceSensation.associate(sensation = communicationItem.getSensation(),
                                                score=association.getScore(),
                                                feeling=association.getFeeling())
@@ -245,9 +246,10 @@ class Communication(Robot):
             # wait response
             self.timer = threading.Timer(interval=Communication.COMMUNICATION_INTERVAL, function=self.stopWaitingResponse)
             self.timer.start()
+            self.communicationItems = candidate_communicationItems
         else:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process startSpeaking: Sensation.getMostImportantSensation did NOT find self.mostImportantItemSensation')
-                
+               
         
     def stopWaitingResponse(self):
         self.log(logLevel=Robot.LogLevel.Normal, logStr="stopWaitingResponse: We did not get response")
@@ -271,6 +273,7 @@ class Communication(Robot):
         self.mostImportantVoiceAssociation = None
         self.mostImportantVoiceSensation = None
         self.spokedVoiceSensation = None
+        self.timer = None
         
     def tracePresents(self, sensation):
         # present means pure Present, all other if handled not present

@@ -1,23 +1,23 @@
 '''
 Created on Feb 24, 2013
-Updated on 08.06.2019
+Updated on 29.07.2019
 @author: reijo.korhonen@gmail.com
 '''
 
 import os
-import sys
-import signal
-import getopt
+#import sys
+#import signal
+#import getopt
 from threading import Thread
-from threading import Timer
-import socket
-import math
+#from threading import Timer
+#import socket
+#import math
 import time
-import configparser
+#import configparser
 from enum import Enum
 
-import daemon
-import lockfile
+#import daemon
+#import lockfile
 import importlib
 import traceback
 
@@ -113,6 +113,23 @@ class Robot(Thread):
     """
  
     LogLevel = enum(Critical='a', Error='b', Normal='c', Detailed='d', Verbose='e')
+    CRITICAL =  'Critical'
+    ERROR =     'Error'
+    NORMAL =    'Normal'
+    DETAILED =  'Detailed'
+    VERBOSE =   'Verbose'
+
+    LogLevels={LogLevel.Critical: CRITICAL,
+               LogLevel.Error: ERROR,
+               LogLevel.Normal: NORMAL,
+               LogLevel.Detailed: DETAILED,
+               LogLevel.Verbose: VERBOSE}
+    LogLevelsOrdered=(
+               LogLevel.Critical,
+               LogLevel.Error,
+               LogLevel.Normal,
+               LogLevel.Detailed,
+               LogLevel.Verbose)
    
     def __init__(self,
                  parent=None,
@@ -147,6 +164,7 @@ class Robot(Thread):
         self.capabilities = Capabilities(config=self.config)
         print("Robot 4")
         self.name = self.getWho()
+        self.logLevel=self.getLogLevel()
         self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + self.config.getInstanceType() + self.capabilities.toDebugString())
         # global queue for senses and other robots to put sensations to robot
         self.axon = Axon()
@@ -202,6 +220,9 @@ class Robot(Thread):
     def getWho(self):
         return self.config.getWho()
     
+    def getLogLevel(self):
+        return self.config.getLogLevel()
+
     def getAxon(self):
         return self.axon
        

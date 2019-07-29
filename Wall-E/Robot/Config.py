@@ -1,6 +1,6 @@
 '''
 Created on 28.04.2019
-Edited 18.05.2019
+Edited 29.07.2019
 
 @author: reijo.korhonen@gmail.com
 
@@ -40,7 +40,7 @@ from configparser import ConfigParser
 from configparser import MissingSectionHeaderError,NoSectionError,NoOptionError
 # NOTE Cannot import Sensation normal way, or either by sy6s.modules,
 # because we have cross references
-# We ddont want to put Sensation to this file (file would become huge),
+# We dont want to put Sensation to this file (file would become huge),
 # but keep it independent, so we use permethod import, when needed
 #
 # if 'Sensation' not in sys.modules:
@@ -66,6 +66,7 @@ class Config(ConfigParser):
     SUBINSTANCES =      "Subinstances"
     HOSTS =             "Hosts"
     IDENTITYS =         "Identitys"
+    LOGLEVEL =          "LogLevel"
 
     MICROPHONE =                   'microphone'
     MICROPHONE_VOICE_LEVEL_AVERAGE = 'microphone_voice_average_level'
@@ -482,12 +483,21 @@ class Config(ConfigParser):
                             self.is_changes=True
                     except Exception as e:
                         print('self.set(self.DEFAULT_SECTION, option, self.FALSE) exception ' + str(e))
+                        
+        try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.LOGLEVEL):
+                from Robot import Robot
+                self.set(Config.DEFAULT_SECTION,Config.LOGLEVEL, Robot.LogLevels[Robot.LogLevel.Normal])
+                self.is_changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION,Config.LOGLEVEL, Robot.LogLevels[Robot.LogLevel.Normal]) exception  ' + str(e))
+            
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.WHO):
                 self.set(Config.DEFAULT_SECTION,Config.WHO, Sensation.WALLE)
                 self.is_changes=True
         except Exception as e:
-            print('self.set(Config.DEFAULT_SECTION, Config.WHO, Config.WHO) exception ' + str(e))
+            print('self.set(Config.DEFAULT_SECTION, Config.WHO, Sensation.WALLE) exception ' + str(e))
             
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.KIND):
@@ -662,6 +672,16 @@ class Config(ConfigParser):
             
         return self.hostNames
     
+    def getLogLevel(self, section=LOCALHOST):
+        from Robot import Robot
+        retLogLevel = Robot.LogLevel.Normal
+        configLogLevelStr = self.get(section=section, option=self.LOGLEVEL)
+        for logLevel, LogLevelStr in Robot.LogLevels.items():
+            if configLogLevelStr == LogLevelStr:
+               retLogLevel = logLevel
+               break
+        return retLogLevel
+
     def getWho(self, section=LOCALHOST):
         who = self.get(section=section, option=self.WHO)
         return who
