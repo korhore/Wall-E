@@ -315,7 +315,7 @@ class TensorFlowClassification(Robot):
                     self.log("Name " + name + " Entering to Present")
                     return True, Sensation.Presence.Present
                 self.log("Name " + name + " Still Present")
-                return False, Sensation.Presence.Present
+                return True, Sensation.Presence.Present
             else:
                 self.log("Name " + name + " another instance, ignored")
             return False, None

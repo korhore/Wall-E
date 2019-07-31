@@ -51,7 +51,6 @@ class AlsaAudioMicrophone(Robot):
                        instanceType=instanceType,
                        level=level)
         self.present_items={}
-        self.lastItemTime=None
 
         # from settings        
         self.device= self.config.getMicrophone()
@@ -66,6 +65,7 @@ class AlsaAudioMicrophone(Robot):
         
         self.voice = False
         self.start_time=0.0
+        self.logged = False
 
         self.inp = alsaaudio.PCM(type=alsaaudio.PCM_CAPTURE, mode=alsaaudio.PCM_NORMAL, device=self.device)
         # Set attributes: Mono, 44100 Hz, 16 bit little endian samples
@@ -101,20 +101,29 @@ class AlsaAudioMicrophone(Robot):
             # as a leaf sensor robot default processing for sensation we have got
             # in practice we can get stop sensation
             if not self.getAxon().empty():
+                # interrupt voice and put it to parent for processing
+                self.putVoiceToParent()
+
                 transferDirection, sensation = self.getAxon().get()
-                self.log(logLevel=Robot.LogLevel.Normal, logStr="got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
+                self.log(logLevel=Robot.LogLevel.Verbose, logStr="got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
                 if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.Memory.LongTerm and\
-                   sensation.getDirection() == Sensation.Direction.Out:
+                   sensation.getDirection() == Sensation.Direction.Out: 
                     self.tracePresents(sensation)
                 else:
                     self.process(transferDirection=transferDirection, sensation=sensation)
             else:
-                if len(self.present_items) > 0: # listen is we have items that can speak 
-                    self.log(logLevel=Robot.LogLevel.Verbose, logStr=str(len(self.present_items)) + " items speaking, sense")
+                if len(self.present_items) > 0: # listen is we have items that can speak
+                    if not self.logged:
+                        self.log(logLevel=Robot.LogLevel.Normal, logStr=str(len(self.present_items)) + " items speaking, sense")
+                        self.logged = True
                     self.sense()
                 elif self.getAxon().empty():
-                    self.log(logLevel=Robot.LogLevel.Detailed, logStr="no items speaking, sleeping " + str(AlsaAudioMicrophone.SLEEP_TIME))
-                    time.sleep(AlsaAudioMicrophone.SLEEP_TIME)
+                    self.logged = False
+                    # TODO as a test we sense
+                    self.log(logLevel=Robot.LogLevel.Detailed, logStr=str(len(self.present_items)) + " items NOT speaking, sense anyway")
+                    self.sense()
+                    #self.log(logLevel=Robot.LogLevel.Normal, logStr="no items speaking, sleeping " + str(AlsaAudioMicrophone.SLEEP_TIME))
+                    #time.sleep(AlsaAudioMicrophone.SLEEP_TIME)
                     
 
         self.log("Stopping AlsaAudioMicrophone")
@@ -149,18 +158,20 @@ class AlsaAudioMicrophone(Robot):
                     self.voice_data += data
                     self.voice_l += l
             else:
-                if self.voice_data is not None:
-                    # put direction out (heard voice) to the parent Axon going up to main Robot
-                    # connected to present Item.names
-                    voiceSensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=self.voice_data)
-                    for name, itemSensation in self.present_items.items():
-                        self.log(logLevel=Robot.LogLevel.Normal, logStr="voice from " + name)
-                        itemSensation.associate(sensation=voiceSensation)
-                    self.log(logLevel=Robot.LogLevel.Normal, logStr="self.getParent().getAxon().put(sensation)")
-                    self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)
-                    self.voice_data=None
-                    self.voice_l=0
+                self.putVoiceToParent()
 
+    def putVoiceToParent(self):
+        if self.voice_data is not None:
+            # put direction out (heard voice) to the parent Axon going up to main Robot
+            # connected to present Item.names
+            voiceSensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=self.voice_data)
+            for name, itemSensation in self.present_items.items():
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: voice from " + name)
+                itemSensation.associate(sensation=voiceSensation)
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: self.getParent().getAxon().put(sensation)")
+            self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)
+            self.voice_data=None
+            self.voice_l=0
         
         '''
         Analyze voice sample
@@ -185,7 +196,7 @@ class AlsaAudioMicrophone(Robot):
             aaa = numpy.fromstring(data, dtype=dtype)
         except (ValueError):
             self.log("analyzeData numpy.fromstring(data, dtype=dtype: ValueError")      
-            return None
+            return False
         length = len(aaa)
         voice_items=0
         
@@ -233,18 +244,23 @@ class AlsaAudioMicrophone(Robot):
   
     def tracePresents(self, sensation):
         # present means pure Present, all other if handled not present
-        if self.lastItemTime is None or sensation.getTime() > self.lastItemTime:    # sensation should come in order
-            self.lastItemTime = sensation.getTime()
-
-            if sensation.getPresence() == Sensation.Presence.Entering or\
-               sensation.getPresence() == Sensation.Presence.Present:
+        if sensation.getPresence() == Sensation.Presence.Entering or\
+           sensation.getPresence() == Sensation.Presence.Present:
+            if sensation.getName() not in self.present_items or\
+                sensation.getTime() > self.present_items[sensation.getName()].getTime():
                 self.present_items[sensation.getName()] = sensation
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="entering or present " + sensation.getName())
-
             else:
-                if sensation.getName() in self.present_items:
+                self.log(logLevel=Robot.LogLevel.Verbose, logStr="entering or present did not come in order for " + sensation.getName())
+        else:
+            if sensation.getName() in self.present_items:
+                if sensation.getTime() > self.present_items[sensation.getName()].getTime():
                     del self.present_items[sensation.getName()]
                     self.log(logLevel=Robot.LogLevel.Normal, logStr="absent " + sensation.getName())
+                else:
+                    self.log(logLevel=Robot.LogLevel.Verbose, logStr="absent did not come in order for " + sensation.getName())
+            else:
+                self.log(logLevel=Robot.LogLevel.Verbose, logStr="absent but did not enter for " + sensation.getName())
             
 
 

@@ -344,63 +344,29 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
  
                    
     def createSocketServer(self, sock, address, socketClient=None):
-        socketServer = None
-        for socketServerCandidate in self.socketServers:
-            #if not socketServerCandidate.running:
-            # use python default implementation method instead
-            if not socketServerCandidate.is_alive():
-                socketServer = socketServerCandidate
-                self.log('createSocketServer: found SocketServer not running')
-                socketServer.__init__(parent=self,
-                                      instanceName='SocketServer',
-                                      instanceType=Sensation.InstanceType.Remote,
-                                      level=self.level,
-                                      address=address,
-                                      sock=sock,
-                                      socketClient=socketClient)
-                break
-        if  socketServer == None:
-            self.log('createSocketServer: creating new SocketServer')
-            socketServer = SocketServer(parent=self,
-                                        instanceName='SocketServer',
-                                        instanceType=Sensation.InstanceType.Remote,
-                                        level=self.level,
-                                        address=address,
-                                        sock=sock,
-                                        socketClient=socketClient)
-
-            self.socketServers.append(socketServer)
+        self.log('createSocketServer: creating new SocketServer')
+        socketServer = SocketServer(parent=self,
+                                    instanceName='SocketServer',
+                                    instanceType=Sensation.InstanceType.Remote,
+                                    level=self.level,
+                                    address=address,
+                                    sock=sock,
+                                    socketClient=socketClient)
+        self.socketServers.append(socketServer)
         self.log('createSocketServer: return socketServer')
         return socketServer
 
     def createSocketClient(self, sock, address, tcpServer, socketServer=None):
-        socketClient =  None
-        for socketClientCandidate in self.socketClients:
-            #if not socketClientCandidate.running:
-            # use python default implementation method instead
-            if not socketClientCandidate.is_alive():
-                socketClient = socketClientCandidate
-                self.log('createSocketClient: found SocketClient not running')
-                socketClient.__init__(parent=self.parent,
-                                      instanceName='SocketClient',
-                                      instanceType=Sensation.InstanceType.Remote,
-                                      level=self.level,
-                                      address=address,
-                                      sock=sock,
-                                      socketServer=socketServer,
-                                      tcpServer=tcpServer)
-                break
-        if socketClient == None:
-            self.log('createSocketClient: creating new SocketClient')
-            socketClient = SocketClient(parent=self.parent,
-                                        instanceName='SocketClient',
-                                        instanceType=Sensation.InstanceType.Remote,
-                                        level=self.level,
-                                        address=address,
-                                        sock=sock,
-                                        socketServer=socketServer,
-                                        tcpServer=tcpServer)
-            self.socketClients.append(socketClient)
+        self.log('createSocketClient: creating new SocketClient')
+        socketClient = SocketClient(parent=self.parent,
+                                    instanceName='SocketClient',
+                                    instanceType=Sensation.InstanceType.Remote,
+                                    level=self.level,
+                                    address=address,
+                                    sock=sock,
+                                    socketServer=socketServer,
+                                    tcpServer=tcpServer)
+        self.socketClients.append(socketClient)
         return socketClient
 
 class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):

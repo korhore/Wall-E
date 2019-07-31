@@ -5,6 +5,7 @@ Updated on 29.07.2019
 '''
 
 import os
+import shutil
 #import sys
 #import signal
 #import getopt
@@ -21,10 +22,13 @@ from enum import Enum
 import importlib
 import traceback
 
+from PIL import Image as PIL_Image
 
 from Axon import Axon
 from Config import Config, Capabilities
 from Sensation import Sensation
+
+#from VirtualRobot import VirtualRobot
 # from Romeo import Romeo
 # from ManualRomeo import ManualRomeo
 # from dbus.mainloop.glib import threads_init
@@ -177,7 +181,7 @@ class Robot(Thread):
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr="init robot sub instanceName " + subInstanceName + " is None")
 
         for instanceName in self.config.getVirtualInstanceNames():
-            robot = Robot(parent=self,
+            robot = VirtualRobot(parent=self,
                           instanceName=instanceName,
                           instanceType=Sensation.InstanceType.Virtual,
                           level=self.level)
@@ -343,8 +347,8 @@ class Robot(Thread):
         # live until stopped
         self.mode = Sensation.Mode.Normal
         while self.running:
-            # if we cant sense, the we wait until we get aomething into Axon
-            # or if we can sense, but there is someting in our xon, proces it
+            # if we can't sense, the we wait until we get something into Axon
+            # or if we can sense, but there is something in our xon, process it
             if not self.getAxon().empty() or not self.canSense():
                 transferDirection, sensation = self.getAxon().get()
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
@@ -491,3 +495,105 @@ class Robot(Thread):
                 else:
                     self.log(logLevel=Robot.LogLevel.Verbose, logStr='Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
                     robot.getAxon().put(transferDirection=transferDirection, sensation=sensation)
+
+from Robot import Robot
+from Config import Config, Capabilities
+from Sensation import Sensation
+
+
+class VirtualRobot(Robot):
+    
+    SLEEPTIME = 60.0
+    SLEEP_BETWEEN_IMAGES = 10.0
+    
+    def __init__(self,
+                 parent=None,
+                 instanceName=None,
+                 instanceType = Sensation.InstanceType.SubInstance,
+                 level=0):
+        Robot.__init__(self,
+                       parent=parent,
+                       instanceName=instanceName,
+                       instanceType=instanceType,
+                       level=level)
+        print("We are in VirtualRobot, not Robot")
+        self.kind = self.config.getKind()
+        self.identitypath = self.config.getIdentityDirPath(self.kind)
+        
+
+    def run(self):
+        self.running=True
+        self.log("run: Starting Virtual Robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + self.config.getInstanceType())      
+        
+           
+        # study own identity
+        # starting point of robot is always to study what it knows himself
+        self.studyOwnIdentity()
+        # live until stopped
+        self.mode = Sensation.Mode.Normal
+        while self.running:
+            # as a leaf sensor robot default processing for sensation we have got
+            # in practice we can get stop sensation
+            if not self.getAxon().empty():  
+                transferDirection, sensation = self.getAxon().get()
+                self.process(transferDirection=transferDirection, sensation=sensation)
+            else:
+                self.sense()
+
+        self.log("run ALL SHUT DOWN")      
+        
+    '''
+    tell your identity
+    '''   
+    def tellOwnIdentity(self):
+        for dirName, subdirList, fileList in os.walk(self.identitypath):
+            self.log('Found directory: %s' % dirName)      
+            images=[]
+            voices=[]
+            for fname in fileList:
+                self.log('\t%s' % fname)
+                if fname.endswith(".jpg"):# or\
+                   #fname.endswith(".png"):
+                    images.append(fname)
+                elif fname.endswith(".wav"):
+                    voices.append(fname)
+            for fname in images:
+                image_path=os.path.join(dirName,fname)
+                sensation_filepath = os.path.join('/tmp/',fname)
+                shutil.copyfile(image_path, sensation_filepath)
+                image = PIL_Image.open(sensation_filepath)
+                image.load()
+
+                imageSensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image, filePath=sensation_filepath)
+                self.log("tellOwnIdentity: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=" + imageSensation.toDebugStr())      
+                self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation) # or self.process
+                # and after that all voices
+                for fname in voices:
+                    image_path=os.path.join(dirName,fname)
+                    sensation_filepath = os.path.join('/tmp/',fname)
+                    shutil.copyfile(image_path, sensation_filepath)
+                    with open(sensation_filepath, 'rb') as f:
+                        data = f.read()
+                        sensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=data, filePath=sensation_filepath)
+                        self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # or self.process
+                        self.log("tellOwnIdentity: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=" + sensation.toDebugStr())      
+                # TODO test
+                break
+                time.sleep(VirtualRobot.SLEEP_BETWEEN_IMAGES)
+                 
+
+    '''
+    We can sense
+    We are Sense type Robot
+    '''        
+    def canSense(self):
+        return True 
+    
+    '''
+    sense
+    still empty
+    '''
+    
+    def sense(self):
+        self.tellOwnIdentity()
+        time.sleep(VirtualRobot.SLEEPTIME)

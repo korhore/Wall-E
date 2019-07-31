@@ -1,7 +1,7 @@
 Critical
 --------
 
-Copnnections can be duplicated
+Connections can be duplicated
 SocketClient:('192.168.117.7', 2000):3:Normal: got sensation from queue D Sun Jul 28 22:29:13 2019 1564342228.0706725 Sensory Out Image
 SocketClient:('192.168.117.7', 2000):3:Normal: process: Sun Jul 28 22:29:13 2019 D Sun Jul 28 22:29:13 2019 1564342228.0706725 Sensory Out Image
 SocketClient:('192.168.117.5', 2000):3:Normal: got sensation from queue D Sun Jul 28 22:29:13 2019 1564342228.0706725 Sensory Out Image
@@ -16,9 +16,17 @@ SocketServer:('192.168.117.7', 51518):3:Normal: run: waiting next Sensation from
 
 Develop
 -------
+Association to support presence
+
+Develop VirtualRobot
+- acts as Item.name
+- produces Images as Camera does
+- Produces Vices as AlsaMicroprone does
+- Listens if Robot speaks and answers
+- checks if is is marked to be present or not
 
 Finalize presense
-- Presence works in Tensorflow and Alsamictophone, associating voices and Images to Item.name present
+- Presence works in Tensorflow and AlsaMictophone, associating voices and Images to Item.name present
 
 Comminication need to be implenteds also supporting presense
 - do this test drive
