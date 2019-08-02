@@ -27,8 +27,9 @@ class AlsaAudioPlayback(Robot):
     CHANNELS=1
     RATE = 44100
     FORMAT = alsaaudio.PCM_FORMAT_S16_LE
+    PERIOD_SIZE = 2048
     
-    COMMUNICATION_INTERVAL=30.0     # time window to history 
+    COMMUNICATION_INTERVAL=15.0     # time window to history 
                                     # for sensations we communicate
 
     def __init__(self,
@@ -61,7 +62,7 @@ class AlsaAudioPlayback(Robot):
             self.outp.setchannels(self.channels)
             self.outp.setrate(self.rate)
             self.outp.setformat(self.format)
-            self.outp.setperiodsize(2048) #32 160
+            self.outp.setperiodsize(AlsaAudioPlayback.PERIOD_SIZE)
             self.ok=True
             self.log('cardname ' + self.outp.cardname())
         except Exception as e:

@@ -28,10 +28,13 @@ class AlsaAudioMicrophone(Robot):
     """
     
     CONVERSION_FORMAT='<i2'
+
     CHANNELS=1
-    SENSITIVITY=1.25
     RATE = 44100
     FORMAT = alsaaudio.PCM_FORMAT_S16_LE
+    PERIOD_SIZE = 2018
+    
+    SENSITIVITY=1.25
     AVERAGE_PERIOD=100.0                # used as period in seconds
     SHORT_AVERAGE_PERIOD=1.0            # used as period in seconds
     
@@ -72,7 +75,7 @@ class AlsaAudioMicrophone(Robot):
         self.inp.setchannels(self.channels)
         self.inp.setrate(self.rate)
         self.inp.setformat(self.format)
-        self.inp.setperiodsize(2048) #32 160
+        self.inp.setperiodsize(AlsaAudioMicrophone.PERIOD_SIZE)
  
         self.log('cardname ' + self.inp.cardname())
 
@@ -120,7 +123,7 @@ class AlsaAudioMicrophone(Robot):
                 elif self.getAxon().empty():
                     self.logged = False
                     # TODO as a test we sense
-                    self.log(logLevel=Robot.LogLevel.Detailed, logStr=str(len(self.present_items)) + " items NOT speaking, sense anyway")
+                    self.log(logLevel=Robot.LogLevel.Verbose, logStr=str(len(self.present_items)) + " items NOT speaking, sense anyway")
                     self.sense()
                     #self.log(logLevel=Robot.LogLevel.Normal, logStr="no items speaking, sleeping " + str(AlsaAudioMicrophone.SLEEP_TIME))
                     #time.sleep(AlsaAudioMicrophone.SLEEP_TIME)
@@ -206,7 +209,7 @@ class AlsaAudioMicrophone(Robot):
             self.average = math.sqrt(( (self.average * self.average * (self.average_devider - 1.0))  + square_a)/self.average_devider)
             self.short_average = math.sqrt(( (self.short_average * self.short_average * (self.short_average_devider - 1.0))  + square_a)/self.short_average_devider)
             if time.time() > self.debug_time + AlsaAudioMicrophone.DEBUG_INTERVAL:
-                self.log(logLevel=Robot.LogLevel.Verbose, logStr="average " + str(self.average) + ' short_average ' + str(self.short_average))
+                self.log(logLevel=Robot.LogLevel.Detailed, logStr="average " + str(self.average) + ' short_average ' + str(self.short_average))
                 self.debug_time = time.time()
                 
             # TODO this can be much simpler
@@ -217,7 +220,7 @@ class AlsaAudioMicrophone(Robot):
                 minim = a
             if self.voice:
                 if self.short_average <= self.sensitivity * self.average:
-                   self.log(logLevel=Robot.LogLevel.Verbose, logStr="voice stopped at " + time.ctime() + ' ' + str(self.sum/self.n/self.average) + ' ' + str(self.short_average) + ' ' + str(self.average))
+                   self.log(logLevel=Robot.LogLevel.Detailed, logStr="voice stopped at " + time.ctime() + ' ' + str(self.sum/self.n/self.average) + ' ' + str(self.short_average) + ' ' + str(self.average))
                    self.voice = False
                 else:
                    self.sum += self.short_average
@@ -227,7 +230,7 @@ class AlsaAudioMicrophone(Robot):
             else:
                 if self.short_average > self.sensitivity * self.average:
                    self.start_time = time.time() - (float(len(aaa)-i)/self.rate) # sound's start time is when we got sound data minus slots that are not in the sound
-                   self.log(logLevel=Robot.LogLevel.Verbose, logStr="voice started at " + time.ctime() + ' ' + str(self.start_time) + ' ' + str(self.short_average) + ' ' + str(self.average))
+                   self.log(logLevel=Robot.LogLevel.Detailed, logStr="voice started at " + time.ctime() + ' ' + str(self.start_time) + ' ' + str(self.short_average) + ' ' + str(self.average))
                    self.voice = True
                    self.sum=self.short_average
                    self.n=1.0
@@ -251,16 +254,16 @@ class AlsaAudioMicrophone(Robot):
                 self.present_items[sensation.getName()] = sensation
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="entering or present " + sensation.getName())
             else:
-                self.log(logLevel=Robot.LogLevel.Verbose, logStr="entering or present did not come in order for " + sensation.getName())
+                self.log(logLevel=Robot.LogLevel.Detailed, logStr="entering or present did not come in order for " + sensation.getName())
         else:
             if sensation.getName() in self.present_items:
                 if sensation.getTime() > self.present_items[sensation.getName()].getTime():
                     del self.present_items[sensation.getName()]
                     self.log(logLevel=Robot.LogLevel.Normal, logStr="absent " + sensation.getName())
                 else:
-                    self.log(logLevel=Robot.LogLevel.Verbose, logStr="absent did not come in order for " + sensation.getName())
+                    self.log(logLevel=Robot.LogLevel.Detailed, logStr="absent did not come in order for " + sensation.getName())
             else:
-                self.log(logLevel=Robot.LogLevel.Verbose, logStr="absent but did not enter for " + sensation.getName())
+                self.log(logLevel=Robot.LogLevel.Detailed, logStr="absent but did not enter for " + sensation.getName())
             
 
 

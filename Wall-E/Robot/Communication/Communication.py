@@ -111,9 +111,9 @@ class Communication(Robot):
         self.spokedVoiceSensation = None           # last voice we have said
 
         self.timer=None
-        self.usedVoices = []    # Voices we have used in this conversation
+        self.usedVoices = []    # Voices we have used in all conversations
                                 # always say something, that we have not yet said
-        
+        self.heardVoices = []    # Voices we have used in this conversation        
         Robot.__init__(self,
                        parent=parent,
                        instanceName=instanceName,
@@ -141,6 +141,7 @@ class Communication(Robot):
                 # else maybe change in present iterms, no need other way than keep track on prent items
             elif sensation.getSensationType() == Sensation.SensationType.Voice and\
                  sensation.getDirection() == Sensation.Direction.Out and\
+                 sensation not in self.heardVoices and\
                  systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL and\
                  len(self.communicationItems) > 0: # communication going and we got a response, nice
                 if self.timer is not None:
@@ -150,6 +151,7 @@ class Communication(Robot):
                 sensation.setMemory(memory=Sensation.Memory.LongTerm)
                 # don't use this voice in this same conversation
                 self.usedVoices.append(sensation)
+                self.heardVoices.append(sensation)
                 
                 #  mark good feeling to voice we said
                 if self.mostImportantVoiceAssociation is not None:
@@ -270,7 +272,8 @@ class Communication(Robot):
             self.log(logLevel=Robot.LogLevel.Normal, logStr='stopWaitingResponse: ' + systemTime.ctime(communicationItem.getSensation().getTime()) + ' '  + communicationItem.getSensation().toDebugStr() + ' feeling for voice '+ str(communicationItem.getAssociation().getFeeling()))
         del self.communicationItems[:]  #clear old list
 #         self.log(logLevel=Robot.LogLevel.Normal, logStr="stopWaitingResponse: del self.usedVoices[:]")
-        del self.usedVoices[:]                          # clear used voices, communication is ended, so used voices are free to be used in next conversation.
+        #del self.usedVoices[:]                          # clear used voices, communication is ended, so used voices are free to be used in next conversation.
+        del self.heardVoices[:]                          # clear heard voices, communication is ended, so used voices are free to be used in next conversation. 
         self.mostImportantItemSensation = None          # no current voice and item, because no current conversation
         self.mostImportantVoiceAssociation = None
         self.mostImportantVoiceSensation = None

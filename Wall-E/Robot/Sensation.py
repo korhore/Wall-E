@@ -125,7 +125,7 @@ class Sensation(object):
 
     #Memory = enum(Sensory='S', Working='W', LongTerm='L' )
     Memory = enum(Sensory='S', LongTerm='L' )
-    Kind = enum(WallE='w', Eva='e', Other='o')
+    Kind = enum(WallE='w', Eva='e', Normal='n')
     InstanceType = enum(Real='r', SubInstance='s', Virtual='v', Remote='e')
     Mode = enum(Normal='n', StudyOwnIdentity='t',Sleeping='l',Starting='s', Stopping='p', Interrupted='i')
 # enum items as strings    
@@ -151,7 +151,7 @@ class Sensation(object):
     KIND="Kind"
     WALLE="Wall-E"
     EVA="Eva"
-    OTHER="Other"
+    NORMAL="Normal"
     REAL="Real"
     SUBINSTANCE="SubInstance"
     VIRTUAL="Virtual"
@@ -213,7 +213,7 @@ class Sensation(object):
     
     Kinds={Kind.WallE: WALLE,
            Kind.Eva: EVA,
-           Kind.Other: OTHER}
+           Kind.Normal: NORMAL}
     InstanceTypes={InstanceType.Real: REAL,
                    InstanceType.SubInstance: SUBINSTANCE,
                    InstanceType.Virtual: VIRTUAL,
@@ -291,6 +291,11 @@ class Sensation(object):
         return Sensation.Presences.get(presence)
     def getPresenceStrings():
         return Sensation.Presences.values()
+
+    def getKindString(kind):
+        return Sensation.Kinds.get(kind)
+    def getKindStrings():
+        return Sensation.Kinds.values()
 
     
     def addToSensationMemory(sensation):
@@ -528,7 +533,8 @@ class Sensation(object):
                  calibrateSensationType = SensationType.Unknown,
                  capabilities = None,                                       # capabilitis of sensorys, direction what way sensation go
                  name = '',                                                 # name of Item
-                 presence = Presence.Unknown):                              # presence of Item
+                 presence = Presence.Unknown,                               # presence of Item
+                 kind=Kind.Normal):                                         # kind (for instance voice)
                                                  
         from Config import Capabilities
         self.time=time
@@ -578,6 +584,7 @@ class Sensation(object):
             self.capabilities = sensation.capabilities
             self.name = sensation.name
             self.presence = sensation.presence
+            self.kind = sensation.kind
             
             # We have here put values from sensation, but we should
             # also set values that are overwritten
@@ -605,7 +612,8 @@ class Sensation(object):
             self.capabilities = capabilities
             self.name = name
             self.presence = presence
-            
+            self.kind = kind
+           
             # associate makes both sides
             for association in associations:
                 self.associate(sensation=association.sensation,
@@ -675,6 +683,8 @@ class Sensation(object):
                     i += Sensation.NUMBER_SIZE
                     self.data = bytes[i:i+data_size]
                     i += data_size
+                    self.kind = bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                    i += Sensation.ENUM_SIZE
                 elif self.sensationType is Sensation.SensationType.Image:
                     filePath_size = int.from_bytes(bytes[i:i+Sensation.NUMBER_SIZE-1], Sensation.BYTEORDER) 
                     #print("filePath_size " + str(filePath_size))
@@ -779,8 +789,9 @@ class Sensation(object):
                  calibrateSensationType = SensationType.Unknown,
                  capabilities = None,                                       # capabilities of sensorys, direction what way sensation go
                  name='',                                                   # name of Item
-                 presence=Presence.Unknown):                              # presence of Item
-                                                 
+                 presence=Presence.Unknown,                                 # presence of Item
+                 kind=Kind.Normal):                                         # Normal kind
+                                
         
         if sensation == None:             # not an update, create new one
             print("Create new sensation by pure parameters")
@@ -808,7 +819,8 @@ class Sensation(object):
                  calibrateSensationType = calibrateSensationType,
                  capabilities = capabilities,
                  name=name,
-                 presence=presence)
+                 presence=presence,
+                 kind=kind)
         
         return sensation
 
@@ -1062,6 +1074,7 @@ class Sensation(object):
         elif self.sensationType == Sensation.SensationType.Voice:
             #don't write binary data to sring any more
             s += ' ' + self.filePath# + ' ' + bytesToStr(self.data)
+            s +=  ' ' + self.kind
         elif self.sensationType == Sensation.SensationType.Image:
             s += ' ' + self.filePath# + ' ' +  bytesToStr(self.data)
         elif self.sensationType == Sensation.SensationType.Calibrate:
@@ -1113,7 +1126,9 @@ class Sensation(object):
 #         else:
 #             s=self.__str__()
         s = systemTime.ctime(self.time) + ' ' + str(self.number) + ' ' + Sensation.getMemoryString(self.memory) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
-        if self.sensationType == Sensation.SensationType.Item:
+        if self.sensationType == Sensation.SensationType.Voice:
+            s = s + ' ' + Sensation.getKindString(self.kind)
+        elif self.sensationType == Sensation.SensationType.Item:
             s = s + ' ' + self.name + ' ' + Sensation.getPresenceString(self.presence)
         return s
 
@@ -1144,6 +1159,7 @@ class Sensation(object):
             data_size=len(self.data)
             b +=  data_size.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
             b +=  self.data
+            b +=  StrToBytes(self.kind)
         elif self.sensationType == Sensation.SensationType.Image:
             filePath_size=len(self.filePath)
             b +=  filePath_size.to_bytes(Sensation.NUMBER_SIZE, Sensation.BYTEORDER)
@@ -1648,6 +1664,11 @@ class Sensation(object):
         self.presence = presence
     def getPresence(self):
         return self.presence
+
+    def setKind(self, kind):
+        self.kind = kind
+    def getKind(self):
+        return self.kind
 
     '''
     save sensation data permanently

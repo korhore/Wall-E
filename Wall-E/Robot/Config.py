@@ -511,7 +511,7 @@ class Config(ConfigParser):
                 self.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.REAL)
                 self.is_changes=True
         except Exception as e:
-            print('self.set(Config.DEFAULT_SECTION,Config.KIND, Sensation.WALLE) exception ' + str(e))
+            print('self.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.REAL) exception ' + str(e))
 
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.HOSTS):
@@ -697,7 +697,7 @@ class Config(ConfigParser):
             elif kind == Sensation.Kinds[Sensation.Kind.Eva]:
                 self.kind = Sensation.Kind.Eva
             else:
-                self.kind = Sensation.Kind.Other
+                self.kind = Sensation.Kind.Normal
         return self.kind
 
     def getInstanceType(self, section=LOCALHOST):
