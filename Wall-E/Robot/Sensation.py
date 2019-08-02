@@ -534,8 +534,9 @@ class Sensation(object):
                  capabilities = None,                                       # capabilitis of sensorys, direction what way sensation go
                  name = '',                                                 # name of Item
                  presence = Presence.Unknown,                               # presence of Item
-                 kind=Kind.Normal):                                         # kind (for instance voice)
-                                                 
+                 kind=Kind.Normal,                                          # kind (for instance voice)
+                 permanent=False):                                          # local property, if this sensation will not be deleted
+                                       
         from Config import Capabilities
         self.time=time
         if self.time == None:
@@ -585,6 +586,7 @@ class Sensation(object):
             self.name = sensation.name
             self.presence = sensation.presence
             self.kind = sensation.kind
+            self.permanent = sensation.permanent
             
             # We have here put values from sensation, but we should
             # also set values that are overwritten
@@ -613,6 +615,7 @@ class Sensation(object):
             self.name = name
             self.presence = presence
             self.kind = kind
+            self.permanent = permanent
            
             # associate makes both sides
             for association in associations:
@@ -790,7 +793,8 @@ class Sensation(object):
                  capabilities = None,                                       # capabilities of sensorys, direction what way sensation go
                  name='',                                                   # name of Item
                  presence=Presence.Unknown,                                 # presence of Item
-                 kind=Kind.Normal):                                         # Normal kind
+                 kind=Kind.Normal,                                          # Normal kind
+                 permanent=False):                                          # default is deletable
                                 
         
         if sensation == None:             # not an update, create new one
@@ -820,7 +824,8 @@ class Sensation(object):
                  capabilities = capabilities,
                  name=name,
                  presence=presence,
-                 kind=kind)
+                 kind=kind,
+                 permanent=permanent)
         
         return sensation
 
@@ -1669,6 +1674,11 @@ class Sensation(object):
         self.kind = kind
     def getKind(self):
         return self.kind
+    
+    def setPermanent(self, permanent):
+        self.permanent = permanent
+    def getPermanent(self):
+        return self.permanent
 
     '''
     save sensation data permanently

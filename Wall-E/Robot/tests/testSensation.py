@@ -292,6 +292,18 @@ class SensationTestCase(unittest.TestCase):
         self.assertTrue(fromBytesLongTermSensation != None, "should be created")
         self.assertTrue(fromBytesLongTermSensation == longTermSensation, "should be equal")
         self.assertTrue(fromBytesLongTermSensation.getReceivedFrom() == receivedFrom, "should be equal")
+
+        data=b'\x01\x02'
+        voiceSensation = Sensation.create(associations=None, sensationType=Sensation.SensationType.Voice, memory=Sensation.Memory.Sensory, data=data, kind=Sensation.Kind.Eva, permanent=True)
+        self.assertTrue(voiceSensation.getKind() == Sensation.Kind.Eva, "should be equal")
+        self.assertTrue(voiceSensation.getPermanent(), "should be True")
+        bytes=voiceSensation .bytes()
+        self.assertTrue(bytes != None, "should be get bytes")
+        fromBytesVoiceSensation = Sensation.create(bytes=bytes)
+        self.assertTrue(voiceSensation == fromBytesVoiceSensation, "should be equal")
+        self.assertTrue(voiceSensation.getKind() == fromBytesVoiceSensation.getKind(), "should be equal")
+        self.assertTrue(voiceSensation.getData() == fromBytesVoiceSensation.getData(), "should be equal")
+        self.assertFalse(fromBytesVoiceSensation.getPermanent(), "should be False, permanent is local property")
  
         print("\ntest_Bytes DONE")
 
