@@ -147,7 +147,7 @@ class MainRobot(Robot):
         
     def studyOwnIdentity(self):
         self.mode = Sensation.Mode.StudyOwnIdentity
-        self.log("My name is " + self.name)      
+        self.log("My name is " + self.getWho())      
         self.kind = self.config.getKind()
         self.log("My kind is " + str(self.kind))      
         self.identitypath = self.config.getIdentityDirPath(self.kind)
@@ -204,16 +204,16 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                        instanceType=instanceType,
                        level=level)
         
+        #Thread.__init__(self)
+        
         print("We are in TCPServer, not Robot")
         self.address=address
-        self.name = str(address)
+        self.setWho('TCPServer: ' + str(address))
         # convert hostnames to IP addresses so same thing has always same name
         self.hostNames = []
         for hostname in hostNames:
             self.hostNames.append(socket.gethostbyname(hostname))
 
-        Thread.__init__(self)
-        self.name = "TCPServer"
         self.log('__init__: creating socket' )
         self.sock = socket.socket(family=ADDRESS_FAMILY,
                                   type=SOCKET_TYPE)
@@ -395,7 +395,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         self.socketServer = socketServer
         if self.sock is None or self.address is None:       
             self.address=(self.remoteHost, PORT)
-        self.name = 'SocketClient:'+str(address)
+        self.setWho('SocketClient: '+str(address))
         self.running=False
         self.log("__init__ done")
         
@@ -662,7 +662,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         self.sock=sock
         self.address=address
         self.socketClient = socketClient
-        self.name = 'SocketServer:' + str(address)
+        self.setWho('SocketServer: ' + str(address))
     
     def getSocket(self):
         return self.sock

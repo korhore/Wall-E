@@ -18,16 +18,14 @@ from threading import Timer
 from Robot import Robot
 from Config import Config, Capabilities
 from Sensation import Sensation
+from AlsaAudio import Settings
+from AlsaAudio import AlsaAudioNeededSettings
 
 class AlsaAudioPlayback(Robot):
     """
      Implementaion for out Voice sensation at Sensory level
      using ALSA-library and speaker as hardware
     """
-    CHANNELS=1
-    RATE = 44100
-    FORMAT = alsaaudio.PCM_FORMAT_S16_LE
-    PERIOD_SIZE = 2048
     
     COMMUNICATION_INTERVAL=15.0     # time window to history 
                                     # for sensations we communicate
@@ -46,9 +44,9 @@ class AlsaAudioPlayback(Robot):
 
         # from settings        
         self.device= self.config.getPlayback()
-        self.channels=AlsaAudioPlayback.CHANNELS
-        self.rate = AlsaAudioPlayback.RATE
-        self.format = AlsaAudioPlayback.FORMAT
+        self.channels=Settings.AUDIO_CHANNELS
+        self.rate = Settings.AUDIO_RATE
+        self.format = AlsaAudioNeededSettings.AUDIO_FORMAT
         
         self.last_datalen=0
         self.last_write_time = systemTime.time()
@@ -62,7 +60,7 @@ class AlsaAudioPlayback(Robot):
             self.outp.setchannels(self.channels)
             self.outp.setrate(self.rate)
             self.outp.setformat(self.format)
-            self.outp.setperiodsize(AlsaAudioPlayback.PERIOD_SIZE)
+            self.outp.setperiodsize(Settings.AUDIO_PERIOD_SIZE)
             self.ok=True
             self.log('cardname ' + self.outp.cardname())
         except Exception as e:
@@ -89,7 +87,7 @@ class AlsaAudioPlayback(Robot):
                     self.outp.write(sensation.getData())
                     sensation.save()    #remember what we played
                     self.last_datalen = len(sensation.getData())
-                    self.playbackTime = float(self.last_datalen)/float(AlsaAudioPlayback.RATE)
+                    self.playbackTime = float(self.last_datalen)/float(Settings.AUDIO_RATE)
                     self.last_write_time = systemTime.time()
                 else:
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: this Voice already played in this interval')

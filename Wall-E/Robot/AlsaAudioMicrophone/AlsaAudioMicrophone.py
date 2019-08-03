@@ -16,6 +16,9 @@ import math
 from Robot import Robot
 from Config import Config, Capabilities
 from Sensation import Sensation
+from AlsaAudio import Settings
+from AlsaAudio import AlsaAudioNeededSettings
+
 
 
 
@@ -26,14 +29,7 @@ class AlsaAudioMicrophone(Robot):
      
      Produces voices connected to present Item.names
     """
-    
-    CONVERSION_FORMAT='<i2'
-
-    CHANNELS=1
-    RATE = 44100
-    FORMAT = alsaaudio.PCM_FORMAT_S16_LE
-    PERIOD_SIZE = 2018
-    
+        
     SENSITIVITY=1.25
     AVERAGE_PERIOD=100.0                # used as period in seconds
     SHORT_AVERAGE_PERIOD=1.0            # used as period in seconds
@@ -57,10 +53,10 @@ class AlsaAudioMicrophone(Robot):
 
         # from settings        
         self.device= self.config.getMicrophone()
-        self.channels=AlsaAudioMicrophone.CHANNELS
+        self.channels=Settings.AUDIO_CHANNELS
         self.sensitivity=AlsaAudioMicrophone.SENSITIVITY
-        self.rate = AlsaAudioMicrophone.RATE
-        self.format = AlsaAudioMicrophone.FORMAT
+        self.rate = Settings.AUDIO_RATE
+        self.format = AlsaAudioNeededSettings.AUDIO_FORMAT
         self.average=self.config.getMicrophoneVoiceAvegageLevel()
         self.average_devider = float(self.rate) * AlsaAudioMicrophone.AVERAGE_PERIOD
         self.short_average=self.average
@@ -75,7 +71,7 @@ class AlsaAudioMicrophone(Robot):
         self.inp.setchannels(self.channels)
         self.inp.setrate(self.rate)
         self.inp.setformat(self.format)
-        self.inp.setperiodsize(AlsaAudioMicrophone.PERIOD_SIZE)
+        self.inp.setperiodsize(Settings.AUDIO_PERIOD_SIZE)
  
         self.log('cardname ' + self.inp.cardname())
 
@@ -153,7 +149,7 @@ class AlsaAudioMicrophone(Robot):
         l, data = self.inp.read() # l int, data bytes
         if l > 0:
             # collect voice data as long we hear a voice and send it then
-            if self.analyzeData(l, data, self.CONVERSION_FORMAT):
+            if self.analyzeData(l, data, Settings.AUDIO_CONVERSION_FORMAT):
                 if self.voice_data is None:
                     self.voice_data = data
                     self.voice_l = l

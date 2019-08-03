@@ -1,20 +1,13 @@
 '''
 Created on Feb 24, 2013
-Updated on 29.07.2019
+Updated on 03.08.2019
 @author: reijo.korhonen@gmail.com
 '''
 
 import os
 import shutil
-#import sys
-#import signal
-#import getopt
-from threading import Thread
-#from threading import Timer
-#import socket
-#import math
+from threading import Thread, Timer
 import time
-#import configparser
 from enum import Enum
 
 #import daemon
@@ -24,9 +17,11 @@ import traceback
 
 from PIL import Image as PIL_Image
 
+
 from Axon import Axon
 from Config import Config, Capabilities
 from Sensation import Sensation
+from AlsaAudio import Settings as AudioSettings
 
 #from VirtualRobot import VirtualRobot
 # from Romeo import Romeo
@@ -115,7 +110,8 @@ class Robot(Thread):
     Every sensory runs in its own thread as real sensorys, independently.
     External Sensorys are handled using sockets.
     """
- 
+
+    # Robot settings"
     LogLevel = enum(Critical='a', Error='b', Normal='c', Detailed='d', Verbose='e')
     CRITICAL =  'Critical'
     ERROR =     'Error'
@@ -150,7 +146,8 @@ class Robot(Thread):
             self.instanceName = Config.DEFAULT_INSTANCE
         self.instanceType=instanceType
         self.level=level+1
-        self.logLevel=logLevel
+        #loglevel is always set in config
+        #self.logLevel=logLevel
         
         self.subInstances = []  # subInstance contain a outAxon we write muscle sensations
                                 # for subrobot this axon in inAxon
@@ -167,9 +164,9 @@ class Robot(Thread):
         print("Robot 3")
         self.capabilities = Capabilities(config=self.config)
         print("Robot 4")
-        self.name = self.getWho()
-        self.logLevel=self.getLogLevel()
-        self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + self.config.getInstanceType() + self.capabilities.toDebugString())
+        self.logLevel=self.config.getLogLevel()
+        self.setWho(self.config.getWho())
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who " + self.getWho() + " kind " + self.getKind() + " instanceType " + self.config.getInstanceType() + self.capabilities.toDebugString())
         # global queue for senses and other robots to put sensations to robot
         self.axon = Axon()
         #and create subinstances
@@ -223,12 +220,16 @@ class Robot(Thread):
 
     def setLogLevel(self, logLevel):
         self.logLevel = logLevel
-
-    def getWho(self):
-        return self.config.getWho()
-    
     def getLogLevel(self):
-        return self.config.getLogLevel()
+        return self.logLevel
+
+    def setWho(self, name):
+        self.name = name
+    def getWho(self):
+        return self.name
+    
+    def getKind(self):
+        return self.config.getKind()
 
     def getAxon(self):
         return self.axon
@@ -337,7 +338,7 @@ class Robot(Thread):
 
     def run(self):
         self.running=True
-        self.log(logLevel=Robot.LogLevel.Normal, logStr="run: Starting robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + self.config.getInstanceType())      
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="run: Starting robot who " + self.getWho() + " kind " + self.getKind() + " instanceType " + self.config.getInstanceType())      
         
         # starting other threads/senders/capabilities
         for robot in self.subInstances:
@@ -386,7 +387,7 @@ class Robot(Thread):
         
     def log(self, logStr, logLevel=LogLevel.Normal):
          if logLevel <= self.getLogLevel():
-             print(self.name + ":" + str( self.config.level) + ":" + Sensation.Modes[self.mode] + ": " + logStr)
+             print(self.getWho() + ":" + str( self.config.level) + ":" + Sensation.Modes[self.mode] + ": " + logStr)
 
     def stop(self):
         self.log(logLevel=Robot.LogLevel.Normal, logStr="Stopping robot")      
@@ -412,10 +413,9 @@ class Robot(Thread):
         
     def studyOwnIdentity(self):
         self.mode = Sensation.Mode.StudyOwnIdentity
-        self.log(logLevel=Robot.LogLevel.Normal, logStr="My name is " + self.name)      
-        self.kind = self.config.getKind()
-        self.log(logLevel=Robot.LogLevel.Detailed, logStr="My kind is " + str(self.kind))      
-        self.identitypath = self.config.getIdentityDirPath(self.kind)
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="My name is " + self.getWho())      
+        self.log(logLevel=Robot.LogLevel.Detailed, logStr="My kind is " + str(self.getKind()))      
+        self.identitypath = self.config.getIdentityDirPath(self.getKind())
         self.log(logLevel=Robot.LogLevel.Detailed, logStr='My identitypath is ' + self.identitypath)      
         for dirName, subdirList, fileList in os.walk(self.identitypath):
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='Found directory: %s' % dirName)      
@@ -507,9 +507,6 @@ from Sensation import Sensation
 class VirtualRobot(Robot):
     from threading import Timer
 
-    # length must be AlsaAudioPlayback.PERIOD_SIZE
-    PERIOD_SIZE = 2048
-   
     SLEEPTIME = 60.0
     SLEEP_BETWEEN_IMAGES = 10.0
     SLEEP_BETWEEN_VOICES = 10.0
@@ -527,8 +524,7 @@ class VirtualRobot(Robot):
                        instanceType=instanceType,
                        level=level)
         print("We are in VirtualRobot, not Robot")
-        self.kind = self.config.getKind()
-        self.identitypath = self.config.getIdentityDirPath(self.kind)
+        self.identitypath = self.config.getIdentityDirPath(self.getKind())
         self.imageind=0
         self.voiceind=0
         self.images=[]
@@ -537,14 +533,14 @@ class VirtualRobot(Robot):
 
     def run(self):
         self.running=True
-        self.log("run: Starting Virtual Robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + self.config.getInstanceType())      
+        self.log("run: Starting Virtual Robot who " + self.getWho() + " kind " + self.getKind() + " instanceType " + self.config.getInstanceType())      
         
            
         # study own identity
         # starting point of robot is always to study what it knows himself
         self.studyOwnIdentity()
         self.getOwnIdentity()
-        self.timer = Timer(interval=VirtualRobo.COMMUNICATION_INTERVAL, function=self.stopRunning)
+        self.timer = Timer(interval=VirtualRobot.COMMUNICATION_INTERVAL, function=self.stopRunning)
         self.timer.start()
 
 
@@ -599,19 +595,19 @@ class VirtualRobot(Robot):
                 with open(sensation_filepath, 'rb') as f:
                     data = f.read()
                         
-                    # length must be AlsaAudioPlayback.PERIOD_SIZE
-                    remainder = len(data) % VirtualRobot.PERIOD_SIZE
+                    # length must be AudioSettings.AUDIO_PERIOD_SIZE
+                    remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
                     if remainder is not 0:
-                        self.log(str(remainder) + " over periodic size " + str(VirtualRobot.PERIOD_SIZE) + " correcting " )
-                        len_zerobytes = VirtualRobot.PERIOD_SIZE - remainder
+                        self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) + " correcting " )
+                        len_zerobytes = AudioSettings.AUDIO_PERIOD_SIZE - remainder
                         ba = bytearray(data)
                         for i in range(len_zerobytes):
                             ba.append(0)
                         data = bytes(ba)
-                        remainder = len(data) % VirtualRobot.PERIOD_SIZE
+                        remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
                         if remainder is not 0:
                             self.log("Did not succeed to fix!")
-                            self.log(str(remainder) + " over periodic size " + str(VirtualRobot.PERIOD_SIZE) )
+                            self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) )
                     self.voices.append(data)
                     time.sleep(VirtualRobot.SLEEP_BETWEEN_VOICES)
                     sensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=data, filePath=sensation_filepath)
