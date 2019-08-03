@@ -204,8 +204,6 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                        instanceType=instanceType,
                        level=level)
         
-        #Thread.__init__(self)
-        
         print("We are in TCPServer, not Robot")
         self.address=address
         self.setWho('TCPServer: ' + str(address))

@@ -265,7 +265,7 @@ class Config(ConfigParser):
                     
     def getIdentityDirPath(self, kind):
         from Sensation import Sensation
-        return self.IDENTITYS +'/'+ Sensation.Kinds[kind]
+        return self.IDENTITYS +'/'+ Sensation.getKindString(kind)
 
                 
     def getVirtualinstanceConfigFilePath(self, virtualinstance):
@@ -501,7 +501,7 @@ class Config(ConfigParser):
             
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.KIND):
-                self.set(Config.DEFAULT_SECTION,Config.KIND, Sensation.WALLE)
+                self.set(Config.DEFAULT_SECTION,Config.KIND, Sensation.getKindString(Sensation.Kind.Normal))
                 self.is_changes=True
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION,Config.KIND, Sensation.WALLE) exception ' + str(e))
@@ -689,12 +689,12 @@ class Config(ConfigParser):
 
     def getKind(self, section=LOCALHOST):
         from Sensation import Sensation
-        self.kind = Sensation.Kind.WallE
+        self.kind = Sensation.Kind.Normal
         kind = self.get(section=section, option=self.KIND)
         if kind != None and len(kind) > 0:
-            if kind == Sensation.Kinds[Sensation.Kind.WallE]:
+            if kind == Sensation.getKindString(Sensation.Kind.WallE):
                 self.kind = Sensation.Kind.WallE
-            elif kind == Sensation.Kinds[Sensation.Kind.Eva]:
+            elif kind == Sensation.getKindString(Sensation.Kind.Eva):
                 self.kind = Sensation.Kind.Eva
             else:
                 self.kind = Sensation.Kind.Normal
