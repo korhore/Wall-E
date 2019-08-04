@@ -443,12 +443,19 @@ class Robot(Thread):
     After processing this basic implementation transfers sensation forward.
     If out Direction, then we put Sensation to our parent Axon.
     If in direction, sensation is put to all subinstances Axon that has capability
-    to process it.  
+    to process it.
+    
+    Parameters
+    
+    transferDirection is sensation going up to MainBobot or down so leaf Robots
+    sensation         Sensation to process
+    association       Association - more information how processing should be done
+                      optional
 
         
     '''
             
-    def process(self, transferDirection, sensation):
+    def process(self,transferDirection, sensation,  association=None):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         if sensation.getSensationType() == Sensation.SensationType.Stop:
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: SensationSensationType.Stop')      

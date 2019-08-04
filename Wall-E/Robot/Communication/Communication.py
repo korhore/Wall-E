@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 29.07.2019
+Updated on 03.08.2019
 
 @author: reijo.korhonen@gmail.com
 
@@ -231,8 +231,11 @@ class Communication(Robot):
                 candidate_communicationItems.append(communicationItem)
         if self.mostImportantItemSensation is not None:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process startSpeaking: Sensation.getMostImportantSensation did find self.mostImportantItemSensation OK')
-            self.spokedVoiceSensation = Sensation.create(sensation = self.mostImportantVoiceSensation )
+            self.spokedVoiceSensation = Sensation.create(sensation = self.mostImportantVoiceSensation, kind=self.getKind() )
+            # test
+            #self.spokedVoiceSensation = self.mostImportantVoiceSensation
             # NOTE This is needed now, because Sensation.create parameters direction and memory parameters are  overwritten by sensation parameters
+            self.spokedVoiceSensation.setKind(self.getKind())
             self.spokedVoiceSensation.setDirection(Sensation.Direction.In)  # speak        
             self.spokedVoiceSensation.setMemory(Sensation.Memory.Sensory)
             association = self.mostImportantItemSensation.getAssociation(sensation = self.mostImportantVoiceSensation )
