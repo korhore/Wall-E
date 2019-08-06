@@ -148,7 +148,9 @@ class AlsaAudioPlayback(Robot):
                        
  
                         # for debug reasons play original and changed voice                           
-                        data = result_data + data
+                        #data = result_data + data
+                        #fnormal                        
+                        data = result_data
                                 
                         
                         
