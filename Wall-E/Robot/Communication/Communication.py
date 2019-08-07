@@ -60,6 +60,10 @@ class Communication(Robot):
     COMMUNICATION_INTERVAL=30.0     # time window to history 
                                     # for sensations we communicate
     #COMMUNICATION_INTERVAL=2.5     # time window to history for test to be run quicker
+    CONVERSATION_INTERVAL=300.0     # if no change in present item.naMES and
+                                    # last conversation is ended, how long
+                                    # we wait until we will respond if
+                                    # someone speaks
                                     
     class CommunicationItem():
         
@@ -101,6 +105,7 @@ class Communication(Robot):
         print("We are in Communication, not Robot")
         self.present_items={}
         self.lastItemTime=None
+        self.lastConversationEndTime =None
 
         self.communicationItems = []
         self.mostImportantItemSensation = None      # current most important item in conversation
@@ -138,12 +143,19 @@ class Communication(Robot):
                     self.startSpeaking()#itemSensation=sensation)
                 else:
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' joined to communication, but don\'t know if heard previous voices. wait someone to speak')
-                # else maybe change in present iterms, no need other way than keep track on prent items
+                # else maybe change in present items, no need other way than keep track on present items
             elif sensation.getSensationType() == Sensation.SensationType.Voice and\
                  sensation.getDirection() == Sensation.Direction.Out and\
                  sensation not in self.heardVoices and\
-                 systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL and\
-                 len(self.communicationItems) > 0: # communication going and we got a response, nice
+                 ((systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL and\
+                # communication going and we got a response, nice
+                 (len(self.communicationItems) > 0)) or\
+                # we have someone to talk with
+                 (len(self.present_items) > 0 and
+                # time is elapsed, so we can start communicating again with present item.names
+                  self.lastConversationEndTime is not None and\
+                  sensation.getTime()  - self.lastConversationEndTimeself.lastConversationEndTime > self.CONVERSATION_INTERVAL)):
+ 
                 if self.timer is not None:
                     self.timer.cancel()
                     self.timer = None
@@ -280,8 +292,11 @@ class Communication(Robot):
         self.mostImportantItemSensation = None          # no current voice and item, because no current conversation
         self.mostImportantVoiceAssociation = None
         self.mostImportantVoiceSensation = None
+        self.mostImportantVoiceAssociation = None
         self.spokedVoiceSensation = None
         self.timer = None
+        self.lastConversationEndTime=systemTime.time()
+
         
     def tracePresents(self, sensation):
         # present means pure Present, all other if handled not present
