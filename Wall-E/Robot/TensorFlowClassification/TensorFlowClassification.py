@@ -227,16 +227,16 @@ class TensorFlowClassification(Robot):
                     i = i+1   
 
         while self.running:
-            transferDirection, sensation = self.getAxon().get()
+            transferDirection, sensation, association = self.getAxon().get()
             self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
-            self.process(transferDirection=transferDirection, sensation=sensation)
+            self.process(transferDirection=transferDirection, sensation=sensation, association=association)
         self.log("Stopping TensorFlowClassification")
         self.mode = Sensation.Mode.Stopping
 #         self.camera.close() 
        
         self.log("run ALL SHUT DOWN")
 
-    def process(self, transferDirection, sensation):
+    def process(self, transferDirection, sensation, association=None):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         if sensation.getSensationType() == Sensation.SensationType.Stop:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='process: SensationSensationType.Stop')      
@@ -287,8 +287,8 @@ class TensorFlowClassification(Robot):
                                                          presence = precence)
                         itemsensation.associate(sensation=subsensation, score=score)
                         self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
-                        self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
-                        self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+                        self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=None)
+                        self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=None)
                         self.log("Created LongTerm subImage and item sensation for this")
                     # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
                 i = i+1
@@ -332,7 +332,7 @@ class TensorFlowClassification(Robot):
                    TensorFlowClassification.present[name] = presence
                 itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out, name=name,\
                                                  presence = presence)
-                self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+                self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=None)
                 self.log("process created exiting/absent itemsensation " + itemsensation.toDebugStr())
         # can't del in loop, do it here
         for name in absent_names:

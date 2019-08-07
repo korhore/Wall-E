@@ -59,6 +59,7 @@ class Communication(Robot):
 
     COMMUNICATION_INTERVAL=30.0     # time window to history 
                                     # for sensations we communicate
+    #COMMUNICATION_INTERVAL=10.0     # time window to history for test to be run quicker
     #COMMUNICATION_INTERVAL=2.5     # time window to history for test to be run quicker
     CONVERSATION_INTERVAL=300.0     # if no change in present item.naMES and
                                     # last conversation is ended, how long
@@ -125,7 +126,7 @@ class Communication(Robot):
                        instanceType=instanceType,
                        level=level)
  
-    def process(self, transferDirection, sensation):
+    def process(self, transferDirection, sensation, association=None):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         # don't communicate with history Sensation Items, we are communicating Item.name just seen.
         self.log(logLevel=Robot.LogLevel.Normal, logStr="process: systemTime.time() " + str(systemTime.time()) + ' -  sensation.getTime() ' + str(sensation.getTime()) + ' < Communication.COMMUNICATION_INTERVAL ' + str(Communication.COMMUNICATION_INTERVAL))
@@ -261,7 +262,7 @@ class Communication(Robot):
             self.usedVoices.append(self.spokedVoiceSensation)                    
             self.usedVoices.append(self.mostImportantVoiceSensation )   
             # speak                 
-            self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation)
+            self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation, association=None)
             # wait response
             self.timer = threading.Timer(interval=Communication.COMMUNICATION_INTERVAL, function=self.stopWaitingResponse)
             self.timer.start()

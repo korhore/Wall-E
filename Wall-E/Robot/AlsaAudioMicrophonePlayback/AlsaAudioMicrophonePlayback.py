@@ -78,25 +78,25 @@ class AlsaAudioMicrophonePlayback(Robot):
             # as a leaf sensor robot default processing for sensation we have got
             # in practice we can get stop sensation
             if not self.getAxon().empty():
-                transferDirection, sensation = self.getAxon().get()
+                transferDirection, sensation, association = self.getAxon().get()
                 self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())  
                 if transferDirection == Sensation.TransferDirection.Up:
                     self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getParent().getAxon().put(transferDirection=transferDirection, sensation=sensation))')      
-                    self.getParent().getAxon().put(transferDirection=transferDirection, sensation=sensation)
+                    self.getParent().getAxon().put(transferDirection=transferDirection, sensation=sensation, association=association)
                 else:
                     # stop
                     if sensation.getSensationType() == Sensation.SensationType.Stop:
-                        self.alsaAudioMicrophone.getAxon().put(transferDirection=transferDirection, sensation=sensation)
-                        self.alsaAudioMicrophone.process(transferDirection=transferDirection, sensation=sensation)
+                        self.alsaAudioMicrophone.getAxon().put(transferDirection=transferDirection, sensation=sensation, association=association)
+                        self.alsaAudioMicrophone.process(transferDirection=transferDirection, sensation=sensation, association=association)
                     # Item.name.presence to microphone
                     elif sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.Memory.LongTerm and\
                          sensation.getDirection() == Sensation.Direction.Out:
-                        self.alsaAudioMicrophone.getAxon().put(transferDirection=transferDirection, sensation=sensation)
-                        self.alsaAudioMicrophone.process(transferDirection=transferDirection, sensation=sensation)
+                        self.alsaAudioMicrophone.getAxon().put(transferDirection=transferDirection, sensation=sensation, association=association)
+                        self.alsaAudioMicrophone.process(transferDirection=transferDirection, sensation=sensation, association=association)
                     # Voice to playback
                     else:
-                        self.alsaAudioPlayback.getAxon().put(transferDirection=transferDirection, sensation=sensation)
-                        self.alsaAudioPlayback.process(transferDirection=transferDirection, sensation=sensation)
+                        self.alsaAudioPlayback.getAxon().put(transferDirection=transferDirection, sensation=sensation, association=association)
+                        self.alsaAudioPlayback.process(transferDirection=transferDirection, sensation=sensation, association=association)
                         
                         # sleep voice playing length, so we don't sense spoken voices
                         systemTime.sleep(self.alsaAudioPlayback.getPlaybackTime())

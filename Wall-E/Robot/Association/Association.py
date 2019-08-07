@@ -46,7 +46,7 @@ class Association(Robot):
                        level=level)
         self.present_items={}
         
-    def process(self, transferDirection, sensation):
+    def process(self, transferDirection, sensation, association=None):
         self.log('process: sensation ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         now = time.time()
         if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.Memory.LongTerm and\

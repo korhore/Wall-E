@@ -1,6 +1,6 @@
 '''
 Created on Jan 19, 2014
-Updated on 08.056.2019
+Updated on 07.08.2019
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -23,12 +23,12 @@ class Axon():
     def __init__(self):
         self.queue = Queue()
        
-    def put(self, transferDirection, sensation):
-        self.queue.put((transferDirection, sensation))
+    def put(self, transferDirection, sensation, association=None):
+        self.queue.put((transferDirection, sensation, association))
         
     def get(self):
-        (transferDirection, sensation) = self.queue.get()
-        return transferDirection, sensation
+        (transferDirection, sensation, association) = self.queue.get()
+        return transferDirection, sensation, association
         
     def empty(self):
         return self.queue.empty()

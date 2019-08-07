@@ -56,7 +56,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
 
 
     def tearDown(self):
-        self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(associations=[], sensationType = Sensation.SensationType.Stop))
+        self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(associations=[], sensationType = Sensation.SensationType.Stop), association=None)
         print('sleep ' + str(TensorFlowClassificationTestCase.TEST_STOP_TIME) + ' to Stop Robot')
         systemTime.sleep(TensorFlowClassificationTestCase.TEST_STOP_TIME)       # give Robot some time to stop
 
@@ -106,7 +106,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
     def doTestClassification(self, imageSensation, names, absent_names=None):
         #entering
         #exiting TODO
-        self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation)
+        self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
         print('sleep ' + str(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME) + ' to to classify')
         systemTime.sleep(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME)       # give Robot some time to stop
         
@@ -140,7 +140,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
 
         #present
         #absent
-        self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation)
+        self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
         print('sleep ' + str(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME) + ' to to classify')
         systemTime.sleep(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME)       # give Robot some time to stop
         
@@ -173,7 +173,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
             self.assertEqual(sorted(absent_names), sorted(found_absent_names), 'should get exactly absent items')
         
         #no change, because present ones still present and absent ones are gone
-        self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation)
+        self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
         print('sleep ' + str(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME) + ' to to classify')
         systemTime.sleep(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME)       # give Robot some time to stop
         

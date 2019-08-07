@@ -120,10 +120,10 @@ class MainRobot(Robot):
         # live until stopped
         self.mode = Sensation.Mode.Normal
         while self.running:
-            transferDirection, sensation = self.getAxon().get()
+            transferDirection, sensation, association = self.getAxon().get()
             self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
             # We are main Robot, so sensation hoes always down to be processed    
-            self.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
+            self.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation, association=association)
             # as a test, echo everything to external device
             #self.out_axon.put(sensation)
  
@@ -443,7 +443,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         # starting other threads/senders/capabilities
 
         
-    def process(self, transferDirection, sensation):
+    def process(self, transferDirection, sensation, association=None):
         self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         # We can handle only sensation going down transfer-direction
         if transferDirection == Sensation.TransferDirection.Down:
@@ -498,7 +498,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
     def shareSensations(self, capabilities):
         if self.getHost() not in MainRobot.sharedSensationHosts:
             for sensation in Sensation.getSensations(capabilities):
-                 self.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
+                 self.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=sensation, association=None)
 
             MainRobot.sharedSensationHosts.append(self.getHost())
 
@@ -760,14 +760,14 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                             sensation.addReceived(self.getHost())  # remember route
                             if sensation.getSensationType() == Sensation.SensationType.Capability:
                                 self.log("run: SocketServer got Capability sensation " + sensation.getCapabilities().toDebugString('SocketServer'))
-                                self.process(transferDirection=Sensation.TransferDirection.Up, sensation=sensation)
+                                self.process(transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None)
                                 # share here sensations from our memory that this host has capabilities
                                 # We wan't always share our all knowledge with all other robots
                                 if self.getSocketClient() is not None:
                                     self.getSocketClient().shareSensations(self.getCapabilities())
                             else:
                                 self.log("run: SocketServer got sensation " + sensation.toDebugStr())
-                                self.getParent().getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # write sensation to TCPServers Parent, because TCPServer does not read its Axon
+                                self.getParent().getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None) # write sensation to TCPServers Parent, because TCPServer does not read its Axon
 
         try:
             self.sock.close()
