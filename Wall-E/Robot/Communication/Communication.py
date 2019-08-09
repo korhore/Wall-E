@@ -155,7 +155,7 @@ class Communication(Robot):
                  (len(self.present_items) > 0 and
                 # time is elapsed, so we can start communicating again with present item.names
                   self.lastConversationEndTime is not None and\
-                  sensation.getTime()  - self.lastConversationEndTimeself.lastConversationEndTime > self.CONVERSATION_INTERVAL)):
+                  sensation.getTime()  - self.lastConversationEndTime > self.CONVERSATION_INTERVAL)):
  
                 if self.timer is not None:
                     self.timer.cancel()

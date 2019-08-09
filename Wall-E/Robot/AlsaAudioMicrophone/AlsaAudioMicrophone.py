@@ -118,9 +118,9 @@ class AlsaAudioMicrophone(Robot):
                     self.sense()
                 elif self.getAxon().empty():
                     self.logged = False
-                    # TODO as a test we sense
-                    self.log(logLevel=Robot.LogLevel.Verbose, logStr=str(len(self.present_items)) + " items NOT speaking, sense anyway")
-                    self.sense()
+#                     # TODO as a test we sense
+#                     self.log(logLevel=Robot.LogLevel.Verbose, logStr=str(len(self.present_items)) + " items NOT speaking, sense anyway")
+#                     self.sense()
                     #self.log(logLevel=Robot.LogLevel.Normal, logStr="no items speaking, sleeping " + str(AlsaAudioMicrophone.SLEEP_TIME))
                     #time.sleep(AlsaAudioMicrophone.SLEEP_TIME)
                     
