@@ -105,21 +105,21 @@ class AlsaAudioMicrophone(Robot):
 
                 transferDirection, sensation, association = self.getAxon().get()
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr="got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
-                if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.Memory.LongTerm and\
-                   sensation.getDirection() == Sensation.Direction.Out: 
-                    self.tracePresents(sensation)
-                else:
-                    self.process(transferDirection=transferDirection, sensation=sensation, association=association)
+#                 if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.Memory.LongTerm and\
+#                    sensation.getDirection() == Sensation.Direction.Out: 
+#                     self.tracePresents(sensation)
+#                 else:
+                self.process(transferDirection=transferDirection, sensation=sensation, association=association)
             else:
-                if len(self.present_items) > 0: # listen is we have items that can speak
+                if len(Robot.present_items) > 0: # listen is we have items that can speak
                     if not self.logged:
-                        self.log(logLevel=Robot.LogLevel.Normal, logStr=str(len(self.present_items)) + " items speaking, sense")
+                        self.log(logLevel=Robot.LogLevel.Normal, logStr=self.presenceToStr() + " items speaking, sense")
                         self.logged = True
                     self.sense()
-                elif self.getAxon().empty():
+                else:
                     self.logged = False
 #                     # TODO as a test we sense
-#                     self.log(logLevel=Robot.LogLevel.Verbose, logStr=str(len(self.present_items)) + " items NOT speaking, sense anyway")
+#                     self.log(logLevel=Robot.LogLevel.Verbose, logStr=str(len(Robot.present_items)) + " items NOT speaking, sense anyway")
 #                     self.sense()
                     #self.log(logLevel=Robot.LogLevel.Normal, logStr="no items speaking, sleeping " + str(AlsaAudioMicrophone.SLEEP_TIME))
                     #time.sleep(AlsaAudioMicrophone.SLEEP_TIME)
@@ -164,7 +164,7 @@ class AlsaAudioMicrophone(Robot):
             # put direction out (heard voice) to the parent Axon going up to main Robot
             # connected to present Item.names
             voiceSensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=self.voice_data)
-            for name, itemSensation in self.present_items.items():
+            for name, itemSensation in Robot.present_items.items():
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: voice from " + name)
                 itemSensation.associate(sensation=voiceSensation)
             self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: self.getParent().getAxon().put(sensation)")
@@ -241,25 +241,25 @@ class AlsaAudioMicrophone(Robot):
         Trace present Item.names from sensations
     '''
   
-    def tracePresents(self, sensation):
-        # present means pure Present, all other if handled not present
-        if sensation.getPresence() == Sensation.Presence.Entering or\
-           sensation.getPresence() == Sensation.Presence.Present:
-            if sensation.getName() not in self.present_items or\
-                sensation.getTime() > self.present_items[sensation.getName()].getTime():
-                self.present_items[sensation.getName()] = sensation
-                self.log(logLevel=Robot.LogLevel.Normal, logStr="entering or present " + sensation.getName())
-            else:
-                self.log(logLevel=Robot.LogLevel.Detailed, logStr="entering or present did not come in order for " + sensation.getName())
-        else:
-            if sensation.getName() in self.present_items:
-                if sensation.getTime() > self.present_items[sensation.getName()].getTime():
-                    del self.present_items[sensation.getName()]
-                    self.log(logLevel=Robot.LogLevel.Normal, logStr="absent " + sensation.getName())
-                else:
-                    self.log(logLevel=Robot.LogLevel.Detailed, logStr="absent did not come in order for " + sensation.getName())
-            else:
-                self.log(logLevel=Robot.LogLevel.Detailed, logStr="absent but did not enter for " + sensation.getName())
+#     def tracePresents(self, sensation):
+#         # present means pure Present, all other if handled not present
+#         if sensation.getPresence() == Sensation.Presence.Entering or\
+#            sensation.getPresence() == Sensation.Presence.Present:
+#             if sensation.getName() not in self.present_items or\
+#                 sensation.getTime() > self.present_items[sensation.getName()].getTime():
+#                 self.present_items[sensation.getName()] = sensation
+#                 self.log(logLevel=Robot.LogLevel.Normal, logStr="entering or present " + sensation.getName())
+#             else:
+#                 self.log(logLevel=Robot.LogLevel.Detailed, logStr="entering or present did not come in order for " + sensation.getName())
+#         else:
+#             if sensation.getName() in self.present_items:
+#                 if sensation.getTime() > self.present_items[sensation.getName()].getTime():
+#                     del self.present_items[sensation.getName()]
+#                     self.log(logLevel=Robot.LogLevel.Normal, logStr="absent " + sensation.getName())
+#                 else:
+#                     self.log(logLevel=Robot.LogLevel.Detailed, logStr="absent did not come in order for " + sensation.getName())
+#             else:
+#                 self.log(logLevel=Robot.LogLevel.Detailed, logStr="absent but did not enter for " + sensation.getName())
             
 
 

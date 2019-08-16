@@ -7,6 +7,7 @@ Edited on 13.07.2019
 
 import sys
 import os
+import resource
 import time as systemTime
 from enum import Enum
 import struct
@@ -78,7 +79,7 @@ Sensation is something Robot senses
 '''
 
 class Sensation(object):
-    VERSION=12           # version number to check, if we picle same version
+    VERSION=13           # version number to check, if we picle same version
                         # instances. Otherwise we get odd errors, with old
                         # version code instances
 
@@ -102,7 +103,16 @@ class Sensation(object):
     #WORKING_LIVE_TIME =        600.0;       # cache sensation 600 seconds = 10 mins (may be changed)
     #LONG_TERM_LIVE_TIME =   3000.0;       # cache sensation 3000 seconds = 50 mins (may be changed)
     LONG_TERM_LIVE_TIME =   24.0*3600.0;  # cache sensation 24h (may be changed)
-    MIN_CACHE_MEMORABILITY = 0.1          # min memorability in sensation cache
+    MIN_CACHE_MEMORABILITY = 0.1                            # starting value of min memorability in sensation cache
+    min_cache_memorability = MIN_CACHE_MEMORABILITY          # current value min memorability in sensation cache
+    MAX_MIN_CACHE_MEMORABILITY = 0.7                         # max value of min memorability in sensation cache we think application does something sensible
+    MIN_MIN_CACHE_MEMORABILITY = 0.4                         # min value of min memorability in sensation cache we think application does everything wel and no need to
+                                                             # set min_cache_memorability lower
+    startSensationMemoryUsageLevel = 0.0                     # start memory usage level after creating first Sensation
+    currentSensationMemoryUsageLevel = 0.0                   # current memory usage level when creating last Sensation
+    maxSensationMemoryUsageLevel = 124.0                     # how much there is space for Sensation as maxim
+                                                             # This is low testing value, so we can test deleting algorithm
+    
     LENGTH_SIZE =       2   # Sensation as string can only be 99 character long
     LENGTH_FORMAT =     "{0:2d}"
     SEPARATOR =         '|'  # Separator between messages
@@ -302,10 +312,9 @@ class Sensation(object):
         # add new sensation
         memory = Sensation.sensationMemorys[sensation.getMemory()]
 #        cacheTime = Sensation.sensationMemoryLiveTimes[sensation.getMemory()]
-        memory.append(sensation)
         
         # remove too old ones
-        now = systemTime.time()
+        # now = systemTime.time()
         # TODO use abs(assciation.Importacce()) also
         # TODO When use association_time, then it is possible that
         # at the start there is much connected sensation, and after that
@@ -313,11 +322,32 @@ class Sensation(object):
         # Maybe this is not a big problem. This simple implementation keeps
         # sensation creation efficient
 #        while len(memory) > 0 and now - memory[0].getLatestTime() > cacheTime:
-        while len(memory) > 0 and memory[0].getMemorability() < Sensation.MIN_CACHE_MEMORABILITY:
+
+        # memory usage in Megabytes
+        memUsage= resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0
+        if Sensation.startSensationMemoryUsageLevel == 0.0:
+            Sensation.startSensationMemoryUsageLevel = memUsage
+        print('Memory usage {} MB'.format(memUsage))
+        print('Memory usage for Sensations {} MB'.format(memUsage-Sensation.startSensationMemoryUsageLevel))
+        
+        # TODO should study whole memory            
+        if (memUsage-Sensation.startSensationMemoryUsageLevel) > Sensation.maxSensationMemoryUsageLevel and\
+            Sensation.min_cache_memorability < Sensation.MAX_MIN_CACHE_MEMORABILITY:
+            Sensation.min_cache_memorability = Sensation.min_cache_memorability + 0.1
+        elif (memUsage-Sensation.startSensationMemoryUsageLevel) < Sensation.maxSensationMemoryUsageLevel and\
+            Sensation.min_cache_memorability > Sensation.MIN_MIN_CACHE_MEMORABILITY:
+            Sensation.min_cache_memorability = Sensation.min_cache_memorability - 0.1
+
+        while len(memory) > 0 and memory[0].getMemorability() < Sensation.min_cache_memorability:
             print('delete from sensation cache ' + memory[0].toDebugStr())
             memory[0].delete()
             del memory[0]
+
+        memUsage= resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0
+        print('Memory usage after {} MB with Sensation.min_cache_memorability {}'.format(memUsage, Sensation.min_cache_memorability))
+        print('Memory usage for Sensations after {} MB'.format(memUsage-Sensation.startSensationMemoryUsageLevel))
                 
+        memory.append(sensation)
          
     '''
     Association is a association between two sensations
@@ -1533,15 +1563,28 @@ class Sensation(object):
     Has sensation association to other Sensation
     which SensationType is 'associationSensationType'
     '''
-    def hasAssociationSensationType(self, associationSensationType, ignoredSensations=[]):
+    def hasAssociationSensationType(self, associationSensationType, ignoredSensations=[], ignoredVoiceLens=[]):
         has=False
         for association in self.associations:
-            if association.getSensation() not in ignoredSensations and\
-               association.getSensation().getSensationType() == associationSensationType:
+            if association.getSensation().getSensationType() == associationSensationType and\
+               association.getSensation() not in ignoredSensations and\
+               len(association.getSensation().getData()) not in ignoredVoiceLens:
                 has=True
                 break       
         return has
      
+    '''
+    Get sensation association to other Sensation
+    which SensationType is 'associationSensationType'
+    '''
+    def getAssociationsbBySensationType(self, associationSensationType, ignoredSensations=[], ignoredVoiceLens=[]):
+        associations=[]
+        for association in self.associations:
+            if association.getSensation().getSensationType() == associationSensationType and\
+               association.getSensation() not in ignoredSensations and\
+               len(association.getSensation().getData()) not in ignoredVoiceLens:
+                associations.append(association)
+        return associations
     def setReceivedFrom(self, receivedFrom):
         self.receivedFrom = receivedFrom
         
@@ -1803,12 +1846,13 @@ class Sensation(object):
                           timemax,
                           name = None,
                           notName = None,
-                          associationSensationType = None):
+                          associationSensationType = None,
+                          ignoredVoiceLens=[]):
         bestSensation = None
         for key, sensationMemory in Sensation.sensationMemorys.items():
             for sensation in sensationMemory:
                 if sensation.getSensationType() == sensationType and\
-                   sensation.hasAssociationSensationType(associationSensationType=associationSensationType) and\
+                   sensation.hasAssociationSensationType(associationSensationType=associationSensationType, ignoredVoiceLens=ignoredVoiceLens) and\
                    (timemin is None or sensation.getTime() > timemin) and\
                    (timemax is None or sensation.getTime() < timemax):
                     if sensationType != Sensation.SensationType.Item or\
@@ -1861,18 +1905,19 @@ class Sensation(object):
                                    name = None,
                                    notName = None,
                                    associationSensationType = None,
-                                   ignoredSensations = []):
+                                   ignoredSensations = [],
+                                   ignoredVoiceLens = []):
         bestSensation = None
         bestAssociation = None
         bestAssociationSensation = None
         # TODO starting with best score is not a good idea
         # if best scored item.name has only bad voices, we newer can get
-        # goof voices
+        # good voices
         for key, sensationMemory in Sensation.sensationMemorys.items():
             for sensation in sensationMemory:
                 if sensation not in ignoredSensations and\
                    sensation.getSensationType() == sensationType and\
-                   sensation.hasAssociationSensationType(associationSensationType=associationSensationType, ignoredSensations=ignoredSensations) and\
+                   sensation.hasAssociationSensationType(associationSensationType=associationSensationType, ignoredSensations=ignoredSensations, ignoredVoiceLens=ignoredVoiceLens) and\
                    (timemin is None or sensation.getTime() > timemin) and\
                    (timemax is None or sensation.getTime() < timemax):
                     if sensationType != Sensation.SensationType.Item or\
@@ -1886,15 +1931,13 @@ class Sensation(object):
         if bestSensation is not None:
             print("getMostImportantSensation found " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getImportance()))
             bestAssociationSensationImportance = None 
-            for association in bestSensation.getAssociations():
-                if associationSensationType is None or \
-                   association.getSensation().getSensationType() == associationSensationType:
-                    if bestAssociationSensationImportance is None or\
-                       bestAssociationSensationImportance < association.getSensation().getImportance():
-                        bestAssociationSensationImportance = association.getSensation().getImportance()
-                        bestAssociation = association
-                        bestAssociationSensation = association.getSensation()
-                        print("getMostImportantSensation found bestAssociationSensation candidate " + bestAssociationSensation.toDebugStr() + ' ' + str(bestAssociationSensationImportance))
+            for association in bestSensation.getAssociationsbBySensationType(associationSensationType=associationSensationType, ignoredSensations=ignoredSensations, ignoredVoiceLens=ignoredVoiceLens):
+                if bestAssociationSensationImportance is None or\
+                    bestAssociationSensationImportance < association.getSensation().getImportance():
+                    bestAssociationSensationImportance = association.getSensation().getImportance()
+                    bestAssociation = association
+                    bestAssociationSensation = association.getSensation()
+                    print("getMostImportantSensation found bestAssociationSensation candidate " + bestAssociationSensation.toDebugStr() + ' ' + str(bestAssociationSensationImportance))
         else:
             print("getMostImportantSensation did not find any")
             
@@ -1968,7 +2011,9 @@ class Sensation(object):
                                 del Sensation.sensationMemorys[Sensation.Memory.LongTerm][i]
                             elif  Sensation.sensationMemorys[Sensation.Memory.LongTerm][i].getMemorability() <  Sensation.MIN_CACHE_MEMORABILITY:
                                 print('delete Sensation.sensationMemorys[Sensation.Memory.LongTerm]['+str(i)+'] with too low memarability ' + str(Sensation.sensationMemorys[Sensation.Memory.LongTerm][i].getMemorability()))
-                                sensation.delete()
+                                Sensation.sensationMemorys[Sensation.Memory.LongTerm][i].delete()
+                                # TODO we should delete this also from but how?
+                                del Sensation.sensationMemorys[Sensation.Memory.LongTerm][i]
                             else:
                                 i=i+1
                         print ('LongTermMemory after load and verification ' + str(len(Sensation.sensationMemorys[Sensation.Memory.LongTerm])))

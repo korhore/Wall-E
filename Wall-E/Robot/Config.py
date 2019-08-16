@@ -1,6 +1,6 @@
 '''
 Created on 28.04.2019
-Edited 29.07.2019
+Edited 15.08.2019
 
 @author: reijo.korhonen@gmail.com
 
@@ -67,6 +67,12 @@ class Config(ConfigParser):
     HOSTS =             "Hosts"
     IDENTITYS =         "Identitys"
     LOGLEVEL =          "LogLevel"
+    MAXRSS =            "maxrss"    # maximum resident set size
+                                    # limit is set in MB, but in Linux documentation KB
+    MAXRSS_DEFAULT =    512         # 0.5 BG
+                                    # raspberry has often 1GB of memory
+
+
 
     MICROPHONE =                   'microphone'
     MICROPHONE_VOICE_LEVEL_AVERAGE = 'microphone_voice_average_level'
@@ -493,6 +499,14 @@ class Config(ConfigParser):
             print('self.set(Config.DEFAULT_SECTION,Config.LOGLEVEL, Robot.LogLevels[Robot.LogLevel.Normal]) exception  ' + str(e))
             
         try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.MAXRSS):
+                from Robot import Robot
+                self.set(Config.DEFAULT_SECTION,Config.MAXRSS, str(Config.MAXRSS_DEFAULT))
+                self.is_changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION,Config.MAXRSS, str(Config.MAXRSS_DEFAULT)) exception  ' + str(e))
+
+        try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.WHO):
                 self.set(Config.DEFAULT_SECTION,Config.WHO, Sensation.WALLE)
                 self.is_changes=True
@@ -681,6 +695,13 @@ class Config(ConfigParser):
                retLogLevel = logLevel
                break
         return retLogLevel
+
+    def getMaxRss(self, section=LOCALHOST):
+        try:
+            return self.getint(section=section, option=self.MAXRSS)
+        except Exception as e:
+            print('self.getint(section=section, option=self.MAXRSS) ' + str(e))
+            return None
 
     def getWho(self, section=LOCALHOST):
         who = self.get(section=section, option=self.WHO)

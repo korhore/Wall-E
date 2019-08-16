@@ -130,13 +130,15 @@ class Robot(Thread):
                LogLevel.Normal,
                LogLevel.Detailed,
                LogLevel.Verbose)
+    #presence variables
+    present_items={}
+        
    
     def __init__(self,
                  parent=None,
                  instanceName=None,
                  instanceType = Sensation.InstanceType.Real,
-                 level=0,
-                 logLevel=LogLevel.Normal):
+                 level=0):
         print("Robot 1")
         Thread.__init__(self)
         self.mode = Sensation.Mode.Starting
@@ -146,8 +148,6 @@ class Robot(Thread):
             self.instanceName = Config.DEFAULT_INSTANCE
         self.instanceType=instanceType
         self.level=level+1
-        #loglevel is always set in config
-        #self.logLevel=logLevel
         
         self.subInstances = []  # subInstance contain a outAxon we write muscle sensations
                                 # for subrobot this axon in inAxon
@@ -505,6 +505,34 @@ class Robot(Thread):
                 else:
                     self.log(logLevel=Robot.LogLevel.Verbose, logStr='Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
                     robot.getAxon().put(transferDirection=transferDirection, sensation=sensation, association=None)
+                    
+# Utilities
+    def tracePresents(self, sensation):
+        # present means pure Present, all other if handled not present
+        # if present sensations must come in order
+        if sensation.getName() in Robot.present_items and\
+           sensation.getTime() > Robot.present_items[sensation.getName()].getTime(): 
+
+            if sensation.getPresence() == Sensation.Presence.Entering or\
+               sensation.getPresence() == Sensation.Presence.Present:
+                Robot.present_items[sensation.getName()] = sensation
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="entering or present " + sensation.getName())
+            else:
+                del Robot.present_items[sensation.getName()]
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="absent " + sensation.getName())
+        else:
+            if sensation.getPresence() == Sensation.Presence.Entering or\
+               sensation.getPresence() == Sensation.Presence.Present:
+                Robot.present_items[sensation.getName()] = sensation
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="entering or present " + sensation.getName())
+
+    def presenceToStr(self):
+        namesStr=''
+        for name, sensation in Robot.present_items.items():
+            namesStr = namesStr + ' ' + name
+        return namesStr
+ 
+# VirtualRobot
 
 from Robot import Robot
 from Config import Config, Capabilities
@@ -515,9 +543,9 @@ class VirtualRobot(Robot):
     from threading import Timer
 
     SLEEPTIME = 60.0
-    SLEEP_BETWEEN_IMAGES = 10.0
+    SLEEP_BETWEEN_IMAGES = 20.0
     SLEEP_BETWEEN_VOICES = 10.0
-    VOICES_PER_CONVERSATION = 3
+    VOICES_PER_CONVERSATION = 2
     COMMUNICATION_INTERVAL=600       # continue 10 mins and then stop
    
     def __init__(self,
@@ -627,22 +655,22 @@ class VirtualRobot(Robot):
     def tellOwnIdentity(self):
         
         image = self.images[self.imageind]
+        imageSensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image)
+        self.log('tellOwnIdentity: self.imageind  ' + str(self.imageind) + ' self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=' + imageSensation.toDebugStr())      
+        self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None) # or self.process
         self.imageind=self.imageind+1
         if self.imageind >= len(self.images):
             self.imageind = 0
-        imageSensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image)
-        self.log("tellOwnIdentity: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=" + imageSensation.toDebugStr())      
-        self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None) # or self.process
 
         for i in range(VirtualRobot.VOICES_PER_CONVERSATION):          
             time.sleep(VirtualRobot.SLEEP_BETWEEN_VOICES)
             data = self.voices[self.voiceind]
+            sensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=data)
+            self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None) # or self.process
+            self.log("tellOwnIdentity: " + str(self.voiceind) + " self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=" + sensation.toDebugStr())      
             self.voiceind=self.voiceind+1
             if self.voiceind >= len(self.voices):
                self.voiceind = 0
-            sensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=data)
-            self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None) # or self.process
-            self.log("tellOwnIdentity: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=" + sensation.toDebugStr())      
 
     '''
     We can sense

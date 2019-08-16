@@ -16,8 +16,6 @@ from Communication.Communication import Communication
 from Association.Association import Association
 from Axon import Axon
 
-from PIL import Image as PIL_Image
-
 class CommunicationTestCase(unittest.TestCase):
     ''' create situation, where we have found
         - Wall_E_item
@@ -52,30 +50,30 @@ class CommunicationTestCase(unittest.TestCase):
 
         # define time in history, that is different than in all tests
         # not too far away in history, so sensation will not be deleted
-        history_sensationTime = systemTime.time() -2*max(Association.ASSOCIATION_INTERVAL, Communication.COMMUNICATION_INTERVAL)
+        self.history_sensationTime = systemTime.time() -2*max(Association.ASSOCIATION_INTERVAL, Communication.COMMUNICATION_INTERVAL)
 
         # simulate item and image are connected each other with TensorflowClassifivation
         # Item is in LongTerm memory
-        self.Wall_E_item_sensation = Sensation.create(time=history_sensationTime,
+        self.Wall_E_item_sensation = Sensation.create(time=self.history_sensationTime,
                                                       memory=Sensation.Memory.LongTerm,
                                                       sensationType=Sensation.SensationType.Item,
                                                       direction=Sensation.Direction.Out,
                                                       name=CommunicationTestCase.NAME)
         # Image is in LongTerm memory, it comes from TensorflowClassification and is crop of original big image
-        self.Wall_E_image_sensation = Sensation.create(time=history_sensationTime,
+        self.Wall_E_image_sensation = Sensation.create(time=self.history_sensationTime,
                                                        memory=Sensation.Memory.LongTerm,
                                                        sensationType=Sensation.SensationType.Image,
                                                        direction=Sensation.Direction.Out)
         self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation,
                                              score=CommunicationTestCase.SCORE_1)
         # set association also to history
-        self.Wall_E_item_sensation.getAssociation(sensation=self.Wall_E_image_sensation).setTime(time=history_sensationTime)
+        self.Wall_E_item_sensation.getAssociation(sensation=self.Wall_E_image_sensation).setTime(time=self.history_sensationTime)
         
         # these connected each other
         self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 1)
         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 1)
         
-        self.Wall_E_voice_sensation = Sensation.create(time=history_sensationTime,
+        self.Wall_E_voice_sensation = Sensation.create(time=self.history_sensationTime,
                                                        memory=Sensation.Memory.Sensory,
                                                        sensationType=Sensation.SensationType.Voice,
                                                        direction=Sensation.Direction.Out)
@@ -123,21 +121,35 @@ class CommunicationTestCase(unittest.TestCase):
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
                                                  presence=Sensation.Presence.Entering)
-        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation, association=None)
         # Not sure do we always get a voice
         self.assertEqual(self.getAxon().empty(), True, 'Axon should  be empty')
         self.assertEqual(len(self.communication.present_items), 0, 'len(self.communication.present_items should be 0')
       
         print('\n current Entering')
+        # make potential response
+        voice_sensation = Sensation.create(time=self.history_sensationTime,
+                                                  memory=Sensation.Memory.Sensory,
+                                                  sensationType=Sensation.SensationType.Voice,
+                                                  direction=Sensation.Direction.Out)
+        item_sensation = Sensation.create(time=self.history_sensationTime,
+                                          memory=Sensation.Memory.LongTerm,
+                                                 sensationType=Sensation.SensationType.Item,
+                                                 direction=Sensation.Direction.Out,
+                                                 name=CommunicationTestCase.NAME,
+                                                 presence=Sensation.Presence.Entering)
+        item_sensation.associate(sensation=voice_sensation,
+                                           score=CommunicationTestCase.SCORE_1)
+
         Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.LongTerm,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
                                                  presence=Sensation.Presence.Entering)
-        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation, association=None)
         self.assertEqual(len(self.communication.present_items), 1, 'len(self.communication.present_items should be 1')
         self.assertEqual((self.getAxon().empty()), False,  'Axon should not be empty when name entering')
-        tranferDirection, sensation = self.getAxon().get()
+        tranferDirection, sensation, association = self.getAxon().get()
         #Voice
         self.assertEqual(sensation.getSensationType(),Sensation.SensationType.Voice, 'should get Voice')
         # to be spoken
@@ -150,7 +162,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  name=CommunicationTestCase.NAME,
                                                  presence=Sensation.Presence.Present)
        
-        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation, association=None)
         self.assertEqual(len(self.communication.present_items), 1, 'len(self.communication.present_itemsshould be 1')
         self.assertEqual((self.getAxon().empty()), True,  'Axon should not be empty when entered and present')
 # no voice given so we don't get a voice back
@@ -167,9 +179,9 @@ class CommunicationTestCase(unittest.TestCase):
                                                  name=CommunicationTestCase.NAME,
                                                  presence=Sensation.Presence.Present)
        
-        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation, association=None)
         self.assertEqual(len(self.communication.present_items), 1, 'len(self.communication.present_itemsshould be 1')
-        self.assertEqual((self.getAxon().empty()), True,  'Axon should not be empty when entered and present')
+        self.assertEqual((self.getAxon().empty()), True,  'Axon should  be empty when entering again')
 # no voice given so we don't get a voice back
 #         tranferDirection, sensation = self.getAxon().get()
 #         #Voice
@@ -193,27 +205,57 @@ class CommunicationTestCase(unittest.TestCase):
         systemTime.sleep(Communication.COMMUNICATION_INTERVAL+ 2.0)
     
         print('\n current Entering')
+        # make potential response
+        voice_sensation = Sensation.create(time=self.history_sensationTime,
+                                                  memory=Sensation.Memory.Sensory,
+                                                  sensationType=Sensation.SensationType.Voice,
+                                                  direction=Sensation.Direction.Out)
+        item_sensation = Sensation.create(time=self.history_sensationTime,
+                                          memory=Sensation.Memory.LongTerm,
+                                                 sensationType=Sensation.SensationType.Item,
+                                                 direction=Sensation.Direction.Out,
+                                                 name=CommunicationTestCase.NAME,
+                                                 presence=Sensation.Presence.Entering)
+        item_sensation.associate(sensation=voice_sensation,
+                                           score=CommunicationTestCase.SCORE_1)
+        
+        # make entering item and process
         Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.LongTerm,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
                                                  presence=Sensation.Presence.Entering)
-        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation, association=None)
         self.assertEqual(len(self.communication.present_items), 1, 'len(self.communication.present_itemsshould be 1')
-        self.assertEqual((self.getAxon().empty()), False,  'Axon should not be empty')
-        tranferDirection, sensation = self.getAxon().get()
+        self.assertEqual((self.getAxon().empty()), False,  'Axon should not be empty, when entering')
+        tranferDirection, sensation, association = self.getAxon().get()
         #Voice
         self.assertEqual(sensation.getSensationType(),Sensation.SensationType.Voice, 'should get Voice')
         # to be spoken
         self.assertEqual(sensation.getDirection(),Sensation.Direction.In, 'should get Voice to be spoken')
 
         print('\n current Entering')
+        # make potential response
+        voice_sensation = Sensation.create(time=self.history_sensationTime,
+                                                  memory=Sensation.Memory.Sensory,
+                                                  sensationType=Sensation.SensationType.Voice,
+                                                  direction=Sensation.Direction.Out)
+        item_sensation = Sensation.create(time=self.history_sensationTime,
+                                          memory=Sensation.Memory.LongTerm,
+                                                 sensationType=Sensation.SensationType.Item,
+                                                 direction=Sensation.Direction.Out,
+                                                 name=CommunicationTestCase.NAME2,
+                                                 presence=Sensation.Presence.Entering)
+        item_sensation.associate(sensation=voice_sensation,
+                                           score=CommunicationTestCase.SCORE_2)
+
+        # make entering and process
         Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.LongTerm,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME2,
                                                  presence=Sensation.Presence.Entering)
-        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation, association=None)
         self.assertEqual(len(self.communication.present_items), 2, 'len(self.communication.present_itemsshould be 2')
         self.assertEqual((self.getAxon().empty()), True,  'Axon should not be empty when entered and present')
 # no voice given so we don't get a voice back
@@ -230,7 +272,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  name=CommunicationTestCase.NAME2,
                                                  presence=Sensation.Presence.Present)
        
-        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation, association=None)
         self.assertEqual(len(self.communication.present_items), 2, 'len(self.communication.present_itemsshould be 2')
         self.assertEqual((self.getAxon().empty()), True,  'Axon should  be empty')
 # no voice given so we don't get a voice back
@@ -247,7 +289,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  name=CommunicationTestCase.NAME2,
                                                  presence=Sensation.Presence.Present)
        
-        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation, association=None)
         self.assertEqual(len(self.communication.present_items), 2, 'len(self.communication.present_itemsshould be 2')
 # no voice given so we don't get a voice back
 #         tranferDirection, sensation = self.getAxon().get()
@@ -263,7 +305,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  name=CommunicationTestCase.NAME2,
                                                  presence=Sensation.Presence.Absent)
        
-        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation, association=None)
         self.assertEqual(self.getAxon().empty(), True, 'Axon should  be empty')
         self.assertEqual(len(self.communication.present_items), 1, 'len(self.communication.present_items should be 1')
     
@@ -274,7 +316,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  name=CommunicationTestCase.NAME,
                                                  presence=Sensation.Presence.Absent)
        
-        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation, association=None)
         self.assertEqual(self.getAxon().empty(), True, 'Axon should  be empty')
         self.assertEqual(len(self.communication.present_items), 0, 'len(self.communication.present_items should be 0')
         
@@ -425,12 +467,12 @@ class CommunicationTestCase(unittest.TestCase):
         #######################
         '''
 
-        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation, association=None)
         # We have Voice to be spoken out
         # minimum is that we get something
         self.assertNotEqual(self.getAxon().empty(), True, 'Axon should not be empty')
         
-        tranferDirection, sensation = self.getAxon().get()
+        tranferDirection, sensation, association = self.getAxon().get()
         #Voice
         self.assertEqual(sensation.getSensationType(),Sensation.SensationType.Voice, 'should get Voice')
         # to be spoken
@@ -466,7 +508,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
         
         # process
-        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_voice_response_sensation)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_voice_response_sensation, association=None)
 
         # We should have a Voice to be spoken out again 
         # minimum is that we get something
@@ -476,7 +518,7 @@ class CommunicationTestCase(unittest.TestCase):
         
         self.assertEqual(self.getAxon().empty(), False, 'Axon should not be empty')
         
-        tranferDirection, sensation = self.getAxon().get()
+        tranferDirection, sensation, association = self.getAxon().get()
         #Voice
         self.assertEqual(sensation.getSensationType(),Sensation.SensationType.Voice, 'should get Voice')
         # to be spoken

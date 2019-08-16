@@ -122,7 +122,12 @@ class MainRobot(Robot):
         while self.running:
             transferDirection, sensation, association = self.getAxon().get()
             self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
-            # We are main Robot, so sensation hoes always down to be processed    
+            # We are main Robot, keep track of presence
+            if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.Memory.LongTerm and\
+               sensation.getDirection() == Sensation.Direction.Out:
+               self.tracePresents(sensation)
+            
+               
             self.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation, association=association)
             # as a test, echo everything to external device
             #self.out_axon.put(sensation)
