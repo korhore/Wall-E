@@ -20,23 +20,23 @@ that start and manages all subrobots
 '''
 
 import os
+import shutil
 import time
 import sys
 import signal
 import getopt
 import daemon
 import lockfile
-
 from threading import Thread
 from threading import Timer
-
 import socket
-
+from PIL import Image as PIL_Image
 
 
 from Robot import Robot
 from Config import Config, Capabilities
 from Sensation import Sensation
+from AlsaAudio import Settings as AudioSettings
 
 HOST = ''
 PORT = 2000
@@ -90,6 +90,8 @@ class MainRobot(Robot):
         
         # in main robot, set up Long_tem Memory and set up TCPServer
         if self.level == 1:
+            # set memory handling for Sensation memory
+            Sensation.maxSensationRss = self.config.getMaxSensationRss()
             Sensation.loadLongTermMemory()
             Sensation.CleanDataDirectory()
             self.tcpServer=TCPServer(parent=self,
@@ -113,9 +115,13 @@ class MainRobot(Robot):
         if self.level == 1:
             self.tcpServer.start()
            
-        # study own identity
+        # Main Robot should study own identity
         # starting point of robot is always to study what it knows himself
         self.studyOwnIdentity()
+#         # and get data of irself for communication with others
+#                 # study own identity
+#         self.getOwnIdentity()
+
 
         # live until stopped
         self.mode = Sensation.Mode.Normal
@@ -154,13 +160,50 @@ class MainRobot(Robot):
         self.mode = Sensation.Mode.StudyOwnIdentity
         self.log("My name is " + self.getWho())      
         self.kind = self.config.getKind()
-        self.log("My kind is " + str(self.kind))      
-        self.identitypath = self.config.getIdentityDirPath(self.kind)
+        self.log("My kind is " + str(self.getKind()))      
+        self.identitypath = self.config.getIdentityDirPath(self.getKind())
         self.log('My identitypath is ' + self.identitypath)      
         for dirName, subdirList, fileList in os.walk(self.identitypath):
             self.log('Found directory: %s' % dirName)      
+            image_file_names=[]
+            voice_file_names=[]
             for fname in fileList:
-                self.log('\t%s' % fname)      
+                self.log('\t%s' % fname)
+                if fname.endswith(".jpg"):# or\
+                   #fname.endswith(".png"):
+                    image_file_names.append(fname)
+                elif fname.endswith(".wav"):
+                    voice_file_names.append(fname)
+            # images
+            for fname in image_file_names:
+                image_path=os.path.join(dirName,fname)
+                sensation_filepath = os.path.join('/tmp/',fname)
+                shutil.copyfile(image_path, sensation_filepath)
+                image = PIL_Image.open(sensation_filepath)
+                image.load()
+                Robot.images.append(image)
+             # voices
+            for fname in voice_file_names:
+                image_path=os.path.join(dirName,fname)
+                sensation_filepath = os.path.join('/tmp/',fname)
+                shutil.copyfile(image_path, sensation_filepath)
+                with open(sensation_filepath, 'rb') as f:
+                    data = f.read()
+                        
+                    # length must be AudioSettings.AUDIO_PERIOD_SIZE
+                    remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
+                    if remainder is not 0:
+                        self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) + " correcting " )
+                        len_zerobytes = AudioSettings.AUDIO_PERIOD_SIZE - remainder
+                        ba = bytearray(data)
+                        for i in range(len_zerobytes):
+                            ba.append(0)
+                        data = bytes(ba)
+                        remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
+                        if remainder is not 0:
+                            self.log("Did not succeed to fix!")
+                            self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) )
+                    Robot.voices.append(data)
 
     '''    
     Process basic functionality is validate meaning level of the sensation.

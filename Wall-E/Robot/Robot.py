@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 03.08.2019
+Updated on 17.08.2019
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -132,6 +132,15 @@ class Robot(Thread):
                LogLevel.Verbose)
     #presence variables
     present_items={}
+    
+    # (Main) Robots identity. All running Robot treads share these
+    #idexes used in communication
+    imageind=0
+    voiceind=0
+    # Features of Robot identity we can show and speak to
+    images=[]
+    voices=[]
+    
         
    
     def __init__(self,
@@ -344,8 +353,6 @@ class Robot(Thread):
         for robot in self.subInstances:
             if robot.getInstanceType() != Sensation.InstanceType.Remote:
                 robot.start()
-        # study own identity
-        # starting point of robot is always to study what it knows himself
         self.studyOwnIdentity()
 
         # live until stopped
@@ -415,12 +422,60 @@ class Robot(Thread):
         self.mode = Sensation.Mode.StudyOwnIdentity
         self.log(logLevel=Robot.LogLevel.Normal, logStr="My name is " + self.getWho())      
         self.log(logLevel=Robot.LogLevel.Detailed, logStr="My kind is " + str(self.getKind()))      
+#        self.identitypath = self.config.getIdentityDirPath(self.getKind())
+#         self.log(logLevel=Robot.LogLevel.Detailed, logStr='My identitypath is ' + self.identitypath)      
+#         for dirName, subdirList, fileList in os.walk(self.identitypath):
+#             self.log(logLevel=Robot.LogLevel.Verbose, logStr='Found directory: %s' % dirName)      
+#             for fname in fileList:
+#                 self.log(logLevel=Robot.LogLevel.Verbose, logStr='\t%s' % fname)
+                
+    '''
+    get our identity
+    '''   
+    def getOwnIdentity(self):
         self.identitypath = self.config.getIdentityDirPath(self.getKind())
-        self.log(logLevel=Robot.LogLevel.Detailed, logStr='My identitypath is ' + self.identitypath)      
         for dirName, subdirList, fileList in os.walk(self.identitypath):
-            self.log(logLevel=Robot.LogLevel.Verbose, logStr='Found directory: %s' % dirName)      
+            self.log('Found directory: %s' % dirName)      
+            image_file_names=[]
+            voice_file_names=[]
             for fname in fileList:
-                self.log(logLevel=Robot.LogLevel.Verbose, logStr='\t%s' % fname)      
+                self.log('\t%s' % fname)
+                if fname.endswith(".jpg"):# or\
+                   #fname.endswith(".png"):
+                    image_file_names.append(fname)
+                elif fname.endswith(".wav"):
+                    voice_file_names.append(fname)
+            # images
+            for fname in image_file_names:
+                image_path=os.path.join(dirName,fname)
+                sensation_filepath = os.path.join('/tmp/',fname)
+                shutil.copyfile(image_path, sensation_filepath)
+                image = PIL_Image.open(sensation_filepath)
+                image.load()
+                Robot.images.append(image)
+             # voices
+            for fname in voice_file_names:
+                image_path=os.path.join(dirName,fname)
+                sensation_filepath = os.path.join('/tmp/',fname)
+                shutil.copyfile(image_path, sensation_filepath)
+                with open(sensation_filepath, 'rb') as f:
+                    data = f.read()
+                        
+                    # length must be AudioSettings.AUDIO_PERIOD_SIZE
+                    remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
+                    if remainder is not 0:
+                        self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) + " correcting " )
+                        len_zerobytes = AudioSettings.AUDIO_PERIOD_SIZE - remainder
+                        ba = bytearray(data)
+                        for i in range(len_zerobytes):
+                            ba.append(0)
+                        data = bytes(ba)
+                        remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
+                        if remainder is not 0:
+                            self.log("Did not succeed to fix!")
+                            self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) )
+                    Robot.voices.append(data)
+    
 
     '''
     In basic class Sensation processing in not implemented, but this the place
@@ -545,7 +600,7 @@ class VirtualRobot(Robot):
     SLEEPTIME = 60.0
     SLEEP_BETWEEN_IMAGES = 20.0
     SLEEP_BETWEEN_VOICES = 10.0
-    VOICES_PER_CONVERSATION = 2
+    VOICES_PER_CONVERSATION = 4
     COMMUNICATION_INTERVAL=600       # continue 10 mins and then stop
    
     def __init__(self,
@@ -596,7 +651,7 @@ class VirtualRobot(Robot):
         self.running = False   
         
     '''
-    tell your identity
+    get your identity
     '''   
     def getOwnIdentity(self):
         for dirName, subdirList, fileList in os.walk(self.identitypath):
@@ -620,7 +675,7 @@ class VirtualRobot(Robot):
                 self.images.append(image)
 
                 imageSensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image, filePath=sensation_filepath)
-                self.log("tellOwnIdentity: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=" + imageSensation.toDebugStr())      
+                self.log("getOwnIdentity: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=" + imageSensation.toDebugStr())      
                 self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
              # voices
             for fname in voice_file_names:
@@ -647,7 +702,7 @@ class VirtualRobot(Robot):
                     time.sleep(VirtualRobot.SLEEP_BETWEEN_VOICES)
                     sensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=data, filePath=sensation_filepath)
                     self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None) # or self.process
-                    self.log("tellOwnIdentity: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=" + sensation.toDebugStr())      
+                    self.log("getOwnIdentity: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=" + sensation.toDebugStr())      
                  
     '''
     tell your identity

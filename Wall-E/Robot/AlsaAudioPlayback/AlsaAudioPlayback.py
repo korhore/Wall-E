@@ -52,7 +52,6 @@ class AlsaAudioPlayback(Robot):
         
         self.last_datalen=0
         self.last_write_time = systemTime.time()
-        self.playbackTime=0.0
        
         try:
             self.log("alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK, mode=alsaaudio.PCM_NORMAL, device=" + self.device + ')')
@@ -75,7 +74,6 @@ class AlsaAudioPlayback(Robot):
                     
     def process(self, transferDirection, sensation, association=None):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
-        self.playbackTime=0.0
         if sensation.getSensationType() == Sensation.SensationType.Stop:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='process: SensationSensationType.Stop')      
             self.stop()
@@ -158,7 +156,6 @@ class AlsaAudioPlayback(Robot):
                     self.outp.write(data)
                     sensation.save()    #remember what we played
                     self.last_datalen = len(sensation.getData())
-                    self.playbackTime = float(self.last_datalen)/float(Settings.AUDIO_RATE)
                     self.last_write_time = systemTime.time()
                 else:
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: this Voice already played in this interval')
@@ -168,8 +165,11 @@ class AlsaAudioPlayback(Robot):
             self.log(logLevel=Robot.LogLevel.Error, logStr='process: got sensation this robot can\'t process, NOT a Voice In or not running')
         self.log(logLevel=Robot.LogLevel.Detailed, logStr="self.running " + str(self.running))
         
-    def getPlaybackTime(self):
-        return self.playbackTime
+    def getPlaybackTime(self, datalen=None):
+        if datalen == None:
+            datalen = self.last_datalen
+            
+        return float(datalen)/float(Settings.AUDIO_RATE)
 
 if __name__ == "__main__":
     alsaAudioPlayback = AlsaAudioPlayback()

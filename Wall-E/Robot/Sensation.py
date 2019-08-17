@@ -110,8 +110,7 @@ class Sensation(object):
                                                              # set min_cache_memorability lower
     startSensationMemoryUsageLevel = 0.0                     # start memory usage level after creating first Sensation
     currentSensationMemoryUsageLevel = 0.0                   # current memory usage level when creating last Sensation
-    maxSensationMemoryUsageLevel = 124.0                     # how much there is space for Sensation as maxim
-                                                             # This is low testing value, so we can test deleting algorithm
+    maxSensationRss = 128.0                                             # how much there is space for Sensation as maxim MainRobot sets this from its Config
     
     LENGTH_SIZE =       2   # Sensation as string can only be 99 character long
     LENGTH_FORMAT =     "{0:2d}"
@@ -331,19 +330,39 @@ class Sensation(object):
         print('Memory usage for Sensations {} MB'.format(memUsage-Sensation.startSensationMemoryUsageLevel))
         
         # TODO should study whole memory            
-        if (memUsage-Sensation.startSensationMemoryUsageLevel) > Sensation.maxSensationMemoryUsageLevel and\
+        if (memUsage-Sensation.startSensationMemoryUsageLevel) > Sensation.maxSensationRss and\
             Sensation.min_cache_memorability < Sensation.MAX_MIN_CACHE_MEMORABILITY:
             Sensation.min_cache_memorability = Sensation.min_cache_memorability + 0.1
-        elif (memUsage-Sensation.startSensationMemoryUsageLevel) < Sensation.maxSensationMemoryUsageLevel and\
+        elif (memUsage-Sensation.startSensationMemoryUsageLevel) < Sensation.maxSensationRss and\
             Sensation.min_cache_memorability > Sensation.MIN_MIN_CACHE_MEMORABILITY:
             Sensation.min_cache_memorability = Sensation.min_cache_memorability - 0.1
 
+#        while len(memory) > 0 and memory[0].getMemorability() < Sensation.min_cache_memorability:
         while len(memory) > 0 and memory[0].getMemorability() < Sensation.min_cache_memorability:
             print('delete from sensation cache ' + memory[0].toDebugStr())
             memory[0].delete()
             del memory[0]
 
         memUsage= resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0
+        if (memUsage-Sensation.startSensationMemoryUsageLevel) > Sensation.maxSensationRss and\
+            Sensation.min_cache_memorability < Sensation.MAX_MIN_CACHE_MEMORABILITY:
+            Sensation.min_cache_memorability = Sensation.min_cache_memorability + 0.1
+        elif (memUsage-Sensation.startSensationMemoryUsageLevel) < Sensation.maxSensationRss and\
+            Sensation.min_cache_memorability > Sensation.MIN_MIN_CACHE_MEMORABILITY:
+            Sensation.min_cache_memorability = Sensation.min_cache_memorability - 0.1
+
+        # TODO if Sensation memory usage has exceeded we study memory to find more deletable Sensations           
+            
+        if (memUsage-Sensation.startSensationMemoryUsageLevel) > Sensation.maxSensationRss:
+            i=0
+            while i < len(memory) > 0:
+                if memory[0].getMemorability() < Sensation.min_cache_memorability:
+                    print('delete from sensation cache ' + memory[i].toDebugStr())
+                    memory[i].delete()
+                    del memory[i]
+                else:
+                    i=i+1
+       
         print('Memory usage after {} MB with Sensation.min_cache_memorability {}'.format(memUsage, Sensation.min_cache_memorability))
         print('Memory usage for Sensations after {} MB'.format(memUsage-Sensation.startSensationMemoryUsageLevel))
                 
@@ -2010,7 +2029,7 @@ class Sensation(object):
                                 print('del Sensation.sensationMemorys[Sensation.Memory.LongTerm]['+str(i)+'] with uncompatible Sensation version ' + str(Sensation.sensationMemorys[Sensation.Memory.LongTerm][i].VERSION))
                                 del Sensation.sensationMemorys[Sensation.Memory.LongTerm][i]
                             elif  Sensation.sensationMemorys[Sensation.Memory.LongTerm][i].getMemorability() <  Sensation.MIN_CACHE_MEMORABILITY:
-                                print('delete Sensation.sensationMemorys[Sensation.Memory.LongTerm]['+str(i)+'] with too low memarability ' + str(Sensation.sensationMemorys[Sensation.Memory.LongTerm][i].getMemorability()))
+                                print('delete Sensation.sensationMemorys[Sensation.Memory.LongTerm]['+str(i)+'] with too low memorability ' + str(Sensation.sensationMemorys[Sensation.Memory.LongTerm][i].getMemorability()))
                                 Sensation.sensationMemorys[Sensation.Memory.LongTerm][i].delete()
                                 # TODO we should delete this also from but how?
                                 del Sensation.sensationMemorys[Sensation.Memory.LongTerm][i]

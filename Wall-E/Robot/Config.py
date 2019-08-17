@@ -71,6 +71,10 @@ class Config(ConfigParser):
                                     # limit is set in MB, but in Linux documentation KB
     MAXRSS_DEFAULT =    512         # 0.5 BG
                                     # raspberry has often 1GB of memory
+    MAX_SENSATION_RSS = "MaxSensationRss"    # maximum resident set size for Sensation2
+                                    # limit is set in MB, but in Linux documentation KB
+    MAX_SENSATION_RSS_DEFAULT =  128.0  # 128MB
+                                        # raspberry has often 1GB of memory
 
 
 
@@ -507,6 +511,14 @@ class Config(ConfigParser):
             print('self.set(Config.DEFAULT_SECTION,Config.MAXRSS, str(Config.MAXRSS_DEFAULT)) exception  ' + str(e))
 
         try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.MAX_SENSATION_RSS):
+                from Robot import Robot
+                self.set(Config.DEFAULT_SECTION,Config.MAX_SENSATION_RSS, str(Config.MAX_SENSATION_RSS_DEFAULT))
+                self.is_changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION,Config.MAX_SENSATION_RSS, str(Config.MAX_SENSATION_RSS_DEFAULT)) exception  ' + str(e))
+
+        try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.WHO):
                 self.set(Config.DEFAULT_SECTION,Config.WHO, Sensation.WALLE)
                 self.is_changes=True
@@ -698,7 +710,14 @@ class Config(ConfigParser):
 
     def getMaxRss(self, section=LOCALHOST):
         try:
-            return self.getint(section=section, option=self.MAXRSS)
+            return self.getfloat(section=section, option=self.MAXRSS)
+        except Exception as e:
+            print('self.getint(section=section, option=self.MAXRSS) ' + str(e))
+            return None
+
+    def getMaxSensationRss(self, section=LOCALHOST):
+        try:
+            return self.getfloat(section=section, option=self.MAX_SENSATION_RSS)
         except Exception as e:
             print('self.getint(section=section, option=self.MAXRSS) ' + str(e))
             return None
