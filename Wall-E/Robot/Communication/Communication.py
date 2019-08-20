@@ -141,7 +141,7 @@ class Communication(Robot):
                 if len(namesStr) > 0:
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' communicates now with ' + namesStr)
                 self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' joined to communication')
-                # communication is not going on item.name is comes
+                # communication is not going on item.name when comes
                 if len(self.communicationItems) == 0:
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: starting new communication with ' +sensation.getName())
                     self.speak(onStart=True)#itemSensation=sensation)
@@ -155,7 +155,7 @@ class Communication(Robot):
                 # communication going and we got a response, nice
                  (len(self.communicationItems) > 0)) or\
                 # we have someone to talk with
-                 (len(Robot.present_items) > 0 and
+                 (len(Robot.present_items) > 0 and\
                 # time is elapsed, so we can start communicating again with present item.names
                   self.lastConversationEndTime is not None and\
                   sensation.getTime()  - self.lastConversationEndTime > self.CONVERSATION_INTERVAL)):
@@ -188,6 +188,26 @@ class Communication(Robot):
                 if len(Robot.present_items) > 0:          
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' got voice and tries to speak with presents ones' + self.presenceToStr())
                     self.speak(onStart=False)
+################
+                # we have someone to talk with
+                # time is elapsed, so we can start communicating again with present item.names
+            elif len(Robot.present_items) > 0 and\
+                  self.lastConversationEndTime is not None and\
+                  sensation.getTime()  - self.lastConversationEndTime > self.CONVERSATION_INTERVAL:
+ 
+#                 if self.timer is not None:
+#                     self.timer.cancel()
+#                     self.timer = None
+                # We want to remember this voice
+                sensation.setMemory(memory=Sensation.Memory.LongTerm)
+                # don't use this voice in this same conversation
+                self.usedVoices.append(sensation)
+                self.usedVoices.append(len(sensation.getData()))
+                self.heardVoices.append(sensation)
+                
+                if len(Robot.present_items) > 0:          
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' got voice and tries to speak with presents ones' + self.presenceToStr())
+                    self.speak(onStart=True)
             else:
                 self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process: not Item or RESPONSE Voice in communication ' + sensation.toDebugStr())
         else:
@@ -202,7 +222,7 @@ class Communication(Robot):
         
 
     '''
-    Response:
+    Speak:
     Say something, when we know Item.name's that are present.
     In this starting version we don't care what was said before, except
     what we have said, but because we don't have any clue, what is meaning of the
@@ -228,10 +248,9 @@ class Communication(Robot):
             if onStart and len(Robot.voices) > 0:
                 self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: onStart')
                 data = Robot.voices[Robot.voiceind]
-                sensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, data=data)
                 self.spokedVoiceSensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, data=data)
-                self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None) # or self.process
-                self.log("speak: " + str(Robot.voiceind) + " self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=" + sensation.toDebugStr())      
+                self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation, association=None) # or self.process
+                self.log("speak: Starting with cue lines " + str(Robot.voiceind) + " self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=" + self.spokedVoiceSensation.toDebugStr())      
                 Robot.voiceind=Robot.voiceind+1
                 if Robot.voiceind >= len(Robot.voices):
                    Robot.voiceind = 0
@@ -309,15 +328,18 @@ class Communication(Robot):
         if self.mostImportantVoiceAssociation is not None:
             self.mostImportantVoiceAssociation.changeFeeling(positive=False, negative=True) #last voice was a bad one because we did not get a response
         # feel disappointed or worse about this voice, so we don't use this again easily
-        if self.mostImportantVoiceAssociation.getFeeling() > Sensation.Association.Feeling.Disappointed:
-            self.mostImportantVoiceAssociation.setFeeling(Sensation.Association.Feeling.Disappointed)
+        if self.mostImportantVoiceAssociation is not None:
+            if self.mostImportantVoiceAssociation.getFeeling() > Sensation.Association.Feeling.Disappointed:
+                self.mostImportantVoiceAssociation.setFeeling(Sensation.Association.Feeling.Disappointed)
             
         for communicationItem in self.communicationItems:
-            communicationItem.getAssociation().changeFeeling(positive=False, negative=True)
+            if communicationItem.getAssociation() is not None:
+                communicationItem.getAssociation().changeFeeling(positive=False, negative=True)
             # feel disappointed or worse about this voice, so we don't use this again easily
-            if communicationItem.getAssociation().getFeeling() > Sensation.Association.Feeling.Disappointed:
-                communicationItem.getAssociation().setFeeling(Sensation.Association.Feeling.Disappointed)
-            self.log(logLevel=Robot.LogLevel.Normal, logStr='stopWaitingResponse: ' + systemTime.ctime(communicationItem.getSensation().getTime()) + ' '  + communicationItem.getSensation().toDebugStr() + ' feeling for voice '+ str(communicationItem.getAssociation().getFeeling()))
+            if communicationItem.getAssociation() is not None:
+                if communicationItem.getAssociation().getFeeling() > Sensation.Association.Feeling.Disappointed:
+                    communicationItem.getAssociation().setFeeling(Sensation.Association.Feeling.Disappointed)
+                self.log(logLevel=Robot.LogLevel.Normal, logStr='stopWaitingResponse: ' + systemTime.ctime(communicationItem.getSensation().getTime()) + ' '  + communicationItem.getSensation().toDebugStr() + ' feeling for voice '+ str(communicationItem.getAssociation().getFeeling()))
         del self.communicationItems[:]  #clear old list
 #         self.log(logLevel=Robot.LogLevel.Normal, logStr="stopWaitingResponse: del self.usedVoices[:]")
         del self.usedVoices[:]                          # clear used voices, communication is ended, so used voices are free to be used in next conversation.

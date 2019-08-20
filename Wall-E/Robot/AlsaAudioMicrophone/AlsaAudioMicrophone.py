@@ -67,7 +67,7 @@ class AlsaAudioMicrophone(Robot):
         self.logged = False
 
         self.inp = alsaaudio.PCM(type=alsaaudio.PCM_CAPTURE, mode=alsaaudio.PCM_NORMAL, device=self.device)
-        # Set attributes: Mono, 44100 Hz, 16 bit little endian samples
+        # Set attributes: Stereo, 44100 Hz, 16 bit little endian samples
         self.inp.setchannels(self.channels)
         self.inp.setrate(self.rate)
         self.inp.setformat(self.format)
@@ -200,8 +200,14 @@ class AlsaAudioMicrophone(Robot):
         voice_items=0
         
         i=0
-        for a in aaa:
-            square_a = float(a) * float(a)
+        while i < len(aaa):
+#        for a in aaa:
+            if Settings.AUDIO_CHANNELS == 1:
+                v=aaa[i]
+            elif Settings.AUDIO_CHANNELS == 2:
+                v=(aaa[i]+aaa[i+1])/2
+ 
+            square_a = float(v) * float(v)
             self.average = math.sqrt(( (self.average * self.average * (self.average_devider - 1.0))  + square_a)/self.average_devider)
             self.short_average = math.sqrt(( (self.short_average * self.short_average * (self.short_average_devider - 1.0))  + square_a)/self.short_average_devider)
             if time.time() > self.debug_time + AlsaAudioMicrophone.DEBUG_INTERVAL:
@@ -210,10 +216,10 @@ class AlsaAudioMicrophone(Robot):
                 
             # TODO this can be much simpler
             
-            if a > maxim:
-                maxim = a
-            if a < minim:
-                minim = a
+            if v > maxim:
+                maxim = v
+            if v < minim:
+                minim = v
             if self.voice:
                 if self.short_average <= self.sensitivity * self.average:
                    self.log(logLevel=Robot.LogLevel.Detailed, logStr="voice stopped at " + time.ctime() + ' ' + str(self.sum/self.n/self.average) + ' ' + str(self.short_average) + ' ' + str(self.average))
@@ -233,7 +239,7 @@ class AlsaAudioMicrophone(Robot):
                    self.square_sum = square_a
                    voice_items +=1
                   
-            i += 1
+            i += Settings.AUDIO_CHANNELS
         
         return  float(voice_items)/length >= 0.5
     

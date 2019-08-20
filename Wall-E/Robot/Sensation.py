@@ -105,8 +105,10 @@ class Sensation(object):
     LONG_TERM_LIVE_TIME =   24.0*3600.0;  # cache sensation 24h (may be changed)
     MIN_CACHE_MEMORABILITY = 0.1                            # starting value of min memorability in sensation cache
     min_cache_memorability = MIN_CACHE_MEMORABILITY          # current value min memorability in sensation cache
-    MAX_MIN_CACHE_MEMORABILITY = 0.7                         # max value of min memorability in sensation cache we think application does something sensible
-    MIN_MIN_CACHE_MEMORABILITY = 0.4                         # min value of min memorability in sensation cache we think application does everything wel and no need to
+    MAX_MIN_CACHE_MEMORABILITY = 1.6                         # max value of min memorability in sensation cache we think application does something sensible
+                                                             # Makes Sensory memory above 150s, which should be enough
+    NEAR_MAX_MIN_CACHE_MEMORABILITY = 1.5                    # max value of min memorability in sensation cache we think application does something sensible
+    MIN_MIN_CACHE_MEMORABILITY = 0.1                         # min value of min memorability in sensation cache we think application does everything wel and no need to
                                                              # set min_cache_memorability lower
     startSensationMemoryUsageLevel = 0.0                     # start memory usage level after creating first Sensation
     currentSensationMemoryUsageLevel = 0.0                   # current memory usage level when creating last Sensation
@@ -140,7 +142,6 @@ class Sensation(object):
 # enum items as strings    
     IN="In"
     OUT="Out"
-    MEMORY_SECTION="Memory"
     SENSORY="Sensory"
     #WORKING="Working"
     LONG_TERM="LongTerm"
@@ -306,67 +307,60 @@ class Sensation(object):
     def getKindStrings():
         return Sensation.Kinds.values()
 
+    '''
+    Add new Sensation to Sensation cache
+    use memory management to avoid too much memory using
+    '''
     
     def addToSensationMemory(sensation):
-        # add new sensation
-        memory = Sensation.sensationMemorys[sensation.getMemory()]
-#        cacheTime = Sensation.sensationMemoryLiveTimes[sensation.getMemory()]
+        Sensation.forgetLessImportantSensations(sensation)        
+        Sensation.sensationMemorys[sensation.getMemory()].append(sensation)
         
-        # remove too old ones
-        # now = systemTime.time()
-        # TODO use abs(assciation.Importacce()) also
-        # TODO When use association_time, then it is possible that
-        # at the start there is much connected sensation, and after that
-        # there are less connected, that keep in the memory too long time.
-        # Maybe this is not a big problem. This simple implementation keeps
-        # sensation creation efficient
-#        while len(memory) > 0 and now - memory[0].getLatestTime() > cacheTime:
+    '''
+    Forget sensations that are not important
+    Other way we run out of memory very soon
+    '''
 
-        # memory usage in Megabytes
+
+    def forgetLessImportantSensations(sensation):
+        memory = Sensation.sensationMemorys[sensation.getMemory()]
         memUsage= resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0
         if Sensation.startSensationMemoryUsageLevel == 0.0:
             Sensation.startSensationMemoryUsageLevel = memUsage
         print('Memory usage {} MB'.format(memUsage))
         print('Memory usage for Sensations {} MB'.format(memUsage-Sensation.startSensationMemoryUsageLevel))
         
-        # TODO should study whole memory            
+        # calibrate memorability        
         if (memUsage-Sensation.startSensationMemoryUsageLevel) > Sensation.maxSensationRss and\
             Sensation.min_cache_memorability < Sensation.MAX_MIN_CACHE_MEMORABILITY:
-            Sensation.min_cache_memorability = Sensation.min_cache_memorability + 0.1
+            if Sensation.min_cache_memorability >= Sensation.NEAR_MAX_MIN_CACHE_MEMORABILITY:
+                Sensation.min_cache_memorability = Sensation.min_cache_memorability + 0.01
+            else:
+                Sensation.min_cache_memorability = Sensation.min_cache_memorability + 0.1
         elif (memUsage-Sensation.startSensationMemoryUsageLevel) < Sensation.maxSensationRss and\
             Sensation.min_cache_memorability > Sensation.MIN_MIN_CACHE_MEMORABILITY:
             Sensation.min_cache_memorability = Sensation.min_cache_memorability - 0.1
-
-#        while len(memory) > 0 and memory[0].getMemorability() < Sensation.min_cache_memorability:
+        
+        # delete quickly last created Sensations that are not important
         while len(memory) > 0 and memory[0].getMemorability() < Sensation.min_cache_memorability:
-            print('delete from sensation cache ' + memory[0].toDebugStr())
+            print('delete from sensation cache {}'.format(memory[0].toDebugStr()))
             memory[0].delete()
             del memory[0]
 
-        memUsage= resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0
-        if (memUsage-Sensation.startSensationMemoryUsageLevel) > Sensation.maxSensationRss and\
-            Sensation.min_cache_memorability < Sensation.MAX_MIN_CACHE_MEMORABILITY:
-            Sensation.min_cache_memorability = Sensation.min_cache_memorability + 0.1
-        elif (memUsage-Sensation.startSensationMemoryUsageLevel) < Sensation.maxSensationRss and\
-            Sensation.min_cache_memorability > Sensation.MIN_MIN_CACHE_MEMORABILITY:
-            Sensation.min_cache_memorability = Sensation.min_cache_memorability - 0.1
-
-        # TODO if Sensation memory usage has exceeded we study memory to find more deletable Sensations           
-            
+        # if we are still using too much memory for Sensations, we should check all Sensations in the cache
+        memUsage= resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0            
         if (memUsage-Sensation.startSensationMemoryUsageLevel) > Sensation.maxSensationRss:
             i=0
             while i < len(memory) > 0:
-                if memory[0].getMemorability() < Sensation.min_cache_memorability:
-                    print('delete from sensation cache ' + memory[i].toDebugStr())
+                if memory[i].getMemorability() < Sensation.min_cache_memorability:
+                    print('delete from sensation cache {}'.format(memory[i].toDebugStr()))
                     memory[i].delete()
                     del memory[i]
                 else:
                     i=i+1
        
-        print('Memory usage after {} MB with Sensation.min_cache_memorability {}'.format(memUsage, Sensation.min_cache_memorability))
-        print('Memory usage for Sensations after {} MB'.format(memUsage-Sensation.startSensationMemoryUsageLevel))
-                
-        memory.append(sensation)
+        print('Memory cache {} usage after {} MB with Sensation.min_cache_memorability {}'.format(Sensation.getMemoryString(sensation.getMemory()), memUsage, Sensation.min_cache_memorability))
+        print('Memory usage for Sensations {} after {} MB'.format(len(memory), memUsage-Sensation.startSensationMemoryUsageLevel))
          
     '''
     Association is a association between two sensations
@@ -1645,6 +1639,8 @@ class Sensation(object):
        
     def setMemory(self, memory):
         self.memory = memory
+        self.time = systemTime.time()   # if we change memory, this is new Sensation
+        Sensation.forgetLessImportantSensations(sensation=self)
     def getMemory(self):
         return self.memory
        

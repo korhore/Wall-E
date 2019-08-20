@@ -480,7 +480,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                 self.running = self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
                 self.log('run: sendSensation Sensation.SensationType.Capability done ' + str(self.address) +  ' '  + sensation.getCapabilities().toDebugString('SocketClient'))
         except Exception as e:
-            self.log("run: SocketClient.sendSensation exception " + str(e))
+            self.log("run: SocketClient.sendSensation exception {}", format(str(e)))
             self.running = False
 
         # finally normal run from Robot-class

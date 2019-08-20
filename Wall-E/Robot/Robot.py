@@ -684,20 +684,22 @@ class VirtualRobot(Robot):
                 shutil.copyfile(image_path, sensation_filepath)
                 with open(sensation_filepath, 'rb') as f:
                     data = f.read()
-                        
-                    # length must be AudioSettings.AUDIO_PERIOD_SIZE
-                    remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
+                    
+                    # add missing 0 bytes for 
+                    # length must be Settings.AUDIO_PERIOD_SIZE
+                    remainder = len(data) % (Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNEL)
                     if remainder is not 0:
-                        self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) + " correcting " )
-                        len_zerobytes = AudioSettings.AUDIO_PERIOD_SIZE - remainder
+                        self.log(str(remainder) + " over periodic size " + str(Settings.AUDIO_PERIOD_SIZE) + " correcting " )
+                        len_zerobytes = (Settings.AUDIO_PERIOD_SIZE - remainder)*Settings.AUDIO_CHANNEL
                         ba = bytearray(data)
                         for i in range(len_zerobytes):
                             ba.append(0)
                         data = bytes(ba)
-                        remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
+                        remainder = len(data) % (Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNEL)
                         if remainder is not 0:
                             self.log("Did not succeed to fix!")
-                            self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) )
+                            self.log(str(remainder) + " over periodic size " + str(Settings.AUDIO_PERIOD_SIZE) )
+                    
                     self.voices.append(data)
                     time.sleep(VirtualRobot.SLEEP_BETWEEN_VOICES)
                     sensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=data, filePath=sensation_filepath)
