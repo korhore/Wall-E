@@ -548,7 +548,9 @@ class Sensation(object):
         new ones.
        '''
         def getImportance(self):
-            return float(self.feeling) * (1.0 + self.score)
+            if self.feeling >= 0:
+                return float(self.feeling+1) * (1.0 + self.score)
+            return float(self.feeling-1) * (1.0 + self.score)
 
     '''
     default constructor for Sensation
@@ -1546,15 +1548,15 @@ class Sensation(object):
         for association in self.associations:
             if positive:
                 if association.getImportance() > importance:
-                    importance= association.getImportance()
+                    importance = association.getImportance()
                     best_association = association
             if negative:
                 if association.getImportance() < importance:
                     importance= association.getImportance()
                     best_association = association
             if absolute:
-                if abs(association.getImportance()) < abs(importance):
-                    importance=  association.getImportance()
+                if abs(association.getImportance()) > abs(importance):
+                    importance = association.getImportance()
                     best_association = association
         if best_association is not None:
             best_association.time = systemTime.time()
@@ -1939,22 +1941,38 @@ class Sensation(object):
                        notName is None and sensation.getName() == name or\
                        name is None and sensation.getName() != notName or\
                        name is None and notName is None:
-                        if bestSensation is None or\
-                           sensation.getImportance() > bestSensation.getImportance():
-                            bestSensation = sensation
-                            print("getMostImportantSensation found candidate " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getImportance()))
-        if bestSensation is not None:
-            print("getMostImportantSensation found " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getImportance()))
-            bestAssociationSensationImportance = None 
-            for association in bestSensation.getAssociationsbBySensationType(associationSensationType=associationSensationType, ignoredSensations=ignoredSensations, ignoredVoiceLens=ignoredVoiceLens):
-                if bestAssociationSensationImportance is None or\
-                    bestAssociationSensationImportance < association.getSensation().getImportance():
-                    bestAssociationSensationImportance = association.getSensation().getImportance()
-                    bestAssociation = association
-                    bestAssociationSensation = association.getSensation()
-                    print("getMostImportantSensation found bestAssociationSensation candidate " + bestAssociationSensation.toDebugStr() + ' ' + str(bestAssociationSensationImportance))
-        else:
+                        bestAssociationSensationImportance = None 
+                        for association in sensation.getAssociationsbBySensationType(associationSensationType=associationSensationType, ignoredSensations=ignoredSensations, ignoredVoiceLens=ignoredVoiceLens):
+                            if bestAssociationSensationImportance is None or\
+                                bestAssociationSensationImportance < association.getSensation().getImportance():
+                                bestAssociationSensationImportance = association.getSensation().getImportance()
+                                bestSensation = sensation
+                                bestAssociation = association
+                                bestAssociationSensation = association.getSensation()
+                                print("getMostImportantSensation found " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getImportance()))
+                                print("getMostImportantSensation found bestAssociationSensation candidate " + bestAssociationSensation.toDebugStr() + ' ' + str(bestAssociationSensationImportance))
+        if bestSensation == None:
             print("getMostImportantSensation did not find any")
+                        
+                        
+                        
+# old logic
+#                         if bestSensation is None or\
+#                            sensation.getImportance() > bestSensation.getImportance():
+#                             bestSensation = sensation
+#                             print("getMostImportantSensation found candidate " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getImportance()))
+#         if bestSensation is not None:
+#             print("getMostImportantSensation found " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getImportance()))
+#             bestAssociationSensationImportance = None 
+#             for association in bestSensation.getAssociationsbBySensationType(associationSensationType=associationSensationType, ignoredSensations=ignoredSensations, ignoredVoiceLens=ignoredVoiceLens):
+#                 if bestAssociationSensationImportance is None or\
+#                     bestAssociationSensationImportance < association.getSensation().getImportance():
+#                     bestAssociationSensationImportance = association.getSensation().getImportance()
+#                     bestAssociation = association
+#                     bestAssociationSensation = association.getSensation()
+#                     print("getMostImportantSensation found bestAssociationSensation candidate " + bestAssociationSensation.toDebugStr() + ' ' + str(bestAssociationSensationImportance))
+#         else:
+#             print("getMostImportantSensation did not find any")
             
         return bestSensation, bestAssociation, bestAssociationSensation
 

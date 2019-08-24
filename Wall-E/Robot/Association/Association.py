@@ -27,9 +27,9 @@ from Sensation import Sensation
 
 class Association(Robot):
 
-    ASSOCIATION_INTERVAL=30.0    # time window plus/minus in seconds 
+    #ASSOCIATION_INTERVAL=30.0    # time window plus/minus in seconds 
                                 # for  sensations we connect together
-    ASSOCIATION_SCORE_LIMIT=0.1  # how strong association sensation should have
+    #ASSOCIATION_SCORE_LIMIT=0.1  # how strong association sensation should have
                                 # if we we connect it together with others sensations
                                 # in time window 
 
@@ -44,51 +44,18 @@ class Association(Robot):
                        instanceName=instanceName,
                        instanceType=instanceType,
                        level=level)
-        self.present_items={}
         
     def process(self, transferDirection, sensation, association=None):
         self.log('process: sensation ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
-        now = time.time()
-        if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.Memory.LongTerm and\
-           sensation.getDirection() == Sensation.Direction.Out: 
-            self.tracePresents(sensation)
-        #we have present item.names we can connect
-        elif len(self.present_items) > 0 and \
-             sensation.getTime() >= now - Association.ASSOCIATION_INTERVAL and \
-             sensation.getTime() <= now + Association.ASSOCIATION_INTERVAL and \
-             len(sensation.getAssociations()) < Sensation.ASSOCIATIONS_MAX_ASSOCIATIONS:
-            for itemSensation in self.present_items.values():
-                if len(itemSensation.getAssociations()) < Sensation.ASSOCIATIONS_MAX_ASSOCIATIONS:
-                    self.log('process: sensation.associate(Sensation.Association(self_sensation==itemSensation ' +  itemSensation.toDebugStr() + ' sensation=sensation ' + sensation.toDebugStr())
-                    itemSensation.associate(sensation=sensation,
-                                            score=itemSensation.getScore())
-                else:
-                    self.log('process: itemSensation ignored too much associations ' + itemSensatio.toDebugStr())
-        else:
-            self.log('process: sensation ignored')
-       
+           #Robot.presentItemSensations can be changed
+        values = Robot.presentItemSensations.values()
+        for itemSensation in values:
+            if sensation is not itemSensation and\
+               sensation.getTime() >=  itemSensation.getTime() and\
+               len(itemSensation.getAssociations()) < Sensation.ASSOCIATIONS_MAX_ASSOCIATIONS:
+                self.log('process: sensation.associate(Sensation.Association(self_sensation==itemSensation ' +  itemSensation.toDebugStr() + ' sensation=sensation ' + sensation.toDebugStr())
+                itemSensation.associate(sensation=sensation,
+                                        score=itemSensation.getScore())
+            else:
+                self.log('process: itemSensation ignored too much associations or items not newer than present itemSensation or sensation is present sensation' + itemSensation.toDebugStr())
 
-    '''
-        Trace present Item.names from sensations
-    '''
-  
-    def tracePresents(self, sensation):
-        # present means pure Present, all other if handled not present
-        if sensation.getPresence() == Sensation.Presence.Entering or\
-           sensation.getPresence() == Sensation.Presence.Present:
-            if sensation.getName() not in self.present_items or\
-                sensation.getTime() > self.present_items[sensation.getName()].getTime():
-                self.present_items[sensation.getName()] = sensation
-                self.log(logLevel=Robot.LogLevel.Normal, logStr="entering or present " + sensation.getName())
-            else:
-                self.log(logLevel=Robot.LogLevel.Detailed, logStr="entering or present did not come in order for " + sensation.getName())
-        else:
-            if sensation.getName() in self.present_items:
-                if sensation.getTime() > self.present_items[sensation.getName()].getTime():
-                    del self.present_items[sensation.getName()]
-                    self.log(logLevel=Robot.LogLevel.Normal, logStr="absent " + sensation.getName())
-                else:
-                    self.log(logLevel=Robot.LogLevel.Detailed, logStr="absent did not come in order for " + sensation.getName())
-            else:
-                self.log(logLevel=Robot.LogLevel.Detailed, logStr="absent but did not enter for " + sensation.getName())
-       

@@ -131,7 +131,7 @@ class Robot(Thread):
                LogLevel.Detailed,
                LogLevel.Verbose)
     #presence variables
-    present_items={}
+    presentItemSensations={}
     
     # (Main) Robots identity. All running Robot treads share these
     #idexes used in communication
@@ -565,25 +565,27 @@ class Robot(Thread):
     def tracePresents(self, sensation):
         # present means pure Present, all other if handled not present
         # if present sensations must come in order
-        if sensation.getName() in Robot.present_items and\
-           sensation.getTime() > Robot.present_items[sensation.getName()].getTime(): 
+        if sensation.getName() in Robot.presentItemSensations and\
+           sensation.getTime() > Robot.presentItemSensations[sensation.getName()].getTime(): 
 
             if sensation.getPresence() == Sensation.Presence.Entering or\
-               sensation.getPresence() == Sensation.Presence.Present:
-                Robot.present_items[sensation.getName()] = sensation
-                self.log(logLevel=Robot.LogLevel.Normal, logStr="entering or present " + sensation.getName())
+               sensation.getPresence() == Sensation.Presence.Present or\
+               sensation.getPresence() == Sensation.Presence.Exiting:
+                Robot.presentItemSensations[sensation.getName()] = sensation
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="Entering, Present or Exiting " + sensation.getName())
             else:
-                del Robot.present_items[sensation.getName()]
+                del Robot.presentItemSensations[sensation.getName()]
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="absent " + sensation.getName())
         else:
             if sensation.getPresence() == Sensation.Presence.Entering or\
-               sensation.getPresence() == Sensation.Presence.Present:
-                Robot.present_items[sensation.getName()] = sensation
-                self.log(logLevel=Robot.LogLevel.Normal, logStr="entering or present " + sensation.getName())
+               sensation.getPresence() == Sensation.Presence.Present or\
+               sensation.getPresence() == Sensation.Presence.Exiting:
+                Robot.presentItemSensations[sensation.getName()] = sensation
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="Entering, Present or Exiting " + sensation.getName())
 
     def presenceToStr(self):
         namesStr=''
-        for name, sensation in Robot.present_items.items():
+        for name, sensation in Robot.presentItemSensations.items():
             namesStr = namesStr + ' ' + name
         return namesStr
  
@@ -686,19 +688,19 @@ class VirtualRobot(Robot):
                     data = f.read()
                     
                     # add missing 0 bytes for 
-                    # length must be Settings.AUDIO_PERIOD_SIZE
-                    remainder = len(data) % (Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNEL)
+                    # length must be AudioSettings.AUDIO_PERIOD_SIZE
+                    remainder = len(data) % (AudioSettings.AUDIO_PERIOD_SIZE*AudioSettings.AUDIO_CHANNELS)
                     if remainder is not 0:
-                        self.log(str(remainder) + " over periodic size " + str(Settings.AUDIO_PERIOD_SIZE) + " correcting " )
-                        len_zerobytes = (Settings.AUDIO_PERIOD_SIZE - remainder)*Settings.AUDIO_CHANNEL
+                        self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) + " correcting " )
+                        len_zerobytes = (AudioSettings.AUDIO_PERIOD_SIZE*AudioSettings.AUDIO_CHANNELS - remainder)
                         ba = bytearray(data)
                         for i in range(len_zerobytes):
                             ba.append(0)
                         data = bytes(ba)
-                        remainder = len(data) % (Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNEL)
+                        remainder = len(data) % (AudioSettings.AUDIO_PERIOD_SIZE*AudioSettings.AUDIO_CHANNELS)
                         if remainder is not 0:
                             self.log("Did not succeed to fix!")
-                            self.log(str(remainder) + " over periodic size " + str(Settings.AUDIO_PERIOD_SIZE) )
+                            self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE*AudioSettings.AUDIO_CHANNELS) )
                     
                     self.voices.append(data)
                     time.sleep(VirtualRobot.SLEEP_BETWEEN_VOICES)

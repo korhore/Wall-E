@@ -23,6 +23,7 @@ SocketServer:('192.168.117.7', 51518):3:Normal: run: waiting next Sensation from
 
 Develop
 -------
+Voice Kind cannot be local only, because Communinication and AlsaAudioBradcast can be in different servers
 Study Prensece by Location -consept
 
 Study memory usage

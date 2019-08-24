@@ -97,32 +97,32 @@ class AlsaAudioPlayback(Robot):
                         ind_step_point = 0  # in which table index we are
                         result_aaa=[]
                         # while not and of source
-                        a=[]
-                        while ind_step_point < len(aaa)/Settings.AUDIO_CHANNEL:
-                            for i in range(Settings.AUDIO_CHANNEL):
+                        a={}
+                        while ind_step_point < len(aaa)/Settings.AUDIO_CHANNELS:
+                            for i in range(Settings.AUDIO_CHANNELS):
                                 a[i] = 0.0     # fill next a for destination
                             dest_step=0.0
-                            while ind_step_point < len(aaa)/Settings.AUDIO_CHANNEL and\
+                            while ind_step_point < len(aaa)/Settings.AUDIO_CHANNELS and\
                                   dest_step <  step_length:
                                 # how much we we get on this source ind
                                 source_boundary = math.floor(step_point + 1.0)
                                 can_get = source_boundary - step_point
                                 if dest_step + can_get <= step_length:
-                                    for i in range(Settings.AUDIO_CHANNEL):
-                                        a[i] = a[i]+can_get*aaa[Settings.AUDIO_CHANNEL*ind_step_point+i]
+                                    for i in range(Settings.AUDIO_CHANNELS):
+                                        a[i] = a[i]+can_get*aaa[Settings.AUDIO_CHANNELS*ind_step_point+i]
                                     step_point = float(source_boundary)
                                     ind_step_point = ind_step_point+1   # source to next boundary
                                 else:
                                     can_get = min(source_boundary - step_point, step_length- dest_step)
-                                    for i in range(Settings.AUDIO_CHANNEL):
-                                        a[i] =  a[i]+can_get*aaa[Settings.AUDIO_CHANNEL*ind_step_point+i]
+                                    for i in range(Settings.AUDIO_CHANNELS):
+                                        a[i] =  a[i]+can_get*aaa[Settings.AUDIO_CHANNELS*ind_step_point+i]
                                     step_point = step_point + can_get  # firward in this source ind
                                     if abs(step_point-source_boundary) < 0.001:
                                         ind_step_point = ind_step_point+1 # source to next boundary
                                     
                                 dest_step = dest_step + can_get
                                 if dest_step >=  step_length:   # destination a is ready
-                                    for i in range(Settings.AUDIO_CHANNEL):
+                                    for i in range(Settings.AUDIO_CHANNELS):
                                         result_aaa.append(a[i]/step_length)    # normalize, so voice loudness don't change
                                      
                           
@@ -137,23 +137,23 @@ class AlsaAudioPlayback(Robot):
                          
                         # add missing 0 bytes for 
                         # length must be Settings.AUDIO_PERIOD_SIZE
-                        remainder = len(result_data) % (Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNEL)
+                        remainder = len(result_data) % (Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNELS)
                         if remainder is not 0:
-                            self.log(str(remainder) + " over periodic size " + str(Settings.AUDIO_PERIOD_SIZE) + " correcting " )
-                            len_zerobytes = (Settings.AUDIO_PERIOD_SIZE - remainder)*Settings.AUDIO_CHANNEL
+                            self.log(str(remainder) + " over periodic size " + str(Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNELS) + " correcting " )
+                            len_zerobytes = (Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNELS - remainder)
                             ba = bytearray(result_data)
                             for i in range(len_zerobytes):
                                 ba.append(0)
                             result_data = bytes(ba)
-                            remainder = len(result_data) % (Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNEL)
+                            remainder = len(result_data) % (Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNELS)
                             if remainder is not 0:
                                 self.log("Did not succeed to fix!")
-                                self.log(str(remainder) + " over periodic size " + str(Settings.AUDIO_PERIOD_SIZE) )
+                                self.log(str(remainder) + " over periodic size " + str(Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNELS) )
                         
   
                         # for debug reasons play original and changed voice                           
                         #data = result_data + data
-                        #fnormal                        
+                        #normal                        
                         data = result_data
                                 
                         
