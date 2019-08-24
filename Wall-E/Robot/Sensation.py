@@ -351,7 +351,7 @@ class Sensation(object):
         memUsage= resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0            
         if (memUsage-Sensation.startSensationMemoryUsageLevel) > Sensation.maxSensationRss:
             i=0
-            while i < len(memory) > 0:
+            while i < len(memory):
                 if memory[i].getMemorability() < Sensation.min_cache_memorability:
                     print('delete from sensation cache {}'.format(memory[i].toDebugStr()))
                     memory[i].delete()
