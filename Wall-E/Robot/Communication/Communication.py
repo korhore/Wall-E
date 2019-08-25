@@ -52,7 +52,7 @@ else
 import time as systemTime
 import threading 
 
-from Robot import  Robot
+from Robot import Robot
 from Sensation import Sensation
 
 class Communication(Robot):
@@ -239,13 +239,14 @@ class Communication(Robot):
         candidate_communicationItems = []
         # Robot.presentItemSensations can be changed
         items = Robot.presentItemSensations.items()
-        try:
+#        try:
+        if True:
             if onStart and len(Robot.voices) > 0:
                 self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: onStart')
                 data = Robot.voices[Robot.voiceind]
                 self.spokedVoiceSensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, data=data)
                 self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation, association=None) # or self.process
-                self.log("speak: Starting with presenting Robot voiceind={} self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation={}".format(str(Robot.voiceind), self.spokedVoiceSensation.toDebugStr()))     
+                self.log("speak: Starting with presenting Robot voiceind={} self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation={}".format(str(Robot.voiceind), self.spokedVoiceSensation.toDebugStr()))
                 Robot.voiceind=Robot.voiceind+1
                 if Robot.voiceind >= len(Robot.voices):
                    Robot.voiceind = 0
@@ -282,8 +283,9 @@ class Communication(Robot):
 #                                                                         sensation = candidate_for_communication,
 #                                                                         time = systemTime.time())
 #                     candidate_communicationItems.append(communicationItem)
-        except Exception as e:
-            self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: ignored exception ' + str(e))
+
+#         except Exception as e:
+#             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: ignored exception ' + str(e))
             
         if self.mostImportantItemSensation is not None:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: Sensation.getMostImportantSensation did find self.mostImportantItemSensation OK')

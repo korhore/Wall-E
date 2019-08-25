@@ -47,7 +47,7 @@ class Robot(Thread):
     organs with ans senses with their dedidicated functionality. Human and Robot have Axons that transfers Sensation
     from Senses to our brain and from our brain to muscles thich will make some functionality.
     
-    AlsaMicrophone is an axample of Sense-type Robot. AlsaPlöayback is an example of muscle-type Robot.
+    AlsaMicrophone is an example of Sense-type Robot. AlsaPlöayback is an example of muscle-type Robot.
     
     Organising Robot to contain only  subrobots we produce very flexible architecture
     how we can build different kind functionality to our Robot. Robot6 can work inside one computer

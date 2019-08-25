@@ -1949,10 +1949,13 @@ class Sensation(object):
                                 bestSensation = sensation
                                 bestAssociation = association
                                 bestAssociationSensation = association.getSensation()
-                                print("getMostImportantSensation found " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getImportance()))
-                                print("getMostImportantSensation found bestAssociationSensation candidate " + bestAssociationSensation.toDebugStr() + ' ' + str(bestAssociationSensationImportance))
+                                #print("getMostImportantSensation found " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getImportance()))
+                                #print("getMostImportantSensation found bestAssociationSensation candidate " + bestAssociationSensation.toDebugStr() + ' ' + str(bestAssociationSensationImportance))
         if bestSensation == None:
             print("getMostImportantSensation did not find any")
+        else:
+            print("getMostImportantSensation bestSensation {} {}".format(bestSensation.toDebugStr(),str(bestSensation.getImportance())))
+            print("getMostImportantSensation found bestAssociationSensation {} {}".format(bestAssociationSensation.toDebugStr(),str(bestAssociationSensationImportance)))            
                         
                         
                         
