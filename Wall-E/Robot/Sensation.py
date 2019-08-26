@@ -79,10 +79,11 @@ Sensation is something Robot senses
 '''
 
 class Sensation(object):
-    VERSION=13           # version number to check, if we picle same version
+    VERSION=13          # version number to check, if we picle same version
                         # instances. Otherwise we get odd errors, with old
                         # version code instances
 
+    SEARCH_LENGTH=10    # How many response voices we check
     # Association logging max-values                      
     ASSOCIATIONS_LOG_MAX_LEVEL =   10
     ASSOCIATIONS_LOG_MAX_PARENTS = 10           
@@ -485,7 +486,8 @@ class Sensation(object):
             self.feeling = feeling
             # other part
             association = self.sensation.getAssociation(self.self_sensation)
-            association.feeling = feeling
+            if association is not None:
+                association.feeling = feeling
         
         '''
         Change feeling to more positive or negative way
@@ -495,7 +497,8 @@ class Sensation(object):
             self.doChangeFeeling(association=self, positive=positive, negative=negative)
             # other part
             association = self.sensation.getAssociation(self.self_sensation)
-            self.doChangeFeeling(association=association, positive=positive, negative=negative)
+            if association is not None:
+                self.doChangeFeeling(association=association, positive=positive, negative=negative)
 
         '''
         helper association Change feeling to more positive or negative way
@@ -1923,14 +1926,19 @@ class Sensation(object):
                                    notName = None,
                                    associationSensationType = None,
                                    ignoredSensations = [],
-                                   ignoredVoiceLens = []):
+                                   ignoredVoiceLens = [],
+                                   searchLength = 10):
+#                                   searchLength = Sensation.SEARCH_LENGTH):
         bestSensation = None
         bestAssociation = None
         bestAssociationSensation = None
         # TODO starting with best score is not a good idea
         # if best scored item.name has only bad voices, we newer can get
         # good voices
+        found_candidates=0
         for key, sensationMemory in Sensation.sensationMemorys.items():
+            if found_candidates >= searchLength:
+                break
             for sensation in sensationMemory:
                 if sensation not in ignoredSensations and\
                    sensation.getSensationType() == sensationType and\
@@ -1951,6 +1959,11 @@ class Sensation(object):
                                 bestAssociationSensation = association.getSensation()
                                 #print("getMostImportantSensation found " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getImportance()))
                                 #print("getMostImportantSensation found bestAssociationSensation candidate " + bestAssociationSensation.toDebugStr() + ' ' + str(bestAssociationSensationImportance))
+                                found_candidates +=1
+                                if found_candidates >= searchLength:
+                                    break
+                    if found_candidates >= searchLength:
+                        break
         if bestSensation == None:
             print("getMostImportantSensation did not find any")
         else:

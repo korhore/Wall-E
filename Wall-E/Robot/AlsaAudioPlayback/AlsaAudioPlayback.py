@@ -31,6 +31,7 @@ class AlsaAudioPlayback(Robot):
     COMMUNICATION_INTERVAL=15.0     # time window to history 
                                     # for sensations we communicate
     WALLE_SPEAK_SPEED=1.25
+    NORMALIZED_VOICE_LEVEL=300.0
 
     def __init__(self,
                  parent=None,
@@ -52,7 +53,6 @@ class AlsaAudioPlayback(Robot):
         
         self.last_datalen=0
         self.last_write_time = systemTime.time()
-       
         try:
             self.log("alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK, mode=alsaaudio.PCM_NORMAL, device=" + self.device + ')')
             self.outp = alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK, mode=alsaaudio.PCM_NORMAL, device=self.device)
@@ -84,14 +84,15 @@ class AlsaAudioPlayback(Robot):
             if systemTime.time() - sensation.getTime() < AlsaAudioPlayback.COMMUNICATION_INTERVAL:
                 if self.last_datalen != len(sensation.getData()) or systemTime.time() - self.last_write_time > AlsaAudioPlayback.COMMUNICATION_INTERVAL:
                     data = sensation.getData()
-#disabled to test raspberry
+                    # process voice
+                    try:
+                        aaa = numpy.fromstring(data, dtype=Settings.AUDIO_CONVERSION_FORMAT)
+                    except (ValueError):
+                        self.log("process numpy.fromstring(data, dtype=dtype: ValueError")      
+                        return
+                    # convert voice as kind if needed
                     if sensation.getKind() == Sensation.Kind.WallE:
                         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: Sensation.SensationType.Voice play as Wall-E')
-                        try:
-                            aaa = numpy.fromstring(data, dtype=Settings.AUDIO_CONVERSION_FORMAT)
-                        except (ValueError):
-                            self.log("process numpy.fromstring(data, dtype=dtype: ValueError")      
-                            return
                         step_length=self.WALLE_SPEAK_SPEED
                         step_point = 0.0    # where we are in source as float
                         ind_step_point = 0  # in which table index we are
@@ -116,7 +117,7 @@ class AlsaAudioPlayback(Robot):
                                     can_get = min(source_boundary - step_point, step_length- dest_step)
                                     for i in range(Settings.AUDIO_CHANNELS):
                                         a[i] =  a[i]+can_get*aaa[Settings.AUDIO_CHANNELS*ind_step_point+i]
-                                    step_point = step_point + can_get  # firward in this source ind
+                                    step_point = step_point + can_get  # forward in this source ind
                                     if abs(step_point-source_boundary) < 0.001:
                                         ind_step_point = ind_step_point+1 # source to next boundary
                                     
@@ -124,40 +125,53 @@ class AlsaAudioPlayback(Robot):
                                 if dest_step >=  step_length:   # destination a is ready
                                     for i in range(Settings.AUDIO_CHANNELS):
                                         result_aaa.append(a[i]/step_length)    # normalize, so voice loudness don't change
-                                     
-                          
-                        #convert to bytes again
+                    # normalize voice                 
+                    # calculate average   
+                    # no need to take care of  Settings.AUDIO_CHANNELS 
+                    # bacause this is average of all ckannels            
+                    i=0
+                    sum=0
+                    while i < len(aaa):
+                        sum += abs(aaa[i])
+                    average = sum/len(aaa)
+                    multiplier = AlsaAudioPlayback.NORMALIZED_VOICE_LEVEL/average
+                    
+                    # normalize voice                 
+                    i=0
+                    while i < len(aaa):
+                        aaa[i]=multiplier*aaa[i]
+                        i += 1
+                    
+
+                    #convert to bytes again                         
+                    try:
+                        #result_data = numpy.array(result_aaa,'<f').tobytes()
+                        result_data = numpy.array(aaa,Settings.AUDIO_CONVERSION_FORMAT).tobytes()
+                    except (ValueError):
+                        self.log("process numpy.array(result_aaa,'<f').bytes(): ValueError")      
+                        return
                          
-                        try:
-                            #result_data = numpy.array(result_aaa,'<f').tobytes()
-                            result_data = numpy.array(result_aaa,Settings.AUDIO_CONVERSION_FORMAT).tobytes()
-                        except (ValueError):
-                            self.log("process numpy.array(result_aaa,'<f').bytes(): ValueError")      
-                            return
-                         
-                        # add missing 0 bytes for 
-                        # length must be Settings.AUDIO_PERIOD_SIZE
+                    # add missing 0 bytes for 
+                    # length must be Settings.AUDIO_PERIOD_SIZE
+                    remainder = len(result_data) % (Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNELS)
+                    if remainder is not 0:
+                        self.log(str(remainder) + " over periodic size " + str(Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNELS) + " correcting " )
+                        len_zerobytes = (Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNELS - remainder)
+                        ba = bytearray(result_data)
+                        for i in range(len_zerobytes):
+                            ba.append(0)
+                        result_data = bytes(ba)
                         remainder = len(result_data) % (Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNELS)
                         if remainder is not 0:
-                            self.log(str(remainder) + " over periodic size " + str(Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNELS) + " correcting " )
-                            len_zerobytes = (Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNELS - remainder)
-                            ba = bytearray(result_data)
-                            for i in range(len_zerobytes):
-                                ba.append(0)
-                            result_data = bytes(ba)
-                            remainder = len(result_data) % (Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNELS)
-                            if remainder is not 0:
-                                self.log("Did not succeed to fix!")
-                                self.log(str(remainder) + " over periodic size " + str(Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNELS) )
+                            self.log("Did not succeed to fix!")
+                            self.log(str(remainder) + " over periodic size " + str(Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNELS) )
                         
   
-                        # for debug reasons play original and changed voice                           
-                        #data = result_data + data
-                        #normal                        
-                        data = result_data
-                                
-                        
-                        
+                    # for debug reasons play original and changed voice                           
+                    #data = result_data + data
+                    #normal                        
+                    data = result_data
+                                                        
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: Sensation.SensationType.VoiceData self.outp.write(data)')
                     self.outp.write(data)
                     sensation.save()    #remember what we played
