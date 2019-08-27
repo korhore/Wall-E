@@ -200,8 +200,8 @@ class AlsaAudioMicrophone(Robot):
         # because we are calculating averages
         # and channels are decided to be even each other      
         voice_items=0
+        i=0
         for a in aaa:
- 
             square_a = float(a) * float(a)
             self.average = math.sqrt(( (self.average * self.average * (self.average_devider - 1.0))  + square_a)/self.average_devider)
             self.short_average = math.sqrt(( (self.short_average * self.short_average * (self.short_average_devider - 1.0))  + square_a)/self.short_average_devider)
@@ -226,12 +226,13 @@ class AlsaAudioMicrophone(Robot):
                    voice_items +=1
             else:
                 if self.short_average > self.sensitivity * self.average:
-                   self.start_time = time.time() - (float(len(aaa)-i)/self.rate) # sound's start time is when we got sound data minus slots that are not in the sound
+                   self.start_time = time.time() - (float(len(aaa)-i)/self.rate)/self.channels # sound's start time is when we got sound data minus slots that are not in the sound
                    self.log(logLevel=Robot.LogLevel.Detailed, logStr="voice started at " + time.ctime() + ' ' + str(self.start_time) + ' ' + str(self.short_average) + ' ' + str(self.average))
                    self.voice = True
                    self.sum=self.short_average
                    self.n=1.0
                    self.square_sum = square_a
+            i += 1
        
         return  float(voice_items)/float(len(aaa)) >= 0.5
     

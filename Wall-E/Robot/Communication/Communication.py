@@ -61,7 +61,7 @@ class Communication(Robot):
                                     # for sensations we communicate
     #COMMUNICATION_INTERVAL=10.0     # time window to history for test to be run quicker
     #COMMUNICATION_INTERVAL=2.5     # time window to history for test to be run quicker
-    CONVERSATION_INTERVAL=300.0     # if no change in present item.naMES and
+    CONVERSATION_INTERVAL=300.0     # if no change in present item.names and
                                     # last conversation is ended, how long
                                     # we wait until we will respond if
                                     # someone speaks

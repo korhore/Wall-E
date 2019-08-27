@@ -129,10 +129,9 @@ class AlsaAudioPlayback(Robot):
                     # calculate average   
                     # no need to take care of  Settings.AUDIO_CHANNELS 
                     # bacause this is average of all ckannels            
-                    i=0
                     sum=0
-                    while i < len(aaa):
-                        sum += abs(aaa[i])
+                    for a in aaa:
+                        sum += abs(a)
                     average = sum/len(aaa)
                     multiplier = AlsaAudioPlayback.NORMALIZED_VOICE_LEVEL/average
                     
