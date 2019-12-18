@@ -14,6 +14,7 @@ import numpy as np
 import six.moves.urllib as urllib
 import sys
 import tarfile
+import zipfile
 import tensorflow as tf
 from PIL import Image as PIL_Image
 from object_detection.utils import label_map_util
@@ -22,7 +23,16 @@ from Robot import  Robot
 from Config import Config, Capabilities
 from Sensation import Sensation
 
+TensorFlow_LITE=True
 
+if TensorFlow_LITE:
+    try:
+        print("TensorFlowClassification import tflite_runtime.interpreter as tflite")
+        import tflite_runtime as tflite
+        print("TensorFlowClassification import tflite_runtime.interpreter as tflite OK")
+    except ImportError as e:
+        print("TensorFlowClassification import tflite_runtime.interpreter as tflite error " + str(e))
+        TensorFlow_LITE=False
 
 class TensorFlowClassification(Robot):
     '''    
@@ -40,11 +50,16 @@ class TensorFlowClassification(Robot):
     and which memories we should forget.
     
     TODO above implementation is mostly for Hearing Sensory and
-    Moving Sensory and should be move to those implementations.  
+    Moving Sensory and should be move to those implementations.
+    
+    Get TF Lite model and labels
+curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mobilenet_v1_1.0_224_quant_and_labels.zip
+    
     '''
 
-    TensorFlow_TEST = False                 # TensorFlow code test
+    TensorFlow_TEST = True                 # TensorFlow code test
                                             # allow this, if problems
+    TensorFlow_LITE = True                  # use Tensorflow lite
            
     NAME =              'name'
     DETECTION_SCORES =  'detection_scores'
@@ -59,12 +74,24 @@ class TensorFlowClassification(Robot):
     # image2.jpg
     # If you want to test the code with your images, just add path to the images to the TEST_IMAGE_PATHS.
     
-    # What model to download.
+    # Normal live model handles as frozen model to download.
     MODEL_NAME =            'ssd_mobilenet_v1_coco_2017_11_17'
     MODEL_FILE =            MODEL_NAME + '.tar.gz'
     DOWNLOAD_BASE =         'http://download.tensorflow.org/models/object_detection/'
     FROZEN_GRAPH_PB_NAME =  'frozen_inference_graph.pb'
     LIVE_GRAPH_PB_NAME =    'live_inference_graph.pb'
+    
+    # LITE model to download, this can't be trained, so it is frozen
+    LITE_MODEL_ZIP_NAME =       'mobilenet_v1_1.0_224_quant_and_labels.zip'
+    LITE_MODEL_NAME =           'mobilenet_v1_1.0_224'
+    LITE_MODEL_QUANT_NAME =     'mobilenet_v1_1.0_224_quant.tflite'
+    LITE_MODEL_LABELS_NAME =    'labels_mobilenet_quant_v1_224.txt'
+    LITE_DOWNLOAD_BASE =        'https://storage.googleapis.com/download.tensorflow.org/models/tflite/'
+    LITE_PATH_TO_GRAPH_DIR = os.path.join(Sensation.DATADIR, LITE_MODEL_NAME)
+    LITE_PATH_TO_FROZEN_GRAPH = os.path.join(Sensation.DATADIR, LITE_MODEL_NAME, LITE_MODEL_QUANT_NAME)
+    LITE_PATH_TO_LABELS = os.path.join(Sensation.DATADIR, LITE_MODEL_NAME, LITE_MODEL_LABELS_NAME)
+    
+    
     DETECTION_SCORE_LIMIT = 0.4 # Maybe this is reasonable limit
 
     PATH_TO_GRAPH_DIR = os.path.join(Sensation.DATADIR, MODEL_NAME)
@@ -88,6 +115,16 @@ class TensorFlowClassification(Robot):
     SLEEP_TIME_BETWEEN_PROCESSES =   1.0
     
     present = {}       # which items are present
+    
+#     if TensorFlow_LITE:
+#         try:
+#             print("TensorFlowClassification import tflite_runtime.interpreter as tflite")
+#             import tflite_runtime.interpreter as tflite
+#             print("TensorFlowClassification import tflite_runtime.interpreter as tflite OK")
+#         except ImportError as e:
+#             print("TensorFlowClassification import tflite_runtime.interpreter as tflite error " + str(e))
+#             TensorFlow_LITE=False
+#     import tflite_runtime.interpreter as tflite
     
     '''
     presence of Item.name
@@ -122,6 +159,8 @@ class TensorFlowClassification(Robot):
                        instanceType=instanceType,
                        level=level)
         self.lastImageTime=None
+        self.tflite_model=None
+        self.detection_graph = None
         
 
     def load_image_into_numpy_array(self, image):
@@ -131,6 +170,7 @@ class TensorFlowClassification(Robot):
 
               
     def run_inference_for_single_image(self, image, graph):
+        self.log(logLevel=Robot.LogLevel.Normal, logStr='run_inference_for_single_image')
         with graph.as_default():
             with tf.Session() as sess:
                 # Get handles to input and output tensors
@@ -176,26 +216,82 @@ class TensorFlowClassification(Robot):
                     output_dict[self.DETECTION_MASKS] = output_dict[self.DETECTION_MASKS][0]
         return output_dict
     
+    def run_inference_for_single_image_LITE(self, image, graph):
+        self.log(logLevel=Robot.LogLevel.Normal, logStr='run_inference_for_single_image_LITE')
+        with graph.as_default():
+            with tflite.interpreter.Session() as sess:
+                # Get handles to input and output tensors
+                ops = tflite.interpreter.get_default_graph().get_operations()
+                all_tensor_names = {output.name for op in ops for output in op.outputs}
+                tensor_dict = {}
+                for key in [
+                    self.NUM_DETECTIONS, self.DETECTION_BOXES, self.DETECTION_SCORES,
+                    self.DETECTION_CLASSES, self.DETECTION_MASKS
+                    ]:
+                    tensor_name = key + ':0'
+                    if tensor_name in all_tensor_names:
+                        tensor_dict[key] = tflite.interpreter.get_default_graph().get_tensor_by_name(
+                            tensor_name)
+                if self.DETECTION_MASKS in tensor_dict:
+                    # The following processing is only for single image
+                    detection_boxes = tflite.interpreter.squeeze(tensor_dict[self.DETECTION_BOXES], [0])
+                    detection_masks = tflite.interpreter.squeeze(tensor_dict[self.DETECTION_MASKS], [0])
+                    # Reframe is required to translate mask from box coordinates to image coordinates and fit the image size.
+                    real_num_detection = tflite.interpreter.cast(tensor_dict[self.NUM_DETECTIONS][0], tflite.interpreter.int32)
+                    detection_boxes = tflite.interpreter.slice(detection_boxes, [0, 0], [real_num_detection, -1])
+                    detection_masks = tflite.interpreter.slice(detection_masks, [0, 0, 0], [real_num_detection, -1, -1])
+                    detection_masks_reframed = utils_ops.reframe_box_masks_to_image_masks(
+                        detection_masks, detection_boxes, image.shape[1], image.shape[2])
+                    detection_masks_reframed = tflite.interpreter.cast(
+                        tflite.interpreter.greater(detection_masks_reframed, 0.5), tflite.interpreter.uint8)
+                    # Follow the convention by adding back the batch dimension
+                    tensor_dict[self.DETECTION_MASKS] = tflite.interpreter.expand_dims(
+                        detection_masks_reframed, 0)
+                image_tensor = tflite.interpreter.get_default_graph().get_tensor_by_name(self.IMAGE_TENSOR)
+
+                # Run inference
+                output_dict = sess.run(tensor_dict,
+                             feed_dict={image_tensor: image})
+
+                # all outputs are float32 numpy arrays, so convert types as appropriate
+                output_dict[self.NUM_DETECTIONS] = int(output_dict[self.NUM_DETECTIONS][0])
+                output_dict[self.DETECTION_CLASSES] = output_dict[
+                    self.DETECTION_CLASSES][0].astype(np.int64)
+                output_dict[self.DETECTION_BOXES] = output_dict[self.DETECTION_BOXES][0]
+                output_dict[self.DETECTION_SCORES] = output_dict[self.DETECTION_SCORES][0]
+                if self.DETECTION_MASKS in output_dict:
+                    output_dict[self.DETECTION_MASKS] = output_dict[self.DETECTION_MASKS][0]
+        return output_dict
     
 
   
     def run(self):
-        self.log(" Starting robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))      
-        
-        if not os.path.exists(TensorFlowClassification.PATH_TO_FROZEN_GRAPH):
-            self.log(logLevel=Robot.LogLevel.Normal, logStr="downloading model " + TensorFlowClassification.PATH_TO_FROZEN_GRAPH)      
-            opener = urllib.request.URLopener()
-            opener.retrieve(TensorFlowClassification.DOWNLOAD_BASE + TensorFlowClassification.MODEL_FILE, TensorFlowClassification.MODEL_FILE)
-            tar_file = tarfile.open(TensorFlowClassification.MODEL_FILE)
-            self.log(logLevel=Robot.LogLevel.Normal, logStr="setting model classes")      
-            for file in tar_file.getmembers():
-                file_name = os.path.basename(file.name)
-                if TensorFlowClassification.FROZEN_GRAPH_PB_NAME in file_name:
-                    tar_file.extract(file, Sensation.DATADIR)
-            self.log(logLevel=Robot.LogLevel.Normal, logStr="model is ready to use")      
+        self.log("Starting robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))      
+
+        if TensorFlow_LITE:        
+            if not os.path.exists(TensorFlowClassification.LITE_PATH_TO_FROZEN_GRAPH):
+                print("downloading model " + TensorFlowClassification.LITE_PATH_TO_FROZEN_GRAPH)      
+                opener = urllib.request.URLopener()
+                opener.retrieve(TensorFlowClassification.LITE_DOWNLOAD_BASE + TensorFlowClassification.LITE_MODEL_ZIP_NAME, TensorFlowClassification.LITE_MODEL_ZIP_NAME)
+                with zipfile.ZipFile(TensorFlowClassification.LITE_MODEL_ZIP_NAME, 'r') as zipObj:
+                    # Extract all the contents of zip file in current directory
+                    zipObj.extractall(TensorFlowClassification.LITE_PATH_TO_GRAPH_DIR)
+            print("model is ready to use")
+        else:
+            if not os.path.exists(TensorFlowClassification.PATH_TO_FROZEN_GRAPH):
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="downloading model " + TensorFlowClassification.PATH_TO_FROZEN_GRAPH)      
+                opener = urllib.request.URLopener()
+                opener.retrieve(TensorFlowClassification.DOWNLOAD_BASE + TensorFlowClassification.MODEL_FILE, TensorFlowClassification.MODEL_FILE)
+                tar_file = tarfile.open(TensorFlowClassification.MODEL_FILE)
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="setting model classes")      
+                for file in tar_file.getmembers():
+                    file_name = os.path.basename(file.name)
+                    if TensorFlowClassification.FROZEN_GRAPH_PB_NAME in file_name:
+                        tar_file.extract(file, Sensation.DATADIR)
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="model is ready to use")
                     
-        TensorFlowClassification.detection_graph = tf.Graph()
-        with TensorFlowClassification.detection_graph.as_default():
+        self.detection_graph = tf.Graph()
+        with self.detection_graph.as_default():
             od_graph_def = tf.GraphDef()
             with tf.gfile.GFile(TensorFlowClassification.PATH_TO_FROZEN_GRAPH, 'rb') as fid:
                 serialized_graph = fid.read()
@@ -203,6 +299,16 @@ class TensorFlowClassification(Robot):
                 tf.import_graph_def(od_graph_def, name='')
                 
         TensorFlowClassification.category_index = label_map_util.create_category_index_from_labelmap(TensorFlowClassification.PATH_TO_LABELS, use_display_name=True)
+#         if TensorFlowClassification.TensorFlow_LITE:
+#             try:
+#                 self.log(logLevel=Robot.LogLevel.Normal, logStr='run: convert LITE model' )
+#                 converter = tf.lite.TFLiteConverter.from_keras_model(self.detection_graph)
+#                 self.tflite_model = converter.convert()
+#             except Exception as e:
+#                 self.log(logLevel=Robot.LogLevel.Normal, logStr='run: convert LITE model error ' + str(e))
+#                 TensorFlowClassification.TensorFlow_LITE=False
+#         else:
+#             self.log(logLevel=Robot.LogLevel.Normal, logStr='run: NO LITE' )
 
         self.running=True
                 
@@ -219,7 +325,10 @@ class TensorFlowClassification(Robot):
                 image_np_expanded = np.expand_dims(image_np, axis=0)
                 # Actual detection.
                 # TODO detection_graph where it is defined
-                output_dict = self.run_inference_for_single_image(image_np_expanded, self.detection_graph)
+                if (TensorFlowClassification.TensorFlow_LITE) and (self.tflite_model != None):
+                    output_dict = self.run_inference_for_single_image_LITE(image_np_expanded, self.tflite_model)
+                else:
+                    output_dict = self.run_inference_for_single_image(image_np_expanded, self.detection_graph)
                 i=0  
                 for classInd in output_dict[self.DETECTION_CLASSES]:
                     self.log("image className " + self.category_index[classInd][self.NAME] + ' score ' + str(output_dict[self.DETECTION_SCORES][i]) +\
@@ -255,7 +364,11 @@ class TensorFlowClassification(Robot):
             image_np_expanded = np.expand_dims(image_np, axis=0)
             # Actual detection.
             # TODO detection_graph where it is defined
-            output_dict = self.run_inference_for_single_image(image_np_expanded, self.detection_graph)
+            if (TensorFlowClassification.TensorFlow_LITE) and (self.tflite_model != None):
+                output_dict = self.run_inference_for_single_image_LITE(image_np_expanded, self.tflite_model)
+            else:
+                 output_dict = self.run_inference_for_single_image(image_np_expanded, self.detection_graph)
+            
             i=0
             names=[]
             for classInd in output_dict[self.DETECTION_CLASSES]:
@@ -280,15 +393,17 @@ class TensorFlowClassification(Robot):
                         subsensation = Sensation.create(sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out,\
                                                         image=subimage)
                         self.log("process created subimage sensation " + subsensation.toDebugStr())
-                        subsensation.associate(sensation=sensation, score=score)
+                        # don't associate to original image sensation
+                        # we wan't to save memory and subimage is important, not whore image
+                        #subsensation.associate(sensation=sensation, score=score)
                         subsensation.save()
                         
                         itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.LongTerm, direction = Sensation.Direction.Out, name=name,\
                                                          presence = precence)
                         itemsensation.associate(sensation=subsensation, score=score)
                         self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
-                        self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=None)
-                        self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=None)
+                        self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
+                        self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
                         self.log("Created LongTerm subImage and item sensation for this")
                     # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
                 i = i+1
@@ -342,5 +457,14 @@ class TensorFlowClassification(Robot):
                 
           
 if __name__ == "__main__":
-    TensorFlowClassification = tensorFlowClassification()
-#    tensorFlowClassification.start()  
+    if not os.path.exists(TensorFlowClassification.LITE_PATH_TO_FROZEN_GRAPH):
+        print("downloading model " + TensorFlowClassification.LITE_PATH_TO_FROZEN_GRAPH)      
+        opener = urllib.request.URLopener()
+        opener.retrieve(TensorFlowClassification.LITE_DOWNLOAD_BASE + TensorFlowClassification.LITE_MODEL_FILE, TensorFlowClassification.LITE_MODEL_FILE)
+        zip_file = zipfile.open(TensorFlowClassification.LITE_MODEL_FILE)
+        print("setting model classes")      
+        for file in zip_file.getmembers():
+            file_name = os.path.basename(file.name)
+            if TensorFlowClassification.FROZEN_GRAPH_PB_NAME in file_name:
+                zip_file.extract(file, Sensation.DATADIR)
+    print("model is ready to use")

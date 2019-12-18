@@ -1581,10 +1581,14 @@ class Sensation(object):
     Has sensation association to other Sensation
     which SensationType is 'associationSensationType'
     '''
-    def hasAssociationSensationType(self, associationSensationType, ignoredSensations=[], ignoredVoiceLens=[]):
+    def hasAssociationSensationType(self, associationSensationType,
+                                    associationDirection = Direction.Out,
+                                    ignoredSensations=[],
+                                    ignoredVoiceLens=[]):
         has=False
         for association in self.associations:
             if association.getSensation().getSensationType() == associationSensationType and\
+               association.getSensation().getDirection() == associationDirection and\
                association.getSensation() not in ignoredSensations and\
                len(association.getSensation().getData()) not in ignoredVoiceLens:
                 has=True
@@ -1595,10 +1599,14 @@ class Sensation(object):
     Get sensation association to other Sensation
     which SensationType is 'associationSensationType'
     '''
-    def getAssociationsbBySensationType(self, associationSensationType, ignoredSensations=[], ignoredVoiceLens=[]):
+    def getAssociationsbBySensationType(self, associationSensationType,
+                                        associationDirection = Direction.Out,
+                                        ignoredSensations=[],
+                                        ignoredVoiceLens=[]):
         associations=[]
         for association in self.associations:
             if association.getSensation().getSensationType() == associationSensationType and\
+               association.getSensation().getDirection() == associationDirection and\
                association.getSensation() not in ignoredSensations and\
                len(association.getSensation().getData()) not in ignoredVoiceLens:
                 associations.append(association)
@@ -1864,15 +1872,20 @@ class Sensation(object):
     def getBestSensation( sensationType,
                           timemin,
                           timemax,
+                          direction = Direction.Out,
                           name = None,
                           notName = None,
                           associationSensationType = None,
+                          associationDirection = Direction.Out,
                           ignoredVoiceLens=[]):
         bestSensation = None
         for key, sensationMemory in Sensation.sensationMemorys.items():
             for sensation in sensationMemory:
                 if sensation.getSensationType() == sensationType and\
-                   sensation.hasAssociationSensationType(associationSensationType=associationSensationType, ignoredVoiceLens=ignoredVoiceLens) and\
+                   sensation.getDirection() == direction and\
+                   sensation.hasAssociationSensationType(associationSensationType=associationSensationType,
+                                                         associationDirection = associationDirection,
+                                                         ignoredVoiceLens=ignoredVoiceLens) and\
                    (timemin is None or sensation.getTime() > timemin) and\
                    (timemax is None or sensation.getTime() < timemax):
                     if sensationType != Sensation.SensationType.Item or\
@@ -1922,9 +1935,11 @@ class Sensation(object):
     def getMostImportantSensation( sensationType,
                                    timemin,
                                    timemax,
+                                   direction = Direction.Out,
                                    name = None,
                                    notName = None,
                                    associationSensationType = None,
+                                   associationDirection = Direction.Out,
                                    ignoredSensations = [],
                                    ignoredVoiceLens = [],
                                    searchLength = 10):
@@ -1942,7 +1957,11 @@ class Sensation(object):
             for sensation in sensationMemory:
                 if sensation not in ignoredSensations and\
                    sensation.getSensationType() == sensationType and\
-                   sensation.hasAssociationSensationType(associationSensationType=associationSensationType, ignoredSensations=ignoredSensations, ignoredVoiceLens=ignoredVoiceLens) and\
+                   sensation.getDirection() == direction and\
+                   sensation.hasAssociationSensationType(associationSensationType=associationSensationType,
+                                                         associationDirection = associationDirection,
+                                                         ignoredSensations=ignoredSensations,
+                                                         ignoredVoiceLens=ignoredVoiceLens) and\
                    (timemin is None or sensation.getTime() > timemin) and\
                    (timemax is None or sensation.getTime() < timemax):
                     if sensationType != Sensation.SensationType.Item or\
@@ -1950,7 +1969,10 @@ class Sensation(object):
                        name is None and sensation.getName() != notName or\
                        name is None and notName is None:
                         bestAssociationSensationImportance = None 
-                        for association in sensation.getAssociationsbBySensationType(associationSensationType=associationSensationType, ignoredSensations=ignoredSensations, ignoredVoiceLens=ignoredVoiceLens):
+                        for association in sensation.getAssociationsbBySensationType(associationSensationType=associationSensationType,
+                                                                                     associationDirection = associationDirection,
+                                                                                     ignoredSensations=ignoredSensations,
+                                                                                     ignoredVoiceLens=ignoredVoiceLens):
                             if bestAssociationSensationImportance is None or\
                                 bestAssociationSensationImportance < association.getSensation().getImportance():
                                 bestAssociationSensationImportance = association.getSensation().getImportance()
@@ -2017,12 +2039,17 @@ class Sensation(object):
     so they can be loaded, when running app again
     '''  
     def saveLongTermMemory():
-        # save sensations that are mmorable to a file
-        for sensation in Sensation.sensationMemorys[Sensation.Memory.LongTerm]:
-            if sensation.getMemorability() >  Sensation.MIN_CACHE_MEMORABILITY:
-                sensation.save()
-            else:
-                 sensation.delete()
+        # save sensations that are memorable to a file
+        # there can be LOngTerm sensations in Sensation.sensationMemorys[Sensation.Memory.Sensory]
+        # because it is allowed to change memory rtpe after sensation is created
+        for key, sensationMemory in Sensation.sensationMemorys.items():
+            for sensation in sensationMemory:
+            #for sensation in Sensation.sensationMemorys[Sensation.Memory.LongTerm]:
+                if sensation.getMemorability() >  Sensation.MIN_CACHE_MEMORABILITY and\
+                   sensation.getMemory() == Sensation.Memory.LongTerm:
+                    sensation.save()
+                else:
+                    sensation.delete()
                
         # save sensation instances
         if not os.path.exists(Sensation.DATADIR):
@@ -2032,7 +2059,8 @@ class Sensation(object):
             with open(Sensation.PATH_TO_PICLE_FILE, "wb") as f:
                 try:
                     pickler = pickle.Pickler(f, -1)
-                    pickler.dump(Sensation.sensationMemorys[Sensation.Memory.LongTerm])
+                    #pickler.dump(Sensation.sensationMemorys[Sensation.Memory.LongTerm])
+                    pickler.dump(Sensation.sensationMemorys)
                     print ('saveLongTermMemory dumped ' + str(len(Sensation.sensationMemorys[Sensation.Memory.LongTerm])))
                 except IOError as e:
                     print('pickler.dump(Sensation.sensationMemorys[Memory.LongTerm]) error ' + str(e))
@@ -2050,22 +2078,24 @@ class Sensation(object):
             try:
                 with open(Sensation.PATH_TO_PICLE_FILE, "rb") as f:
                     try:
-                        Sensation.sensationMemorys[Sensation.Memory.LongTerm] = \
-                            pickle.load(f)
-                        print ('loadLongTermMemory loaded ' + str(len(Sensation.sensationMemorys[Sensation.Memory.LongTerm])))
-                        i=0
-                        while i < len(Sensation.sensationMemorys[Sensation.Memory.LongTerm]):
-                            if Sensation.sensationMemorys[Sensation.Memory.LongTerm][i].VERSION != Sensation.VERSION: # if dumped code version and current code version is not same
-                                print('del Sensation.sensationMemorys[Sensation.Memory.LongTerm]['+str(i)+'] with uncompatible Sensation version ' + str(Sensation.sensationMemorys[Sensation.Memory.LongTerm][i].VERSION))
-                                del Sensation.sensationMemorys[Sensation.Memory.LongTerm][i]
-                            elif  Sensation.sensationMemorys[Sensation.Memory.LongTerm][i].getMemorability() <  Sensation.MIN_CACHE_MEMORABILITY:
-                                print('delete Sensation.sensationMemorys[Sensation.Memory.LongTerm]['+str(i)+'] with too low memorability ' + str(Sensation.sensationMemorys[Sensation.Memory.LongTerm][i].getMemorability()))
-                                Sensation.sensationMemorys[Sensation.Memory.LongTerm][i].delete()
-                                # TODO we should delete this also from but how?
-                                del Sensation.sensationMemorys[Sensation.Memory.LongTerm][i]
-                            else:
-                                i=i+1
-                        print ('LongTermMemory after load and verification ' + str(len(Sensation.sensationMemorys[Sensation.Memory.LongTerm])))
+                        # whole Memory
+                        #Sensation.sensationMemorys[Sensation.Memory.LongTerm] = \
+                        Sensation.sensationMemorys = pickle.load(f)
+                        for key, sensationMemory in Sensation.sensationMemorys.items():
+                            print ('{} loaded {}'.format(Sensation.getMemoryString(sensationMemory), str(len(Sensation.sensationMemorys[Sensation.Memory.LongTerm]))))
+                            i=0
+                            while i < len(Sensation.sensationMemorys[sensationMemory]):
+                                if Sensation.sensationMemorys[sensationMemory][i].VERSION != Sensation.VERSION: # if dumped code version and current code version is not same
+                                    print('del Sensation.sensationMemorys[sensationMemory]['+str(i)+'] with uncompatible Sensation version ' + str(Sensation.sensationMemorys[sensationMemory][i].VERSION))
+                                    del Sensation.sensationMemorys[sensationMemory][i]
+                                elif  Sensation.sensationMemorys[sensationMemory][i].getMemorability() <  Sensation.MIN_CACHE_MEMORABILITY:
+                                    print('delete Sensation.sensationMemorys[sensationMemory]['+str(i)+'] with too low memorability ' + str(Sensation.sensationMemorys[sensationMemory][i].getMemorability()))
+                                    Sensation.sensationMemorys[sensationMemory][i].delete()
+                                    # TODO we should delete this also from but how?
+                                    del Sensation.sensationMemorys[sensationMemory][i]
+                                else:
+                                    i=i+1
+                            print ('{} after load and verification {}'.format(Sensation.getMemoryString(sensationMemory), str(len(Sensation.sensationMemorys[sensationMemory]))))
                     except IOError as e:
                         print("pickle.load(f) error " + str(e))
                     finally:

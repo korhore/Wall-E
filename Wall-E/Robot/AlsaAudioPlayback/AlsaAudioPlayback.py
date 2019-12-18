@@ -83,7 +83,9 @@ class AlsaAudioPlayback(Robot):
         #elif self.ok and self.running and sensation.getSensationType() == Sensation.SensationType.Voice:
             if systemTime.time() - sensation.getTime() < AlsaAudioPlayback.COMMUNICATION_INTERVAL:
                 if self.last_datalen != len(sensation.getData()) or systemTime.time() - self.last_write_time > AlsaAudioPlayback.COMMUNICATION_INTERVAL:
+                    self.last_datalen = len(sensation.getData())
                     data = sensation.getData()
+                    
                     # process voice
                     try:
                         aaa = numpy.fromstring(data, dtype=Settings.AUDIO_CONVERSION_FORMAT)
@@ -128,7 +130,7 @@ class AlsaAudioPlayback(Robot):
                     # normalize voice                 
                     # calculate average   
                     # no need to take care of  Settings.AUDIO_CHANNELS 
-                    # bacause this is average of all ckannels            
+                    # because this is average of all channels            
                     sum=0
                     for a in aaa:
                         sum += abs(a)
@@ -173,9 +175,8 @@ class AlsaAudioPlayback(Robot):
                                                         
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: Sensation.SensationType.VoiceData self.outp.write(data)')
                     self.outp.write(data)
+                    self.last_write_time = systemTime.time()                    
                     sensation.save()    #remember what we played
-                    self.last_datalen = len(sensation.getData())
-                    self.last_write_time = systemTime.time()
                 else:
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: this Voice already played in this interval')
             else:
