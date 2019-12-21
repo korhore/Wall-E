@@ -203,11 +203,13 @@ pip3 install pyyaml # Required to save tensorflow models in YAML format
 
 raspberry pi 3
 tensorflow==1.8
-Ubuntu 18.5
-tensorflow==1.5
+Ubuntu 18.4
+tensorflow==1.5? -> Last version to work with virtual machine
 Ubuntu 14.04
 sudo -H pip3 install --upgrade tensorflow --ignore-installed six
 -- will get tensorflow 1.13
+sudo -H pip3 install --upgrade tensorflow
+-- will get tensorflow 1.14
 requires
 google.protobuf
 matplotlib==2.1.0

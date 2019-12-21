@@ -15,15 +15,17 @@ import six.moves.urllib as urllib
 import sys
 import tarfile
 import zipfile
-import tensorflow as tf
+#import tensorflow as tf
 from PIL import Image as PIL_Image
-from object_detection.utils import label_map_util
+#from object_detection.utils import label_map_util
+import label_map_util
+
 
 from Robot import  Robot
 from Config import Config, Capabilities
 from Sensation import Sensation
 
-TensorFlow_LITE=True
+TensorFlow_LITE=False
 
 if TensorFlow_LITE:
     try:
@@ -33,6 +35,14 @@ if TensorFlow_LITE:
     except ImportError as e:
         print("TensorFlowClassification import tflite_runtime.interpreter as tflite error " + str(e))
         TensorFlow_LITE=False
+
+if not TensorFlow_LITE:
+    try:
+        print("TensorFlowClassification import tensorflow as tf")
+        import tensorflow as tf
+        print("TensorFlowClassification import tensorflow as tf OK")
+    except ImportError as e:
+        print("TensorFlowClassification import tensorflow as tf error " + str(e))
 
 class TensorFlowClassification(Robot):
     '''    
@@ -58,8 +68,8 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
     '''
 
     TensorFlow_TEST = True                 # TensorFlow code test
-                                            # allow this, if problems
-    TensorFlow_LITE = True                  # use Tensorflow lite
+                                           # allow this, if problems
+    TensorFlow_LITE = False                # use Tensorflow lite
            
     NAME =              'name'
     DETECTION_SCORES =  'detection_scores'
@@ -80,6 +90,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
     DOWNLOAD_BASE =         'http://download.tensorflow.org/models/object_detection/'
     FROZEN_GRAPH_PB_NAME =  'frozen_inference_graph.pb'
     LIVE_GRAPH_PB_NAME =    'live_inference_graph.pb'
+    LITE_GRAPH_NAME =       'inference_graph..tflite'
     
     # LITE model to download, this can't be trained, so it is frozen
     LITE_MODEL_ZIP_NAME =       'mobilenet_v1_1.0_224_quant_and_labels.zip'
@@ -99,6 +110,8 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
     PATH_TO_FROZEN_GRAPH = os.path.join(Sensation.DATADIR, MODEL_NAME, FROZEN_GRAPH_PB_NAME)
     # Path to frozen detection graph. This will the actual model that is used for the object detection.
     PATH_TO_LIVE_GRAPH = os.path.join(PATH_TO_GRAPH_DIR, LIVE_GRAPH_PB_NAME)
+    # Path to liten detection graph. This is the actual model that is used for the object detection.
+    PATH_TO_LITE_GRAPH = os.path.join(Sensation.DATADIR, MODEL_NAME, LITE_GRAPH_NAME)
 
     # List of the strings that is used to add correct label for each box.
     PATH_TO_LABELS = os.path.join(Sensation.DATADIR, 'mscoco_label_map.pbtxt')
@@ -172,9 +185,9 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
     def run_inference_for_single_image(self, image, graph):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='run_inference_for_single_image')
         with graph.as_default():
-            with tf.Session() as sess:
+            with tf.compat.v1.Session() as sess:
                 # Get handles to input and output tensors
-                ops = tf.get_default_graph().get_operations()
+                ops = tf.compat.v1.get_default_graph().get_operations()
                 all_tensor_names = {output.name for op in ops for output in op.outputs}
                 tensor_dict = {}
                 for key in [
@@ -183,7 +196,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                     ]:
                     tensor_name = key + ':0'
                     if tensor_name in all_tensor_names:
-                        tensor_dict[key] = tf.get_default_graph().get_tensor_by_name(
+                        tensor_dict[key] = tf.compat.v1.get_default_graph().get_tensor_by_name(
                             tensor_name)
                 if self.DETECTION_MASKS in tensor_dict:
                     # The following processing is only for single image
@@ -200,7 +213,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                     # Follow the convention by adding back the batch dimension
                     tensor_dict[self.DETECTION_MASKS] = tf.expand_dims(
                         detection_masks_reframed, 0)
-                image_tensor = tf.get_default_graph().get_tensor_by_name(self.IMAGE_TENSOR)
+                image_tensor = tf.compat.v1.get_default_graph().get_tensor_by_name(self.IMAGE_TENSOR)
 
                 # Run inference
                 output_dict = sess.run(tensor_dict,
@@ -270,13 +283,32 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
 
         if TensorFlow_LITE:        
             if not os.path.exists(TensorFlowClassification.LITE_PATH_TO_FROZEN_GRAPH):
-                print("downloading model " + TensorFlowClassification.LITE_PATH_TO_FROZEN_GRAPH)      
+                print(logLevel=Robot.LogLevel.Normal, logStr="downloading model " + TensorFlowClassification.LITE_PATH_TO_FROZEN_GRAPH)      
                 opener = urllib.request.URLopener()
                 opener.retrieve(TensorFlowClassification.LITE_DOWNLOAD_BASE + TensorFlowClassification.LITE_MODEL_ZIP_NAME, TensorFlowClassification.LITE_MODEL_ZIP_NAME)
                 with zipfile.ZipFile(TensorFlowClassification.LITE_MODEL_ZIP_NAME, 'r') as zipObj:
                     # Extract all the contents of zip file in current directory
                     zipObj.extractall(TensorFlowClassification.LITE_PATH_TO_GRAPH_DIR)
-            print("model is ready to use")
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="LITE model is ready to use")
+            
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="1 self.detection_graph = tflite.Graph()")
+            self.detection_graph = tflite.Graph()
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="2 with self.detection_graph.as_default()")
+            with self.detection_graph.as_default():
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="3 od_graph_def = tflite.GraphDef()")
+                od_graph_def = tflite.GraphDef()
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="4 with tflite.gfile.GFile(TensorFlowClassification.LITE_PATH_TO_FROZEN_GRAPH, rb) as fid")
+                with tflite.gfile.GFile(TensorFlowClassification.LITE_PATH_TO_FROZEN_GRAPH, 'rb') as fid:
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr="5 serialized_graph = fid.read()")
+                    serialized_graph = fid.read()
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr="6 od_graph_def.ParseFromString(serialized_graph)")
+                    od_graph_def.ParseFromString(serialized_graph)
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr="7 tflite.import_graph_def(od_graph_def, name='')")
+                    tflite.import_graph_def(od_graph_def, name='')
+                    
+            TensorFlowClassification.category_index = label_map_util.create_category_index_from_labelmap(TensorFlowClassification.LITE_PATH_TO_LABELS, use_display_name=True)
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="TensorFlowClassification.category_indexmodel DONE")
+            
         else:
             if not os.path.exists(TensorFlowClassification.PATH_TO_FROZEN_GRAPH):
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="downloading model " + TensorFlowClassification.PATH_TO_FROZEN_GRAPH)      
@@ -290,15 +322,27 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                         tar_file.extract(file, Sensation.DATADIR)
             self.log(logLevel=Robot.LogLevel.Normal, logStr="model is ready to use")
                     
-        self.detection_graph = tf.Graph()
-        with self.detection_graph.as_default():
-            od_graph_def = tf.GraphDef()
-            with tf.gfile.GFile(TensorFlowClassification.PATH_TO_FROZEN_GRAPH, 'rb') as fid:
-                serialized_graph = fid.read()
-                od_graph_def.ParseFromString(serialized_graph)
-                tf.import_graph_def(od_graph_def, name='')
-                
-        TensorFlowClassification.category_index = label_map_util.create_category_index_from_labelmap(TensorFlowClassification.PATH_TO_LABELS, use_display_name=True)
+            self.detection_graph = tf.Graph()
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="1")
+            with self.detection_graph.as_default():
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="2")
+                od_graph_def = tf.compat.v1.GraphDef()
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="3")
+                with tf.io.gfile.GFile(TensorFlowClassification.PATH_TO_FROZEN_GRAPH, 'rb') as fid:
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr="4")
+                    serialized_graph = fid.read()
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr="5")
+                    od_graph_def.ParseFromString(serialized_graph)
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr="6")
+                    tf.compat.v1.import_graph_def(od_graph_def, name='')
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr="7")
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="detection_grap OK")
+                   
+            TensorFlowClassification.category_index = \
+                label_map_util.create_category_index_from_labelmap(label_map_path=TensorFlowClassification.PATH_TO_LABELS,
+                                                                   gfile = tf.io.gfile,
+                                                                   use_display_name=True)
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="category_index OK")
 #         if TensorFlowClassification.TensorFlow_LITE:
 #             try:
 #                 self.log(logLevel=Robot.LogLevel.Normal, logStr='run: convert LITE model' )
@@ -316,6 +360,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
         self.mode = Sensation.Mode.Normal
 
         if TensorFlowClassification.TensorFlow_TEST:
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="Testing")
             for image_path in self.TEST_IMAGE_PATHS:
                 image = PIL_Image.open(image_path)
                 # the array based representation of the image will be used later in order to prepare the
@@ -335,6 +380,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                              ' box ' + str(output_dict[self.DETECTION_BOXES][i]))
                     i = i+1   
 
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="Running")
         while self.running:
             transferDirection, sensation, association = self.getAxon().get()
             self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
