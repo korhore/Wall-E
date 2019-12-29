@@ -2101,7 +2101,7 @@ class Sensation(object):
                     finally:
                         f.close()
             except Exception as e:
-                    print('with open(' + 'Sensation.PATH_TO_PICLE_FILE, "rb")  as f error ' + str(e))
+                    print('with open(' + Sensation.PATH_TO_PICLE_FILE + ',"rb") as f error ' + str(e))
  
     '''
     Clean data directory fron data files, that are not connected to any sensation.

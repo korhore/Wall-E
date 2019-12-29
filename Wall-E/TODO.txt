@@ -202,7 +202,10 @@ pip3 install lockfile
 pip3 install pyyaml # Required to save tensorflow models in YAML format
 
 raspberry pi 3
+Tensorflow with Lite, officional package is broken for Lite
+https://github.com/lhelontra/tensorflow-on-arm/releases/download/v1.13.1/tensorflow-1.13.1-cp35-none-linux_armv7l.whl
 tensorflow==1.8
+
 Ubuntu 18.4
 tensorflow==1.5? -> Last version to work with virtual machine
 Ubuntu 14.04
