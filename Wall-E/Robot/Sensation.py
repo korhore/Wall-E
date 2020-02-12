@@ -1493,19 +1493,23 @@ class Sensation(object):
     remove associations from this sensation connected to sensation given as parameter
     '''
     def removeAssociation(self, sensation):
-        i=0
+        #i=0
         for association in self.associations:
             if association.getSensation() == sensation:
-                del self.associations[i]
-            else:
-                i=i+1
+#                print("self.associations.remove(association)")
+                self.associations.remove(association)
+#                 del self.associations[i]
+#             else:
+#                 i=i+1
         #other side
-        i=0
+#        i=0
         for association in sensation.associations:
             if association.getSensation() == self:
-                del sensation.associations[i]
-            else:
-                i=i+1
+#                print("sensation.associations.remove(association)")
+                sensation.associations.remove(association)
+#                 del sensation.associations[i]
+#             else:
+#                 i=i+1
 
     def getAssociationNumbers(self):
         associationNumbers=[]
