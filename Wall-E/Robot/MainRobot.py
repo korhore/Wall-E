@@ -576,7 +576,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                     self.log("SocketClient.sendSensation length " + str(l) + " != " + str(Sensation.SEPARATOR_SIZE) + " error writing to " + str(address))
                     ok = False
             except Exception as err:
-                self.log("SocketClient.sendSensationt error writing Sensation.SEPARATOR to " + str(address)  + " error " + str(err))
+                self.log("SocketClient.sendSensation error writing Sensation.SEPARATOR to " + str(address)  + " error " + str(err))
                 ok=False
                 self.mode = Sensation.Mode.Interrupted
             ## if we test, then we cause error time by time by us
@@ -600,13 +600,13 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                     try:
                         sock.sendall(bytes)                              # message data section
                         #self.log("SocketClient wrote Sensation to " + str(address))
-                        self.log("SocketClient.sendSensationt wrote sensation " + sensation.toDebugStr() + " to " + str(address))
+                        self.log("SocketClient.sendSensation wrote sensation " + sensation.toDebugStr() + " to " + str(address))
                         # try to send same sensation only once
                         # TODO maybe not a good idea, id sensation is changed by us
                         sensation.addReceived(self.getHost())
                         sensation.addReceived(self.getSocketServer().getHost())
                     except Exception as err:
-                        self.log("SocketClient.sendSensationt error writing Sensation to " + str(address) + " error " + str(err))
+                        self.log("SocketClient.sendSensation error writing Sensation to " + str(address) + " error " + str(err))
                         ok = False
                         self.mode = Sensation.Mode.Interrupted
 #             if not ok:
