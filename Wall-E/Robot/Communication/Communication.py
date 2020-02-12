@@ -132,7 +132,7 @@ class Communication(Robot):
         self.log(logLevel=Robot.LogLevel.Normal, logStr="process: systemTime.time() " + str(systemTime.time()) + ' -  sensation.getTime() ' + str(sensation.getTime()) + ' < Communication.COMMUNICATION_INTERVAL ' + str(Communication.COMMUNICATION_INTERVAL))
         self.log(logLevel=Robot.LogLevel.Normal, logStr="process: " + str(systemTime.time() - sensation.getTime()) + ' < ' + str(Communication.COMMUNICATION_INTERVAL))
         if systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL:
-#            if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.Memory.LongTerm and\
+#            if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.Memory.Working and\
             # all kind Items found
             if sensation.getSensationType() == Sensation.SensationType.Item and\
                sensation.getDirection() == Sensation.Direction.Out:
@@ -165,7 +165,7 @@ class Communication(Robot):
                         self.timer.cancel()
                         self.timer = None
                     # We want to remember this voice
-                    sensation.setMemory(memory=Sensation.Memory.LongTerm)
+                    sensation.setMemory(memory=Sensation.Memory.Working)
                     # don't use this voice in this same conversation
                     self.usedVoices.append(sensation)
                     self.usedVoices.append(len(sensation.getData()))
@@ -204,7 +204,7 @@ class Communication(Robot):
 #                     self.timer.cancel()
 #                     self.timer = None
                     # We want to remember this voice
-                    sensation.setMemory(memory=Sensation.Memory.LongTerm)
+                    sensation.setMemory(memory=Sensation.Memory.Working)
                     # don't use this voice in this same conversation
                     self.usedVoices.append(sensation)
                     self.usedVoices.append(len(sensation.getData()))
@@ -294,6 +294,20 @@ class Communication(Robot):
     #                                                                         sensation = candidate_for_communication,
     #                                                                         time = systemTime.time())
     #                     candidate_communicationItems.append(communicationItem)
+                if self.mostImportantItemSensation is None:     # if mo voices assosiates to present item.names, then any voice will do
+                    self.mostImportantItemSensation, self.mostImportantVoiceAssociation, self.mostImportantVoiceSensation = \
+                        Sensation.getMostImportantSensation( sensationType = Sensation.SensationType.Item,
+                                                             direction = Sensation.Direction.Out,
+                                                             name = None,
+                                                             notName = None,
+                                                             timemin = None,
+                                                             timemax = None,
+                                                             associationSensationType=Sensation.SensationType.Voice,
+                                                             associationDirection = Sensation.Direction.Out,
+                                                             #ignoredSensations = []) # TESTING
+                                                             ignoredSensations = self.usedVoices,
+                                                             ignoredVoiceLens = self.usedVoiceLens,
+                                                             searchLength=Communication.SEARCH_LENGTH)
                 succeeded=True  # no exception,  Robot.presentItemSensations did not changed   
             except Exception as e:
                  self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: ignored exception ' + str(e))

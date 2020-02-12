@@ -46,7 +46,7 @@ class Association(Robot):
                        level=level)
         
     def process(self, transferDirection, sensation, association=None):
-        self.log('process: sensation ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
+        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: sensation ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
            #Robot.presentItemSensations can be changed
         succeeded = False
         while not succeeded:
@@ -55,11 +55,11 @@ class Association(Robot):
                     if sensation is not itemSensation and\
                        sensation.getTime() >=  itemSensation.getTime() and\
                        len(itemSensation.getAssociations()) < Sensation.ASSOCIATIONS_MAX_ASSOCIATIONS:
-                        self.log('process: sensation.associate(Sensation.Association(self_sensation==itemSensation ' +  itemSensation.toDebugStr() + ' sensation=sensation ' + sensation.toDebugStr())
+                        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: sensation.associate(Sensation.Association(self_sensation==itemSensation ' +  itemSensation.toDebugStr() + ' sensation=sensation ' + sensation.toDebugStr())
                         itemSensation.associate(sensation=sensation,
                                                 score=itemSensation.getScore())
                     else:
-                        self.log('process: itemSensation ignored too much associations or items not newer than present itemSensation or sensation is present sensation' + itemSensation.toDebugStr())
+                        self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: itemSensation ignored too much associations or items not newer than present itemSensation or sensation is present sensation ' + itemSensation.toDebugStr())
                 succeeded = True
             except Exception as e:
                  self.log(logLevel=Robot.LogLevel.Normal, logStr='Association.process: ignored exception ' + str(e))

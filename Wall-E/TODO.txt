@@ -1,6 +1,16 @@
 Critical
 --------
 
+Check AlsaAudioMicrophonePlayback logic.
+Should rwad microphone all the time, so we get right average voice level.
+Should not be interesting if items are present.
+If voice found, then should read as long as voice is on, so we get nice voice.
+
+OK  File "/home/reijo/Wall-E/Robot/Sensation.py", line 1506, in removeAssociation
+    del sensation.associations[i]
+IndexError: list assignment index out of range
+
+
 Connections can be duplicated
 SocketClient:('192.168.117.7', 2000):3:Normal: got sensation from queue D Sun Jul 28 22:29:13 2019 1564342228.0706725 Sensory Out Image
 SocketClient:('192.168.117.7', 2000):3:Normal: process: Sun Jul 28 22:29:13 2019 D Sun Jul 28 22:29:13 2019 1564342228.0706725 Sensory Out Image
@@ -196,14 +206,33 @@ sudo apt-get install liblcms1-dev -y
 sudo apt-get install libopenjp2-7 -y
 sudo apt-get install libtiff5 -y
 
+# senses
+sudo pip3 install pyalsaaudio
+# needs to set AlsaAudioMicrophonw/etc/Robot.cfg
+## default:CARD=Device
+
+sudo pip3 install picamera
+Kamera pitää enabloida raspi-config:ista
+
+numpy vaatii
+sudo apt-get install python-dev libatlas-base-dev
+
+sudo pip3 install numpy
+
 MainRobot needs
 pip3 install daemon
 pip3 install lockfile
 pip3 install pyyaml # Required to save tensorflow models in YAML format
 
-raspberry pi 3
+raspberry pi 3b+ Buster Lite
+Needs pip3
+sudo apt install python3-pip
+
 Tensorflow with Lite, officional package is broken for Lite
+python 3.5
 https://github.com/lhelontra/tensorflow-on-arm/releases/download/v1.13.1/tensorflow-1.13.1-cp35-none-linux_armv7l.whl
+python 3.7 (buster)
+https://github.com/lhelontra/tensorflow-on-arm/releases/download/v1.13.1/tensorflow-1.13.1-cp37-none-linux_armv7l.whl
 tensorflow==1.8
 
 Ubuntu 18.4
@@ -219,7 +248,7 @@ matplotlib==2.1.0
 requires
 - sudo apt-get install libfreetype6-dev
 
-starting MainRobor with Tensorflow by command line needs now
+starting MainRobot with Tensorflow by command line needs now
 PYTHONPATH=/home/reijo/models/research python3 MainRobot.py --start
 
 and you should copy git/Tensorflow/models/research to that place

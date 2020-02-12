@@ -92,7 +92,7 @@ class MainRobot(Robot):
         if self.level == 1:
             # set memory handling for Sensation memory
             Sensation.maxSensationRss = self.config.getMaxSensationRss()
-            Sensation.loadLongTermMemory()
+            Sensation.loadWorkingMemory()
             Sensation.CleanDataDirectory()
             self.tcpServer=TCPServer(parent=self,
                                      hostNames=self.config.getHostNames(),
@@ -129,7 +129,7 @@ class MainRobot(Robot):
             transferDirection, sensation, association = self.getAxon().get()
             self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
             # We are main Robot, keep track of presence
-            if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.Memory.LongTerm and\
+            if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.Memory.Working and\
                sensation.getDirection() == Sensation.Direction.Out:
                self.tracePresents(sensation)
             
@@ -151,7 +151,7 @@ class MainRobot(Robot):
             self.log("MainRobot Stopping self.tcpServer " + self.tcpServer.getWho())      
             self.tcpServer.stop()
             # finally save memories
-            Sensation.saveLongTermMemory()
+            Sensation.saveWorkingMemory()
 
         self.log("run ALL SHUT DOWN")      
         

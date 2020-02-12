@@ -104,7 +104,7 @@ class AlsaAudioMicrophone(Robot):
 
                 transferDirection, sensation, association = self.getAxon().get()
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr="got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
-#                 if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.Memory.LongTerm and\
+#                 if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.Memory.Working and\
 #                    sensation.getDirection() == Sensation.Direction.Out: 
 #                     self.tracePresents(sensation)
 #                 else:
@@ -118,8 +118,8 @@ class AlsaAudioMicrophone(Robot):
                 else:
                     self.logged = False
 #                     # TODO as a test we sense
-#                     self.log(logLevel=Robot.LogLevel.Verbose, logStr=str(len(Robot.presentItemSensations)) + " items NOT speaking, sense anyway")
-#                     self.sense()
+                    #self.log(logLevel=Robot.LogLevel.Verbose, logStr=str(len(Robot.presentItemSensations)) + " items NOT speaking, sense anyway")
+                    #self.sense()
                     #self.log(logLevel=Robot.LogLevel.Normal, logStr="no items speaking, sleeping " + str(AlsaAudioMicrophone.SLEEP_TIME))
                     #time.sleep(AlsaAudioMicrophone.SLEEP_TIME)
                     

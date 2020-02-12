@@ -55,13 +55,13 @@ class CommunicationTestCase(unittest.TestCase):
         # simulate item and image are connected each other with TensorflowClassifivation
         # Item is in LongTerm memory
         self.Wall_E_item_sensation = Sensation.create(time=self.history_sensationTime,
-                                                      memory=Sensation.Memory.LongTerm,
+                                                      memory=Sensation.Memory.Working,
                                                       sensationType=Sensation.SensationType.Item,
                                                       direction=Sensation.Direction.Out,
                                                       name=CommunicationTestCase.NAME)
         # Image is in LongTerm memory, it comes from TensorflowClassification and is crop of original big image
         self.Wall_E_image_sensation = Sensation.create(time=self.history_sensationTime,
-                                                       memory=Sensation.Memory.LongTerm,
+                                                       memory=Sensation.Memory.Working,
                                                        sensationType=Sensation.SensationType.Image,
                                                        direction=Sensation.Direction.Out)
         self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation,
@@ -116,7 +116,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.assertEqual(self.getAxon().empty(), True, 'Axon should be empty at the beginning of test_Presense\nCannot test properly this!')
         print('\n too old_Presense')
         Wall_E_item_sensation = Sensation.create(time=history_sensationTime,
-                                                 memory=Sensation.Memory.LongTerm,
+                                                 memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
@@ -133,7 +133,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                   sensationType=Sensation.SensationType.Voice,
                                                   direction=Sensation.Direction.Out)
         item_sensation = Sensation.create(time=self.history_sensationTime,
-                                          memory=Sensation.Memory.LongTerm,
+                                          memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
@@ -141,7 +141,7 @@ class CommunicationTestCase(unittest.TestCase):
         item_sensation.associate(sensation=voice_sensation,
                                            score=CommunicationTestCase.SCORE_1)
 
-        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.LongTerm,
+        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
@@ -156,7 +156,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.assertEqual(sensation.getDirection(),Sensation.Direction.In, 'should get Voice to be spoken')
         
         print('\n current Present')
-        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.LongTerm,
+        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
@@ -173,7 +173,7 @@ class CommunicationTestCase(unittest.TestCase):
 #         self.assertEqual(sensation.getDirection(),Sensation.Direction.In, 'should get Voice to be spoken')
 
         print('\n current Present again')
-        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.LongTerm,
+        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
@@ -190,7 +190,7 @@ class CommunicationTestCase(unittest.TestCase):
 #         self.assertEqual(sensation.getDirection(),Sensation.Direction.In, 'should get Voice to be spoken')
         
         print('\n current Absent')
-        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.LongTerm,
+        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
@@ -211,7 +211,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                   sensationType=Sensation.SensationType.Voice,
                                                   direction=Sensation.Direction.Out)
         item_sensation = Sensation.create(time=self.history_sensationTime,
-                                          memory=Sensation.Memory.LongTerm,
+                                          memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
@@ -220,7 +220,7 @@ class CommunicationTestCase(unittest.TestCase):
                                            score=CommunicationTestCase.SCORE_1)
         
         # make entering item and process
-        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.LongTerm,
+        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
@@ -241,7 +241,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                   sensationType=Sensation.SensationType.Voice,
                                                   direction=Sensation.Direction.Out)
         item_sensation = Sensation.create(time=self.history_sensationTime,
-                                          memory=Sensation.Memory.LongTerm,
+                                          memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME2,
@@ -250,7 +250,7 @@ class CommunicationTestCase(unittest.TestCase):
                                            score=CommunicationTestCase.SCORE_2)
 
         # make entering and process
-        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.LongTerm,
+        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME2,
@@ -266,7 +266,7 @@ class CommunicationTestCase(unittest.TestCase):
 #         self.assertEqual(sensation.getDirection(),Sensation.Direction.In, 'should get Voice to be spoken')
         
         print('\n current Present')
-        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.LongTerm,
+        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME2,
@@ -283,7 +283,7 @@ class CommunicationTestCase(unittest.TestCase):
 #         self.assertEqual(sensation.getDirection(),Sensation.Direction.In, 'should get Voice to be spoken')
 
         print('\n current Present again')
-        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.LongTerm,
+        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME2,
@@ -299,7 +299,7 @@ class CommunicationTestCase(unittest.TestCase):
 #         self.assertEqual(sensation.getDirection(),Sensation.Direction.In, 'should get Voice to be spoken')
         
         print('\n current Absent')
-        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.LongTerm,
+        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME2,
@@ -310,7 +310,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.assertEqual(len(self.communication.present_items), 1, 'len(self.communication.present_items should be 1')
     
         print('\n current Absent')
-        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.LongTerm,
+        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
@@ -332,8 +332,8 @@ class CommunicationTestCase(unittest.TestCase):
         self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), self.Wall_E_item_sensation_association_len)
         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), self.Wall_E_image_sensation_association_len)
 
-        print('self.do_test_ProcessItemVoice(memory=Sensation.Memory.LongTerm)')
-        self.do_test_ProcessItemVoice(memory=Sensation.Memory.LongTerm)
+        print('self.do_test_ProcessItemVoice(memory=Sensation.Memory.Working)')
+        self.do_test_ProcessItemVoice(memory=Sensation.Memory.Working)
         
         # nope, Memory.Sensory is not ment to work
 #         print('self.do_test_ProcessItemVoice(memory=Sensation.Memory.Sensory)')
@@ -343,10 +343,10 @@ class CommunicationTestCase(unittest.TestCase):
         
         # test again
 
-        print('self.do_test_ProcessItemVoice(memory=Sensation.Memory.LongTerm)')
+        print('self.do_test_ProcessItemVoice(memory=Sensation.Memory.Working)')
         self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
         self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
-        self.do_test_ProcessItemVoice(memory=Sensation.Memory.LongTerm)
+        self.do_test_ProcessItemVoice(memory=Sensation.Memory.Working)
         
         # nope, Memory.Sensory is not ment to work
 #         print('self.do_test_ProcessItemVoice(memory=Sensation.Memory.Sensory)')
@@ -356,10 +356,10 @@ class CommunicationTestCase(unittest.TestCase):
 
         # and test again once more 
 
-        print('self.do_test_ProcessItemVoice(memory=Sensation.Memory.LongTerm)')
+        print('self.do_test_ProcessItemVoice(memory=Sensation.Memory.Working)')
         self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
         self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
-        self.do_test_ProcessItemVoice(memory=Sensation.Memory.LongTerm)
+        self.do_test_ProcessItemVoice(memory=Sensation.Memory.Working)
         
         # nope, Memory.Sensory is not ment to work
 #         print('self.do_test_ProcessItemVoice(memory=Sensation.Memory.Sensory)')
@@ -428,13 +428,13 @@ class CommunicationTestCase(unittest.TestCase):
                 
         #image and Item
         # simulate item and image are connected each other with TensorflowClassifivation
-        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.LongTerm,
+        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
                                                  associations=[],
                                                  presence=Sensation.Presence.Entering)
-        Wall_E_image_sensation = Sensation.create(memory=Sensation.Memory.LongTerm,
+        Wall_E_image_sensation = Sensation.create(memory=Sensation.Memory.Working,
                                                   sensationType=Sensation.SensationType.Image,
                                                   direction=Sensation.Direction.Out)
         

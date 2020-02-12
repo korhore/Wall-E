@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 13.07.2019
+Edited on 12.02.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -101,7 +101,7 @@ class Sensation(object):
     HIGHPOINT_NUMBERVARIANCE=100.0
     
     SENSORY_LIVE_TIME =     300.0;       # sensation live3s 300 seconds = 5 mins (may be changed)
-    #WORKING_LIVE_TIME =        600.0;       # cache sensation 600 seconds = 10 mins (may be changed)
+    WORKING_LIVE_TIME =     600.0;       # cache sensation 600 seconds = 10 mins (may be changed)
     #LONG_TERM_LIVE_TIME =   3000.0;       # cache sensation 3000 seconds = 50 mins (may be changed)
     LONG_TERM_LIVE_TIME =   24.0*3600.0;  # cache sensation 24h (may be changed)
     MIN_CACHE_MEMORABILITY = 0.1                            # starting value of min memorability in sensation cache
@@ -135,8 +135,8 @@ class Sensation(object):
     # Presence of Item  
     Presence = enum(Entering='a', Present='b', Exiting='c', Absent='d', Unknown='e')
 
-    #Memory = enum(Sensory='S', Working='W', LongTerm='L' )
-    Memory = enum(Sensory='S', LongTerm='L' )
+    Memory = enum(Sensory='S', Working='W', LongTerm='L' )
+    #Memory = enum(Sensory='S', LongTerm='L' )
     Kind = enum(WallE='w', Eva='e', Normal='n')
     InstanceType = enum(Real='r', SubInstance='s', Virtual='v', Remote='e')
     Mode = enum(Normal='n', StudyOwnIdentity='t',Sleeping='l',Starting='s', Stopping='p', Interrupted='i')
@@ -144,7 +144,7 @@ class Sensation(object):
     IN="In"
     OUT="Out"
     SENSORY="Sensory"
-    #WORKING="Working"
+    WORKING="Working"
     LONG_TERM="LongTerm"
     DRIVE="Drive"
     STOP="Stop"
@@ -186,11 +186,11 @@ class Sensation(object):
                 Direction.Out)
     
     Memorys = {Memory.Sensory: SENSORY,
-               #Memory.Working: WORKING,
+               Memory.Working: WORKING,
                Memory.LongTerm: LONG_TERM}
     MemorysOrdered = (
                Memory.Sensory,
-               #Memory.Working,
+               Memory.Working,
                Memory.LongTerm)
     
     SensationTypes={
@@ -247,12 +247,12 @@ class Sensation(object):
     
     sensationMemorys={                      # Sensation caches
         Memory.Sensory:  [],                # short time Sensation cache
-        #Memory.Working:  [],                # middle time Sensation cache
+        Memory.Working:  [],                # middle time Sensation cache
         Memory.LongTerm: [] }               # long time Sensation cache
 
     sensationMemoryLiveTimes={             # Sensation cache times
         Memory.Sensory:  SENSORY_LIVE_TIME,
-        #Memory.Working:  WORKING_CACHE_TIME, SENSORY_LIVE_TIME
+        Memory.Working:  WORKING_LIVE_TIME,
         Memory.LongTerm: LONG_TERM_LIVE_TIME }
 
 
@@ -2039,18 +2039,18 @@ class Sensation(object):
         return bestSensation
 
     '''
-    save all LongTerm Memory sensation instances and data permanently
+    save all Working Memory sensation instances and data permanently
     so they can be loaded, when running app again
     '''  
-    def saveLongTermMemory():
+    def saveWorkingMemory():
         # save sensations that are memorable to a file
         # there can be LOngTerm sensations in Sensation.sensationMemorys[Sensation.Memory.Sensory]
         # because it is allowed to change memory rtpe after sensation is created
         for key, sensationMemory in Sensation.sensationMemorys.items():
             for sensation in sensationMemory:
-            #for sensation in Sensation.sensationMemorys[Sensation.Memory.LongTerm]:
+            #for sensation in Sensation.sensationMemorys[Sensation.Memory.Working]:
                 if sensation.getMemorability() >  Sensation.MIN_CACHE_MEMORABILITY and\
-                   sensation.getMemory() == Sensation.Memory.LongTerm:
+                   sensation.getMemory() == Sensation.Memory.Working:
                     sensation.save()
                 else:
                     sensation.delete()
@@ -2063,30 +2063,30 @@ class Sensation(object):
             with open(Sensation.PATH_TO_PICLE_FILE, "wb") as f:
                 try:
                     pickler = pickle.Pickler(f, -1)
-                    #pickler.dump(Sensation.sensationMemorys[Sensation.Memory.LongTerm])
+                    #pickler.dump(Sensation.sensationMemorys[Sensation.Memory.Working])
                     pickler.dump(Sensation.sensationMemorys)
-                    print ('saveLongTermMemory dumped ' + str(len(Sensation.sensationMemorys[Sensation.Memory.LongTerm])))
+                    print ('saveWorkingMemory dumped ' + str(len(Sensation.sensationMemorys[Sensation.Memory.Working])))
                 except IOError as e:
-                    print('pickler.dump(Sensation.sensationMemorys[Memory.LongTerm]) error ' + str(e))
+                    print('pickler.dump(Sensation.sensationMemorys[Memory.Working]) error ' + str(e))
                 finally:
                     f.close()
         except Exception as e:
                 print("open(fileName, wb) as f error " + str(e))
 
     '''
-    load LongTerm Memory sensation instances
+    load Working Memory sensation instances
     '''  
-    def loadLongTermMemory():
+    def loadWorkingMemory():
         # load sensation data from files
         if os.path.exists(Sensation.DATADIR):
             try:
                 with open(Sensation.PATH_TO_PICLE_FILE, "rb") as f:
                     try:
                         # whole Memory
-                        #Sensation.sensationMemorys[Sensation.Memory.LongTerm] = \
+                        #Sensation.sensationMemorys[Sensation.Memory.Working] = \
                         Sensation.sensationMemorys = pickle.load(f)
                         for key, sensationMemory in Sensation.sensationMemorys.items():
-                            print ('{} loaded {}'.format(Sensation.getMemoryString(sensationMemory), str(len(Sensation.sensationMemorys[Sensation.Memory.LongTerm]))))
+                            print ('{} loaded {}'.format(Sensation.getMemoryString(sensationMemory), str(len(Sensation.sensationMemorys[Sensation.Memory.Working]))))
                             i=0
                             while i < len(Sensation.sensationMemorys[sensationMemory]):
                                 if Sensation.sensationMemorys[sensationMemory][i].VERSION != Sensation.VERSION: # if dumped code version and current code version is not same
