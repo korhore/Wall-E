@@ -296,7 +296,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                 if connected:
                     self.log('run: self.tcpServer.connectToHost SUCCEEDED to ' + str(hostName))
                 else:
-                    self.log('run: self.tcpServer.connectToHost did not succeed FINAL, no more tries to ' + str(shostName))
+                    self.log('run: self.tcpServer.connectToHost did not succeed FINAL, no more tries to ' + str(hostName))
         except Exception as e:
                 self.log("run: sock.bind, listen exception " + str(e))
                 self.running = False
