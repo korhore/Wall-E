@@ -1322,8 +1322,11 @@ class Sensation(object):
         try:
             if self.getMemory() == Sensation.Memory.Sensory:
                 memorability =  10.0 * (math.log10(10.0 + 10.0 * self.getLiveTimeLeftRatio()) -1.0)
-            else:
+            elif self.getMemory() == Sensation.Memory.Working:
                 memorability =  math.e * (math.log(math.e + math.e * self.getLiveTimeLeftRatio()) - 1.0)
+            else:
+                #memorability =  0.5 * math.e * (math.log(math.e + math.e * self.getLiveTimeLeftRatio()) - 1.0)
+                memorability =  math.e * (math.log10(10.0 + 10.0 * self.getLiveTimeLeftRatio()) -1.0)
         except Exception as e:
             #print("getMemorability error " + str(e))
             memorability = 0.0
