@@ -1,6 +1,6 @@
 '''
 Created on 21.06.2019
-Updated on 11.07.2019
+Updated on 13.02.2020
 @author: reijo.korhonen@gmail.com
 
 test Association class
@@ -129,6 +129,7 @@ class AssociationTestCase(unittest.TestCase):
         Wall_E_voice_sensation = Sensation.create(sensationType=Sensation.SensationType.Voice, direction=Sensation.Direction.Out)
         self.association.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_voice_sensation, association=None)
         self.assertEqual(len(Wall_E_voice_sensation.getAssociations()), 1)
+        self.assertEqual(Wall_E_voice_sensation.getScore(), AssociationTestCase.SCORE)
         # Now we should have 1 item in Robot.presentItemSensations (can be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.association.presentItemSensations[Wall_E_item_sensation.getName()].getAssociations()), 2)
         
@@ -136,6 +137,7 @@ class AssociationTestCase(unittest.TestCase):
         Wall_E_voice_sensation = Sensation.create(sensationType=Sensation.SensationType.Voice, direction=Sensation.Direction.Out)
         self.association.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_voice_sensation, association=None)
         self.assertEqual(len(Wall_E_voice_sensation.getAssociations()), 1)
+        self.assertEqual(Wall_E_voice_sensation.getScore(), AssociationTestCase.SCORE)
         
         # Now we should have 1 item in Robot.presentItemSensations (can be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.association.presentItemSensations[Wall_E_item_sensation.getName()].getAssociations()), 3)
@@ -169,6 +171,7 @@ class AssociationTestCase(unittest.TestCase):
         Wall_E_voice_sensation = Sensation.create(sensationType=Sensation.SensationType.Voice, direction=Sensation.Direction.Out)
         self.association.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_voice_sensation, association=None)
         self.assertEqual(len(Wall_E_voice_sensation.getAssociations()), 2)
+        self.assertEqual(Wall_E_voice_sensation.getScore(), AssociationTestCase.SCORE)
         
         # Now we should have 2 items in Robot.presentItemSensations (can be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.association.presentItemSensations[Wall_E_item_sensation.getName()].getAssociations()), 4)
