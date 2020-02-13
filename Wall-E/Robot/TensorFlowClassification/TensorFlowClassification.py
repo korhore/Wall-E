@@ -582,8 +582,8 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                                                                      presence = precence)
                                     itemsensation.associate(sensation=subsensation, score=score)
                                     self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
-                                    self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
                                     self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
+                                    self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
                                     self.log("Created Workibg subImage and item sensation for this")
                                 # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
                         x = x +  self.width/2    

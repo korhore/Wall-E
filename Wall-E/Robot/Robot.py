@@ -575,11 +575,13 @@ class Robot(Thread):
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="Entering, Present or Exiting " + sensation.getName())
             else:
                 del Robot.presentItemSensations[sensation.getName()]
-                self.log(logLevel=Robot.LogLevel.Normal, logStr="absent " + sensation.getName())
-        else:
-            if sensation.getPresence() == Sensation.Presence.Entering or\
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="Absent " + sensation.getName())
+        # accept only sensation items that are not prensent, but not not in order ones
+        # absetnt sensations don't have any mean at this case
+        elif (sensation.getName() not in Robot.presentItemSensations) and\
+             (sensation.getPresence() == Sensation.Presence.Entering or\
                sensation.getPresence() == Sensation.Presence.Present or\
-               sensation.getPresence() == Sensation.Presence.Exiting:
+               sensation.getPresence() == Sensation.Presence.Exiting):
                 Robot.presentItemSensations[sensation.getName()] = sensation
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="Entering, Present or Exiting " + sensation.getName())
 
