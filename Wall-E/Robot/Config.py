@@ -69,11 +69,11 @@ class Config(ConfigParser):
     LOGLEVEL =          "LogLevel"
     MAXRSS =            "maxrss"    # maximum resident set size
                                     # limit is set in MB, but in Linux documentation KB
-    MAXRSS_DEFAULT =    512         # 0.5 BG
+    MAXRSS_DEFAULT =    384         # 0.5 BG
                                     # raspberry has often 1GB of memory
     MAX_SENSATION_RSS = "MaxSensationRss"    # maximum resident set size for Sensation2
                                     # limit is set in MB, but in Linux documentation KB
-    MAX_SENSATION_RSS_DEFAULT =  128.0  # 128MB
+    MAX_SENSATION_RSS_DEFAULT =  384.0  # 512MB
                                         # raspberry has often 1GB of memory
 
 

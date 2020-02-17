@@ -313,7 +313,7 @@ class Communication(Robot):
                  self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: ignored exception ' + str(e))
                  del self.communicationItems[:]  #clear old list
             
-        if self.mostImportantItemSensation is not None:
+        if (self.mostImportantItemSensation is not None) and (self.mostImportantVoiceSensation is not None):
             self.mostImportantVoiceSensation.save()     # for debug reasons save voices we have spoken as heard voices
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: Sensation.getMostImportantSensation did find self.mostImportantItemSensation OK')
             self.spokedVoiceSensation = Sensation.create(sensation = self.mostImportantVoiceSensation, kind=self.getKind() )

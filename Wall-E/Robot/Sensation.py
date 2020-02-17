@@ -15,6 +15,9 @@ import random
 import math
 from PIL import Image as PIL_Image
 import io
+import psutil
+import threading
+
 try:
     import cPickle as pickle
 #except ModuleNotFoundError:
@@ -101,7 +104,7 @@ class Sensation(object):
     HIGHPOINT_NUMBERVARIANCE=100.0
     
     SENSORY_LIVE_TIME =     300.0;       # sensation live3s 300 seconds = 5 mins (may be changed)
-    WORKING_LIVE_TIME =     600.0;       # cache sensation 600 seconds = 10 mins (may be changed)
+    WORKING_LIVE_TIME =     1200.0;       # cache sensation 600 seconds = 20 mins (may be changed)
     #LONG_TERM_LIVE_TIME =   3000.0;       # cache sensation 3000 seconds = 50 mins (may be changed)
     LONG_TERM_LIVE_TIME =   24.0*3600.0;  # cache sensation 24h (may be changed)
     MIN_CACHE_MEMORABILITY = 0.1                            # starting value of min memorability in sensation cache
@@ -113,7 +116,8 @@ class Sensation(object):
                                                              # set min_cache_memorability lower
     startSensationMemoryUsageLevel = 0.0                     # start memory usage level after creating first Sensation
     currentSensationMemoryUsageLevel = 0.0                   # current memory usage level when creating last Sensation
-    maxSensationRss = 128.0                                             # how much there is space for Sensation as maxim MainRobot sets this from its Config
+    maxSensationRss = 384.0                                  # how much there is space for Sensation as maxim MainRobot sets this from its Config
+    process = psutil.Process(os.getpid())                 # get pid of current process, so we can calculate Process memory usage
     
     LENGTH_SIZE =       2   # Sensation as string can only be 99 character long
     LENGTH_FORMAT =     "{0:2d}"
@@ -125,6 +129,8 @@ class Sensation(object):
     BYTEORDER =         "little"
     FLOAT_PACK_TYPE =   "d"
     FLOAT_PACK_SIZE =   8
+    
+    memoryLock = threading.Lock() # for thread_dafe Sensation cache
  
     # so many sensationtypes, that first letter is not good idea any more  
     SensationType = enum(Drive='a', Stop='b', Who='c', Azimuth='d', Acceleration='e', Observation='f', HearDirection='g', Voice='h', Image='i',  Calibrate='j', Capability='k', Item='l', Unknown='m')
@@ -314,8 +320,21 @@ class Sensation(object):
     '''
     
     def addToSensationMemory(sensation):
+        Sensation.memoryLock.acquire()  # thread_safe                                     
         Sensation.forgetLessImportantSensations(sensation)        
-        Sensation.sensationMemorys[sensation.getMemory()].append(sensation)
+        Sensation.sensationMemorys[sensation.getMemory()].append(sensation)        
+        Sensation.memoryLock.release()  # thread_safe   
+        
+    '''
+    get memory usage
+    this is called before no Sensation are allocated so we get base memory usage
+    '''
+    def getStartSensationMemoryUsageLevel():
+        #memUsage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0   # this does not work very wall
+        #memUsage = Sensation.process.memory_info().rss/(1024*1024)              # hope this works better
+        Sensation.startSensationMemoryUsageLevel = Sensation.process.memory_info().rss/(1024*1024)
+                          
+        
         
     '''
     Forget sensations that are not important
@@ -325,9 +344,8 @@ class Sensation(object):
 
     def forgetLessImportantSensations(sensation):
         memory = Sensation.sensationMemorys[sensation.getMemory()]
-        memUsage= resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0
-        if Sensation.startSensationMemoryUsageLevel == 0.0:
-            Sensation.startSensationMemoryUsageLevel = memUsage
+        #memUsage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0   # this does not work very wall
+        memUsage = Sensation.process.memory_info().rss/(1024*1024)              # hope this works better
         print('Memory usage {} MB'.format(memUsage))
         print('Memory usage for Sensations {} MB'.format(memUsage-Sensation.startSensationMemoryUsageLevel))
         
@@ -349,7 +367,8 @@ class Sensation(object):
             del memory[0]
 
         # if we are still using too much memory for Sensations, we should check all Sensations in the cache
-        memUsage= resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0            
+        #memUsage= resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0            
+        memUsage = Sensation.process.memory_info().rss/(1024*1024)              # hope this works better
         if (memUsage-Sensation.startSensationMemoryUsageLevel) > Sensation.maxSensationRss:
             i=0
             while i < len(memory):
@@ -361,7 +380,7 @@ class Sensation(object):
                     i=i+1
        
         print('Memory cache {} usage after {} MB with Sensation.min_cache_memorability {}'.format(Sensation.getMemoryString(sensation.getMemory()), memUsage, Sensation.min_cache_memorability))
-        print('Memory usage for Sensations {} after {} MB'.format(len(memory), memUsage-Sensation.startSensationMemoryUsageLevel))
+        print('Memory usage for {} Sensations {} after {} MB'.format(len(memory), Sensation.getMemoryString(sensation.getMemory()), memUsage-Sensation.startSensationMemoryUsageLevel))
          
     '''
     Association is a association between two sensations
@@ -843,8 +862,6 @@ class Sensation(object):
                  presence=Presence.Unknown,                                 # presence of Item
                  kind=Kind.Normal,                                          # Normal kind
                  permanent=False):                                          # default is deletable
-                                
-        
         if sensation == None:             # not an update, create new one
             print("Create new sensation by pure parameters")
         else:
@@ -1660,7 +1677,11 @@ class Sensation(object):
     def setMemory(self, memory):
         self.memory = memory
         self.time = systemTime.time()   # if we change memory, this is new Sensation
+        
+        Sensation.memoryLock.acquire()  # thread_safe                             
         Sensation.forgetLessImportantSensations(sensation=self)
+        Sensation.memoryLock.release()  # thread_safe                             
+
     def getMemory(self):
         return self.memory
        
