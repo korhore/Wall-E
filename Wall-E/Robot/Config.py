@@ -71,12 +71,6 @@ class Config(ConfigParser):
                                     # limit is set in MB, but in Linux documentation KB
     MAXRSS_DEFAULT =    384         # 0.5 BG
                                     # raspberry has often 1GB of memory
-    MAX_SENSATION_RSS = "MaxSensationRss"    # maximum resident set size for Sensation2
-                                    # limit is set in MB, but in Linux documentation KB
-    MAX_SENSATION_RSS_DEFAULT =  384.0  # 512MB
-                                        # raspberry has often 1GB of memory
-
-
 
     MICROPHONE =                   'microphone'
     MICROPHONE_VOICE_LEVEL_AVERAGE = 'microphone_voice_average_level'
@@ -510,13 +504,13 @@ class Config(ConfigParser):
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION,Config.MAXRSS, str(Config.MAXRSS_DEFAULT)) exception  ' + str(e))
 
-        try:                
-            if not self.has_option(Config.DEFAULT_SECTION, Config.MAX_SENSATION_RSS):
-                from Robot import Robot
-                self.set(Config.DEFAULT_SECTION,Config.MAX_SENSATION_RSS, str(Config.MAX_SENSATION_RSS_DEFAULT))
-                self.is_changes=True
-        except Exception as e:
-            print('self.set(Config.DEFAULT_SECTION,Config.MAX_SENSATION_RSS, str(Config.MAX_SENSATION_RSS_DEFAULT)) exception  ' + str(e))
+#         try:                
+#             if not self.has_option(Config.DEFAULT_SECTION, Config.MAX_SENSATION_RSS):
+#                 from Robot import Robot
+#                 self.set(Config.DEFAULT_SECTION,Config.MAX_SENSATION_RSS, str(Config.MAX_SENSATION_RSS_DEFAULT))
+#                 self.is_changes=True
+#         except Exception as e:
+#             print('self.set(Config.DEFAULT_SECTION,Config.MAX_SENSATION_RSS, str(Config.MAX_SENSATION_RSS_DEFAULT)) exception  ' + str(e))
 
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.WHO):
@@ -715,12 +709,6 @@ class Config(ConfigParser):
             print('self.getint(section=section, option=self.MAXRSS) ' + str(e))
             return None
 
-    def getMaxSensationRss(self, section=LOCALHOST):
-        try:
-            return self.getfloat(section=section, option=self.MAX_SENSATION_RSS)
-        except Exception as e:
-            print('self.getint(section=section, option=self.MAXRSS) ' + str(e))
-            return None
 
     def getWho(self, section=LOCALHOST):
         who = self.get(section=section, option=self.WHO)

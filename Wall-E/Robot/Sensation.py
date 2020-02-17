@@ -116,7 +116,7 @@ class Sensation(object):
                                                              # set min_cache_memorability lower
     startSensationMemoryUsageLevel = 0.0                     # start memory usage level after creating first Sensation
     currentSensationMemoryUsageLevel = 0.0                   # current memory usage level when creating last Sensation
-    maxSensationRss = 384.0                                  # how much there is space for Sensation as maxim MainRobot sets this from its Config
+    maxRss = 384.0                                  # how much there is space for Sensation as maxim MainRobot sets this from its Config
     process = psutil.Process(os.getpid())                 # get pid of current process, so we can calculate Process memory usage
     
     LENGTH_SIZE =       2   # Sensation as string can only be 99 character long
@@ -327,36 +327,27 @@ class Sensation(object):
         
     '''
     get memory usage
-    this is called before no Sensation are allocated so we get base memory usage
     '''
-    def getStartSensationMemoryUsageLevel():
-        #memUsage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0   # this does not work very wall
-        #memUsage = Sensation.process.memory_info().rss/(1024*1024)              # hope this works better
-        Sensation.startSensationMemoryUsageLevel = Sensation.process.memory_info().rss/(1024*1024)
-                          
-        
+    def getMemoryUsage():     
+         #memUsage= resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0            
+        return Sensation.process.memory_info().rss/(1024*1024)              # hope this works better       
         
     '''
     Forget sensations that are not important
     Other way we run out of memory very soon
     '''
 
-
     def forgetLessImportantSensations(sensation):
         memory = Sensation.sensationMemorys[sensation.getMemory()]
-        #memUsage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0   # this does not work very wall
-        memUsage = Sensation.process.memory_info().rss/(1024*1024)              # hope this works better
-        print('Memory usage {} MB'.format(memUsage))
-        print('Memory usage for Sensations {} MB'.format(memUsage-Sensation.startSensationMemoryUsageLevel))
-        
+
         # calibrate memorability        
-        if (memUsage-Sensation.startSensationMemoryUsageLevel) > Sensation.maxSensationRss and\
+        if Sensation.getMemoryUsage() > Sensation.maxRss and\
             Sensation.min_cache_memorability < Sensation.MAX_MIN_CACHE_MEMORABILITY:
             if Sensation.min_cache_memorability >= Sensation.NEAR_MAX_MIN_CACHE_MEMORABILITY:
                 Sensation.min_cache_memorability = Sensation.min_cache_memorability + 0.01
             else:
                 Sensation.min_cache_memorability = Sensation.min_cache_memorability + 0.1
-        elif (memUsage-Sensation.startSensationMemoryUsageLevel) < Sensation.maxSensationRss and\
+        elif Sensation.getMemoryUsage() < Sensation.maxRss and\
             Sensation.min_cache_memorability > Sensation.MIN_MIN_CACHE_MEMORABILITY:
             Sensation.min_cache_memorability = Sensation.min_cache_memorability - 0.1
         
@@ -367,9 +358,7 @@ class Sensation(object):
             del memory[0]
 
         # if we are still using too much memory for Sensations, we should check all Sensations in the cache
-        #memUsage= resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0            
-        memUsage = Sensation.process.memory_info().rss/(1024*1024)              # hope this works better
-        if (memUsage-Sensation.startSensationMemoryUsageLevel) > Sensation.maxSensationRss:
+        if Sensation.getMemoryUsage() > Sensation.maxRss:
             i=0
             while i < len(memory):
                 if memory[i].getMemorability() < Sensation.min_cache_memorability:
@@ -379,8 +368,8 @@ class Sensation(object):
                 else:
                     i=i+1
        
-        print('Memory cache {} usage after {} MB with Sensation.min_cache_memorability {}'.format(Sensation.getMemoryString(sensation.getMemory()), memUsage, Sensation.min_cache_memorability))
-        print('Memory usage for {} Sensations {} after {} MB'.format(len(memory), Sensation.getMemoryString(sensation.getMemory()), memUsage-Sensation.startSensationMemoryUsageLevel))
+        print('Memory cache for {} Sensations {} usage after {} MB with Sensation.min_cache_memorability {}'.format(Sensation.getMemoryString(sensation.getMemory()), len(memory), Sensation.getMemoryUsage(), Sensation.min_cache_memorability))
+        #print('Memory usage for {} Sensations {} after {} MB'.format(len(memory), Sensation.getMemoryString(sensation.getMemory()), Sensation.getMemoryUsage()-Sensation.startSensationMemoryUsageLevel))
          
     '''
     Association is a association between two sensations
