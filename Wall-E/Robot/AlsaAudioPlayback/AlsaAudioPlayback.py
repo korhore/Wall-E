@@ -131,7 +131,7 @@ class AlsaAudioPlayback(Robot):
                     # calculate average   
                     # no need to take care of  Settings.AUDIO_CHANNELS 
                     # because this is average of all channels            
-                    sum=0
+                    sum=0.0 # try float
                     for a in aaa:
                         sum += abs(a) # We can get: AlsaAudioPlayback.py:136: RuntimeWarning: overflow encountered in long_scalars
                     average = sum/len(aaa)

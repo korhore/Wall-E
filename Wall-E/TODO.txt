@@ -1,5 +1,7 @@
 Critical
 --------
+AlsaAudioMicrophone produces mono, 1-channel file with raspberry USB-microphone
+even if setting are 2-channels. Still output is expected to have 2-channels.
 
 OK Check AlsaAudioMicrophonePlayback logic.
 Should read microphone all the time, so we get right average voice level.

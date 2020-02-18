@@ -336,7 +336,7 @@ class Robot(Thread):
         #self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability direction ' + str(direction) + ' memory ' + str(memory) + ' sensationType ' + str(sensationType) + ' False')      
         return False
    
-    def getSubCapabilityInstanceses(self, direction, memory, sensationType):
+    def getSubCapabilityInstances(self, direction, memory, sensationType):
         robots=[]
         for robot in self.getSubInstances():
             if robot.hasCapability(direction, memory, sensationType) or \
@@ -527,8 +527,8 @@ class Robot(Thread):
                 self.getParent().getAxon().put(transferDirection=transferDirection, sensation=sensation, association=None)
             else: # we are main Robot
                 # check if we have subrobot that has capability to process this sensation
-                self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.getSubCapabilityInstanceses')      
-                robots = self.getSubCapabilityInstanceses(direction=sensation.getDirection(), memory=sensation.getMemory(), sensationType=sensation.getSensationType())
+                self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.getSubCapabilityInstances')      
+                robots = self.getSubCapabilityInstances(direction=sensation.getDirection(), memory=sensation.getMemory(), sensationType=sensation.getSensationType())
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr='process for ' + sensation.toDebugStr() + ' robots ' + str(robots))
                 for robot in robots:
                     if robot.getInstanceType() == Sensation.InstanceType.Remote:
@@ -546,8 +546,8 @@ class Robot(Thread):
         # sensation going down
         else:
             # which subinstances can process this
-            robots = self.getSubCapabilityInstanceses(direction=sensation.getDirection(), memory=sensation.getMemory(), sensationType=sensation.getSensationType())
-            self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getSubCapabilityInstanceses' + str(robots))
+            robots = self.getSubCapabilityInstances(direction=sensation.getDirection(), memory=sensation.getMemory(), sensationType=sensation.getSensationType())
+            self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getSubCapabilityInstances' + str(robots))
             for robot in robots:
                 if robot.getInstanceType() == Sensation.InstanceType.Remote:
                     # if this sensation comes from sockrServers host

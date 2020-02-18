@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 12.02.2020
+Edited on 18.02.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -103,7 +103,7 @@ class Sensation(object):
     LOWPOINT_NUMBERVARIANCE=-100.0
     HIGHPOINT_NUMBERVARIANCE=100.0
     
-    SENSORY_LIVE_TIME =     300.0;       # sensation live3s 300 seconds = 5 mins (may be changed)
+    SENSORY_LIVE_TIME =     120.0;       # sensory sensation lives 120 seconds = 2 mins (may be changed)
     WORKING_LIVE_TIME =     1200.0;       # cache sensation 600 seconds = 20 mins (may be changed)
     #LONG_TERM_LIVE_TIME =   3000.0;       # cache sensation 3000 seconds = 50 mins (may be changed)
     LONG_TERM_LIVE_TIME =   24.0*3600.0;  # cache sensation 24h (may be changed)
@@ -112,8 +112,9 @@ class Sensation(object):
     MAX_MIN_CACHE_MEMORABILITY = 1.6                         # max value of min memorability in sensation cache we think application does something sensible
                                                              # Makes Sensory memory above 150s, which should be enough
     NEAR_MAX_MIN_CACHE_MEMORABILITY = 1.5                    # max value of min memorability in sensation cache we think application does something sensible
-    MIN_MIN_CACHE_MEMORABILITY = 0.1                         # min value of min memorability in sensation cache we think application does everything wel and no need to
+    MIN_MIN_CACHE_MEMORABILITY = 0.1                         # min value of min memorability in sensation cache we think application does everything well and no need to
                                                              # set min_cache_memorability lower
+    NEAR_MIN_MIN_CACHE_MEMORABILITY = 0.2                    
     startSensationMemoryUsageLevel = 0.0                     # start memory usage level after creating first Sensation
     currentSensationMemoryUsageLevel = 0.0                   # current memory usage level when creating last Sensation
     maxRss = 384.0                                  # how much there is space for Sensation as maxim MainRobot sets this from its Config
@@ -349,7 +350,10 @@ class Sensation(object):
                 Sensation.min_cache_memorability = Sensation.min_cache_memorability + 0.1
         elif Sensation.getMemoryUsage() < Sensation.maxRss and\
             Sensation.min_cache_memorability > Sensation.MIN_MIN_CACHE_MEMORABILITY:
-            Sensation.min_cache_memorability = Sensation.min_cache_memorability - 0.1
+            if Sensation.min_cache_memorability <= Sensation.NEAR_MIN_MIN_CACHE_MEMORABILITY:
+                Sensation.min_cache_memorability = Sensation.min_cache_memorability - 0.01
+            else:
+                Sensation.min_cache_memorability = Sensation.min_cache_memorability - 0.1
         
         # delete quickly last created Sensations that are not important
         while len(memory) > 0 and memory[0].getMemorability() < Sensation.min_cache_memorability:
@@ -1666,10 +1670,11 @@ class Sensation(object):
     def setMemory(self, memory):
         self.memory = memory
         self.time = systemTime.time()   # if we change memory, this is new Sensation
-        
-        Sensation.memoryLock.acquire()  # thread_safe                             
-        Sensation.forgetLessImportantSensations(sensation=self)
-        Sensation.memoryLock.release()  # thread_safe                             
+# OOPS, we can't forget AWnasations at this point, because logic can need some other Sensations
+#         
+#         Sensation.memoryLock.acquire()  # thread_safe                             
+#         Sensation.forgetLessImportantSensations(sensation=self)
+#         Sensation.memoryLock.release()  # thread_safe                             
 
     def getMemory(self):
         return self.memory

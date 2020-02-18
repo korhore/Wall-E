@@ -74,11 +74,13 @@ class Config(ConfigParser):
 
     MICROPHONE =                   'microphone'
     MICROPHONE_VOICE_LEVEL_AVERAGE = 'microphone_voice_average_level'
-    MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT = '300.0'
+    MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT = 300.0
     MICROPHONE_LEFT =              'microphone_left'
     MICROPHONE_RIGHT =             'microphone_right'
     MICROPHONE_CALIBRATING_FACTOR ='microphone_calibrating_factor'
     MICROPHONE_CALIBRATING_ZERO =  'microphone_calibrating_zero'
+    MICROPHONE_CHANNELS =          'microphone_channels'
+    MICROPHONE_CHANNELS_DEFAULT =  2
     
     PLAYBACK =          'playback'
 
@@ -563,10 +565,17 @@ class Config(ConfigParser):
                 self.is_changes=True
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION, Config.MICROPHONE, Config.EMPTY) exception ' + str(e))
+
+        try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.MICROPHONE_CHANNELS):
+                self.set(Config.DEFAULT_SECTION, Config.MICROPHONE_CHANNELS, str(Config.MICROPHONE_CHANNELS_DEFAULT))
+                self.is_changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION, Config.MICROPHONE_CHANNELS, str(Config.MICROPHONE_CHANNELS_DEFAULT)) ' + str(e))
             
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.MICROPHONE_VOICE_LEVEL_AVERAGE):
-                self.set(Config.DEFAULT_SECTION, Config.MICROPHONE_VOICE_LEVEL_AVERAGE, Config.MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT)
+                self.set(Config.DEFAULT_SECTION, Config.MICROPHONE_VOICE_LEVEL_AVERAGE, str(Config.MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT))
                 self.is_changes=True
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION, Config.MICROPHONE_VOICE_LEVEL_AVERAGE, Config.MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT) ' + str(e))
@@ -749,6 +758,13 @@ class Config(ConfigParser):
             print('self.get(section=section, option=self.MICROPHONE) ' + str(e))
             return None
 
+    def getMicrophoneChannels(self, section=LOCALHOST):
+        try:
+            return self.getint(section=section, option=self.MICROPHONE_CHANNELS)
+        except Exception as e:
+            print('self.getint(section=section, option=self.MICROPHONE_CHANNELS)' + str(e))
+            return None
+
     def getMicrophoneVoiceAvegageLevel(self, section=LOCALHOST):
         try:
             return self.getfloat(section=section, option=self.MICROPHONE_VOICE_LEVEL_AVERAGE)
@@ -756,7 +772,7 @@ class Config(ConfigParser):
             print('self.getfloat(section=section, option=self.MICROPHONE_VOICE_LEVEL_AVERAGE)' + str(e))
             return None
         
-    def setMicrophoneVoiceAvegageLevel(self, section=LOCALHOST, voiceLevelAverage=MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT, commit=True):
+    def setMicrophoneVoiceAvegageLevel(self, section=LOCALHOST, voiceLevelAverage=str(MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT), commit=True):
         try:
             self.set(section=section, option=self.MICROPHONE_VOICE_LEVEL_AVERAGE, value=str(voiceLevelAverage))
             self.is_changes = True

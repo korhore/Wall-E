@@ -52,7 +52,8 @@ class AlsaAudioMicrophone(Robot):
 
         # from settings        
         self.device= self.config.getMicrophone()
-        self.channels=Settings.AUDIO_CHANNELS
+        #self.channels=Settings.AUDIO_CHANNELS
+        self.channels=self.config.getMicrophoneChannels()
         self.sensitivity=AlsaAudioMicrophone.SENSITIVITY
         self.rate = Settings.AUDIO_RATE
         self.format = AlsaAudioNeededSettings.AUDIO_FORMAT
@@ -162,7 +163,7 @@ class AlsaAudioMicrophone(Robot):
         if self.voice_data is not None:
             # put direction out (heard voice) to the parent Axon going up to main Robot
             # connected to present Item.names
-            voiceSensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=self.voice_data)
+            voiceSensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=self.getVoiceData(data=self.voice_data, dtype=Settings.AUDIO_CONVERSION_FORMAT))
             for name, itemSensation in Robot.presentItemSensations.items():
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: voice from " + name)
                 itemSensation.associate(sensation=voiceSensation)
@@ -235,6 +236,36 @@ class AlsaAudioMicrophone(Robot):
             i += 1
        
         return  float(voice_items)/float(len(aaa)) >= 0.5
+    
+    '''
+    Convert read data to expected voice format
+    We expect output to be PC; 2-channels,
+    but we can have mono-mictophones that produce 1-channels data,
+    which is ser in config file to be known,
+    so only conversion supported now i 1-channel to 2-channels
+    '''
+    
+    
+    def getVoiceData(self, data, dtype):
+        if self.channels == 1 and Settings.AUDIO_CHANNELS == 2:
+            try:
+                aaa = numpy.fromstring(data, dtype=dtype)
+            except (ValueError):
+                self.log("getVoiceData numpy.fromstring(data, dtype=dtype: ValueError")      
+                return None
+            
+            ret_data=[]
+            for a in aaa:
+                ret_data.append(a)
+                ret_data.append(a)
+                
+            try:
+                return(numpy.array(ret_data,Settings.AUDIO_CONVERSION_FORMAT).tobytes())
+            except (ValueError):
+                self.log("getVoiceData numpy.array(ret_data,Settings.AUDIO_CONVERSION_FORMAT).tobytes(): ValueError")      
+                return None
+        
+        return data
     
   
             

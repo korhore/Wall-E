@@ -314,6 +314,7 @@ class Communication(Robot):
                  del self.communicationItems[:]  #clear old list
             
         if (self.mostImportantItemSensation is not None) and (self.mostImportantVoiceSensation is not None):
+            # TODO we should mark self.mostImportantItemSensation and self.mostImportantVoiceSensation assigned at this time, so no-one will delete them
             self.mostImportantVoiceSensation.save()     # for debug reasons save voices we have spoken as heard voices
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: Sensation.getMostImportantSensation did find self.mostImportantItemSensation OK')
             self.spokedVoiceSensation = Sensation.create(sensation = self.mostImportantVoiceSensation, kind=self.getKind() )
@@ -322,8 +323,10 @@ class Communication(Robot):
             # NOTE This is needed now, because Sensation.create parameters direction and memory parameters are  overwritten by sensation parameters
             self.spokedVoiceSensation.setKind(self.getKind())
             self.spokedVoiceSensation.setDirection(Sensation.Direction.In)  # speak        
-            self.spokedVoiceSensation.setMemory(Sensation.Memory.Sensory)
-            association = self.mostImportantItemSensation.getAssociation(sensation = self.mostImportantVoiceSensation )
+            association = self.mostImportantItemSensation.getAssociation(sensation = self.mostImportantVoiceSensation ) #TODO can get AttributeError: 'NoneType' object has no attribute 'getAssociation'
+            association.setTime(time=None)  # renew association time, so no-one will delete these sensations and they are marked more important by time
+            self.spokedVoiceSensation.setMemory(Sensation.Memory.Sensory) # OOPS Sensation.setMemory can delete too old Sensations, if this was done earlier
+                                                                          # anyway, Sensation.setMemory will not any way forget anything
  
             # keep track what we said to whom
             #for communicationItem in candidate_communicationItems:
