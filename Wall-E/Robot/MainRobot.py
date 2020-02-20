@@ -93,7 +93,7 @@ class MainRobot(Robot):
             # set memory handling for Sensation memory
             Sensation.maxRss = self.config.getMaxRss()                  # limit
             
-            Sensation.loadWorkingMemory()
+            Sensation.loadLongTermMemory()
             Sensation.CleanDataDirectory()
             
             self.tcpServer=TCPServer(parent=self,
@@ -153,7 +153,7 @@ class MainRobot(Robot):
             self.log("MainRobot Stopping self.tcpServer " + self.tcpServer.getWho())      
             self.tcpServer.stop()
             # finally save memories
-            Sensation.saveWorkingMemory()
+            Sensation.saveLongTermMemory()
 
         self.log("run ALL SHUT DOWN")      
         

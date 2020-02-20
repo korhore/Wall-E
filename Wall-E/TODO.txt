@@ -1,9 +1,10 @@
 Critical
 --------
+OK  We have setting and support for 1-channel microprone now
 AlsaAudioMicrophone produces mono, 1-channel file with raspberry USB-microphone
 even if setting are 2-channels. Still output is expected to have 2-channels.
 
-OK Check AlsaAudioMicrophonePlayback logic.
+OK  Check AlsaAudioMicrophonePlayback logic.
 Should read microphone all the time, so we get right average voice level.
 Should not be interesting if items are present.
 If voice found, then should read as long as voice is on, so we get nice voice.
@@ -36,7 +37,9 @@ SocketServer:('192.168.117.7', 51518):3:Normal: run: waiting next Sensation from
 Develop
 -------
 
-Add ReacttionToSensation-attribute to Sensation so if we we have mani Borbots in the network, then first can one reacts
+Start tu use LongTerm-memory, when we get an response, so we remember thing that should be rembembered
+
+Add ReactionToSensation-attribute to Sensation so if we we have mani Borbots in the network, then first can one reacts
 in Communication and also in TensorflowClassification to create new Sensations based on source Sensation(s). Other Robots
 must not react when or to some actions to like play a sound if some other Robot has done it already.
 

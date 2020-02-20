@@ -127,6 +127,7 @@ class AlsaAudioPlayback(Robot):
                                 if dest_step >=  step_length:   # destination a is ready
                                     for i in range(Settings.AUDIO_CHANNELS):
                                         result_aaa.append(a[i]/step_length)    # normalize, so voice loudness don't change
+                        aaa = result_aaa
                     # normalize voice                 
                     # calculate average   
                     # no need to take care of  Settings.AUDIO_CHANNELS 

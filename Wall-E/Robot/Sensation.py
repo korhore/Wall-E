@@ -372,7 +372,11 @@ class Sensation(object):
                 else:
                     i=i+1
        
-        print('Memory cache for {} Sensations {} usage after {} MB with Sensation.min_cache_memorability {}'.format(Sensation.getMemoryString(sensation.getMemory()), len(memory), Sensation.getMemoryUsage(), Sensation.min_cache_memorability))
+        print('Sensations cache for {} {} {} {} {} {} Total memory usage {} MB with Sensation.min_cache_memorability {}'.\
+              format(Sensation.getMemoryString(Sensation.Memory.Sensory), len(Sensation.sensationMemorys[Sensation.Memory.Sensory]),\
+                     Sensation.getMemoryString(Sensation.Memory.Working), len(Sensation.sensationMemorys[Sensation.Memory.Working]),\
+                     Sensation.getMemoryString(Sensation.Memory.LongTerm), len(Sensation.sensationMemorys[Sensation.Memory.LongTerm]),\
+                     Sensation.getMemoryUsage(), Sensation.min_cache_memorability))
         #print('Memory usage for {} Sensations {} after {} MB'.format(len(memory), Sensation.getMemoryString(sensation.getMemory()), Sensation.getMemoryUsage()-Sensation.startSensationMemoryUsageLevel))
          
     '''
@@ -1668,8 +1672,22 @@ class Sensation(object):
         return self.sensationType
        
     def setMemory(self, memory):
-        self.memory = memory
-        self.time = systemTime.time()   # if we change memory, this is new Sensation
+        if self.getMemory() != memory:
+            Sensation.memoryLock.acquire()  # thread_safe                                     
+            oldMemoryCache = Sensation.sensationMemorys[self.getMemory()]
+            try:
+                # remove from current menmory type cache and add to a new one
+                oldMemoryCache.remove(self)
+            except ValueError as e:
+                print("oldMemoryCache.remove(self) error " + str(e))
+                print("where self == " + self.toDebugStr())
+                
+            self.memory = memory
+            #self.time = systemTime.time()   # if we change memory, this is new Sensation, NO keep times, association handles if associated later
+            Sensation.forgetLessImportantSensations(self) # muat forget here. because if not created, this is only place fot Longerm-Senasations to be removed from cache
+            Sensation.sensationMemorys[memory].append(self)
+            Sensation.memoryLock.release()  # thread_safe   
+           
 # OOPS, we can't forget AWnasations at this point, because logic can need some other Sensations
 #         
 #         Sensation.memoryLock.acquire()  # thread_safe                             
@@ -2057,18 +2075,18 @@ class Sensation(object):
         return bestSensation
 
     '''
-    save all Working Memory sensation instances and data permanently
+    save all LongTerm Memory sensation instances and data permanently
     so they can be loaded, when running app again
     '''  
-    def saveWorkingMemory():
+    def saveLongTermMemory():
         # save sensations that are memorable to a file
         # there can be LOngTerm sensations in Sensation.sensationMemorys[Sensation.Memory.Sensory]
         # because it is allowed to change memory rtpe after sensation is created
         for key, sensationMemory in Sensation.sensationMemorys.items():
             for sensation in sensationMemory:
-            #for sensation in Sensation.sensationMemorys[Sensation.Memory.Working]:
+            #for sensation in Sensation.sensationMemorys[Sensation.Memory.LongTerm]:
                 if sensation.getMemorability() >  Sensation.MIN_CACHE_MEMORABILITY and\
-                   sensation.getMemory() == Sensation.Memory.Working:
+                   sensation.getMemory() == Sensation.Memory.LongTerm:
                     sensation.save()
                 else:
                     sensation.delete()
@@ -2081,30 +2099,30 @@ class Sensation(object):
             with open(Sensation.PATH_TO_PICLE_FILE, "wb") as f:
                 try:
                     pickler = pickle.Pickler(f, -1)
-                    #pickler.dump(Sensation.sensationMemorys[Sensation.Memory.Working])
+                    #pickler.dump(Sensation.sensationMemorys[Sensation.Memory.LongTerm])
                     pickler.dump(Sensation.sensationMemorys)
-                    print ('saveWorkingMemory dumped ' + str(len(Sensation.sensationMemorys[Sensation.Memory.Working])))
+                    print ('saveLongTermMemory dumped ' + str(len(Sensation.sensationMemorys[Sensation.Memory.LongTerm])))
                 except IOError as e:
-                    print('pickler.dump(Sensation.sensationMemorys[Memory.Working]) error ' + str(e))
+                    print('pickler.dump(Sensation.sensationMemorys[Memory.LongTerm]) error ' + str(e))
                 finally:
                     f.close()
         except Exception as e:
                 print("open(fileName, wb) as f error " + str(e))
 
     '''
-    load Working Memory sensation instances
+    load LongTerm Memory sensation instances
     '''  
-    def loadWorkingMemory():
+    def loadLongTermMemory():
         # load sensation data from files
         if os.path.exists(Sensation.DATADIR):
             try:
                 with open(Sensation.PATH_TO_PICLE_FILE, "rb") as f:
                     try:
                         # whole Memory
-                        #Sensation.sensationMemorys[Sensation.Memory.Working] = \
+                        #Sensation.sensationMemorys[Sensation.Memory.LongTerm] = \
                         Sensation.sensationMemorys = pickle.load(f)
                         for key, sensationMemory in Sensation.sensationMemorys.items():
-                            print ('{} loaded {}'.format(Sensation.getMemoryString(sensationMemory), str(len(Sensation.sensationMemorys[Sensation.Memory.Working]))))
+                            print ('{} loaded {}'.format(Sensation.getMemoryString(sensationMemory), str(len(Sensation.sensationMemorys[Sensation.Memory.LongTerm]))))
                             i=0
                             while i < len(Sensation.sensationMemorys[sensationMemory]):
                                 if Sensation.sensationMemorys[sensationMemory][i].VERSION != Sensation.VERSION: # if dumped code version and current code version is not same
