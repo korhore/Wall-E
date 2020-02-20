@@ -528,7 +528,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
     '''
     def getCapabilities(self):
         if self.getSocketServer() is not None:
-            #self.log('getCapabilities: self.getSocketServer().getCapabilities() ' + self.getSocketServer().getCapabilities().toDebugString('SocketClient Capabilities'))
+            self.log(logLevel=Robot.LogLevel.Verbose, logStr='getCapabilities: self.getSocketServer().getCapabilities() ' + self.getSocketServer().getCapabilities().toDebugString('SocketClient Capabilities'))
             return self.getSocketServer().getCapabilities()
         return None
 

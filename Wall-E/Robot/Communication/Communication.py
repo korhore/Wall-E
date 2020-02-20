@@ -340,7 +340,7 @@ class Communication(Robot):
                     self.spokedVoiceSensation.associate(sensation = communicationItem.getSensation(),
                                                    score=association.getScore(),
                                                    feeling=association.getFeeling())
-                communicationItem.setAssociation(association=communicationItem.getSensation().getAssociation(self.spokedVoiceSensation))
+                    communicationItem.setAssociation(association=communicationItem.getSensation().getAssociation(self.spokedVoiceSensation))
             self.usedVoices.append(self.spokedVoiceSensation)
             self.usedVoiceLens.append(len(self.spokedVoiceSensation.getData()))                
             self.usedVoices.append(self.mostImportantVoiceSensation)   

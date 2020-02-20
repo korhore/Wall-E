@@ -229,8 +229,8 @@ class Robot(Thread):
 
     def setLogLevel(self, logLevel):
         self.logLevel = logLevel
-    def getLogLevel(self):
-        return self.logLevel
+#     def getLogLevel(self):
+#         return self.config.getLogLevel()
 
     def setWho(self, name):
         self.name = name

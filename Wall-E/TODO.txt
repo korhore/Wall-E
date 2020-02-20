@@ -1,5 +1,8 @@
 Critical
 --------
+OK Seems that capability sharing is not working: Wally does not know that PV can handle Voice In (voices to be spoken)
+   Seems that capabilities are transferred OK
+
 OK  We have setting and support for 1-channel microprone now
 AlsaAudioMicrophone produces mono, 1-channel file with raspberry USB-microphone
 even if setting are 2-channels. Still output is expected to have 2-channels.
