@@ -221,6 +221,9 @@ sudo apt-get install liblcms1-dev -y
 sudo apt-get install libopenjp2-7 -y
 sudo apt-get install libtiff5 -y
 
+sudo pip3 install pillow
+
+
 # senses
 sudo pip3 install pyalsaaudio
 # needs to set AlsaAudioMicrophonw/etc/Robot.cfg
@@ -229,15 +232,18 @@ sudo pip3 install pyalsaaudio
 sudo pip3 install picamera
 Kamera pitää enabloida raspi-config:ista
 
-numpy vaatii
+numpy needs
 sudo apt-get install python-dev libatlas-base-dev
 
 sudo pip3 install numpy
 
 MainRobot needs
-pip3 install daemon
-pip3 install lockfile
-pip3 install pyyaml # Required to save tensorflow models in YAML format
+sudo pip3 install python-daemon
+sudo pip3 install lockfile
+sudo pip3 install psutil
+
+(pip3 install pyyaml # Required to save tensorflow models in YAML format
+ not yet implemented ready)
 
 raspberry pi 3b+ Buster Lite
 Needs pip3

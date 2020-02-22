@@ -1,8 +1,19 @@
 #! /bin/sh
-# copy service file
-#cp init/Robot_Server /etc/init.d
-cp /usr/local/bin/Robot_Server /etc/init.d
-# set up service starting/stopping
-update-rc.d Robot_Server defaults
-# start service
-service Robot_Server start
+# current systemctl way
+echo "setting up Robot.service"
+cp scripts/Robot.service /etc/systemd/system/
+echo "starting Robot.service"
+systemctl start Robot.service
+echo "enabling Robot.service as automatically starting service"
+echo "You can disable it calling 'sudo systemctl disable Robot.service'"
+systemctl enable Robot.service
+echo "check /var/log/syslog and /tmp for Robot service output"
+
+# old way
+## copy service file
+##cp init/Robot_Server /etc/init.d
+#cp /usr/local/bin/Robot_Server /etc/init.d
+## set up service starting/stopping
+#update-rc.d Robot_Server defaults
+## start service
+#service Robot_Server start

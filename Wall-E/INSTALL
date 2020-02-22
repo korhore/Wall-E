@@ -23,9 +23,9 @@ tar -zxvf Wall-E-master.zip
 install
 -------
 
-cd Wall-E-master/Wall-E_Server
+cd Wall-E/Wall-E
 
-sudo python setup.py install
+sudo python3 setup.py install
 
 Now server is installed. Set is as a service , and it will be started automatically
 when you raspberry is started.

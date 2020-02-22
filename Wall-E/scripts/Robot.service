@@ -1,0 +1,16 @@
+[Unit]
+Description=Robot
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 MainRobot.py --start --daemon
+WorkingDirectory=/home/reijo/Wall-E/Robot
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+RestartSec=30
+User=root
+
+[Install]
+WantedBy=multi-user.target
