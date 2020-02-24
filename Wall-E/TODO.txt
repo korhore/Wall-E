@@ -40,7 +40,11 @@ SocketServer:('192.168.117.7', 51518):3:Normal: run: waiting next Sensation from
 Develop
 -------
 
-Start tu use LongTerm-memory, when we get an response, so we remember thing that should be rembembered
+Add not-saveable attribute isForgettable (int)/ reserve(),release() inUse(int) to Senation,
+so these Sensation will be reachable as long as Robot.process will process them.
+ 
+OK Start to use LongTerm-memory, when we get an response, so we remember thing that should be rembembered.
+In Memory-version is ready, but we should study also datavase version.
 
 Add ReactionToSensation-attribute to Sensation so if we we have mani Borbots in the network, then first can one reacts
 in Communication and also in TensorflowClassification to create new Sensations based on source Sensation(s). Other Robots
@@ -252,8 +256,12 @@ sudo apt install python3-pip
 Tensorflow with Lite, officional package is broken for Lite
 python 3.5
 https://github.com/lhelontra/tensorflow-on-arm/releases/download/v1.13.1/tensorflow-1.13.1-cp35-none-linux_armv7l.whl
+
 python 3.7 (buster)
-https://github.com/lhelontra/tensorflow-on-arm/releases/download/v1.13.1/tensorflow-1.13.1-cp37-none-linux_armv7l.whl
+sudo pip3 install https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp37-cp37m-linux_armv7l.whl
+gives tensorflow==2.1, which is cuttent when this was written 
+(if not work, old instruction
+(https://github.com/lhelontra/tensorflow-on-arm/releases/download/v1.13.1/tensorflow-1.13.1-cp37-none-linux_armv7l.whl
 tensorflow==1.8
 
 Ubuntu 18.4

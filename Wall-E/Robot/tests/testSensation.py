@@ -386,16 +386,19 @@ class SensationTestCase(unittest.TestCase):
         self.assertTrue(fromBytesWorkingSensation.getReceivedFrom() == receivedFrom, "should be equal")
 
         data=b'\x01\x02'
-        voiceSensation = Sensation.create(associations=None, sensationType=Sensation.SensationType.Voice, memory=Sensation.Memory.Sensory, data=data, kind=Sensation.Kind.Eva, permanent=True)
+        voiceSensation = Sensation.create(associations=None, sensationType=Sensation.SensationType.Voice, memory=Sensation.Memory.Sensory, data=data, kind=Sensation.Kind.Eva)
+        voiceSensation.reserve(robot=self)
         self.assertTrue(voiceSensation.getKind() == Sensation.Kind.Eva, "should be equal")
-        self.assertTrue(voiceSensation.getPermanent(), "should be True")
+        self.assertFalse(voiceSensation.isForgettable(), "should be False")
         bytes=voiceSensation .bytes()
         self.assertTrue(bytes != None, "should be get bytes")
         fromBytesVoiceSensation = Sensation.create(bytes=bytes)
         self.assertTrue(voiceSensation == fromBytesVoiceSensation, "should be equal")
         self.assertTrue(voiceSensation.getKind() == fromBytesVoiceSensation.getKind(), "should be equal")
         self.assertTrue(voiceSensation.getData() == fromBytesVoiceSensation.getData(), "should be equal")
-        self.assertFalse(fromBytesVoiceSensation.getPermanent(), "should be False, permanent is local property")
+        self.assertTrue(fromBytesVoiceSensation.isForgettable(), "should be True, permanent is local property")
+        voiceSensation.release(robot=self)
+        self.assertTrue(fromBytesVoiceSensation.isForgettable(), "should be True after release")
  
         print("\ntest_Bytes DONE")
 
