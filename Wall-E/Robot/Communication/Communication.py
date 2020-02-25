@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 13.02.2020
+Updated on 24.02.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -76,6 +76,8 @@ class Communication(Robot):
                      association = None):   # association to a spoken voice
             self.name = name
             self.sensation = sensation
+            if self.sensation is not None:
+                self.sensation.reserve(self)
             self.time = time
             self.association = association
             
@@ -87,7 +89,12 @@ class Communication(Robot):
         def getSensation(self):
             return self.sensation
         def setSensation(self, sensation):
+            # release old Sensation
+            self.release()
+            
             self.sensation = sensation
+            if self.sensation is not None:
+                self.sensation.reserve(self)
           
         def getTime(self):
             return self.time
@@ -98,6 +105,12 @@ class Communication(Robot):
             return self.association
         def setAssociation(self, association):
             self.association = association
+            
+        def release(self):
+            # release Sensation
+            if self.sensation is not None:
+                self.sensation.release(self)
+
 
     def __init__(self,
                  parent=None,
@@ -248,11 +261,24 @@ class Communication(Robot):
     def speak(self, onStart=False):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak {}'.format(str(onStart)))
         startedAlready = False
+        
+        if self.mostImportantItemSensation is not None:
+            self.mostImportantItemSensation.release(robot=self)
         self.mostImportantItemSensation = None
+        
         self.mostImportantVoiceAssociation  = None
+        
+        if self.mostImportantVoiceSensation is not None:
+            self.mostImportantVoiceSensation.release(robot=self)
         self.mostImportantVoiceSensation  = None
+        
+        if self.spokedVoiceSensation is not None:
+            self.spokedVoiceSensation.release(robot=self)
         self.spokedVoiceSensation = None
+
+        self.releaseCommunicationItems() #release old list
         del self.communicationItems[:]  #clear old list
+        
         candidate_communicationItems = []
         if onStart and len(Robot.voices) > 0:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: onStart')
@@ -319,12 +345,17 @@ class Communication(Robot):
                 succeeded=True  # no exception,  Robot.presentItemSensations did not changed   
             except Exception as e:
                  self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: ignored exception ' + str(e))
+                 self.releaseCommunicationItems() #release old list
                  del self.communicationItems[:]  #clear old list
             
         if (self.mostImportantItemSensation is not None) and (self.mostImportantVoiceSensation is not None):
+            self.mostImportantItemSensation.reserve(robot=self)         #reserve Sensation until speking is ended based on these voices
+            self.mostImportantVoiceSensation.reserve(robot=self)
             self.mostImportantVoiceSensation.save()     # for debug reasons save voices we have spoken as heard voices
+            
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: Sensation.getMostImportantSensation did find self.mostImportantItemSensation OK')
             self.spokedVoiceSensation = Sensation.create(sensation = self.mostImportantVoiceSensation, kind=self.getKind() )
+            self.spokedVoiceSensation.reserve(robot=self)         #reserve Sensation until speaking is ended based on these voices
             # test
             #self.spokedVoiceSensation = self.mostImportantVoiceSensation
             # NOTE This is needed now, because Sensation.create parameters direction and memory parameters are  overwritten by sensation parameters
@@ -380,15 +411,31 @@ class Communication(Robot):
         self.endConversation()
         
     def endConversation(self):
+        if self.mostImportantItemSensation is not None:
+            self.mostImportantItemSensation.release(robot=self)
+        self.mostImportantItemSensation = None
+        
+        self.mostImportantVoiceAssociation  = None
+        
+        if self.mostImportantVoiceSensation is not None:
+            self.mostImportantVoiceSensation.release(robot=self)
+        self.mostImportantVoiceSensation  = None
+        
+        if self.spokedVoiceSensation is not None:
+            self.spokedVoiceSensation.release(robot=self)
+        self.spokedVoiceSensation = None
+
+        self.releaseCommunicationItems() #release old list
         del self.communicationItems[:]  #clear old list
 #         self.log(logLevel=Robot.LogLevel.Normal, logStr="stopWaitingResponse: del self.usedVoices[:]")
         del self.usedVoices[:]                          # clear used voices, communication is ended, so used voices are free to be used in next conversation.
         del self.usedVoiceLens[:]                          # clear used voices, communication is ended, so used voices are free to be used in next conversation.
         del self.heardVoices[:]                          # clear heard voices, communication is ended, so used voices are free to be used in next conversation. 
-        self.mostImportantItemSensation = None          # no current voice and item, because no current conversation
-        self.mostImportantVoiceAssociation = None
-        self.mostImportantVoiceSensation = None
-        self.spokedVoiceSensation = None
         self.timer = None
         self.lastConversationEndTime=systemTime.time()
+        
+    def releaseCommunicationItems(self):
+        for communicationItem in self.communicationItems:
+             communicationItem.release()
+        
 

@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 18.02.2020
+Edited on 24.02.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -82,7 +82,7 @@ Sensation is something Robot senses
 '''
 
 class Sensation(object):
-    VERSION=13          # version number to check, if we picle same version
+    VERSION=14          # version number to check, if we picle same version
                         # instances. Otherwise we get odd errors, with old
                         # version code instances
 
@@ -339,6 +339,7 @@ class Sensation(object):
     '''
 
     def forgetLessImportantSensations(sensation):
+        numNotForgettables=0
         memory = Sensation.sensationMemorys[sensation.getMemory()]
 
         # calibrate memorability        
@@ -357,19 +358,26 @@ class Sensation(object):
         
         # delete quickly last created Sensations that are not important
         while len(memory) > 0 and memory[0].getMemorability() < Sensation.min_cache_memorability:
-            print('delete from sensation cache {}'.format(memory[0].toDebugStr()))
-            memory[0].delete()
-            del memory[0]
+            if memory[0].isForgettable():
+                print('delete from sensation cache {}'.format(memory[0].toDebugStr()))
+                memory[0].delete()
+                del memory[0]
+            else:
+                numNotForgettables=numNotForgettables+1
 
         # if we are still using too much memory for Sensations, we should check all Sensations in the cache
         if Sensation.getMemoryUsage() > Sensation.maxRss:
             i=0
             while i < len(memory):
-                if memory[i].getMemorability() < Sensation.min_cache_memorability:
-                    print('delete from sensation cache {}'.format(memory[i].toDebugStr()))
-                    memory[i].delete()
-                    del memory[i]
+                if memory[i].isForgettable():
+                    if memory[i].getMemorability() < Sensation.min_cache_memorability:
+                        print('delete from sensation cache {}'.format(memory[i].toDebugStr()))
+                        memory[i].delete()
+                        del memory[i]
+                    else:
+                        i=i+1
                 else:
+                    numNotForgettables=numNotForgettables+1
                     i=i+1
        
         print('Sensations cache for {} {} {} {} {} {} Total memory usage {} MB with Sensation.min_cache_memorability {}'.\
@@ -377,6 +385,8 @@ class Sensation(object):
                      Sensation.getMemoryString(Sensation.Memory.Working), len(Sensation.sensationMemorys[Sensation.Memory.Working]),\
                      Sensation.getMemoryString(Sensation.Memory.LongTerm), len(Sensation.sensationMemorys[Sensation.Memory.LongTerm]),\
                      Sensation.getMemoryUsage(), Sensation.min_cache_memorability))
+        if numNotForgettables > 0:
+            print('Sensations cache deletion skipped {} Not Forgottable Sensation'.format(numNotForgettables))
         #print('Memory usage for {} Sensations {} after {} MB'.format(len(memory), Sensation.getMemoryString(sensation.getMemory()), Sensation.getMemoryUsage()-Sensation.startSensationMemoryUsageLevel))
          
     '''
@@ -617,6 +627,7 @@ class Sensation(object):
                            time=association.time,
                            score=association.score,
                            feeling=association.feeling)
+        self.reservedBy = []
 
         # associations are always both way
         if sensation is not None:   # copy constructor
@@ -649,7 +660,7 @@ class Sensation(object):
             self.name = sensation.name
             self.presence = sensation.presence
             self.kind = sensation.kind
-            self.reservedBy = sensation.reservedBy
+            #self.reservedBy = sensation.reservedBy # keep self.reservedBy independent of original Sensation to be copied
             
             # We have here put values from sensation, but we should
             # also set values that are overwritten
