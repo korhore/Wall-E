@@ -75,7 +75,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
     
     '''
 
-    TensorFlow_TEST = True                 # TensorFlow code test
+    TensorFlow_TEST = False                # TensorFlow code test
                                            # allow this, if problems
     TensorFlow_LITE = True                # use Tensorflow lite
            
@@ -551,43 +551,50 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                 names=[]
                 y=0
                 image=sensation.getImage()
-                while y + self.height < image.height:
-                    x=0
-                    while x + self.width < image.width: 
-                        size = (x, y,
-                                x+self.width, y+self.height)
-                        subimage = image.crop(size)                
-                        results = self.run_inference_for_single_image_LITE(image=subimage, top_k=5)
-                        for classInd, score in results :
-                            #self.log(" image LITE className " + self.labels[classInd] + ' score ' + str(score))
-                            if score > TensorFlowClassification.LITE_DETECTION_SCORE_LIMIT:
-                                # create new sensation of detected area and category
-                                self.log('SEEN image FOR SURE className ' + self.labels[classInd] + ' score ' + str(score) +" x " + str(x) + " y " + str(y) + " size " + str(size))
-                                # Item
-                                name = self.labels[classInd]
-                                #if name not in current_present:
-                                #    current_present.append(name)
-                                change, precence, names = self.getPresence(name=name, names=names)
-                                if change:
-                                    current_present[name] = precence
-                                    subsensation = Sensation.create(sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Working, direction = Sensation.Direction.Out,\
-                                                                    image=subimage)
-                                    self.log("process created subimage sensation " + subsensation.toDebugStr())
-                                    # don't associate to original image sensation
-                                    # we wan't to save memory and subimage is important, not whore image
-                                    #subsensation.associate(sensation=sensation, score=score)
-                                    subsensation.save()
-                                    
-                                    itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.Working, direction = Sensation.Direction.Out, name=name,\
-                                                                     presence = precence)
-                                    itemsensation.associate(sensation=subsensation, score=score)
-                                    self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
-                                    self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
-                                    self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
-                                    self.log("Created Workibg subImage and item sensation for this")
-                                # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
-                        x = x +  self.width/2    
-                    y = y + self.height/2
+                # process image using big original picture, we see details that are far away
+                names, current_present = self.LITEProcessImage(image=image,names=names, current_present=current_present)
+                # process image using smaleer picrure vropped from aorinal onee, we see details that are near is
+                size = (0, 0,
+                        image.width/3, image.height/3)
+                image = image.crop(size)
+                names, current_present = self.LITEProcessImage(image=image,names=names, current_present=current_present)
+#                 while y + self.height < image.height:
+#                     x=0
+#                     while x + self.width < image.width: 
+#                         size = (x, y,
+#                                 x+self.width, y+self.height)
+#                         subimage = image.crop(size)                
+#                         results = self.run_inference_for_single_image_LITE(image=subimage, top_k=5)
+#                         for classInd, score in results :
+#                             #self.log(" image LITE className " + self.labels[classInd] + ' score ' + str(score))
+#                             if score > TensorFlowClassification.LITE_DETECTION_SCORE_LIMIT:
+#                                 # create new sensation of detected area and category
+#                                 self.log('SEEN image FOR SURE className ' + self.labels[classInd] + ' score ' + str(score) +" x " + str(x) + " y " + str(y) + " size " + str(size))
+#                                 # Item
+#                                 name = self.labels[classInd]
+#                                 #if name not in current_present:
+#                                 #    current_present.append(name)
+#                                 change, precence, names = self.getPresence(name=name, names=names)
+#                                 if change:
+#                                     current_present[name] = precence
+#                                     subsensation = Sensation.create(sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Working, direction = Sensation.Direction.Out,\
+#                                                                     image=subimage)
+#                                     self.log("process created subimage sensation " + subsensation.toDebugStr())
+#                                     # don't associate to original image sensation
+#                                     # we wan't to save memory and subimage is important, not whore image
+#                                     #subsensation.associate(sensation=sensation, score=score)
+#                                     subsensation.save()
+#                                     
+#                                     itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.Working, direction = Sensation.Direction.Out, name=name,\
+#                                                                      presence = precence)
+#                                     itemsensation.associate(sensation=subsensation, score=score)
+#                                     self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
+#                                     self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
+#                                     self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
+#                                     self.log("Created Workibg subImage and item sensation for this")
+#                                 # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
+#                         x = x +  self.width/2    
+#                     y = y + self.height/2
             else:
                 image_np = self.load_image_into_numpy_array(sensation.getImage())
                 # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
@@ -640,6 +647,48 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
             systemTime.sleep(TensorFlowClassification.SLEEP_TIME_BETWEEN_PROCESSES)
         else:
             self.log(logLevel=Robot.LogLevel.Error, logStr='process: got sensation we this robot can\'t process')
+            
+    def LITEProcessImage(self, image, names, current_present):
+        y=0
+        while y + self.height < image.height:
+            x=0
+            while x + self.width < image.width: 
+                size = (x, y,
+                        x+self.width, y+self.height)
+                subimage = image.crop(size)                
+                results = self.run_inference_for_single_image_LITE(image=subimage, top_k=3)
+                for classInd, score in results :
+                    #self.log(" image LITE className " + self.labels[classInd] + ' score ' + str(score))
+                    if score > TensorFlowClassification.LITE_DETECTION_SCORE_LIMIT:
+                        # create new sensation of detected area and category
+                        self.log('SEEN image FOR SURE className ' + self.labels[classInd] + ' score ' + str(score) +" x " + str(x) + " y " + str(y) + " size " + str(size))
+                        # Item
+                        name = self.labels[classInd]
+                        #if name not in current_present:
+                        #    current_present.append(name)
+                        change, precence, names = self.getPresence(name=name, names=names)
+                        if change:
+                            current_present[name] = precence
+                            subsensation = Sensation.create(sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Working, direction = Sensation.Direction.Out,\
+                                                            image=subimage)
+                            self.log("process created subimage sensation " + subsensation.toDebugStr())
+                            # don't associate to original image sensation
+                            # we wan't to save memory and subimage is important, not whore image
+                            #subsensation.associate(sensation=sensation, score=score)
+                            subsensation.save()
+                                    
+                            itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.Working, direction = Sensation.Direction.Out, name=name,\
+                                                             presence = precence)
+                            itemsensation.associate(sensation=subsensation, score=score)
+                            self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
+                            self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
+                            self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
+                            self.log("Created Working subImage and item sensation for this")
+                            # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
+                x = x +  self.width/2    
+            y = y + self.height/2
+        return names, current_present
+        
  
     def getPresence(self, name, names):
             change = False

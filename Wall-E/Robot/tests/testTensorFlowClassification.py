@@ -31,17 +31,27 @@ from PIL import Image as PIL_Image
 class TensorFlowClassificationTestCase(unittest.TestCase):
     
     TEST_MODEL_DOWNLOAD_TIME = 240.0    # can take a long, long time
-    TEST_CLASSIFICATION_TIME = 8.0      # can take a long time
-                                        # 7.0 was minimun for PC, but
+    TEST_CLASSIFICATION_TIME = 35.0      # can take a long time
+                                        # 7.0 was minimum for PC, but 35 is mininun fot parspberry 3 Lite Tensory model
                                         # raspberry would need more time
     TEST_TIME = 60.0                    # how long we wait tearDown until delete test variables
     TEST_STOP_TIME = 5.0                # how long to wait Robot read stop from its Axon
     TESTSETUPMODEL=False                # Set this True only if problems to load model
                                         # models are big and this takes a log, log time and can fail
                                         # if we don't wait enough, even if it runs OK
-    TEST_ITEM_NAMES_1=['dog']
-    TEST_ITEM_NAMES_2=['person',
-                       'kite']
+    if TensorFlowClassification.TensorFlow_LITE:
+        TEST_ITEM_NAMES_1=['Saint Bernard',
+                           'basset',
+                           'beagle']
+        TEST_ITEM_NAMES_2=['parachute',
+                           'nematode',
+                           'balloon',
+                           'speedboat',
+                           'bathing cap']
+    else:
+        TEST_ITEM_NAMES_1=['dog']
+        TEST_ITEM_NAMES_2=['person',
+                           'kite']
     
     
     def getAxon(self):
@@ -109,15 +119,16 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
 
             sensations.append(Sensation.create(associations=[], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image, filePath=testImageFileName))
 
-        # test Entering, Present and Absent so, then in next picture absent Item,names are from previous picture     
+        # test Entering, Present and Absent so, then in next picture absent Item,names are from previous picture
+        # removed as a test     
         self.doTestClassification(imageSensation=sensations[0], names=names[0])   
         self.doTestClassification(imageSensation=sensations[1], names=names[1], absent_names=names[0])   
         self.doTestClassification(imageSensation=sensations[0], names=names[0], absent_names=names[1])   
           
     def doTestClassification(self, imageSensation, names, absent_names=None):
         print('doTestClassification start')
-        #entering
-        #exiting TODO
+        #entering ne ones
+        #exiting old ones
         self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
         #self.tensorFlowClassification.process(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
         print('sleep ' + str(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME) + ' to to classify')
@@ -139,11 +150,11 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
                 print("1: got item Entering " + str(transferDirection) + ' ' + sensation.toDebugStr())
                 if sensation.getName() not in itemnames:
                     itemnames.append(sensation.getName())
-                self.assertTrue(sensation.getName() in names, 'should be in test names')
+                self.assertTrue(sensation.getName() in names, sensation.getName()+' should be in test names')
                 found_names.append(sensation.getName())
             elif absent_names is not None and sensation.getSensationType() == Sensation.SensationType.Item and\
                 sensation.getPresence() == Sensation.Presence.Exiting:
-                print("1: got item Absent " + str(transferDirection) + ' ' + sensation.toDebugStr())
+                print("1: got item Exiting " + str(transferDirection) + ' ' + sensation.toDebugStr())
                 self.assertTrue(sensation.getName() in absent_names, 'should be in test exiting_names')
                 found_absent_names.append(sensation.getName())
             else:
