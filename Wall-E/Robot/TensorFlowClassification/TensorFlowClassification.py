@@ -17,7 +17,7 @@ import tarfile
 import zipfile
 from shutil import copyfile
 #import tensorflow as tf
-from tflite_runtime.interpreter import Interpreter
+#from tflite_runtime.interpreter import Interpreter
 
 from PIL import Image as PIL_Image
 #from object_detection.utils import label_map_util
@@ -34,7 +34,7 @@ if TensorFlow_LITE:
     try:
         print("TensorFlowClassification import tflite_runtime.interpreter as tflite")
         #import tflite_runtime as tflite
-        #from tflite_runtime.interpreter import Interpreter
+        from tflite_runtime.interpreter import Interpreter
         #from tensorflow.lite.python.interpreter import Interpreter
         #print("TensorFlowClassification import tflite_runtime.interpreter as tflite OK")
     except ImportError as e:
@@ -47,7 +47,8 @@ if not TensorFlow_LITE:
         import tensorflow as tf
         print("TensorFlowClassification import tensorflow as tf OK")
         print("TensorFlowClassification from object_detection.utils import label_map_util")
-        from object_detection.utils import label_map_util
+        #from object_detection.utils import label_map_util
+        import label_map_util
         print("TensorFlowClassification from object_detection.utils import label_map_util OK")
     except ImportError as e:
         print("TensorFlowClassification import tensorflow as tf error " + str(e))
@@ -77,7 +78,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
 
     TensorFlow_TEST = False                # TensorFlow code test
                                            # allow this, if problems
-    TensorFlow_LITE = True                # use Tensorflow lite
+    #TensorFlow_LITE = False                # use Tensorflow lite
            
     NAME =              'name'
     DETECTION_SCORES =  'detection_scores'
@@ -98,6 +99,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
     DOWNLOAD_BASE =         'http://download.tensorflow.org/models/object_detection/'
     FROZEN_GRAPH_BASENAME =  'frozen_inference_graph'
     FROZEN_GRAPH_PB_NAME =   FROZEN_GRAPH_BASENAME+'.pb'
+    LABEL_MAP_NAME =         'mscoco_label_map.pbtxt'
     LIVE_GRAPH_PB_NAME =    'live_inference_graph.pb'
     LITE_GRAPH_NAME =       FROZEN_GRAPH_BASENAME+'.tflite'
     
@@ -121,24 +123,25 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
 
     PATH_TO_GRAPH_DIR = os.path.join(Sensation.DATADIR, MODEL_NAME)
     # Path to frozen detection graph. This is the actual model that is used for the object detection.
-    PATH_TO_FROZEN_GRAPH = os.path.join(Sensation.DATADIR, MODEL_NAME, FROZEN_GRAPH_PB_NAME)
+    PATH_TO_FROZEN_GRAPH = os.path.join(PATH_TO_GRAPH_DIR, FROZEN_GRAPH_PB_NAME)
     # Path to frozen detection graph. This will the actual model that is used for the object detection.
     PATH_TO_LIVE_GRAPH = os.path.join(PATH_TO_GRAPH_DIR, LIVE_GRAPH_PB_NAME)
     # Path to lite detection graph. This is the actual model that is used for the object detection.
     PATH_TO_LITE_GRAPH = os.path.join(Sensation.DATADIR, MODEL_NAME, LITE_GRAPH_NAME)
     # path to saved model and model
-    PATH_TO_SAVED_MODEL_DIR = os.path.join(Sensation.DATADIR, "savedModel")
+    PATH_TO_SAVED_MODEL_DIR = os.path.join(PATH_TO_GRAPH_DIR, "savedModel")
     PATH_TO_SAVED_MODEL = os.path.join(PATH_TO_SAVED_MODEL_DIR, 'saved_model.pb')
 
     # List of the strings that is used to add correct label for each box.
-    PATH_TO_LABELS = os.path.join(Sensation.DATADIR, 'mscoco_label_map.pbtxt')
+    #LABELS_NAME = 'mscoco_label_map.pbtxt'
+    PATH_TO_LABELS = os.path.join(Sensation.DATADIR, LABEL_MAP_NAME)
 
     PATH_TO_TEST_IMAGES_DIR = 'test_images'
     #TEST_IMAGE_PATHS = [ os.path.join(PATH_TO_TEST_IMAGES_DIR, 'image{}.jpg'.format(i)) for i in range(1, 3) ]
     TEST_IMAGE_PATHS = [ os.path.join('test_images', 'image{}.jpg'.format(i)) for i in range(1, 3) ]
     
     # Size, in inches, of the output images.
-    IMAGE_SIZE = (12, 8)
+    #IMAGE_SIZE = (12, 8)
 
     # Seems that at least raspberry keep to restart it very often when running this Rpbot,
     # So the to sleep between runs    
@@ -390,7 +393,6 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                         tar_file.extract(file, Sensation.DATADIR)
             self.log(logLevel=Robot.LogLevel.Normal, logStr="model is ready to use")
             
-            self.log(logLevel=Robot.LogLevel.Normal, logStr="TEST log Copying from %s to %s failed" % (TensorFlowClassification.PATH_TO_FROZEN_GRAPH, TensorFlowClassification.PATH_TO_SAVED_MODEL))
             if not os.path.exists(TensorFlowClassification.PATH_TO_SAVED_MODEL_DIR):
                 try:
                     os.mkdir(TensorFlowClassification.PATH_TO_SAVED_MODEL_DIR)
@@ -462,14 +464,14 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
 
             self.log(logLevel=Robot.LogLevel.Normal, logStr="Converted LITE model")
             
-#         if TensorFlowClassification.TensorFlow_LITE:
+#         if TensorFlow_LITE:
 #             try:
 #                 self.log(logLevel=Robot.LogLevel.Normal, logStr='run: convert LITE model' )
 #                 converter = tf.lite.TFLiteConverter.from_keras_model(self.detection_graph)
 #                 self.tflite_model = converter.convert()
 #             except Exception as e:
 #                 self.log(logLevel=Robot.LogLevel.Normal, logStr='run: convert LITE model error ' + str(e))
-#                 TensorFlowClassification.TensorFlow_LITE=False
+#                 TensorFlow_LITE=False
 #         else:
 #             self.log(logLevel=Robot.LogLevel.Normal, logStr='run: NO LITE' )
 
@@ -484,7 +486,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                 self.log(image_path)
                 image = PIL_Image.open(image_path)
                 # Actual detection.
-                if TensorFlowClassification.TensorFlow_LITE:
+                if TensorFlow_LITE:
                     y=0
                     i=0
                     while y + self.height < image.height:
@@ -547,54 +549,16 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
             # with LITE process big picture as peaces, because LITE
             # accepted input size is much smaller than big picture size.
             # this way we get far away objects with hard work
-            if TensorFlowClassification.TensorFlow_LITE:
+            if TensorFlow_LITE:
                 names=[]
                 y=0
                 image=sensation.getImage()
                 # process image using big original picture, we see details that are far away
                 names, current_present = self.LITEProcessImage(image=image,names=names, current_present=current_present)
-                # process image using smaleer picrure vropped from aorinal onee, we see details that are near is
-                size = (0, 0,
-                        image.width/3, image.height/3)
-                image = image.crop(size)
+                # process image using smaller picture resized from original one, we see details that are near is
+                size = ( int(image.width/3), int(image.height/3))
+                image = image.resize(size)
                 names, current_present = self.LITEProcessImage(image=image,names=names, current_present=current_present)
-#                 while y + self.height < image.height:
-#                     x=0
-#                     while x + self.width < image.width: 
-#                         size = (x, y,
-#                                 x+self.width, y+self.height)
-#                         subimage = image.crop(size)                
-#                         results = self.run_inference_for_single_image_LITE(image=subimage, top_k=5)
-#                         for classInd, score in results :
-#                             #self.log(" image LITE className " + self.labels[classInd] + ' score ' + str(score))
-#                             if score > TensorFlowClassification.LITE_DETECTION_SCORE_LIMIT:
-#                                 # create new sensation of detected area and category
-#                                 self.log('SEEN image FOR SURE className ' + self.labels[classInd] + ' score ' + str(score) +" x " + str(x) + " y " + str(y) + " size " + str(size))
-#                                 # Item
-#                                 name = self.labels[classInd]
-#                                 #if name not in current_present:
-#                                 #    current_present.append(name)
-#                                 change, precence, names = self.getPresence(name=name, names=names)
-#                                 if change:
-#                                     current_present[name] = precence
-#                                     subsensation = Sensation.create(sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Working, direction = Sensation.Direction.Out,\
-#                                                                     image=subimage)
-#                                     self.log("process created subimage sensation " + subsensation.toDebugStr())
-#                                     # don't associate to original image sensation
-#                                     # we wan't to save memory and subimage is important, not whore image
-#                                     #subsensation.associate(sensation=sensation, score=score)
-#                                     subsensation.save()
-#                                     
-#                                     itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.Working, direction = Sensation.Direction.Out, name=name,\
-#                                                                      presence = precence)
-#                                     itemsensation.associate(sensation=subsensation, score=score)
-#                                     self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
-#                                     self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
-#                                     self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
-#                                     self.log("Created Workibg subImage and item sensation for this")
-#                                 # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
-#                         x = x +  self.width/2    
-#                     y = y + self.height/2
             else:
                 image_np = self.load_image_into_numpy_array(sensation.getImage())
                 # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
