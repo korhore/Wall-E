@@ -22,7 +22,7 @@ import ntpath
 
 import unittest
 from Sensation import Sensation
-from TensorFlowClassification.TensorFlowClassification import TensorFlowClassification
+from TensorFlowClassification.TensorFlowClassification import TensorFlowClassification, TensorFlow_LITE
 from Axon import Axon
 
 from PIL import Image as PIL_Image
@@ -31,21 +31,27 @@ from PIL import Image as PIL_Image
 class TensorFlowClassificationTestCase(unittest.TestCase):
     
     TEST_MODEL_DOWNLOAD_TIME = 240.0    # can take a long, long time
-    TEST_CLASSIFICATION_TIME = 35.0      # can take a long time
-                                        # 7.0 was minimum for PC, but 35 is mininun fot parspberry 3 Lite Tensory model
+    if TensorFlow_LITE:
+        TEST_CLASSIFICATION_TIME = 35.0      # can take a long time
+    else:
+        TEST_CLASSIFICATION_TIME = 40.0      # can take a long time
+                                        # 7.0 was minimum for PC, but 35 is mininun fot raspspberry 3 Lite Tensory model
+                                        # try 40 for Raspberry 3 normal model, when first wait i 2* longer then nest ones
+                                        # tested in raspberry running also Robot service, to we have some tolerance
                                         # raspberry would need more time
     TEST_TIME = 60.0                    # how long we wait tearDown until delete test variables
     TEST_STOP_TIME = 5.0                # how long to wait Robot read stop from its Axon
     TESTSETUPMODEL=False                # Set this True only if problems to load model
                                         # models are big and this takes a log, log time and can fail
                                         # if we don't wait enough, even if it runs OK
-    if TensorFlowClassification.TensorFlow_LITE:
+    if TensorFlow_LITE:
         TEST_ITEM_NAMES_1=['Saint Bernard',
                            'basset',
                            'beagle']
         TEST_ITEM_NAMES_2=['parachute',
                            'nematode',
                            'balloon',
+                           'sandbar',
                            'speedboat',
                            'bathing cap']
     else:
@@ -58,6 +64,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
         return self.axon
 
     def setUp(self):
+        self.isFirstSleep=True
         self.axon = Axon()
 
         self.tensorFlowClassification = TensorFlowClassification(parent=self,
@@ -131,8 +138,13 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
         #exiting old ones
         self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
         #self.tensorFlowClassification.process(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
-        print('sleep ' + str(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME) + ' to to classify')
-        systemTime.sleep(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME)       # give Robot some time to stop
+        if self.isFirstSleep:
+            print('sleep ' + str(2*TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME) + ' to classify')
+            systemTime.sleep(2*TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME)       # give Robot some time to stop
+            self.isFirstSleep=False
+        else:
+            print('sleep ' + str(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME) + ' to classify')
+            systemTime.sleep(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME)       # give Robot some time to stop
         print('1: test continues classify should be done')
         
         self.assertFalse(self.getAxon().empty(), 'self.getAxon().empty() should not be empty')
@@ -167,7 +179,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
         #absent
         self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
         #self.tensorFlowClassification.process(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
-        print('sleep ' + str(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME) + ' to to classify')
+        print('sleep ' + str(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME) + ' to classify')
         systemTime.sleep(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME)       # give Robot some time to stop
         print('2: test continues classify should be done')
         
@@ -202,7 +214,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
         #change, because present ones still present and they are reported by last logic, but absent ones are gone and should not come 
         self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
         #self.tensorFlowClassification.process(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
-        print('sleep ' + str(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME) + ' to to classify')
+        print('sleep ' + str(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME) + ' to classify')
         systemTime.sleep(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME)       # give Robot some time to classify
         print('3: test continues classify should be done')
         self.assertFalse(self.getAxon().empty(), 'self.getAxon().empty() should not be empty')
