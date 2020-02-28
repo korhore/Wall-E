@@ -1,5 +1,16 @@
 Critical
 --------
+With raspberry
+- tensorflow Version: 1.14.0
+S
+- model coco v1 can get
+
+2020-02-28 18:59:09.755980: W tensorflow/core/grappler/optimizers/meta_optimizer.cc:573] memory_optimizer failed: Deadline exceeded: memory_optimizer exceeded deadline., time = 563687.375ms.
+tensorflow/core/grappler/optimizers/meta_optimizer.cc:573]
+
+and TensorflowClassification will stop
+
+
 OK Seems that capability sharing is not working: Wally does not know that PV can handle Voice In (voices to be spoken)
    Seems that capabilities are transferred OK
 
