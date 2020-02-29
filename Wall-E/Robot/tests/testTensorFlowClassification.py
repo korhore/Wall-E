@@ -1,6 +1,6 @@
 '''
 Created on 23.06.2019
-Updated on 28.07.2019
+Updated on 29.07.2019
 @author: reijo.korhonen@gmail.com
 
 test TensorFlowClassification class
@@ -29,6 +29,11 @@ from PIL import Image as PIL_Image
 
 
 class TensorFlowClassificationTestCase(unittest.TestCase):
+    
+                                # with original 1000xY pictures raspberry pi average 32.8s
+    TEST_RESOLUTION_640 = True  # raspberry pi average 25.3s
+    TEST_RESOLUTION_320 = False # raspberry pi average 22.4s
+    TEST_RESOLUTION_160 = False # raspberry pi average 21.7s
     
     TEST_MODEL_DOWNLOAD_TIME = 240.0    # can take a long, long time
     if TensorFlow_LITE:
@@ -126,6 +131,24 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
             image.load()
             print('image filename ' + testImageFileName)
             print('image.size) ' + str(image.size))
+            if TensorFlowClassificationTestCase.TEST_RESOLUTION_640:
+                if image.size[0]> image.size[1]:
+                    image = image.resize((640, int(image.size[1]*640/image.size[0])))
+                else:
+                    image = image.resize((int(image.size[0]*640/image.size[1]), 640))
+                print('resized image.size) ' + str(image.size))
+            elif TensorFlowClassificationTestCase.TEST_RESOLUTION_320:
+                if image.size[0]> image.size[1]:
+                    image = image.resize((320, int(image.size[1]*320/image.size[0])))
+                else:
+                    image = image.resize((int(image.size[0]*320/image.size[1]), 320))
+                print('resized image.size) ' + str(image.size))
+            elif TensorFlowClassificationTestCase.TEST_RESOLUTION_160:
+                if image.size[0]> image.size[1]:
+                    image = image.resize((160, int(image.size[1]*160/image.size[0])))
+                else:
+                    image = image.resize((int(image.size[0]*160/image.size[1]), 160))
+                print('resized image.size) ' + str(image.size))
 
             sensations.append(Sensation.create(associations=[], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image, filePath=testImageFileName))
 
