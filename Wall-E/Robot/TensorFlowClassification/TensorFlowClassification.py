@@ -28,7 +28,7 @@ from Robot import  Robot
 from Config import Config, Capabilities
 from Sensation import Sensation
 
-TensorFlow_LITE=False
+TensorFlow_LITE=True
 TensorFlow_MODEL_VERSION=1
 
 if TensorFlow_LITE:
@@ -39,9 +39,10 @@ if TensorFlow_LITE:
         if TensorFlow_MODEL_VERSION==3:
             import label_map_util
             # with lite version 3 we need label map and because it is not in tar.gz
-            # we neew fron souce and for that we need gfile and it is not in tflite_runtime
-            # so we still have depencency for tensorflow and this is a problem
-            #from tensorflow.io import gfile
+            # we get it from source and for that we need gfile (io) and it is not in tflite_runtime
+            # so we still have dependency for tensorflow and this is a problem
+            # from tensorflow.io import gfile
+            # solution is re-engineer those simp0le auxliar helper methods without gfile.
         
         #from tensorflow.lite.python.interpreter import Interpreter
         #print("TensorFlowClassification import tflite_runtime.interpreter as tflite OK")
@@ -102,10 +103,15 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
     if TensorFlow_LITE:
         if TensorFlow_MODEL_VERSION == 1:
             # LITE model to download, this can't be trained, so it is frozen
-            MODEL_NAME =            'mobilenet_v1_1.0_224'
-            MODEL_ZIP_NAME =        'mobilenet_v1_1.0_224_quant_and_labels.zip'
-            MODEL_QUANT_NAME =      'mobilenet_v1_1.0_224_quant.tflite'
-            MODEL_LABELS_NAME =     'labels_mobilenet_quant_v1_224.txt'
+#             MODEL_NAME =            'mobilenet_v1_1.0_224'
+#             MODEL_ZIP_NAME =        'mobilenet_v1_1.0_224_quant_and_labels.zip'
+#             MODEL_QUANT_NAME =      'mobilenet_v1_1.0_224_quant.tflite'
+#             MODEL_LABELS_NAME =     'labels_mobilenet_quant_v1_224.txt'
+#             DOWNLOAD_BASE =         'https://storage.googleapis.com/download.tensorflow.org/models/tflite/'
+            MODEL_NAME =            'coco_ssd_mobilenet_v1_1.0_quant_2018_06_29'
+            MODEL_ZIP_NAME =        MODEL_NAME + '.zip'
+            MODEL_QUANT_NAME =      'detect.tflite'
+            MODEL_LABELS_NAME =     'labelmap.txt'
             DOWNLOAD_BASE =         'https://storage.googleapis.com/download.tensorflow.org/models/tflite/'
             PATH_TO_GRAPH_DIR =     os.path.join(Sensation.DATADIR, MODEL_NAME)
             PATH_TO_FROZEN_GRAPH =  os.path.join(Sensation.DATADIR, MODEL_NAME, MODEL_QUANT_NAME)
@@ -233,12 +239,13 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
         return {i: line.strip() for i, line in enumerate(f.readlines())}
 
     def set_input_tensor(self, interpreter, image):
-       # this works" 
-       #tensor_index = interpreter.get_input_details()[0]['index']
-       #input_tensor = interpreter.tensor(tensor_index)()[0]
-       #input_tensor[:, :] = image
-       #this works
-       interpreter.set_tensor(interpreter.get_input_details()[0]['index'], np.expand_dims(image, axis=0))
+       # original example
+       # this works?
+       tensor_index = interpreter.get_input_details()[0]['index']
+       input_tensor = interpreter.tensor(tensor_index)()[0]
+       input_tensor[:, :] = image
+       #this works with coco 224
+       #interpreter.set_tensor(interpreter.get_input_details()[0]['index'], np.expand_dims(image, axis=0))
        #this does not work
        #interpreter.set_tensor(interpreter.get_input_details()[0]['index'], image)
 
@@ -248,6 +255,43 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
       return np.array(image.getdata()).reshape(
           (im_height, im_width, 3)).astype(np.uint8)
           
+    ''' 
+    debug methods to study model 
+    '''     
+
+    def analyse_tensors(self, graph):
+        self.log(logLevel=Robot.LogLevel.Normal, logStr='analyse_tensors')
+        with graph.as_default():
+            # Get handles to input and output tensors
+            ops = tf.compat.v1.get_default_graph().get_operations()
+            all_tensor_names = {input.name for op in ops for input in op.inputs}
+            for tensor_name in all_tensor_names:
+                if '/' not in tensor_name:
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr='analyse_tensors all tensor inputs names ' + str(tensor_name))
+            all_tensor_names = {output.name for op in ops for output in op.outputs}
+            for tensor_name in all_tensor_names:
+                if '/' not in tensor_name:
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr='analyse_tensors all tensor outputs names ' + str(tensor_name))
+                    
+    def analyse_LITE_tensors(self, interpreter):
+        self.log(logLevel=Robot.LogLevel.Normal, logStr='analyse_LITE_tensors')
+                    
+        input_details = interpreter.get_input_details()
+        for tensor_name in input_details[0]:
+            self.log(logLevel=Robot.LogLevel.Normal, logStr='analyse_LITE_tensors inputs names ' + str(tensor_name))
+            
+        output_details = interpreter.get_output_details()
+        for tensor_name in output_details[0]:
+            self.log(logLevel=Robot.LogLevel.Normal, logStr='analyse_LITE_tensors output names ' + str(tensor_name))
+        
+        height = input_details[0]['shape'][1]
+        width = input_details[0]['shape'][2]
+        
+        floating_model = (input_details[0]['dtype'] == np.float32)
+
+                    
+            
+
     ''' 
     run_inference_for_single_image is divided into two methods
     First one gets tensors we use and its run only with firsts image.
@@ -360,28 +404,46 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
     
     def run_inference_for_single_image_LITE(self, image, top_k=3):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='run_inference_for_single_image_LITE')
-        #image = image.resize((self.width, self.height),PIL_Image.ANTIALIAS)
+        image = image.resize((self.width, self.height),PIL_Image.ANTIALIAS)
+        input_data = np.expand_dims(image, axis=0)
         
-        self.set_input_tensor(interpreter=self.interpreter, image=image)
+        input_details = self.interpreter.get_input_details()
+        output_details = self.interpreter.get_output_details()       
+        #self.set_input_tensor(interpreter=self.interpreter, image=input_data)
+        self.interpreter.set_tensor(input_details[0]['index'],input_data)
         
 #         tensor_index = self.interpreter.get_input_details()[0]['index']
 #         input_tensor = self.interpreter.tensor(tensor_index)()[0]
 #         input_tensor[:, :] = image
         
         self.interpreter.invoke()
-
-        output_details = self.interpreter.get_output_details()[0]
-        output = np.squeeze(self.interpreter.get_tensor(output_details['index']))
-#         print("run_inference_for_single_image_LITE dir(output) " + str(dir(output)))
-#         self.log(logLevel=Robot.LogLevel.Normal, logStr="run_inference_for_single_image_LITE dir(output) " + str(dir(output)))
-
-        # If the model is quantized (uint8 data), then dequantize the results
-        if output_details['dtype'] == np.uint8:
-            scale, zero_point = output_details['quantization']
-            output = scale * (output - zero_point)
-            
-        ordered = np.argpartition(-output, top_k)
-        return [(i, output[i]) for i in ordered[:top_k]]
+        
+        boxes = self.interpreter.get_tensor(output_details[0]['index'])[0] # Bounding box coordinates of detected objects
+        classes = self.interpreter.get_tensor(output_details[1]['index'])[0] # Class index of detected objects
+        scores = self.interpreter.get_tensor(output_details[2]['index'])[0] # Confidence of detected objects
+        
+        return boxes, classes, scores
+        
+# old version
+#         output_details = self.interpreter.get_output_details()[0]
+#         output = np.squeeze(self.interpreter.get_tensor(output_details['index']))
+#         i = 0
+#         for item in output:
+#             j=0
+#             for itemItem in item:
+#                 print("i " + str(i) + " j: " + str(j) + ' ' + str(itemItem))
+#                 j=j+1
+#             i=i+1
+# #         print("run_inference_for_single_image_LITE dir(output) " + str(dir(output)))
+# #         self.log(logLevel=Robot.LogLevel.Normal, logStr="run_inference_for_single_image_LITE dir(output) " + str(dir(output)))
+# 
+#         # If the model is quantized (uint8 data), then dequantize the results
+#         if output_details['dtype'] == np.uint8:
+#             scale, zero_point = output_details['quantization']
+#             output = scale * (output - zero_point)
+#             
+#         ordered = np.argpartition(-output, top_k)
+#         return [(i, output[i]) for i in ordered[:top_k]]
 
 #   ordered = np.argpartition(-output, top_k)
 #   return [(i, output[i]) for i in ordered[:top_k]]
@@ -501,9 +563,8 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
             self.interpreter.allocate_tensors()
             _, self.height, self.width, _ = self.interpreter.get_input_details()[0]['shape']
             self.log(logLevel=Robot.LogLevel.Normal, logStr="LITE input self.width " + str(self.width) + " self.height " + str(self.height))
-               
+            
             self.log(logLevel=Robot.LogLevel.Normal, logStr="LITE interpreter setup done")
-
         else:
             if not os.path.exists(TensorFlowClassification.PATH_TO_FROZEN_GRAPH):
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="downloading model " + TensorFlowClassification.PATH_TO_FROZEN_GRAPH)      
@@ -641,6 +702,10 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
             # accepted input size is much smaller than big picture size.
             # this way we get far away objects with hard work
             if TensorFlow_LITE:
+                if self.firstImage:
+                    # analyse model
+                    self.analyse_LITE_tensors(interpreter=self.interpreter)
+                    self.firstImage = False
                 names=[]
                 y=0
                 image=sensation.getImage()
@@ -655,9 +720,11 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                 # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
                 image_np_expanded = np.expand_dims(image_np, axis=0)
                 if self.firstImage:
-                    self.get_tensors(image_np_expanded, self.detection_graph)
+                    # analyse model
+                    self.analyse_tensors(graph=self.detection_graph)
+                    self.get_tensors(image=image_np_expanded, graph=self.detection_graph)
                     self.firstImage = False
-                output_dict = self.run_inference_for_single_image(image_np_expanded, self.detection_graph)
+                output_dict = self.run_inference_for_single_image(image=image_np_expanded, graph=self.detection_graph)
             
                 i=0
                 names=[]
@@ -714,7 +781,45 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                 size = (x, y,
                         x+self.width, y+self.height)
                 subimage = image.crop(size)                
-                results = self.run_inference_for_single_image_LITE(image=subimage, top_k=3)
+#                results = self.run_inference_for_single_image_LITE(image=subimage, top_k=3)
+                boxes, classes, scores = self.run_inference_for_single_image_LITE(image=subimage, top_k=3)
+                for i in range(len(scores)):
+                    if scores[i] > TensorFlowClassification.DETECTION_SCORE_LIMIT:
+                        # create new sensation of detected area and category
+                        name = self.labels[int(classes[i])+1]
+                        self.log('SEEN image FOR SURE className ' + name + ' score ' + str(scores[i]) + ' box ' + str(boxes[i]) +" x " + str(x) + " y " + str(y) + " size " + str(size))
+                        #if name not in current_present:
+                        #    current_present.append(name)
+                        change, precence, names = self.getPresence(name=name, names=names)
+                        if change:
+                            current_present[name] = precence
+                             
+                            im_width, im_height = subimage.size
+                            ymin, xmin, ymax, xmax = boxes[i]
+                            size = (xmin * im_width, ymin * im_height,
+                                    xmax * im_width, ymax * im_height)
+                            subsubimage = subimage.crop(size)
+                             
+                            subsensation = Sensation.create(sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Working, direction = Sensation.Direction.Out,\
+                                                            image=subsubimage)
+                            self.log("process created subimage sensation " + subsensation.toDebugStr())
+                            # don't associate to original image sensation
+                            # we wan't to save memory and subimage is important, not whore image
+                            #subsensation.associate(sensation=sensation, score=score)
+                            subsensation.save()
+                                     
+                            itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.Working, direction = Sensation.Direction.Out, name=name,\
+                                                              presence = precence)
+                            itemsensation.associate(sensation=subsensation, score=scores[i])
+                            self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(scores[i]))
+                            self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
+                            self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
+                            self.log("Created Working subImage and item sensation for this")
+                            # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
+                x = x +  self.width/2    
+            y = y + self.height/2
+        return names, current_present
+
 #                print("run_inference_for_single_image_LITE dir(results) " + str(dir(results)))
 #                self.log(logLevel=Robot.LogLevel.Normal, logStr="run_inference_for_single_image_LITE dir(results) " + str(dir(results)))
 #                 for classInd, score in results:
@@ -723,38 +828,38 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
 #                     print("run_inference_for_single_image_LITE dir(score) " + str(dir(score)))
 #                     self.log(logLevel=Robot.LogLevel.Normal, logStr="run_inference_for_single_image_LITE dir(score) " + str(dir(score)))
 
-# temporary removed to analyse what we get                
-                for classInd, score in results:
-                    #self.log(" image LITE className " + self.labels[classInd] + ' score ' + str(score))
-                     if score > TensorFlowClassification.DETECTION_SCORE_LIMIT:
-                         # create new sensation of detected area and category
-                         self.log('SEEN image FOR SURE className ' + self.labels[classInd] + ' score ' + str(score) +" x " + str(x) + " y " + str(y) + " size " + str(size))
-                         # Item
-                         name = self.labels[classInd]
-                         #if name not in current_present:
-                         #    current_present.append(name)
-                         change, precence, names = self.getPresence(name=name, names=names)
-                         if change:
-                             current_present[name] = precence
-                             subsensation = Sensation.create(sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Working, direction = Sensation.Direction.Out,\
-                                                             image=subimage)
-                             self.log("process created subimage sensation " + subsensation.toDebugStr())
-                             # don't associate to original image sensation
-                             # we wan't to save memory and subimage is important, not whore image
-                             #subsensation.associate(sensation=sensation, score=score)
-                             subsensation.save()
-                                     
-                             itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.Working, direction = Sensation.Direction.Out, name=name,\
-                                                              presence = precence)
-                             itemsensation.associate(sensation=subsensation, score=score)
-                             self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
-                             self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
-                             self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
-                             self.log("Created Working subImage and item sensation for this")
-                             # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
-                x = x +  self.width/2    
-            y = y + self.height/2
-        return names, current_present
+#old
+#                 for classInd, score in results:
+#                      self.log(" image LITE className " + self.labels[classInd] + ' score ' + str(score))
+#                      if score > TensorFlowClassification.DETECTION_SCORE_LIMIT:
+#                          # create new sensation of detected area and category
+#                          self.log('SEEN image FOR SURE className ' + self.labels[classInd] + ' score ' + str(score) +" x " + str(x) + " y " + str(y) + " size " + str(size))
+#                          # Item
+#                          name = self.labels[classInd]
+#                          #if name not in current_present:
+#                          #    current_present.append(name)
+#                          change, precence, names = self.getPresence(name=name, names=names)
+#                          if change:
+#                              current_present[name] = precence
+#                              subsensation = Sensation.create(sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Working, direction = Sensation.Direction.Out,\
+#                                                              image=subimage)
+#                              self.log("process created subimage sensation " + subsensation.toDebugStr())
+#                              # don't associate to original image sensation
+#                              # we wan't to save memory and subimage is important, not whore image
+#                              #subsensation.associate(sensation=sensation, score=score)
+#                              subsensation.save()
+#                                      
+#                              itemsensation = Sensation.create(sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.Working, direction = Sensation.Direction.Out, name=name,\
+#                                                               presence = precence)
+#                              itemsensation.associate(sensation=subsensation, score=score)
+#                              self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
+#                              self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
+#                              self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
+#                              self.log("Created Working subImage and item sensation for this")
+#                              # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
+#                 x = x +  self.width/2    
+#             y = y + self.height/2
+#         return names, current_present
         
  
     def getPresence(self, name, names):
