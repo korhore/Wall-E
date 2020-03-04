@@ -1,6 +1,6 @@
 '''
 Created on 23.06.2019
-Updated on 29.07.2019
+Updated on 04.03.2020
 @author: reijo.korhonen@gmail.com
 
 test TensorFlowClassification class
@@ -50,18 +50,9 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
                                         # models are big and this takes a log, log time and can fail
                                         # if we don't wait enough, even if it runs OK
     if TensorFlow_LITE:
-#         TEST_ITEM_NAMES_1=['Saint Bernard',
-#                            'basset',
-#                            'beagle']
         TEST_ITEM_NAMES_1=['dog',
                            'person',
                            'chair']
-#         TEST_ITEM_NAMES_2=['parachute',
-#                            'nematode',
-#                            'balloon',
-#                            'sandbar',
-#                            'speedboat',
-#                            'bathing cap']
         TEST_ITEM_NAMES_2=['person',
                            'kite']
     else:
@@ -159,165 +150,48 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
 
         # test Entering, Present and Absent so, then in next picture absent Item,names are from previous picture
         # removed as a test     
-        self.doTestClassification(imageSensation=sensations[0], names=names[0])   
-        self.doTestClassification(imageSensation=sensations[1], names=self.getDifferItems(names[1], names[0]), absent_names=self.getDifferItems(names[0], names[1]))   
-        self.doTestClassification(imageSensation=sensations[0], names=self.getDifferItems(names[0], names[1]), absent_names=self.getDifferItems(names[1], names[0]))   
+        self.doTestClassification(imageSensation=sensations[0], currentNames=names[0])   
+        self.doTestClassification(imageSensation=sensations[1], currentNames=names[1], previousNames=names[0])   
+        self.doTestClassification(imageSensation=sensations[0], currentNames=names[0], previousNames=names[1])   
           
-    def doTestClassification(self, imageSensation, names, absent_names=None):
+    def doTestClassification(self, imageSensation, currentNames, previousNames=None):
         print('doTestClassification start')
         #entering new ones
         #exiting old ones
+        enteringNames=currentNames
+        presentNames=[]
+        exitingNames = []
+        absentNames = []
+        if previousNames is not None:
+            enteringNames = self.getDifferItems(firstPresent=currentNames, secondPresent=previousNames)
+            exitingNames = self.getDifferItems(firstPresent=previousNames, secondPresent=currentNames)
+            presentNames = self.getSameItems(firstPresent=previousNames, secondPresent=currentNames)
+            
         self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
-        #self.tensorFlowClassification.process(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
-#         if self.isFirstSleep:
-#             print('sleep ' + str(2*TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME) + ' to classify')
-#             systemTime.sleep(2*TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME)       # give Robot some time to stop
-#             self.isFirstSleep=False
-#         else:
-#             print('sleep ' + str(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME) + ' to classify')
-#             systemTime.sleep(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME)       # give Robot some time to stop
-#         print('1: test continues classify should be done')
-        
-        testStartTime = systemTime.time()
-        if self.isFirstSleep:
-            waitTime =  2*TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME       # give Robot some time to stop
-            self.isFirstSleep=False
-        else:
-            waitTime =  TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME       # give Robot some time to stop
-        print('1: test gets process created exiting/absent itemsensation')
-        
-#         self.assertFalse(self.getAxon().empty(), 'self.getAxon().empty() should not be empty')
-        itemnames = []
-        found_names = []
-        found_absent_names = []
-        while ((sorted(names) != sorted(found_names)) or \
-              ((absent_names is not None) and (sorted(absent_names) != sorted(found_absent_names))))\
-               and \
-              (systemTime.time() - testStartTime < waitTime):
-            if not self.getAxon().empty():
-                transferDirection, sensation, association = self.getAxon().get()
-                print("1: got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
-                if sensation.getDirection() == Sensation.Direction.Out and \
-                    sensation.getSensationType() == Sensation.SensationType.Image:
-                    print("1: got crop image of item " + str(transferDirection) + ' ' + sensation.toDebugStr())
-                elif sensation.getSensationType() == Sensation.SensationType.Item and\
-                    sensation.getPresence() == Sensation.Presence.Entering:
-                    print("1: got item Entering " + str(transferDirection) + ' ' + sensation.toDebugStr())
-                    if sensation.getName() not in itemnames:
-                        itemnames.append(sensation.getName())
-                    self.assertTrue(sensation.getName() in names, sensation.getName()+' should be in test names')
-                    found_names.append(sensation.getName())
-                elif absent_names is not None and sensation.getSensationType() == Sensation.SensationType.Item and\
-                    sensation.getPresence() == Sensation.Presence.Exiting:
-                    print("1: got item Exiting " + str(transferDirection) + ' ' + sensation.toDebugStr())
-                    self.assertTrue(sensation.getName() in absent_names, 'should be in test exiting_names')
-                    found_absent_names.append(sensation.getName())
-                else:
-                   print("1: got something else" + str(transferDirection) + ' ' + sensation.toDebugStr())
-            else:
-                systemTime.sleep(1)
-        processTime = systemTime.time() - testStartTime
-        self.processTimeSum += processTime
-        self.processNumber += 1
-        print('1: TensorFlowClassification processed image {} seconds average {} seconds'.\
-              format(processTime, self.processTimeSum/self.processNumber))
-                
-        self.assertEqual(sorted(names), sorted(found_names), 'should get exactly entering items')
-        if absent_names is not None:
-            self.assertEqual(sorted(absent_names), sorted(found_absent_names), 'should get exactly exiting items')
+        self.doTestItemSensations(enteringNames, presentNames, exitingNames, absentNames)
 
         #present
         #absent
+        enteringNames=[]
+        presentNames=currentNames
+        exitingNames = []
+        absentNames = []
+        if previousNames is not None:
+            absentNames = self.getDifferItems(firstPresent=previousNames, secondPresent=currentNames)
+         
         self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
-        testStartTime = systemTime.time()
-        #self.tensorFlowClassification.process(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
-#         print('sleep ' + str(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME) + ' to classify')
-#         systemTime.sleep(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME)       # give Robot some time to stop
-#         print('2: test continues classify should be done')
-        
-#         self.assertFalse(self.getAxon().empty(), 'self.getAxon().empty() should not be empty')
-        itemnames = []
-        found_names = []
-        found_absent_names = []
-        while (sorted(names) != sorted(found_names) or \
-              (absent_names is not None and sorted(absent_names) != sorted(found_absent_names))) \
-              and \
-              systemTime.time() - testStartTime < TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME:
-            if not self.getAxon().empty():
-                transferDirection, sensation, association = self.getAxon().get()
-                print("2: got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
-                if sensation.getDirection() == Sensation.Direction.Out and \
-                    sensation.getSensationType() == Sensation.SensationType.Image:
-                    print("2: got crop image of item " + str(transferDirection) + ' ' + sensation.toDebugStr())
-                elif sensation.getSensationType() == Sensation.SensationType.Item and\
-                    sensation.getPresence() == Sensation.Presence.Present:
-                    print("2: got item Present " + str(transferDirection) + ' ' + sensation.toDebugStr())
-                    if sensation.getName() not in itemnames:
-                        itemnames.append(sensation.getName())
-                    self.assertTrue(sensation.getName() in names, sensation.getName()+ ' should be in test names')
-                    found_names.append(sensation.getName())
-                elif absent_names is not None and sensation.getSensationType() == Sensation.SensationType.Item and\
-                    sensation.getPresence() == Sensation.Presence.Absent:
-                    print("2: got item Absent " + str(transferDirection) + ' ' + sensation.toDebugStr())
-                    self.assertTrue(sensation.getName() in absent_names, sensation.getName() + ' should be in test absent_names')
-                    found_absent_names.append(sensation.getName())
-                else:
-                   print("2: got something else" + str(transferDirection) + ' ' + sensation.toDebugStr())
-            else:
-                systemTime.sleep(1)
-        self.assertEqual(sorted(names), sorted(found_names), 'should get exactly present items')
-        if absent_names is not None:
-            self.assertEqual(sorted(absent_names), sorted(found_absent_names), 'should get exactly absent items')
-        processTime = systemTime.time() - testStartTime
-        self.processTimeSum += processTime
-        self.processNumber += 1
-        print('2: TensorFlowClassification processed image {} seconds average {} seconds'.\
-              format(processTime, self.processTimeSum/self.processNumber))
-        
-        #change, because present ones still present and they are reported by last logic, but absent ones are gone and should not come 
+        self.doTestItemSensations(enteringNames, presentNames, exitingNames, absentNames)
+       
+        #still present
+        # no absent
+        enteringNames=[]
+        presentNames=currentNames
+        exitingNames = []
+        absentNames = []
+         
         self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
-        testStartTime = systemTime.time()
-        #self.tensorFlowClassification.process(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
-#         print('sleep ' + str(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME) + ' to classify')
-#         systemTime.sleep(TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME)       # give Robot some time to classify
-#         print('3: test continues classify should be done')
-#         self.assertFalse(self.getAxon().empty(), 'self.getAxon().empty() should not be empty')
-        itemnames = []
-        found_names = []
-        found_absent_names = []
-        while (sorted(names) != sorted(found_names) and \
-              len(found_absent_names) == 0) \
-              and \
-              systemTime.time() - testStartTime < TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME:
-            if not self.getAxon().empty():
-                transferDirection, sensation, association = self.getAxon().get()
-                print("3: got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
-                if sensation.getDirection() == Sensation.Direction.Out and \
-                    sensation.getSensationType() == Sensation.SensationType.Image:
-                    print("3: got crop image of item " + str(transferDirection) + ' ' + sensation.toDebugStr())
-                elif sensation.getSensationType() == Sensation.SensationType.Item and\
-                    sensation.getPresence() == Sensation.Presence.Present:
-                    print("3: got item Present " + str(transferDirection) + ' ' + sensation.toDebugStr())
-                    if sensation.getName() not in itemnames:
-                        itemnames.append(sensation.getName())
-                    self.assertTrue(sensation.getName() in names, 'should be in test names')
-                    found_names.append(sensation.getName())
-                elif sensation.getSensationType() == Sensation.SensationType.Item and\
-                    sensation.getPresence() == Sensation.Presence.Absent:
-                    print("3: got item Absent but SHOULD NOT " + str(transferDirection) + ' ' + sensation.toDebugStr())
-                    found_absent_names.append(sensation.getName())
-                else:
-                   print("3: got something else" + str(transferDirection) + ' ' + sensation.toDebugStr())
-            else:
-                systemTime.sleep(1)
-        self.assertEqual(sorted(names), sorted(found_names), 'should get exactly present items')
-        self.assertEqual(len(found_absent_names), 0, '3: should not get absent items')
-        processTime = systemTime.time() - testStartTime
-        self.processTimeSum += processTime
-        self.processNumber += 1
-        print('3: TensorFlowClassification processed image {} seconds average {} seconds'.\
-              format(processTime, self.processTimeSum/self.processNumber))
-        
+        self.doTestItemSensations(enteringNames, presentNames, exitingNames, absentNames)
+         
         # test removed temporarely
         #self.assertTrue(self.getAxon().empty(), 'self.getAxon().empty() should be empty')
         while not self.getAxon().empty():
@@ -331,7 +205,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
                     print("external: got item Present " + str(transferDirection) + ' ' + sensation.toDebugStr())
                     if sensation.getName() not in itemnames:
                         itemnames.append(sensation.getName())
-                    self.assertTrue(sensation.getName() in names, 'should be in test names')
+                    self.assertTrue(sensation.getName() in currentNames, 'should be in test names')
                     found_names.append(sensation.getName())
                 elif sensation.getSensationType() == Sensation.SensationType.Item and\
                     sensation.getPresence() == Sensation.Presence.Absent:
@@ -341,15 +215,91 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
                    print("external: got something else" + str(transferDirection) + ' ' + sensation.toDebugStr())
         
         print('doTestClassification end')
+
+
+    '''
+    test that we get item sensations expected
+    '''
+    def doTestItemSensations(self, enteringNames, presentNames, exitingNames, absentNames):
+        print('doTestItemSensations start')
+        
+        testStartTime = systemTime.time()
+        if self.isFirstSleep:
+            waitTime =  2*TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME       # give Robot some time to stop
+            self.isFirstSleep=False
+        else:
+            waitTime =  TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME       # give Robot some time to stop
+        print('1: test gets process created exiting/absent itemsensation')
+        
+#         self.assertFalse(self.getAxon().empty(), 'self.getAxon().empty() should not be empty')
+        foundEnteringNames = []
+        foundPresentNames = []
+        foundExitingNames = []
+        foundAbsentNames = []
+        while ((sorted(enteringNames) != sorted(foundEnteringNames)) or \
+               (sorted(presentNames) != sorted(foundPresentNames)) or \
+               (sorted(exitingNames) != sorted(foundExitingNames)) or \
+               (sorted(absentNames) != sorted(foundAbsentNames))) \
+               and \
+              (systemTime.time() - testStartTime < waitTime):
+            if not self.getAxon().empty():
+                transferDirection, sensation, association = self.getAxon().get()
+                print("1: got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
+                if sensation.getDirection() == Sensation.Direction.Out and \
+                    sensation.getSensationType() == Sensation.SensationType.Image:
+                    print("1: got crop image of item " + str(transferDirection) + ' ' + sensation.toDebugStr())
+                elif sensation.getSensationType() == Sensation.SensationType.Item and\
+                    sensation.getPresence() == Sensation.Presence.Entering:
+                    print("1: got item Entering " + str(transferDirection) + ' ' + sensation.toDebugStr())
+                    self.assertTrue(sensation.getName() in enteringNames, sensation.getName()+' should be in test entering names')
+                    foundEnteringNames.append(sensation.getName())
+                elif sensation.getSensationType() == Sensation.SensationType.Item and\
+                    sensation.getPresence() == Sensation.Presence.Present:
+                    print("2: got item Present " + str(transferDirection) + ' ' + sensation.toDebugStr())
+                    self.assertTrue(sensation.getName() in presentNames, sensation.getName()+ ' should be in test still present names')
+                    foundPresentNames.append(sensation.getName())
+                elif sensation.getSensationType() == Sensation.SensationType.Item and\
+                    sensation.getPresence() == Sensation.Presence.Exiting:
+                    print("1: got item Exiting " + str(transferDirection) + ' ' + sensation.toDebugStr())
+                    self.assertTrue(sensation.getName() in exitingNames, 'should be in test exiting_names')
+                    foundExitingNames.append(sensation.getName())
+                elif sensation.getSensationType() == Sensation.SensationType.Item and\
+                    sensation.getPresence() == Sensation.Presence.Absent:
+                    print("1: got item Absent " + str(transferDirection) + ' ' + sensation.toDebugStr())
+                    self.assertTrue(sensation.getName() in absentNames, 'should be in test absent_names')
+                    foundAbsentNames.append(sensation.getName())
+                else:
+                   print("1: got something else" + str(transferDirection) + ' ' + sensation.toDebugStr())
+            else:
+                systemTime.sleep(1)
+        processTime = systemTime.time() - testStartTime
+        self.processTimeSum += processTime
+        self.processNumber += 1
+        print('1: TensorFlowClassification processed image {} seconds average {} seconds\n'.\
+              format(processTime, self.processTimeSum/self.processNumber))
+                
+        self.assertEqual(sorted(foundEnteringNames), sorted(enteringNames), 'should get exactly entering items')
+        self.assertEqual(sorted(foundPresentNames), sorted(presentNames), 'should get exactly present items')
+        self.assertEqual(sorted(foundExitingNames), sorted(exitingNames), 'should get exactly exiting items')
+        self.assertEqual(sorted(foundAbsentNames), sorted(absentNames), 'should get exactly entering items')
+
+        
     '''
     which items will be absent when present one changes
     '''    
     def getDifferItems(self, firstPresent, secondPresent):
-        absent=[]
+        differ=[]
         for name in firstPresent:
             if name not in secondPresent:
-                absent.append(name)
-        return absent
+                differ.append(name)
+        return differ
+    
+    def getSameItems(self, firstPresent, secondPresent):
+        same=[]
+        for name in firstPresent:
+            if name in secondPresent:
+                same.append(name)
+        return same
 
 if __name__ == '__main__':
     unittest.main()
