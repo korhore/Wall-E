@@ -167,8 +167,11 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
             exitingNames = self.getDifferItems(firstPresent=previousNames, secondPresent=currentNames)
             presentNames = self.getSameItems(firstPresent=previousNames, secondPresent=currentNames)
             
-        self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
-        self.doTestItemSensations(enteringNames, presentNames, exitingNames, absentNames)
+        self.doTestItemSensations(imageSensation=imageSensation,
+                                  enteringNames=enteringNames,
+                                  presentNames=presentNames,
+                                  exitingNames=exitingNames,
+                                  absentNames=absentNames)
 
         #present
         #absent
@@ -179,8 +182,11 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
         if previousNames is not None:
             absentNames = self.getDifferItems(firstPresent=previousNames, secondPresent=currentNames)
          
-        self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
-        self.doTestItemSensations(enteringNames, presentNames, exitingNames, absentNames)
+        self.doTestItemSensations(imageSensation=imageSensation,
+                                  enteringNames=enteringNames,
+                                  presentNames=presentNames,
+                                  exitingNames=exitingNames,
+                                  absentNames=absentNames)
        
         #still present
         # no absent
@@ -189,8 +195,11 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
         exitingNames = []
         absentNames = []
          
-        self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
-        self.doTestItemSensations(enteringNames, presentNames, exitingNames, absentNames)
+        self.doTestItemSensations(imageSensation=imageSensation,
+                                  enteringNames=enteringNames,
+                                  presentNames=presentNames,
+                                  exitingNames=exitingNames,
+                                  absentNames=absentNames)
          
         # test removed temporarely
         #self.assertTrue(self.getAxon().empty(), 'self.getAxon().empty() should be empty')
@@ -220,10 +229,12 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
     '''
     test that we get item sensations expected
     '''
-    def doTestItemSensations(self, enteringNames, presentNames, exitingNames, absentNames):
+    def doTestItemSensations(self, imageSensation, enteringNames, presentNames, exitingNames, absentNames):
         print('doTestItemSensations start')
         
         testStartTime = systemTime.time()
+        self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
+        
         if self.isFirstSleep:
             waitTime =  2*TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME       # give Robot some time to stop
             self.isFirstSleep=False
