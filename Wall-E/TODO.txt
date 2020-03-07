@@ -27,23 +27,16 @@ Should read microphone all the time, so we get right average voice level.
 Should not be interesting if items are present.
 If voice found, then should read as long as voice is on, so we get nice voice.
 
-OK  File "/home/reijo/Wall-E/Robot/Sensation.py", line 1506, in removeAssociation
-    del sensation.associations[i]
-IndexError: list assignment index out of range
 
+Develop
+-------
 
-Connections can be duplicated
-SocketClient:('192.168.117.7', 2000):3:Normal: got sensation from queue D Sun Jul 28 22:29:13 2019 1564342228.0706725 Sensory Out Image
-SocketClient:('192.168.117.7', 2000):3:Normal: process: Sun Jul 28 22:29:13 2019 D Sun Jul 28 22:29:13 2019 1564342228.0706725 Sensory Out Image
-SocketClient:('192.168.117.5', 2000):3:Normal: got sensation from queue D Sun Jul 28 22:29:13 2019 1564342228.0706725 Sensory Out Image
-SocketClient:('192.168.117.5', 2000):3:Normal: process: Sun Jul 28 22:29:13 2019 D Sun Jul 28 22:29:13 2019 1564342228.0706725 Sensory Out Image
-SocketClient:('192.168.117.7', 51518):3:Normal: got sensation from queue D Sun Jul 28 22:29:13 2019 1564342228.0706725 Sensory Out Image
-SocketClient:('192.168.117.7', 51518):3:Normal: process: Sun Jul 28 22:29:13 2019 D Sun Jul 28 22:29:13 2019 1564342228.0706725 Sensory Out Image
-SocketClient:('192.168.117.7', 51518):3:Normal: SocketClient.sendSensationt wrote sensation Sun Jul 28 22:29:13 2019 1564342228.0706725 Sensory Out Image to ('192.168.117.7', 51518)
-SocketServer:('192.168.117.7', 51518):3:Normal: run: waiting size of next Sensation from ('192.168.117.7', 51518)
-SocketServer:('192.168.117.7', 51518):3:Normal: run: SocketServer Client ('192.168.117.7', 51518) wrote 15892
-SocketServer:('192.168.117.7', 51518):3:Normal: run: SocketServer got sensation Sun Jul 28 22:29:13 2019 1564342228.0706725 Sensory Out Image
-SocketServer:('192.168.117.7', 51518):3:Normal: run: waiting next Sensation from('192.168.117.7', 51518)
+- Study Presence by Location -consept
+  Maybe we should implement also some location group where this kind action is valid.
+
+- Add ReactionToSensation-attribute to Sensation so if we we have many Robots in the network, then first can one reacts
+  in Communication and also in TensorflowClassification to create new Sensations based on source Sensation(s). Other Robots
+  must not react when or to some actions to like play a sound if some other Robot has done it already.
 
 - Robot should deliver sensations only to subRobots running
 - (Main)Robot should be a Sensation or should include sensation(s) that have identity information
@@ -51,38 +44,35 @@ SocketServer:('192.168.117.7', 51518):3:Normal: run: waiting next Sensation from
 - (Main)Robot should talk as it's kind. Try that wall-E -kind Robot speeks for
   instance 2/3 rate ( meaning, that we use produce 2/3 sample amount of 1
 - DONE permanent=False -attribute to sensations. This is not set as bytes, but is local property
-
-Develop
--------
-
-Add not-saveable attribute isForgettable (int)/ reserve(),release() inUse(int) to Senation,
+OK Add not-saveable attribute isForgettable (int)/ reserve(),release() inUse(int) to Senation,
 so these Sensation will be reachable as long as Robot.process will process them.
  
-OK Start to use LongTerm-memory, when we get an response, so we remember thing that should be rembembered.
+OK Start to use LongTerm-memory, when we get an response, so we remember things that should be rembembered.
 In Memory-version is ready, but we should study also datavase version.
 
-Add ReactionToSensation-attribute to Sensation so if we we have mani Borbots in the network, then first can one reacts
-in Communication and also in TensorflowClassification to create new Sensations based on source Sensation(s). Other Robots
-must not react when or to some actions to like play a sound if some other Robot has done it already.
+OK  File "/home/reijo/Wall-E/Robot/Sensation.py", line 1506, in removeAssociation
+    del sensation.associations[i]
+OK IndexError: list assignment index out of range
 
-Maybe we should implement also some location group where this kind action is valid.
+
  
-AlsaAudioPlayback: Normalize voices to play
-Voice Kind cannot be local only, because Communinication and AlsaAudioBradcast can be in different servers
-Study Prensece by Location -consept
+OK AlsaAudioPlayback: Normalize voices to play
+OK Voice Kind cannot be local only, because Communinication and AlsaAudioBroadcast can be in different servers
 
-Study memory usage
+OK Study memory usage
 - import resource
 - resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-Change Sensation.create so, that it returns an old Sensation if requested data is close enough.
-This would help also to memory problems, even id we still must implemnt some memory  management.
+Deprfecated Change Sensation.create so, that it returns an old Sensation if requested data is close enough.
+            This would help also to memory problems, even id we still must implemnt some memory  management.
+            Maybe not good idea. Or we should change old  Sensation with new one. But this is not simple to implement.
 
-In raspberry application easyly runs out of menory
--- should implement some method to remove more efficiently not so important sensations
+OK In raspberry application easily runs out of menory
+OK -- should implement some method to remove more efficiently not so important sensations
 
-def tracePresents(self, sensation):
+OK def tracePresents(self, sensation):
 - to Robot.method
 - used in MainRobot
+- OK We know present item-names now 
 
 OK Robot.process to support asscociation
 -- with that we can ass Feeling to processing (for instance speeking out with a feeling)
@@ -90,56 +80,55 @@ OK Robot.process to support asscociation
 
 Association to support presence
 
-Develop VirtualRobot
+OK Develop VirtualRobot
 - acts as Item.name
 - produces Images as Camera does
-- Produces Vices as AlsaMicroprone does
+- Produces Voices as AlsaMicroprone does
 - Listens if Robot speaks and answers
 - checks if is is marked to be present or not
 
-Finalize presense
+OK Finalize presense
 - Presence works in Tensorflow and AlsaMictophone, associating voices and Images to Item.name present
 
-Comminication need to be implenteds also supporting presense
+OK Comminication need to be implented also with supporting presense
 - do this test drive
 -- support testTensorlow. so real Image and Item sensations are created
 -- Voices should be added manually, because AlsaAudioMicrophone can't be test.driven yelt, we can't emulate real devices
 
-SocketServer keeps running on error
-SocketServer:('192.168.117.7', 2000):3:Interrupted: run: self.sock.recv(sensation_length) Interrupted error ('192.168.117.7', 2000) [Errno 9] Bad file descriptor
+OK SocketServer keeps running on error
+   SocketServer:('192.168.117.7', 2000):3:Interrupted: run: self.sock.recv(sensation_length) Interrupted error ('192.168.117.7', 2000) [Errno 9] Bad file descriptor
 
 
-Make helper scrits to start and stop MainRobot and write to /tmp/files
+OK Make helper scrits to start and stop MainRobot and write to /tmp/files
+   We have servoce-scrip now
 
-SocketClient/SocketServer
+OK SocketClient/SocketServer
   Check that it tells only pure Capabilities, not Capabilities from remote Robots
   Other way we get too much traffic. Architecture will be  1:n socket-view
    
-Tensorflow
+OK Tensorflow
   Implement presense so that it report only presense changes
   Timestamp should be same than the original Image timestamp
   
-Assosiation
+OK Assosiation
   Keep status of present Item.names and assosiate only to present ones, not
   all the stuff.
   Time-based logic is not needed any more
   
-Sensation
+OK Sensation
   Report hosts from sensatios is driven
   
  
-AlsaAudiMicrophonePlayback does not stop. Add stop-handling
+OK AlsaAudiMicrophonePlayback does not stop. Add stop-handling
 
 
-Implement manualThreading
+OK Implement manualThreading
 - very light step that can be run, just sense() to queue or precess() from queue
-  -- study gow to do this
+  -- study how to do this
   -- priority of Robots
   -
 
-
-
-Created 3 SocketServer and 3 SockertClient threads/instances. 1 +1 is enough.
+OK Created 3 SocketServer and 3 SockertClient threads/instances. 1 +1 is enough.
 
 
 What is done
