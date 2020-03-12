@@ -62,7 +62,8 @@ class VisualTestCase(unittest.TestCase):
                                                       memory=Sensation.Memory.Working,
                                                       sensationType=Sensation.SensationType.Item,
                                                       direction=Sensation.Direction.Out,
-                                                      name=VisualTestCase.NAME)
+                                                      name=VisualTestCase.NAME,
+                                                      presence = Sensation.Presence.Present)
         # Image is in LongTerm memory, it comes from TensorflowClassification and is crop of original big image
         #systemTime.sleep(0.1)  # wait to get really even id
         self.Wall_E_image_sensation = Sensation.create(time=self.history_sensationTime,
@@ -127,7 +128,7 @@ class VisualTestCase(unittest.TestCase):
         self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_item_sensation)
         
         self.visual.start()
-        systemTime.sleep(10) # let Visual start before waiting it to stops           
+        systemTime.sleep(3) # let Visual start before waiting it to stops           
         self.assertEqual(self.visual.getAxon().empty(), True, 'Axon should be empty again at the end of test_Visual!')
         
 
