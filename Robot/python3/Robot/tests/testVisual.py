@@ -110,16 +110,17 @@ class VisualTestCase(unittest.TestCase):
        
 
 
-    def tearDown(self):        
-        self.visual.stop()
-        while self.visual.running:
-            systemTime.sleep(1)
-        
-        del self.visual
-        del self.Wall_E_voice_sensation
-        del self.Wall_E_image_sensation
-        del self.Wall_E_item_sensation
-        del self.axon
+    def tearDown(self):
+        pass
+#         self.visual.stop()
+#         while self.visual.running:
+#             systemTime.sleep(1)
+#         
+#         del self.visual
+#         del self.Wall_E_voice_sensation
+#         del self.Wall_E_image_sensation
+#         del self.Wall_E_item_sensation
+#         del self.axon
         
     def test_Visual(self):
         self.assertEqual(self.visual.getAxon().empty(), True, 'Axon should be empty at the beginning of test_Visual\nCannot test properly this!')
@@ -130,6 +131,7 @@ class VisualTestCase(unittest.TestCase):
         self.visual.start()
         systemTime.sleep(3) # let Visual start before waiting it to stops           
         self.assertEqual(self.visual.getAxon().empty(), True, 'Axon should be empty again at the end of test_Visual!')
+        systemTime.sleep(60) # let result UI be shown until cleared           
         
 
  

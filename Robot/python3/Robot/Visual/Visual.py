@@ -24,10 +24,27 @@ from Config import Config, Capabilities
 from Sensation import Sensation
 
 class Visual(Robot):
+    
+    SENSATION_LINES=10
+    SENSATION_COLUMNS=5
+    
+    SENSATION_COLUMN_TYPE =         0
+    SENSATION_COLUMN_DATA =         1
+    SENSATION_COLUMN_MEMORY =       2
+    SENSATION_COLUMN_DIRECTION =    3
+    SENSATION_COLUMN_TIME =         4
 
+    SENSATION_COLUMN_TYPE_NAME =         'Type'
+    SENSATION_COLUMN_DATA_NAME =         'Data'
+    SENSATION_COLUMN_MEMORY_NAME =       'Memory'
+    SENSATION_COLUMN_DIRECTION_NAME =    'Direction'
+    SENSATION_COLUMN_TIME_NAME =         'Time'
     # Button definitions
     ID_START = wx.NewId()
     ID_STOP = wx.NewId()
+
+    # Sensation visualisation definitions
+    ID_SENSATION = wx.NewId()
         
     # Define notification event for thread completion
     EVT_RESULT_ID = wx.NewId()
@@ -73,7 +90,7 @@ class Visual(Robot):
        # default
         while self.running:
             # if we can't sense, the we wait until we get something into Axon
-            # or if we can sense, but there is something in our xon, process it
+            # or if we can sense, but there is something in our Axon, process it
             if not self.getAxon().empty() or not self.canSense():
                 transferDirection, sensation, association = self.getAxon().get()
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
@@ -97,10 +114,13 @@ class Visual(Robot):
         if sensation.getSensationType() == Sensation.SensationType.Stop:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='process: SensationSensationType.Stop')      
             self.stop()
+        else:
+            wx.PostEvent(self.app.frame, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
+
             
-    def EVT_RESULT(win, func):
-        """Define Result Event."""
-        win.Connect(-1, -1, Visual.EVT_RESULT_ID, func) #called
+    def setEventHandler(win, eventId, func):
+        """Set Event Handler"""
+        win.Connect(-1, -1, eventId, func) #called
 
                      
     '''
@@ -131,12 +151,12 @@ class Visual(Robot):
             """Run wxWorker Thread."""
             self.app.MainLoop() #ccalled
     
-    class ResultEvent(wx.PyEvent):
+    class Event(wx.PyEvent):
         """Simple event to carry arbitrary result data."""
-        def __init__(self, data):
+        def __init__(self, eventType, data):
             """Init Result Event."""
             wx.PyEvent.__init__(self)
-            self.SetEventType(Visual.EVT_RESULT_ID)
+            self.SetEventType(eventType)
             self.data = data
             
     # GUI Frame class that spins off the worker thread
@@ -145,11 +165,53 @@ class Visual(Robot):
         def __init__(self, parent, id):
             """Create the MainFrame."""
             wx.Frame.__init__(self, parent, id, 'Thread Test') #called
+            
+            Visual.setEventHandler(self, Visual.ID_SENSATION, self.OnSensation)
+
+            
+            # try grid
+            vbox = wx.BoxSizer(wx.VERTICAL)
+            self.display = wx.TextCtrl(self, style=wx.TE_RIGHT)
+            vbox.Add(self.display, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+            self.gs = wx.GridSizer(Visual.SENSATION_LINES,
+                                   Visual.SENSATION_COLUMNS,
+                                   5, 5)
+            
+            self.status = wx.StaticText(self, -1)
     
-            # Dumb sample frame with two buttons
-            wx.Button(self, Visual.ID_START, 'Start', pos=(0,0))
-            wx.Button(self, Visual.ID_STOP, 'Stop', pos=(0,50))
-            self.status = wx.StaticText(self, -1, '', pos=(0,100))
+            self.gs.AddMany( [(wx.StaticText(self, label=Visual.SENSATION_COLUMN_TYPE_NAME), 0, wx.EXPAND), # 0
+                (wx.StaticText(self, label=Visual.SENSATION_COLUMN_DATA_NAME), 0, wx.EXPAND),               # 1
+                (wx.StaticText(self, label=Visual.SENSATION_COLUMN_MEMORY_NAME), 0, wx.EXPAND),             # 2
+                (wx.StaticText(self, label=Visual.SENSATION_COLUMN_DIRECTION_NAME), 0, wx.EXPAND|wx.ALIGN_CENTER),                 # 3
+                (wx.StaticText(self, label=Visual.SENSATION_COLUMN_TIME_NAME), 0, wx.EXPAND),                 # 4
+                
+                (wx.Button(self, label='9'), 0, wx.EXPAND),                 # 5
+                (wx.Button(self, label='/'), 0, wx.EXPAND),                 # 5
+                (wx.Button(self, label='4'), 0, wx.EXPAND),
+                (wx.Button(self, label='5'), 0, wx.EXPAND),
+                (wx.Button(self, label='6'), 0, wx.EXPAND),
+                (wx.Button(self, label='*'), 0, wx.EXPAND),
+                (wx.Button(self, label='1'), 0, wx.EXPAND),
+                (wx.Button(self, label='2'), 0, wx.EXPAND),
+                (wx.Button(self, label='3'), 0, wx.EXPAND),
+                (wx.Button(self, label='-'), 0, wx.EXPAND),
+                (wx.Button(self, label='0'), 0, wx.EXPAND),
+                (wx.Button(self, label='.'), 0, wx.EXPAND),
+                (wx.Button(self, label='='), 0, wx.EXPAND),
+                (wx.Button(self, label='+'), 0, wx.EXPAND),
+                
+                (wx.Button(self, Visual.ID_START, 'Start'), 0, wx.EXPAND),
+                (wx.Button(self, Visual.ID_STOP, 'Stop'), 0, wx.EXPAND),
+                (self.status, 0, wx.EXPAND)])
+                
+            vbox.Add(self.gs, proportion=1, flag=wx.EXPAND)
+            self.SetSizer(vbox)
+                
+        
+#             # Dumb sample frame with two buttons
+#             wx.Button(self, Visual.ID_START, 'Start', pos=(0,0))
+#             wx.Button(self, Visual.ID_STOP, 'Stop', pos=(0,50))
+#             self.status = wx.StaticText(self, -1, '', pos=(0,100))
     
             self.Bind(wx.EVT_BUTTON, self.OnStart, id=Visual.ID_START)
             self.Bind(wx.EVT_BUTTON, self.OnStop, id=Visual.ID_STOP)
@@ -169,7 +231,35 @@ class Visual(Robot):
             #Tell our Robot that we wan't to stop
             self.getRobot().running=False
             self.Close()
-    
+            
+        def OnSensation(self, event):
+            """Stop Computation."""
+            #show sensation
+            if event.data is not None:
+                # Thread aborted (using our convention of None return)
+                sensation=event.data
+                self.status.SetLabel('Got Sensation Event')
+                
+                item = self.gs.GetItem(Visual.SENSATION_COLUMNS + Visual.SENSATION_COLUMN_TYPE)
+                if item is not None and item.IsWindow():
+                    item.GetWindow().SetLabel(Sensation.getSensationTypeString(sensationType=sensation.getSensationType()))
+                    
+                item = self.gs.GetItem(Visual.SENSATION_COLUMNS + Visual.SENSATION_COLUMN_MEMORY)
+                if item is not None and item.IsWindow():
+                    item.GetWindow().SetLabel(Sensation.getMemoryString(memory=sensation.getMemory()))
+                    
+                item = self.gs.GetItem(Visual.SENSATION_COLUMNS + Visual.SENSATION_COLUMN_DIRECTION)
+                if item is not None and item.IsWindow():
+                    item.GetWindow().SetLabel(Sensation.getDirectionString(direction=sensation.getDirection()))
+                    
+                item = self.gs.GetItem(Visual.SENSATION_COLUMNS + Visual.SENSATION_COLUMN_TIME)
+                if item is not None and item.IsWindow():
+                    item.GetWindow().SetLabel(systemTime.ctime(sensation.getTime()))
+
+            else:
+                # Process results here
+                self.status.SetLabel('Sensation is None in Sensation Event')
+   
     class MainApp(wx.App):
         """Class Main App."""
         def OnInit(self):
