@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 29.06.2019
+Updated on 08.03.2020
 @author: reijo.korhonen@gmail.com
 
 This class Main robot
@@ -890,8 +890,9 @@ def signal_handler(signal, frame):
 def start(is_daemon):
         if is_daemon:
             print ("start: daemon.__file__ " +  daemon.__file__)
-            stdout=open('/tmp/Robot_Server.stdout', 'w+')
-            stderr=open('/tmp/Robot_Server.stderr', 'w+')
+# try system default
+#             stdout=open('/tmp/Robot_Server.stdout', 'w+')
+#             stderr=open('/tmp/Robot_Server.stderr', 'w+')
             #remove('/var/run/Robot_Server.pid.lock')
             pidfile=lockfile.FileLock('/var/run/Robot.pid')
             cwd = os.getcwd()   #work at that directory we are when calling this
@@ -899,8 +900,9 @@ def start(is_daemon):
                                 # so it is important where we are
 
             with daemon.DaemonContext(working_directory=cwd,
-                                      stdout=stdout,
-                                      stderr=stderr,
+# try ststem default
+#                                       stdout=stdout,
+#                                       stderr=stderr,
                                       pidfile=pidfile):
                 do_server()
         else:
