@@ -114,13 +114,12 @@ class MainRobot(Robot):
                 robot.start()
 
         # main robot starts tcpServer first so clients gets association
-        if self.level == 1:
-            self.tcpServer.start()
+        self.tcpServer.start()
            
         # Main Robot should study own identity
         # starting point of robot is always to study what it knows himself
         self.studyOwnIdentity()
-#         # and get data of irself for communication with others
+#         # and get data of itself for communication with others
 #                 # study own identity
 #         self.getOwnIdentity()
 

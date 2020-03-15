@@ -14,9 +14,14 @@ Default is to used threading, like Robot-framework uses normally.
 
 
 '''
+# temporarely needed
+import os
+import shutil
+# normal
 import time as systemTime
 from threading import Thread
 from threading import Timer
+from PIL import Image as PIL_Image
 import wx
 
 from Robot import Robot
@@ -24,6 +29,12 @@ from Config import Config, Capabilities
 from Sensation import Sensation
 
 class Visual(Robot):
+    
+    WIDTH=1200
+    HEIGHT=400
+    
+    IDENTITY_SIZE=80
+    
     
     SENSATION_LINES=10
     SENSATION_COLUMNS=5
@@ -61,11 +72,6 @@ class Visual(Robot):
                        level=level)
         print("We are in Visual, not Robot")
         
-        self.app = Visual.MainApp(0)
-        self.app.setRobot(self)
-        
-        self.wxWorker = Visual.wxWorker(robot=self, app=self.app)
-
         # not yet running
         self.running=False
                             
@@ -84,7 +90,10 @@ class Visual(Robot):
         # live until stopped
         self.mode = Sensation.Mode.Normal
         
-        # added
+        self.app = Visual.MainApp(robot=self)
+        #self.app.setRobot(self)
+        
+        self.wxWorker = Visual.wxWorker(robot=self, app=self.app)
         self.wxWorker.start()       # start ui on its own thread
        
        # default
@@ -106,6 +115,9 @@ class Visual(Robot):
          # stop virtual instances here, when main instance is not running any more
         for robot in self.subInstances:
             robot.stop()
+            
+        self.wxWorker.join()       # wait UI thread stops
+
        
         self.log(logLevel=Robot.LogLevel.Normal, logStr="run ALL SHUT DOWN")
         
@@ -116,11 +128,61 @@ class Visual(Robot):
             self.stop()
         else:
             wx.PostEvent(self.app.frame, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
+            
+    '''
+    Helpels
+    '''
+            
+    def PILTowx (image):
+        width, height = image.size
+        return wx.Bitmap.FromBuffer(width, height, image.tobytes())
+    
+    def wx2PIL (bitmap):
+        size = tuple(bitmap.GetSize())
+        try:
+            buf = size[0]*size[1]*3*"\x00"
+            bitmap.CopyToBuffer(buf)
+        except:
+            del buf
+            buf = bitmap.ConvertToImage().GetData()
+        return PIL_Image.frombuffer("RGB", size, buf, "raw", "RGB", 0, 1)
+            
 
             
     def setEventHandler(win, eventId, func):
         """Set Event Handler"""
         win.Connect(-1, -1, eventId, func) #called
+        
+    '''
+    temporary functionality from MainRobot
+    '''
+    def studyOwnIdentity(self):
+        self.mode = Sensation.Mode.StudyOwnIdentity
+        self.log("My name is " + self.getWho())      
+        self.kind = self.config.getKind()
+        self.log("My kind is " + str(self.getKind()))      
+        self.identitypath = self.config.getIdentityDirPath(self.getKind())
+        self.log('My identitypath is ' + self.identitypath)      
+        for dirName, subdirList, fileList in os.walk(self.identitypath):
+            self.log('Found directory: %s' % dirName)      
+            image_file_names=[]
+            voice_file_names=[]
+            for fname in fileList:
+                self.log('\t%s' % fname)
+                if fname.endswith(".jpg"):
+                    image_file_names.append(fname)
+                if fname.endswith(".png"):
+                    image_file_names.append(fname)
+                elif fname.endswith(".wav"):
+                    voice_file_names.append(fname)
+            # images
+            for fname in image_file_names:
+                image_path=os.path.join(dirName,fname)
+                sensation_filepath = os.path.join('/tmp/',fname)
+                shutil.copyfile(image_path, sensation_filepath)
+                image = PIL_Image.open(sensation_filepath)
+                image.load()
+                Robot.images.append(image)
 
                      
     '''
@@ -149,7 +211,7 @@ class Visual(Robot):
         
         def run(self):
             """Run wxWorker Thread."""
-            self.app.MainLoop() #ccalled
+            self.app.MainLoop() #called
     
     class Event(wx.PyEvent):
         """Simple event to carry arbitrary result data."""
@@ -162,50 +224,53 @@ class Visual(Robot):
     # GUI Frame class that spins off the worker thread
     class MainFrame(wx.Frame):
         """Class MainFrame."""
-        def __init__(self, parent, id):
+        def __init__(self, parent, id, robot):
             """Create the MainFrame."""
-            wx.Frame.__init__(self, parent, id, 'Thread Test') #called
+            wx.Frame.__init__(self, parent, id, robot.getWho()) #called
+            self.robot = robot
+     
+            self.SetInitialSize((Visual.WIDTH, Visual.HEIGHT))
             
             Visual.setEventHandler(self, Visual.ID_SENSATION, self.OnSensation)
 
             
             # try grid
             vbox = wx.BoxSizer(wx.VERTICAL)
-            self.display = wx.TextCtrl(self, style=wx.TE_RIGHT)
-            vbox.Add(self.display, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
-            self.gs = wx.GridSizer(Visual.SENSATION_LINES,
+            #self.identity = wx.TextCtrl(self, style=wx.TE_RIGHT)
+            if len(Robot.images) > 0:
+                vxImage = Visual.PILTowx(Robot.images[0])
+                self.identity = wx.StaticBitmap(self, -1, vxImage, (10, 5), (vxImage.GetWidth(), vxImage.GetHeight()))
+            else:
+                self.identity = wx.StaticText(self, label=self.robot.getWho())
+                
+            vbox.Add(self.identity, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+            self.gs = wx.GridSizer(Visual.SENSATION_LINES+1,
                                    Visual.SENSATION_COLUMNS,
                                    5, 5)
             
-            self.status = wx.StaticText(self, -1)
-    
-            self.gs.AddMany( [(wx.StaticText(self, label=Visual.SENSATION_COLUMN_TYPE_NAME), 0, wx.EXPAND), # 0
-                (wx.StaticText(self, label=Visual.SENSATION_COLUMN_DATA_NAME), 0, wx.EXPAND),               # 1
-                (wx.StaticText(self, label=Visual.SENSATION_COLUMN_MEMORY_NAME), 0, wx.EXPAND),             # 2
-                (wx.StaticText(self, label=Visual.SENSATION_COLUMN_DIRECTION_NAME), 0, wx.EXPAND|wx.ALIGN_CENTER),                 # 3
-                (wx.StaticText(self, label=Visual.SENSATION_COLUMN_TIME_NAME), 0, wx.EXPAND),                 # 4
+            self.gs.AddMany( [(wx.StaticText(self, label=Visual.SENSATION_COLUMN_TYPE_NAME), 0, wx.EXPAND),         # 0
+                (wx.StaticText(self, label=Visual.SENSATION_COLUMN_DATA_NAME), 0, wx.EXPAND),                       # 1
+                (wx.StaticText(self, label=Visual.SENSATION_COLUMN_MEMORY_NAME), 0, wx.EXPAND),                     # 2
+                (wx.StaticText(self, label=Visual.SENSATION_COLUMN_DIRECTION_NAME), 0, wx.EXPAND|wx.ALIGN_CENTER),  # 3
+                (wx.StaticText(self, label=Visual.SENSATION_COLUMN_TIME_NAME), 0, wx.EXPAND)])                      # 4
+            for i in range(Visual.SENSATION_LINES):
+                for i in range(Visual.SENSATION_COLUMNS):
+                    self.gs.Add(wx.StaticText(self), 0, wx.EXPAND)
                 
-                (wx.Button(self, label='9'), 0, wx.EXPAND),                 # 5
-                (wx.Button(self, label='/'), 0, wx.EXPAND),                 # 5
-                (wx.Button(self, label='4'), 0, wx.EXPAND),
-                (wx.Button(self, label='5'), 0, wx.EXPAND),
-                (wx.Button(self, label='6'), 0, wx.EXPAND),
-                (wx.Button(self, label='*'), 0, wx.EXPAND),
-                (wx.Button(self, label='1'), 0, wx.EXPAND),
-                (wx.Button(self, label='2'), 0, wx.EXPAND),
-                (wx.Button(self, label='3'), 0, wx.EXPAND),
-                (wx.Button(self, label='-'), 0, wx.EXPAND),
-                (wx.Button(self, label='0'), 0, wx.EXPAND),
-                (wx.Button(self, label='.'), 0, wx.EXPAND),
-                (wx.Button(self, label='='), 0, wx.EXPAND),
-                (wx.Button(self, label='+'), 0, wx.EXPAND),
-                
-                (wx.Button(self, Visual.ID_START, 'Start'), 0, wx.EXPAND),
-                (wx.Button(self, Visual.ID_STOP, 'Stop'), 0, wx.EXPAND),
-                (self.status, 0, wx.EXPAND)])
                 
             vbox.Add(self.gs, proportion=1, flag=wx.EXPAND)
             self.SetSizer(vbox)
+            
+            
+            hbox = wx.BoxSizer(wx.HORIZONTAL)
+            hbox.Add(wx.Button(self, Visual.ID_START, 'Start'), flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+            hbox.Add(wx.Button(self, Visual.ID_STOP, 'Stop'), flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+            vbox.Add(hbox, flag=wx.EXPAND)
+            
+            self.status = wx.StaticText(self, -1)   
+            vbox.Add(self.status, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+            #vbox.Fit(self)
+            self.Fit()
                 
         
 #             # Dumb sample frame with two buttons
@@ -240,6 +305,20 @@ class Visual(Robot):
                 sensation=event.data
                 self.status.SetLabel('Got Sensation Event')
                 
+                for i in range(Visual.SENSATION_LINES-2,0,-1):
+                    for j in range(Visual.SENSATION_COLUMNS):
+                        fromInd=(i*Visual.SENSATION_COLUMNS) +j
+                        from_item = self.gs.GetItem(fromInd)
+                        toInd = ((i+1)*Visual.SENSATION_COLUMNS) +j
+                        to_item = self.gs.GetItem(toInd)
+                        
+                        if from_item is not None and from_item.IsWindow() and\
+                           to_item is not None and to_item.IsWindow():
+                            print("fromInd " + str(fromInd) + " " + from_item.GetWindow().GetLabel() + " toInd "+ str(toInd) + " " + to_item.GetWindow().GetLabel())
+                            to_item.GetWindow().SetLabel(from_item.GetWindow().GetLabel())
+                        else:
+                            print("fromInd " + str(fromInd) + " toInd "+ str(toInd) + " error")
+                
                 item = self.gs.GetItem(Visual.SENSATION_COLUMNS + Visual.SENSATION_COLUMN_TYPE)
                 if item is not None and item.IsWindow():
                     item.GetWindow().SetLabel(Sensation.getSensationTypeString(sensationType=sensation.getSensationType()))
@@ -262,9 +341,14 @@ class Visual(Robot):
    
     class MainApp(wx.App):
         """Class Main App."""
+        def __init__(self, robot, redirect=False, filename=None, useBestVisual=False, clearSigInt=True):
+            self.robot=robot
+            wx.App.__init__(self, redirect=redirect, filename=filename, useBestVisual=useBestVisual, clearSigInt=clearSigInt)
+
+
         def OnInit(self):
             """Init Main App."""
-            self.frame = Visual.MainFrame(None, -1)
+            self.frame = Visual.MainFrame(parent=None, id=-1, robot=self.getRobot())
             self.frame.Show(True)
             self.SetTopWindow(self.frame)
             return True
