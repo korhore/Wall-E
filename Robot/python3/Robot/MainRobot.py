@@ -171,7 +171,8 @@ class MainRobot(Robot):
             for fname in fileList:
                 self.log('\t%s' % fname)
                 if fname.endswith(".jpg"):# or\
-                   #fname.endswith(".png"):
+                # png dows not work yet
+                #fname.endswith(".png"):
                     image_file_names.append(fname)
                 elif fname.endswith(".wav"):
                     voice_file_names.append(fname)

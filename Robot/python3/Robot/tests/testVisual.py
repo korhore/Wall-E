@@ -1,17 +1,21 @@
 '''
 Created on 12.03.2020
-Updated on 12.03.2020
+Updated on 16.03.2020
 @author: reijo.korhonen@gmail.com
 
-test Association class
+test Visual class
 python3 -m unittest tests/testVisual.py
 
 
 '''
 import time as systemTime
+import os
+import shutil
+from PIL import Image as PIL_Image
 
 import unittest
 from Sensation import Sensation
+from Robot import Robot
 from Visual.Visual import Visual
 from Association.Association import Association
 from Communication.Communication import Communication
@@ -105,13 +109,16 @@ class VisualTestCase(unittest.TestCase):
                             instanceName='Visual',
                             instanceType= Sensation.InstanceType.SubInstance,
                             level=2)
-        self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 2)
-        self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 2)
-        self.assertEqual(len(self.Wall_E_voice_sensation.getAssociations()), 2)
-        
-        self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
-        self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
-        self.Wall_E_voice_sensation_association_len = len(self.Wall_E_voice_sensation.getAssociations())
+#         self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 2)
+#         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 2)
+#         self.assertEqual(len(self.Wall_E_voice_sensation.getAssociations()), 2)
+#         
+#         self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
+#         self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
+#         self.Wall_E_voice_sensation_association_len = len(self.Wall_E_voice_sensation.getAssociations())
+
+        # get identity for self.visual as MainRobot does it (for images only)        
+        self.studyOwnIdentity(robot=self.visual)
        
     def getSenasations(self):
 
@@ -123,19 +130,40 @@ class VisualTestCase(unittest.TestCase):
                                                       direction=Sensation.Direction.Out,
                                                       name=VisualTestCase.NAME,
                                                       presence = Sensation.Presence.Present)
-        # Image is in LongTerm memory, it comes from TensorflowClassification and is crop of original big image
-        #systemTime.sleep(0.1)  # wait to get really even id
-        self.Wall_E_image_sensation = Sensation.create( memory=Sensation.Memory.Working,
-                                                       sensationType=Sensation.SensationType.Image,
-                                                       direction=Sensation.Direction.Out)
         self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation,
                                              score=VisualTestCase.SCORE_1)
+        # Image is in LongTerm memory, it comes from TensorflowClassification and is crop of original big image
+        #systemTime.sleep(0.1)  # wait to get really even id
+        if len(Robot.images) > 0:
+            image=Robot.images[0]
+        else:
+            image=None
+        self.Wall_E_image_sensation = Sensation.create( memory=Sensation.Memory.Working,
+                                                       sensationType=Sensation.SensationType.Image,
+                                                       direction=Sensation.Direction.Out,
+                                                       image=image)
+        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation,
+                                             score=VisualTestCase.SCORE_1)
+        if len(Robot.images) > 1:
+            image=Robot.images[1]
+        else:
+            image=None
+        self.Wall_E_image_sensation_2 = Sensation.create( memory=Sensation.Memory.Working,
+                                                       sensationType=Sensation.SensationType.Image,
+                                                       direction=Sensation.Direction.Out,
+                                                       image=image)
+        
+        
+        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation_2,
+                                             score=VisualTestCase.SCORE_2)
+
         # set association also to history
         self.Wall_E_item_sensation.getAssociation(sensation=self.Wall_E_image_sensation).setTime(time=self.history_sensationTime)
         
         # these connected each other
-        self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 1)
+        self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 3)
         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 1)
+        self.assertEqual(len(self.Wall_E_image_sensation_2.getAssociations()), 1)
         
         #systemTime.sleep(0.1)  # wait to get really even id
         self.Wall_E_voice_sensation = Sensation.create(memory=Sensation.Memory.Sensory,
@@ -145,13 +173,13 @@ class VisualTestCase(unittest.TestCase):
         self.Wall_E_item_sensation.associate(sensation=self.Wall_E_voice_sensation,
                                              score=VisualTestCase.SCORE_1)
         self.Wall_E_image_sensation.associate(sensation=self.Wall_E_voice_sensation,
-                                             score=VisualTestCase.SCORE_1)
+                                              score=VisualTestCase.SCORE_1)
         # these connected each other
-        self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 2)
+        self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 4)
         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 2)
         self.assertEqual(len(self.Wall_E_voice_sensation.getAssociations()), 2)
 
-        self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 2)
+        self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 4)
         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 2)
         self.assertEqual(len(self.Wall_E_voice_sensation.getAssociations()), 2)
         
@@ -167,6 +195,7 @@ class VisualTestCase(unittest.TestCase):
          
         del self.visual
         del self.Wall_E_voice_sensation
+        del self.Wall_E_image_sensation_2
         del self.Wall_E_image_sensation
         del self.Wall_E_item_sensation
         del self.axon
@@ -180,6 +209,7 @@ class VisualTestCase(unittest.TestCase):
             
             self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_voice_sensation)
             self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_image_sensation)
+            self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_image_sensation_2)
             self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_item_sensation)
             systemTime.sleep(3) # let Visual start before waiting it to stops           
             self.assertEqual(self.visual.getAxon().empty(), True, 'Axon should be empty again at the end of test_Visual!')
@@ -188,6 +218,29 @@ class VisualTestCase(unittest.TestCase):
         
         systemTime.sleep(3) # let result UI be shown until cleared           
         
+    '''
+    functionality from MainRobot
+    '''
+    def studyOwnIdentity(self, robot):
+        kind = robot.config.getKind()
+        identitypath = robot.config.getIdentityDirPath(robot.getKind())
+        for dirName, subdirList, fileList in os.walk(identitypath):
+            image_file_names=[]
+            for fname in fileList:
+                print('studyOwnIdentity \t%s' % fname)
+                if fname.endswith(".jpg"):
+                    image_file_names.append(fname)
+# png is not working YET                    
+#                 if fname.endswith(".png"):
+#                     image_file_names.append(fname)
+            # images
+            for fname in image_file_names:
+                image_path=os.path.join(dirName,fname)
+                sensation_filepath = os.path.join('/tmp/',fname)
+                shutil.copyfile(image_path, sensation_filepath)
+                image = PIL_Image.open(sensation_filepath)
+                image.load()
+                robot.images.append(image)
 
  
         

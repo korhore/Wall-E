@@ -1,6 +1,6 @@
 '''
 Created on 12.03.2020
-Updated on 12.03.2020
+Updated on 16.03.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -12,12 +12,8 @@ Idea is to implement one way visual and feedback so
 that only one function is going on in a time.
 Default is to used threading, like Robot-framework uses normally.
 
-
 '''
-# temporarely needed
-import os
-import shutil
-# normal
+
 import time as systemTime
 from threading import Thread
 from threading import Timer
@@ -30,13 +26,14 @@ from Sensation import Sensation
 
 class Visual(Robot):
     
-    WIDTH=1200
+    WIDTH=1000
     HEIGHT=400
     
     IDENTITY_SIZE=80
+    IMAGE_SIZE=40
     
     
-    SENSATION_LINES=10
+    SENSATION_LINES=18
     SENSATION_COLUMNS=5
     
     SENSATION_COLUMN_TYPE =         0
@@ -57,9 +54,6 @@ class Visual(Robot):
     # Sensation visualisation definitions
     ID_SENSATION = wx.NewId()
         
-    # Define notification event for thread completion
-    EVT_RESULT_ID = wx.NewId()
-    
     def __init__(self,
                  parent=None,
                  instanceName=None,
@@ -85,8 +79,7 @@ class Visual(Robot):
         for robot in self.subInstances:
             if robot.getInstanceType() != Sensation.InstanceType.Remote:
                 robot.start()
-        self.studyOwnIdentity()
-
+                
         # live until stopped
         self.mode = Sensation.Mode.Normal
         
@@ -133,9 +126,33 @@ class Visual(Robot):
     Helpels
     '''
             
-    def PILTowx (image):
+    def PILTowx (image, size, setMask=False):
         width, height = image.size
-        return wx.Bitmap.FromBuffer(width, height, image.tobytes())
+        bitmap = wx.Bitmap.FromBuffer(width, height, image.tobytes())
+        if width > height:
+            height = int((float(height)/float(width)*float(size)))
+            width=size
+        else:
+            width = int((float(width)/float(height)*float(size)))
+            height=size
+        wxImage = bitmap.ConvertToImage()
+        wxImage = wxImage.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
+        
+        if wxImage.HasMask() :
+            wxImage.InitAlpha()
+        if setMask and not wxImage.HasMask() :
+            wxImage.SetMaskColour(red=255, green=255, blue=255)
+       
+        #wxBitmap = wx.BitmapFromImage(wxImage)
+        wxBitmap = wx.Bitmap(wxImage)
+        bmapHasMask  = wxBitmap.GetMask()    # "GetMask()", NOT "HasMask()" !
+        #bmapHasAlpha = wxBitmap.HasAlpha()
+        if setMask and not bmapHasMask:
+            SetMaskColour(self, red, green, blue)
+            wxBitmap.setAlpha()
+            
+        return wxBitmap
+        
     
     def wx2PIL (bitmap):
         size = tuple(bitmap.GetSize())
@@ -153,36 +170,6 @@ class Visual(Robot):
         """Set Event Handler"""
         win.Connect(-1, -1, eventId, func) #called
         
-    '''
-    temporary functionality from MainRobot
-    '''
-    def studyOwnIdentity(self):
-        self.mode = Sensation.Mode.StudyOwnIdentity
-        self.log("My name is " + self.getWho())      
-        self.kind = self.config.getKind()
-        self.log("My kind is " + str(self.getKind()))      
-        self.identitypath = self.config.getIdentityDirPath(self.getKind())
-        self.log('My identitypath is ' + self.identitypath)      
-        for dirName, subdirList, fileList in os.walk(self.identitypath):
-            self.log('Found directory: %s' % dirName)      
-            image_file_names=[]
-            voice_file_names=[]
-            for fname in fileList:
-                self.log('\t%s' % fname)
-                if fname.endswith(".jpg"):
-                    image_file_names.append(fname)
-                if fname.endswith(".png"):
-                    image_file_names.append(fname)
-                elif fname.endswith(".wav"):
-                    voice_file_names.append(fname)
-            # images
-            for fname in image_file_names:
-                image_path=os.path.join(dirName,fname)
-                sensation_filepath = os.path.join('/tmp/',fname)
-                shutil.copyfile(image_path, sensation_filepath)
-                image = PIL_Image.open(sensation_filepath)
-                image.load()
-                Robot.images.append(image)
 
                      
     '''
@@ -232,14 +219,21 @@ class Visual(Robot):
             self.SetInitialSize((Visual.WIDTH, Visual.HEIGHT))
             
             Visual.setEventHandler(self, Visual.ID_SENSATION, self.OnSensation)
+            
+            self.emptyStaticText = wx.StaticText(self, label='')
 
             
             # try grid
             vbox = wx.BoxSizer(wx.VERTICAL)
             #self.identity = wx.TextCtrl(self, style=wx.TE_RIGHT)
             if len(Robot.images) > 0:
-                vxImage = Visual.PILTowx(Robot.images[0])
-                self.identity = wx.StaticBitmap(self, -1, vxImage, (10, 5), (vxImage.GetWidth(), vxImage.GetHeight()))
+                bitmap = Visual.PILTowx(image=Robot.images[0], size=Visual.IDENTITY_SIZE, setMask=True)
+                self.identity = wx.StaticBitmap(self, -1, bitmap, (10, 5), (bitmap.GetWidth(), bitmap.GetHeight()))
+                #icon = wx.EmptyIcon()
+                icon = wx.Icon()
+                icon.CopyFromBitmap(bitmap)
+                self.SetIcon(icon)                
+                #self.SetIcon(wx.IconFromBitmap(bitmap))
             else:
                 self.identity = wx.StaticText(self, label=self.robot.getWho())
                 
@@ -247,15 +241,24 @@ class Visual(Robot):
             self.gs = wx.GridSizer(Visual.SENSATION_LINES+1,
                                    Visual.SENSATION_COLUMNS,
                                    5, 5)
-            
+            headerFont = wx.Font(18, wx.DECORATIVE, wx.ITALIC, wx.BOLD)
+             
             self.gs.AddMany( [(wx.StaticText(self, label=Visual.SENSATION_COLUMN_TYPE_NAME), 0, wx.EXPAND),         # 0
                 (wx.StaticText(self, label=Visual.SENSATION_COLUMN_DATA_NAME), 0, wx.EXPAND),                       # 1
                 (wx.StaticText(self, label=Visual.SENSATION_COLUMN_MEMORY_NAME), 0, wx.EXPAND),                     # 2
                 (wx.StaticText(self, label=Visual.SENSATION_COLUMN_DIRECTION_NAME), 0, wx.EXPAND|wx.ALIGN_CENTER),  # 3
                 (wx.StaticText(self, label=Visual.SENSATION_COLUMN_TIME_NAME), 0, wx.EXPAND)])                      # 4
+            for j in range(Visual.SENSATION_COLUMNS):
+                item = self.gs.GetItem(j)               
+                item.GetWindow().SetFont(headerFont) 
+                               
             for i in range(Visual.SENSATION_LINES):
-                for i in range(Visual.SENSATION_COLUMNS):
-                    self.gs.Add(wx.StaticText(self), 0, wx.EXPAND)
+                for j in range(Visual.SENSATION_COLUMNS):
+                    if j is Visual.SENSATION_COLUMN_DATA:
+                        self.gs.Add(wx.StaticBitmap(parent=self, id=-1, pos=(0, -Visual.IMAGE_SIZE/2), size=(Visual.IMAGE_SIZE,Visual.IMAGE_SIZE)), 0, wx.EXPAND)
+                        #self.gs.Add(wx.StaticBitmap(parent=self, id=-1, bitmap=None, pos=(10, 5), size=(0, 0)), 0, wx.EXPAND)
+                    else:
+                        self.gs.Add(wx.StaticText(self), 0, wx.EXPAND)
                 
                 
             vbox.Add(self.gs, proportion=1, flag=wx.EXPAND)
@@ -269,15 +272,8 @@ class Visual(Robot):
             
             self.status = wx.StaticText(self, -1)   
             vbox.Add(self.status, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
-            #vbox.Fit(self)
             self.Fit()
-                
-        
-#             # Dumb sample frame with two buttons
-#             wx.Button(self, Visual.ID_START, 'Start', pos=(0,0))
-#             wx.Button(self, Visual.ID_STOP, 'Stop', pos=(0,50))
-#             self.status = wx.StaticText(self, -1, '', pos=(0,100))
-    
+                    
             self.Bind(wx.EVT_BUTTON, self.OnStart, id=Visual.ID_START)
             self.Bind(wx.EVT_BUTTON, self.OnStop, id=Visual.ID_STOP)
     
@@ -314,14 +310,35 @@ class Visual(Robot):
                         
                         if from_item is not None and from_item.IsWindow() and\
                            to_item is not None and to_item.IsWindow():
-                            print("fromInd " + str(fromInd) + " " + from_item.GetWindow().GetLabel() + " toInd "+ str(toInd) + " " + to_item.GetWindow().GetLabel())
-                            to_item.GetWindow().SetLabel(from_item.GetWindow().GetLabel())
+                            if j == Visual.SENSATION_COLUMN_DATA:
+                                bitmap = from_item.GetWindow().GetBitmap()
+                                to_item.GetWindow().SetBitmap(bitmap)
+                                if self.gs.IsShown(fromInd):
+                                    self.gs.Show(toInd)
+                                else:
+                                    self.gs.Hide(toInd)
+                                self.Refresh()
+                            else:
+                                #print("OnSensation fromInd " + str(fromInd) + " " + from_item.GetWindow().GetLabel() + " toInd "+ str(toInd) + " " + to_item.GetWindow().GetLabel())
+                                to_item.GetWindow().SetLabel(from_item.GetWindow().GetLabel())
                         else:
-                            print("fromInd " + str(fromInd) + " toInd "+ str(toInd) + " error")
+                            print("OnSensation fromInd " + str(fromInd) + " toInd "+ str(toInd) + " error")
                 
                 item = self.gs.GetItem(Visual.SENSATION_COLUMNS + Visual.SENSATION_COLUMN_TYPE)
                 if item is not None and item.IsWindow():
                     item.GetWindow().SetLabel(Sensation.getSensationTypeString(sensationType=sensation.getSensationType()))
+                    
+                item = self.gs.GetItem(Visual.SENSATION_COLUMNS + Visual.SENSATION_COLUMN_DATA)
+                if item is not None and item.IsWindow():
+                    image = sensation.getImage()
+                    if image is not None:
+                        self.gs.Show(Visual.SENSATION_COLUMNS + Visual.SENSATION_COLUMN_DATA)
+                        bitmap = Visual.PILTowx(image=image, size=Visual.IMAGE_SIZE)
+                        item.GetWindow().SetBitmap(bitmap)
+                        item.GetWindow().SetSize((Visual.IMAGE_SIZE,Visual.IMAGE_SIZE))
+                    else:
+                        self.gs.Hide(Visual.SENSATION_COLUMNS + Visual.SENSATION_COLUMN_DATA)
+                    self.Refresh()
                     
                 item = self.gs.GetItem(Visual.SENSATION_COLUMNS + Visual.SENSATION_COLUMN_MEMORY)
                 if item is not None and item.IsWindow():
@@ -334,6 +351,9 @@ class Visual(Robot):
                 item = self.gs.GetItem(Visual.SENSATION_COLUMNS + Visual.SENSATION_COLUMN_TIME)
                 if item is not None and item.IsWindow():
                     item.GetWindow().SetLabel(systemTime.ctime(sensation.getTime()))
+                    
+                self.Refresh()
+
 
             else:
                 # Process results here
