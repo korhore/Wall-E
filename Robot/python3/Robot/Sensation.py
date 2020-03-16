@@ -618,6 +618,8 @@ class Sensation(object):
         self.number = number
         if self.number == None:
             self.number = self.nextNumber()
+            
+        self.reservedBy = []            
         self.associations =[]
         if  associations == None:
             associations = []
@@ -627,7 +629,6 @@ class Sensation(object):
                            time=association.time,
                            score=association.score,
                            feeling=association.feeling)
-        self.reservedBy = []
 
         # associations are always both way
         if sensation is not None:   # copy constructor

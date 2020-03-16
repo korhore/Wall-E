@@ -36,17 +36,22 @@ class Visual(Robot):
     SENSATION_LINES=18
     SENSATION_COLUMNS=5
     
-    SENSATION_COLUMN_TYPE =         0
-    SENSATION_COLUMN_DATA =         1
-    SENSATION_COLUMN_MEMORY =       2
-    SENSATION_COLUMN_DIRECTION =    3
-    SENSATION_COLUMN_TIME =         4
+    SENSATION_COLUMN_TYPE =             0
+    SENSATION_COLUMN_DATA =             1
+    SENSATION_COLUMN_MEMORY =           2
+    SENSATION_COLUMN_DIRECTION =        3
+    SENSATION_COLUMN_TIME =             4
 
-    SENSATION_COLUMN_TYPE_NAME =         'Type'
-    SENSATION_COLUMN_DATA_NAME =         'Data'
-    SENSATION_COLUMN_MEMORY_NAME =       'Memory'
-    SENSATION_COLUMN_DIRECTION_NAME =    'Direction'
-    SENSATION_COLUMN_TIME_NAME =         'Time'
+    SENSATION_COLUMN_TYPE_NAME =        'Type'
+    SENSATION_COLUMN_DATA_NAME =        'Data'
+    SENSATION_COLUMN_MEMORY_NAME =      'Memory'
+    SENSATION_COLUMN_DIRECTION_NAME =   'Direction'
+    SENSATION_COLUMN_TIME_NAME =        'Time'
+    
+    SENSATION_COLUMN_DATA_TYPE_COLUMNS = 2
+    SENSATION_COLUMN_DATA_TYPE_ITEM =    0
+    SENSATION_COLUMN_DATA_TYPE_IMAGE =   1
+ 
     # Button definitions
     ID_START = wx.NewId()
     ID_STOP = wx.NewId()
@@ -255,7 +260,14 @@ class Visual(Robot):
             for i in range(Visual.SENSATION_LINES):
                 for j in range(Visual.SENSATION_COLUMNS):
                     if j is Visual.SENSATION_COLUMN_DATA:
-                        self.gs.Add(wx.StaticBitmap(parent=self, id=-1, pos=(0, -Visual.IMAGE_SIZE/2), size=(Visual.IMAGE_SIZE,Visual.IMAGE_SIZE)), 0, wx.EXPAND)
+                        data_gs = wx.GridSizer(cols=Visual.SENSATION_COLUMN_DATA_TYPE_COLUMNS, vgap=5, hgap=5)
+                        data_gs.AddMany([(wx.StaticText(self, label='Test'), 0, wx.EXPAND),
+                                         (wx.StaticBitmap(parent=self, id=-1, pos=(0, -Visual.IMAGE_SIZE/2), size=(Visual.IMAGE_SIZE,Visual.IMAGE_SIZE)), 0, wx.EXPAND)
+                                         ])
+                        data_gs.Hide(Visual.SENSATION_COLUMN_DATA_TYPE_ITEM)
+                        data_gs.Hide(Visual.SENSATION_COLUMN_DATA_TYPE_IMAGE)
+                       
+                        self.gs.Add(data_gs, 0, wx.EXPAND)
                         #self.gs.Add(wx.StaticBitmap(parent=self, id=-1, bitmap=None, pos=(10, 5), size=(0, 0)), 0, wx.EXPAND)
                     else:
                         self.gs.Add(wx.StaticText(self), 0, wx.EXPAND)
@@ -301,44 +313,78 @@ class Visual(Robot):
                 sensation=event.data
                 self.status.SetLabel('Got Sensation Event')
                 
-                for i in range(Visual.SENSATION_LINES-2,0,-1):
+                for i in range(Visual.SENSATION_LINES-1,0,-1):
                     for j in range(Visual.SENSATION_COLUMNS):
                         fromInd=(i*Visual.SENSATION_COLUMNS) +j
                         from_item = self.gs.GetItem(fromInd)
                         toInd = ((i+1)*Visual.SENSATION_COLUMNS) +j
                         to_item = self.gs.GetItem(toInd)
                         
-                        if from_item is not None and from_item.IsWindow() and\
-                           to_item is not None and to_item.IsWindow():
-                            if j == Visual.SENSATION_COLUMN_DATA:
-                                bitmap = from_item.GetWindow().GetBitmap()
-                                to_item.GetWindow().SetBitmap(bitmap)
-                                if self.gs.IsShown(fromInd):
-                                    self.gs.Show(toInd)
+                        if from_item is not None and to_item is not None:
+                            if from_item.IsWindow() and to_item.IsWindow():
+                               to_item.GetWindow().SetLabel(from_item.GetWindow().GetLabel())
+                            elif from_item.IsSizer() and to_item.IsSizer():
+                                from_data_gs = from_item.GetSizer()
+                                from_image_item = from_data_gs.GetItem(Visual.SENSATION_COLUMN_DATA_TYPE_IMAGE)
+                                to_data_gs = to_item.GetSizer()
+                                
+                                # item
+                                from_item_item = from_data_gs.GetItem(Visual.SENSATION_COLUMN_DATA_TYPE_ITEM)
+                                to_item_item = to_data_gs.GetItem(Visual.SENSATION_COLUMN_DATA_TYPE_ITEM)
+                                to_item_item.GetWindow().SetLabel(from_item_item.GetWindow().GetLabel())
+                                if from_data_gs.IsShown(Visual.SENSATION_COLUMN_DATA_TYPE_ITEM):
+                                    to_data_gs.Show(Visual.SENSATION_COLUMN_DATA_TYPE_ITEM)
                                 else:
-                                    self.gs.Hide(toInd)
+                                    to_data_gs.Hide(Visual.SENSATION_COLUMN_DATA_TYPE_ITEM)
+                                self.Refresh()
+                                # image
+                                to_image_item = to_data_gs.GetItem(Visual.SENSATION_COLUMN_DATA_TYPE_IMAGE)
+                                
+                                bitmap = from_image_item.GetWindow().GetBitmap()
+                                to_image_item .GetWindow().SetBitmap(bitmap)
+                                if from_data_gs.IsShown(Visual.SENSATION_COLUMN_DATA_TYPE_IMAGE):
+                                    to_data_gs.Show(Visual.SENSATION_COLUMN_DATA_TYPE_IMAGE)
+                                else:
+                                    to_data_gs.Hide(Visual.SENSATION_COLUMN_DATA_TYPE_IMAGE)
                                 self.Refresh()
                             else:
-                                #print("OnSensation fromInd " + str(fromInd) + " " + from_item.GetWindow().GetLabel() + " toInd "+ str(toInd) + " " + to_item.GetWindow().GetLabel())
-                                to_item.GetWindow().SetLabel(from_item.GetWindow().GetLabel())
+                                print("OnSensation fromInd " + str(fromInd) + " toInd "+ str(toInd) + " error")
                         else:
-                            print("OnSensation fromInd " + str(fromInd) + " toInd "+ str(toInd) + " error")
-                
+                            print("OnSensation fromInd " + str(fromInd) + " toInd "+ str(toInd) + " None error")
+               
                 item = self.gs.GetItem(Visual.SENSATION_COLUMNS + Visual.SENSATION_COLUMN_TYPE)
                 if item is not None and item.IsWindow():
                     item.GetWindow().SetLabel(Sensation.getSensationTypeString(sensationType=sensation.getSensationType()))
                     
                 item = self.gs.GetItem(Visual.SENSATION_COLUMNS + Visual.SENSATION_COLUMN_DATA)
-                if item is not None and item.IsWindow():
-                    image = sensation.getImage()
-                    if image is not None:
-                        self.gs.Show(Visual.SENSATION_COLUMNS + Visual.SENSATION_COLUMN_DATA)
-                        bitmap = Visual.PILTowx(image=image, size=Visual.IMAGE_SIZE)
-                        item.GetWindow().SetBitmap(bitmap)
-                        item.GetWindow().SetSize((Visual.IMAGE_SIZE,Visual.IMAGE_SIZE))
-                    else:
-                        self.gs.Hide(Visual.SENSATION_COLUMNS + Visual.SENSATION_COLUMN_DATA)
-                    self.Refresh()
+                if item is not None and item.IsSizer():
+                    data_gs = item.GetSizer()
+                    image_item = data_gs.GetItem(Visual.SENSATION_COLUMN_DATA_TYPE_IMAGE)
+                    item_item = data_gs.GetItem(Visual.SENSATION_COLUMN_DATA_TYPE_ITEM)
+                    if image_item is not None and image_item.IsWindow() and\
+                       item_item is not None and item_item.IsWindow():
+                        if sensation.getSensationType() == Sensation.SensationType.Image:
+                            image = sensation.getImage()
+                            if image is not None:
+                                data_gs.Show(Visual.SENSATION_COLUMN_DATA_TYPE_IMAGE)
+                                bitmap = Visual.PILTowx(image=image, size=Visual.IMAGE_SIZE)
+                                image_item.GetWindow().SetBitmap(bitmap)
+                                image_item.GetWindow().SetSize((Visual.IMAGE_SIZE,Visual.IMAGE_SIZE))
+                            else:
+                                data_gs.Hide(Visual.SENSATION_COLUMN_DATA_TYPE_IMAGE)
+                            data_gs.Hide(Visual.SENSATION_COLUMN_DATA_TYPE_ITEM)
+                        elif sensation.getSensationType() == Sensation.SensationType.Item:
+                            name = sensation.getName()
+                            if name is not None:
+                                data_gs.Show(Visual.SENSATION_COLUMN_DATA_TYPE_ITEM)
+                                item_item.GetWindow().SetLabel(name)
+                            else:
+                                data_gs.Hide(Visual.SSENSATION_COLUMN_DATA_TYPE_ITEM)
+                            data_gs.Hide(Visual.SENSATION_COLUMN_DATA_TYPE_IMAGE)
+                        else:
+                            data_gs.Hide(Visual.SENSATION_COLUMN_DATA_TYPE_ITEM)
+                            data_gs.Hide(Visual.SENSATION_COLUMN_DATA_TYPE_IMAGE)
+                        self.Refresh()
                     
                 item = self.gs.GetItem(Visual.SENSATION_COLUMNS + Visual.SENSATION_COLUMN_MEMORY)
                 if item is not None and item.IsWindow():
