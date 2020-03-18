@@ -108,14 +108,6 @@ class MainRobot(Robot):
         self.running=True
         self.log("run: Starting Main Robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + self.config.getInstanceType())      
         
-        # starting other threads/senders/capabilities
-        for robot in self.subInstances:
-            if robot.getInstanceType() != Sensation.InstanceType.Remote:
-                robot.start()
-
-        # main robot starts tcpServer first so clients gets association
-        self.tcpServer.start()
-           
         # Main Robot should study own identity
         # starting point of robot is always to study what it knows himself
         self.studyOwnIdentity()
@@ -123,6 +115,13 @@ class MainRobot(Robot):
 #                 # study own identity
 #         self.getOwnIdentity()
 
+        # starting other threads/senders/capabilities
+        for robot in self.subInstances:
+            if robot.getInstanceType() != Sensation.InstanceType.Remote:
+                robot.start()
+
+        # main robot starts tcpServer first so clients gets association
+        self.tcpServer.start()
 
         # live until stopped
         self.mode = Sensation.Mode.Normal

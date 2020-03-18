@@ -189,6 +189,19 @@ sudo pip3 install python-daemon
 sudo pip3 install lockfile
 sudo pip3 install psutil
 
+Visual needs
+sudo pip3 install wxpython
+raspberry pi
+- https://wiki.wxpython.org/BuildWxPythonOnRaspberryPi
+sudo apt-get install dpkg-dev build-essential libjpeg-dev libtiff-dev libsdl1.2-dev libgstreamer-plugins-base0.10-dev libnotify-dev freeglut3 freeglut3-dev libwebkitgtk-dev libghc-gtk3-dev libwxgtk3.0-gtk3-dev
+wget https://files.pythonhosted.org/packages/b9/8b/31267dd6d026a082faed35ec8d97522c0236f2e083bf15aff64d982215e1/wxPython-4.0.7.post2.tar.gz
+tar xf wxPython-4.0.7.post2.tar.gz
+cd wxPython-4.0.7.post2
+sudo pip3 install -r requirements.txt
+--- parsberry pi 3b with 1 MB ram could compile if 2 threads
+python3 build.py build bdist_wheel --jobs=2
+sudo pip3 install dist/wxPython-4.0.7.post2-cp37-cp37m-linux_armv7l.whl
+
 (pip3 install pyyaml # Required to save tensorflow models in YAML format
  not yet implemented ready)
 

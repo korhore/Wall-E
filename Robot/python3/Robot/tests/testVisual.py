@@ -216,7 +216,7 @@ class VisualTestCase(unittest.TestCase):
         
         self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.stopSensation)
         
-        systemTime.sleep(3) # let result UI be shown until cleared           
+        systemTime.sleep(30) # let result UI be shown until cleared           
         
     '''
     functionality from MainRobot

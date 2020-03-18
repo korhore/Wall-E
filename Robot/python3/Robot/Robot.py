@@ -353,7 +353,10 @@ class Robot(Thread):
         for robot in self.subInstances:
             if robot.getInstanceType() != Sensation.InstanceType.Remote:
                 robot.start()
+        # study own identity
+        # starting point of robot is always to study what it knows himself
         self.studyOwnIdentity()
+        self.getOwnIdentity()
 
         # live until stopped
         self.mode = Sensation.Mode.Normal
