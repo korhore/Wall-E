@@ -1,6 +1,6 @@
 '''
 Created on 12.03.2020
-Updated on 16.03.2020
+Updated on 31.03.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -29,6 +29,12 @@ class Visual(Robot):
     WIDTH=1000
     HEIGHT=400
     
+    PANEL_WIDTH=900
+    PANEL_HEIGHT=300
+    
+    LOG_TAB_NAME =                      'Log'
+    COMMUNICATION_TAB_NAME =            'Communication'
+
     IDENTITY_SIZE=80
     IMAGE_SIZE=40
     
@@ -213,37 +219,36 @@ class Visual(Robot):
             self.SetEventType(eventType)
             self.data = data
             
-    # GUI Frame class that spins off the worker thread
-    class MainFrame(wx.Frame):
-        """Class MainFrame."""
-        def __init__(self, parent, id, robot):
+    # GUI LogPanel
+    class LogPanel(wx.Panel):
+        """Class LogPanel"""
+        def __init__(self, parent, robot):
             """Create the MainFrame."""
-            wx.Frame.__init__(self, parent, id, robot.getWho()) #called
+            wx.Panel.__init__(self, parent) #called
             self.robot = robot
      
-            self.SetInitialSize((Visual.WIDTH, Visual.HEIGHT))
+            self.SetInitialSize((Visual.PANEL_WIDTH, Visual.PANEL_HEIGHT))
             
             Visual.setEventHandler(self, Visual.ID_SENSATION, self.OnSensation)
             
-            self.emptyStaticText = wx.StaticText(self, label='')
-
-            
+            #self.emptyStaticText = wx.StaticText(self, label='')
+                            
             # try grid
             vbox = wx.BoxSizer(wx.VERTICAL)
             #self.identity = wx.TextCtrl(self, style=wx.TE_RIGHT)
-            print("MainFrame.__init__ len(Robot.images) " + str(len(Robot.images)))
-            if len(Robot.images) > 0:
-                bitmap = Visual.PILTowx(image=Robot.images[0], size=Visual.IDENTITY_SIZE, setMask=True)
-                self.identity = wx.StaticBitmap(self, -1, bitmap, (10, 5), (bitmap.GetWidth(), bitmap.GetHeight()))
-                #icon = wx.EmptyIcon()
-                icon = wx.Icon()
-                icon.CopyFromBitmap(bitmap)
-                self.SetIcon(icon)                
-                #self.SetIcon(wx.IconFromBitmap(bitmap))
-            else:
-                self.identity = wx.StaticText(self, label=self.robot.getWho())
-                
-            vbox.Add(self.identity, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+#            print("LogPanel.__init__ len(Robot.images) " + str(len(Robot.images)))
+#             if len(Robot.images) > 0:
+#                 bitmap = Visual.PILTowx(image=Robot.images[0], size=Visual.IDENTITY_SIZE, setMask=True)
+#                 self.identity = wx.StaticBitmap(self, -1, bitmap, (10, 5), (bitmap.GetWidth(), bitmap.GetHeight()))
+#                 #icon = wx.EmptyIcon()
+#                 icon = wx.Icon()
+#                 icon.CopyFromBitmap(bitmap)
+#                 self.SetIcon(icon)                
+#                 #self.SetIcon(wx.IconFromBitmap(bitmap))
+#             else:
+#                 self.identity = wx.StaticText(self, label=self.robot.getWho())
+#                 
+#             vbox.Add(self.identity, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
             self.gs = wx.GridSizer(Visual.SENSATION_LINES+1,
                                    Visual.SENSATION_COLUMNS,
                                    5, 5)
@@ -262,7 +267,7 @@ class Visual(Robot):
                 for j in range(Visual.SENSATION_COLUMNS):
                     if j is Visual.SENSATION_COLUMN_DATA:
                         data_gs = wx.GridSizer(cols=Visual.SENSATION_COLUMN_DATA_TYPE_COLUMNS, vgap=5, hgap=5)
-                        data_gs.AddMany([(wx.StaticText(self, label='Test'), 0, wx.EXPAND),
+                        data_gs.AddMany([(wx.StaticText(self, label=''), 0, wx.EXPAND),
                                          (wx.StaticBitmap(parent=self, id=-1, pos=(0, -Visual.IMAGE_SIZE/2), size=(Visual.IMAGE_SIZE,Visual.IMAGE_SIZE)), 0, wx.EXPAND)
                                          ])
 #                         data_gs.Hide(Visual.SENSATION_COLUMN_DATA_TYPE_ITEM)
@@ -278,17 +283,17 @@ class Visual(Robot):
             self.SetSizer(vbox)
             
             
-            hbox = wx.BoxSizer(wx.HORIZONTAL)
-            hbox.Add(wx.Button(self, Visual.ID_START, 'Start'), flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
-            hbox.Add(wx.Button(self, Visual.ID_STOP, 'Stop'), flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
-            vbox.Add(hbox, flag=wx.EXPAND)
-            
+#             hbox = wx.BoxSizer(wx.HORIZONTAL)
+#             hbox.Add(wx.Button(self, Visual.ID_START, 'Start'), flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+#             hbox.Add(wx.Button(self, Visual.ID_STOP, 'Stop'), flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+#             vbox.Add(hbox, flag=wx.EXPAND)
+#             
             self.status = wx.StaticText(self, -1)   
             vbox.Add(self.status, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
             self.Fit()
-                    
-            self.Bind(wx.EVT_BUTTON, self.OnStart, id=Visual.ID_START)
-            self.Bind(wx.EVT_BUTTON, self.OnStop, id=Visual.ID_STOP)
+#                     
+#             self.Bind(wx.EVT_BUTTON, self.OnStart, id=Visual.ID_START)
+#             self.Bind(wx.EVT_BUTTON, self.OnStop, id=Visual.ID_STOP)
     
         def setRobot(self, robot):
             self.robot=robot #called
@@ -307,7 +312,7 @@ class Visual(Robot):
             self.Close()
             
         def OnSensation(self, event):
-            """Stop Computation."""
+            """OnSensation."""
             #show sensation
             if event.data is not None:
                 # Thread aborted (using our convention of None return)
@@ -416,7 +421,126 @@ class Visual(Robot):
             else:
                 # Process results here
                 self.status.SetLabel('Sensation is None in Sensation Event')
-   
+                
+    class TabOne(wx.Panel):
+        def __init__(self, parent):
+            wx.Panel.__init__(self, parent)
+            t = wx.StaticText(self, -1, "This is the first tab", (20,20))
+    
+    class TabTwo(wx.Panel):
+        def __init__(self, parent):
+            wx.Panel.__init__(self, parent)
+            t = wx.StaticText(self, -1, "This is the second tab", (20,20))
+                
+
+    # GUI Frame class that spins off the worker thread
+    class MainFrame(wx.Frame):
+        """Class MainFrame."""
+        def __init__(self, parent, id, robot):
+            """Create the MainFrame."""
+            wx.Frame.__init__(self, parent, id, robot.getWho())
+            self.robot = robot
+     
+            self.SetInitialSize((Visual.WIDTH, Visual.HEIGHT))
+            
+            Visual.setEventHandler(self, Visual.ID_SENSATION, self.OnSensation)
+            
+            #self.emptyStaticText = wx.StaticText(self, label='')
+            
+            # placeholder for tabs
+            # commented for test
+                
+            panel = wx.Panel(self)
+            notebook = wx.Notebook(panel)
+#             
+#             logPanel = Visual.LogPanel(parent= notebook, robot=robot)
+#             notebook.AddPage(logPanel, Visual.LOG_TAB_NAME)
+
+            # Set noteboook in a sizer to create the layout
+#             sizer = wx.BoxSizer()
+#             sizer.Add(notebook, 1, wx.EXPAND)
+#             panel.SetSizer(sizer)
+
+
+            
+            # try grid
+            vbox = wx.BoxSizer(wx.VERTICAL)
+            self.SetSizer(vbox)
+#commented for test            
+#            panel.SetSizer(vbox) # added
+            #self.identity = wx.TextCtrl(self, style=wx.TE_RIGHT)
+            print("MainFrame.__init__ len(Robot.images) " + str(len(Robot.images)))
+            if len(Robot.images) > 0:
+                bitmap = Visual.PILTowx(image=Robot.images[0], size=Visual.IDENTITY_SIZE, setMask=True)
+                self.identity = wx.StaticBitmap(self, -1, bitmap, (10, 5), (bitmap.GetWidth(), bitmap.GetHeight()))
+                #icon = wx.EmptyIcon()
+                icon = wx.Icon()
+                icon.CopyFromBitmap(bitmap)
+                self.SetIcon(icon)                
+                #self.SetIcon(wx.IconFromBitmap(bitmap))
+            else:
+                self.identity = wx.StaticText(self, label=self.robot.getWho())
+                
+                
+            vbox.Add(self.identity, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+            
+#commented for test            
+            # here tabs
+            vbox.Add(panel, 1, wx.EXPAND)
+             
+            self.logPanel = Visual.LogPanel(parent=notebook, robot=robot)
+            self.communicationPanel = Visual.LogPanel(parent=notebook, robot=robot)
+            # Create the tab windows
+            tab1 = Visual.TabOne(notebook)
+            tab2 = Visual.TabTwo(notebook)
+            
+            notebook.AddPage(self.logPanel, Visual.LOG_TAB_NAME)
+            notebook.AddPage(self.communicationPanel, Visual.COMMUNICATION_TAB_NAME)
+            
+            # Set noteboook in a sizer to create the layout
+            # without this tabs get 1 bit size
+            sizer = wx.BoxSizer()
+            sizer.Add(notebook, 1, wx.EXPAND)
+            panel.SetSizer(sizer)
+           
+            #mainframe buttons           
+            hbox = wx.BoxSizer(wx.HORIZONTAL)
+            hbox.Add(wx.Button(self, Visual.ID_START, 'Start'), flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+            hbox.Add(wx.Button(self, Visual.ID_STOP, 'Stop'), flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+            vbox.Add(hbox, flag=wx.EXPAND)
+            
+#             self.status = wx.StaticText(self, -1)   
+#             vbox.Add(self.status, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+            self.Fit()
+                    
+            self.Bind(wx.EVT_BUTTON, self.OnStart, id=Visual.ID_START)
+            self.Bind(wx.EVT_BUTTON, self.OnStop, id=Visual.ID_STOP)
+    
+        def setRobot(self, robot):
+            self.robot=robot #called
+        def getRobot(self):
+            return self.robot #called
+        
+        def OnStart(self, event):
+            """Start Computation."""
+            self.status.SetLabel('Starting computation')
+            #self.worker = Visual.WorkerThread(notify_window=self, robot=self.getRobot())
+    
+        def OnStop(self, event):
+            """Stop Computation."""
+            #Tell our Robot that we wan't to stop
+            self.getRobot().running=False
+            self.Close()
+            
+        def OnSensation(self, event):
+            """OnSensation."""
+            #show sensation
+            if event.data is not None:
+                # deliver to tabs
+                wx.PostEvent(self.logPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=event.data))
+
+                
+ 
     class MainApp(wx.App):
         """Class Main App."""
         def __init__(self, robot, redirect=False, filename=None, useBestVisual=False, clearSigInt=True):
