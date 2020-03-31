@@ -108,8 +108,6 @@ class Visual(Robot):
                 transferDirection, sensation, association = self.getAxon().get()
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
                 self.process(transferDirection=transferDirection, sensation=sensation, association=association)
-                # as a test, echo everything to external device
-                #self.out_axon.put(sensation)
             else:
                 self.sense()
  
@@ -231,24 +229,8 @@ class Visual(Robot):
             
             Visual.setEventHandler(self, Visual.ID_SENSATION, self.OnSensation)
             
-            #self.emptyStaticText = wx.StaticText(self, label='')
-                            
-            # try grid
             vbox = wx.BoxSizer(wx.VERTICAL)
-            #self.identity = wx.TextCtrl(self, style=wx.TE_RIGHT)
-#            print("LogPanel.__init__ len(Robot.images) " + str(len(Robot.images)))
-#             if len(Robot.images) > 0:
-#                 bitmap = Visual.PILTowx(image=Robot.images[0], size=Visual.IDENTITY_SIZE, setMask=True)
-#                 self.identity = wx.StaticBitmap(self, -1, bitmap, (10, 5), (bitmap.GetWidth(), bitmap.GetHeight()))
-#                 #icon = wx.EmptyIcon()
-#                 icon = wx.Icon()
-#                 icon.CopyFromBitmap(bitmap)
-#                 self.SetIcon(icon)                
-#                 #self.SetIcon(wx.IconFromBitmap(bitmap))
-#             else:
-#                 self.identity = wx.StaticText(self, label=self.robot.getWho())
-#                 
-#             vbox.Add(self.identity, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+            # grid
             self.gs = wx.GridSizer(Visual.SENSATION_LINES+1,
                                    Visual.SENSATION_COLUMNS,
                                    5, 5)
@@ -282,18 +264,9 @@ class Visual(Robot):
             vbox.Add(self.gs, proportion=1, flag=wx.EXPAND)
             self.SetSizer(vbox)
             
-            
-#             hbox = wx.BoxSizer(wx.HORIZONTAL)
-#             hbox.Add(wx.Button(self, Visual.ID_START, 'Start'), flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
-#             hbox.Add(wx.Button(self, Visual.ID_STOP, 'Stop'), flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
-#             vbox.Add(hbox, flag=wx.EXPAND)
-#             
             self.status = wx.StaticText(self, -1)   
             vbox.Add(self.status, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
             self.Fit()
-#                     
-#             self.Bind(wx.EVT_BUTTON, self.OnStart, id=Visual.ID_START)
-#             self.Bind(wx.EVT_BUTTON, self.OnStop, id=Visual.ID_STOP)
     
         def setRobot(self, robot):
             self.robot=robot #called
@@ -419,19 +392,8 @@ class Visual(Robot):
                 self.Refresh()
 
             else:
-                # Process results here
                 self.status.SetLabel('Sensation is None in Sensation Event')
-                
-    class TabOne(wx.Panel):
-        def __init__(self, parent):
-            wx.Panel.__init__(self, parent)
-            t = wx.StaticText(self, -1, "This is the first tab", (20,20))
-    
-    class TabTwo(wx.Panel):
-        def __init__(self, parent):
-            wx.Panel.__init__(self, parent)
-            t = wx.StaticText(self, -1, "This is the second tab", (20,20))
-                
+                                
 
     # GUI Frame class that spins off the worker thread
     class MainFrame(wx.Frame):
@@ -445,29 +407,12 @@ class Visual(Robot):
             
             Visual.setEventHandler(self, Visual.ID_SENSATION, self.OnSensation)
             
-            #self.emptyStaticText = wx.StaticText(self, label='')
-            
             # placeholder for tabs
-            # commented for test
-                
             panel = wx.Panel(self)
-            notebook = wx.Notebook(panel)
-#             
-#             logPanel = Visual.LogPanel(parent= notebook, robot=robot)
-#             notebook.AddPage(logPanel, Visual.LOG_TAB_NAME)
+            notebook = wx.Notebook(panel)            
 
-            # Set noteboook in a sizer to create the layout
-#             sizer = wx.BoxSizer()
-#             sizer.Add(notebook, 1, wx.EXPAND)
-#             panel.SetSizer(sizer)
-
-
-            
-            # try grid
             vbox = wx.BoxSizer(wx.VERTICAL)
             self.SetSizer(vbox)
-#commented for test            
-#            panel.SetSizer(vbox) # added
             #self.identity = wx.TextCtrl(self, style=wx.TE_RIGHT)
             print("MainFrame.__init__ len(Robot.images) " + str(len(Robot.images)))
             if len(Robot.images) > 0:
@@ -484,20 +429,15 @@ class Visual(Robot):
                 
             vbox.Add(self.identity, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
             
-#commented for test            
-            # here tabs
             vbox.Add(panel, 1, wx.EXPAND)
              
             self.logPanel = Visual.LogPanel(parent=notebook, robot=robot)
             self.communicationPanel = Visual.LogPanel(parent=notebook, robot=robot)
-            # Create the tab windows
-            tab1 = Visual.TabOne(notebook)
-            tab2 = Visual.TabTwo(notebook)
             
             notebook.AddPage(self.logPanel, Visual.LOG_TAB_NAME)
             notebook.AddPage(self.communicationPanel, Visual.COMMUNICATION_TAB_NAME)
             
-            # Set noteboook in a sizer to create the layout
+            # Set notebook in a sizer to create the layout
             # without this tabs get 1 bit size
             sizer = wx.BoxSizer()
             sizer.Add(notebook, 1, wx.EXPAND)
@@ -509,8 +449,6 @@ class Visual(Robot):
             hbox.Add(wx.Button(self, Visual.ID_STOP, 'Stop'), flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
             vbox.Add(hbox, flag=wx.EXPAND)
             
-#             self.status = wx.StaticText(self, -1)   
-#             vbox.Add(self.status, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
             self.Fit()
                     
             self.Bind(wx.EVT_BUTTON, self.OnStart, id=Visual.ID_START)
