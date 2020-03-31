@@ -186,6 +186,28 @@ class VisualTestCase(unittest.TestCase):
         self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
         self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
         self.Wall_E_voice_sensation_association_len = len(self.Wall_E_voice_sensation.getAssociations())
+        
+        # communication
+        self.communication_item_sensation = Sensation.create(memory=Sensation.Memory.Sensory,
+                                                      sensationType=Sensation.SensationType.Item,
+                                                      direction=Sensation.Direction.In,
+                                                      name=VisualTestCase.NAME,
+                                                      presence = Sensation.Presence.Present)
+
+        if len(Robot.images) > 0:
+            image=Robot.images[0]
+        else:
+            image=None
+        self.communication_image_sensation = Sensation.create( memory=Sensation.Memory.Sensory,
+                                                       sensationType=Sensation.SensationType.Image,
+                                                       direction=Sensation.Direction.In,
+                                                       image=image)
+        
+        self.communication_voice_sensation = Sensation.create(memory=Sensation.Memory.Sensory,
+                                                       sensationType=Sensation.SensationType.Voice,
+                                                       direction=Sensation.Direction.In,
+                                                       data="1")
+        
 
 
     def tearDown(self):
@@ -211,8 +233,14 @@ class VisualTestCase(unittest.TestCase):
             self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_image_sensation)
             self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_image_sensation_2)
             self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_item_sensation)
+ 
+            self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_item_sensation)
+            self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_image_sensation)
+            self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_voice_sensation)
+           
             systemTime.sleep(3) # let Visual start before waiting it to stops           
             self.assertEqual(self.visual.getAxon().empty(), True, 'Axon should be empty again at the end of test_Visual!')
+            self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_voice_sensation)
         
         self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.stopSensation)
         

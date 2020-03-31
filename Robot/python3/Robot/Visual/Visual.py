@@ -475,7 +475,12 @@ class Visual(Robot):
             #show sensation
             if event.data is not None:
                 # deliver to tabs
-                wx.PostEvent(self.logPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=event.data))
+                sensation=event.data
+                wx.PostEvent(self.logPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
+                # if sensation is output then log it in communication tab
+                if sensation.getDirection() == Sensation.Direction.In and\
+                   sensation.getMemory() == Sensation.Memory.Sensory:
+                    wx.PostEvent(self.communicationPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
 
                 
  
