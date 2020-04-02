@@ -30,6 +30,8 @@ class VisualTestCase(unittest.TestCase):
     
     TEST_RUNS=5
     ASSOCIATION_INTERVAL=3.0
+    TEST_TIME=300 # 5 min, when debugging
+    #TEST_TIME=30 # 30s when normal test
 
     SCORE_1 = 0.1
     SCORE_2 = 0.2
@@ -138,6 +140,8 @@ class VisualTestCase(unittest.TestCase):
             image=Robot.images[0]
         else:
             image=None
+        self.assertNotEqual(image, None, "image should not be None in this test")
+
         self.Wall_E_image_sensation = Sensation.create( memory=Sensation.Memory.Working,
                                                        sensationType=Sensation.SensationType.Image,
                                                        direction=Sensation.Direction.Out,
@@ -148,6 +152,7 @@ class VisualTestCase(unittest.TestCase):
             image=Robot.images[1]
         else:
             image=None
+        self.assertNotEqual(image, None, "image should not be None in this test")
         self.Wall_E_image_sensation_2 = Sensation.create( memory=Sensation.Memory.Working,
                                                        sensationType=Sensation.SensationType.Image,
                                                        direction=Sensation.Direction.Out,
@@ -198,6 +203,7 @@ class VisualTestCase(unittest.TestCase):
             image=Robot.images[0]
         else:
             image=None
+        self.assertNotEqual(image, None, "image should not be None in this test")
         self.communication_image_sensation = Sensation.create( memory=Sensation.Memory.Sensory,
                                                        sensationType=Sensation.SensationType.Image,
                                                        direction=Sensation.Direction.In,
@@ -229,10 +235,10 @@ class VisualTestCase(unittest.TestCase):
         for i in range(VisualTestCase.TEST_RUNS):
             self.getSenasations()
             
+            self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_item_sensation)
             self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_voice_sensation)
             self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_image_sensation)
             self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_image_sensation_2)
-            self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_item_sensation)
  
             self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_item_sensation)
             self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_image_sensation)
@@ -244,7 +250,7 @@ class VisualTestCase(unittest.TestCase):
         
         self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.stopSensation)
         
-        systemTime.sleep(30) # let result UI be shown until cleared           
+        systemTime.sleep(VisualTestCase.TEST_TIME) # let result UI be shown until cleared           
         
     '''
     functionality from MainRobot
