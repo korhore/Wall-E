@@ -60,7 +60,9 @@ class Visual(Robot):
     
     TREE_UNUSED_AREA_COLOUR =           wx.Colour( 7*255/8, 7*255/8, 7*255/8 )
     TREE_BACKGROUND_COLOUR =            wx.Colour( 255, 255, 255 )
-    TREE_IMAGELIST_INITIAL_COUNT =      20
+    TREE_IMAGELIST_INITIAL_COUNT =      50
+    TREE_CHILD_MAX =                    100
+    TREE_CHILD_LEVEL_MAX =              3
  
     # Button definitions
     ID_START = wx.NewId()
@@ -110,7 +112,7 @@ class Visual(Robot):
             # or if we can sense, but there is something in our Axon, process it
             if not self.getAxon().empty() or not self.canSense():
                 transferDirection, sensation, association = self.getAxon().get()
-                self.log(logLevel=Robot.LogLevel.Normal, logStr="got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr() + '  len(sensation.getAssociations()) '+ str(len(sensation.getAssociations())))      
                 self.process(transferDirection=transferDirection, sensation=sensation, association=association)
             else:
                 self.sense()
@@ -128,7 +130,7 @@ class Visual(Robot):
         self.log(logLevel=Robot.LogLevel.Normal, logStr="run ALL SHUT DOWN")
         
     def process(self, transferDirection, sensation, association=None):
-        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr()) #called
+        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr() + '  len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) #called
         if sensation.getSensationType() == Sensation.SensationType.Stop:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='process: SensationSensationType.Stop')      
             self.stop()
@@ -139,18 +141,26 @@ class Visual(Robot):
     Helpels
     '''
             
-    def PILTowx (image, size, setMask=False):
+    def PILTowx (image, size, setMask=False, square=False):
         width, height = image.size
         bitmap = wx.Bitmap.FromBuffer(width, height, image.tobytes())
-        if width > height:
-            height = int((float(height)/float(width)*float(size)))
-            width=size
+        if square:
+            if width < height:
+                height = int((float(height)/float(width)*float(size)))
+                width=size
+            else:
+                width = int((float(width)/float(height)*float(size)))
+                height=size
         else:
-            width = int((float(width)/float(height)*float(size)))
-            height=size
+            if width > height:
+                height = int((float(height)/float(width)*float(size)))
+                width=size
+            else:
+                width = int((float(width)/float(height)*float(size)))
+                height=size
         wxImage = bitmap.ConvertToImage()
         wxImage = wxImage.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
-        
+                
         if wxImage.HasMask() :
             wxImage.InitAlpha()
         if setMask and not wxImage.HasMask() :
@@ -158,6 +168,12 @@ class Visual(Robot):
        
         #wxBitmap = wx.BitmapFromImage(wxImage)
         wxBitmap = wx.Bitmap(wxImage)
+        if square:
+            xStart = int((width-size)/2)
+            yStart = int((height-size)/2)
+            wxBitmap = wxBitmap.GetSubBitmap(
+                        wx.Rect(xStart, yStart, xStart+size, yStart+size))            
+        
         bmapHasMask  = wxBitmap.GetMask()    # "GetMask()", NOT "HasMask()" !
         #bmapHasAlpha = wxBitmap.HasAlpha()
         if setMask and not bmapHasMask:
@@ -294,6 +310,7 @@ class Visual(Robot):
             if event.data is not None:
                 # Thread aborted (using our convention of None return)
                 sensation=event.data
+                print('LogPanel.OnSensation got sensation from event.data ' + sensation.toDebugStr() + '  len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) 
                 self.status.SetLabel('Got Sensation Event')
                 
                 for i in range(Visual.SENSATION_LINES-1,0,-1):
@@ -317,11 +334,11 @@ class Visual(Robot):
                                 to_item_item.GetWindow().SetLabel(from_item_item.GetWindow().GetLabel())
                                 if from_data_gs.IsShown(Visual.SENSATION_COLUMN_DATA_TYPE_ITEM):
                                     to_data_gs.Show(Visual.SENSATION_COLUMN_DATA_TYPE_ITEM)
-                                    print("OnSensation item fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetLabel " + label + " Show")
+                                    #print("OnSensation item fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetLabel " + label + " Show")
                                     self.Refresh()
                                 else:
                                     to_data_gs.Hide(Visual.SENSATION_COLUMN_DATA_TYPE_ITEM)
-                                    print("OnSensation item fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetLabel " + label + " Hide ")
+                                    #print("OnSensation item fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetLabel " + label + " Hide ")
                                     self.Refresh()
                                 # image
                                 from_image_item = from_data_gs.GetItem(Visual.SENSATION_COLUMN_DATA_TYPE_IMAGE)
@@ -330,11 +347,11 @@ class Visual(Robot):
                                 to_image_item .GetWindow().SetBitmap(bitmap)
                                 if from_data_gs.IsShown(Visual.SENSATION_COLUMN_DATA_TYPE_IMAGE):
                                     to_data_gs.Show(Visual.SENSATION_COLUMN_DATA_TYPE_IMAGE)
-                                    print("OnSensation image fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetBitmap Show")
+                                    #print("OnSensation image fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetBitmap Show")
                                     self.Refresh()
                                 else:
                                     to_data_gs.Hide(Visual.SENSATION_COLUMN_DATA_TYPE_IMAGE)
-                                    print("OnSensation image fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetBitmap Hide")
+                                    #print("OnSensation image fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetBitmap Hide")
                                 self.Refresh()
                             else:
                                 print("OnSensation fromInd " + str(fromInd) + " toInd "+ str(toInd) + " error")
@@ -423,8 +440,10 @@ class Visual(Robot):
             
             self.imageList = wx.ImageList(width=Visual.IMAGE_SIZE,
                                           height=Visual.IMAGE_SIZE,
-                                          initialCount=Visual.TREE_IMAGELIST_INITIAL_COUNT)
+                                          initialCount=2*Visual.TREE_CHILD_MAX)
             self.tree.AssignImageList(self.imageList)
+            self.unusedImageListIdexes=[] # keep track indexes that are not used any more
+                                          # for reuses
            
             vbox.Add(self.tree, 0, wx.EXPAND)
             
@@ -446,26 +465,83 @@ class Visual(Robot):
             if event.data is not None:
                 # Thread aborted (using our convention of None return)
                 sensation=event.data
+                print('CommunicationPanel.OnSensation got sensation from event.data ' + sensation.toDebugStr() + '  len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) 
+                #print("OnSensation len(sensation.getAssociations()) " + str(len(sensation.getAssociations())))
                 self.status.SetLabel('Got Sensation Event')
+                self.handleSensation(parent=self.root,
+                                     sensation=sensation,
+                                     level=1,
+                                     associatedSensations=[])
+                self.deleteOldItems()
+                self.tree.ExpandAll()
+                self.Fit()
+            else:
+                self.status.SetLabel('Sensation is None in Sensation Event')
                 
+        def handleSensation(self, parent, sensation, level, associatedSensations):
+            """handleSensation."""
+            #show sensation
+            print("handleSensation len(sensation.getAssociations()) " + str(len(sensation.getAssociations())) + " level " + str(level))
+            if sensation not in associatedSensations:
+                associatedSensations.append(associatedSensations)
                 imageInd=-1
                 if sensation.getSensationType() == Sensation.SensationType.Image:
                     image = sensation.getImage()
                     if image is not None:
-                        bitmap = Visual.PILTowx(image=image, size=Visual.IMAGE_SIZE)
-                        imageInd = self.imageList.Add (bitmap=bitmap)
-                        
+                        bitmap = Visual.PILTowx(image=image, size=Visual.IMAGE_SIZE, square=True)
+                        imageInd = self.getImageInd(bitmap=bitmap)
+                            
                 text=Sensation.getSensationTypeString(sensationType=sensation.getSensationType())
-                treeItem = self.tree.InsertItem (parent=self.root,
+                if sensation.getSensationType() == Sensation.SensationType.Item:
+                    text = text + ' ' + sensation.getName()
+                treeItem = self.tree.InsertItem (parent=parent,
                                                  pos=0,
                                                  text=text,
                                                  image=imageInd)
-                #
-                #                                 , image=-1, selImage=-1, data=None)
                 print("" + text + " imageInd "+ str(imageInd))
-                self.Fit()
+                level=level+1
+                if level <= Visual.TREE_CHILD_LEVEL_MAX:
+                    self.insertChildren(parent=treeItem, sensation=sensation, level=level, associatedSensations=associatedSensations)
+                
+        def getImageInd(self, bitmap):
+            if len(self.unusedImageListIdexes) > 0:
+                index = self.unusedImageListIdexes.pop()
+                self.imageList.Replace(index, bitmap)
+                return index
             else:
-                self.status.SetLabel('Sensation is None in Sensation Event')
+                return self.imageList.Add(bitmap=bitmap)
+               
+        def insertChildren(self, parent, sensation, level, associatedSensations):
+            if level <= Visual.TREE_CHILD_LEVEL_MAX:
+                print("insertChildren len(sensation.getAssociations()) " + str(len(sensation.getAssociations())) + " level " + str(level))
+                for association in sensation.getAssociations():
+                    self.handleSensation(parent=parent,
+                                         sensation=association.getSensation(),
+                                         level=level,
+                                         associatedSensations=associatedSensations)
+                    
+        def deleteOldItems(self):
+            """deleteOldItems."""
+            rootChildCount=self.tree.GetChildrenCount(item=self.root, recursively=False)
+            childCount = self.tree.GetChildrenCount(item=self.root, recursively=True)
+            while childCount > Visual.TREE_CHILD_MAX and rootChildCount > 1:
+                print("deleteOldItems rootChildCount " + str(rootChildCount) + " childCount " + str(childCount))
+                rootLastChild =self.tree.GetLastChild(item=self.root)
+                self.removeImages(item=rootLastChild)
+                self.tree.Delete(rootLastChild)
+                rootChildCount = rootChildCount-1
+                childCount = self.tree.GetChildrenCount(item=self.root, recursively=True)
+                
+        def removeImages(self, item):
+            index = self.tree.GetItemImage(item)
+            if index > 0:
+                self.tree.SetItemImage(item, -1)
+                self.unusedImageListIdexes.append(index)
+            (child,cookie) = self.tree.GetFirstChild(item=item)
+            while child.IsOk():
+                self.removeImages(item=child)
+                (child, cookie) = self.tree.GetNextChild(item=item, cookie=cookie)
+                
                                 
 
     # GUI Frame class that spins off the worker thread
@@ -550,10 +626,12 @@ class Visual(Robot):
                 # deliver to tabs
                 sensation=event.data
                 wx.PostEvent(self.logPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
+                # TODO logic is still imclear
                 # if sensation is output then log it in communication tab
-                if sensation.getDirection() == Sensation.Direction.In and\
-                   sensation.getMemory() == Sensation.Memory.Sensory:
-                    wx.PostEvent(self.communicationPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
+#                 if sensation.getDirection() == Sensation.Direction.In and\
+#                    sensation.getMemory() == Sensation.Memory.Sensory:
+#                     wx.PostEvent(self.communicationPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
+                wx.PostEvent(self.communicationPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
 
                 
  
