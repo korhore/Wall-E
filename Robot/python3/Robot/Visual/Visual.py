@@ -57,6 +57,10 @@ class Visual(Robot):
     SENSATION_COLUMN_DATA_TYPE_COLUMNS = 2
     SENSATION_COLUMN_DATA_TYPE_ITEM =    0
     SENSATION_COLUMN_DATA_TYPE_IMAGE =   1
+    
+    TREE_UNUSED_AREA_COLOUR =           wx.Colour( 7*255/8, 7*255/8, 7*255/8 )
+    TREE_BACKGROUND_COLOUR =            wx.Colour( 255, 255, 255 )
+    TREE_IMAGELIST_INITIAL_COUNT =      20
  
     # Button definitions
     ID_START = wx.NewId()
@@ -395,6 +399,75 @@ class Visual(Robot):
                 self.status.SetLabel('Sensation is None in Sensation Event')
                                 
 
+    # GUI CommunicationPanel
+    class CommunicationPanel(wx.Panel):
+        """Class CommunicationPanel"""
+        def __init__(self, parent, robot):
+            """Create the MainFrame."""
+            wx.Panel.__init__(self, parent) #called
+            self.robot = robot
+     
+            self.SetInitialSize((Visual.PANEL_WIDTH, Visual.PANEL_HEIGHT))
+            # background that is not used by tree
+            self.SetBackgroundColour( Visual.TREE_UNUSED_AREA_COLOUR )           
+           
+            Visual.setEventHandler(self, Visual.ID_SENSATION, self.OnSensation)
+            
+            vbox = wx.BoxSizer(wx.VERTICAL)
+            
+            self.tree =  wx.TreeCtrl(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+                           wx.TR_HAS_BUTTONS | wx.TR_HIDE_ROOT) 
+            # background that is used by tree
+            self.tree.SetBackgroundColour( Visual.TREE_BACKGROUND_COLOUR )           
+            self.root = self.tree.AddRoot('Root')
+            
+            self.imageList = wx.ImageList(width=Visual.IMAGE_SIZE,
+                                          height=Visual.IMAGE_SIZE,
+                                          initialCount=Visual.TREE_IMAGELIST_INITIAL_COUNT)
+            self.tree.AssignImageList(self.imageList)
+           
+            vbox.Add(self.tree, 0, wx.EXPAND)
+            
+            self.status = wx.StaticText(self, -1)   
+            vbox.Add(self.status, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+            
+            self.SetSizer(vbox)
+            self.Fit()
+    
+        def setRobot(self, robot):
+            self.robot=robot #called
+        def getRobot(self):
+            return self.robot #called
+        
+            
+        def OnSensation(self, event):
+            """OnSensation."""
+            #show sensation
+            if event.data is not None:
+                # Thread aborted (using our convention of None return)
+                sensation=event.data
+                self.status.SetLabel('Got Sensation Event')
+                
+                imageInd=-1
+                if sensation.getSensationType() == Sensation.SensationType.Image:
+                    image = sensation.getImage()
+                    if image is not None:
+                        bitmap = Visual.PILTowx(image=image, size=Visual.IMAGE_SIZE)
+                        imageInd = self.imageList.Add (bitmap=bitmap)
+                        
+                text=Sensation.getSensationTypeString(sensationType=sensation.getSensationType())
+                treeItem = self.tree.InsertItem (parent=self.root,
+                                                 pos=0,
+                                                 text=text,
+                                                 image=imageInd)
+                #
+                #                                 , image=-1, selImage=-1, data=None)
+                print("" + text + " imageInd "+ str(imageInd))
+                self.Fit()
+            else:
+                self.status.SetLabel('Sensation is None in Sensation Event')
+                                
+
     # GUI Frame class that spins off the worker thread
     class MainFrame(wx.Frame):
         """Class MainFrame."""
@@ -432,7 +505,7 @@ class Visual(Robot):
             vbox.Add(panel, 1, wx.EXPAND)
              
             self.logPanel = Visual.LogPanel(parent=notebook, robot=robot)
-            self.communicationPanel = Visual.LogPanel(parent=notebook, robot=robot)
+            self.communicationPanel = Visual.CommunicationPanel(parent=notebook, robot=robot)
             
             notebook.AddPage(self.logPanel, Visual.LOG_TAB_NAME)
             notebook.AddPage(self.communicationPanel, Visual.COMMUNICATION_TAB_NAME)

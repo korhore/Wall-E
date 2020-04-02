@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 24.02.2020
+Edited on 01.04.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''

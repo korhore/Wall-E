@@ -19,38 +19,26 @@ Develop
 Todo
 ----
 
-- Make clearer git-directory order
--- 1) Wall-E
-   Project-name
-   - All stuff, introducing stuu etc, code, ...
---- 2)Robot
-    - Robot platform
----- 3) linux
-     - linux specific files like starting service   
----- 3) python3
------ 4) Robot
-      - python3 Robot module implementation
------ 4) package
-      - package making scripts
-      - package     
----- 3) android
-     - android implementation
-     
-Current                 To be moved
+Arrange Sensation Cache by Item.names also. Only one Item will be allowed per name.
+But could this be sensible. At one moment we could have many sensations of one Item.name.
+Would Items{} by Item.name be useful?
 
-1) Wall-E               1) Wall-E OK
-                           2) Robot new
-                              3) python3 new
-                                 4) Robot moved from Wall-E/Wall-E/Robot
-                                 4) package includes moved from Wall-E/Wall-E/setup.py
-   2) Wall-E
-      3) Robot
-                              3) linux moved from Wall-E/Wall-E/scripts  
-      4) scripts
-                              3) android new
+Communicate with Images
+- We human say ans hear voices said
+- Robot can also show exact image as it has seen it
+- With Item.name we see/head what Rbot commucates ans givwe feedback +/-
+-- We could also momment with voices we say
+--- We could also comment with images, but this need that we have some libraty/Gallery etc. from where we give sensation to the Robot
 
-       
- 
+Robot Item.name: people
+  Robot Image (seen->show)  + --------!
+  Robot Voice (heard->said) (-)------ ! --!
+People log to present <-              !   !
+  People like his/her picture --- ----!   !   
+  People say Hello                        !
+  - microphne button                      !
+  People dislike a Voice he heard         !
+     associated toa item.name -------------  
 - Android-version
 
 - Study Presence by Location -consept
@@ -102,6 +90,24 @@ What is done
    to this Item. This mimics our brain main functionality: we are good at 
    processing visual things and that is most that our brains do. That will be
    main thing Robot will do, just process Images and think what it has seen.
+   
+- Make clearer git-directory order
+-- 1) Wall-E
+   Project-name
+--- 2)Robot
+    - Robot platform
+---- 3) linux
+     - linux specific files like starting service   
+---- 3) python3
+----- 4) Robot
+      - python3 Robot module implementation
+----- 4) package
+      - package making scripts
+      - package     
+---- 3) android
+     - android implementation
+     
+
    
 What is not done and needs implementation
 -----------------------------------------
