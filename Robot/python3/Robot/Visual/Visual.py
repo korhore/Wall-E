@@ -61,8 +61,9 @@ class Visual(Robot):
     TREE_UNUSED_AREA_COLOUR =           wx.Colour( 7*255/8, 7*255/8, 7*255/8 )
     TREE_BACKGROUND_COLOUR =            wx.Colour( 255, 255, 255 )
     TREE_IMAGELIST_INITIAL_COUNT =      50
+    TREE_ROOT_CHILD_MAX =               10
     TREE_CHILD_MAX =                    100
-    TREE_CHILD_LEVEL_MAX =              3
+    TREE_CHILD_LEVEL_MAX =              5
  
     # Button definitions
     ID_START = wx.NewId()
@@ -145,12 +146,8 @@ class Visual(Robot):
         width, height = image.size
         bitmap = wx.Bitmap.FromBuffer(width, height, image.tobytes())
         if square:
-            if width < height:
-                height = int((float(height)/float(width)*float(size)))
-                width=size
-            else:
-                width = int((float(width)/float(height)*float(size)))
-                height=size
+            height = size
+            width = size
         else:
             if width > height:
                 height = int((float(height)/float(width)*float(size)))
@@ -166,16 +163,9 @@ class Visual(Robot):
         if setMask and not wxImage.HasMask() :
             wxImage.SetMaskColour(red=255, green=255, blue=255)
        
-        #wxBitmap = wx.BitmapFromImage(wxImage)
         wxBitmap = wx.Bitmap(wxImage)
-        if square:
-            xStart = int((width-size)/2)
-            yStart = int((height-size)/2)
-            wxBitmap = wxBitmap.GetSubBitmap(
-                        wx.Rect(xStart, yStart, xStart+size, yStart+size))            
         
         bmapHasMask  = wxBitmap.GetMask()    # "GetMask()", NOT "HasMask()" !
-        #bmapHasAlpha = wxBitmap.HasAlpha()
         if setMask and not bmapHasMask:
             SetMaskColour(self, red, green, blue)
             wxBitmap.setAlpha()
@@ -524,7 +514,8 @@ class Visual(Robot):
             """deleteOldItems."""
             rootChildCount=self.tree.GetChildrenCount(item=self.root, recursively=False)
             childCount = self.tree.GetChildrenCount(item=self.root, recursively=True)
-            while childCount > Visual.TREE_CHILD_MAX and rootChildCount > 1:
+            while (childCount > Visual.TREE_CHILD_MAX or\
+                   rootChildCount > Visual.TREE_ROOT_CHILD_MAX) and rootChildCount > 1:
                 print("deleteOldItems rootChildCount " + str(rootChildCount) + " childCount " + str(childCount))
                 rootLastChild =self.tree.GetLastChild(item=self.root)
                 self.removeImages(item=rootLastChild)
@@ -628,10 +619,10 @@ class Visual(Robot):
                 wx.PostEvent(self.logPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
                 # TODO logic is still imclear
                 # if sensation is output then log it in communication tab
-#                 if sensation.getDirection() == Sensation.Direction.In and\
-#                    sensation.getMemory() == Sensation.Memory.Sensory:
-#                     wx.PostEvent(self.communicationPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
-                wx.PostEvent(self.communicationPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
+                if sensation.getDirection() == Sensation.Direction.In:# and\
+                   #sensation.getMemory() == Sensation.Memory.Sensory:
+                    wx.PostEvent(self.communicationPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
+#                wx.PostEvent(self.communicationPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
 
                 
  
