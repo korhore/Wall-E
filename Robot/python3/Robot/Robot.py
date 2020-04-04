@@ -150,6 +150,10 @@ class Robot(Thread):
                  level=0):
         print("Robot 1")
         Thread.__init__(self)
+        
+        self.time = time.time()
+        self.id = Sensation.getNextId()
+        
         self.mode = Sensation.Mode.Starting
         self.parent = parent
         self.instanceName=instanceName
@@ -195,6 +199,14 @@ class Robot(Thread):
                 self.subInstances.append(robot)
             else:
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr="init robot virtual instanceName " + instanceName + " is None")
+ 
+    def setId(self, id):
+        self.id = id
+    def getId(self):
+        return self.id
+    
+    def getTime(self):
+        return self.time                
                 
     def isRunning(self):
         return self.running
