@@ -19,6 +19,16 @@ Develop
 Todo
 ----
 
+Add id for Robot.
+Sensation would hold that id, when Robot Creates a new Sensation.
+After that, Presence of Item.name can be handled by every Robot and MainRobot can handle
+main presence. That way Item.name can be present in one Robot and if that Rpbot in under
+MainRobot, Item.name is prent under that MainRobot etc. So if MainRobot in in network,
+Sensation.Robot.id is changed to Sensation.MainRobot.id, when ttncferred by TCP SocketClient.
+That way we can bind presence to a place, site, without knowing site location. Site is MainRobot.id.
+
+Robot is Thread. can we use thread id? There is not such.
+
 Arrange Sensation Cache by Item.names also. Only one Item will be allowed per name.
 But could this be sensible. At one moment we could have many sensations of one Item.name.
 Would Items{} by Item.name be useful?

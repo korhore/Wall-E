@@ -42,6 +42,8 @@ class CommunicationTestCase(unittest.TestCase):
     
     def getAxon(self):
         return self.axon
+    def getId(self):
+        return 1.1
 
     '''
     Testing    
@@ -57,14 +59,14 @@ class CommunicationTestCase(unittest.TestCase):
         # simulate item and image are connected each other with TensorflowClassifivation
         # Item is in LongTerm memory
         #systemTime.sleep(0.1)  # wait to get really even id
-        self.Wall_E_item_sensation = Sensation.create(time=self.history_sensationTime,
+        self.Wall_E_item_sensation = Sensation.create(robot=self,time=self.history_sensationTime,
                                                       memory=Sensation.Memory.Working,
                                                       sensationType=Sensation.SensationType.Item,
                                                       direction=Sensation.Direction.Out,
                                                       name=CommunicationTestCase.NAME)
         # Image is in LongTerm memory, it comes from TensorflowClassification and is crop of original big image
         #systemTime.sleep(0.1)  # wait to get really even id
-        self.Wall_E_image_sensation = Sensation.create(time=self.history_sensationTime,
+        self.Wall_E_image_sensation = Sensation.create(robot=self,time=self.history_sensationTime,
                                                        memory=Sensation.Memory.Working,
                                                        sensationType=Sensation.SensationType.Image,
                                                        direction=Sensation.Direction.Out)
@@ -78,7 +80,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 1)
         
         #systemTime.sleep(0.1)  # wait to get really even id
-        self.Wall_E_voice_sensation = Sensation.create(time=self.history_sensationTime,
+        self.Wall_E_voice_sensation = Sensation.create(robot=self,time=self.history_sensationTime,
                                                        memory=Sensation.Memory.Sensory,
                                                        sensationType=Sensation.SensationType.Voice,
                                                        direction=Sensation.Direction.Out,
@@ -122,7 +124,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.assertEqual(self.getAxon().empty(), True, 'Axon should be empty at the beginning of test_Presense\nCannot test properly this!')
         print('\n too old_Presense')
         #systemTime.sleep(0.1)  # wait to get really even id
-        Wall_E_item_sensation = Sensation.create(time=history_sensationTime,
+        Wall_E_item_sensation = Sensation.create(robot=self,time=history_sensationTime,
                                                  memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
@@ -136,13 +138,13 @@ class CommunicationTestCase(unittest.TestCase):
         print('\n current Entering')
         # make potential response
         #systemTime.sleep(0.1)  # wait to get really even id
-        voice_sensation = Sensation.create(time=self.history_sensationTime,
+        voice_sensation = Sensation.create(robot=self,time=self.history_sensationTime,
                                                   memory=Sensation.Memory.Sensory,
                                                   sensationType=Sensation.SensationType.Voice,
                                                   direction=Sensation.Direction.Out,
                                                   data="22")
         #systemTime.sleep(0.1)  # wait to get really even id
-        item_sensation = Sensation.create(time=self.history_sensationTime,
+        item_sensation = Sensation.create(robot=self,time=self.history_sensationTime,
                                           memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
@@ -152,7 +154,7 @@ class CommunicationTestCase(unittest.TestCase):
                                            score=CommunicationTestCase.SCORE_1)
 
         #systemTime.sleep(0.1)  # wait to get really even id
-        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.Working,
+        Wall_E_item_sensation = Sensation.create(robot=self,memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
@@ -174,7 +176,7 @@ class CommunicationTestCase(unittest.TestCase):
         
         print('\n current Present')
         #systemTime.sleep(0.1)  # wait to get really even id
-        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.Working,
+        Wall_E_item_sensation = Sensation.create(robot=self,memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
@@ -197,7 +199,7 @@ class CommunicationTestCase(unittest.TestCase):
 
         print('\n current Present again')
         #systemTime.sleep(0.1)  # wait to get really even id
-        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.Working,
+        Wall_E_item_sensation = Sensation.create(robot=self,memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
@@ -220,7 +222,7 @@ class CommunicationTestCase(unittest.TestCase):
         
         print('\n current Absent')
         #systemTime.sleep(0.1)  # wait to get really even id
-        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.Working,
+        Wall_E_item_sensation = Sensation.create(robot=self,memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
@@ -242,13 +244,13 @@ class CommunicationTestCase(unittest.TestCase):
         print('\n current Entering')
         # make potential response
         #systemTime.sleep(0.1)  # wait to get really even id
-        voice_sensation = Sensation.create(time=self.history_sensationTime,
+        voice_sensation = Sensation.create(robot=self,time=self.history_sensationTime,
                                                   memory=Sensation.Memory.Sensory,
                                                   sensationType=Sensation.SensationType.Voice,
                                                   direction=Sensation.Direction.Out,
                                                   data="333")
         #systemTime.sleep(0.1)  # wait to get really even id
-        item_sensation = Sensation.create(time=self.history_sensationTime,
+        item_sensation = Sensation.create(robot=self,time=self.history_sensationTime,
                                           memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
@@ -259,7 +261,7 @@ class CommunicationTestCase(unittest.TestCase):
         
         # make entering item and process
         #systemTime.sleep(0.1)  # wait to get really even id
-        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.Working,
+        Wall_E_item_sensation = Sensation.create(robot=self,memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
@@ -281,13 +283,13 @@ class CommunicationTestCase(unittest.TestCase):
         print('\n current Entering')
         # make potential response
         #systemTime.sleep(0.1)  # wait to get really even id
-        voice_sensation = Sensation.create(time=self.history_sensationTime,
+        voice_sensation = Sensation.create(robot=self,time=self.history_sensationTime,
                                                   memory=Sensation.Memory.Sensory,
                                                   sensationType=Sensation.SensationType.Voice,
                                                   direction=Sensation.Direction.Out,
                                                   data="4444")
         #systemTime.sleep(0.1)  # wait to get really even id
-        item_sensation = Sensation.create(time=self.history_sensationTime,
+        item_sensation = Sensation.create(robot=self,time=self.history_sensationTime,
                                           memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
@@ -302,7 +304,7 @@ class CommunicationTestCase(unittest.TestCase):
 
         # make entering and process
         #systemTime.sleep(0.1)  # wait to get really even id
-        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.Working,
+        Wall_E_item_sensation = Sensation.create(robot=self,memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME2,
@@ -324,7 +326,7 @@ class CommunicationTestCase(unittest.TestCase):
         
         print('\n current Present')
         #systemTime.sleep(0.1)  # wait to get really even id
-        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.Working,
+        Wall_E_item_sensation = Sensation.create(robot=self,memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME2,
@@ -344,7 +346,7 @@ class CommunicationTestCase(unittest.TestCase):
 
         print('\n current Present again')
         #systemTime.sleep(0.1)  # wait to get really even id
-        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.Working,
+        Wall_E_item_sensation = Sensation.create(robot=self,memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME2,
@@ -363,7 +365,7 @@ class CommunicationTestCase(unittest.TestCase):
         
         print('\n current Absent')
         #systemTime.sleep(0.1)  # wait to get really even id
-        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.Working,
+        Wall_E_item_sensation = Sensation.create(robot=self,memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME2,
@@ -378,7 +380,7 @@ class CommunicationTestCase(unittest.TestCase):
     
         print('\n current Absent')
         #systemTime.sleep(0.1)  # wait to get really even id
-        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.Working,
+        Wall_E_item_sensation = Sensation.create(robot=self,memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
@@ -451,7 +453,7 @@ class CommunicationTestCase(unittest.TestCase):
 
         # response # 1
         #systemTime.sleep(0.1)  # wait to get really even id
-        Wall_E_voice_sensation_1 = Sensation.create(time=history_sensationTime,
+        Wall_E_voice_sensation_1 = Sensation.create(robot=self,time=history_sensationTime,
                                                     memory=memory,
                                                     sensationType=Sensation.SensationType.Voice,
                                                     direction=Sensation.Direction.Out,                                                   
@@ -478,7 +480,7 @@ class CommunicationTestCase(unittest.TestCase):
         
         # response # 2
         #systemTime.sleep(0.1)  # wait to get really even id        
-        Wall_E_voice_sensation_2 = Sensation.create(time=history_sensationTime,
+        Wall_E_voice_sensation_2 = Sensation.create(robot=self,time=history_sensationTime,
                                                     memory=memory,
                                                     sensationType=Sensation.SensationType.Voice,
                                                     direction=Sensation.Direction.Out,                                                   
@@ -498,7 +500,7 @@ class CommunicationTestCase(unittest.TestCase):
 
         # response # 3
         #systemTime.sleep(0.1)  # wait to get really even id
-        Wall_E_voice_sensation_3 = Sensation.create(time=history_sensationTime,
+        Wall_E_voice_sensation_3 = Sensation.create(robot=self,time=history_sensationTime,
                                                     memory=memory,
                                                     sensationType=Sensation.SensationType.Voice,
                                                     direction=Sensation.Direction.Out,
@@ -525,14 +527,14 @@ class CommunicationTestCase(unittest.TestCase):
         #image and Item
         # simulate item and image are connected each other with TensorflowClassifivation
         #systemTime.sleep(0.1)  # wait to get really even id
-        Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.Working,
+        Wall_E_item_sensation = Sensation.create(robot=self,memory=Sensation.Memory.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
                                                  associations=[],
                                                  presence=Sensation.Presence.Entering)
         #systemTime.sleep(0.1)  # wait to ger really even id
-        Wall_E_image_sensation = Sensation.create(memory=Sensation.Memory.Working,
+        Wall_E_image_sensation = Sensation.create(robot=self,memory=Sensation.Memory.Working,
                                                   sensationType=Sensation.SensationType.Image,
                                                   direction=Sensation.Direction.Out)
         
@@ -545,7 +547,7 @@ class CommunicationTestCase(unittest.TestCase):
         '''
         Commented out, so we can  correct implementation
         # simulate Association has connected an voice to Item and Image 
-        Wall_E_voice_sensation_1 = Sensation.create(sensationType=Sensation.SensationType.Voice, 
+        Wall_E_voice_sensation_1 = Sensation.create(robot=self,sensationType=Sensation.SensationType.Voice, 
                                                        associations=[Sensation.Association(sensation=Wall_E_image_sensation,
                                                                                          score=CommunicationTestCase.SCORE_1),
                                                                     Sensation.Association(sensation=Wall_E_item_sensation,
@@ -596,7 +598,7 @@ class CommunicationTestCase(unittest.TestCase):
         
         # now we respond
         #systemTime.sleep(0.1)  # wait to get really even id
-        Wall_E_voice_response_sensation = Sensation.create(#Stime=history_sensationTime,
+        Wall_E_voice_response_sensation = Sensation.create(robot=self,#Stime=history_sensationTime,
                                                     memory=memory,
                                                     sensationType=Sensation.SensationType.Voice,
                                                     direction=Sensation.Direction.Out,

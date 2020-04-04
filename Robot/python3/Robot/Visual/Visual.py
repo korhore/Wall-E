@@ -62,8 +62,9 @@ class Visual(Robot):
     TREE_BACKGROUND_COLOUR =            wx.Colour( 255, 255, 255 )
     TREE_IMAGELIST_INITIAL_COUNT =      50
     TREE_ROOT_CHILD_MAX =               10
+    TREE_CHILD_CHILD_MAX =              20
     TREE_CHILD_MAX =                    100
-    TREE_CHILD_LEVEL_MAX =              5
+    TREE_CHILD_LEVEL_MAX =              4
  
     # Button definitions
     ID_START = wx.NewId()
@@ -461,19 +462,20 @@ class Visual(Robot):
                 self.handleSensation(parent=self.root,
                                      sensation=sensation,
                                      level=1,
-                                     associatedSensations=[])
+                                     associatedSensations=[],
+                                     childrencount=0)
                 self.deleteOldItems()
                 self.tree.ExpandAll()
                 self.Fit()
             else:
                 self.status.SetLabel('Sensation is None in Sensation Event')
                 
-        def handleSensation(self, parent, sensation, level, associatedSensations):
+        def handleSensation(self, parent, sensation, level, associatedSensations, childrencount):
             """handleSensation."""
             #show sensation
             print("handleSensation len(sensation.getAssociations()) " + str(len(sensation.getAssociations())) + " level " + str(level))
             if sensation not in associatedSensations:
-                associatedSensations.append(associatedSensations)
+                associatedSensations.append(sensation)
                 imageInd=-1
                 if sensation.getSensationType() == Sensation.SensationType.Image:
                     image = sensation.getImage()
@@ -490,8 +492,15 @@ class Visual(Robot):
                                                  image=imageInd)
                 print("" + text + " imageInd "+ str(imageInd))
                 level=level+1
-                if level <= Visual.TREE_CHILD_LEVEL_MAX:
-                    self.insertChildren(parent=treeItem, sensation=sensation, level=level, associatedSensations=associatedSensations)
+                if level <= Visual.TREE_CHILD_LEVEL_MAX and\
+                    childrencount < Visual.TREE_CHILD_CHILD_MAX-level:
+                    childrencount = self.insertChildren(
+                                        parent=treeItem,
+                                        sensation=sensation,
+                                        level=level,
+                                        associatedSensations=associatedSensations,
+                                        childrencount=childrencount)
+            return childrencount
                 
         def getImageInd(self, bitmap):
             if len(self.unusedImageListIdexes) > 0:
@@ -501,14 +510,26 @@ class Visual(Robot):
             else:
                 return self.imageList.Add(bitmap=bitmap)
                
-        def insertChildren(self, parent, sensation, level, associatedSensations):
-            if level <= Visual.TREE_CHILD_LEVEL_MAX:
+        def insertChildren(self,
+                           parent,
+                           sensation,
+                           level,
+                           associatedSensations,
+                           childrencount):
+            if level <= Visual.TREE_CHILD_LEVEL_MAX and\
+                childrencount < Visual.TREE_CHILD_CHILD_MAX-level:
                 print("insertChildren len(sensation.getAssociations()) " + str(len(sensation.getAssociations())) + " level " + str(level))
                 for association in sensation.getAssociations():
-                    self.handleSensation(parent=parent,
+                    childrencount = self.handleSensation(
+                                         parent=parent,
                                          sensation=association.getSensation(),
                                          level=level,
-                                         associatedSensations=associatedSensations)
+                                         associatedSensations=associatedSensations,
+                                         childrencount=childrencount)
+                    childrencount = childrencount+1
+                    if childrencount >= Visual.TREE_CHILD_CHILD_MAX-level:
+                        break
+            return childrencount
                     
         def deleteOldItems(self):
             """deleteOldItems."""
@@ -621,7 +642,7 @@ class Visual(Robot):
                 # if sensation is output then log it in communication tab
                 if sensation.getDirection() == Sensation.Direction.In:# and\
                    #sensation.getMemory() == Sensation.Memory.Sensory:
-                    wx.PostEvent(self.communicationPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
+                   wx.PostEvent(self.communicationPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
 #                wx.PostEvent(self.communicationPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
 
                 

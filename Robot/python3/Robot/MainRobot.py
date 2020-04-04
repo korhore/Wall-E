@@ -69,7 +69,8 @@ class MainRobot(Robot):
     SOCKET_ERROR_TEST_RATE =    10
     SOCKET_ERROR_TEST_NUMBER =  0
     
-    sharedSensationHosts = []                # hosts with we have already shared our sensations
+    sharedSensationHosts = []               # hosts with we have already shared our sensations
+    instance = None                         # singleton instance
 
     def __init__(self,
                  parent=None,
@@ -87,6 +88,7 @@ class MainRobot(Robot):
                        instanceType=Sensation.InstanceType.Real, # Instancetype is real
                        level=level)
         print("We are in MainRobot, not Robot")
+        MainRobot.instance = self
         
         # in main robot, set up Long_tem Memory and set up TCPServer
         if self.level == 1:
@@ -102,6 +104,10 @@ class MainRobot(Robot):
                                      instanceType=Sensation.InstanceType.Remote,
                                      level=self.level,
                                      address=(HOST,PORT))
+            
+    def getInstance():
+        return MainRobot.instance
+
 
 
     def run(self):
@@ -461,8 +467,8 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                  
         try:
             # tell who we are, speaking
-            sensation=Sensation(associations=[], direction=Sensation.Direction.In, sensationType = Sensation.SensationType.Who, who=self.getWho())
-            self.log('run: sendSensation(sensation=Sensation(sensationType = Sensation.SensationType.Who), sock=self.sock,'  + str(self.address) + ')')
+            sensation=Sensation.create(robot=MainRobot.getInstance(),associations=[], direction=Sensation.Direction.In, sensationType = Sensation.SensationType.Who, who=self.getWho())
+            self.log('run: sendSensation(sensation=Sensation(robotId=self.getId(),sensationType = Sensation.SensationType.Who), sock=self.sock,'  + str(self.address) + ')')
             self.running =  self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
             self.log('run: done sendSensation(sensation=Sensation(sensationType = Sensation.SensationType.Who), sock=self.sock,'  + str(self.address) + ')')
             if self.running:
@@ -476,12 +482,12 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                 self.log('run: self.getLocalMasterCapabilities() '  + capabilities.toString())
                 self.log('run: self.getLocalMasterCapabilities() ' +capabilities.toDebugString())
 
-                sensation=Sensation(associations=[], direction=Sensation.Direction.In, sensationType = Sensation.SensationType.Capability, capabilities=capabilities)
+                sensation=Sensation.create(robot=MainRobot.getInstance(),associations=[], direction=Sensation.Direction.In, sensationType = Sensation.SensationType.Capability, capabilities=capabilities)
                 self.log('run: sendSensation(sensationType = Sensation.SensationType.Capability, capabilities=self.getLocalCapabilities()), sock=self.sock,'  + str(self.address) + ')')
                 self.running = self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
                 self.log('run: sendSensation Sensation.SensationType.Capability done ' + str(self.address) +  ' '  + sensation.getCapabilities().toDebugString('SocketClient'))
         except Exception as e:
-            self.log("run: SocketClient.sendSensation exception {}", format(str(e)))
+            self.log("run: SocketClient.sendSensation exception {}".format(str(e)))
             self.running = False
 
         # finally normal run from Robot-class
@@ -564,9 +570,11 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
             pass
             #self.log('socketClient.sendSensation asked to send sensation back to sensation original host. We Don\'t recycle it!')
         else:
+            sensation.setRobotId(MainRobot.getInstance().getId()) # claim that
+                                                                  # all sensation come from MainRobot
             bytes = sensation.bytes()
             length =len(bytes)
-            length_bytes = length.to_bytes(Sensation.NUMBER_SIZE, byteorder=Sensation.BYTEORDER)
+            length_bytes = length.to_bytes(Sensation.ID_SIZE, byteorder=Sensation.BYTEORDER)
     
             try:
                 l = sock.send(Sensation.SEPARATOR.encode('utf-8'))        # message separator section
@@ -637,9 +645,9 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         # socketserver can't close itself, just put it to closing mode
         self.getSocketServer().stop() # socketserver can't close itself, we must send a stop sensation to it
         # we must send a stop sensation to it
-        self.sendSensation(sensation=Sensation(associations=[], sensationType = Sensation.SensationType.Stop), sock=self.getSocketServer().getSocket(), address=self.getSocketServer().getAddress())
+        self.sendSensation(sensation=Sensation(robotId=self.getId(),associations=[], sensationType = Sensation.SensationType.Stop), sock=self.getSocketServer().getSocket(), address=self.getSocketServer().getAddress())
         # stop remote with same technic
-        self.sendSensation(sensation=Sensation(associations=[], sensationType = Sensation.SensationType.Stop), sock=self.sock, address=self.address)
+        self.sendSensation(sensation=Sensation(robotId=self.getId(),associations=[], sensationType = Sensation.SensationType.Stop), sock=self.sock, address=self.address)
         self.sock.close()
          
         super(SocketClient, self).stop()
@@ -649,11 +657,11 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
     '''
     def sendStop(sock, address):
         print("SocketClient.sendStop(sock, address)") 
-        sensation=Sensation(associations=[], sensationType = Sensation.SensationType.Stop)
+        sensation=Sensation(robotId=self.getId(),associations=[], sensationType = Sensation.SensationType.Stop)
 
         bytes = sensation.bytes()
         length =len(bytes)
-        length_bytes = length.to_bytes(Sensation.NUMBER_SIZE, byteorder=Sensation.BYTEORDER)
+        length_bytes = length.to_bytes(Sensation.ID_SIZE, byteorder=Sensation.BYTEORDER)
     
         ok = True
         try:
@@ -755,8 +763,8 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
             if synced and self.running:
                 # message length section
                 self.log("run: waiting size of next Sensation from " + str(self.address))
-                # we can get number of sensation in many pieces
-                sensation_length_length = Sensation.NUMBER_SIZE
+                # we can get id of sensation in many pieces
+                sensation_length_length = Sensation.ID_SIZE
                 self.data = None
                 while sensation_length_length > 0 and self.running and ok:
                     try:
@@ -805,7 +813,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                                 ok = False
                                 self.mode = Sensation.Mode.Interrupted
                         if self.running and ok:
-                            sensation=Sensation(associations=[], bytes=self.data)
+                            sensation=Sensation(robotId=self.getId(),associations=[], bytes=self.data)
                             sensation.addReceived(self.getHost())  # remember route
                             if sensation.getSensationType() == Sensation.SensationType.Capability:
                                 self.log("run: SocketServer got Capability sensation " + sensation.getCapabilities().toDebugString('SocketServer'))

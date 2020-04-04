@@ -283,7 +283,7 @@ class Communication(Robot):
         if onStart and len(Robot.voices) > 0:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: onStart')
             data = Robot.voices[Robot.voiceind]
-            self.spokedVoiceSensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, data=data)
+            self.spokedVoiceSensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, data=data)
             self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation, association=None) # or self.process
             self.log("speak: Starting with presenting Robot voiceind={} self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation={}".format(str(Robot.voiceind), self.spokedVoiceSensation.toDebugStr()))
             Robot.voiceind=Robot.voiceind+1
@@ -354,7 +354,7 @@ class Communication(Robot):
             self.mostImportantVoiceSensation.save()     # for debug reasons save voices we have spoken as heard voices
             
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: Sensation.getMostImportantSensation did find self.mostImportantItemSensation OK')
-            self.spokedVoiceSensation = Sensation.create(sensation = self.mostImportantVoiceSensation, kind=self.getKind() )
+            self.spokedVoiceSensation = Sensation.create(robot=self, sensation = self.mostImportantVoiceSensation, kind=self.getKind() )
             self.spokedVoiceSensation.reserve(robot=self)         #reserve Sensation until speaking is ended based on these voices
             # test
             #self.spokedVoiceSensation = self.mostImportantVoiceSensation

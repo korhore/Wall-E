@@ -61,8 +61,18 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
                            'kite']
     
     
+    '''
+    Robot modeling
+    '''
+
     def getAxon(self):
         return self.axon
+    def getId(self):
+        return 1.1
+
+    '''
+    Testing    
+    '''
 
     def setUp(self):
         self.isFirstSleep=True
@@ -88,7 +98,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
     def tearDown(self):
 #         print('sleep ' + str(TensorFlowClassificationTestCase.TEST_TIME) + ' to Stop Robot and test finishes')
 #         systemTime.sleep(TensorFlowClassificationTestCase.TEST_TIME)       # give Robot some time to stop
-        self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(associations=[], sensationType = Sensation.SensationType.Stop), association=None)
+        self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(robotId=self.getId(),associations=[], sensationType = Sensation.SensationType.Stop), association=None)
         print('sleep ' + str(TensorFlowClassificationTestCase.TEST_STOP_TIME) + ' time for Robot to process Stop Sensation')
         systemTime.sleep(TensorFlowClassificationTestCase.TEST_STOP_TIME)       # give Robot some time to stop
 
@@ -146,7 +156,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
                     image = image.resize((int(image.size[0]*160/image.size[1]), 160))
                 print('resized image.size) ' + str(image.size))
 
-            sensations.append(Sensation.create(associations=[], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image, filePath=testImageFileName))
+            sensations.append(Sensation.create(robot=self,associations=[], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image, filePath=testImageFileName))
 
         # test Entering, Present and Absent so, then in next picture absent Item,names are from previous picture
         # removed as a test     

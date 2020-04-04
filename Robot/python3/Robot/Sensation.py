@@ -584,6 +584,7 @@ class Sensation(object):
     '''
        
     def __init__(self,
+                 robotId,                                                    # robot id (should be always given)
                  associations=None,
                  sensation=None,
                  bytes=None,
@@ -613,11 +614,12 @@ class Sensation(object):
         if self.time == None:
             self.time = systemTime.time()
 
+        self.robotId = robotId
         self.id = id
         if self.id == None:
             self.id = Sensation.getNextId()
             
-        self.reservedBy = []            
+        self.reservedBy = []
         self.associations =[]
         if  associations == None:
             associations = []
@@ -707,6 +709,9 @@ class Sensation(object):
                 l=len(bytes)
                 i=0
 
+                self.robotId = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                i += Sensation.FLOAT_PACK_SIZE
+                
                 self.id = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                 i += Sensation.FLOAT_PACK_SIZE
                 
@@ -845,7 +850,8 @@ class Sensation(object):
     Parameters are exactly same than in default constructor
     '''
        
-    def create(  associations = None,
+    def create(  robot,                                                      # caller Robot, should be always given
+                 associations = None,
                  sensation=None,
                  bytes=None,
                  id=None,
@@ -854,6 +860,7 @@ class Sensation(object):
                  sensationType = SensationType.Unknown,
                  memory=Memory.Sensory,
                  direction=Direction.In,
+                 who=None,
                  leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
                  azimuth = 0.0,                                             # Walle direction relative to magnetic north pole
                  accelerationX=0.0, accelerationY=0.0, accelerationZ=0.0,   # acceleration of walle, coordinates relative to walle
@@ -866,7 +873,7 @@ class Sensation(object):
                  capabilities = None,                                       # capabilities of sensorys, direction what way sensation go
                  name='',                                                   # name of Item
                  presence=Presence.Unknown,                                 # presence of Item
-                 kind=Kind.Normal):                                          # Normal kind
+                 kind=Kind.Normal):                                         # Normal kind
         if sensation == None:             # not an update, create new one
             print("Create new sensation by pure parameters")
         else:
@@ -877,11 +884,13 @@ class Sensation(object):
                  sensation=sensation,
                  bytes=bytes,
                  id=id,
+                 robotId=robot.getId(),
                  time=time,
                  receivedFrom=receivedFrom,
                  sensationType = sensationType,
                  memory=memory,
                  direction=direction,
+                 who=who,
                  leftPower = leftPower, rightPower = rightPower,                         # Walle motors state
                  azimuth = azimuth,                                             # Walle direction relative to magnetic north pole
                  accelerationX=accelerationX, accelerationY=accelerationY, accelerationZ=accelerationZ,   # acceleration of walle, coordinates relative to walle
@@ -1136,7 +1145,7 @@ class Sensation(object):
 
                  
     def __str__(self):
-        s=str(self.id) + ' ' + str(self.time) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType
+        s=str(self.robotId) + ' ' + str(self.id) + ' ' + str(self.time) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType
         if self.sensationType == Sensation.SensationType.Drive:
             s +=  ' ' + str(self.leftPower) +  ' ' + str(self.rightPower)
         elif self.sensationType == Sensation.SensationType.HearDirection:
@@ -1157,7 +1166,7 @@ class Sensation(object):
             if self.calibrateSensationType == Sensation.SensationType.HearDirection:
                 s += ' ' + self.calibrateSensationType + ' ' + str(self.hearDirection)
             else:
-                s = str(self.id) + ' ' + self.memory + ' ' + self.direction + ' ' +  Sensation.SensationType.Unknown
+                s = str(self.robotId) + ' ' + str(self.id) + ' ' + self.memory + ' ' + self.direction + ' ' +  Sensation.SensationType.Unknown
         elif self.sensationType == Sensation.SensationType.Capability:
             s +=  ' ' + self.getCapabilities().toString()
         elif self.sensationType == Sensation.SensationType.Item:
@@ -1198,10 +1207,10 @@ class Sensation(object):
     def toDebugStr(self):
         # we can't make yet printable bytes, but as a debug purposes, it is rare neended
 #         if self.sensationType == Sensation.SensationType.Voice or self.sensationType == Sensation.SensationType.Image :
-#             s=str(self.id) + ' ' + str(self.time) + ' ' + str(self.association_time) + ' ' + Sensation.getMemoryString(self.memory) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
+#             s=str(self.robotId) + ' ' + str(self.id) + ' ' + str(self.time) + ' ' + str(self.association_time) + ' ' + Sensation.getMemoryString(self.memory) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
 #         else:
 #             s=self.__str__()
-        s = systemTime.ctime(self.time) + ' ' + str(self.id) + ' ' + Sensation.getMemoryString(self.memory) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
+        s = systemTime.ctime(self.time) + ' ' + str(self.robotId) + ' ' + str(self.id) + ' ' + Sensation.getMemoryString(self.memory) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
         if self.sensationType == Sensation.SensationType.Voice:
             s = s + ' ' + Sensation.getKindString(self.kind)
         elif self.sensationType == Sensation.SensationType.Item:
@@ -1210,7 +1219,8 @@ class Sensation(object):
 
     def bytes(self):
 #        b = self.id.to_bytes(Sensation.ID_SIZE, byteorder=Sensation.BYTEORDER)
-        b = floatToBytes(self.id)
+        b = floatToBytes(self.robotId)
+        b += floatToBytes(self.id)
         b += floatToBytes(self.time)
         b += StrToBytes(self.memory)
         b += StrToBytes(self.sensationType)
@@ -1253,7 +1263,7 @@ class Sensation(object):
             if self.calibrateSensationType == Sensation.SensationType.HearDirection:
                 b += StrToBytes(self.calibrateSensationType) + floatToBytes(self.hearDirection)
 #             else:
-#                 return str(self.id) + ' ' + self.memory + ' ' + self.direction + ' ' + Sensation.SensationType.Unknown
+#                 return str(self.robotId) + ' ' + self.id) + ' ' + self.memory + ' ' + self.direction + ' ' + Sensation.SensationType.Unknown
         elif self.sensationType == Sensation.SensationType.Capability:
             bytes = self.getCapabilities().toBytes()
             capabilities_size=len(bytes)
@@ -1284,11 +1294,11 @@ class Sensation(object):
 
 # all other done
 #         elif self.sensationType == Sensation.SensationType.Stop:
-#             return str(self.id) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType
+#             return str(self.robotId) + ' ' +str(self.id) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType
 #         elif self.sensationType == Sensation.SensationType.Who:
-#             return str(self.id) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType
+#             return str(self.robotId) + ' ' +str(self.id) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType
 #         else:
-#             return str(self.id) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType
+#             return str(self.robotId) + ' ' +str(self.id) + ' ' + self.memory + ' ' + self.direction + ' ' + self.sensationType
         
         return b
 
@@ -1380,6 +1390,10 @@ class Sensation(object):
         self.id = id
     def getId(self):
         return self.id
+    
+    def setRobotId(self, robotId):
+        self.robotId = robotId
+    
 
 # Cant do this. Look addAssociations. But this is not used    
 #     def setAssociations(self, associations):
@@ -2211,6 +2225,7 @@ class Sensation(object):
 if __name__ == '__main__':
 
 # testing
+# create need a Robot as a parameter, so these test don't work until fixed
 # TODO fromString(Sensation.toString) -tests are deprecated
 # Sensation data in transferred by menory or by byte with tcp
 # and str form is for debugging purposes

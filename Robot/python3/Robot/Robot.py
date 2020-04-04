@@ -421,7 +421,7 @@ class Robot(Thread):
         self.running = False    # this in not real, but we wait for Sensation,
                                 # so give  us one stop sensation
         self.log(logLevel=Robot.LogLevel.Verbose, logStr="self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(sensationType = Sensation.SensationType.Stop))")      
-        self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(associations=[], sensationType = Sensation.SensationType.Stop), association=None)
+        self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(robotId=self.getId(),associations=[], sensationType = Sensation.SensationType.Stop), association=None)
 
 
     '''
@@ -431,7 +431,7 @@ class Robot(Thread):
     '''
             
     def doStop(self):
-        self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(associations=[], sensationType = Sensation.SensationType.Stop), association=None)
+        self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(robotId=self.getId(),associations=[], sensationType = Sensation.SensationType.Stop), association=None)
         
     def studyOwnIdentity(self):
         self.mode = Sensation.Mode.StudyOwnIdentity
@@ -693,7 +693,7 @@ class VirtualRobot(Robot):
                 image.load()
                 self.images.append(image)
 
-                imageSensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image, filePath=sensation_filepath)
+                imageSensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image, filePath=sensation_filepath)
                 self.log("getOwnIdentity: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=" + imageSensation.toDebugStr())      
                 self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
              # voices
@@ -721,7 +721,7 @@ class VirtualRobot(Robot):
                     
                     self.voices.append(data)
                     time.sleep(VirtualRobot.SLEEP_BETWEEN_VOICES)
-                    sensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=data, filePath=sensation_filepath)
+                    sensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=data, filePath=sensation_filepath)
                     self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None) # or self.process
                     self.log("getOwnIdentity: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=" + sensation.toDebugStr())      
                  
@@ -731,7 +731,7 @@ class VirtualRobot(Robot):
     def tellOwnIdentity(self):
         
         image = self.images[self.imageind]
-        imageSensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image)
+        imageSensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image)
         self.log('tellOwnIdentity: self.imageind  ' + str(self.imageind) + ' self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=' + imageSensation.toDebugStr())      
         self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None) # or self.process
         self.imageind=self.imageind+1
@@ -741,7 +741,7 @@ class VirtualRobot(Robot):
         for i in range(VirtualRobot.VOICES_PER_CONVERSATION):          
             time.sleep(VirtualRobot.SLEEP_BETWEEN_VOICES)
             data = self.voices[self.voiceind]
-            sensation = Sensation.create(associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=data)
+            sensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=data)
             self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None) # or self.process
             self.log("tellOwnIdentity: " + str(self.voiceind) + " self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=" + sensation.toDebugStr())      
             self.voiceind=self.voiceind+1

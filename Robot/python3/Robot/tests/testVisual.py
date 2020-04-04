@@ -50,6 +50,8 @@ class VisualTestCase(unittest.TestCase):
     
     def getAxon(self):
         return self.axon
+    def getId(self):
+        return 1.1
 
     '''
     Testing    
@@ -62,14 +64,14 @@ class VisualTestCase(unittest.TestCase):
         # not too far away in history, so sensation will not be deleted
         self.history_sensationTime = systemTime.time() -2*max(VisualTestCase.ASSOCIATION_INTERVAL, Communication.COMMUNICATION_INTERVAL)
 
-        self.stopSensation = Sensation.create(memory=Sensation.Memory.Working,
+        self.stopSensation = Sensation.create(robot=self,memory=Sensation.Memory.Working,
                                               sensationType=Sensation.SensationType.Stop,
                                             direction=Sensation.Direction.Out)
 
        # simulate item and image are connected each other with TensorflowClassifivation
         # Item is in LongTerm memory
         #systemTime.sleep(0.1)  # wait to get really even id
-        self.Wall_E_item_sensation = Sensation.create(time=self.history_sensationTime,
+        self.Wall_E_item_sensation = Sensation.create(robot=self,time=self.history_sensationTime,
                                                       memory=Sensation.Memory.Working,
                                                       sensationType=Sensation.SensationType.Item,
                                                       direction=Sensation.Direction.Out,
@@ -77,7 +79,7 @@ class VisualTestCase(unittest.TestCase):
                                                       presence = Sensation.Presence.Present)
         # Image is in LongTerm memory, it comes from TensorflowClassification and is crop of original big image
         #systemTime.sleep(0.1)  # wait to get really even id
-        self.Wall_E_image_sensation = Sensation.create(time=self.history_sensationTime,
+        self.Wall_E_image_sensation = Sensation.create(robot=self,time=self.history_sensationTime,
                                                        memory=Sensation.Memory.Working,
                                                        sensationType=Sensation.SensationType.Image,
                                                        direction=Sensation.Direction.Out)
@@ -91,7 +93,7 @@ class VisualTestCase(unittest.TestCase):
         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 1)
         
         #systemTime.sleep(0.1)  # wait to get really even id
-        self.Wall_E_voice_sensation = Sensation.create(time=self.history_sensationTime,
+        self.Wall_E_voice_sensation = Sensation.create(robot=self,time=self.history_sensationTime,
                                                        memory=Sensation.Memory.Sensory,
                                                        sensationType=Sensation.SensationType.Voice,
                                                        direction=Sensation.Direction.Out,
@@ -127,7 +129,7 @@ class VisualTestCase(unittest.TestCase):
        # simulate item and image are connected each other with TensorflowClassifivation
         # Item is in LongTerm memory
         #systemTime.sleep(0.1)  # wait to get really even id
-        self.Wall_E_item_sensation = Sensation.create(memory=Sensation.Memory.Working,
+        self.Wall_E_item_sensation = Sensation.create(robot=self,memory=Sensation.Memory.Working,
                                                       sensationType=Sensation.SensationType.Item,
                                                       direction=Sensation.Direction.Out,
                                                       name=VisualTestCase.NAME,
@@ -142,7 +144,7 @@ class VisualTestCase(unittest.TestCase):
             image=None
         self.assertNotEqual(image, None, "image should not be None in this test")
 
-        self.Wall_E_image_sensation = Sensation.create( memory=Sensation.Memory.Working,
+        self.Wall_E_image_sensation = Sensation.create(robot=self, memory=Sensation.Memory.Working,
                                                        sensationType=Sensation.SensationType.Image,
                                                        direction=Sensation.Direction.Out,
                                                        image=image)
@@ -153,7 +155,7 @@ class VisualTestCase(unittest.TestCase):
         else:
             image=None
         self.assertNotEqual(image, None, "image should not be None in this test")
-        self.Wall_E_image_sensation_2 = Sensation.create( memory=Sensation.Memory.Working,
+        self.Wall_E_image_sensation_2 = Sensation.create(robot=self, memory=Sensation.Memory.Working,
                                                        sensationType=Sensation.SensationType.Image,
                                                        direction=Sensation.Direction.Out,
                                                        image=image)
@@ -171,7 +173,7 @@ class VisualTestCase(unittest.TestCase):
         self.assertEqual(len(self.Wall_E_image_sensation_2.getAssociations()), 1)
         
         #systemTime.sleep(0.1)  # wait to get really even id
-        self.Wall_E_voice_sensation = Sensation.create(memory=Sensation.Memory.Sensory,
+        self.Wall_E_voice_sensation = Sensation.create(robot=self,memory=Sensation.Memory.Sensory,
                                                        sensationType=Sensation.SensationType.Voice,
                                                        direction=Sensation.Direction.Out,
                                                        data="1")
@@ -193,7 +195,7 @@ class VisualTestCase(unittest.TestCase):
         self.Wall_E_voice_sensation_association_len = len(self.Wall_E_voice_sensation.getAssociations())
         
         # communication
-        self.communication_item_sensation = Sensation.create(memory=Sensation.Memory.Sensory,
+        self.communication_item_sensation = Sensation.create(robot=self,memory=Sensation.Memory.Sensory,
                                                       sensationType=Sensation.SensationType.Item,
                                                       direction=Sensation.Direction.In,
                                                       name=VisualTestCase.NAME,
@@ -204,12 +206,12 @@ class VisualTestCase(unittest.TestCase):
         else:
             image=None
         self.assertNotEqual(image, None, "image should not be None in this test")
-        self.communication_image_sensation = Sensation.create( memory=Sensation.Memory.Sensory,
+        self.communication_image_sensation = Sensation.create(robot=self, memory=Sensation.Memory.Sensory,
                                                        sensationType=Sensation.SensationType.Image,
                                                        direction=Sensation.Direction.In,
                                                        image=image)
         
-        self.communication_voice_sensation = Sensation.create(memory=Sensation.Memory.Sensory,
+        self.communication_voice_sensation = Sensation.create(robot=self,memory=Sensation.Memory.Sensory,
                                                        sensationType=Sensation.SensationType.Voice,
                                                        direction=Sensation.Direction.In,
                                                        data="1")
