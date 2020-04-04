@@ -133,11 +133,8 @@ class Visual(Robot):
         
     def process(self, transferDirection, sensation, association=None):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr() + '  len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) #called
-        if sensation.getSensationType() == Sensation.SensationType.Stop:
-            self.log(logLevel=Robot.LogLevel.Normal, logStr='process: SensationSensationType.Stop')      
-            self.stop()
-        else:
-            wx.PostEvent(self.app.frame, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
+        # just pass Sensation to wx-process
+        wx.PostEvent(self.app.frame, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
             
     '''
     Helpels
@@ -283,18 +280,7 @@ class Visual(Robot):
             self.robot=robot #called
         def getRobot(self):
             return self.robot #called
-        
-        def OnStart(self, event):
-            """Start Computation."""
-            self.status.SetLabel('Starting computation')
-            #self.worker = Visual.WorkerThread(notify_window=self, robot=self.getRobot())
-    
-        def OnStop(self, event):
-            """Stop Computation."""
-            #Tell our Robot that we wan't to stop
-            self.getRobot().running=False
-            self.Close()
-            
+                    
         def OnSensation(self, event):
             """OnSensation."""
             #show sensation
@@ -628,7 +614,8 @@ class Visual(Robot):
         def OnStop(self, event):
             """Stop Computation."""
             #Tell our Robot that we wan't to stop
-            self.getRobot().running=False
+            self.getRobot().stop()
+            systemTime.sleep(10)    # wait MainRobot stops also TCP-connected hosts
             self.Close()
             
         def OnSensation(self, event):
@@ -637,13 +624,15 @@ class Visual(Robot):
             if event.data is not None:
                 # deliver to tabs
                 sensation=event.data
-                wx.PostEvent(self.logPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
-                # TODO logic is still imclear
-                # if sensation is output then log it in communication tab
-                if sensation.getDirection() == Sensation.Direction.In:# and\
-                   #sensation.getMemory() == Sensation.Memory.Sensory:
-                   wx.PostEvent(self.communicationPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
-#                wx.PostEvent(self.communicationPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
+                if sensation.getSensationType() == Sensation.SensationType.Stop:
+                    self.OnStop(event)
+                else:
+                    wx.PostEvent(self.logPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
+                    # TODO logic is still unclear
+                    # if sensation is output then log it in communication tab
+                    if sensation.getDirection() == Sensation.Direction.In:# and\
+                    #sensation.getMemory() == Sensation.Memory.Sensory:
+                        wx.PostEvent(self.communicationPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
 
                 
  

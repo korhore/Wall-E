@@ -420,8 +420,14 @@ class Robot(Thread):
         self.log(logLevel=Robot.LogLevel.Verbose, logStr="self.running = False")      
         self.running = False    # this in not real, but we wait for Sensation,
                                 # so give  us one stop sensation
-        self.log(logLevel=Robot.LogLevel.Verbose, logStr="self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(sensationType = Sensation.SensationType.Stop))")      
-        self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(robotId=self.getId(),associations=[], sensationType = Sensation.SensationType.Stop), association=None)
+        self.log(logLevel=Robot.LogLevel.Verbose, logStr="self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(sensationType = Sensation.SensationType.Stop))") 
+        # stop sensation
+        sensation=Sensation(robotId=self.getId(),associations=[], sensationType = Sensation.SensationType.Stop)
+        # us,but maybe not send up
+        self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None)
+        # to the parent also
+        if self.getParent() is not None:
+            self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None)
 
 
     '''
@@ -431,7 +437,13 @@ class Robot(Thread):
     '''
             
     def doStop(self):
-        self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(robotId=self.getId(),associations=[], sensationType = Sensation.SensationType.Stop), association=None)
+        # stop sensation
+        sensation=Sensation(robotId=self.getId(),associations=[], sensationType = Sensation.SensationType.Stop)
+        # us,but maybe not send up
+        self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None)
+        # to the parent also
+        if self.getParent() is not None:
+            self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None)
         
     def studyOwnIdentity(self):
         self.mode = Sensation.Mode.StudyOwnIdentity
