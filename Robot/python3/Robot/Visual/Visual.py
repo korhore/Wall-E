@@ -23,6 +23,7 @@ import wx
 from Robot import Robot
 from Config import Config, Capabilities
 from Sensation import Sensation
+from setuptools.ssl_support import once
 
 class Visual(Robot):
     
@@ -133,9 +134,28 @@ class Visual(Robot):
         
     def process(self, transferDirection, sensation, association=None):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr() + '  len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) #called
-        # just pass Sensation to wx-process
-        wx.PostEvent(self.app.frame, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
-            
+        if transferDirection == Sensation.TransferDirection.Up:
+            if self.getParent() is not None: # if sensation is going up  and we have a parent
+                self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getParent().getAxon().put(transferDirection=transferDirection, sensation=sensation))')      
+                self.getParent().getAxon().put(transferDirection=transferDirection, sensation=sensation, association=None)
+        else:
+            # just pass Sensation to wx-process
+            wx.PostEvent(self.app.frame, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
+ 
+    '''
+    stop
+        When we are asked to stop
+        default handling
+        and stopping wz-process as it wants to be called
+    '''           
+    def stop(self):
+        #run once
+        if self.running:
+            Robot.stop(self) # default handling
+            # To stop wx we regenerate stop Sensation
+            sensation=Sensation(robotId=self.getId(),associations=[], sensationType = Sensation.SensationType.Stop)
+            # and send it to wx-process
+            wx.PostEvent(self.app.frame, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
     '''
     Helpels
     '''
@@ -615,7 +635,7 @@ class Visual(Robot):
             """Stop Computation."""
             #Tell our Robot that we wan't to stop
             self.getRobot().stop()
-            systemTime.sleep(10)    # wait MainRobot stops also TCP-connected hosts
+            systemTime.sleep(1)    # wait MainRobot stops also TCP-connected hosts
             self.Close()
             
         def OnSensation(self, event):
