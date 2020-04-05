@@ -19,6 +19,41 @@ Develop
 Todo
 ----
 
+Some times Robot just stops without any hint why. top shows 100% processor usage, but
+nothing happens. Improve logging so, that each Robot shows last process() and sense()
+call. Maybe we should also lof Axon traffic.
+Last log
+RaspberryPiCamera:2:Normal: isChangedImage final change 1289458 change > self.CHANGE_RANGE True
+RaspberryPiCamera:2:Normal: sense self.getParent().getAxon().put(sensation) stream 190741
+Create new sensation by pure parameters
+
+if stopped from Visual
+Meaning that MainRobot does not read its Axon any more
+
+Meaning that we should put more logging in MainRobot
+Last MainRobot log
+Wall-E:1:Normal: Local robot Visual has capability for this, robot.getAxon().put(sensation)
+
+Semephore problem, when deleting sensation from cache?
+Yes not no.
+All sensatyion cache operations should be protectted by semaphore. Now we protected only deletion from cahe,
+but olther threads that read, will fail. In principle we should allow many readers, but only one writer thread.
+
+
+Robot.id should be static, not dynamic. Make a method for that.
+
+Implement memory handling with this
+>>> import psutil
+>>> mem = psutil.virtual_memory()
+>>> mem
+svmem(total=10367352832, available=6472179712, percent=37.6, used=8186245120, free=2181107712, active=4748992512, inactive=2758115328, buffers=790724608, cached=3500347392, shared=787554304, slab=199348224)
+>>>
+>>> THRESHOLD = 100 * 1024 * 1024  # 100MB
+>>> if mem.available <= THRESHOLD:
+...     print("warning")
+...
+>>>
+
 Add id for Robot.
 Sensation would hold that id, when Robot Creates a new Sensation.
 After that, Presence of Item.name can be handled by every Robot and MainRobot can handle
@@ -26,6 +61,7 @@ main presence. That way Item.name can be present in one Robot and if that Rpbot 
 MainRobot, Item.name is prent under that MainRobot etc. So if MainRobot in in network,
 Sensation.Robot.id is changed to Sensation.MainRobot.id, when ttncferred by TCP SocketClient.
 That way we can bind presence to a place, site, without knowing site location. Site is MainRobot.id.
+- started
 
 Robot is Thread. can we use thread id? There is not such.
 

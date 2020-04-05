@@ -94,6 +94,7 @@ class MainRobot(Robot):
         if self.level == 1:
             # set memory handling for Sensation memory
             Sensation.maxRss = self.config.getMaxRss()                  # limit
+            Sensation.minAvailMem = self.config.getMinAvailMem()
             
             Sensation.loadLongTermMemory()
             Sensation.CleanDataDirectory()

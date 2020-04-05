@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 04.04.2020
+Edited on 06.04.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -115,8 +115,10 @@ class Sensation(object):
     NEAR_MIN_MIN_CACHE_MEMORABILITY = 0.2                    
     startSensationMemoryUsageLevel = 0.0                     # start memory usage level after creating first Sensation
     currentSensationMemoryUsageLevel = 0.0                   # current memory usage level when creating last Sensation
-    maxRss = 384.0                                  # how much there is space for Sensation as maxim MainRobot sets this from its Config
-    process = psutil.Process(os.getpid())                 # get pid of current process, so we can calculate Process memory usage
+    maxRss = 384.0                                           # how much there is space for Sensation as maxim MainRobot sets this from its Config
+    minAvailMem = 50.0                                       # how available momory must be left. MainRobot sets this from its Config
+    process = psutil.Process(os.getpid())                    # get pid of current process, so we can calculate Process memory usage
+    mem = psutil.virtual_memory()
     
     LENGTH_SIZE =       2   # Sensation as string can only be 99 character long
     LENGTH_FORMAT =     "{0:2d}"
@@ -374,7 +376,13 @@ class Sensation(object):
     '''
     def getMemoryUsage():     
          #memUsage= resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0            
-        return Sensation.process.memory_info().rss/(1024*1024)              # hope this works better       
+        return Sensation.process.memory_info().rss/(1024*1024)              # hope this works better
+    
+    '''
+    get available memory
+    '''
+    def getAvailableMemory():
+        return Sensation.mem.available
         
     '''
     Forget sensations that are not important
@@ -389,13 +397,15 @@ class Sensation(object):
         memory = Sensation.sensationMemorys[sensation.getMemory()]
 
         # calibrate memorability        
-        if Sensation.getMemoryUsage() > Sensation.maxRss and\
+        #if Sensation.getMemoryUsage() > Sensation.maxRss and\
+        if Sensation.getAvailableMemory() < Sensation.minAvailMem and\
             Sensation.min_cache_memorability < Sensation.MAX_MIN_CACHE_MEMORABILITY:
             if Sensation.min_cache_memorability >= Sensation.NEAR_MAX_MIN_CACHE_MEMORABILITY:
                 Sensation.min_cache_memorability = Sensation.min_cache_memorability + 0.01
             else:
                 Sensation.min_cache_memorability = Sensation.min_cache_memorability + 0.1
-        elif Sensation.getMemoryUsage() < Sensation.maxRss and\
+        #elif Sensation.getMemoryUsage() < Sensation.maxRss and\
+        elif Sensation.getAvailableMemory() > Sensation.minAvailMem and\
             Sensation.min_cache_memorability > Sensation.MIN_MIN_CACHE_MEMORABILITY:
             if Sensation.min_cache_memorability <= Sensation.NEAR_MIN_MIN_CACHE_MEMORABILITY:
                 Sensation.min_cache_memorability = Sensation.min_cache_memorability - 0.01
@@ -412,7 +422,8 @@ class Sensation(object):
                 numNotForgettables=numNotForgettables+1
 
         # if we are still using too much memory for Sensations, we should check all Sensations in the cache
-        if Sensation.getMemoryUsage() > Sensation.maxRss:
+        #if Sensation.getMemoryUsage() > Sensation.maxRss:
+        if Sensation.getAvailableMemory() < Sensation.minAvailMem:
             i=0
             while i < len(memory):
                 if memory[i].isForgettable():
@@ -426,11 +437,13 @@ class Sensation(object):
                     numNotForgettables=numNotForgettables+1
                     i=i+1
        
-        print('Sensations cache for {} {} {} {} {} {} Total memory usage {} MB with Sensation.min_cache_memorability {}'.\
+#        print('Sensations cache for {} {} {} {} {} {} Total memory usage {} MB with Sensation.min_cache_memorability {}'.\
+        print('Sensations cache for {} {} {} {} {} {} Total memory available {} MB with Sensation.min_cache_memorability {}'.\
               format(Sensation.getMemoryString(Sensation.Memory.Sensory), len(Sensation.sensationMemorys[Sensation.Memory.Sensory]),\
                      Sensation.getMemoryString(Sensation.Memory.Working), len(Sensation.sensationMemorys[Sensation.Memory.Working]),\
                      Sensation.getMemoryString(Sensation.Memory.LongTerm), len(Sensation.sensationMemorys[Sensation.Memory.LongTerm]),\
-                     Sensation.getMemoryUsage(), Sensation.min_cache_memorability))
+#                     Sensation.getMemoryUsage(), Sensation.min_cache_memorability))
+                     Sensation.getAvailableMemory(), Sensation.min_cache_memorability))
         if numNotForgettables > 0:
             print('Sensations cache deletion skipped {} Not Forgottable Sensation'.format(numNotForgettables))
         #print('Memory usage for {} Sensations {} after {} MB'.format(len(memory), Sensation.getMemoryString(sensation.getMemory()), Sensation.getMemoryUsage()-Sensation.startSensationMemoryUsageLevel))
