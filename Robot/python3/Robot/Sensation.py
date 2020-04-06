@@ -118,7 +118,6 @@ class Sensation(object):
     maxRss = 384.0                                           # how much there is space for Sensation as maxim MainRobot sets this from its Config
     minAvailMem = 50.0                                       # how available momory must be left. MainRobot sets this from its Config
     process = psutil.Process(os.getpid())                    # get pid of current process, so we can calculate Process memory usage
-    mem = psutil.virtual_memory()
     
     LENGTH_SIZE =       2   # Sensation as string can only be 99 character long
     LENGTH_FORMAT =     "{0:2d}"
@@ -382,7 +381,7 @@ class Sensation(object):
     get available memory
     '''
     def getAvailableMemory():
-        return Sensation.mem.available/(1024*1024)
+        return psutil.virtual_memory().available/(1024*1024)
         
     '''
     Forget sensations that are not important

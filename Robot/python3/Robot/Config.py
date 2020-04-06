@@ -77,6 +77,11 @@ class Config(ConfigParser):
     MINAVAILMEM_DEFAULT = 50        # This limit will be used first in small memory systems
                                     # like raspberry having often 1GB of Memory
                                     # 50 NB works on little system dedicated for Robot
+    ROBOTID =       "robotid"       # Robot id
+    ROBOTID_DEFAULT = 0             # default Robot id is 0, but it should never be 0
+                                    # this means that system set by default every Robot unique is, when started first time
+                                    # like raspberry having often 1GB of Memory
+                                    # 50 NB works on little system dedicated for Robot
     MICROPHONE =                   'microphone'
     MICROPHONE_VOICE_LEVEL_AVERAGE = 'microphone_voice_average_level'
     MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT = 300.0
@@ -519,6 +524,14 @@ class Config(ConfigParser):
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION,Config.MINAVAILMEM, str(Config.MINAVAILMEM_DEFAULT)) exception  ' + str(e))
 
+        try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.ROBOTID):
+                from Robot import Robot
+                self.set(Config.DEFAULT_SECTION,Config.ROBOTID, str(Config.ROBOTID_DEFAULT))
+                self.is_changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION,Config.ROBOTID, str(Config.ROBOTID_DEFAULT)) exception  ' + str(e))
+
 #         try:                
 #             if not self.has_option(Config.DEFAULT_SECTION, Config.MAX_SENSATION_RSS):
 #                 from Robot import Robot
@@ -737,6 +750,27 @@ class Config(ConfigParser):
         except Exception as e:
             print('self.getint(section=section, option=self.MINAVAILMEM) ' + str(e))
             return None
+
+    def getRobotId(self, section=LOCALHOST):
+        try:
+            robotId = self.getfloat(section=section, option=self.ROBOTID)
+            if robotId == 0.0:  # robotId can't be 0.0, create new id
+                from Sensation import Sensation
+                robotId = Sensation.getNextId()
+                self.setRobotId(robotId=robotId)
+            return robotId                
+        except Exception as e:
+            print('self.getint(section=section, option=self.ROBOTID) ' + str(e))
+            return None
+
+    def setRobotId(self, section=LOCALHOST, robotId=str(ROBOTID_DEFAULT), commit=True):
+        try:
+            self.set(section=section, option=self.ROBOTID, value=str(robotId))
+            self.is_changes = True
+        except Exception as e:
+            print('self.set(section=section, option=self.ROBOTID, value=str(robotId))' + str(e))
+        if commit:
+            self.commit()
 
     def getWho(self, section=LOCALHOST):
         who = self.get(section=section, option=self.WHO)

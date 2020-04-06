@@ -152,7 +152,6 @@ class Robot(Thread):
         Thread.__init__(self)
         
         self.time = time.time()
-        self.id = Sensation.getNextId()
         
         self.mode = Sensation.Mode.Starting
         self.parent = parent
@@ -175,6 +174,7 @@ class Robot(Thread):
                              instanceType=self.instanceType,
                              level=level)   # don't increase level, it has increased yet and Config has its own levels (that are same)
         print("Robot 3")
+        self.id = self.config.getRobotId()
         self.capabilities = Capabilities(config=self.config)
         print("Robot 4")
         self.logLevel=self.config.getLogLevel()
