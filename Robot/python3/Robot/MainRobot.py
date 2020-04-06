@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 08.03.2020
+Updated on 06.04.2020
 @author: reijo.korhonen@gmail.com
 
 This class Main robot

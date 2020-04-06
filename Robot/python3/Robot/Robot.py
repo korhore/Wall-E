@@ -352,7 +352,8 @@ class Robot(Thread):
         robots=[]
         for robot in self.getSubInstances():
             if robot.hasCapability(direction, memory, sensationType) or \
-                robot.hasSubCapability(direction, memory, sensationType):
+                robot.hasSubCapability(direction, memory, sensationType) or \
+                robot.getInstanceType() == Sensation.InstanceType.Remote:       # append all Remotes so it gets same Memory
                 robots.append(robot)
         return robots
 
