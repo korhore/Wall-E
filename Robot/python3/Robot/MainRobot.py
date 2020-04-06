@@ -93,8 +93,8 @@ class MainRobot(Robot):
         # in main robot, set up Long_tem Memory and set up TCPServer
         if self.level == 1:
             # set memory handling for Sensation memory
-            Sensation.maxRss = self.config.getMaxRss()                  # limit
-            Sensation.minAvailMem = self.config.getMinAvailMem()
+            Sensation.maxRss = self.config.getMaxRss()                  # used mem limit
+            Sensation.minAvailMem = self.config.getMinAvailMem()        # available mem limit
             
             Sensation.loadLongTermMemory()
             Sensation.CleanDataDirectory()

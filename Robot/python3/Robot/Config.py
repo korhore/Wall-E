@@ -69,11 +69,14 @@ class Config(ConfigParser):
     LOGLEVEL =          "LogLevel"
     MAXRSS =            "maxrss"    # maximum resident set size
                                     # limit is set in MB, but in Linux documentation KB
-    MAXRSS_DEFAULT =    384         # 0.5 BG
+                                    # This limit will be used fist in big momory ststems that
+                                    # may also have other duties to do, 2GB for Robot for default
+    MAXRSS_DEFAULT =    2048        # 0.5 BG
                                     # raspberry has often 1GB of memory
-    MINAVAILMEM =       "minavailmem"    # minimum anailable mem size in MB
-    MINAVAILMEM_DEFAULT = 50         # 0.5 BG
-
+    MINAVAILMEM =       "minavailmem"    # minimum available mem size in MB
+    MINAVAILMEM_DEFAULT = 50        # This limit will be used first in small memory systems
+                                    # like raspberry having often 1GB of Memory
+                                    # 50 NB works on little system dedicated for Robot
     MICROPHONE =                   'microphone'
     MICROPHONE_VOICE_LEVEL_AVERAGE = 'microphone_voice_average_level'
     MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT = 300.0
