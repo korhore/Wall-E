@@ -678,7 +678,7 @@ class Sensation(object):
         if self.id == None:
             self.id = Sensation.getNextId()
             
-        self.reservedBy = []
+        self.attachedBy = []
         self.associations =[]
         if  associations == None:
             associations = []
@@ -720,7 +720,7 @@ class Sensation(object):
             self.name = sensation.name
             self.presence = sensation.presence
             self.kind = sensation.kind
-            #self.reservedBy = sensation.reservedBy # keep self.reservedBy independent of original Sensation to be copied
+            #self.attachedBy = sensation.attachedBy # keep self.attachedBy independent of original Sensation to be copied
             
             # We have here put values from sensation, but we should
             # also set values that are overwritten
@@ -749,7 +749,7 @@ class Sensation(object):
             self.name = name
             self.presence = presence
             self.kind = kind
-            self.reservedBy = []
+            self.attachedBy = []
            
             # associate makes both sides
             for association in associations:
@@ -881,8 +881,8 @@ class Sensation(object):
                         # associate makes both sides
                         self.associate(sensation=sensation,
                                        time=time,
-                                        score=score,
-                                        feeling=feeling)
+                                       score=score,
+                                       feeling=feeling)
                 
             except (ValueError):
                 self.sensationType = Sensation.SensationType.Unknown
@@ -1868,31 +1868,31 @@ class Sensation(object):
         return self.kind
 
     '''
-        Reserve a Sensation to be used by a Robot so, that
-        it is not removed from Sensation cache until released
+        Attach a Sensation to be used by a Robot so, that
+        it is not removed from Sensation cache until detached
         
         Parameters
-        robot    robot that make reservation
+        robot    robot that attach this Sensation
     '''    
-    def reserve(self, robot):
-        if robot not in self.reservedBy:
-            self.reservedBy.append(robot)
+    def attach(self, robot):
+        if robot not in self.attachedBy:
+            self.attachedBy.append(robot)
     '''
-        Release a Sensation 
+        Detach a Sensation 
         
         Parameters
-        robot    robot that makes release
+        robot    robot that detach this Sensation
     '''
-    def release(self, robot):
-        if robot in self.reservedBy:
-            self.reservedBy.remove(robot)
+    def detach(self, robot):
+        if robot in self.attachedBy:
+            self.attachedBy.remove(robot)
             
     '''
         is Sensation forgettable
     '''
             
     def isForgettable(self):
-        return len(self.reservedBy) == 0
+        return len(self.attachedBy) == 0
 
     '''
     save sensation data permanently

@@ -18,6 +18,33 @@ Develop
 
 Todo
 ----
+Maybe MainRobot stops, because someone deletes a Sensation that put om Axon,
+but is not processed yet. We must find a way how to reserve and free Sensations.
+Solution.
+- Sensation,create sets sonweship od Created Sensation to the caller Robot.
+- Axon.put cleares Sensation of ther caller Robot ans set it to the Robot that will get that Sensation
+- Robot.run.Axon.get gets Sensation, but ownership al already set to this Robot.
+- At the and of run loop or Robot.process we release this Robots owenweship.
+- Communication is special case, because it gets Sensation fron the Memory also.
+  These sensation are processed by oernership same way as Axon-Process -loop.
+-- reserve/release -> attach/detach() and it will be expanded to Robot.create,
+   Axon, Robot.process.
+
+Add Robot roles
+- Remote -> RemoteSubRobot is part of remote MainRobot, meaning that it has only senses/mucle Robot
+  that report to tja main Robot or get Sensation to mucles from remote Mainrobot
+  even though this Sites MainRobot has MainRobot instance, that instance get its identity from the remote MainRobot
+  but don't read any identity data from its directories.
+- RemoteMainRobot This mainRobot think that other remore is independent MainRobot.
+  Remote MainRobot has ts own identity, so it speaks as its own and shows images as its own.
+  Two MainRobots cam coversate each with other and even be in love with each other.
+  So we can make Wall-E and Eve-robots to be in love with each other.
+- VirtualMainRobot is just like RemoteMainRobot but it is not connected with tcp/ip
+  but with virtual port (Axon). VirtualRobot does not have its own senses or mucles. but it
+  shares those of real MainRobot. Its has its own memory for Sensations.
+  With VirtualMainRobot and Real MainRobot we can impllement also robots in love, communicating with each other
+  but relationship is not so real than real MainRobot + reamote MainRobot with independent senses and muscles.    
+
 
 Some times Robot just stops without any hint why. top shows 100% processor usage, but
 nothing happens. Improve logging so, that each Robot shows last process() and sense()

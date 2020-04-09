@@ -754,7 +754,11 @@ class Config(ConfigParser):
     def getRobotId(self, section=LOCALHOST):
         try:
             robotId = self.getfloat(section=section, option=self.ROBOTID)
-            if robotId == 0.0:  # robotId can't be 0.0, create new id
+            # TODO, should we always create new Robot id,
+            # Meaning, that when Robot is created, it is a fresh new instance
+            # For testing purposes this works fine.
+            #if robotId == 0.0:  # robotId can't be 0.0, create new id
+            if True:  # robotId can't be 0.0, create new id
                 from Sensation import Sensation
                 robotId = Sensation.getNextId()
                 self.setRobotId(robotId=robotId)

@@ -410,7 +410,7 @@ class SensationTestCase(unittest.TestCase):
 
         data=b'\x01\x02'
         voiceSensation = Sensation.create(robot=self.robot, associations=None, sensationType=Sensation.SensationType.Voice, memory=Sensation.Memory.Sensory, data=data, kind=Sensation.Kind.Eva)
-        voiceSensation.reserve(robot=self)
+        voiceSensation.attach(robot=self)
         self.assertTrue(voiceSensation.getKind() == Sensation.Kind.Eva, "should be equal")
         self.assertFalse(voiceSensation.isForgettable(), "should be False")
         bytes=voiceSensation .bytes()
@@ -420,8 +420,8 @@ class SensationTestCase(unittest.TestCase):
         self.assertTrue(voiceSensation.getKind() == fromBytesVoiceSensation.getKind(), "should be equal")
         self.assertTrue(voiceSensation.getData() == fromBytesVoiceSensation.getData(), "should be equal")
         self.assertTrue(fromBytesVoiceSensation.isForgettable(), "should be True, permanent is local property")
-        voiceSensation.release(robot=self)
-        self.assertTrue(fromBytesVoiceSensation.isForgettable(), "should be True after release")
+        voiceSensation.detach(robot=self)
+        self.assertTrue(fromBytesVoiceSensation.isForgettable(), "should be True after detach")
  
         print("\ntest_Bytes DONE")
 

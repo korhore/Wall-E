@@ -115,7 +115,7 @@ class Visual(Robot):
             # or if we can sense, but there is something in our Axon, process it
             if not self.getAxon().empty() or not self.canSense():
                 transferDirection, sensation, association = self.getAxon().get()
-                self.log(logLevel=Robot.LogLevel.Normal, logStr="got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr() + '  len(sensation.getAssociations()) '+ str(len(sensation.getAssociations())))      
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr() + ' len(sensation.getAssociations()) '+ str(len(sensation.getAssociations())))      
                 self.process(transferDirection=transferDirection, sensation=sensation, association=association)
             else:
                 self.sense()
@@ -307,7 +307,7 @@ class Visual(Robot):
             if event.data is not None:
                 # Thread aborted (using our convention of None return)
                 sensation=event.data
-                print('LogPanel.OnSensation got sensation from event.data ' + sensation.toDebugStr() + '  len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) 
+                print('LogPanel.OnSensation got sensation from event.data ' + sensation.toDebugStr() + ' len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) 
                 self.status.SetLabel('Got Sensation Event')
                 
                 for i in range(Visual.SENSATION_LINES-1,0,-1):
@@ -408,6 +408,8 @@ class Visual(Robot):
                 self.Refresh()
                 self.SetSize((x,y))
                 self.Refresh()
+                
+                self.status.SetLabel('Processed Sensation Event')
 
             else:
                 self.status.SetLabel('Sensation is None in Sensation Event')
@@ -492,11 +494,14 @@ class Visual(Robot):
                 text=Sensation.getSensationTypeString(sensationType=sensation.getSensationType())
                 if sensation.getSensationType() == Sensation.SensationType.Item:
                     text = text + ' ' + sensation.getName()
+                text = text + ' ' + Sensation.getMemoryString(memory=sensation.getMemory()) + \
+                              ' ' + Sensation.getDirectionString(direction=sensation.getDirection()) +\
+                              ' ' + systemTime.ctime(sensation.getTime())
                 treeItem = self.tree.InsertItem (parent=parent,
                                                  pos=0,
                                                  text=text,
                                                  image=imageInd)
-                print("" + text + " imageInd "+ str(imageInd))
+                #print("" + text + " imageInd "+ str(imageInd))
                 level=level+1
                 if level <= Visual.TREE_CHILD_LEVEL_MAX and\
                     childrencount < Visual.TREE_CHILD_CHILD_MAX-level:
@@ -524,7 +529,7 @@ class Visual(Robot):
                            childrencount):
             if level <= Visual.TREE_CHILD_LEVEL_MAX and\
                 childrencount < Visual.TREE_CHILD_CHILD_MAX-level:
-                print("insertChildren len(sensation.getAssociations()) " + str(len(sensation.getAssociations())) + " level " + str(level))
+                #print("insertChildren len(sensation.getAssociations()) " + str(len(sensation.getAssociations())) + " level " + str(level))
                 for association in sensation.getAssociations():
                     childrencount = self.handleSensation(
                                          parent=parent,

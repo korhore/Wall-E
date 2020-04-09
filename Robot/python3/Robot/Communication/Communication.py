@@ -77,7 +77,7 @@ class Communication(Robot):
             self.name = name
             self.sensation = sensation
             if self.sensation is not None:
-                self.sensation.reserve(self)
+                self.sensation.attach(self)
             self.time = time
             self.association = association
             
@@ -89,12 +89,12 @@ class Communication(Robot):
         def getSensation(self):
             return self.sensation
         def setSensation(self, sensation):
-            # release old Sensation
-            self.release()
+            # detach old Sensation
+            self.detach()
             
             self.sensation = sensation
             if self.sensation is not None:
-                self.sensation.reserve(self)
+                self.sensation.attach(self)
           
         def getTime(self):
             return self.time
@@ -106,10 +106,10 @@ class Communication(Robot):
         def setAssociation(self, association):
             self.association = association
             
-        def release(self):
-            # release Sensation
+        def detach(self):
+            # detach Sensation
             if self.sensation is not None:
-                self.sensation.release(self)
+                self.sensation.detach(self)
 
 
     def __init__(self,
@@ -263,20 +263,20 @@ class Communication(Robot):
         startedAlready = False
         
         if self.mostImportantItemSensation is not None:
-            self.mostImportantItemSensation.release(robot=self)
+            self.mostImportantItemSensation.detach(robot=self)
         self.mostImportantItemSensation = None
         
         self.mostImportantVoiceAssociation  = None
         
         if self.mostImportantVoiceSensation is not None:
-            self.mostImportantVoiceSensation.release(robot=self)
+            self.mostImportantVoiceSensation.detach(robot=self)
         self.mostImportantVoiceSensation  = None
         
         if self.spokedVoiceSensation is not None:
-            self.spokedVoiceSensation.release(robot=self)
+            self.spokedVoiceSensation.detach(robot=self)
         self.spokedVoiceSensation = None
 
-        self.releaseCommunicationItems() #release old list
+        self.releaseCommunicationItems() #detach old list
         del self.communicationItems[:]  #clear old list
         
         candidate_communicationItems = []
@@ -345,17 +345,17 @@ class Communication(Robot):
                 succeeded=True  # no exception,  Robot.presentItemSensations did not changed   
             except Exception as e:
                  self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: ignored exception ' + str(e))
-                 self.releaseCommunicationItems() #release old list
+                 self.releaseCommunicationItems() #detach old list
                  del self.communicationItems[:]  #clear old list
             
         if (self.mostImportantItemSensation is not None) and (self.mostImportantVoiceSensation is not None):
-            self.mostImportantItemSensation.reserve(robot=self)         #reserve Sensation until speking is ended based on these voices
-            self.mostImportantVoiceSensation.reserve(robot=self)
+            self.mostImportantItemSensation.attach(robot=self)         #attach Sensation until speking is ended based on these voices
+            self.mostImportantVoiceSensation.attach(robot=self)
             self.mostImportantVoiceSensation.save()     # for debug reasons save voices we have spoken as heard voices
             
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: Sensation.getMostImportantSensation did find self.mostImportantItemSensation OK')
             self.spokedVoiceSensation = Sensation.create(robot=self, sensation = self.mostImportantVoiceSensation, kind=self.getKind() )
-            self.spokedVoiceSensation.reserve(robot=self)         #reserve Sensation until speaking is ended based on these voices
+            self.spokedVoiceSensation.attach(robot=self)         #attach Sensation until speaking is ended based on these voices
             # test
             #self.spokedVoiceSensation = self.mostImportantVoiceSensation
             # NOTE This is needed now, because Sensation.create parameters direction and memory parameters are  overwritten by sensation parameters
@@ -412,20 +412,20 @@ class Communication(Robot):
         
     def endConversation(self):
         if self.mostImportantItemSensation is not None:
-            self.mostImportantItemSensation.release(robot=self)
+            self.mostImportantItemSensation.detach(robot=self)
         self.mostImportantItemSensation = None
         
         self.mostImportantVoiceAssociation  = None
         
         if self.mostImportantVoiceSensation is not None:
-            self.mostImportantVoiceSensation.release(robot=self)
+            self.mostImportantVoiceSensation.detach(robot=self)
         self.mostImportantVoiceSensation  = None
         
         if self.spokedVoiceSensation is not None:
-            self.spokedVoiceSensation.release(robot=self)
+            self.spokedVoiceSensation.detach(robot=self)
         self.spokedVoiceSensation = None
 
-        self.releaseCommunicationItems() #release old list
+        self.releaseCommunicationItems() #detach old list
         del self.communicationItems[:]  #clear old list
 #         self.log(logLevel=Robot.LogLevel.Normal, logStr="stopWaitingResponse: del self.usedVoices[:]")
         del self.usedVoices[:]                          # clear used voices, communication is ended, so used voices are free to be used in next conversation.
@@ -436,6 +436,6 @@ class Communication(Robot):
         
     def releaseCommunicationItems(self):
         for communicationItem in self.communicationItems:
-             communicationItem.release()
+             communicationItem.detach()
         
 
