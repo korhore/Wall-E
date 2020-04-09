@@ -588,7 +588,9 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
             except Exception as err:
                 self.log("SocketClient.sendSensation error writing Sensation.SEPARATOR to " + str(address)  + " error " + str(err))
                 ok=False
-                self.mode = Sensation.Mode.Interrupted
+                if self.mode != Sensation.Mode.Normal:  # interrupted (only if not stopping)
+                    self.mode = Sensation.Mode.Interrupted
+                    self.log("SocketClient.sendSensation self.mode = Sensation.Mode.Interrupted " + str(address))
             ## if we test, then we cause error time by time by us
             if MainRobot.IS_SOCKET_ERROR_TEST and self.mode == Sensation.Mode.Normal and\
                self.getSocketServer().mode == Sensation.Mode.Normal:
@@ -604,8 +606,9 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                 except Exception as err:
                     self.log("SocketClient.sendSensation error writing length of Sensation to " + str(address) + " error " + str(err))
                     ok = False
-                    self.mode = Sensation.Mode.Interrupted
-                    self.log("SocketClient.sendSensation self.mode = Sensation.Mode.Interrupted " + str(address))
+                    if self.mode != Sensation.Mode.Normal:  # interrupted (only if not stopping)
+                        self.mode = Sensation.Mode.Interrupted
+                        self.log("SocketClient.sendSensation self.mode = Sensation.Mode.Interrupted " + str(address))
                 if ok:
                     try:
                         sock.sendall(bytes)                              # message data section
@@ -783,7 +786,8 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                         self.log("run: self.sock.recv(sensation_length_length) Interrupted error " + str(self.address) + " " + str(err))
                         self.running = False
                         ok = False
-                        self.mode = Sensation.Mode.Interrupted
+                        if self.mode != Sensation.Mode.Normal:  # interrupted (only if not stopping)
+                            self.mode = Sensation.Mode.Interrupted
                 if ok:
                     length_ok = True
                     try:
@@ -812,7 +816,8 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                                 self.log("run: self.sock.recv(sensation_length) Interrupted error " + str(self.address) + " " + str(err))
                                 self.running = False
                                 ok = False
-                                self.mode = Sensation.Mode.Interrupted
+                                if self.mode != Sensation.Mode.Normal:  # interrupted (only if not stopping)
+                                    self.mode = Sensation.Mode.Interrupted
                         if self.running and ok:
                             sensation=Sensation(robotId=self.getId(),associations=[], bytes=self.data)
                             sensation.addReceived(self.getHost())  # remember route
