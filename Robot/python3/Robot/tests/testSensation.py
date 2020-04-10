@@ -410,17 +410,23 @@ class SensationTestCase(unittest.TestCase):
 
         data=b'\x01\x02'
         voiceSensation = Sensation.create(robot=self.robot, associations=None, sensationType=Sensation.SensationType.Voice, memory=Sensation.Memory.Sensory, data=data, kind=Sensation.Kind.Eva)
-        voiceSensation.attach(robot=self)
+
+        self.assertFalse(voiceSensation.isForgettable(), "should be False, until detached")
+        voiceSensation.detach(robot=self.robot)
+        self.assertTrue(voiceSensation.isForgettable(), "should be True after detach")
+
         self.assertTrue(voiceSensation.getKind() == Sensation.Kind.Eva, "should be equal")
-        self.assertFalse(voiceSensation.isForgettable(), "should be False")
-        bytes=voiceSensation .bytes()
+        bytes=voiceSensation.bytes()
         self.assertTrue(bytes != None, "should be get bytes")
         fromBytesVoiceSensation = Sensation.create(robot=self.robot, bytes=bytes)
+        
+        
         self.assertTrue(voiceSensation == fromBytesVoiceSensation, "should be equal")
         self.assertTrue(voiceSensation.getKind() == fromBytesVoiceSensation.getKind(), "should be equal")
         self.assertTrue(voiceSensation.getData() == fromBytesVoiceSensation.getData(), "should be equal")
-        self.assertTrue(fromBytesVoiceSensation.isForgettable(), "should be True, permanent is local property")
-        voiceSensation.detach(robot=self)
+        
+        self.assertFalse(fromBytesVoiceSensation.isForgettable(), "should be False, until detached")
+        fromBytesVoiceSensation.detach(robot=self.robot)
         self.assertTrue(fromBytesVoiceSensation.isForgettable(), "should be True after detach")
  
         print("\ntest_Bytes DONE")

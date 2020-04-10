@@ -136,11 +136,16 @@ class Visual(Robot):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr() + '  len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) #called
         if transferDirection == Sensation.TransferDirection.Up:
             if self.getParent() is not None: # if sensation is going up  and we have a parent
-                self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getParent().getAxon().put(transferDirection=transferDirection, sensation=sensation))')      
-                self.getParent().getAxon().put(transferDirection=transferDirection, sensation=sensation, association=None)
+                self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation))')      
+                self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation, association=None)
         else:
             # just pass Sensation to wx-process
             wx.PostEvent(self.app.frame, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
+        # TOSO should we release sensation, when we delete it from UI
+        # that way we should attach also all sensations we get from associations
+        # maybe for readonly logic this is not a problem
+        sensation.detach(robot=self) # finally release played sensation
+
  
     '''
     stop
@@ -153,7 +158,7 @@ class Visual(Robot):
         if self.running:
             Robot.stop(self) # default handling
             # To stop wx we regenerate stop Sensation
-            sensation=Sensation(robotId=self.getId(),associations=[], sensationType = Sensation.SensationType.Stop)
+            sensation=Sensation.create(robot=self,associations=[], sensationType = Sensation.SensationType.Stop)
             # and send it to wx-process
             wx.PostEvent(self.app.frame, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
     '''

@@ -18,6 +18,9 @@ Develop
 
 Todo
 ----
+
+Oops, Connection was forgotten to move!
+
 Maybe MainRobot stops, because someone deletes a Sensation that put om Axon,
 but is not processed yet. We must find a way how to reserve and free Sensations.
 Solution.

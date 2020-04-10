@@ -31,18 +31,21 @@ class AssociationTestCase(unittest.TestCase):
     Robot modeling
     '''
     
+    def getAxon(self):
+        return self.axon
     def getId(self):
         return 1.1
-   
- 
+    def getWho(self):
+        return "AssociationTestCase"
+
     '''
     Testing    
     '''
     
     def setUp(self):
-        self.axon = Axon()
-#         self.Wall_E_item_sensation = Sensation.create(robot=self,robot=self,sensationType=Sensation.SensationType.Item,  direction=Sensation.Direction.Out, name='Wall-E', presence = Sensation.Presence.Present)
-#         self.Wall_E_image_sensation = Sensation.create(robot=self,robot=self,sensationType=Sensation.SensationType.Image, direction=Sensation.Direction.Out)
+        self.axon = Axon(robot=self)
+#         self.Wall_E_item_sensation = Sensation.create(robot=self,sensationType=Sensation.SensationType.Item,  direction=Sensation.Direction.Out, name='Wall-E', presence = Sensation.Presence.Present)
+#         self.Wall_E_image_sensation = Sensation.create(robot=self,sensationType=Sensation.SensationType.Image, direction=Sensation.Direction.Out)
 #         self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation,
 #                                              score=AssociationTestCase.SCORE)
         
@@ -127,7 +130,7 @@ class AssociationTestCase(unittest.TestCase):
         print('5 len(Wall_E_image_sub_sensation.getAssociations()) ' + str(len(Wall_E_image_sub_sensation.getAssociations())))
         print('6 len(Wall_E_item_sensation.getAssociations()) ' + str(len(Wall_E_item_sensation.getAssociations())))
         # this connection should be connected to a Voice now, when we process new Item created
-        #simulate TensorflowCalssification sernd presence item to MainBobot
+        #simulate TensorflowClassification send presence item to MainBobot
         self.association.tracePresents(Wall_E_item_sensation) # presence
         # Now we should have 1 item in Robot.presentItemSensations (can be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.association.presentItemSensations[Wall_E_item_sensation.getName()].getAssociations()), 1)

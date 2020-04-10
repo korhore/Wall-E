@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 17.08.2019
+Updated on 10.04.2020
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -181,7 +181,7 @@ class Robot(Thread):
         self.setWho(self.config.getWho())
         self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who " + self.getWho() + " kind " + self.getKind() + " instanceType " + self.config.getInstanceType() + self.capabilities.toDebugString())
         # global queue for senses and other robots to put sensations to robot
-        self.axon = Axon()
+        self.axon = Axon(robot=self)
         #and create subinstances
         for subInstanceName in self.config.getSubInstanceNames():
             robot = self.loadSubRobot(subInstanceName=subInstanceName, level=self.level)
@@ -368,8 +368,9 @@ class Robot(Thread):
                 robot.start()
         # study own identity
         # starting point of robot is always to study what it knows himself
-        self.studyOwnIdentity()
-        self.getOwnIdentity()
+        if self.getLevel() == 1:
+            self.studyOwnIdentity()
+            self.getOwnIdentity()
 
         # live until stopped
         self.mode = Sensation.Mode.Normal
@@ -421,14 +422,14 @@ class Robot(Thread):
         self.log(logLevel=Robot.LogLevel.Verbose, logStr="self.running = False")      
         self.running = False    # this in not real, but we wait for Sensation,
                                 # so give  us one stop sensation
-        self.log(logLevel=Robot.LogLevel.Verbose, logStr="self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(sensationType = Sensation.SensationType.Stop))") 
+        self.log(logLevel=Robot.LogLevel.Verbose, logStr="self.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=Sensation.create(robot=self,sensationType = Sensation.SensationType.Stop))") 
         # stop sensation
-        sensation=Sensation(robotId=self.getId(),associations=[], sensationType = Sensation.SensationType.Stop)
+        sensation=Sensation.create(robot=self,associations=[], sensationType = Sensation.SensationType.Stop)
         # us,but maybe not send up
-        self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None)
+        self.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None)
         # to the parent also
         if self.getParent() is not None:
-            self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None)
+            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None)
 
 
     '''
@@ -439,12 +440,12 @@ class Robot(Thread):
             
     def doStop(self):
         # stop sensation
-        sensation=Sensation(robotId=self.getId(),associations=[], sensationType = Sensation.SensationType.Stop)
+        sensation=Sensation.create(robot=self,associations=[], sensationType = Sensation.SensationType.Stop)
         # us,but maybe not send up
-        self.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None)
+        self.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None)
         # to the parent also
         if self.getParent() is not None:
-            self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None)
+            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None)
         
     def studyOwnIdentity(self):
         self.mode = Sensation.Mode.StudyOwnIdentity
@@ -551,8 +552,8 @@ class Robot(Thread):
         # sensation going up
         elif transferDirection == Sensation.TransferDirection.Up:
             if self.getParent() is not None: # if sensation is going up  and we have a parent
-                self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getParent().getAxon().put(transferDirection=transferDirection, sensation=sensation))')      
-                self.getParent().getAxon().put(transferDirection=transferDirection, sensation=sensation, association=None)
+                self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation))')      
+                self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation, association=None)
             else: # we are main Robot
                 # check if we have subrobot that has capability to process this sensation
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.getSubCapabilityInstances')      
@@ -565,12 +566,13 @@ class Robot(Thread):
                             sensation.isReceivedFrom(robot.getSocketServer().getHost()):
                             self.log(logLevel=Robot.LogLevel.Verbose, logStr='Remote robot ' + robot.getWho() + 'has capability for this, but sensation comes from it self. Don\'t recycle it')
                         else:
-                            self.log(logLevel=Robot.LogLevel.Verbose, logStr='Remote robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)')
-                            robot.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=sensation, association=None)
+                            self.log(logLevel=Robot.LogLevel.Verbose, logStr='Remote robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)')
+                            robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation, association=None, detach=False) # keep ownerdhip untill sent to all sub Robots
                     else:
-                        self.log(logLevel=Robot.LogLevel.Verbose, logStr='Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)')
+                        self.log(logLevel=Robot.LogLevel.Verbose, logStr='Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)')
                         # new instance or sensation for process
-                        robot.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=sensation, association=None)
+                        robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation, association=None, detach=False) # keep ownerdhip untill sent to all sub Robots
+                sensation.detach(robot=self) # when sent to subrobots, detach
         # sensation going down
         else:
             # which subinstances can process this
@@ -583,12 +585,12 @@ class Robot(Thread):
                        sensation.isReceivedFrom(robot.getSocketServer().getHost()):
                         self.log(logLevel=Robot.LogLevel.Verbose, logStr='Remote robot ' + robot.getWho() + 'has capability for this, but sensation comes from it self. Don\'t recycle it')
                     else:
-                        self.log(logLevel=Robot.LogLevel.Detailed, logStr='Remote robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
-                        robot.getAxon().put(transferDirection=transferDirection, sensation=sensation, association=None)
+                        self.log(logLevel=Robot.LogLevel.Detailed, logStr='Remote robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(robot=self, sensation)')
+                        robot.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation, association=None, detach=False) # keep ownerdhip untill sent to all sub Robots
                 else:
-                    self.log(logLevel=Robot.LogLevel.Verbose, logStr='Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(sensation)')
-                    robot.getAxon().put(transferDirection=transferDirection, sensation=sensation, association=None)
-                    
+                    self.log(logLevel=Robot.LogLevel.Verbose, logStr='Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(robot=self, sensation)')
+                    robot.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation, association=None, detach=False) # keep ownerdhip untill sent to all sub Robots
+            sensation.detach(robot=self) # when sent to subrobots, detach
 # Utilities
     def tracePresents(self, sensation):
         # present means pure Present, all other if handled not present
@@ -707,8 +709,8 @@ class VirtualRobot(Robot):
                 self.images.append(image)
 
                 imageSensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image, filePath=sensation_filepath)
-                self.log("getOwnIdentity: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=" + imageSensation.toDebugStr())      
-                self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
+                self.log("getOwnIdentity: self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=" + imageSensation.toDebugStr())      
+                self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
              # voices
             for fname in voice_file_names:
                 image_path=os.path.join(dirName,fname)
@@ -735,8 +737,8 @@ class VirtualRobot(Robot):
                     self.voices.append(data)
                     time.sleep(VirtualRobot.SLEEP_BETWEEN_VOICES)
                     sensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=data, filePath=sensation_filepath)
-                    self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None) # or self.process
-                    self.log("getOwnIdentity: self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=" + sensation.toDebugStr())      
+                    self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None) # or self.process
+                    self.log("getOwnIdentity: self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=" + sensation.toDebugStr())      
                  
     '''
     tell your identity
@@ -745,8 +747,8 @@ class VirtualRobot(Robot):
         
         image = self.images[self.imageind]
         imageSensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image)
-        self.log('tellOwnIdentity: self.imageind  ' + str(self.imageind) + ' self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=' + imageSensation.toDebugStr())      
-        self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None) # or self.process
+        self.log('tellOwnIdentity: self.imageind  ' + str(self.imageind) + ' self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=' + imageSensation.toDebugStr())      
+        self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None) # or self.process
         self.imageind=self.imageind+1
         if self.imageind >= len(self.images):
             self.imageind = 0
@@ -755,8 +757,8 @@ class VirtualRobot(Robot):
             time.sleep(VirtualRobot.SLEEP_BETWEEN_VOICES)
             data = self.voices[self.voiceind]
             sensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=data)
-            self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None) # or self.process
-            self.log("tellOwnIdentity: " + str(self.voiceind) + " self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=" + sensation.toDebugStr())      
+            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None) # or self.process
+            self.log("tellOwnIdentity: " + str(self.voiceind) + " self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=" + sensation.toDebugStr())      
             self.voiceind=self.voiceind+1
             if self.voiceind >= len(self.voices):
                self.voiceind = 0

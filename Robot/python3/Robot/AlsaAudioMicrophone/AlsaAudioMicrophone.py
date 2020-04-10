@@ -1,11 +1,11 @@
 '''
 Created on 01.05.2019
-Updated on 08.06.2019
+Updated on 10.04.2020
 
 @author: reijo.korhonen@gmail.com
 
 This class is low level sensory for hearing,
-implemented by alasaaudio and need usb-microphone as hardware
+implemented by alsaaudio and need usb-microphone as hardware
 
 '''
 import time
@@ -110,6 +110,7 @@ class AlsaAudioMicrophone(Robot):
 #                     self.tracePresents(sensation)
 #                 else:
                 self.process(transferDirection=transferDirection, sensation=sensation, association=association)
+                sensation.detach(robot=self)
             else:
                 if len(Robot.presentItemSensations) > 0: # listen is we have items that can speak
                     if not self.logged:
@@ -167,8 +168,8 @@ class AlsaAudioMicrophone(Robot):
             for name, itemSensation in Robot.presentItemSensations.items():
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: voice from " + name)
                 itemSensation.associate(sensation=voiceSensation)
-            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: self.getParent().getAxon().put(sensation)")
-            self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation, association=None)
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: self.getParent().getAxon().put(robot=self, sensation)")
+            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation, association=None)
             self.voice_data=None
             self.voice_l=0
         

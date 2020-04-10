@@ -284,8 +284,8 @@ class Communication(Robot):
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: onStart')
             data = Robot.voices[Robot.voiceind]
             self.spokedVoiceSensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, data=data)
-            self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation, association=None) # or self.process
-            self.log("speak: Starting with presenting Robot voiceind={} self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation={}".format(str(Robot.voiceind), self.spokedVoiceSensation.toDebugStr()))
+            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation, association=None) # or self.process
+            self.log("speak: Starting with presenting Robot voiceind={} self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation={}".format(str(Robot.voiceind), self.spokedVoiceSensation.toDebugStr()))
             Robot.voiceind=Robot.voiceind+1
             if Robot.voiceind >= len(Robot.voices):
                 Robot.voiceind = 0
@@ -377,7 +377,7 @@ class Communication(Robot):
             self.usedVoices.append(self.mostImportantVoiceSensation)   
             self.usedVoiceLens.append(len(self.mostImportantVoiceSensation.getData()))               
             # speak                 
-            self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation, association=None)
+            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation, association=None)
             # wait response
             self.timer = threading.Timer(interval=Communication.COMMUNICATION_INTERVAL, function=self.stopWaitingResponse)
             self.timer.start()

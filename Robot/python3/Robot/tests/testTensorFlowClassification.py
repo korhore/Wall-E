@@ -1,6 +1,6 @@
 '''
 Created on 23.06.2019
-Updated on 04.03.2020
+Updated on 09.04.2020
 @author: reijo.korhonen@gmail.com
 
 test TensorFlowClassification class
@@ -64,22 +64,24 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
     '''
     Robot modeling
     '''
-
+    
     def getAxon(self):
         return self.axon
     def getId(self):
         return 1.1
+    def getWho(self):
+        return "TensorFlowClassificationTestCase"
 
     '''
     Testing    
     '''
-
+    
     def setUp(self):
         self.isFirstSleep=True
         self.processTimeSum = 0.0
         self.processNumber = 0
 
-        self.axon = Axon()
+        self.axon = Axon(robot=self)
 
         self.tensorFlowClassification = TensorFlowClassification(parent=self,
                                        instanceName='TensorFlowClassification',
@@ -96,9 +98,12 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
 
 
     def tearDown(self):
-#         print('sleep ' + str(TensorFlowClassificationTestCase.TEST_TIME) + ' to Stop Robot and test finishes')
-#         systemTime.sleep(TensorFlowClassificationTestCase.TEST_TIME)       # give Robot some time to stop
-        self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=Sensation(robotId=self.getId(),associations=[], sensationType = Sensation.SensationType.Stop), association=None)
+        print('sleep ' + str(TensorFlowClassificationTestCase.TEST_TIME) + ' to Stop Robot and test finishes')
+        systemTime.sleep(TensorFlowClassificationTestCase.TEST_TIME)       # give Robot some time to stop
+        self.tensorFlowClassification.getAxon().put(robot=self,
+                                                    transferDirection=Sensation.TransferDirection.Up,
+                                                    sensation=Sensation.create(robot=self,associations=[], sensationType = Sensation.SensationType.Stop),
+                                                    association=None)
         print('sleep ' + str(TensorFlowClassificationTestCase.TEST_STOP_TIME) + ' time for Robot to process Stop Sensation')
         systemTime.sleep(TensorFlowClassificationTestCase.TEST_STOP_TIME)       # give Robot some time to stop
 
@@ -243,7 +248,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
         print('doTestItemSensations start')
         
         testStartTime = systemTime.time()
-        self.tensorFlowClassification.getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
+        self.tensorFlowClassification.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
         
         if self.isFirstSleep:
             waitTime =  2*TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME       # give Robot some time to stop

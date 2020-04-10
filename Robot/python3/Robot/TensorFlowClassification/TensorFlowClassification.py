@@ -1,6 +1,6 @@
 '''
 Created on 30.04.2019
-Updated on 04.03.2020
+Updated on 09.04.2020
 
 @author: reijo.korhonen@gmail.com
 '''
@@ -325,6 +325,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                 output_dict[self.DETECTION_SCORES] = output_dict[self.DETECTION_SCORES][0]
                 if self.DETECTION_MASKS in output_dict:
                     output_dict[self.DETECTION_MASKS] = output_dict[self.DETECTION_MASKS][0]
+        self.log(logLevel=Robot.LogLevel.Normal, logStr='done run_inference_for_single_image')
         return output_dict
           
     
@@ -604,8 +605,8 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                                                              presence = precence)
                             itemsensation.associate(sensation=subsensation, score=score)
                             self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
-                            self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
-                            self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
+                            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
+                            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
                             self.log("Created Working subImage and item sensation for this")
                         # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
                     i = i+1
@@ -661,8 +662,8 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                                                               presence = precence)
                     itemsensation.associate(sensation=subsensation, score=scores[i])
                     self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(scores[i]))
-                    self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
-                    self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
+                    self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
+                    self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
                     self.log("Created Working subImage and item sensation for this")
         return current_present
     
@@ -704,8 +705,8 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
 #                                                               presence = precence)
 #                             itemsensation.associate(sensation=subsensation, score=scores[i])
 #                             self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(scores[i]))
-#                             self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
-#                             self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
+#                             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
+#                             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
 #                             self.log("Created Working subImage and item sensation for this")
 #                             # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
 #                 x = x +  self.width/2    
@@ -743,7 +744,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                    TensorFlowClassification.present[name] = presence
                 itemsensation = Sensation.create(robot=self, sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.Working, direction = Sensation.Direction.Out, name=name,\
                                                  presence = presence)
-                self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=None)
+                self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=None)
                 self.log("process created exiting/absent itemsensation " + itemsensation.toDebugStr())
         # can't del in loop, do it here
         for name in absent_names:

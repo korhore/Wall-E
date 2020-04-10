@@ -96,11 +96,11 @@ class RaspberryPiCamera(Robot):
 #                 stream.seek(0)
 #                 image = PIL_Image.open(stream)
 #                 if self.isChangedImage(image):
-#                     self.log("self.getParent().getAxon().put(sensation) stream {}".format(len(stream.getvalue())))
+#                     self.log("self.getParent().getAxon().put(robot=self, sensation) stream {}".format(len(stream.getvalue())))
 #                     sensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image)
-#                     self.log("self.getParent().getAxon().put(sensation) getData")
+#                     self.log("self.getParent().getAxon().put(robot=self, sensation) getData")
 # #                    sensation.save()
-#                     self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # or self.process
+#                     self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # or self.process
 #                 else:
 #                     self.log("no change")
 #                 self.camera.start_preview()
@@ -129,11 +129,11 @@ class RaspberryPiCamera(Robot):
         stream.seek(0)
         image = PIL_Image.open(stream)
         if self.isChangedImage(image):
-            self.log("sense self.getParent().getAxon().put(sensation) stream {}".format(len(stream.getvalue())))
+            self.log("sense self.getParent().getAxon().put(robot=self, sensation) stream {}".format(len(stream.getvalue())))
             # put direction out (seen image) to the parent Axon going up to main Robot
             sensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image)
 #            sensation.save()
-            self.getParent().getAxon().put(transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None)
+            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None)
         else:
              self.log("sense no change")
         self.camera.start_preview()

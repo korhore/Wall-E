@@ -44,13 +44,15 @@ class CommunicationTestCase(unittest.TestCase):
         return self.axon
     def getId(self):
         return 1.1
+    def getWho(self):
+        return "CommunicationTestCase"
 
     '''
     Testing    
     '''
     
     def setUp(self):
-        self.axon = Axon()
+        self.axon = Axon(robot=self)
 
         # define time in history, that is different than in all tests
         # not too far away in history, so sensation will not be deleted

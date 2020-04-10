@@ -1,6 +1,6 @@
 '''
 Created on 04.05.2019
-Updated on 19.07.2019
+Updated on 10.04.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -185,6 +185,7 @@ class AlsaAudioPlayback(Robot):
         else:
             self.log(logLevel=Robot.LogLevel.Error, logStr='process: got sensation this robot can\'t process, NOT a Voice In or not running')
         self.log(logLevel=Robot.LogLevel.Detailed, logStr="self.running " + str(self.running))
+        sensation.detach(robot=self) # finally release played sensation
         
     def getPlaybackTime(self, datalen=None):
         if datalen == None:

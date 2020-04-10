@@ -47,7 +47,8 @@ class Association(Robot):
         
     def process(self, transferDirection, sensation, association=None):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: sensation ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
-           #Robot.presentItemSensations can be changed
+        #Robot.presentItemSensations can be changed
+        #TODO logic can lead to infinite loop
         succeeded = False
         while not succeeded:
             try:
@@ -63,4 +64,6 @@ class Association(Robot):
                 succeeded = True
             except Exception as e:
                  self.log(logLevel=Robot.LogLevel.Normal, logStr='Association.process: ignored exception ' + str(e))
+                 succeeded = True
+        sensation.detach(robot=self) # robot is not attached to this sensation
 

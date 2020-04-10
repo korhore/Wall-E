@@ -14,20 +14,32 @@ class Axon():
     Leaf Robots put Sensation(s) they create to the parent Robots Axon Up TransferDirection
     to Middle layer Robots until MainRobot is reached.
     
-    MainRobot transfers Sensatations it gets to Down TransferDirection to SubRobots that have
+    MainRobot transfers Sensations it gets to Down TransferDirection to SubRobots that have
     capability (or subrobots subrobot has capability) to process this Sensation
-    until Leaf Robot is reached-
+    until Leaf Robot is reached.
   """
     
 
-    def __init__(self):
+    def __init__(self, robot):
+        self.robot = robot      # owner robot of this axon
         self.queue = Queue()
        
-    def put(self, transferDirection, sensation, association=None):
+    def put(self, robot, transferDirection, sensation, association=None, detach=True):
+        print("Axon put from {} to {} with original queue length {} full {}".format(robot.getWho(),self.robot.getWho(), self.queue.qsize(), self.queue.full()))
+        sensation.attach(self.robot)    # take ownership
+        if detach:
+            sensation.detach(robot)         # release from caller
         self.queue.put((transferDirection, sensation, association))
-        
+ 
+    '''
+    Robot calls this to get its sensations
+    Robot gets sensations only from its own Axon,
+    so robot is not mentioned as parameter 
+    '''       
     def get(self):
+        print("Axon get from {} original queue length {} empty {} full {}".format(self.robot.getWho(), self.queue.qsize(), self.queue.empty(), self.queue.full()))
         (transferDirection, sensation, association) = self.queue.get()
+        print("Axon done get from {} result queue length {} empty {} full {}".format(self.robot.getWho(), self.queue.qsize(), self.queue.empty(), self.queue.full()))
         return transferDirection, sensation, association
         
     def empty(self):

@@ -48,17 +48,28 @@ class VisualTestCase(unittest.TestCase):
     Robot modeling
     '''
     
+    '''
+    Robot modeling
+    '''
+    
     def getAxon(self):
         return self.axon
     def getId(self):
         return 1.1
+    def getWho(self):
+        return "VisualTestCase"
+
+    '''
+    Testing    
+    '''
+    
 
     '''
     Testing    
     '''
     
     def setUp(self):
-        self.axon = Axon() # parent axon
+        self.axon = Axon(robot=self) # parent axon
 
         # define time in history, that is different than in all tests
         # not too far away in history, so sensation will not be deleted
@@ -220,6 +231,10 @@ class VisualTestCase(unittest.TestCase):
 
     def tearDown(self):
         self.visual.stop()
+        self.assertEqual(self.visual.getAxon().empty(), False, 'Axon should not be empty after self.visual.stop()')
+        transferDirection, sensation, association = self.getAxon().get()
+        self.assertEqual(sensation.getSensationType(), Sensation.SensationType.Stop, 'parent should get Stop sensation type after self.visual.stop()')
+        
         while self.visual.running:
             systemTime.sleep(1)
          
@@ -237,20 +252,20 @@ class VisualTestCase(unittest.TestCase):
         for i in range(VisualTestCase.TEST_RUNS):
             self.getSenasations()
             
-            self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_item_sensation)
-            self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_voice_sensation)
-            self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_image_sensation)
-            self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_image_sensation_2)
+            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_item_sensation)
+            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_voice_sensation)
+            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_image_sensation)
+            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_image_sensation_2)
  
-            self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_item_sensation)
-            self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_image_sensation)
-            self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_voice_sensation)
+            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_item_sensation)
+            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_image_sensation)
+            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_voice_sensation)
            
             systemTime.sleep(3) # let Visual start before waiting it to stops           
             self.assertEqual(self.visual.getAxon().empty(), True, 'Axon should be empty again at the end of test_Visual!')
-            self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_voice_sensation)
+            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_voice_sensation)
         
-        self.visual.getAxon().put(transferDirection=Sensation.TransferDirection.Down, sensation=self.stopSensation)
+        self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.stopSensation)
         
         systemTime.sleep(VisualTestCase.TEST_TIME) # let result UI be shown until cleared           
         
