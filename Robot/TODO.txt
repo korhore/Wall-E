@@ -16,22 +16,7 @@ and TensorflowClassification will stop
 Develop
 -------
 
-Todo
-----
-
-Oops, Connection was forgotten to move!
-
-Maybe MainRobot stops, because someone deletes a Sensation that put om Axon,
-but is not processed yet. We must find a way how to reserve and free Sensations.
-Solution.
-- Sensation,create sets sonweship od Created Sensation to the caller Robot.
-- Axon.put cleares Sensation of ther caller Robot ans set it to the Robot that will get that Sensation
-- Robot.run.Axon.get gets Sensation, but ownership al already set to this Robot.
-- At the and of run loop or Robot.process we release this Robots owenweship.
-- Communication is special case, because it gets Sensation fron the Memory also.
-  These sensation are processed by oernership same way as Axon-Process -loop.
--- reserve/release -> attach/detach() and it will be expanded to Robot.create,
-   Axon, Robot.process.
+Implement Robot.isRunning also or use thread method. We nead that in mny places.
 
 Add Robot roles
 - Remote -> RemoteSubRobot is part of remote MainRobot, meaning that it has only senses/mucle Robot
@@ -42,11 +27,37 @@ Add Robot roles
   Remote MainRobot has ts own identity, so it speaks as its own and shows images as its own.
   Two MainRobots cam coversate each with other and even be in love with each other.
   So we can make Wall-E and Eve-robots to be in love with each other.
+
 - VirtualMainRobot is just like RemoteMainRobot but it is not connected with tcp/ip
   but with virtual port (Axon). VirtualRobot does not have its own senses or mucles. but it
-  shares those of real MainRobot. Its has its own memory for Sensations.
-  With VirtualMainRobot and Real MainRobot we can impllement also robots in love, communicating with each other
+  shares those of real MainRobot.
+  Solution:
+  - Robot knows its MainRobot role Robot. Mainrobot holder can be real MainRobot or Virtual Robot
+  - Robot knows its Memory, choose this. So memory should have its semaphores
+  - Implement Memory class
+  
+  It has its own memory for Sensations. This means that also MainRobot should have its own memory,
+  so we can't use glogat Menory any more.
+  
+  With VirtualMainRobot and Real MainRobot we can implement also robots in love, communicating with each other
   but relationship is not so real than real MainRobot + reamote MainRobot with independent senses and muscles.    
+
+
+Todo
+----
+
+Solved OK
+Maybe MainRobot stops, because someone deletes a Sensation that put om Axon,
+but is not processed yet. We must find a way how to reserve and free Sensations.
+Solution.
+- Sensation,create sets owneship od Created Sensation to the caller Robot.
+- Axon.put cleares Sensation of ther caller Robot ans set it to the Robot that will get that Sensation
+- Robot.run.Axon.get gets Sensation, but ownership al already set to this Robot.
+- At the and of run loop or Robot.process we release this Robots owenweship.
+- Communication is special case, because it gets Sensation fron the Memory also.
+  These sensation are processed by oernership same way as Axon-Process -loop.
+-- reserve/release -> attach/detach() and it will be expanded to Robot.create,
+   Axon, Robot.process.
 
 
 Some times Robot just stops without any hint why. top shows 100% processor usage, but

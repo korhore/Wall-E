@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 09.04.2020
+Edited on 10.04.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -84,7 +84,7 @@ Sensation is something Robot senses
 '''
 
 class Sensation(object):
-    VERSION=16          # version number to check, if we picle same version
+    VERSION=15          # version number to check, if we picle same version
                         # instances. Otherwise we get odd errors, with old
                         # version code instances
 
@@ -421,6 +421,7 @@ class Sensation(object):
             del memory[0]
 
         # if we are still using too much memory for Sensations, we should check all Sensations in the cache
+        notForgettables={}
         if Sensation.getMemoryUsage() > Sensation.maxRss or\
            Sensation.getAvailableMemory() < Sensation.minAvailMem:
             i=0
@@ -434,6 +435,11 @@ class Sensation(object):
                         i=i+1
                 else:
                     numNotForgettables=numNotForgettables+1
+                    for robot in memory[i].getAttachedBy():
+                        if robot.getWho() not in notForgettables:
+                            notForgettables[robot.getWho()] = 1
+                        else:
+                            notForgettables[robot.getWho()] = notForgettables[robot.getWho()]+1
                     i=i+1
        
 #        print('Sensations cache for {} {} {} {} {} {} Total memory usage {} MB with Sensation.min_cache_memorability {}'.\
@@ -444,6 +450,8 @@ class Sensation(object):
                      Sensation.getMemoryUsage(), Sensation.getAvailableMemory(), Sensation.min_cache_memorability))
         if numNotForgettables > 0:
             print('Sensations cache deletion skipped {} Not Forgottable Sensation'.format(numNotForgettables))
+            for robotName, notForgottableNumber in notForgettables.items():
+                print ('Sensations cache Not Forgottable robot {} number {}'.format(robotName, notForgottableNumber))
         #print('Memory usage for {} Sensations {} after {} MB'.format(len(memory), Sensation.getMemoryString(sensation.getMemory()), Sensation.getMemoryUsage()-Sensation.startSensationMemoryUsageLevel))
          
     '''
@@ -1887,9 +1895,12 @@ class Sensation(object):
     def detach(self, robot):
         if robot in self.attachedBy:
             self.attachedBy.remove(robot)
-#         for r in self.attachedBy:
-#             if r.getId() == robot.getId():
-#                 self.attachedBy.remove(r)
+
+    '''
+    get attached Robots
+    '''            
+    def getAttachedBy(self):
+        return self.attachedBy
             
     '''
         is Sensation forgettable
@@ -2224,6 +2235,7 @@ class Sensation(object):
             with open(Sensation.PATH_TO_PICLE_FILE, "wb") as f:
                 try:
                     pickler = pickle.Pickler(f, -1)
+                    pickler.dump(Sensation.VERSION)
                     pickler.dump(Sensation.sensationMemorys[Sensation.Memory.LongTerm])
                     #print ('saveLongTermMemory dumped ' + str(len(Sensation.sensationMemorys[Sensation.Memory.LongTerm])))
                     print ('saveLongTermMemory dumped ' + str(len(Sensation.sensationMemorys[Sensation.Memory.Sensory])))
@@ -2253,22 +2265,24 @@ class Sensation(object):
                         # TODO correct later
                         # whole Memory
                         #Sensation.sensationMemorys[Sensation.Memory.LongTerm] = \
-                        Sensation.sensationMemorys[Sensation.Memory.LongTerm] = pickle.load(f)
-                        for key, sensationMemory in Sensation.sensationMemorys.items():
-                            print ('{} loaded {}'.format(Sensation.getMemoryString(sensationMemory), str(len(sensationMemory))))
-                            i=0
-                            while i < len(Sensation.sensationMemorys[sensationMemory]):
-                                if Sensation.sensationMemorys[sensationMemory][i].VERSION != Sensation.VERSION: # if dumped code version and current code version is not same
-                                    print('del Sensation.sensationMemorys[sensationMemory]['+str(i)+'] with uncompatible Sensation version ' + str(Sensation.sensationMemorys[sensationMemory][i].VERSION))
-                                    del Sensation.sensationMemorys[sensationMemory][i]
-                                elif  Sensation.sensationMemorys[sensationMemory][i].getMemorability() <  Sensation.MIN_CACHE_MEMORABILITY:
-                                    print('delete Sensation.sensationMemorys[sensationMemory]['+str(i)+'] with too low memorability ' + str(Sensation.sensationMemorys[sensationMemory][i].getMemorability()))
-                                    Sensation.sensationMemorys[sensationMemory][i].delete()
-                                    # TODO we should delete this also from but how?
-                                    del Sensation.sensationMemorys[sensationMemory][i]
-                                else:
-                                    i=i+1
-                            print ('{} after load and verification {}'.format(Sensation.getMemoryString(sensationMemory), str(len(Sensation.sensationMemorys[sensationMemory]))))
+                        version = pickle.load(f)
+                        if version == Sensation.VERSION:
+                            Sensation.sensationMemorys[Sensation.Memory.LongTerm] = pickle.load(f)
+                            for key, sensationMemory in Sensation.sensationMemorys.items():
+                                print ('{} loaded {}'.format(Sensation.getMemoryString(key), str(len(sensationMemory))))
+                                i=0
+                                while i < len(sensationMemory):
+                                    if  sensationMemory[i].getMemorability() <  Sensation.MIN_CACHE_MEMORABILITY:
+                                        print('delete sensationMemory[{}] with too low memorability {}'.format(i,sensationMemory[i].getMemorability()))
+                                        sensationMemory[i].delete()
+                                        # TODO we should delete this also from but how?
+                                        del sensationMemory[i]
+                                    else:
+                                        i=i+1
+                                print ('{} after load and verification {}'.format(Sensation.getMemoryString(key), str(len(sensationMemory))))
+                                #print ('{} after load and verification {}'.format(Sensation.getMemoryString(sensationMemory), len(sensationMemory)))
+                        else:
+                            print("Sensation could not be loaded. because Sensation cache version {} does not mach current sensation version {}".format(version,Sensation.VERSION))
                     except IOError as e:
                         print("pickle.load(f) error " + str(e))
                     except pickle.PickleError as e:

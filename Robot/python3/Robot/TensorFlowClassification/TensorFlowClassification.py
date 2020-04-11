@@ -1,6 +1,6 @@
 '''
 Created on 30.04.2019
-Updated on 09.04.2020
+Updated on 10.04.2020
 
 @author: reijo.korhonen@gmail.com
 '''
@@ -613,7 +613,9 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
             self.logAbsents(current_present=current_present)  
         else:
             self.log(logLevel=Robot.LogLevel.Error, logStr='process: got sensation we this robot can\'t process')
-            
+
+        sensation.detach(robot=self)    # detach processed sensation
+           
     def LITEProcessImage(self, image):
 #         # resize image
 #         if self.width == self.height:

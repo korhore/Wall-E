@@ -166,7 +166,7 @@ class MainRobot(Robot):
             
             someRunning = False
             for robot in self.subInstances:
-                if robot.running:
+                if robot.isAlive():
                     self.log("MainRobot waits " + robot.getWho() + " stopping")      
                     someRunning = True
                     break 
@@ -175,14 +175,14 @@ class MainRobot(Robot):
                 time.sleep(10)
                 someRunning = False
                 for robot in self.subInstances:
-                    if robot.running:
+                    if robot.isAlive():
                         self.log("MainRobot waits " + robot.getWho() + " stopping")      
                         someRunning = True
                         break 
                 i = i+1    
 
             i=0
-            while i < 20 and self.tcpServer.running:
+            while i < 20 and self.tcpServer.isAlive():
                 self.log("MainRobot waiting self.tcpServer Stopping " + self.tcpServer.getWho())
                 time.sleep(10)
                 i = i+1    

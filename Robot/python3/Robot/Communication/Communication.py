@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 24.02.2020
+Updated on 10.04.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -70,14 +70,16 @@ class Communication(Robot):
     class CommunicationItem():
         
         def __init__(self,
+                     robot,                 # robot
                      name,                  # name of present sensation item
                      sensation,             # present sensation item
                      time,                  # time, when  we spoke
                      association = None):   # association to a spoken voice
+            self.robot=robot
             self.name = name
             self.sensation = sensation
             if self.sensation is not None:
-                self.sensation.attach(self)
+                self.sensation.attach(robot=self.robot)
             self.time = time
             self.association = association
             
@@ -94,7 +96,7 @@ class Communication(Robot):
             
             self.sensation = sensation
             if self.sensation is not None:
-                self.sensation.attach(self)
+                self.sensation.attach(robot=self.robot)
           
         def getTime(self):
             return self.time
@@ -109,7 +111,7 @@ class Communication(Robot):
         def detach(self):
             # detach Sensation
             if self.sensation is not None:
-                self.sensation.detach(self)
+                self.sensation.detach(robot=self.robot)
 
 
     def __init__(self,
@@ -237,6 +239,8 @@ class Communication(Robot):
                 self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process: not Item or RESPONSE Voice in communication or too soon from last conversation' + sensation.toDebugStr())
         else:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process: too old sensation ' + sensation.toDebugStr())
+        
+        sensation.detach(robot=self)    # detach processed sensation
                        
     def communicationItemsToStr(self, name):
         namesStr=''
@@ -297,7 +301,8 @@ class Communication(Robot):
         while not succeeded:
             try:
                 for name, sensation in Robot.presentItemSensations.items():
-                    communicationItem = Communication.CommunicationItem(name = name,
+                    communicationItem = Communication.CommunicationItem(robot=self,
+                                                                        name = name,
                                                                         sensation = sensation,
                                                                         time = systemTime.time())
                     self.communicationItems.append(communicationItem)
@@ -324,7 +329,8 @@ class Communication(Robot):
                     # Don't understand this logic any more
                     # if this name is capable to speak (has something to say)
     #                 if candidate_for_communication is not None:
-    #                     communicationItem = Communication.CommunicationItem(name = name,
+    #                     communicationItem = Communication.CommunicationItem(robot=self,
+    #                                                                         name = name,
     #                                                                         sensation = candidate_for_communication,
     #                                                                         time = systemTime.time())
     #                     candidate_communicationItems.append(communicationItem)

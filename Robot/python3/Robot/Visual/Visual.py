@@ -486,7 +486,7 @@ class Visual(Robot):
         def handleSensation(self, parent, sensation, level, associatedSensations, childrencount):
             """handleSensation."""
             #show sensation
-            print("handleSensation len(sensation.getAssociations()) " + str(len(sensation.getAssociations())) + " level " + str(level))
+            #print("handleSensation len(sensation.getAssociations()) " + str(len(sensation.getAssociations())) + " level " + str(level))
             if sensation not in associatedSensations:
                 associatedSensations.append(sensation)
                 imageInd=-1
