@@ -66,17 +66,23 @@ class Memory(object):
         self.memoryLock = ReadWriteLock() # for thread_dafe Sensation cache
         
     '''
-    getters, there is no need for settern
+    getters, setters
     '''
         
     def getRobot(self):
         return self.robot
-    
+    def setRobot(self, robot):
+        self.robot = robot
+   
     def getMaxRss(self):
         return self.maxRss
-    
+    def setMaxRss(self, maxRss):
+        self.maxRss = maxRss
+   
     def getMinAvailMem(self):
         return self.minAvailMem
+    def setMinAvailMem(self, minAvailMem):
+        self.minAvailMem = minAvailMem
 
 
     '''
@@ -158,7 +164,7 @@ class Memory(object):
     def addToSensationMemory(self, sensation):
         self.memoryLock.acquireWrite()  # thread_safe                                     
         self.forgetLessImportantSensations(sensation)        
-        self.sensationMemorys[sensation.getMemory()].append(sensation)        
+        self.sensationMemorys[sensation.getMemoryType()].append(sensation)        
         self.memoryLock.releaseWrite()  # thread_safe   
         
     '''
@@ -184,7 +190,7 @@ class Memory(object):
 
     def forgetLessImportantSensations(self, sensation):
         numNotForgettables=0
-        memoryType = self.sensationMemorys[sensation.getMemory()]
+        memoryType = self.sensationMemorys[sensation.getMemoryType()]
 
         # calibrate memorability        
         if (Memory.getMemoryUsage() > self.getMaxRss() or\
@@ -240,6 +246,6 @@ class Memory(object):
             print('Sensations cache deletion skipped {} Not Forgottable Sensation'.format(numNotForgettables))
             for robotName, notForgottableNumber in notForgettables.items():
                 print ('Sensations cache Not Forgottable robot {} number {}'.format(robotName, notForgottableNumber))
-        #print('Memory usage for {} Sensations {} after {} MB'.format(len(memoryType), Sensation.getMemoryTypeString(sensation.getMemory()), Sensation.getMemoryUsage()-Sensation.startSensationMemoryUsageLevel))
+        #print('Memory usage for {} Sensations {} after {} MB'.format(len(memoryType), Sensation.getMemoryTypeString(sensation.getMemoryType()), Sensation.getMemoryUsage()-Sensation.startSensationMemoryUsageLevel))
 
    

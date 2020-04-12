@@ -110,7 +110,7 @@ class Moving(Robot):
 #             self.log('process: Sensation.SensationType.ImageFilePath')      
 #         elif sensation.getSensationType() == Sensation.SensationType.Calibrate:
 #             self.log('process: Sensation.SensationType.Calibrate')      
-#             if sensation.getMemory() == Sensation.MemoryType.Working:
+#             if sensation.getMemoryType() == Sensation.MemoryType.Working:
 #                 if sensation.getDirection() == Sensation.Direction.In:
 #                     self.log('process: asked to start calibrating mode')      
 #                     self.calibrating = True
@@ -119,7 +119,7 @@ class Moving(Robot):
 #                     self.calibrating = False
 #                 # ask external senses to to set same calibrating mode          
 #                 self.out_axon.put(sensation)
-#             elif sensation.getMemory() == Sensation.MemoryType.Sensory:
+#             elif sensation.getMemoryType() == Sensation.MemoryType.Sensory:
 #                 if self.config.canHear() and self.calibrating:
 #                     if self.turning_to_object:
 #                         print (self.name + ": Robotserver.process turning_to_object, can't start calibrate activity yet")

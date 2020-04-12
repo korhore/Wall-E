@@ -374,7 +374,7 @@ class Sensation(object):
     def addToSensationMemory(sensation):
         memoryLock.acquireWrite()  # thread_safe                                     
         Sensation.forgetLessImportantSensations(sensation)        
-        Sensation.sensationMemorys[sensation.getMemory()].append(sensation)        
+        Sensation.sensationMemorys[sensation.getMemoryType()].append(sensation)        
         memoryLock.releaseWrite()  # thread_safe   
         
     '''
@@ -400,7 +400,7 @@ class Sensation(object):
 
     def forgetLessImportantSensations(sensation):
         numNotForgettables=0
-        memory = Sensation.sensationMemorys[sensation.getMemory()]
+        memory = Sensation.sensationMemorys[sensation.getMemoryType()]
 
         # calibrate memorability        
         if (Sensation.getMemoryUsage() > Sensation.maxRss or\
@@ -456,7 +456,7 @@ class Sensation(object):
             print('Sensations cache deletion skipped {} Not Forgottable Sensation'.format(numNotForgettables))
             for robotName, notForgottableNumber in notForgettables.items():
                 print ('Sensations cache Not Forgottable robot {} number {}'.format(robotName, notForgottableNumber))
-        #print('Memory usage for {} Sensations {} after {} MB'.format(len(memory), Sensation.getMemoryTypeString(sensation.getMemory()), Sensation.getMemoryUsage()-Sensation.startSensationMemoryUsageLevel))
+        #print('Memory usage for {} Sensations {} after {} MB'.format(len(memory), Sensation.getMemoryTypeString(sensation.getMemoryType()), Sensation.getMemoryUsage()-Sensation.startSensationMemoryUsageLevel))
          
     '''
     Association is a association between two sensations
@@ -1401,8 +1401,8 @@ class Sensation(object):
     '''
     def getLiveTimeLeftRatio(self):
         liveTimeLeftRatio = \
-                (Sensation.sensationMemoryLiveTimes[self.getMemory()] - (systemTime.time()-self.getLatestTime())) / \
-                Sensation.sensationMemoryLiveTimes[self.getMemory()]
+                (Sensation.sensationMemoryLiveTimes[self.getMemoryType()] - (systemTime.time()-self.getLatestTime())) / \
+                Sensation.sensationMemoryLiveTimes[self.getMemoryType()]
         if liveTimeLeftRatio < 0.0:
             liveTimeLeftRatio = 0.0
             
@@ -1424,9 +1424,9 @@ class Sensation(object):
        '''
     def getMemorability(self):
         try:
-            if self.getMemory() == Sensation.MemoryType.Sensory:
+            if self.getMemoryType() == Sensation.MemoryType.Sensory:
                 memorability =  10.0 * (math.log10(10.0 + 10.0 * self.getLiveTimeLeftRatio()) -1.0)
-            elif self.getMemory() == Sensation.MemoryType.Working:
+            elif self.getMemoryType() == Sensation.MemoryType.Working:
                 memorability =  math.e * (math.log(math.e + math.e * self.getLiveTimeLeftRatio()) - 1.0)
             else:
                 #memorability =  0.5 * math.e * (math.log(math.e + math.e * self.getLiveTimeLeftRatio()) - 1.0)
@@ -1766,9 +1766,9 @@ class Sensation(object):
         return self.sensationType
        
     def setMemory(self, memoryType):
-        if self.getMemory() != memoryType:
+        if self.getMemoryType() != memoryType:
             memoryLock.acquireWrite()  # thread_safe                                     
-            oldMemoryCache = Sensation.sensationMemorys[self.getMemory()]
+            oldMemoryCache = Sensation.sensationMemorys[self.getMemoryType()]
             try:
                 # remove from current menmory type cache and add to a new one
                 oldMemoryCache.remove(self)
@@ -1788,7 +1788,7 @@ class Sensation(object):
 #         Sensation.forgetLessImportantSensations(sensation=self)
 #         memoryLock.release()  # thread_safe                             
 
-    def getMemory(self):
+    def getMemoryType(self):
         return self.memoryType
        
     def setDirection(self, direction):
@@ -2018,7 +2018,7 @@ class Sensation(object):
         for key, sensationMemory in Sensation.sensationMemorys.items():
             for sensation in sensationMemory:
                 if capabilities.hasCapability(direction=sensation.getDirection(),
-                                              memoryType=sensation.getMemory(),
+                                              memoryType=sensation.getMemoryType(),
                                               sensationType=sensation.getSensationType()) and\
                    (timemin is None or sensation.getTime() > timemin) and\
                    (timemax is None or sensation.getTime() < timemax):
@@ -2224,7 +2224,7 @@ class Sensation(object):
         for sensation in Sensation.sensationMemorys[Sensation.MemoryType.LongTerm]:
             sensation.attachedBy = []
             if sensation.getMemorability() >  Sensation.MIN_CACHE_MEMORABILITY and\
-                sensation.getMemory() == Sensation.MemoryType.LongTerm:
+                sensation.getMemoryType() == Sensation.MemoryType.LongTerm:
                 sensation.attachedBy = [] # clear references to Robots
                                           # they are not valid wlen loaded and they cannoc be dumped
                 sensation.save()

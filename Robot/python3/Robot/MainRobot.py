@@ -142,7 +142,7 @@ class MainRobot(Robot):
             transferDirection, sensation, association = self.getAxon().get()
             self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
             # We are main Robot, keep track of presence
-            if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.MemoryType.Working and\
+            if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemoryType() == Sensation.MemoryType.Working and\
                sensation.getDirection() == Sensation.Direction.Out:
                self.tracePresents(sensation)
             

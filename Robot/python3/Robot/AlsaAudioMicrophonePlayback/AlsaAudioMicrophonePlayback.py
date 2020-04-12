@@ -95,7 +95,7 @@ class AlsaAudioMicrophonePlayback(Robot):
                         self.alsaAudioPlayback.process(transferDirection=transferDirection, sensation=sensation, association=association)
                         self.running=False
                    # Item.name.presence to microphone
-#                     elif sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.MemoryType.Working and\
+#                     elif sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemoryType() == Sensation.MemoryType.Working and\
 #                          sensation.getDirection() == Sensation.Direction.Out:
 #                         #self.alsaAudioMicrophone.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation, association=association)
 #                         self.alsaAudioMicrophone.process(transferDirection=transferDirection, sensation=sensation, association=association)

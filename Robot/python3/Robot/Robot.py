@@ -21,6 +21,7 @@ from PIL import Image as PIL_Image
 from Axon import Axon
 from Config import Config, Capabilities
 from Sensation import Sensation
+from Memory import Memory
 from AlsaAudio import Settings as AudioSettings
 
 #from VirtualRobot import VirtualRobot
@@ -147,7 +148,10 @@ class Robot(Thread):
                  parent=None,
                  instanceName=None,
                  instanceType = Sensation.InstanceType.Real,
-                 level=0):
+                 level=0,
+                 memory = None,
+                 maxRss = Config.MAXRSS_DEFAULT,
+                 minAvailMem = Config.MINAVAILMEM_DEFAULT):
         print("Robot 1")
         Thread.__init__(self)
         
@@ -160,6 +164,13 @@ class Robot(Thread):
             self.instanceName = Config.DEFAULT_INSTANCE
         self.instanceType=instanceType
         self.level=level+1
+        
+        if memory is None:
+            self.memory = Memory(robot = self,
+                                 maxRss = maxRss,
+                                 minAvailMem = minAvailMem)
+        else:
+            self.memory = memory
         
         self.subInstances = []  # subInstance contain a outAxon we write muscle sensations
                                 # for subrobot this axon in inAxon
@@ -557,7 +568,7 @@ class Robot(Thread):
             else: # we are main Robot
                 # check if we have subrobot that has capability to process this sensation
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.getSubCapabilityInstances')      
-                robots = self.getSubCapabilityInstances(direction=sensation.getDirection(), memoryType=sensation.getMemory(), sensationType=sensation.getSensationType())
+                robots = self.getSubCapabilityInstances(direction=sensation.getDirection(), memoryType=sensation.getMemoryType(), sensationType=sensation.getSensationType())
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr='process for ' + sensation.toDebugStr() + ' robots ' + str(robots))
                 for robot in robots:
                     if robot.getInstanceType() == Sensation.InstanceType.Remote:
@@ -576,7 +587,7 @@ class Robot(Thread):
         # sensation going down
         else:
             # which subinstances can process this
-            robots = self.getSubCapabilityInstances(direction=sensation.getDirection(), memoryType=sensation.getMemory(), sensationType=sensation.getSensationType())
+            robots = self.getSubCapabilityInstances(direction=sensation.getDirection(), memoryType=sensation.getMemoryType(), sensationType=sensation.getSensationType())
             self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getSubCapabilityInstances' + str(robots))
             for robot in robots:
                 if robot.getInstanceType() == Sensation.InstanceType.Remote:
@@ -620,12 +631,97 @@ class Robot(Thread):
         for name, sensation in Robot.presentItemSensations.items():
             namesStr = namesStr + ' ' + name
         return namesStr
+            
+    '''
+    Memory functionality
+    '''      
+    '''
+    getters, setters
+    '''
+        
+    def getMemory(self):
+        return self.memory
+    def setMemory(self, memory):
+        self.memory = memory
+   
+    def getMaxRss(self):
+        return self.getMemory.getMaxRss()
+    def setMaxRss(self, maxRss):
+        self.getMemory.setMaxRss(maxRss)
+   
+    def getMinAvailMem(self):
+        return self.getMemory.getMinAvailMem()
+    def setMinAvailMem(self, minAvailMem):
+        self.getMemory.setMinAvailMem(minAvailMem)
+           
+    '''
+    Sensation constructor that takes care, that we have only one instance
+    per Sensation per number
+    
+    This is needed if we want handle associations properly.
+    It is not allowed to have many instances of same Sensation,
+    because it brakes sensation associations.
+    
+    Parameters are exactly same than in default constructor
+    '''
+       
+    def createSensation(self,
+                 associations = None,
+                 sensation=None,
+                 bytes=None,
+                 id=None,
+                 time=None,
+                 receivedFrom=[],
+                 sensationType = Sensation.SensationType.Unknown,
+                 memoryType=Sensation.MemoryType.Sensory,
+                 direction=Sensation.Direction.In,
+                 who=None,
+                 leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
+                 azimuth = 0.0,                                             # Walle direction relative to magnetic north pole
+                 accelerationX=0.0, accelerationY=0.0, accelerationZ=0.0,   # acceleration of walle, coordinates relative to walle
+                 hearDirection = 0.0,                                       # sound direction heard by Walle, relative to Walle
+                 observationDirection= 0.0,observationDistance=-1.0,        # Walle's observation of something, relative to Walle
+                 filePath='',
+                 data=b'',
+                 image=None,
+                 calibrateSensationType = Sensation.SensationType.Unknown,
+                 capabilities = None,                                       # capabilities of sensorys, direction what way sensation go
+                 name='',                                                   # name of Item
+                 presence=Sensation.Presence.Unknown,                       # presence of Item
+                 kind=Sensation.Kind.Normal):                               # Normal kind
+        
+        return self.getMemory().create(
+                 robot=self,
+                 associations = associations,
+                 sensation=sensation,
+                 bytes=bytes,
+                 id=id,
+                 time=time,
+                 receivedFrom=receivedFrom,
+                 sensationType = sensationType,
+                 memoryType=memoryType,
+                 direction=direction,
+                 who=who,
+                 leftPower = leftPower, rightPower = rightPower,
+                 azimuth = azimuth,
+                 accelerationX=accelerationX, accelerationY = accelerationY, accelerationZ = accelerationZ,
+                 hearDirection = hearDirection,
+                 observationDirection = observationDirection, observationDistance = observationDistance,
+                 filePath = filePath,
+                 data = data,
+                 image = image,
+                 calibrateSensationType = calibrateSensationType,
+                 capabilities = capabilities,
+                 name = name,
+                 presence =presence,
+                 kind = kind )            
+                        
  
 # VirtualRobot
 
-from Robot import Robot
-from Config import Config, Capabilities
-from Sensation import Sensation
+# from Robot import Robot
+# from Config import Config, Capabilities
+# from Sensation import Sensation
 
 
 class VirtualRobot(Robot):
@@ -779,4 +875,5 @@ class VirtualRobot(Robot):
             self.tellOwnIdentity()
             time.sleep(VirtualRobot.SLEEPTIME)
         else:
-            self.running = False        
+            self.running = False
+            
