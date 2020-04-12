@@ -232,14 +232,14 @@ class Memory(object):
        
 #        print('Sensations cache for {} {} {} {} {} {} Total memoryType usage {} MB with Sensation.min_cache_memorability {}'.\
         print('Sensations cache for {} {} {} {} {} {} Total memoryType  usage {} MB available {} MB with Sensation.min_cache_memorability {}'.\
-              format(Sensation.getMemoryString(Sensation.MemoryType.Sensory), len(self.sensationMemorys[Sensation.MemoryType.Sensory]),\
-                     Sensation.getMemoryString(Sensation.MemoryType.Working), len(self.sensationMemorys[Sensation.MemoryType.Working]),\
-                     Sensation.getMemoryString(Sensation.MemoryType.LongTerm), len(self.sensationMemorys[Sensation.MemoryType.LongTerm]),\
+              format(Sensation.getMemoryTypeString(Sensation.MemoryType.Sensory), len(self.sensationMemorys[Sensation.MemoryType.Sensory]),\
+                     Sensation.getMemoryTypeString(Sensation.MemoryType.Working), len(self.sensationMemorys[Sensation.MemoryType.Working]),\
+                     Sensation.getMemoryTypeString(Sensation.MemoryType.LongTerm), len(self.sensationMemorys[Sensation.MemoryType.LongTerm]),\
                      Memory.getMemoryUsage(), Memory.getAvailableMemory(), self.min_cache_memorability))
         if numNotForgettables > 0:
             print('Sensations cache deletion skipped {} Not Forgottable Sensation'.format(numNotForgettables))
             for robotName, notForgottableNumber in notForgettables.items():
                 print ('Sensations cache Not Forgottable robot {} number {}'.format(robotName, notForgottableNumber))
-        #print('Memory usage for {} Sensations {} after {} MB'.format(len(memoryType), Sensation.getMemoryString(sensation.getMemory()), Sensation.getMemoryUsage()-Sensation.startSensationMemoryUsageLevel))
+        #print('Memory usage for {} Sensations {} after {} MB'.format(len(memoryType), Sensation.getMemoryTypeString(sensation.getMemory()), Sensation.getMemoryUsage()-Sensation.startSensationMemoryUsageLevel))
 
    

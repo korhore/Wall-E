@@ -300,7 +300,7 @@ class Config(ConfigParser):
         from Sensation import Sensation
         b=b''
         for direction in Sensation.DirectionsOrdered:
-            for memoryType in Sensation.MemorysOrdered:
+            for memoryType in Sensation.MemoryTypesOrdered:
                 for sensationType in Sensation.SensationTypesOrdered:
                     option=self.getOptionName(direction,memoryType,sensationType)
                     is_set=self.getboolean(section, option)
@@ -317,7 +317,7 @@ class Config(ConfigParser):
         from Sensation import Sensation
         string=''
         for direction in Sensation.DirectionsOrdered:
-            for memoryType in Sensation.MemorysOrdered:
+            for memoryType in Sensation.MemoryTypesOrdered:
                 for sensationType in Sensation.SensationTypesOrdered:
                     option=self.getOptionName(direction,memoryType,sensationType)
                     is_set=self.getboolean(section, option)
@@ -406,7 +406,7 @@ class Config(ConfigParser):
                     print('self.add_section ' + section + ' exception ' + str(e))
         # capabilities from b bytes to options
         for direction in Sensation.DirectionsOrdered:
-            for memoryType in Sensation.MemorysOrdered:
+            for memoryType in Sensation.MemoryTypesOrdered:
                 for sensationType in Sensation.SensationTypesOrdered:
                     option=self.getOptionName(direction,memoryType,sensationType)
                     is_set=Config.byteToBool(b[i])
@@ -465,7 +465,7 @@ class Config(ConfigParser):
                     print('self.add_section ' + section + ' exception ' + str(e))
         # capabilities from string to options
         for direction in Sensation.DirectionsOrdered:
-            for memoryType in Sensation.MemorysOrdered:
+            for memoryType in Sensation.MemoryTypesOrdered:
                 for sensationType in Sensation.SensationTypesOrdered:
                     option=self.getOptionName(direction,memoryType,sensationType)
                     is_set=Config.charToBool(string[i])
@@ -490,7 +490,7 @@ class Config(ConfigParser):
         #changes=False
         from Sensation import Sensation
         for direction in Sensation.DirectionsOrdered:
-            for memoryType in Sensation.MemorysOrdered:
+            for memoryType in Sensation.MemoryTypesOrdered:
                 for sensationType in Sensation.SensationTypesOrdered:
                     option=self.getOptionName(direction,memoryType,sensationType)
                     try:
@@ -696,7 +696,7 @@ class Config(ConfigParser):
     # what capabilities we have TODO
     def getOptionName(self, direction,memoryType,sensationType):
         from Sensation import Sensation
-        return Sensation.getDirectionString(direction)+'_'+Sensation.getMemoryString(memoryType)+'_'+ Sensation.getSensationTypeString(sensationType)
+        return Sensation.getDirectionString(direction)+'_'+Sensation.getMemoryTypeString(memoryType)+'_'+ Sensation.getSensationTypeString(sensationType)
 
     def hasCapability(self, direction,memoryType,sensationType, section=LOCALHOST):
         option=self.getOptionName(direction,memoryType,sensationType)
@@ -925,7 +925,7 @@ class Capabilities():
         for direction in Sensation.DirectionsOrdered:
             memorys={}
             self.directions[direction] = memorys
-            for memoryType in Sensation.MemorysOrdered:
+            for memoryType in Sensation.MemoryTypesOrdered:
                 capabilitys={}
                 memorys[memoryType] = capabilitys
                 for sensationType in Sensation.SensationTypesOrdered:
@@ -942,7 +942,7 @@ class Capabilities():
         from Sensation import Sensation
         bytes=b''
         for direction in Sensation.DirectionsOrdered:
-            for memoryType in Sensation.MemorysOrdered:
+            for memoryType in Sensation.MemoryTypesOrdered:
                 for sensationType in Sensation.SensationTypesOrdered:
                     bytes += Config.boolToByte(self.directions[direction][memoryType][sensationType])
         return bytes
@@ -960,7 +960,7 @@ class Capabilities():
         for direction in Sensation.DirectionsOrdered:
             memorys={}
             self.directions[direction] = memorys
-            for memoryType in Sensation.MemorysOrdered:
+            for memoryType in Sensation.MemoryTypesOrdered:
                 capabilitys={}
                 memorys[memoryType] = capabilitys
                 for sensationType in Sensation.SensationTypesOrdered:
@@ -977,7 +977,7 @@ class Capabilities():
         from Sensation import Sensation
         string=''
         for direction in Sensation.DirectionsOrdered:
-            for memoryType in Sensation.MemorysOrdered:
+            for memoryType in Sensation.MemoryTypesOrdered:
                 for sensationType in Sensation.SensationTypesOrdered:
                     string += Config.boolToChar(self.directions[direction][memoryType][sensationType])
         return string
@@ -989,10 +989,10 @@ class Capabilities():
         from Sensation import Sensation
         string= "\n" + name + ":\n"
         for direction in Sensation.DirectionsOrdered:
-            for memoryType in Sensation.MemorysOrdered:
+            for memoryType in Sensation.MemoryTypesOrdered:
                 for sensationType in Sensation.SensationTypesOrdered:
                     if self.directions[direction][memoryType][sensationType]:
-                        string += Sensation.getDirectionString(direction) + ' ' + Sensation.getMemoryString(memoryType) + ' ' + Sensation.getSensationTypeString(sensationType) + ': True\n'
+                        string += Sensation.getDirectionString(direction) + ' ' + Sensation.getMemoryTypeString(memoryType) + ' ' + Sensation.getSensationTypeString(sensationType) + ': True\n'
         return string
 
 
@@ -1016,7 +1016,7 @@ class Capabilities():
         from Sensation import Sensation
         # create three level dictionary about capabilitys by direction, by memoryType, by sensation type
         for direction in Sensation.DirectionsOrdered:
-            for memoryType in Sensation.MemorysOrdered:
+            for memoryType in Sensation.MemoryTypesOrdered:
                 for sensationType in Sensation.SensationTypesOrdered:
                     self.directions[direction][memoryType][sensationType] = \
                         self.directions[direction][memoryType][sensationType] or \
@@ -1031,7 +1031,7 @@ class Capabilities():
         from Sensation import Sensation
         # create three level dictionary about capabilitys by direction, by memoryType, by sensation type
         for direction in Sensation.DirectionsOrdered:
-            for memoryType in Sensation.MemorysOrdered:
+            for memoryType in Sensation.MemoryTypesOrdered:
                 for sensationType in Sensation.SensationTypesOrdered:
                     self.directions[direction][memoryType][sensationType] = \
                         self.directions[direction][memoryType][sensationType] and \
@@ -1048,7 +1048,7 @@ class Capabilities():
         for direction in Sensation.DirectionsOrdered:
             memorys={}
             self.directions[direction] = memorys
-            for memoryType in Sensation.MemorysOrdered:
+            for memoryType in Sensation.MemoryTypesOrdered:
                 capabilitys={}
                 memorys[memoryType] = capabilitys
                 for sensationType in Sensation.SensationTypesOrdered:
@@ -1083,17 +1083,17 @@ class Capabilities():
         from Sensation import Sensation
         if capabilities is not None:
             for direction in Sensation.DirectionsOrdered:
-                for memoryType in Sensation.MemorysOrdered:
+                for memoryType in Sensation.MemoryTypesOrdered:
                     for sensationType in Sensation.SensationTypesOrdered:
                         is_set = capabilities.hasCapability(direction, memoryType, sensationType)
                         if is_set:
-                            print (name + " capabilities : " + Sensation.getDirectionString(direction) + ' ' + Sensation.getMemoryString(memoryType) + ' ' + Sensation.getSensationTypeString(sensationType) + ': True')
+                            print (name + " capabilities : " + Sensation.getDirectionString(direction) + ' ' + Sensation.getMemoryTypeString(memoryType) + ' ' + Sensation.getSensationTypeString(sensationType) + ': True')
         for direction in Sensation.DirectionsOrdered:
-            for memoryType in Sensation.MemorysOrdered:
+            for memoryType in Sensation.MemoryTypesOrdered:
                 for sensationType in Sensation.SensationTypesOrdered:
                     is_set = self.hasCapability(direction, memoryType, sensationType)
                     if is_set:
-                        print (name + " self : " + Sensation.getDirectionString(direction) + ' ' + Sensation.getMemoryString(memoryType) + ' ' + Sensation.getSensationTypeString(sensationType) + ': True')
+                        print (name + " self : " + Sensation.getDirectionString(direction) + ' ' + Sensation.getMemoryTypeString(memoryType) + ' ' + Sensation.getSensationTypeString(sensationType) + ': True')
 
 '''
 test
@@ -1102,11 +1102,11 @@ def test(name, capabilities):
     from Sensation import Sensation
     some_set=False
     for direction in Sensation.DirectionsOrdered:
-        for memoryType in Sensation.MemorysOrdered:
+        for memoryType in Sensation.MemoryTypesOrdered:
             for sensationType in Sensation.SensationTypesOrdered:
                 is_set = capabilities.hasCapability(direction, memoryType, sensationType)
                 if is_set:
-                    print (name + ": " + Sensation.getDirectionString(direction) + ' ' + Sensation.getMemoryString(memoryType) + ' ' + Sensation.getSensationTypeString(sensationType) + ': True')
+                    print (name + ": " + Sensation.getDirectionString(direction) + ' ' + Sensation.getMemoryTypeString(memoryType) + ' ' + Sensation.getSensationTypeString(sensationType) + ': True')
                     some_set=True
     if not some_set:
         print (name + ": ALL FALSE")
@@ -1195,7 +1195,7 @@ if __name__ == '__main__':
     # set all True 
     print ("Set all True")
     for direction, directionStr in Sensation.Directions.items():
-        for memoryType, memoryStr in Sensation.Memorys.items():
+        for memoryType, memoryStr in Sensation.MemoryTypes.items():
             for sensationType, capabilityStr in Sensation.SensationTypes.items():
                 capabilities.setCapability(direction, memoryType, sensationType, True)
     test(name="Set all True", capabilities=capabilities)
@@ -1203,7 +1203,7 @@ if __name__ == '__main__':
     test(name="Set all True capabilities And capabilities2", capabilities=capabilities)
 
     for direction, directionStr in Sensation.Directions.items():
-        for memoryType, memoryStr in Sensation.Memorys.items():
+        for memoryType, memoryStr in Sensation.MemoryTypes.items():
             for sensationType, capabilityStr in Sensation.SensationTypes.items():
                 capabilities.setCapability(direction, memoryType, sensationType, True)
     capabilities.Or(other=capabilities2)
@@ -1212,7 +1212,7 @@ if __name__ == '__main__':
      # set all False 
     print ("Set all False")
     for direction, directionStr in Sensation.Directions.items():
-        for memoryType, memoryStr in Sensation.Memorys.items():
+        for memoryType, memoryStr in Sensation.MemoryTypes.items():
             for sensationType, capabilityStr in Sensation.SensationTypes.items():
                 capabilities.setCapability(direction, memoryType, sensationType, False)
     test(name="Set all False", capabilities=capabilities)

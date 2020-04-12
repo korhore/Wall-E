@@ -47,7 +47,7 @@ class Capabilities():
         for direction, _ in Sensation.Directions.items():
             memorys={}
             self.directions[direction] = memorys
-            for memoryType, _ in Sensation.Memorys.items():
+            for memoryType, _ in Sensation.MemoryTypes.items():
                 capabilitys={}
                 memorys[memoryType] = capabilitys
                 for capability, _ in Sensation.SensationTypes.items():
@@ -69,7 +69,7 @@ class Capabilities():
         for direction, _ in Sensation.Directions.items():
             memorys={}
             self.directions[direction] = memorys
-            for memoryType, _ in Sensation.Memorys.items():
+            for memoryType, _ in Sensation.MemoryTypes.items():
                 capabilitys={}
                 memorys[memoryType] = capabilitys
                 for capability, _ in Sensation.SensationTypes.items():
@@ -98,7 +98,7 @@ test
 '''
 def test(name, capabilities):
     for direction, directionStr in Sensation.Directions.items():
-        for memoryType, memoryStr in Sensation.Memorys.items():
+        for memoryType, memoryStr in Sensation.MemoryTypes.items():
             for capability, capabilityStr in Sensation.SensationTypes.items():
                 is_set = capabilities.hasCapability(direction, memoryType, capability)
                 if is_set:
@@ -118,7 +118,7 @@ if __name__ == '__main__':
     # set all True 
     print ("Set all True")
     for direction, directionStr in Sensation.Directions.items():
-        for memoryType, memoryStr in Sensation.Memorys.items():
+        for memoryType, memoryStr in Sensation.MemoryTypes.items():
             for capability, capabilityStr in Sensation.SensationTypes.items():
                 capabilities.setCapability(direction, memoryType, capability, True)
     test(name="Set all True", capabilities=capabilities)
@@ -126,7 +126,7 @@ if __name__ == '__main__':
      # set all False 
     print ("Set all False")
     for direction, directionStr in Sensation.Directions.items():
-        for memoryType, memoryStr in Sensation.Memorys.items():
+        for memoryType, memoryStr in Sensation.MemoryTypes.items():
             for capability, capabilityStr in Sensation.SensationTypes.items():
                 capabilities.setCapability(direction, memoryType, capability, False)
     test(name="Set all False", capabilities=capabilities)

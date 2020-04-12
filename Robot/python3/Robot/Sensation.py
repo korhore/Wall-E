@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 10.04.2020
+Edited on 12.04.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -194,10 +194,11 @@ class Sensation(object):
                 Direction.In,
                 Direction.Out)
     
-    Memorys = {MemoryType.Sensory: SENSORY,
+    MemoryTypes = {
+               MemoryType.Sensory: SENSORY,
                MemoryType.Working: WORKING,
                MemoryType.LongTerm: LONG_TERM}
-    MemorysOrdered = (
+    MemoryTypesOrdered = (
                MemoryType.Sensory,
                MemoryType.Working,
                MemoryType.LongTerm)
@@ -342,11 +343,11 @@ class Sensation(object):
         return ret
         #return Sensation.Directions.values()
     
-    def getMemoryString(memoryType):
-        ret = Sensation.Memorys.get(memoryType)
+    def getMemoryTypeString(memoryType):
+        ret = Sensation.MemoryTypes.get(memoryType)
         return ret
-    def getMemoryStrings():
-        return Sensation.Memorys.values()
+    def getMemoryTypeStrings():
+        return Sensation.MemoryTypes.values()
     
     def getSensationTypeString(sensationType):
         return Sensation.SensationTypes.get(sensationType)
@@ -447,15 +448,15 @@ class Sensation(object):
        
 #        print('Sensations cache for {} {} {} {} {} {} Total memory usage {} MB with Sensation.min_cache_memorability {}'.\
         print('Sensations cache for {} {} {} {} {} {} Total memory  usage {} MB available {} MB with Sensation.min_cache_memorability {}'.\
-              format(Sensation.getMemoryString(Sensation.MemoryType.Sensory), len(Sensation.sensationMemorys[Sensation.MemoryType.Sensory]),\
-                     Sensation.getMemoryString(Sensation.MemoryType.Working), len(Sensation.sensationMemorys[Sensation.MemoryType.Working]),\
-                     Sensation.getMemoryString(Sensation.MemoryType.LongTerm), len(Sensation.sensationMemorys[Sensation.MemoryType.LongTerm]),\
+              format(Sensation.getMemoryTypeString(Sensation.MemoryType.Sensory), len(Sensation.sensationMemorys[Sensation.MemoryType.Sensory]),\
+                     Sensation.getMemoryTypeString(Sensation.MemoryType.Working), len(Sensation.sensationMemorys[Sensation.MemoryType.Working]),\
+                     Sensation.getMemoryTypeString(Sensation.MemoryType.LongTerm), len(Sensation.sensationMemorys[Sensation.MemoryType.LongTerm]),\
                      Sensation.getMemoryUsage(), Sensation.getAvailableMemory(), Sensation.min_cache_memorability))
         if numNotForgettables > 0:
             print('Sensations cache deletion skipped {} Not Forgottable Sensation'.format(numNotForgettables))
             for robotName, notForgottableNumber in notForgettables.items():
                 print ('Sensations cache Not Forgottable robot {} number {}'.format(robotName, notForgottableNumber))
-        #print('Memory usage for {} Sensations {} after {} MB'.format(len(memory), Sensation.getMemoryString(sensation.getMemory()), Sensation.getMemoryUsage()-Sensation.startSensationMemoryUsageLevel))
+        #print('Memory usage for {} Sensations {} after {} MB'.format(len(memory), Sensation.getMemoryTypeString(sensation.getMemory()), Sensation.getMemoryUsage()-Sensation.startSensationMemoryUsageLevel))
          
     '''
     Association is a association between two sensations
@@ -1277,10 +1278,10 @@ class Sensation(object):
     def toDebugStr(self):
         # we can't make yet printable bytes, but as a debug purposes, it is rare neended
 #         if self.sensationType == Sensation.SensationType.Voice or self.sensationType == Sensation.SensationType.Image :
-#             s=str(self.robotId) + ' ' + str(self.id) + ' ' + str(self.time) + ' ' + str(self.association_time) + ' ' + Sensation.getMemoryString(self.memoryType) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
+#             s=str(self.robotId) + ' ' + str(self.id) + ' ' + str(self.time) + ' ' + str(self.association_time) + ' ' + Sensation.getMemoryTypeString(self.memoryType) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
 #         else:
 #             s=self.__str__()
-        s = systemTime.ctime(self.time) + ' ' + str(self.robotId) + ' ' + str(self.id) + ' ' + Sensation.getMemoryString(self.memoryType) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
+        s = systemTime.ctime(self.time) + ' ' + str(self.robotId) + ' ' + str(self.id) + ' ' + Sensation.getMemoryTypeString(self.memoryType) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
         if self.sensationType == Sensation.SensationType.Voice:
             s = s + ' ' + Sensation.getKindString(self.kind)
         elif self.sensationType == Sensation.SensationType.Item:
@@ -2272,7 +2273,7 @@ class Sensation(object):
                         if version == Sensation.VERSION:
                             Sensation.sensationMemorys[Sensation.MemoryType.LongTerm] = pickle.load(f)
                             for key, sensationMemory in Sensation.sensationMemorys.items():
-                                print ('{} loaded {}'.format(Sensation.getMemoryString(key), str(len(sensationMemory))))
+                                print ('{} loaded {}'.format(Sensation.getMemoryTypeString(key), str(len(sensationMemory))))
                                 i=0
                                 while i < len(sensationMemory):
                                     if  sensationMemory[i].getMemorability() <  Sensation.MIN_CACHE_MEMORABILITY:
@@ -2282,8 +2283,8 @@ class Sensation(object):
                                         del sensationMemory[i]
                                     else:
                                         i=i+1
-                                print ('{} after load and verification {}'.format(Sensation.getMemoryString(key), str(len(sensationMemory))))
-                                #print ('{} after load and verification {}'.format(Sensation.getMemoryString(sensationMemory), len(sensationMemory)))
+                                print ('{} after load and verification {}'.format(Sensation.getMemoryTypeString(key), str(len(sensationMemory))))
+                                #print ('{} after load and verification {}'.format(Sensation.getMemoryTypeString(sensationMemory), len(sensationMemory)))
                         else:
                             print("Sensation could not be loaded. because Sensation cache version {} does not mach current sensation version {}".format(version,Sensation.VERSION))
                     except IOError as e:
