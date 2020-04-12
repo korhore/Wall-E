@@ -75,23 +75,23 @@ class VisualTestCase(unittest.TestCase):
         # not too far away in history, so sensation will not be deleted
         self.history_sensationTime = systemTime.time() -2*max(VisualTestCase.ASSOCIATION_INTERVAL, Communication.COMMUNICATION_INTERVAL)
 
-        self.stopSensation = Sensation.create(robot=self,memory=Sensation.Memory.Working,
+        self.stopSensation = Sensation.create(robot=self,memoryType=Sensation.MemoryType.Working,
                                               sensationType=Sensation.SensationType.Stop,
                                             direction=Sensation.Direction.Out)
 
        # simulate item and image are connected each other with TensorflowClassifivation
-        # Item is in LongTerm memory
+        # Item is in LongTerm memoryType
         #systemTime.sleep(0.1)  # wait to get really even id
         self.Wall_E_item_sensation = Sensation.create(robot=self,time=self.history_sensationTime,
-                                                      memory=Sensation.Memory.Working,
+                                                      memoryType=Sensation.MemoryType.Working,
                                                       sensationType=Sensation.SensationType.Item,
                                                       direction=Sensation.Direction.Out,
                                                       name=VisualTestCase.NAME,
                                                       presence = Sensation.Presence.Present)
-        # Image is in LongTerm memory, it comes from TensorflowClassification and is crop of original big image
+        # Image is in LongTerm memoryType, it comes from TensorflowClassification and is crop of original big image
         #systemTime.sleep(0.1)  # wait to get really even id
         self.Wall_E_image_sensation = Sensation.create(robot=self,time=self.history_sensationTime,
-                                                       memory=Sensation.Memory.Working,
+                                                       memoryType=Sensation.MemoryType.Working,
                                                        sensationType=Sensation.SensationType.Image,
                                                        direction=Sensation.Direction.Out)
         self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation,
@@ -105,7 +105,7 @@ class VisualTestCase(unittest.TestCase):
         
         #systemTime.sleep(0.1)  # wait to get really even id
         self.Wall_E_voice_sensation = Sensation.create(robot=self,time=self.history_sensationTime,
-                                                       memory=Sensation.Memory.Sensory,
+                                                       memoryType=Sensation.MemoryType.Sensory,
                                                        sensationType=Sensation.SensationType.Voice,
                                                        direction=Sensation.Direction.Out,
                                                        data="1")
@@ -138,16 +138,16 @@ class VisualTestCase(unittest.TestCase):
     def getSenasations(self):
 
        # simulate item and image are connected each other with TensorflowClassifivation
-        # Item is in LongTerm memory
+        # Item is in LongTerm memoryType
         #systemTime.sleep(0.1)  # wait to get really even id
-        self.Wall_E_item_sensation = Sensation.create(robot=self,memory=Sensation.Memory.Working,
+        self.Wall_E_item_sensation = Sensation.create(robot=self,memoryType=Sensation.MemoryType.Working,
                                                       sensationType=Sensation.SensationType.Item,
                                                       direction=Sensation.Direction.Out,
                                                       name=VisualTestCase.NAME,
                                                       presence = Sensation.Presence.Present)
         self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation,
                                              score=VisualTestCase.SCORE_1)
-        # Image is in LongTerm memory, it comes from TensorflowClassification and is crop of original big image
+        # Image is in LongTerm memoryType, it comes from TensorflowClassification and is crop of original big image
         #systemTime.sleep(0.1)  # wait to get really even id
         if len(Robot.images) > 0:
             image=Robot.images[0]
@@ -155,7 +155,7 @@ class VisualTestCase(unittest.TestCase):
             image=None
         self.assertNotEqual(image, None, "image should not be None in this test")
 
-        self.Wall_E_image_sensation = Sensation.create(robot=self, memory=Sensation.Memory.Working,
+        self.Wall_E_image_sensation = Sensation.create(robot=self, memoryType=Sensation.MemoryType.Working,
                                                        sensationType=Sensation.SensationType.Image,
                                                        direction=Sensation.Direction.Out,
                                                        image=image)
@@ -166,7 +166,7 @@ class VisualTestCase(unittest.TestCase):
         else:
             image=None
         self.assertNotEqual(image, None, "image should not be None in this test")
-        self.Wall_E_image_sensation_2 = Sensation.create(robot=self, memory=Sensation.Memory.Working,
+        self.Wall_E_image_sensation_2 = Sensation.create(robot=self, memoryType=Sensation.MemoryType.Working,
                                                        sensationType=Sensation.SensationType.Image,
                                                        direction=Sensation.Direction.Out,
                                                        image=image)
@@ -184,7 +184,7 @@ class VisualTestCase(unittest.TestCase):
         self.assertEqual(len(self.Wall_E_image_sensation_2.getAssociations()), 1)
         
         #systemTime.sleep(0.1)  # wait to get really even id
-        self.Wall_E_voice_sensation = Sensation.create(robot=self,memory=Sensation.Memory.Sensory,
+        self.Wall_E_voice_sensation = Sensation.create(robot=self,memoryType=Sensation.MemoryType.Sensory,
                                                        sensationType=Sensation.SensationType.Voice,
                                                        direction=Sensation.Direction.Out,
                                                        data="1")
@@ -206,7 +206,7 @@ class VisualTestCase(unittest.TestCase):
         self.Wall_E_voice_sensation_association_len = len(self.Wall_E_voice_sensation.getAssociations())
         
         # communication
-        self.communication_item_sensation = Sensation.create(robot=self,memory=Sensation.Memory.Sensory,
+        self.communication_item_sensation = Sensation.create(robot=self,memoryType=Sensation.MemoryType.Sensory,
                                                       sensationType=Sensation.SensationType.Item,
                                                       direction=Sensation.Direction.In,
                                                       name=VisualTestCase.NAME,
@@ -217,12 +217,12 @@ class VisualTestCase(unittest.TestCase):
         else:
             image=None
         self.assertNotEqual(image, None, "image should not be None in this test")
-        self.communication_image_sensation = Sensation.create(robot=self, memory=Sensation.Memory.Sensory,
+        self.communication_image_sensation = Sensation.create(robot=self, memoryType=Sensation.MemoryType.Sensory,
                                                        sensationType=Sensation.SensationType.Image,
                                                        direction=Sensation.Direction.In,
                                                        image=image)
         
-        self.communication_voice_sensation = Sensation.create(robot=self,memory=Sensation.Memory.Sensory,
+        self.communication_voice_sensation = Sensation.create(robot=self,memoryType=Sensation.MemoryType.Sensory,
                                                        sensationType=Sensation.SensationType.Voice,
                                                        direction=Sensation.Direction.In,
                                                        data="1")

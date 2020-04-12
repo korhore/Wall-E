@@ -396,7 +396,7 @@ class Visual(Robot):
                     
                 item = self.gs.GetItem(Visual.SENSATION_COLUMNS + Visual.SENSATION_COLUMN_MEMORY)
                 if item is not None and item.IsWindow():
-                    item.GetWindow().SetLabel(Sensation.getMemoryString(memory=sensation.getMemory()))
+                    item.GetWindow().SetLabel(Sensation.getMemoryString(memoryType=sensation.getMemory()))
                     
                 item = self.gs.GetItem(Visual.SENSATION_COLUMNS + Visual.SENSATION_COLUMN_DIRECTION)
                 if item is not None and item.IsWindow():
@@ -499,7 +499,7 @@ class Visual(Robot):
                 text=Sensation.getSensationTypeString(sensationType=sensation.getSensationType())
                 if sensation.getSensationType() == Sensation.SensationType.Item:
                     text = text + ' ' + sensation.getName()
-                text = text + ' ' + Sensation.getMemoryString(memory=sensation.getMemory()) + \
+                text = text + ' ' + Sensation.getMemoryString(memoryType=sensation.getMemory()) + \
                               ' ' + Sensation.getDirectionString(direction=sensation.getDirection()) +\
                               ' ' + systemTime.ctime(sensation.getTime())
                 treeItem = self.tree.InsertItem (parent=parent,
@@ -661,7 +661,7 @@ class Visual(Robot):
                     # TODO logic is still unclear
                     # if sensation is output then log it in communication tab
                     if sensation.getDirection() == Sensation.Direction.In:# and\
-                    #sensation.getMemory() == Sensation.Memory.Sensory:
+                    #sensation.getMemory() == Sensation.MemoryType.Sensory:
                         wx.PostEvent(self.communicationPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
 
                 

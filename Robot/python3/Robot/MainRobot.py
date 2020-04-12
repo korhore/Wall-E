@@ -36,6 +36,7 @@ from PIL import Image as PIL_Image
 from Robot import Robot
 from Config import Config, Capabilities
 from Sensation import Sensation
+from Memory import Memory
 from AlsaAudio import Settings as AudioSettings
 
 HOST = ''
@@ -96,6 +97,10 @@ class MainRobot(Robot):
             Sensation.maxRss = self.config.getMaxRss()                  # used mem limit
             Sensation.minAvailMem = self.config.getMinAvailMem()        # available mem limit
             
+            self.memory = Memory(robot=self,
+                                 maxRss = self.config.getMaxRss(),
+                                 minAvailMem = self.config.getMinAvailMem())
+            
             Sensation.loadLongTermMemory()
             Sensation.CleanDataDirectory()
             
@@ -137,7 +142,7 @@ class MainRobot(Robot):
             transferDirection, sensation, association = self.getAxon().get()
             self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
             # We are main Robot, keep track of presence
-            if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.Memory.Working and\
+            if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.MemoryType.Working and\
                sensation.getDirection() == Sensation.Direction.Out:
                self.tracePresents(sensation)
             

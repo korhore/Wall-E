@@ -105,7 +105,7 @@ class AlsaAudioMicrophone(Robot):
 
                 transferDirection, sensation, association = self.getAxon().get()
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr="got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
-#                 if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.Memory.Working and\
+#                 if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.MemoryType.Working and\
 #                    sensation.getDirection() == Sensation.Direction.Out: 
 #                     self.tracePresents(sensation)
 #                 else:
@@ -164,7 +164,7 @@ class AlsaAudioMicrophone(Robot):
         if self.voice_data is not None:
             # put direction out (heard voice) to the parent Axon going up to main Robot
             # connected to present Item.names
-            voiceSensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=self.getVoiceData(data=self.voice_data, dtype=Settings.AUDIO_CONVERSION_FORMAT))
+            voiceSensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, data=self.getVoiceData(data=self.voice_data, dtype=Settings.AUDIO_CONVERSION_FORMAT))
             for name, itemSensation in Robot.presentItemSensations.items():
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: voice from " + name)
                 itemSensation.associate(sensation=voiceSensation)

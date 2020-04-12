@@ -534,7 +534,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
             self.stop()
         elif sensation.getDirection() == Sensation.Direction.Out and \
                sensation.getSensationType() == Sensation.SensationType.Image and \
-               sensation.getMemory() == Sensation.Memory.Sensory: # and\ # todo, no ordercontrl for testing
+               sensation.getMemory() == Sensation.MemoryType.Sensory: # and\ # todo, no ordercontrl for testing
                #(self.lastImageTime is None or sensation.getTime() > self.lastImageTime):    # sensation should come in order
             self.lastImageTime = sensation.getTime()
              # we can process this   
@@ -593,7 +593,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                         if change:
                             current_present[name] = precence
                             subimage = sensation.getImage().crop(size)
-                            subsensation = Sensation.create(robot=self, sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Working, direction = Sensation.Direction.Out,\
+                            subsensation = Sensation.create(robot=self, sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Working, direction = Sensation.Direction.Out,\
                                                             image=subimage)
                             self.log("process created subimage sensation " + subsensation.toDebugStr())
                             # don't associate to original image sensation
@@ -601,7 +601,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                             #subsensation.associate(sensation=sensation, score=score)
                             subsensation.save()
                             
-                            itemsensation = Sensation.create(robot=self, sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.Working, direction = Sensation.Direction.Out, name=name,\
+                            itemsensation = Sensation.create(robot=self, sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, direction = Sensation.Direction.Out, name=name,\
                                                              presence = precence)
                             itemsensation.associate(sensation=subsensation, score=score)
                             self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
@@ -652,7 +652,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                             xmax * im_width, ymax * im_height)
                     subsubimage = subimage.crop(size)
                               
-                    subsensation = Sensation.create(robot=self, sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Working, direction = Sensation.Direction.Out,\
+                    subsensation = Sensation.create(robot=self, sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Working, direction = Sensation.Direction.Out,\
                                                             image=subsubimage)
                     self.log("process created subimage sensation " + subsensation.toDebugStr())
                     # don't associate to original image sensation
@@ -660,7 +660,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                     #subsensation.associate(sensation=sensation, score=score)
                     subsensation.save()
                                       
-                    itemsensation = Sensation.create(robot=self, sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.Working, direction = Sensation.Direction.Out, name=name,\
+                    itemsensation = Sensation.create(robot=self, sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, direction = Sensation.Direction.Out, name=name,\
                                                               presence = precence)
                     itemsensation.associate(sensation=subsensation, score=scores[i])
                     self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(scores[i]))
@@ -695,7 +695,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
 #                                     xmax * im_width, ymax * im_height)
 #                             subsubimage = subimage.crop(size)
 #                               
-#                             subsensation = Sensation.create(robot=self, sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Working, direction = Sensation.Direction.Out,\
+#                             subsensation = Sensation.create(robot=self, sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Working, direction = Sensation.Direction.Out,\
 #                                                             image=subsubimage)
 #                             self.log("process created subimage sensation " + subsensation.toDebugStr())
 #                             # don't associate to original image sensation
@@ -703,7 +703,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
 #                             #subsensation.associate(sensation=sensation, score=score)
 #                             subsensation.save()
 #                                       
-#                             itemsensation = Sensation.create(robot=self, sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.Working, direction = Sensation.Direction.Out, name=name,\
+#                             itemsensation = Sensation.create(robot=self, sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, direction = Sensation.Direction.Out, name=name,\
 #                                                               presence = precence)
 #                             itemsensation.associate(sensation=subsensation, score=scores[i])
 #                             self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(scores[i]))
@@ -744,7 +744,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                 else:
                    presence = Sensation.Presence.Exiting  
                    TensorFlowClassification.present[name] = presence
-                itemsensation = Sensation.create(robot=self, sensationType = Sensation.SensationType.Item, memory = Sensation.Memory.Working, direction = Sensation.Direction.Out, name=name,\
+                itemsensation = Sensation.create(robot=self, sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, direction = Sensation.Direction.Out, name=name,\
                                                  presence = presence)
                 self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=None)
                 self.log("process created exiting/absent itemsensation " + itemsensation.toDebugStr())

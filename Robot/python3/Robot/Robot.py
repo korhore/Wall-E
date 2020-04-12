@@ -325,34 +325,34 @@ class Robot(Thread):
     '''
     Has this instance this capability
     ''' 
-    def hasCapability(self, direction, memory, sensationType):
+    def hasCapability(self, direction, memoryType, sensationType):
         hasCapalility = False
         if self.isRunning() and self.getCapabilities() is not None:
-            hasCapalility = self.getCapabilities().hasCapability(direction, memory, sensationType)
+            hasCapalility = self.getCapabilities().hasCapability(direction, memoryType, sensationType)
             if hasCapalility:
-                self.log(logLevel=Robot.LogLevel.Verbose, logStr="hasCapability direction " + str(direction) + " memory " + str(memory) + " sensationType " + str(sensationType) + ' ' + str(hasCapalility))      
+                self.log(logLevel=Robot.LogLevel.Verbose, logStr="hasCapability direction " + str(direction) + " memoryType " + str(memoryType) + " sensationType " + str(sensationType) + ' ' + str(hasCapalility))      
         return hasCapalility
     '''
     Has this instance or at least one of its subinstabces this capability
     ''' 
-    def hasSubCapability(self, direction, memory, sensationType):
-        #self.log(logLevel=Robot.LogLevel.Verbose, logStr="hasSubCapability direction " + str(direction) + " memory " + str(memory) + " sensationType " + str(sensationType))
-        if self.hasCapability(direction, memory, sensationType):
-            self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability self has direction ' + str(direction) + ' memory ' + str(memory) + ' sensationType ' + str(sensationType) + ' True')      
+    def hasSubCapability(self, direction, memoryType, sensationType):
+        #self.log(logLevel=Robot.LogLevel.Verbose, logStr="hasSubCapability direction " + str(direction) + " memoryType " + str(memoryType) + " sensationType " + str(sensationType))
+        if self.hasCapability(direction, memoryType, sensationType):
+            self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability self has direction ' + str(direction) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType) + ' True')      
             return True    
         for robot in self.getSubInstances():
-            if robot.getCapabilities().hasCapability(direction, memory, sensationType) or \
-               robot.hasSubCapability(direction, memory, sensationType):
-                self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability subInstance ' + robot.getWho() + ' has direction ' + str(direction) + ' memory ' + str(memory) + ' sensationType ' + str(sensationType) + ' True')      
+            if robot.getCapabilities().hasCapability(direction, memoryType, sensationType) or \
+               robot.hasSubCapability(direction, memoryType, sensationType):
+                self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability subInstance ' + robot.getWho() + ' has direction ' + str(direction) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType) + ' True')      
                 return True
-        #self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability direction ' + str(direction) + ' memory ' + str(memory) + ' sensationType ' + str(sensationType) + ' False')      
+        #self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability direction ' + str(direction) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType) + ' False')      
         return False
    
-    def getSubCapabilityInstances(self, direction, memory, sensationType):
+    def getSubCapabilityInstances(self, direction, memoryType, sensationType):
         robots=[]
         for robot in self.getSubInstances():
-            if robot.hasCapability(direction, memory, sensationType) or \
-                robot.hasSubCapability(direction, memory, sensationType) or \
+            if robot.hasCapability(direction, memoryType, sensationType) or \
+                robot.hasSubCapability(direction, memoryType, sensationType) or \
                 robot.getInstanceType() == Sensation.InstanceType.Remote:       # append all Remotes so it gets same Memory
                 robots.append(robot)
         return robots
@@ -513,7 +513,7 @@ class Robot(Thread):
     
     Process basic functionality is validate meaning level of the sensation.
     We should remember meaningful sensations and ignore (forget) less
-    meaningful sensations. Implementation is dependent on memory level.
+    meaningful sensations. Implementation is dependent on memoryType level.
     
     When in Sensory level, we should process sensations very fast and
     detect changes.
@@ -557,7 +557,7 @@ class Robot(Thread):
             else: # we are main Robot
                 # check if we have subrobot that has capability to process this sensation
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.getSubCapabilityInstances')      
-                robots = self.getSubCapabilityInstances(direction=sensation.getDirection(), memory=sensation.getMemory(), sensationType=sensation.getSensationType())
+                robots = self.getSubCapabilityInstances(direction=sensation.getDirection(), memoryType=sensation.getMemory(), sensationType=sensation.getSensationType())
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr='process for ' + sensation.toDebugStr() + ' robots ' + str(robots))
                 for robot in robots:
                     if robot.getInstanceType() == Sensation.InstanceType.Remote:
@@ -576,7 +576,7 @@ class Robot(Thread):
         # sensation going down
         else:
             # which subinstances can process this
-            robots = self.getSubCapabilityInstances(direction=sensation.getDirection(), memory=sensation.getMemory(), sensationType=sensation.getSensationType())
+            robots = self.getSubCapabilityInstances(direction=sensation.getDirection(), memoryType=sensation.getMemory(), sensationType=sensation.getSensationType())
             self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getSubCapabilityInstances' + str(robots))
             for robot in robots:
                 if robot.getInstanceType() == Sensation.InstanceType.Remote:
@@ -708,7 +708,7 @@ class VirtualRobot(Robot):
                 image.load()
                 self.images.append(image)
 
-                imageSensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image, filePath=sensation_filepath)
+                imageSensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, image=image, filePath=sensation_filepath)
                 self.log("getOwnIdentity: self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=" + imageSensation.toDebugStr())      
                 self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
              # voices
@@ -736,7 +736,7 @@ class VirtualRobot(Robot):
                     
                     self.voices.append(data)
                     time.sleep(VirtualRobot.SLEEP_BETWEEN_VOICES)
-                    sensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=data, filePath=sensation_filepath)
+                    sensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, data=data, filePath=sensation_filepath)
                     self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None) # or self.process
                     self.log("getOwnIdentity: self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=" + sensation.toDebugStr())      
                  
@@ -746,7 +746,7 @@ class VirtualRobot(Robot):
     def tellOwnIdentity(self):
         
         image = self.images[self.imageind]
-        imageSensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Image, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, image=image)
+        imageSensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, image=image)
         self.log('tellOwnIdentity: self.imageind  ' + str(self.imageind) + ' self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=' + imageSensation.toDebugStr())      
         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None) # or self.process
         self.imageind=self.imageind+1
@@ -756,7 +756,7 @@ class VirtualRobot(Robot):
         for i in range(VirtualRobot.VOICES_PER_CONVERSATION):          
             time.sleep(VirtualRobot.SLEEP_BETWEEN_VOICES)
             data = self.voices[self.voiceind]
-            sensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.Out, data=data)
+            sensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, data=data)
             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None) # or self.process
             self.log("tellOwnIdentity: " + str(self.voiceind) + " self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=" + sensation.toDebugStr())      
             self.voiceind=self.voiceind+1

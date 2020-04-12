@@ -83,7 +83,7 @@ class Speaking(Robot):
 #                 self.observation_angle = self.add_radian(original_radian=self.azimuth, added_radian=self.hearing_angle) # object in this angle
 #                 self.log("process: create Sensation.SensationType.Observation")
 #                 observation = Sensation(sensationType = Sensation.SensationType.Observation,
-#                                         memory=Memory.Work,
+#                                         memoryType=Memory.Work,
 #                                         observationDirection= self.observation_angle,
 #                                         observationDistance=Robot.DEFAULT_OBSERVATION_DISTANCE,
 #                                         reference=sensation)
@@ -121,7 +121,7 @@ class Speaking(Robot):
 #             self.log('process: Sensation.SensationType.ImageFilePath')      
 #         elif sensation.getSensationType() == Sensation.SensationType.Calibrate:
 #             self.log('process: Sensation.SensationType.Calibrate')      
-#             if sensation.getMemory() == Sensation.Memory.Working:
+#             if sensation.getMemory() == Sensation.MemoryType.Working:
 #                 if sensation.getDirection() == Sensation.Direction.In:
 #                     self.log('process: asked to start calibrating mode')      
 #                     self.calibrating = True
@@ -130,7 +130,7 @@ class Speaking(Robot):
 #                     self.calibrating = False
 #                 # ask external senses to to set same calibrating mode          
 #                 self.out_axon.put(sensation)
-#             elif sensation.getMemory() == Sensation.Memory.Sensory:
+#             elif sensation.getMemory() == Sensation.MemoryType.Sensory:
 #                 if self.config.canHear() and self.calibrating:
 #                     if self.turning_to_object:
 #                         print (self.name + ": Robotserver.process turning_to_object, can't start calibrate activity yet")

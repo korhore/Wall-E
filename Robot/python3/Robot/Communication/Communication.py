@@ -147,7 +147,7 @@ class Communication(Robot):
         self.log(logLevel=Robot.LogLevel.Normal, logStr="process: systemTime.time() " + str(systemTime.time()) + ' -  sensation.getTime() ' + str(sensation.getTime()) + ' < Communication.COMMUNICATION_INTERVAL ' + str(Communication.COMMUNICATION_INTERVAL))
         self.log(logLevel=Robot.LogLevel.Normal, logStr="process: " + str(systemTime.time() - sensation.getTime()) + ' < ' + str(Communication.COMMUNICATION_INTERVAL))
         if systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL:
-#            if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.Memory.Working and\
+#            if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemory() == Sensation.MemoryType.Working and\
             # all kind Items found
             if sensation.getSensationType() == Sensation.SensationType.Item and\
                sensation.getDirection() == Sensation.Direction.Out:
@@ -180,7 +180,7 @@ class Communication(Robot):
                         self.timer.cancel()
                         self.timer = None
                     # We want to remember this voice
-                    sensation.setMemory(memory=Sensation.Memory.Working)
+                    sensation.setMemory(memoryType=Sensation.MemoryType.Working)
                     # don't use this voice in this same conversation
                     self.usedVoices.append(sensation)
                     self.usedVoices.append(len(sensation.getData()))
@@ -190,9 +190,9 @@ class Communication(Robot):
                     # and also good feeling to the original voice
                     # to this voice will be found again in new conversations
                     if self.mostImportantItemSensation is not None:
-                        self.mostImportantItemSensation.setMemory(memory=Sensation.Memory.LongTerm)
+                        self.mostImportantItemSensation.setMemory(memoryType=Sensation.MemoryType.LongTerm)
                     if self.mostImportantVoiceSensation is not None:
-                        self.mostImportantVoiceSensation.setMemory(memory=Sensation.Memory.LongTerm)                
+                        self.mostImportantVoiceSensation.setMemory(memoryType=Sensation.MemoryType.LongTerm)                
                     #  mark also good feeling to original voice we said
                     if self.mostImportantVoiceAssociation is not None:
                         self.mostImportantVoiceAssociation.changeFeeling(positive=True) #last voice was a good one because we got a response
@@ -227,7 +227,7 @@ class Communication(Robot):
 #                     self.timer.cancel()
 #                     self.timer = None
                     # We want to remember this voice
-                    sensation.setMemory(memory=Sensation.Memory.Working)
+                    sensation.setMemory(memoryType=Sensation.MemoryType.Working)
                     # don't use this voice in this same conversation
                     self.usedVoices.append(sensation)
                     self.usedVoices.append(len(sensation.getData()))
@@ -287,7 +287,7 @@ class Communication(Robot):
         if onStart and len(Robot.voices) > 0:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: onStart')
             data = Robot.voices[Robot.voiceind]
-            self.spokedVoiceSensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Voice, memory = Sensation.Memory.Sensory, direction = Sensation.Direction.In, data=data)
+            self.spokedVoiceSensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, data=data)
             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation, association=None) # or self.process
             self.log("speak: Starting with presenting Robot voiceind={} self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation={}".format(str(Robot.voiceind), self.spokedVoiceSensation.toDebugStr()))
             Robot.voiceind=Robot.voiceind+1
@@ -364,11 +364,11 @@ class Communication(Robot):
             self.spokedVoiceSensation.attach(robot=self)         #attach Sensation until speaking is ended based on these voices
             # test
             #self.spokedVoiceSensation = self.mostImportantVoiceSensation
-            # NOTE This is needed now, because Sensation.create parameters direction and memory parameters are  overwritten by sensation parameters
+            # NOTE This is needed now, because Sensation.create parameters direction and memoryType parameters are  overwritten by sensation parameters
             self.spokedVoiceSensation.setKind(self.getKind())
             self.spokedVoiceSensation.setDirection(Sensation.Direction.In)  # speak        
             association = self.mostImportantItemSensation.getAssociation(sensation = self.mostImportantVoiceSensation) #TODO can get AttributeError: 'NoneType' object has no attribute 'getAssociation'
-            self.spokedVoiceSensation.setMemory(Sensation.Memory.Sensory) # OOPS Sensation.setMemory can delete too old Sensations, if this was done earlier
+            self.spokedVoiceSensation.setMemory(Sensation.MemoryType.Sensory) # OOPS Sensation.setMemory can delete too old Sensations, if this was done earlier
             if association is not None: # be careful, association can be None, if there is no self.mostImportantVoiceSensation any more
                 association.setTime(time=None)  # renew association time, so no-one will delete these sensations and they are marked more important by time
                 # keep track what we said to whom
@@ -402,9 +402,9 @@ class Communication(Robot):
             # feel disappointed or worse about this voice, so we don't use this again easily
             if self.mostImportantVoiceAssociation.getFeeling() > Sensation.Association.Feeling.Disappointed:
                 self.mostImportantVoiceAssociation.setFeeling(Sensation.Association.Feeling.Disappointed)
-            # make also original voice spoken to be more easy to forgotten, when not any more in LongTerm memory
+            # make also original voice spoken to be more easy to forgotten, when not any more in LongTerm memoryType
             if self.mostImportantVoiceSensation is not None:
-                self.mostImportantVoiceSensation.setMemory(memory=Sensation.Memory.Sensory)                
+                self.mostImportantVoiceSensation.setMemory(memoryType=Sensation.MemoryType.Sensory)                
             
         for communicationItem in self.communicationItems:
             if communicationItem.getAssociation() is not None:
