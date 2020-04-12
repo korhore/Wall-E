@@ -37,12 +37,18 @@ class AlsaAudioPlayback(Robot):
                  parent=None,
                  instanceName=None,
                  instanceType = Sensation.InstanceType.SubInstance,
-                 level=0):
+                 level=0,
+                 memory = None,
+                 maxRss = Config.MAXRSS_DEFAULT,
+                 minAvailMem = Config.MINAVAILMEM_DEFAULT):
         Robot.__init__(self,
                        parent=parent,
                        instanceName=instanceName,
                        instanceType=instanceType,
-                       level=level)
+                       level=level,
+                       memory = memory,
+                       maxRss = maxRss,
+                       minAvailMem = minAvailMem)
         print("We are in AlsaAudioPlayback, not Robot")
 
         # from settings        

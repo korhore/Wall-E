@@ -78,12 +78,18 @@ class Visual(Robot):
                  parent=None,
                  instanceName=None,
                  instanceType = Sensation.InstanceType.SubInstance,
-                 level=0):
+                 level=0,
+                 memory = None,
+                 maxRss = Config.MAXRSS_DEFAULT,
+                 minAvailMem = Config.MINAVAILMEM_DEFAULT):
         Robot.__init__(self,
                        parent=parent,
                        instanceName=instanceName,
                        instanceType=instanceType,
-                       level=level)
+                       level=level,
+                       memory = memory,
+                       maxRss =  maxRss,
+                       minAvailMem = minAvailMem)
         print("We are in Visual, not Robot")
         
         # not yet running
@@ -158,7 +164,7 @@ class Visual(Robot):
         if self.running:
             Robot.stop(self) # default handling
             # To stop wx we regenerate stop Sensation
-            sensation=Sensation.create(robot=self,associations=[], sensationType = Sensation.SensationType.Stop)
+            sensation=self.createSensation(associations=[], sensationType = Sensation.SensationType.Stop)
             # and send it to wx-process
             wx.PostEvent(self.app.frame, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
     '''

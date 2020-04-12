@@ -23,6 +23,7 @@ import time
 
 from Robot import  Robot
 from Sensation import Sensation
+from Config import Config
 
 
 class Association(Robot):
@@ -37,13 +38,19 @@ class Association(Robot):
                  parent=None,
                  instanceName=None,
                  instanceType = Sensation.InstanceType.Real,
-                 level=0):
+                 level=0,
+                 memory = None,
+                 maxRss = Config.MAXRSS_DEFAULT,
+                 minAvailMem = Config.MINAVAILMEM_DEFAULT):
         print("We are in Association, not Robot")
         Robot.__init__(self,
                        parent=parent,
                        instanceName=instanceName,
                        instanceType=instanceType,
-                       level=level)
+                       level=level,
+                       memory = memory,
+                       maxRss =  maxRss,
+                       minAvailMem = minAvailMem)
         
     def process(self, transferDirection, sensation, association=None):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: sensation ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())

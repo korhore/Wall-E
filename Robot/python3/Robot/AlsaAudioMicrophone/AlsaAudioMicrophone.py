@@ -42,13 +42,19 @@ class AlsaAudioMicrophone(Robot):
                  parent=None,
                  instanceName=None,
                  instanceType = Sensation.InstanceType.SubInstance,
-                 level=0):
+                 level=0,
+                 memory = None,
+                 maxRss = Config.MAXRSS_DEFAULT,
+                 minAvailMem = Config.MINAVAILMEM_DEFAULT):
         print("We are in AlsaAudioMicrophone, not Robot")
         Robot.__init__(self,
                        parent=parent,
                        instanceName=instanceName,
                        instanceType=instanceType,
-                       level=level)
+                       level=level,
+                       memory = memory,
+                       maxRss = maxRss,
+                       minAvailMem = minAvailMem)
 
         # from settings        
         self.device= self.config.getMicrophone()
@@ -164,7 +170,7 @@ class AlsaAudioMicrophone(Robot):
         if self.voice_data is not None:
             # put direction out (heard voice) to the parent Axon going up to main Robot
             # connected to present Item.names
-            voiceSensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, data=self.getVoiceData(data=self.voice_data, dtype=Settings.AUDIO_CONVERSION_FORMAT))
+            voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, data=self.getVoiceData(data=self.voice_data, dtype=Settings.AUDIO_CONVERSION_FORMAT))
             for name, itemSensation in Robot.presentItemSensations.items():
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: voice from " + name)
                 itemSensation.associate(sensation=voiceSensation)

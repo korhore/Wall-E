@@ -49,13 +49,19 @@ class RaspberryPiCamera(Robot):
                  parent=None,
                  instanceName=None,
                  instanceType = Sensation.InstanceType.SubInstance,
-                 level=0):
+                 level=0,
+                 memory = None,
+                 maxRss = Config.MAXRSS_DEFAULT,
+                 minAvailMem = Config.MINAVAILMEM_DEFAULT):
         print("We are in RaspberryPiCamera, not Robot")
         Robot.__init__(self,
                        parent=parent,
                        instanceName=instanceName,
                        instanceType=instanceType,
-                       level=level)
+                       level=level,
+                       memory = memory,
+                       maxRss =  maxRss,
+                       minAvailMem = minAvailMem)
         
 
           
@@ -97,7 +103,7 @@ class RaspberryPiCamera(Robot):
 #                 image = PIL_Image.open(stream)
 #                 if self.isChangedImage(image):
 #                     self.log("self.getParent().getAxon().put(robot=self, sensation) stream {}".format(len(stream.getvalue())))
-#                     sensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, image=image)
+#                     sensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, image=image)
 #                     self.log("self.getParent().getAxon().put(robot=self, sensation) getData")
 # #                    sensation.save()
 #                     self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # or self.process
@@ -131,7 +137,7 @@ class RaspberryPiCamera(Robot):
         if self.isChangedImage(image):
             self.log("sense self.getParent().getAxon().put(robot=self, sensation) stream {}".format(len(stream.getvalue())))
             # put direction out (seen image) to the parent Axon going up to main Robot
-            sensation = Sensation.create(robot=self, associations=[], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, image=image)
+            sensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, image=image)
 #            sensation.save()
             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None)
         else:

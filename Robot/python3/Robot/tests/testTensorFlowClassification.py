@@ -71,7 +71,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
         return 1.1
     def getWho(self):
         return "TensorFlowClassificationTestCase"
-
+    
     '''
     Testing    
     '''
@@ -102,7 +102,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
         systemTime.sleep(TensorFlowClassificationTestCase.TEST_TIME)       # give Robot some time to stop
         self.tensorFlowClassification.getAxon().put(robot=self,
                                                     transferDirection=Sensation.TransferDirection.Up,
-                                                    sensation=Sensation.create(robot=self,associations=[], sensationType = Sensation.SensationType.Stop),
+                                                    sensation=self.tensorFlowClassification.createSensation(associations=[], sensationType = Sensation.SensationType.Stop),
                                                     association=None)
         print('sleep ' + str(TensorFlowClassificationTestCase.TEST_STOP_TIME) + ' time for Robot to process Stop Sensation')
         systemTime.sleep(TensorFlowClassificationTestCase.TEST_STOP_TIME)       # give Robot some time to stop
@@ -161,7 +161,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
                     image = image.resize((int(image.size[0]*160/image.size[1]), 160))
                 print('resized image.size) ' + str(image.size))
 
-            sensations.append(Sensation.create(robot=self,associations=[], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, image=image, filePath=testImageFileName))
+            sensations.append(self.tensorFlowClassification.createSensation(associations=[], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, image=image, filePath=testImageFileName))
 
         # test Entering, Present and Absent so, then in next picture absent Item,names are from previous picture
         # removed as a test     
