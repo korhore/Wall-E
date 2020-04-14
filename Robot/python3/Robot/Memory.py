@@ -127,6 +127,7 @@ class Memory(object):
             print("Create new sensation by parameter sensation and parameters for {}".format(robot.getWho()))
             
         sensation = Sensation(
+                 memory=self,
                  associations =  associations,
                  sensation=sensation,
                  bytes=bytes,
@@ -165,7 +166,57 @@ class Memory(object):
         self.memoryLock.acquireWrite()  # thread_safe                                     
         self.forgetLessImportantSensations(sensation)        
         self.sensationMemorys[sensation.getMemoryType()].append(sensation)        
-        self.memoryLock.releaseWrite()  # thread_safe   
+        self.memoryLock.releaseWrite()  # thread_safe
+        
+    '''
+    Change sensation's memory
+    We need to remove internally this sensation from one cache list to another
+    '''
+       
+    def setMemoryType(self, sensation, memoryType):
+        if sensation.getMemoryType() != memoryType:
+            self.memoryLock.acquireWrite()  # thread_safe                                     
+            oldMemoryCache = self.sensationMemorys[sensation.getMemoryType()]
+            try:
+                # remove from current memory type cache and add to a new one
+                oldMemoryCache.remove(sensation)
+            except ValueError as e:
+                print("oldMemoryCache.remove(sensation) error " + str(e))
+                print("where sensation == " + sensation.toDebugStr())
+                
+            sensation.memoryType = memoryType
+            #sensation.time = systemTime.time()   # if we change memoryType, this is new Sensation, NO keep times, association handles if associated later
+            self.forgetLessImportantSensations(sensation) # muat forget here. because if not created, this is only place fot Longerm-Senasations to be removed from cache
+            self.sensationMemorys[memoryType].append(sensation)
+            self.memoryLock.releaseWrite()  # thread_safe
+
+    '''
+    Assign just created sensation with other present Item sensations
+    TODO Study if present presentItemSensations and present functionality
+    should be moved from Robot to Memory
+    '''
+    def assign(self, sensation):
+        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: sensation ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
+        #Robot.presentItemSensations can be changed
+        #TODO logic can lead to infinite loop
+        succeeded = False
+        while not succeeded:
+            try:
+                for itemSensation in Robot.presentItemSensations.values():
+                    if sensation is not itemSensation and\
+                       sensation.getTime() >=  itemSensation.getTime() and\
+                       len(itemSensation.getAssociations()) < Sensation.ASSOCIATIONS_MAX_ASSOCIATIONS:
+                        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: sensation.associate(Sensation.Association(self_sensation==itemSensation ' +  itemSensation.toDebugStr() + ' sensation=sensation ' + sensation.toDebugStr())
+                        itemSensation.associate(sensation=sensation,
+                                                score=itemSensation.getScore())
+                    else:
+                        self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: itemSensation ignored too much associations or items not newer than present itemSensation or sensation is present sensation ' + itemSensation.toDebugStr())
+                succeeded = True
+            except Exception as e:
+                 self.log(logLevel=Robot.LogLevel.Normal, logStr='Association.process: ignored exception ' + str(e))
+                 succeeded = True
+        sensation.detach(robot=self) # robot is not attached to this sensation
+        
         
     '''
     get memory usage
@@ -255,11 +306,10 @@ class Memory(object):
         self.memoryLock.acquireRead()                  # read thread_safe
  
         for key, sensationMemory in self.sensationMemorys.items():
-            if len(self.sensationMemory) > 0:
-                for sensation in sensationMemory:
-                    if sensation.getId() == id:
-                        self.memoryLock.releaseRead()  # read thread_safe
-                        return sensation
+            for sensation in sensationMemory:
+                if sensation.getId() == id:
+                    self.memoryLock.releaseRead()  # read thread_safe
+                    return sensation
         self.memoryLock.releaseRead()                  # read thread_safe
         return None
 
@@ -279,7 +329,7 @@ class Memory(object):
     '''
     Get sensations from sensation memory that are set in capabilities
     
-    Time window can be set seperatly min, max or both,
+    Time window can be set separately min, max or both,
     from time min to time max, to get sensations that are happened at same moment.   
     '''  
     def getSensations(self, capabilities, timemin=None, timemax=None):

@@ -188,7 +188,8 @@ class Communication(Robot):
                         self.timer.cancel()
                         self.timer = None
                     # We want to remember this voice
-                    sensation.setMemory(memoryType=Sensation.MemoryType.Working)
+                    #sensation.setMemory(memoryType=Sensation.MemoryType.Working)
+                    self.getMemory().setMemoryType(sensation=sensation, memoryType=Sensation.MemoryType.Working)
                     # don't use this voice in this same conversation
                     self.usedVoices.append(sensation)
                     self.usedVoices.append(len(sensation.getData()))
@@ -198,9 +199,11 @@ class Communication(Robot):
                     # and also good feeling to the original voice
                     # to this voice will be found again in new conversations
                     if self.mostImportantItemSensation is not None:
-                        self.mostImportantItemSensation.setMemory(memoryType=Sensation.MemoryType.LongTerm)
+                        #self.mostImportantItemSensation.setMemory(memoryType=Sensation.MemoryType.LongTerm)
+                        self.getMemory().setMemoryType(sensation=self.mostImportantItemSensation, memoryType=Sensation.MemoryType.LongTerm)
                     if self.mostImportantVoiceSensation is not None:
-                        self.mostImportantVoiceSensation.setMemory(memoryType=Sensation.MemoryType.LongTerm)                
+                        #self.mostImportantVoiceSensation.setMemory(memoryType=Sensation.MemoryType.LongTerm)                
+                        self.getMemory().setMemoryType(sensation=self.mostImportantVoiceSensation, memoryType=Sensation.MemoryType.LongTerm)
                     #  mark also good feeling to original voice we said
                     if self.mostImportantVoiceAssociation is not None:
                         self.mostImportantVoiceAssociation.changeFeeling(positive=True) #last voice was a good one because we got a response
@@ -235,7 +238,8 @@ class Communication(Robot):
 #                     self.timer.cancel()
 #                     self.timer = None
                     # We want to remember this voice
-                    sensation.setMemory(memoryType=Sensation.MemoryType.Working)
+                    #sensation.setMemory(memoryType=Sensation.MemoryType.Working)
+                    self.getMemory().setMemoryType(sensation=sensation, memoryType=Sensation.MemoryType.Working)
                     # don't use this voice in this same conversation
                     self.usedVoices.append(sensation)
                     self.usedVoices.append(len(sensation.getData()))
@@ -376,7 +380,8 @@ class Communication(Robot):
             self.spokedVoiceSensation.setKind(self.getKind())
             self.spokedVoiceSensation.setDirection(Sensation.Direction.In)  # speak        
             association = self.mostImportantItemSensation.getAssociation(sensation = self.mostImportantVoiceSensation) #TODO can get AttributeError: 'NoneType' object has no attribute 'getAssociation'
-            self.spokedVoiceSensation.setMemory(Sensation.MemoryType.Sensory) # OOPS Sensation.setMemory can delete too old Sensations, if this was done earlier
+            #self.spokedVoiceSensation.setMemory(Sensation.MemoryType.Sensory) # OOPS Sensation.setMemory can delete too old Sensations, if this was done earlier
+            self.getMemory().setMemoryType(sensation=self.spokedVoiceSensation, memoryType=Sensation.MemoryType.Sensory)
             if association is not None: # be careful, association can be None, if there is no self.mostImportantVoiceSensation any more
                 association.setTime(time=None)  # renew association time, so no-one will delete these sensations and they are marked more important by time
                 # keep track what we said to whom
@@ -412,7 +417,8 @@ class Communication(Robot):
                 self.mostImportantVoiceAssociation.setFeeling(Sensation.Association.Feeling.Disappointed)
             # make also original voice spoken to be more easy to forgotten, when not any more in LongTerm memoryType
             if self.mostImportantVoiceSensation is not None:
-                self.mostImportantVoiceSensation.setMemory(memoryType=Sensation.MemoryType.Sensory)                
+                #self.mostImportantVoiceSensation.setMemory(memoryType=Sensation.MemoryType.Sensory)                
+                self.getMemory().setMemoryType(sensation=self.mostImportantVoiceSensation, memoryType=Sensation.MemoryType.Sensory)
             
         for communicationItem in self.communicationItems:
             if communicationItem.getAssociation() is not None:

@@ -16,7 +16,24 @@ and TensorflowClassification will stop
 Develop
 -------
 
-Implement Robot.isRunning also or use thread method. We nead that in mny places.
+Implement Robot.isRunning also or use thread method. We nead that in many places.
+
+Fix SocketClient NotForgottables. It still can't forget in some situations
+Move Robot-Association functionality tp Memory.
+Memory is a place, that otganises this kind things.
+
+Check Alsa-Robots.
+
+Organize Robots by MainRobot group
+Each Robot should belong to one exact Robot group, that has one MainRobot.
+MainRobot must have a name, so groupsa name is MainRobots name.
+Robot can be started in one site or other site. Other site has also MainRobot but it should
+be handled as bridge/Nomrmal robot. Study if we can implement MainRobot as Robot,
+so we could implement all this by one Robot class. Earlier problem was TVPServer, SocketServer,
+Socketclient implementation. If that can't be done easily, rename MainRobot as BridgeRobot
+and still start Robot from Robot-class, not from MainRobot class. AnyWay, that way Robot gets its role from
+cconfifurayion ans Level. Level 1 Robots can/should have bridge(s).
+
 
 Add Robot roles
 - Remote -> RemoteSubRobot is part of remote MainRobot, meaning that it has only senses/mucle Robot
@@ -36,8 +53,13 @@ Add Robot roles
   - Robot knows its Memory, choose this. So memory should have its semaphores
   - Implement Memory class
   
+ - There is no reason why we still have MainRobot-class. Next step would be to
+   move all specoal MainRobot-functionality ti Robot class. We can detact if
+   we are MainRobot if level is 1 and We don't have parents. Study if VirtualRobot
+   is only Robot with level 1, even if it has parent. 
+  
   It has its own memory for Sensations. This means that also MainRobot should have its own memory,
-  so we can't use glogat Menory any more.
+  so we can't use global Memory any more.
   
   With VirtualMainRobot and Real MainRobot we can implement also robots in love, communicating with each other
   but relationship is not so real than real MainRobot + reamote MainRobot with independent senses and muscles.    

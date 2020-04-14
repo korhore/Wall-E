@@ -516,6 +516,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
             sensation=MainRobot.getInstance().createSensation(associations=[], direction=Sensation.Direction.In, sensationType = Sensation.SensationType.Who, who=self.getWho())
             self.log('run: sendSensation(sensation=Sensation(robot=MainRobot.getInstance(),sensationType = Sensation.SensationType.Who), sock=self.sock,'  + str(self.address) + ')')
             self.running =  self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
+            sensation.detach(robot=MainRobot.getInstance())
             self.log('run: done sendSensation(sensation=Sensation(robot=MainRobot.getInstance(), sensationType = Sensation.SensationType.Who), sock=self.sock,'  + str(self.address) + ')')
             if self.running:
                  # tell our local capabilities
@@ -531,6 +532,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                 sensation=MainRobot.getInstance().createSensation(associations=[], direction=Sensation.Direction.In, sensationType = Sensation.SensationType.Capability, capabilities=capabilities)
                 self.log('run: sendSensation(sensationType = Sensation.SensationType.Capability, capabilities=self.getLocalCapabilities()), sock=self.sock,'  + str(self.address) + ')')
                 self.running = self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
+                sensation.detach(robot=MainRobot.getInstance())
                 self.log('run: sendSensation Sensation.SensationType.Capability done ' + str(self.address) +  ' '  + sensation.getCapabilities().toDebugString('SocketClient'))
         except Exception as e:
             self.log("run: SocketClient.sendSensation exception {}".format(str(e)))
@@ -695,15 +697,18 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         # socketserver can't close itself, just put it to closing mode
         self.getSocketServer().stop() # socketserver can't close itself, we must send a stop sensation to it
         # we must send a stop sensation to it
-        self.sendSensation(sensation=self.createSensation(associations=[], sensationType = Sensation.SensationType.Stop), sock=self.getSocketServer().getSocket(), address=self.getSocketServer().getAddress())
-        # stop remote with same technic
-        self.sendSensation(sensation=self.createSensation(associations=[], sensationType = Sensation.SensationType.Stop), sock=self.sock, address=self.address)
+        sensation=self.createSensation(associations=[], sensationType = Sensation.SensationType.Stop)
+        self.sendSensation(sensation=sensation, sock=self.getSocketServer().getSocket(), address=self.getSocketServer().getAddress())
+        # stop remote with same technique
+        self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
+        sensation.detach(robot=self)
         self.sock.close()
          
         super(SocketClient, self).stop()
 
     '''
     Global method for stopping remote host
+    TODO this does not work, because we don't have self
     '''
     def sendStop(sock, address):
         print("SocketClient.sendStop(sock, address)") 
@@ -984,6 +989,7 @@ def stop():
             sock.connect(address)
             print ("stop: connected")
             print ("stop: SocketClient.stop(sock = sock, address=address)")
+            # TODO This does not worn, because SocketClient.sendStop is broken, because it needs self and it is not global
             ok = SocketClient.sendStop(sock = sock, address=address)
         except Exception as err: 
             print ("stop: sock connect, cannot stop localhost, error " + str(err))

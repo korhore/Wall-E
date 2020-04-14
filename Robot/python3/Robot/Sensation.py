@@ -255,10 +255,11 @@ class Sensation(object):
            Presence.Unknown:  UNKNOWN}
 
     
-    sensationMemorys={                      # Sensation caches
-        MemoryType.Sensory:  [],                # short time Sensation cache
-        MemoryType.Working:  [],                # middle time Sensation cache
-        MemoryType.LongTerm: [] }               # long time Sensation cache
+#deprecated
+#     sensationMemorys={                      # Sensation caches
+#         MemoryType.Sensory:  [],                # short time Sensation cache
+#         MemoryType.Working:  [],                # middle time Sensation cache
+#         MemoryType.LongTerm: [] }               # long time Sensation cache
 
     sensationMemoryLiveTimes={             # Sensation cache times
         MemoryType.Sensory:  SENSORY_LIVE_TIME,
@@ -370,12 +371,12 @@ class Sensation(object):
     Add new Sensation to Sensation cache
     use memory management to avoid too much memoryType using
     '''
-    
-    def addToSensationMemory(sensation):
-        memoryLock.acquireWrite()  # thread_safe                                     
-        Sensation.forgetLessImportantSensations(sensation)        
-        Sensation.sensationMemorys[sensation.getMemoryType()].append(sensation)        
-        memoryLock.releaseWrite()  # thread_safe   
+# deprecated    
+#     def addToSensationMemory(sensation):
+#         memoryLock.acquireWrite()  # thread_safe                                     
+#         Sensation.forgetLessImportantSensations(sensation)        
+#         Sensation.sensationMemorys[sensation.getMemoryType()].append(sensation)        
+#         memoryLock.releaseWrite()  # thread_safe   
         
     '''
     get memoryType usage
@@ -397,66 +398,66 @@ class Sensation(object):
     This method is called from semaphore protected method, so we
     should not protect this
     '''
-
-    def forgetLessImportantSensations(sensation):
-        numNotForgettables=0
-        memory = Sensation.sensationMemorys[sensation.getMemoryType()]
-
-        # calibrate memorability        
-        if (Sensation.getMemoryUsage() > Sensation.maxRss or\
-            Sensation.getAvailableMemory() < Sensation.minAvailMem) and\
-            Sensation.min_cache_memorability < Sensation.MAX_MIN_CACHE_MEMORABILITY:
-            if Sensation.min_cache_memorability >= Sensation.NEAR_MAX_MIN_CACHE_MEMORABILITY:
-                Sensation.min_cache_memorability = Sensation.min_cache_memorability + 0.01
-            else:
-                Sensation.min_cache_memorability = Sensation.min_cache_memorability + 0.1
-        elif (Sensation.getMemoryUsage() < Sensation.maxRss or\
-              Sensation.getAvailableMemory() > Sensation.minAvailMem )and\
-            Sensation.min_cache_memorability > Sensation.MIN_MIN_CACHE_MEMORABILITY:
-            if Sensation.min_cache_memorability <= Sensation.NEAR_MIN_MIN_CACHE_MEMORABILITY:
-                Sensation.min_cache_memorability = Sensation.min_cache_memorability - 0.01
-            else:
-                Sensation.min_cache_memorability = Sensation.min_cache_memorability - 0.1
-        
-        # delete quickly last created Sensations that are not important
-        while len(memory) > 0 and memory[0].isForgettable() and memory[0].getMemorability() < Sensation.min_cache_memorability:
-            print('delete from sensation cache {}'.format(memory[0].toDebugStr()))
-            memory[0].delete()
-            del memory[0]
-
-        # if we are still using too much memory for Sensations, we should check all Sensations in the cache
-        notForgettables={}
-        if Sensation.getMemoryUsage() > Sensation.maxRss or\
-           Sensation.getAvailableMemory() < Sensation.minAvailMem:
-            i=0
-            while i < len(memory):
-                if memory[i].isForgettable():
-                    if memory[i].getMemorability() < Sensation.min_cache_memorability:
-                        print('delete from sensation cache {}'.format(memory[i].toDebugStr()))
-                        memory[i].delete()
-                        del memory[i]
-                    else:
-                        i=i+1
-                else:
-                    numNotForgettables=numNotForgettables+1
-                    for robot in memory[i].getAttachedBy():
-                        if robot.getWho() not in notForgettables:
-                            notForgettables[robot.getWho()] = 1
-                        else:
-                            notForgettables[robot.getWho()] = notForgettables[robot.getWho()]+1
-                    i=i+1
-       
-#        print('Sensations cache for {} {} {} {} {} {} Total memory usage {} MB with Sensation.min_cache_memorability {}'.\
-        print('Sensations cache for {} {} {} {} {} {} Total memory  usage {} MB available {} MB with Sensation.min_cache_memorability {}'.\
-              format(Sensation.getMemoryTypeString(Sensation.MemoryType.Sensory), len(Sensation.sensationMemorys[Sensation.MemoryType.Sensory]),\
-                     Sensation.getMemoryTypeString(Sensation.MemoryType.Working), len(Sensation.sensationMemorys[Sensation.MemoryType.Working]),\
-                     Sensation.getMemoryTypeString(Sensation.MemoryType.LongTerm), len(Sensation.sensationMemorys[Sensation.MemoryType.LongTerm]),\
-                     Sensation.getMemoryUsage(), Sensation.getAvailableMemory(), Sensation.min_cache_memorability))
-        if numNotForgettables > 0:
-            print('Sensations cache deletion skipped {} Not Forgottable Sensation'.format(numNotForgettables))
-            for robotName, notForgottableNumber in notForgettables.items():
-                print ('Sensations cache Not Forgottable robot {} number {}'.format(robotName, notForgottableNumber))
-        #print('Memory usage for {} Sensations {} after {} MB'.format(len(memory), Sensation.getMemoryTypeString(sensation.getMemoryType()), Sensation.getMemoryUsage()-Sensation.startSensationMemoryUsageLevel))
+# deprecated
+#     def forgetLessImportantSensations(sensation):
+#         numNotForgettables=0
+#         memory = Sensation.sensationMemorys[sensation.getMemoryType()]
+# 
+#         # calibrate memorability        
+#         if (Sensation.getMemoryUsage() > Sensation.maxRss or\
+#             Sensation.getAvailableMemory() < Sensation.minAvailMem) and\
+#             Sensation.min_cache_memorability < Sensation.MAX_MIN_CACHE_MEMORABILITY:
+#             if Sensation.min_cache_memorability >= Sensation.NEAR_MAX_MIN_CACHE_MEMORABILITY:
+#                 Sensation.min_cache_memorability = Sensation.min_cache_memorability + 0.01
+#             else:
+#                 Sensation.min_cache_memorability = Sensation.min_cache_memorability + 0.1
+#         elif (Sensation.getMemoryUsage() < Sensation.maxRss or\
+#               Sensation.getAvailableMemory() > Sensation.minAvailMem )and\
+#             Sensation.min_cache_memorability > Sensation.MIN_MIN_CACHE_MEMORABILITY:
+#             if Sensation.min_cache_memorability <= Sensation.NEAR_MIN_MIN_CACHE_MEMORABILITY:
+#                 Sensation.min_cache_memorability = Sensation.min_cache_memorability - 0.01
+#             else:
+#                 Sensation.min_cache_memorability = Sensation.min_cache_memorability - 0.1
+#         
+#         # delete quickly last created Sensations that are not important
+#         while len(memory) > 0 and memory[0].isForgettable() and memory[0].getMemorability() < Sensation.min_cache_memorability:
+#             print('delete from sensation cache {}'.format(memory[0].toDebugStr()))
+#             memory[0].delete()
+#             del memory[0]
+# 
+#         # if we are still using too much memory for Sensations, we should check all Sensations in the cache
+#         notForgettables={}
+#         if Sensation.getMemoryUsage() > Sensation.maxRss or\
+#            Sensation.getAvailableMemory() < Sensation.minAvailMem:
+#             i=0
+#             while i < len(memory):
+#                 if memory[i].isForgettable():
+#                     if memory[i].getMemorability() < Sensation.min_cache_memorability:
+#                         print('delete from sensation cache {}'.format(memory[i].toDebugStr()))
+#                         memory[i].delete()
+#                         del memory[i]
+#                     else:
+#                         i=i+1
+#                 else:
+#                     numNotForgettables=numNotForgettables+1
+#                     for robot in memory[i].getAttachedBy():
+#                         if robot.getWho() not in notForgettables:
+#                             notForgettables[robot.getWho()] = 1
+#                         else:
+#                             notForgettables[robot.getWho()] = notForgettables[robot.getWho()]+1
+#                     i=i+1
+#        
+# #        print('Sensations cache for {} {} {} {} {} {} Total memory usage {} MB with Sensation.min_cache_memorability {}'.\
+#         print('Sensations cache for {} {} {} {} {} {} Total memory  usage {} MB available {} MB with Sensation.min_cache_memorability {}'.\
+#               format(Sensation.getMemoryTypeString(Sensation.MemoryType.Sensory), len(Sensation.sensationMemorys[Sensation.MemoryType.Sensory]),\
+#                      Sensation.getMemoryTypeString(Sensation.MemoryType.Working), len(Sensation.sensationMemorys[Sensation.MemoryType.Working]),\
+#                      Sensation.getMemoryTypeString(Sensation.MemoryType.LongTerm), len(Sensation.sensationMemorys[Sensation.MemoryType.LongTerm]),\
+#                      Sensation.getMemoryUsage(), Sensation.getAvailableMemory(), Sensation.min_cache_memorability))
+#         if numNotForgettables > 0:
+#             print('Sensations cache deletion skipped {} Not Forgottable Sensation'.format(numNotForgettables))
+#             for robotName, notForgottableNumber in notForgettables.items():
+#                 print ('Sensations cache Not Forgottable robot {} number {}'.format(robotName, notForgottableNumber))
+#         #print('Memory usage for {} Sensations {} after {} MB'.format(len(memory), Sensation.getMemoryTypeString(sensation.getMemoryType()), Sensation.getMemoryUsage()-Sensation.startSensationMemoryUsageLevel))
          
     '''
     Association is a association between two sensations
@@ -655,6 +656,7 @@ class Sensation(object):
     '''
        
     def __init__(self,
+                 memory,
                  robotId,                                                    # robot id (should be always given)
                  associations=None,
                  sensation=None,
@@ -888,7 +890,7 @@ class Sensation(object):
                     feeling = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER, signed=True)
                     i += Sensation.ID_SIZE
 
-                    sensation=Sensation.getSensationFromSensationMemory(id=sensation_id)
+                    sensation=memory.getSensationFromSensationMemory(id=sensation_id)
                     if sensation is not None:
                         # associate makes both sides
                         self.associate(sensation=sensation,
@@ -905,9 +907,6 @@ class Sensation(object):
             i += Sensation.ID_SIZE
             self.receivedFrom=bytesToList(bytes[i:i+receivedFrom_size])
             i += receivedFrom_size
-
-               
-        Sensation.addToSensationMemory(self)
 
     '''
     DEPRECATED
@@ -1766,23 +1765,27 @@ class Sensation(object):
         self.sensationType = sensationType
     def getSensationType(self):
         return self.sensationType
-       
-    def setMemory(self, memoryType):
-        if self.getMemoryType() != memoryType:
-            memoryLock.acquireWrite()  # thread_safe                                     
-            oldMemoryCache = Sensation.sensationMemorys[self.getMemoryType()]
-            try:
-                # remove from current menmory type cache and add to a new one
-                oldMemoryCache.remove(self)
-            except ValueError as e:
-                print("oldMemoryCache.remove(self) error " + str(e))
-                print("where self == " + self.toDebugStr())
-                
-            self.memoryType = memoryType
-            #self.time = systemTime.time()   # if we change memoryType, this is new Sensation, NO keep times, association handles if associated later
-            Sensation.forgetLessImportantSensations(self) # muat forget here. because if not created, this is only place fot Longerm-Senasations to be removed from cache
-            Sensation.sensationMemorys[memoryType].append(self)
-            memoryLock.releaseWrite()  # thread_safe   
+
+# deprecated, moved to Memory,
+# this is difficult to implement Sensation level now,
+# because Sensation does not know int Memory or Robot now, we have only robotId
+# TODO maybe we should change robotId to robot and clear it when we pickle Sensation cache in Memory   
+#     def setMemory(self, memoryType):
+#         if self.getMemoryType() != memoryType:
+#             memoryLock.acquireWrite()  # thread_safe                                     
+#             oldMemoryCache = Sensation.sensationMemorys[self.getMemoryType()]
+#             try:
+#                 # remove from current menmory type cache and add to a new one
+#                 oldMemoryCache.remove(self)
+#             except ValueError as e:
+#                 print("oldMemoryCache.remove(self) error " + str(e))
+#                 print("where self == " + self.toDebugStr())
+#                 
+#             self.memoryType = memoryType
+#             #self.time = systemTime.time()   # if we change memoryType, this is new Sensation, NO keep times, association handles if associated later
+#             Sensation.forgetLessImportantSensations(self) # muat forget here. because if not created, this is only place fot Longerm-Senasations to be removed from cache
+#             Sensation.sensationMemorys[memoryType].append(self)
+#             memoryLock.releaseWrite()  # thread_safe   
            
 # OOPS, we can't forget AWnasations at this point, because logic can need some other Sensations
 #         

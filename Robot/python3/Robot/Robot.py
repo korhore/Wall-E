@@ -195,6 +195,7 @@ class Robot(Thread):
         self.axon = Axon(robot=self)
         #and create subinstances
         for subInstanceName in self.config.getSubInstanceNames():
+            self.log(logLevel=Robot.LogLevel.Verbose, logStr="init robot sub instanceName " + subInstanceName)
             robot = self.loadSubRobot(subInstanceName=subInstanceName, level=self.level)
             if robot is not None:
                 self.subInstances.append(robot)
@@ -391,8 +392,10 @@ class Robot(Thread):
             # or if we can sense, but there is something in our xon, process it
             if not self.getAxon().empty() or not self.canSense():
                 transferDirection, sensation, association = self.getAxon().get()
+                # when we get a sensation it is attached to us.
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
                 self.process(transferDirection=transferDirection, sensation=sensation, association=association)
+                #sensation.detach(robot=self)  # detach sensation after process.
                 # as a test, echo everything to external device
                 #self.out_axon.put(sensation)
             else:
@@ -584,7 +587,7 @@ class Robot(Thread):
                         self.log(logLevel=Robot.LogLevel.Verbose, logStr='Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)')
                         # new instance or sensation for process
                         robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation, association=None, detach=False) # keep ownerdhip untill sent to all sub Robots
-                sensation.detach(robot=self) # when sent to subrobots, detach
+                #sensation.detach(robot=self) # when sent to subrobots, detach
         # sensation going down
         else:
             # which subinstances can process this
@@ -602,7 +605,8 @@ class Robot(Thread):
                 else:
                     self.log(logLevel=Robot.LogLevel.Verbose, logStr='Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(robot=self, sensation)')
                     robot.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation, association=None, detach=False) # keep ownerdhip untill sent to all sub Robots
-            sensation.detach(robot=self) # when sent to subrobots, detach
+
+        sensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
 # Utilities
     def tracePresents(self, sensation):
         # present means pure Present, all other if handled not present

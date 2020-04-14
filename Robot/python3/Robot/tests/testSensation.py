@@ -296,13 +296,13 @@ class SensationTestCase(unittest.TestCase):
         self.assertIsNot(addSensation, None)
         addSensation.setName(name='connect_test')
         self.assertIs(addSensation.getName(), 'connect_test', "should be \'connect_test\' ")
-        addSensation.setMemory(memoryType=Sensation.MemoryType.Working)
+        self.robot.getMemory().setMemoryType(sensation=addSensation, memoryType=Sensation.MemoryType.Working)
         self.assertIs(addSensation.getMemoryType(), Sensation.MemoryType.Working, "should be Sensation.MemoryType.Working")
         addSensation.setPresence(presence=Sensation.Presence.Present)
         self.assertIs(addSensation.getPresence(), Sensation.Presence.Present, "should be present")
         
         addSensation.setName('connect_test')
-        addSensation.setMemory(Sensation.MemoryType.Working)
+        self.robot.getMemory().setMemoryType(sensation=addSensation, memoryType=Sensation.MemoryType.Working)
         addSensation.save()    # this is worth to save its data
         associationNumber = len(self.sensation.getAssociations())
         #print('\nlogAssociations 2: test_AddAssociation')
