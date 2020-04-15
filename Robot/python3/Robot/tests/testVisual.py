@@ -149,8 +149,8 @@ class VisualTestCase(unittest.TestCase):
                                              score=VisualTestCase.SCORE_1)
         # Image is in LongTerm memoryType, it comes from TensorflowClassification and is crop of original big image
         #systemTime.sleep(0.1)  # wait to get really even id
-        if len(Robot.images) > 0:
-            image=Robot.images[0]
+        if len(self.visual.getMemory().getRobot().images) > 0:
+            image=self.visual.getMemory().getRobot().images[0]
         else:
             image=None
         self.assertNotEqual(image, None, "image should not be None in this test")
@@ -161,8 +161,8 @@ class VisualTestCase(unittest.TestCase):
                                                        image=image)
         self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation,
                                              score=VisualTestCase.SCORE_1)
-        if len(Robot.images) > 1:
-            image=Robot.images[1]
+        if len(self.visual.getMemory().getRobot().images) > 1:
+            image=self.visual.getMemory().getRobot().images[1]
         else:
             image=None
         self.assertNotEqual(image, None, "image should not be None in this test")
@@ -212,8 +212,8 @@ class VisualTestCase(unittest.TestCase):
                                                       name=VisualTestCase.NAME,
                                                       presence = Sensation.Presence.Present)
 
-        if len(Robot.images) > 0:
-            image=Robot.images[0]
+        if len(self.visual.getMemory().getRobot().images) > 0:
+            image=self.visual.getMemory().getRobot().images[0]
         else:
             image=None
         self.assertNotEqual(image, None, "image should not be None in this test")

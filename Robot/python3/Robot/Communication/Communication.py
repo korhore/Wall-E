@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 10.04.2020
+Updated on 15.04.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -58,10 +58,10 @@ from Config import Config
 
 class Communication(Robot):
 
-    COMMUNICATION_INTERVAL=45.0     # time window to history 
+    #COMMUNICATION_INTERVAL=45.0     # time window to history 
                                     # for sensations we communicate
     #COMMUNICATION_INTERVAL=15.0     # time window to history for test to be run quicker
-    #COMMUNICATION_INTERVAL=2.5     # time window to history for test to be run quicker
+    COMMUNICATION_INTERVAL=2.5     # time window to history for test to be run quicker
     CONVERSATION_INTERVAL=300.0     # if no change in present item.names and
                                     # last conversation is ended, how long
                                     # we wait until we will respond if
@@ -161,7 +161,7 @@ class Communication(Robot):
                sensation.getDirection() == Sensation.Direction.Out:
                 # presence is tracked in MainRobot for all Robots
                 self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + 'got item ' + sensation.toDebugStr())
-                self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' present now' + self.presenceToStr())
+                self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' present now' + self.getMemory().presenceToStr())
                 namesStr = self.communicationItemsToStr(sensation.getName())
                 if len(namesStr) > 0:
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' communicates now with ' + namesStr)
@@ -182,7 +182,7 @@ class Communication(Robot):
                    len(self.communicationItems) > 0:
                     # we have someone to talk with
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + 'got voice as response ' + sensation.toDebugStr())
-                    self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' present now' + self.presenceToStr())
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' present now' + self.getMemory().presenceToStr())
  
                     if self.timer is not None:
                         self.timer.cancel()
@@ -220,19 +220,19 @@ class Communication(Robot):
                                 communicationItem.getSensation().associate(sensation=sensation,
                                                                            feeling=communicationItem.getAssociation().getFeeling(),
                                                                            score=communicationItem.getAssociation().getScore())
-                    if len(Robot.presentItemSensations) > 0:          
-                        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' got voice and tries to speak with presents ones' + self.presenceToStr())
+                    if len(self.getMemory().presentItemSensations) > 0:          
+                        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' got voice and tries to speak with presents ones' + self.getMemory().presenceToStr())
                         self.speak(onStart=False)
 ################
                 # we have someone to talk with
                 # time is elapsed, so we can start communicating again with present item.names
                 elif len(self.communicationItems) == 0 and\
-                     len(Robot.presentItemSensations) > 0 and\
+                     len(self.getMemory().presentItemSensations) > 0 and\
                      self.lastConversationEndTime is not None and\
                      sensation.getTime() - self.lastConversationEndTime > 10*self.CONVERSATION_INTERVAL:
                     # we have someone to talk with
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + 'got voice as restarted conversation ' + sensation.toDebugStr())
-                    self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' present now' + self.presenceToStr())
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' present now' + self.getMemory().presenceToStr())
  
 #                 if self.timer is not None:
 #                     self.timer.cancel()
@@ -245,7 +245,7 @@ class Communication(Robot):
                     self.usedVoices.append(len(sensation.getData()))
                     self.heardVoices.append(sensation)
                 
-                    self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' got voice and tries to speak with presents ones' + self.presenceToStr())
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' got voice and tries to speak with presents ones' + self.getMemory().presenceToStr())
                     self.speak(onStart=True)
             else:
                 self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process: not Item or RESPONSE Voice in communication or too soon from last conversation' + sensation.toDebugStr())
@@ -296,23 +296,23 @@ class Communication(Robot):
         del self.communicationItems[:]  #clear old list
         
         candidate_communicationItems = []
-        if onStart and len(Robot.voices) > 0:
+        if onStart and len(self.getMemory().getRobot().voices) > 0:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: onStart')
-            data = Robot.voices[Robot.voiceind]
+            data = self.getMemory().getRobot().voices[self.voiceind]
             self.spokedVoiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, data=data)
             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation, association=None) # or self.process
-            self.log("speak: Starting with presenting Robot voiceind={} self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation={}".format(str(Robot.voiceind), self.spokedVoiceSensation.toDebugStr()))
-            Robot.voiceind=Robot.voiceind+1
-            if Robot.voiceind >= len(Robot.voices):
-                Robot.voiceind = 0
+            self.log("speak: Starting with presenting Robot voiceind={} self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation={}".format(str(self.voiceind), self.spokedVoiceSensation.toDebugStr()))
+            self.voiceind=self.voiceind+1
+            if self.voiceind >= len(self.getMemory().getRobot().voices):
+                self.voiceind = 0
             self.usedVoices.append(self.spokedVoiceSensation)
             self.usedVoiceLens.append(len(self.spokedVoiceSensation.getData()))                
                
-        # Robot.presentItemSensations can be changed
+        # self.getMemory().presentItemSensations can be changed
         succeeded=False
         while not succeeded:
             try:
-                for name, sensation in Robot.presentItemSensations.items():
+                for name, sensation in self.getMemory().presentItemSensations.items():
                     communicationItem = Communication.CommunicationItem(robot=self,
                                                                         name = name,
                                                                         sensation = sensation,
@@ -360,7 +360,7 @@ class Communication(Robot):
                                                              ignoredSensations = self.usedVoices,
                                                              ignoredVoiceLens = self.usedVoiceLens,
                                                              searchLength=Communication.SEARCH_LENGTH)
-                succeeded=True  # no exception,  Robot.presentItemSensations did not changed   
+                succeeded=True  # no exception,  self.getMemory().presentItemSensations did not changed   
             except Exception as e:
                  self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: ignored exception ' + str(e))
                  self.releaseCommunicationItems() #detach old list

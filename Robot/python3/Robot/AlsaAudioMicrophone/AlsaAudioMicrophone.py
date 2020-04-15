@@ -118,15 +118,15 @@ class AlsaAudioMicrophone(Robot):
                 self.process(transferDirection=transferDirection, sensation=sensation, association=association)
                 sensation.detach(robot=self)
             else:
-                if len(Robot.presentItemSensations) > 0: # listen is we have items that can speak
+                if len(self.getMemory().presentItemSensations) > 0: # listen is we have items that can speak
                     if not self.logged:
-                        self.log(logLevel=Robot.LogLevel.Normal, logStr=self.presenceToStr() + " items speaking, sense")
+                        self.log(logLevel=Robot.LogLevel.Normal, logStr=self.getMemory().presenceToStr() + " items speaking, sense")
                         self.logged = True
                     self.sense()
                 else:
                     self.logged = False
 #                     # TODO as a test we sense
-                    #self.log(logLevel=Robot.LogLevel.Verbose, logStr=str(len(Robot.presentItemSensations)) + " items NOT speaking, sense anyway")
+                    #self.log(logLevel=Robot.LogLevel.Verbose, logStr=str(len(self.getMemory().presentItemSensations)) + " items NOT speaking, sense anyway")
                     #self.sense()
                     #self.log(logLevel=Robot.LogLevel.Normal, logStr="no items speaking, sleeping " + str(AlsaAudioMicrophone.SLEEP_TIME))
                     #time.sleep(AlsaAudioMicrophone.SLEEP_TIME)
@@ -171,7 +171,7 @@ class AlsaAudioMicrophone(Robot):
             # put direction out (heard voice) to the parent Axon going up to main Robot
             # connected to present Item.names
             voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, data=self.getVoiceData(data=self.voice_data, dtype=Settings.AUDIO_CONVERSION_FORMAT))
-            for name, itemSensation in Robot.presentItemSensations.items():
+            for name, itemSensation in self.getMemory().presentItemSensations.items():
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: voice from " + name)
                 itemSensation.associate(sensation=voiceSensation)
             self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: self.getParent().getAxon().put(robot=self, sensation)")

@@ -597,9 +597,9 @@ class Visual(Robot):
             vbox = wx.BoxSizer(wx.VERTICAL)
             self.SetSizer(vbox)
             #self.identity = wx.TextCtrl(self, style=wx.TE_RIGHT)
-            print("MainFrame.__init__ len(Robot.images) " + str(len(Robot.images)))
-            if len(Robot.images) > 0:
-                bitmap = Visual.PILTowx(image=Robot.images[0], size=Visual.IDENTITY_SIZE, setMask=True)
+            print("MainFrame.__init__ len(robot.getMemory().getRobot().images) " + str(len(robot.getMemory().getRobot().images)))
+            if len(robot.getMemory().getRobot().images) > 0:
+                bitmap = Visual.PILTowx(image=robot.getMemory().getRobot().images[0], size=Visual.IDENTITY_SIZE, setMask=True)
                 self.identity = wx.StaticBitmap(self, -1, bitmap, (10, 5), (bitmap.GetWidth(), bitmap.GetHeight()))
                 #icon = wx.EmptyIcon()
                 icon = wx.Icon()

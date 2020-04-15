@@ -195,8 +195,8 @@ class AssociationTestCase(unittest.TestCase):
         print('6 len(Wall_E_item_sensation.getAssociations()) ' + str(len(Wall_E_item_sensation.getAssociations())))
         # this connection should be connected to a Voice now, when we process new Item created
         #simulate TensorflowClassification send presence item to MainBobot
-        self.association.tracePresents(Wall_E_item_sensation) # presence
-        # Now we should have 1 item in Robot.presentItemSensations (can be assigned as self.association) with with  name and associations count
+        #self.association.tracePresents(Wall_E_item_sensation) # presence in Memory now
+        # Now we should have 1 item in self.getMemory().presentItemSensations (can be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.association.presentItemSensations[Wall_E_item_sensation.getName()].getAssociations()), 1)
         
         #Finally test we heard a voice and Association.processes it
@@ -209,7 +209,7 @@ class AssociationTestCase(unittest.TestCase):
         self.association.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_voice_sensation, association=None)
         self.assertEqual(len(Wall_E_voice_sensation.getAssociations()), 1)
         self.assertEqual(Wall_E_voice_sensation.getScore(), AssociationTestCase.SCORE)
-        # Now we should have 1 item in Robot.presentItemSensations (can be assigned as self.association) with with  name and associations count
+        # Now we should have 1 item in self.getMemory().presentItemSensations (can be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.association.presentItemSensations[Wall_E_item_sensation.getName()].getAssociations()), 2)
         
          #another new voice after item present, it should be connected
@@ -218,7 +218,7 @@ class AssociationTestCase(unittest.TestCase):
         self.assertEqual(len(Wall_E_voice_sensation.getAssociations()), 1)
         self.assertEqual(Wall_E_voice_sensation.getScore(), AssociationTestCase.SCORE)
         
-        # Now we should have 1 item in Robot.presentItemSensations (can be assigned as self.association) with with  name and associations count
+        # Now we should have 1 item in self.getMemory().presentItemSensations (can be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.association.presentItemSensations[Wall_E_item_sensation.getName()].getAssociations()), 3)
 
        # final part of the test is not validated
@@ -243,7 +243,7 @@ class AssociationTestCase(unittest.TestCase):
         Eva_item_sensation = self.association.createSensation(sensationType=Sensation.SensationType.Item,  direction=Sensation.Direction.Out, name='Eva', presence = Sensation.Presence.Present)
         #simulate TensorflowCalssification sernd presence item to MainBobot
         self.association.tracePresents(Eva_item_sensation) # presence
-        # Now we should have 1 item in Robot.presentItemSensations (can be assigned as self.association) with with  name and associations count
+        # Now we should have 1 item in self.getMemory().presentItemSensations (can be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.association.presentItemSensations[Eva_item_sensation.getName()].getAssociations()), 0)
         
          #another new voice after item present, it should be connected
@@ -252,7 +252,7 @@ class AssociationTestCase(unittest.TestCase):
         self.assertEqual(len(Wall_E_voice_sensation.getAssociations()), 2)
         self.assertEqual(Wall_E_voice_sensation.getScore(), AssociationTestCase.SCORE)
         
-        # Now we should have 2 items in Robot.presentItemSensations (can be assigned as self.association) with with  name and associations count
+        # Now we should have 2 items in self.getMemory().presentItemSensations (can be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.association.presentItemSensations[Wall_E_item_sensation.getName()].getAssociations()), 4)
         self.assertEqual(len(self.association.presentItemSensations[Eva_item_sensation.getName()].getAssociations()), 1)
         
