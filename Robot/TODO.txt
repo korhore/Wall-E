@@ -16,15 +16,36 @@ and TensorflowClassification will stop
 Develop
 -------
 
+OK Wall-E:1:Starting: pickle.load(f) Exception Ran out of input
+
+Associatian can be removed, because Memory has functionality as build in.
+
 Implement Robot.isRunning also or use thread method. We nead that in many places.
 
 Fix SocketClient NotForgottables. It still can't forget in some situations
 Move Robot-Association functionality tp Memory.
 Memory is a place, that otganises this kind things.
 
-Check Alsa-Robots.
+OK Check Alsa-Robots.
+Check if we echo Sensation to original source.
 
-Organize Robots by MainRobot group
+Organize Robots by MainRobot groups
+
+Principles from lowe level Robot to higher ones
+
+Each Sense-type Robot can belong to one or more Groups. It can be sensible, if
+MainRobot and VirtualRobot share same Senses and Mucles. VirtualRobot does not have
+it own lower level Seses or Muscles. This saring should be done by MainRobot
+which is a brigde to Real Senses and Muscles of Virtual Robot, so VirtualRobot knows only its MainRobot
+which has capabilities. For VirtualRobot this functiolality is already implemented.
+
+MainRobot is ownwer of its Senses as Mucles as a Group. MainRobot can also be a member of group.
+That way Group must have only one MainRobot, that has Memory, but all MainRobots group members
+shjare this Memory. This way group has one shared Memory and MainRobot that has created that Memory
+is a brighe to all subrobots.
+
+
+
 Each Robot should belong to one exact Robot group, that has one MainRobot.
 MainRobot must have a name, so groupsa name is MainRobots name.
 Robot can be started in one site or other site. Other site has also MainRobot but it should

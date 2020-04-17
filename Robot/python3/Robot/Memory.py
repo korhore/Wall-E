@@ -170,6 +170,7 @@ class Memory(object):
         if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemoryType() == Sensation.MemoryType.Working and\
                sensation.getDirection() == Sensation.Direction.Out:
                self.tracePresents(sensation)
+        self.assign(sensation)
         
         return sensation
     
@@ -212,26 +213,25 @@ class Memory(object):
     should be moved from Robot to Memory
     '''
     def assign(self, sensation):
-        self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='process: sensation ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
+        self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='assign: sensation ' + systemTime.ctime(sensation.getTime()) +  ' ' + sensation.toDebugStr())
         #self.getMemory().getRobot().presentItemSensations can be changed
         #TODO logic can lead to infinite loop
         succeeded = False
         while not succeeded:
             try:
-                for itemSensation in self.getMemory().getRobot().presentItemSensations.values():
+                for itemSensation in self.presentItemSensations.values():
                     if sensation is not itemSensation and\
                        sensation.getTime() >=  itemSensation.getTime() and\
                        len(itemSensation.getAssociations()) < Sensation.ASSOCIATIONS_MAX_ASSOCIATIONS:
-                        self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='process: sensation.associate(Sensation.Association(self_sensation==itemSensation ' +  itemSensation.toDebugStr() + ' sensation=sensation ' + sensation.toDebugStr())
+                        self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='assign: sensation.associate(Sensation.Association(self_sensation==itemSensation ' +  itemSensation.toDebugStr() + ' sensation=sensation ' + sensation.toDebugStr())
                         itemSensation.associate(sensation=sensation,
                                                 score=itemSensation.getScore())
                     else:
-                        self.log(logLevel=LogLevel.Detailed, logStr='process: itemSensation ignored too much associations or items not newer than present itemSensation or sensation is present sensation ' + itemSensation.toDebugStr())
+                        self.log(logLevel=LogLevel.Detailed, logStr='assign: itemSensation ignored too much associations or items not newer than present itemSensation or sensation is present sensation ' + itemSensation.toDebugStr())
                 succeeded = True
             except Exception as e:
-                 self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='Association.process: ignored exception ' + str(e))
+                 self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='assign: ignored exception ' + str(e))
                  succeeded = True
-        sensation.detach(robot=self) # robot is not attached to this sensation
         
         
     '''
@@ -582,7 +582,7 @@ class Memory(object):
                     pickler.dump(Sensation.VERSION)
                     pickler.dump(self.sensationMemorys[Sensation.MemoryType.LongTerm])
                     #print ('saveLongTermMemory dumped ' + str(len(Sensation.sensationMemorys[Sensation.MemoryType.LongTerm])))
-                    print ('saveLongTermMemory dumped ' + str(len(Sensation.sensationMemorys[Sensation.MemoryType.Sensory])))
+                    print ('saveLongTermMemory dumped ' + str(len(self.sensationMemorys[Sensation.MemoryType.Sensory])))
                 except IOError as e:
                     self.log(logStr='pickler.dump(Sensation.sensationMemorys[MemoryType.LongTerm]) IOError ' + str(e), logLevel=Memory.MemoryLogLevel.Normal)
                 except pickle.PickleError as e:
