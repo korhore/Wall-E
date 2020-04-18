@@ -415,7 +415,7 @@ class Robot(Thread):
     ''' 
     def hasCapability(self, direction, memoryType, sensationType):
         hasCapalility = False
-        if self.isRunning() and self.getCapabilities() is not None:
+        if self.is_alive() and self.getCapabilities() is not None:
             hasCapalility = self.getCapabilities().hasCapability(direction, memoryType, sensationType)
             if hasCapalility:
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr="hasCapability direction " + str(direction) + " memoryType " + str(memoryType) + " sensationType " + str(sensationType) + ' ' + str(hasCapalility))      
@@ -498,23 +498,24 @@ class Robot(Thread):
             self.log("MainRobot Stopping self.tcpServer " + self.tcpServer.getWho())      
             self.tcpServer.stop()
             
+        someRunning = False
+        for robot in self.subInstances:
+            if robot.isAlive():
+                self.log("Robot waits " + robot.getWho() + " stopping")      
+                someRunning = True
+                break 
+        i=0
+        while i < 20 and someRunning:
+            time.sleep(10)
             someRunning = False
             for robot in self.subInstances:
                 if robot.isAlive():
-                    self.log("MainRobot waits " + robot.getWho() + " stopping")      
+                    self.log("Robot waits " + robot.getWho() + " stopping")      
                     someRunning = True
                     break 
-            i=0
-            while i < 20 and someRunning:
-                time.sleep(10)
-                someRunning = False
-                for robot in self.subInstances:
-                    if robot.isAlive():
-                        self.log("MainRobot waits " + robot.getWho() + " stopping")      
-                        someRunning = True
-                        break 
-                i = i+1    
+            i = i+1    
 
+        if self.isMainRobot():
             i=0
             while i < 20 and self.tcpServer.isAlive():
                 self.log("MainRobot waiting self.tcpServer Stopping " + self.tcpServer.getWho())
@@ -922,26 +923,35 @@ class VirtualRobot(Robot):
         # starting point of robot is always to study what it knows himself
         self.studyOwnIdentity()
         self.getOwnIdentity()
+        
+        
+#         # starting other threads/senders/capabilities
+#         for robot in self.subInstances:
+#             if robot.getInstanceType() != Sensation.InstanceType.Remote:
+#                 robot.start()
+        
         self.timer = Timer(interval=VirtualRobot.COMMUNICATION_INTERVAL, function=self.stopRunning)
         self.timer.start()
-
-
-        # live until stopped
-        self.mode = Sensation.Mode.Normal
-        while self.running:
-            # as a leaf sensor robot default processing for sensation we have got
-            # in practice we can get stop sensation
-            if not self.getAxon().empty():  
-                transferDirection, sensation, association = self.getAxon().get()
-                self.process(transferDirection=transferDirection, sensation=sensation, association=association)
-            else:
-                self.sense()
-
-        self.log("run ALL SHUT DOWN")  
         
+        Robot.run(self) #normal Robot run
+
+
+#         # live until stopped
+#         self.mode = Sensation.Mode.Normal
+#         while self.running:
+#             # as a leaf sensor robot default processing for sensation we have got
+#             # in practice we can get stop sensation
+#             if not self.getAxon().empty():  
+#                 transferDirection, sensation, association = self.getAxon().get()
+#                 self.process(transferDirection=transferDirection, sensation=sensation, association=association)
+#             else:
+#                 self.sense()
+# 
+#         self.log("run ALL SHUT DOWN")  
+#         
     def stopRunning(self):
         self.running = False   
-        
+         
     '''
     get your identity
     '''   
@@ -969,6 +979,7 @@ class VirtualRobot(Robot):
                 imageSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, image=image, filePath=sensation_filepath)
                 self.log("getOwnIdentity: self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=" + imageSensation.toDebugStr())      
                 self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
+                imageSensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
              # voices
             for fname in voice_file_names:
                 image_path=os.path.join(dirName,fname)
@@ -997,6 +1008,7 @@ class VirtualRobot(Robot):
                     sensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, data=data, filePath=sensation_filepath)
                     self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None) # or self.process
                     self.log("getOwnIdentity: self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=" + sensation.toDebugStr())      
+                    sensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
                  
     '''
     tell your identity
@@ -1010,6 +1022,7 @@ class VirtualRobot(Robot):
         self.imageind=self.imageind+1
         if self.imageind >= len(self.images):
             self.imageind = 0
+        imageSensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
 
         for i in range(VirtualRobot.VOICES_PER_CONVERSATION):          
             time.sleep(VirtualRobot.SLEEP_BETWEEN_VOICES)
@@ -1020,6 +1033,7 @@ class VirtualRobot(Robot):
             self.voiceind=self.voiceind+1
             if self.voiceind >= len(self.voices):
                self.voiceind = 0
+            sensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
 
     '''
     We can sense

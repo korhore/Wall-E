@@ -16,11 +16,18 @@ and TensorflowClassification will stop
 Develop
 -------
 
+Forget Virtual Robot Sensations
+
+Visial can be heavy. When stating many of them, delay and use Axon between Rpbot and wx-processes
+to transfer Sensation and just awake wx with wx-metdod.
+
 OK Wall-E:1:Starting: pickle.load(f) Exception Ran out of input
 
 Associatian can be removed, because Memory has functionality as build in.
 
-Implement Robot.isRunning also or use thread method. We nead that in many places.
+OK Implement Robot.isRunning also or use thread method. We nead that in many places.
+Not needed in many places, only when we wait, that processes are realy stopped.
+
 
 Fix SocketClient NotForgottables. It still can't forget in some situations
 Move Robot-Association functionality tp Memory.
