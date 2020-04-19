@@ -1,6 +1,6 @@
 '''
 Created on 28.04.2019
-Edited 06.04.2020
+Edited 19.04.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -64,6 +64,7 @@ class Config(ConfigParser):
     INSTANCE =          "Instance"
     VIRTUALINSTANCES =  "Virtualinstances"
     SUBINSTANCES =      "Subinstances"
+    REMOTESUBINSTANCES = "RemoteSubinstances"
     HOSTS =             "Hosts"
     IDENTITYS =         "Identitys"
     LOGLEVEL =          "LogLevel"
@@ -101,7 +102,8 @@ class Config(ConfigParser):
     NONE=               'None'
     EMPTY=              ''
     ZERO=               '0.0'
-    DEFAULT_SUBINSTANCES=  'Image Voice Association Moving'
+    DEFAULT_SUBINSTANCES=  ''
+    DEFAULT_REMOTESUBINSTANCES=  ''
   
     TRUE_ENCODED =      b'\x01'
     FALSE_ENCODED =     b'\x00'
@@ -579,6 +581,16 @@ class Config(ConfigParser):
             print('self.set(Config.DEFAULT_SECTION,Config.SUBINSTANCES, Config.EMPTY) exception ' + str(e))
 
         try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.REMOTESUBINSTANCES):
+                if self.level == 1:
+                    self.set(Config.DEFAULT_SECTION,Config.REMOTESUBINSTANCES, Config.DEFAULT_REMOTESUBINSTANCES)
+                else:
+                    self.set(Config.DEFAULT_SECTION,Config.REMOTESUBINSTANCES, Config.EMPTY)
+                self.is_changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION,Config.REMOTESUBINSTANCES, Config.EMPTY) exception ' + str(e))
+
+        try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.VIRTUALINSTANCES):
                 self.set(Config.DEFAULT_SECTION,Config.VIRTUALINSTANCES, Config.EMPTY)
                 self.is_changes=True
@@ -710,6 +722,14 @@ class Config(ConfigParser):
             self.subInstanceNames = subInstanceNames.split()
             
         return self.subInstanceNames
+
+    def getRemoteSubInstanceNames(self, section=LOCALHOST):
+        self.remoteSubInstanceNames=[]
+        remoteSubInstanceNames = self.get(section=section, option=self.REMOTESUBINSTANCES)
+        if remoteSubInstanceNames != None and len(remoteSubInstanceNames) > 0:
+            self.remoteSubInstanceNames = remoteSubInstanceNames.split()
+            
+        return self.remoteSubInstanceNames
 
     def getVirtualInstanceNames(self, section=LOCALHOST):
         self.virtualInstanceNames=[]
@@ -1135,6 +1155,9 @@ if __name__ == '__main__':
     
     subInstanceNames = config.getSubInstanceNames()
     print('subInstanceNames ' + str(subInstanceNames))
+
+    remoteSubInstanceNames = config.getRemoteSubInstanceNames()
+    print('remoteSubInstanceNames ' + str(remoteSubInstanceNames))
 
     virtualInstanceNames = config.getVirtualInstanceNames()
     print('VirtualInstanceNames ' + str(virtualInstanceNames))

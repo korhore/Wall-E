@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 15.04.2020
+Updated on 18.04.2020
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -27,7 +27,7 @@ from Sensation import Sensation
 from Memory import Memory
 from AlsaAudio import Settings as AudioSettings
 
-#from VirtualRobot import VirtualRobot
+#from Identity import Identity
 # from Romeo import Romeo
 # from ManualRomeo import ManualRomeo
 # from dbus.mainloop.glib import threads_init
@@ -193,8 +193,9 @@ class Robot(Thread):
         self.imageind=0
         self.voiceind=0
         # Features of Robot identity we can show and speak to
-        self.images=[]
-        self.voices=[]
+        self.imageSensations=[]
+        self.voiceSensations=[]
+        self.selfImage = None
         
         
         if memory is None:
@@ -216,13 +217,14 @@ class Robot(Thread):
         self.config = Config(instanceName=self.instanceName,
                              instanceType=self.instanceType,
                              level=level)   # don't increase level, it has increased yet and Config has its own levels (that are same)
+        self.instanceType = self.config.getInstanceType()
         print("Robot 3")
         self.id = self.config.getRobotId()
         self.capabilities = Capabilities(config=self.config)
         print("Robot 4")
         self.logLevel=self.config.getLogLevel()
         self.setWho(self.config.getWho())
-        self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who " + self.getWho() + " kind " + self.getKind() + " instanceType " + self.config.getInstanceType() + self.capabilities.toDebugString())
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who " + self.getWho() + " kind " + self.getKind() + " instanceType " + self.getInstanceType() + self.capabilities.toDebugString())
         # global queue for senses and other robots to put sensations to robot
         self.axon = Axon(robot=self)
         #and create subinstances
@@ -235,7 +237,7 @@ class Robot(Thread):
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr="init robot sub instanceName " + subInstanceName + " is None")
 
         for instanceName in self.config.getVirtualInstanceNames():
-            robot = VirtualRobot(parent=self,
+            robot = Robot(parent=self,
                           instanceName=instanceName,
                           instanceType=Sensation.InstanceType.Virtual,
                           level=self.level)
@@ -277,6 +279,19 @@ class Robot(Thread):
                                      instanceType=Sensation.InstanceType.Remote,
                                      level=self.level,
                                      address=(HOST,PORT))
+            self.identity=Identity(parent=self,
+                                   memory=self.getMemory(),  # use same memory than self
+                                   instanceName='Identity',
+                                   instanceType= Sensation.InstanceType.SubInstance,
+                                   level=level)
+        elif self.getInstanceType() == Sensation.InstanceType.Virtual:
+            # also virtual instace has identity as level 1 mainrobot
+            self.identity=Identity(parent=self,
+                                   memory=self.getMemory(),  # use same memory than self
+                                   instanceName='Identity',
+                                   instanceType= Sensation.InstanceType.SubInstance,
+                                   level=level)
+            self._isMainRobot = False
         else:
             self._isMainRobot = False
 
@@ -339,6 +354,9 @@ class Robot(Thread):
     
     def getKind(self):
         return self.config.getKind()
+    
+    def getInstanceType(self):
+        return self.instanceType
 
     def getAxon(self):
         return self.axon
@@ -351,8 +369,8 @@ class Robot(Thread):
     def getConfigFilePath(self):
         return self.config.getConfigFilePath()
 
-    def getInstanceType(self):
-        return self.config.getInstanceType
+#     def getInstanceType(self):
+#         return self.config.getInstanceType
         
     def getSubInstances(self):
         return self.subInstances
@@ -448,13 +466,13 @@ class Robot(Thread):
 
     def run(self):
         self.running=True
-        self.log(logLevel=Robot.LogLevel.Normal, logStr="run: Starting robot who " + self.getWho() + " kind " + self.getKind() + " instanceType " + self.config.getInstanceType())      
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="run: Starting robot who " + self.getWho() + " kind " + self.getKind() + " instanceType " + self.getInstanceType())      
         
         # study own identity
         # starting point of robot is always to study what it knows himself
-        if self.isMainRobot():
+        if self.isMainRobot() or self.getInstanceType() == Sensation.InstanceType.Virtual:
             self.studyOwnIdentity()
-            self.getOwnIdentity()
+            #self.getOwnIdentity()
         # starting other threads/senders/capabilities
         for robot in self.subInstances:
             if robot.getInstanceType() != Sensation.InstanceType.Remote:
@@ -463,6 +481,10 @@ class Robot(Thread):
         if self.isMainRobot():
             # main robot starts tcpServer first so clients gets association
             self.tcpServer.start()
+            self.identity.start()
+        elif self.getInstanceType() == Sensation.InstanceType.Virtual:
+            self.identity.start()
+
 
         # live until stopped
         self.mode = Sensation.Mode.Normal
@@ -497,7 +519,14 @@ class Robot(Thread):
         if self.isMainRobot():
             self.log("MainRobot Stopping self.tcpServer " + self.tcpServer.getWho())      
             self.tcpServer.stop()
-            
+            self.log("MainRobot Stopping self.identity " + self.identity.getWho())      
+            self.identity.stop()
+        elif self.getInstanceType() == Sensation.InstanceType.Virtual:
+            self.log("VirtualRobot Stopping self.identity " + self.identity.getWho())      
+            self.identity.stop()
+
+
+           
         someRunning = False
         for robot in self.subInstances:
             if robot.isAlive():
@@ -517,12 +546,24 @@ class Robot(Thread):
 
         if self.isMainRobot():
             i=0
+            while i < 20 and self.identity.isAlive():
+                self.log("MainRobot waiting self.identity Stopping " + self.identity.getWho())
+                time.sleep(10)
+                i = i+1    
             while i < 20 and self.tcpServer.isAlive():
                 self.log("MainRobot waiting self.tcpServer Stopping " + self.tcpServer.getWho())
                 time.sleep(10)
                 i = i+1    
             # finally save memories
             self.getMemory().saveLongTermMemory()
+        elif self.getInstanceType() == Sensation.InstanceType.Virtual:
+            i=0
+            while i < 20 and self.identity.isAlive():
+                self.log("VirtualRobot waiting self.identity Stopping " + self.identity.getWho())
+                time.sleep(10)
+                i = i+1
+            # TODO we have commo0n data directory, but we should have one per Memory
+            # Now we can't save virtual Robots memory
 
         self.log("run ALL SHUT DOWN")      
         self.log(logLevel=Robot.LogLevel.Normal, logStr="run ALL SHUT DOWN")
@@ -581,67 +622,90 @@ class Robot(Thread):
         
     def studyOwnIdentity(self):
         self.mode = Sensation.Mode.StudyOwnIdentity
-        self.log(logLevel=Robot.LogLevel.Normal, logStr="My name is " + self.getWho())      
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="My name is " + self.getWho())
+        # What kind we are
         self.log(logLevel=Robot.LogLevel.Detailed, logStr="My kind is " + str(self.getKind()))      
-        if self.isMainRobot():
-            self.identitypath = self.config.getIdentityDirPath(self.getKind())
-            self.log('My identitypath is ' + self.identitypath)      
-            for dirName, subdirList, fileList in os.walk(self.identitypath):
-                self.log('Found directory: %s' % dirName)      
-                image_file_names=[]
-                voice_file_names=[]
-                for fname in fileList:
-                    self.log('\t%s' % fname)
-                    if fname.endswith(".jpg"):# or\
-                    # png dows not work yet
-                    #fname.endswith(".png"):
-                        image_file_names.append(fname)
-                    elif fname.endswith(".wav"):
-                        voice_file_names.append(fname)
-                # images
-                for fname in image_file_names:
-                    image_path=os.path.join(dirName,fname)
-                    sensation_filepath = os.path.join('/tmp/',fname)
-                    shutil.copyfile(image_path, sensation_filepath)
-                    image = PIL_Image.open(sensation_filepath)
-                    image.load()
-                    self.images.append(image)
-                 # voices
-                for fname in voice_file_names:
-                    image_path=os.path.join(dirName,fname)
-                    sensation_filepath = os.path.join('/tmp/',fname)
-                    shutil.copyfile(image_path, sensation_filepath)
-                    with open(sensation_filepath, 'rb') as f:
-                        data = f.read()
-                            
-                        # length must be AudioSettings.AUDIO_PERIOD_SIZE
-                        remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
-                        if remainder is not 0:
-                            self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) + " correcting " )
-                            len_zerobytes = AudioSettings.AUDIO_PERIOD_SIZE - remainder
-                            ba = bytearray(data)
-                            for i in range(len_zerobytes):
-                                ba.append(0)
-                            data = bytes(ba)
-                            remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
-                            if remainder is not 0:
-                                self.log("Did not succeed to fix!")
-                                self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) )
-                        self.voices.append(data)
-                
-    '''
-    get our identity
-    '''   
-    def getOwnIdentity(self):
-        self.identitypath = self.config.getIdentityDirPath(self.getKind())
-        for dirName, subdirList, fileList in os.walk(self.identitypath):
+        self.selfSensation=self.createSensation(sensationType=Sensation.SensationType.Item,
+                                                memoryType=Sensation.MemoryType.LongTerm,
+                                                direction=Sensation.Direction.Out,# We have found this
+                                                who = self.getWho(),
+                                                name = self.getWho(),
+                                                presence = Sensation.Presence.Present,
+                                                kind=self.getKind())
+        if self.isMainRobot() or self.getInstanceType() == Sensation.InstanceType.Virtual:
+            self.imageSensations, self.voiceSensations = self.getIdentitySensations(kind=self.getKind())
+            if len(self.imageSensations) > 0:
+                self.selfImage = self.imageSensations[0].getImage()
+            else:
+                self.selfImage = None
+#             self.identitypath = self.config.getIdentityDirPath(self.getKind())
+#             self.log('My identitypath is ' + self.identitypath)      
+#             for dirName, subdirList, fileList in os.walk(self.identitypath):
+#                 self.log('Found directory: %s' % dirName)      
+#                 image_file_names=[]
+#                 voice_file_names=[]
+#                 for fname in fileList:
+#                     self.log('\t%s' % fname)
+#                     if fname.endswith(".jpg"):# or\
+#                     # png dows not work yet
+#                     #fname.endswith(".png"):
+#                         image_file_names.append(fname)
+#                     elif fname.endswith(".wav"):
+#                         voice_file_names.append(fname)
+#                 # images
+#                 for fname in image_file_names:
+#                     image_path=os.path.join(dirName,fname)
+#                     sensation_filepath = os.path.join('/tmp/',fname)
+#                     shutil.copyfile(image_path, sensation_filepath)
+#                     image = PIL_Image.open(sensation_filepath)
+#                     image.load()
+#                     imageSensation = self.createSensation( sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.LongTerm, direction = Sensation.Direction.Out,\
+#                                                            image=image)
+#                     self.imageSensations.append(imageSensation)
+#                     self.selfSensation.associate(sensation=imageSensation,
+#                                                  score=1.0,      # we know this for sure
+#                                                  feeling =  Sensation.Association.Feeling.Happy) # we are happy about our image
+#                  # voices
+#                 for fname in voice_file_names:
+#                     image_path=os.path.join(dirName,fname)
+#                     sensation_filepath = os.path.join('/tmp/',fname)
+#                     shutil.copyfile(image_path, sensation_filepath)
+#                     with open(sensation_filepath, 'rb') as f:
+#                         data = f.read()
+#                             
+#                         # length must be AudioSettings.AUDIO_PERIOD_SIZE
+#                         remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
+#                         if remainder is not 0:
+#                             self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) + " correcting " )
+#                             len_zerobytes = AudioSettings.AUDIO_PERIOD_SIZE - remainder
+#                             ba = bytearray(data)
+#                             for i in range(len_zerobytes):
+#                                 ba.append(0)
+#                             data = bytes(ba)
+#                             remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
+#                             if remainder is not 0:
+#                                 self.log("Did not succeed to fix!")
+#                                 self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) )
+#                         self.voiceSensations.append(data)
+#                         voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.LongTerm, direction = Sensation.Direction.Out, data=data)
+#                         self.selfSensation.associate(sensation=voiceSensation,
+#                                                      score = 1.0, # we know this for sure
+#                                                      feeling = Sensation.Association.Feeling.Happy) # we are happy about our voices
+
+    def getIdentitySensations(self, kind):
+        imageSensations=[]
+        voiceSensations=[]
+        identitypath = self.config.getIdentityDirPath(kind)
+        self.log('Identitypath for {} is {}'.format(kind, identitypath))
+        for dirName, subdirList, fileList in os.walk(identitypath):
             self.log('Found directory: %s' % dirName)      
             image_file_names=[]
             voice_file_names=[]
             for fname in fileList:
                 self.log('\t%s' % fname)
                 if fname.endswith(".jpg"):# or\
-                   #fname.endswith(".png"):
+                    # png dows not work yet
+                    #fname.endswith(".png"):
                     image_file_names.append(fname)
                 elif fname.endswith(".wav"):
                     voice_file_names.append(fname)
@@ -652,15 +716,17 @@ class Robot(Thread):
                 shutil.copyfile(image_path, sensation_filepath)
                 image = PIL_Image.open(sensation_filepath)
                 image.load()
-                self.images.append(image)
-             # voices
+                imageSensation = self.createSensation( sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.LongTerm, direction = Sensation.Direction.Out,\
+                                                       image=image)
+                imageSensations.append(imageSensation)
+            # voices
             for fname in voice_file_names:
-                image_path=os.path.join(dirName,fname)
+                voice_path=os.path.join(dirName,fname)
                 sensation_filepath = os.path.join('/tmp/',fname)
-                shutil.copyfile(image_path, sensation_filepath)
+                shutil.copyfile(voice_path, sensation_filepath)
                 with open(sensation_filepath, 'rb') as f:
                     data = f.read()
-                        
+                            
                     # length must be AudioSettings.AUDIO_PERIOD_SIZE
                     remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
                     if remainder is not 0:
@@ -674,7 +740,59 @@ class Robot(Thread):
                         if remainder is not 0:
                             self.log("Did not succeed to fix!")
                             self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) )
-                    self.voices.append(data)
+                    voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.LongTerm, direction = Sensation.Direction.Out, data=data)
+                    voiceSensations.append(voiceSensation)
+                    
+        return  imageSensations, voiceSensations
+
+
+                
+    '''
+    get our identity
+    '''   
+#     def getOwnIdentity(self):
+#         self.identitypath = self.config.getIdentityDirPath(self.getKind())
+#         for dirName, subdirList, fileList in os.walk(self.identitypath):
+#             self.log('Found directory: %s' % dirName)      
+#             image_file_names=[]
+#             voice_file_names=[]
+#             for fname in fileList:
+#                 self.log('\t%s' % fname)
+#                 if fname.endswith(".jpg"):# or\
+#                    #fname.endswith(".png"):
+#                     image_file_names.append(fname)
+#                 elif fname.endswith(".wav"):
+#                     voice_file_names.append(fname)
+#             # images
+#             for fname in image_file_names:
+#                 image_path=os.path.join(dirName,fname)
+#                 sensation_filepath = os.path.join('/tmp/',fname)
+#                 shutil.copyfile(image_path, sensation_filepath)
+#                 image = PIL_Image.open(sensation_filepath)
+#                 image.load()
+#                 self.images.append(image)
+#              # voices
+#             for fname in voice_file_names:
+#                 image_path=os.path.join(dirName,fname)
+#                 sensation_filepath = os.path.join('/tmp/',fname)
+#                 shutil.copyfile(image_path, sensation_filepath)
+#                 with open(sensation_filepath, 'rb') as f:
+#                     data = f.read()
+#                         
+#                     # length must be AudioSettings.AUDIO_PERIOD_SIZE
+#                     remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
+#                     if remainder is not 0:
+#                         self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) + " correcting " )
+#                         len_zerobytes = AudioSettings.AUDIO_PERIOD_SIZE - remainder
+#                         ba = bytearray(data)
+#                         for i in range(len_zerobytes):
+#                             ba.append(0)
+#                         data = bytes(ba)
+#                         remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
+#                         if remainder is not 0:
+#                             self.log("Did not succeed to fix!")
+#                             self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) )
+#                     self.voiceSensations.append(data)
     
 
     '''
@@ -835,7 +953,7 @@ class Robot(Thread):
                  time=None,
                  receivedFrom=[],
                  sensationType = Sensation.SensationType.Unknown,
-                 memoryType=Sensation.MemoryType.Sensory,
+                 memoryType=None,
                  direction=Sensation.Direction.In,
                  who=None,
                  leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
@@ -879,50 +997,57 @@ class Robot(Thread):
                  kind = kind )            
                         
  
-# VirtualRobot
+# Identity
 
 # from Robot import Robot
 # from Config import Config, Capabilities
 # from Sensation import Sensation
 
 
-class VirtualRobot(Robot):
+class Identity(Robot):
     from threading import Timer
 
     SLEEPTIME = 60.0
+#    SLEEPTIME = 5.0
     SLEEP_BETWEEN_IMAGES = 20.0
     SLEEP_BETWEEN_VOICES = 10.0
     VOICES_PER_CONVERSATION = 4
     COMMUNICATION_INTERVAL=600       # continue 10 mins and then stop
    
     def __init__(self,
-                 parent=None,
-                 instanceName=None,
+                 parent,
+                 instanceName,
+                 level,
+                 memory,
                  instanceType = Sensation.InstanceType.SubInstance,
-                 level=0):
+                 maxRss = Config.MAXRSS_DEFAULT,
+                 minAvailMem = Config.MINAVAILMEM_DEFAULT):
+        level=level+1   # don' loop Identitys
         Robot.__init__(self,
-                       memory=None,             # use own memory
+                       memory=memory,
                        parent=parent,
                        instanceName=instanceName,
                        instanceType=instanceType,
                        level=level)
-        print("We are in VirtualRobot, not Robot")
+        print("We are in Identity, not Robot")
         self.identitypath = self.config.getIdentityDirPath(self.getKind())
         self.imageind=0
         self.voiceind=0
-        self.images=[]
-        self.voices=[]
+        self.sleeptime = Identity.SLEEPTIME
+#         self.imageSensations=[]
+#         self.voiceSensations=[]
+#         self.selfImage = None
         
 
     def run(self):
         self.running=True
-        self.log("run: Starting Virtual Robot who " + self.getWho() + " kind " + self.getKind() + " instanceType " + self.config.getInstanceType())      
-        
+        self.mode = Sensation.Mode.Starting
+        self.log("run: Starting Identity Robot who " + self.getWho() + " kind " + self.getKind() + " instanceType " + self.getInstanceType())      
            
         # study own identity
         # starting point of robot is always to study what it knows himself
-        self.studyOwnIdentity()
-        self.getOwnIdentity()
+        #self.studyOwnIdentity() # use parent
+        #self.getOwnIdentity()
         
         
 #         # starting other threads/senders/capabilities
@@ -930,9 +1055,12 @@ class VirtualRobot(Robot):
 #             if robot.getInstanceType() != Sensation.InstanceType.Remote:
 #                 robot.start()
         
-        self.timer = Timer(interval=VirtualRobot.COMMUNICATION_INTERVAL, function=self.stopRunning)
-        self.timer.start()
+        # wait until started so all others can start first        
+        time.sleep(self.sleeptime)
+#         self.timer = Timer(interval=Identity.COMMUNICATION_INTERVAL, function=self.stopRunning)
+#         self.timer.start()
         
+        self.mode = Sensation.Mode.Normal
         Robot.run(self) #normal Robot run
 
 
@@ -954,86 +1082,94 @@ class VirtualRobot(Robot):
          
     '''
     get your identity
+    duplicate
     '''   
-    def getOwnIdentity(self):
-        for dirName, subdirList, fileList in os.walk(self.identitypath):
-            self.log('Found directory: %s' % dirName)      
-            image_file_names=[]
-            voice_file_names=[]
-            for fname in fileList:
-                self.log('\t%s' % fname)
-                if fname.endswith(".jpg"):# or\
-                   #fname.endswith(".png"):
-                    image_file_names.append(fname)
-                elif fname.endswith(".wav"):
-                    voice_file_names.append(fname)
-            # images
-            for fname in image_file_names:
-                image_path=os.path.join(dirName,fname)
-                sensation_filepath = os.path.join('/tmp/',fname)
-                shutil.copyfile(image_path, sensation_filepath)
-                image = PIL_Image.open(sensation_filepath)
-                image.load()
-                self.images.append(image)
-
-                imageSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, image=image, filePath=sensation_filepath)
-                self.log("getOwnIdentity: self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=" + imageSensation.toDebugStr())      
-                self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
-                imageSensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
-             # voices
-            for fname in voice_file_names:
-                image_path=os.path.join(dirName,fname)
-                sensation_filepath = os.path.join('/tmp/',fname)
-                shutil.copyfile(image_path, sensation_filepath)
-                with open(sensation_filepath, 'rb') as f:
-                    data = f.read()
-                    
-                    # add missing 0 bytes for 
-                    # length must be AudioSettings.AUDIO_PERIOD_SIZE
-                    remainder = len(data) % (AudioSettings.AUDIO_PERIOD_SIZE*AudioSettings.AUDIO_CHANNELS)
-                    if remainder is not 0:
-                        self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) + " correcting " )
-                        len_zerobytes = (AudioSettings.AUDIO_PERIOD_SIZE*AudioSettings.AUDIO_CHANNELS - remainder)
-                        ba = bytearray(data)
-                        for i in range(len_zerobytes):
-                            ba.append(0)
-                        data = bytes(ba)
-                        remainder = len(data) % (AudioSettings.AUDIO_PERIOD_SIZE*AudioSettings.AUDIO_CHANNELS)
-                        if remainder is not 0:
-                            self.log("Did not succeed to fix!")
-                            self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE*AudioSettings.AUDIO_CHANNELS) )
-                    
-                    self.voices.append(data)
-                    time.sleep(VirtualRobot.SLEEP_BETWEEN_VOICES)
-                    sensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, data=data, filePath=sensation_filepath)
-                    self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None) # or self.process
-                    self.log("getOwnIdentity: self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=" + sensation.toDebugStr())      
-                    sensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
+#     def getOwnIdentity(self):
+#         for dirName, subdirList, fileList in os.walk(self.identitypath):
+#             self.log('Found directory: %s' % dirName)      
+#             image_file_names=[]
+#             voice_file_names=[]
+#             for fname in fileList:
+#                 self.log('\t%s' % fname)
+#                 if fname.endswith(".jpg"):# or\
+#                    #fname.endswith(".png"):
+#                     image_file_names.append(fname)
+#                 elif fname.endswith(".wav"):
+#                     voice_file_names.append(fname)
+#             # images
+#             for fname in image_file_names:
+#                 image_path=os.path.join(dirName,fname)
+#                 sensation_filepath = os.path.join('/tmp/',fname)
+#                 shutil.copyfile(image_path, sensation_filepath)
+#                 image = PIL_Image.open(sensation_filepath)
+#                 image.load()
+#                 self.images.append(image)
+# 
+#                 imageSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, image=image, filePath=sensation_filepath)
+#                 self.log("getOwnIdentity: self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=" + imageSensation.toDebugStr())      
+#                 self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
+#                 imageSensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
+#              # voices
+#             for fname in voice_file_names:
+#                 image_path=os.path.join(dirName,fname)
+#                 sensation_filepath = os.path.join('/tmp/',fname)
+#                 shutil.copyfile(image_path, sensation_filepath)
+#                 with open(sensation_filepath, 'rb') as f:
+#                     data = f.read()
+#                     
+#                     # add missing 0 bytes for 
+#                     # length must be AudioSettings.AUDIO_PERIOD_SIZE
+#                     remainder = len(data) % (AudioSettings.AUDIO_PERIOD_SIZE*AudioSettings.AUDIO_CHANNELS)
+#                     if remainder is not 0:
+#                         self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) + " correcting " )
+#                         len_zerobytes = (AudioSettings.AUDIO_PERIOD_SIZE*AudioSettings.AUDIO_CHANNELS - remainder)
+#                         ba = bytearray(data)
+#                         for i in range(len_zerobytes):
+#                             ba.append(0)
+#                         data = bytes(ba)
+#                         remainder = len(data) % (AudioSettings.AUDIO_PERIOD_SIZE*AudioSettings.AUDIO_CHANNELS)
+#                         if remainder is not 0:
+#                             self.log("Did not succeed to fix!")
+#                             self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE*AudioSettings.AUDIO_CHANNELS) )
+#                     
+#                     self.voices.append(data)
+#                     time.sleep(Identity.SLEEP_BETWEEN_VOICES)
+#                     sensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, data=data, filePath=sensation_filepath)
+#                     self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None) # or self.process
+#                     self.log("getOwnIdentity: self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=" + sensation.toDebugStr())      
+#                     sensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
                  
     '''
     tell your identity
     '''   
     def tellOwnIdentity(self):
         
-        image = self.images[self.imageind]
-        imageSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, image=image)
+        #image = self.imageSensations[self.imageind]
+        #imageSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, image=image)
+        selfSensation = self.createSensation( associations=[], sensation=self.getParent().selfSensation, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out)
+        #selfSensation.setMemoryType(memoryType = Sensation.MemoryType.Sensory)
+        self.log('tellOwnIdentity: selfSensation self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=' + selfSensation.toDebugStr())      
+        self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=selfSensation, association=None) # or self.process
+       
+        imageSensation = self.createSensation( associations=[], sensation=self.getParent().imageSensations[self.imageind], memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out)
+        #imageSensation.setMemoryType(memoryType = Sensation.MemoryType.Sensory)
         self.log('tellOwnIdentity: self.imageind  ' + str(self.imageind) + ' self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=' + imageSensation.toDebugStr())      
         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None) # or self.process
         self.imageind=self.imageind+1
-        if self.imageind >= len(self.images):
+        if self.imageind >= len(self.imageSensations):
             self.imageind = 0
         imageSensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
 
-        for i in range(VirtualRobot.VOICES_PER_CONVERSATION):          
-            time.sleep(VirtualRobot.SLEEP_BETWEEN_VOICES)
-            data = self.voices[self.voiceind]
-            sensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, data=data)
-            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None) # or self.process
-            self.log("tellOwnIdentity: " + str(self.voiceind) + " self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=" + sensation.toDebugStr())      
+        for i in range(Identity.VOICES_PER_CONVERSATION):          
+            time.sleep(Identity.SLEEP_BETWEEN_VOICES)
+            voiceSensation = self.createSensation( associations=[], sensation=self.getParent().voiceSensations[self.voiceind], memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out)
+            #voiceSensation.setMemoryType(memoryType = Sensation.MemoryType.Sensory)
+            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation, association=None) # or self.process
+            self.log("tellOwnIdentity: " + str(self.voiceind) + " self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=" + voiceSensation.toDebugStr())      
             self.voiceind=self.voiceind+1
-            if self.voiceind >= len(self.voices):
+            if self.voiceind >= len(self.voiceSensations):
                self.voiceind = 0
-            sensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
+            voiceSensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
 
     '''
     We can sense
@@ -1047,9 +1183,12 @@ class VirtualRobot(Robot):
     '''
     
     def sense(self):
-        if len(self.images) > 0 and len(self.voices) > 0:
+        if len(self.getParent().imageSensations) > 0 and len(self.getParent().voiceSensations) > 0:
+            # Oops, I'm afraid, we can't sleep in this thread, because we have wx
+            # terllOwnIdentity should be in its own thread
+            time.sleep(self.sleeptime)
             self.tellOwnIdentity()
-            time.sleep(VirtualRobot.SLEEPTIME)
+            self.sleeptime = 2*self.sleeptime
         else:
             self.running = False
             
@@ -1781,7 +1920,7 @@ def stop():
             return
     except Exception as err: 
         print ("stop: socket error, cannot stop localhost , error " + str(err))
-        return
+        returnIdentity
 
     finally:
         print ('stop: sock.close()')

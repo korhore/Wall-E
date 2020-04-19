@@ -15,8 +15,43 @@ and TensorflowClassification will stop
 
 Develop
 -------
+Maybe Identiyy should be a Ropot thats runs once and then stops.
+That way we could stop Main Robot
+or maybe we could brutally kill Identity-process, that is sleeping by thread methods.
+
+Show present items in Visual
+identity sensations as Sensory MemoryType
+tellIdentity for Robot functionality and VirtualRobot is only Role, not class
+(tell)Identity as SubRobot, so it can wait without doing harm to Visual,
+when main thread does not sleep?
+
+Robot should have selfSensation of type item ans name Robots name.
+With that we can describe Robot, what it has been seen and heard (out)
+and what it has said and shown (what it looks like to others). A satrtsup it shares this
+information to others.
+
+
+Logical MainRobot should have only one Communication in its congiguration.
+So when Logical MainRobot has many sites in its configuration its must not have many Communications
+Virtual Robot should have one Communication, TensoflowClassification abs Visual and
+it should borrow MicroPhone, Speaker, Cameresources from other. How this borrowing is done?
+Same question is with MainRobot that does not have those resources of its own.
+Now we have definition of MainRobot to down in one site, Maybe we should also define
+configuration of borrowed up direction fron network or for virtual Robot direct in one site.
+
 
 Forget Virtual Robot Sensations
+Forget Robot Sensations
+Valler Visual does noy stop
+
+wx does not work well with another MainFrame with another Visual
+[xcb] Unknown request in queue while dequeuing
+
+(Robot.py:9815): Gdk-WARNING **: Robot.py: Fatal IO error 11 (Resource temporarily unavailable) on X server :0.
+
+[xcb] Most likely this is a multi-threaded client and XInitThreads has not been called
+[xcb] Aborting, sorry about that.
+
 
 Visial can be heavy. When stating many of them, delay and use Axon between Rpbot and wx-processes
 to transfer Sensation and just awake wx with wx-metdod.

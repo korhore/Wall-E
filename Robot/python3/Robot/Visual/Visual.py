@@ -1,6 +1,6 @@
 '''
 Created on 12.03.2020
-Updated on 31.03.2020
+Updated on 18.04.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -14,7 +14,7 @@ Default is to used threading, like Robot-framework uses normally.
 
 '''
 
-import time as systemTime
+import time as time
 from threading import Thread
 from threading import Timer
 from PIL import Image as PIL_Image
@@ -26,6 +26,7 @@ from Sensation import Sensation
 from setuptools.ssl_support import once
 
 class Visual(Robot):
+    SLEEPTIME = 60.0
     
     WIDTH=1000
     HEIGHT=400
@@ -62,10 +63,10 @@ class Visual(Robot):
     TREE_UNUSED_AREA_COLOUR =           wx.Colour( 7*255/8, 7*255/8, 7*255/8 )
     TREE_BACKGROUND_COLOUR =            wx.Colour( 255, 255, 255 )
     TREE_IMAGELIST_INITIAL_COUNT =      50
-    TREE_ROOT_CHILD_MAX =               10
-    TREE_CHILD_CHILD_MAX =              20
-    TREE_CHILD_MAX =                    100
-    TREE_CHILD_LEVEL_MAX =              4
+    TREE_ROOT_CHILD_MAX =               5
+    TREE_CHILD_CHILD_MAX =              10
+    TREE_CHILD_MAX =                    50
+    TREE_CHILD_LEVEL_MAX =              3
  
     # Button definitions
     ID_START = wx.NewId()
@@ -91,6 +92,7 @@ class Visual(Robot):
                        maxRss =  maxRss,
                        minAvailMem = minAvailMem)
         print("We are in Visual, not Robot")
+        self.app = None
         
         # not yet running
         self.running=False
@@ -100,6 +102,8 @@ class Visual(Robot):
         # default
         self.running=True
         self.log(logLevel=Robot.LogLevel.Normal, logStr="run: Starting robot who " + self.getWho() + " kind " + self.getKind() + " instanceType " + self.config.getInstanceType())      
+        # wait until started so all others can start first        
+        time.sleep(Visual.SLEEPTIME)
         
         # starting other threads/senders/capabilities
         for robot in self.subInstances:
@@ -139,7 +143,7 @@ class Visual(Robot):
         self.log(logLevel=Robot.LogLevel.Normal, logStr="run ALL SHUT DOWN")
         
     def process(self, transferDirection, sensation, association=None):
-        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr() + '  len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) #called
+        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr() + '  len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) #called
         if transferDirection == Sensation.TransferDirection.Up:
             if self.getParent() is not None: # if sensation is going up  and we have a parent
                 self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation))')      
@@ -163,10 +167,11 @@ class Visual(Robot):
         #run once
         if self.running:
             Robot.stop(self) # default handling
-            # To stop wx we regenerate stop Sensation
-            sensation=self.createSensation(associations=[], sensationType = Sensation.SensationType.Stop)
             # and send it to wx-process
-            wx.PostEvent(self.app.frame, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
+            if self.app:
+                # To stop wx we regenerate stop Sensation
+                sensation=self.createSensation(associations=[], sensationType = Sensation.SensationType.Stop)
+                wx.PostEvent(self.app.frame, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
     '''
     Helpels
     '''
@@ -410,7 +415,7 @@ class Visual(Robot):
                     
                 item = self.gs.GetItem(Visual.SENSATION_COLUMNS + Visual.SENSATION_COLUMN_TIME)
                 if item is not None and item.IsWindow():
-                    item.GetWindow().SetLabel(systemTime.ctime(sensation.getTime()))
+                    item.GetWindow().SetLabel(time.ctime(sensation.getTime()))
                     
                 self.Refresh()
                 # in raspberry data_gs rows are not updated bith SetLavels, if we don't change main windows size so
@@ -507,7 +512,7 @@ class Visual(Robot):
                     text = text + ' ' + sensation.getName()
                 text = text + ' ' + Sensation.getMemoryTypeString(memoryType=sensation.getMemoryType()) + \
                               ' ' + Sensation.getDirectionString(direction=sensation.getDirection()) +\
-                              ' ' + systemTime.ctime(sensation.getTime())
+                              ' ' + time.ctime(sensation.getTime())
                 treeItem = self.tree.InsertItem (parent=parent,
                                                  pos=0,
                                                  text=text,
@@ -583,7 +588,7 @@ class Visual(Robot):
         """Class MainFrame."""
         def __init__(self, parent, id, robot):
             """Create the MainFrame."""
-            wx.Frame.__init__(self, parent, id, robot.getWho())
+            wx.Frame.__init__(self, parent, id, robot.getMemory().getRobot().getWho())
             self.robot = robot
      
             self.SetInitialSize((Visual.WIDTH, Visual.HEIGHT))
@@ -596,21 +601,21 @@ class Visual(Robot):
 
             vbox = wx.BoxSizer(wx.VERTICAL)
             self.SetSizer(vbox)
+            hbox = wx.BoxSizer(wx.HORIZONTAL)
             #self.identity = wx.TextCtrl(self, style=wx.TE_RIGHT)
-            print("MainFrame.__init__ len(robot.getMemory().getRobot().images) " + str(len(robot.getMemory().getRobot().images)))
-            if len(robot.getMemory().getRobot().images) > 0:
-                bitmap = Visual.PILTowx(image=robot.getMemory().getRobot().images[0], size=Visual.IDENTITY_SIZE, setMask=True)
-                self.identity = wx.StaticBitmap(self, -1, bitmap, (10, 5), (bitmap.GetWidth(), bitmap.GetHeight()))
+            self.identityText = wx.StaticText(self, label=self.robot.getMemory().getRobot().getWho())
+            hbox.Add(self.identityText, 0, flag=wx.CENTER, border=4)
+            if robot.getMemory().getRobot().selfImage:
+                bitmap = Visual.PILTowx(image=robot.getMemory().getRobot().selfImage, size=Visual.IDENTITY_SIZE, setMask=True)
+                self.identityBitMap = wx.StaticBitmap(self, -1, bitmap, (10, 5), (bitmap.GetWidth(), bitmap.GetHeight()))
                 #icon = wx.EmptyIcon()
                 icon = wx.Icon()
                 icon.CopyFromBitmap(bitmap)
                 self.SetIcon(icon)                
                 #self.SetIcon(wx.IconFromBitmap(bitmap))
-            else:
-                self.identity = wx.StaticText(self, label=self.robot.getWho())
-                
-                
-            vbox.Add(self.identity, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+                hbox.Add(self.identityBitMap, flag=wx.CENTER, border=4)
+            vbox.Add(hbox, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+            
             
             vbox.Add(panel, 1, wx.EXPAND)
              
@@ -627,10 +632,10 @@ class Visual(Robot):
             panel.SetSizer(sizer)
            
             #mainframe buttons           
-            hbox = wx.BoxSizer(wx.HORIZONTAL)
-            hbox.Add(wx.Button(self, Visual.ID_START, 'Start'), flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
-            hbox.Add(wx.Button(self, Visual.ID_STOP, 'Stop'), flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
-            vbox.Add(hbox, flag=wx.EXPAND)
+            buttonHbox = wx.BoxSizer(wx.HORIZONTAL)
+            buttonHbox.Add(wx.Button(self, Visual.ID_START, 'Start'), flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+            buttonHbox.Add(wx.Button(self, Visual.ID_STOP, 'Stop'), flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+            vbox.Add(buttonHbox, flag=wx.EXPAND)
             
             self.Fit()
                     
@@ -651,7 +656,7 @@ class Visual(Robot):
             """Stop Computation."""
             #Tell our Robot that we wan't to stop
             self.getRobot().stop()
-            systemTime.sleep(1)    # wait MainRobot stops also TCP-connected hosts
+            time.sleep(1)    # wait MainRobot stops also TCP-connected hosts
             self.Close()
             
         def OnSensation(self, event):

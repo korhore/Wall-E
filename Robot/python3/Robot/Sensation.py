@@ -319,21 +319,21 @@ class Sensation(object):
 
         
     '''
-    get memoryType usage
+    get memory usage
     '''
     def getMemoryUsage():     
          #memUsage= resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0            
         return Sensation.process.memory_info().rss/(1024*1024)              # hope this works better
     
     '''
-    get available memoryType
+    get available memory
     '''
     def getAvailableMemory():
         return psutil.virtual_memory().available/(1024*1024)
         
     '''
     Forget sensations that are not important
-    Other way we run out of memoryType very soon.
+    Other way we run out of memory very soon.
     
     This method is called from semaphore protected method, so we
     should not protect this
@@ -605,7 +605,7 @@ class Sensation(object):
                  time=None,
                  receivedFrom=[],
                  sensationType = SensationType.Unknown,
-                 memoryType=MemoryType.Sensory,
+                 memoryType=None,
                  direction=Direction.Out,
                  who=None,
                  leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
@@ -654,7 +654,10 @@ class Sensation(object):
                 
             self.receivedFrom=sensation.receivedFrom
             self.sensationType = sensation.sensationType
-            self.memoryType = sensation.memoryType
+            if memoryType == None:
+                self.memoryType = sensation.memoryType
+            else:
+                self.memoryType = memoryType 
             self.direction = sensation.direction
             self.who = sensation.who
             self.leftPower = sensation.leftPower
@@ -683,7 +686,10 @@ class Sensation(object):
 
         else:                
             self.sensationType = sensationType
-            self.memoryType = memoryType
+            if memoryType == None:
+                self.memoryType = Sensation.MemoryType.Sensory
+            else:
+                self.memoryType = memoryType
             self.direction = direction
             self.who = who
             self.leftPower = leftPower

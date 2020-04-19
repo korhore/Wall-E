@@ -118,7 +118,7 @@ class Memory(object):
                  time=None,
                  receivedFrom=[],
                  sensationType = Sensation.SensationType.Unknown,
-                 memoryType=Sensation.MemoryType.Sensory,
+                 memoryType=None,
                  direction=Sensation.Direction.In,
                  who=None,
                  leftPower = 0.0, rightPower = 0.0,                         # Walle motors state

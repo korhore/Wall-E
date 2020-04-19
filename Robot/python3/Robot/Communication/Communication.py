@@ -296,14 +296,16 @@ class Communication(Robot):
         del self.communicationItems[:]  #clear old list
         
         candidate_communicationItems = []
-        if onStart and len(self.getMemory().getRobot().voices) > 0:
+        if onStart and len(self.getMemory().getRobot().voiceSensations) > 0:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: onStart')
-            data = self.getMemory().getRobot().voices[self.voiceind]
-            self.spokedVoiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, data=data)
+            #data = self.getMemory().getRobot().voices[self.voiceind]
+            self.spokedVoiceSensation = self.createSensation( associations=[], sensation=self.getMemory().getRobot().voiceSensations[self.voiceind], memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out)
+            #self.spokedVoiceSensation.setMemoryType(memoryType = Sensation.MemoryType.Sensory)
+            #self.spokedVoiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, data=data)
             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation, association=None) # or self.process
             self.log("speak: Starting with presenting Robot voiceind={} self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation={}".format(str(self.voiceind), self.spokedVoiceSensation.toDebugStr()))
             self.voiceind=self.voiceind+1
-            if self.voiceind >= len(self.getMemory().getRobot().voices):
+            if self.voiceind >= len(self.getMemory().getRobot().voiceSensations):
                 self.voiceind = 0
             self.usedVoices.append(self.spokedVoiceSensation)
             self.usedVoiceLens.append(len(self.spokedVoiceSensation.getData()))                
