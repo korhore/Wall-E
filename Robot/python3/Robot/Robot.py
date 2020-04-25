@@ -178,6 +178,10 @@ class Robot(Thread):
                  minAvailMem = Config.MINAVAILMEM_DEFAULT):
         print("Robot 1")
         Thread.__init__(self)
+        self.daemon = True      # if daemon, all sub Robots are killed, when this one dies.
+                                # OOPS cannot set all Robos as daemon, becaise TCP-Robots can die and we just create now onews, when needed
+                                # but if that are daemons, all other will gies. Stuudy this
+                                # NO its was that
         
         self.time = time.time()
         
@@ -534,7 +538,7 @@ class Robot(Thread):
                 someRunning = True
                 break 
         i=0
-        while i < 20 and someRunning:
+        while i < 10 and someRunning:
             time.sleep(10)
             someRunning = False
             for robot in self.subInstances:
@@ -546,11 +550,11 @@ class Robot(Thread):
 
         if self.isMainRobot():
             i=0
-            while i < 20 and self.identity.isAlive():
+            while i < 10 and self.identity.isAlive():
                 self.log("MainRobot waiting self.identity Stopping " + self.identity.getWho())
                 time.sleep(10)
                 i = i+1    
-            while i < 20 and self.tcpServer.isAlive():
+            while i < 10 and self.tcpServer.isAlive():
                 self.log("MainRobot waiting self.tcpServer Stopping " + self.tcpServer.getWho())
                 time.sleep(10)
                 i = i+1    
@@ -558,7 +562,7 @@ class Robot(Thread):
             self.getMemory().saveLongTermMemory()
         elif self.getInstanceType() == Sensation.InstanceType.Virtual:
             i=0
-            while i < 20 and self.identity.isAlive():
+            while i < 10 and self.identity.isAlive():
                 self.log("VirtualRobot waiting self.identity Stopping " + self.identity.getWho())
                 time.sleep(10)
                 i = i+1

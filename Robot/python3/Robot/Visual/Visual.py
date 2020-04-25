@@ -1,6 +1,6 @@
 '''
 Created on 12.03.2020
-Updated on 18.04.2020
+Updated on 21.04.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -8,9 +8,8 @@ This class is low level sensory (muscle) for visual
 combined with low level sense feedback.
 implemented by wxPython and need display hardware and drivers (linux X, Windows its own, etc)
 
-Idea is to implement one way visual and feedback so
-that only one function is going on in a time.
-Default is to used threading, like Robot-framework uses normally.
+Idea is to implement one way visual show what is going on with this Robot
+and give possibility for person to give feedback/communicate with MainRobot
 
 '''
 
@@ -26,7 +25,8 @@ from Sensation import Sensation
 from setuptools.ssl_support import once
 
 class Visual(Robot):
-    SLEEPTIME = 60.0
+    SLEEPTIME = 30.0
+    SLEEPTIMERANDOM = 15.0
     
     WIDTH=1000
     HEIGHT=400
@@ -69,7 +69,6 @@ class Visual(Robot):
     TREE_CHILD_LEVEL_MAX =              3
  
     # Button definitions
-    ID_START = wx.NewId()
     ID_STOP = wx.NewId()
 
     # Sensation visualisation definitions
@@ -103,8 +102,9 @@ class Visual(Robot):
         self.running=True
         self.log(logLevel=Robot.LogLevel.Normal, logStr="run: Starting robot who " + self.getWho() + " kind " + self.getKind() + " instanceType " + self.config.getInstanceType())      
         # wait until started so all others can start first        
-        time.sleep(Visual.SLEEPTIME)
-        
+        time.sleep(Sensation.getRandom(base = Visual.SLEEPTIME,
+                                       randomMin = -Visual.SLEEPTIMERANDOM,
+                                       randomMax = Visual.SLEEPTIMERANDOM))       
         # starting other threads/senders/capabilities
         for robot in self.subInstances:
             if robot.getInstanceType() != Sensation.InstanceType.Remote:
@@ -323,7 +323,7 @@ class Visual(Robot):
             if event.data is not None:
                 # Thread aborted (using our convention of None return)
                 sensation=event.data
-                print('LogPanel.OnSensation got sensation from event.data ' + sensation.toDebugStr() + ' len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) 
+                self.getRobot().log('LogPanel.OnSensation got sensation from event.data ' + sensation.toDebugStr() + ' len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) 
                 self.status.SetLabel('Got Sensation Event')
                 
                 for i in range(Visual.SENSATION_LINES-1,0,-1):
@@ -347,11 +347,11 @@ class Visual(Robot):
                                 to_item_item.GetWindow().SetLabel(from_item_item.GetWindow().GetLabel())
                                 if from_data_gs.IsShown(Visual.SENSATION_COLUMN_DATA_TYPE_ITEM):
                                     to_data_gs.Show(Visual.SENSATION_COLUMN_DATA_TYPE_ITEM)
-                                    #print("OnSensation item fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetLabel " + label + " Show")
+                                    #self.getRobot().log("OnSensation item fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetLabel " + label + " Show")
                                     self.Refresh()
                                 else:
                                     to_data_gs.Hide(Visual.SENSATION_COLUMN_DATA_TYPE_ITEM)
-                                    #print("OnSensation item fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetLabel " + label + " Hide ")
+                                    #self.getRobot().log("OnSensation item fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetLabel " + label + " Hide ")
                                     self.Refresh()
                                 # image
                                 from_image_item = from_data_gs.GetItem(Visual.SENSATION_COLUMN_DATA_TYPE_IMAGE)
@@ -360,16 +360,16 @@ class Visual(Robot):
                                 to_image_item .GetWindow().SetBitmap(bitmap)
                                 if from_data_gs.IsShown(Visual.SENSATION_COLUMN_DATA_TYPE_IMAGE):
                                     to_data_gs.Show(Visual.SENSATION_COLUMN_DATA_TYPE_IMAGE)
-                                    #print("OnSensation image fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetBitmap Show")
+                                    #self.getRobot().log("OnSensation image fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetBitmap Show")
                                     self.Refresh()
                                 else:
                                     to_data_gs.Hide(Visual.SENSATION_COLUMN_DATA_TYPE_IMAGE)
-                                    #print("OnSensation image fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetBitmap Hide")
+                                    #self.getRobot().log("OnSensation image fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetBitmap Hide")
                                 self.Refresh()
                             else:
-                                print("OnSensation fromInd " + str(fromInd) + " toInd "+ str(toInd) + " error")
+                                self.getRobot().log("OnSensation fromInd " + str(fromInd) + " toInd "+ str(toInd) + " error")
                         else:
-                            print("OnSensation fromInd " + str(fromInd) + " toInd "+ str(toInd) + " None error")
+                            self.getRobot().log("OnSensation fromInd " + str(fromInd) + " toInd "+ str(toInd) + " None error")
                
                 item = self.gs.GetItem(Visual.SENSATION_COLUMNS + Visual.SENSATION_COLUMN_TYPE)
                 if item is not None and item.IsWindow():
@@ -480,8 +480,8 @@ class Visual(Robot):
             if event.data is not None:
                 # Thread aborted (using our convention of None return)
                 sensation=event.data
-                print('CommunicationPanel.OnSensation got sensation from event.data ' + sensation.toDebugStr() + '  len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) 
-                #print("OnSensation len(sensation.getAssociations()) " + str(len(sensation.getAssociations())))
+                self.getRobot().log('CommunicationPanel.OnSensation got sensation from event.data ' + sensation.toDebugStr() + '  len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) 
+                #self.getRobot().log("OnSensation len(sensation.getAssociations()) " + str(len(sensation.getAssociations())))
                 self.status.SetLabel('Got Sensation Event')
                 self.handleSensation(parent=self.root,
                                      sensation=sensation,
@@ -497,7 +497,7 @@ class Visual(Robot):
         def handleSensation(self, parent, sensation, level, associatedSensations, childrencount):
             """handleSensation."""
             #show sensation
-            #print("handleSensation len(sensation.getAssociations()) " + str(len(sensation.getAssociations())) + " level " + str(level))
+            #self.getRobot().log("handleSensation len(sensation.getAssociations()) " + str(len(sensation.getAssociations())) + " level " + str(level))
             if sensation not in associatedSensations:
                 associatedSensations.append(sensation)
                 imageInd=-1
@@ -517,7 +517,7 @@ class Visual(Robot):
                                                  pos=0,
                                                  text=text,
                                                  image=imageInd)
-                #print("" + text + " imageInd "+ str(imageInd))
+                #self.getRobot().log("" + text + " imageInd "+ str(imageInd))
                 level=level+1
                 if level <= Visual.TREE_CHILD_LEVEL_MAX and\
                     childrencount < Visual.TREE_CHILD_CHILD_MAX-level:
@@ -545,7 +545,7 @@ class Visual(Robot):
                            childrencount):
             if level <= Visual.TREE_CHILD_LEVEL_MAX and\
                 childrencount < Visual.TREE_CHILD_CHILD_MAX-level:
-                #print("insertChildren len(sensation.getAssociations()) " + str(len(sensation.getAssociations())) + " level " + str(level))
+                #self.getRobot().log("insertChildren len(sensation.getAssociations()) " + str(len(sensation.getAssociations())) + " level " + str(level))
                 for association in sensation.getAssociations():
                     childrencount = self.handleSensation(
                                          parent=parent,
@@ -564,7 +564,7 @@ class Visual(Robot):
             childCount = self.tree.GetChildrenCount(item=self.root, recursively=True)
             while (childCount > Visual.TREE_CHILD_MAX or\
                    rootChildCount > Visual.TREE_ROOT_CHILD_MAX) and rootChildCount > 1:
-                print("deleteOldItems rootChildCount " + str(rootChildCount) + " childCount " + str(childCount))
+                self.getRobot().log("deleteOldItems rootChildCount " + str(rootChildCount) + " childCount " + str(childCount))
                 rootLastChild =self.tree.GetLastChild(item=self.root)
                 self.removeImages(item=rootLastChild)
                 self.tree.Delete(rootLastChild)
@@ -590,6 +590,7 @@ class Visual(Robot):
             """Create the MainFrame."""
             wx.Frame.__init__(self, parent, id, robot.getMemory().getRobot().getWho())
             self.robot = robot
+            self.presentItemNames=[]
      
             self.SetInitialSize((Visual.WIDTH, Visual.HEIGHT))
             
@@ -601,7 +602,7 @@ class Visual(Robot):
 
             vbox = wx.BoxSizer(wx.VERTICAL)
             self.SetSizer(vbox)
-            hbox = wx.BoxSizer(wx.HORIZONTAL)
+            hbox = wx.BoxSizer(wx.VERTICAL)
             #self.identity = wx.TextCtrl(self, style=wx.TE_RIGHT)
             self.identityText = wx.StaticText(self, label=self.robot.getMemory().getRobot().getWho())
             hbox.Add(self.identityText, 0, flag=wx.CENTER, border=4)
@@ -631,15 +632,19 @@ class Visual(Robot):
             sizer.Add(notebook, 1, wx.EXPAND)
             panel.SetSizer(sizer)
            
+            #mainframe presents           
+            preseceHbox = wx.BoxSizer(wx.HORIZONTAL)
+            self.preseceText = wx.StaticText(self, label="Empty")#label=self.robot.getMemory().presenceToStr())
+            preseceHbox.Add(self.preseceText, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+            vbox.Add(preseceHbox, flag=wx.EXPAND)
+            
             #mainframe buttons           
             buttonHbox = wx.BoxSizer(wx.HORIZONTAL)
-            buttonHbox.Add(wx.Button(self, Visual.ID_START, 'Start'), flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
             buttonHbox.Add(wx.Button(self, Visual.ID_STOP, 'Stop'), flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
             vbox.Add(buttonHbox, flag=wx.EXPAND)
             
             self.Fit()
                     
-            self.Bind(wx.EVT_BUTTON, self.OnStart, id=Visual.ID_START)
             self.Bind(wx.EVT_BUTTON, self.OnStop, id=Visual.ID_STOP)
     
         def setRobot(self, robot):
@@ -647,13 +652,8 @@ class Visual(Robot):
         def getRobot(self):
             return self.robot #called
         
-        def OnStart(self, event):
-            """Start Computation."""
-            self.status.SetLabel('Starting computation')
-            #self.worker = Visual.WorkerThread(notify_window=self, robot=self.getRobot())
-    
         def OnStop(self, event):
-            """Stop Computation."""
+            """Stop Robot."""
             #Tell our Robot that we wan't to stop
             self.getRobot().stop()
             time.sleep(1)    # wait MainRobot stops also TCP-connected hosts
@@ -666,8 +666,10 @@ class Visual(Robot):
                 # deliver to tabs
                 sensation=event.data
                 if sensation.getSensationType() == Sensation.SensationType.Stop:
-                    self.OnStop(event)
+                    self.tracePresents(sensation=sensation)
                 else:
+                    if sensation.getSensationType() == Sensation.SensationType.Item:
+                        self.tracePresents(sensation)
                     wx.PostEvent(self.logPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
                     # TODO logic is still unclear
                     # if sensation is output then log it in communication tab
@@ -675,6 +677,32 @@ class Visual(Robot):
                     #sensation.getMemoryType() == Sensation.MemoryType.Sensory:
                         wx.PostEvent(self.communicationPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
 
+        '''
+        Presence
+        '''
+        def tracePresents(self, sensation):
+            # present means pure Present, all other if handled not present
+            # if present sensations must come in order
+            self.preseceText.SetLabel(label=self.robot.getMemory().presenceToStr())
+    #         if sensation.getName() in self.presentItemSensations and\
+    #            sensation.getTime() > self.presentItemSensations[sensation.getName()].getTime(): 
+    # 
+    #             if sensation.getPresence() == Sensation.Presence.Entering or\
+    #                sensation.getPresence() == Sensation.Presence.Present or\
+    #                sensation.getPresence() == Sensation.Presence.Exiting:
+    #                 self.presentItemSensations[sensation.getName()] = sensation
+    #                 self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="Entering, Present or Exiting " + sensation.getName())
+    #             else:
+    #                 del self.presentItemSensations[sensation.getName()]
+    #                 self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="Absent " + sensation.getName())
+    #         # accept only sensation items that are not present, but not not in order ones
+    #         # absent sensations don't have any mean at this case
+    #         elif (sensation.getName() not in self.presentItemSensations) and\
+    #              (sensation.getPresence() == Sensation.Presence.Entering or\
+    #                sensation.getPresence() == Sensation.Presence.Present or\
+    #                sensation.getPresence() == Sensation.Presence.Exiting):
+    #                 self.presentItemSensations[sensation.getName()] = sensation
+    #                 self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="Entering, Present or Exiting " + sensation.getName())
                 
  
     class MainApp(wx.App):

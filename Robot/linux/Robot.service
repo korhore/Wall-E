@@ -4,8 +4,8 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 MainRobot.py --start --daemon
-WorkingDirectory=/home/reijo/Robot/python3/Robot/MainRobot.py
+ExecStart=/usr/bin/python3 Robot.py --start --daemon
+WorkingDirectory=/home/reijo/Robot/python3/Robot/Robot
 StandardOutput=inherit
 StandardError=inherit
 Restart=always

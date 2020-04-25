@@ -1,6 +1,9 @@
 Critical
 --------
 
+OOps
+Sensations cache Not Forgottable robot SocketClient: ('192.168.117.247', 2000) number 1394
+
 With raspberry
 - tensorflow Version: 1.14.0
 
@@ -15,6 +18,12 @@ and TensorflowClassification will stop
 
 Develop
 -------
+
+Next step will be study and implement Association in Axon, Robot.process in memory level Robots, meaning MainRobot level. Association has score and feeling, so syudy how to implemt 'feel better,
+or feel worse about fron subject to object sensation,
+
+When communicating, return also bestImuonimpia, kun mieloestäni laitoin kuviot ihan oikein, mutta ingrespä oli toista mieltä.age for Item.
+
 Maybe Identiyy should be a Ropot thats runs once and then stops.
 That way we could stop Main Robot
 or maybe we could brutally kill Identity-process, that is sleeping by thread methods.

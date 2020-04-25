@@ -227,7 +227,7 @@ class Memory(object):
                         itemSensation.associate(sensation=sensation,
                                                 score=itemSensation.getScore())
                     else:
-                        self.log(logLevel=LogLevel.Detailed, logStr='assign: itemSensation ignored too much associations or items not newer than present itemSensation or sensation is present sensation ' + itemSensation.toDebugStr())
+                        self.log(logLevel=Memory.MemoryLogLevel.Detailed, logStr='assign: itemSensation ignored too much associations or items not newer than present itemSensation or sensation is present sensation ' + itemSensation.toDebugStr())
                 succeeded = True
             except Exception as e:
                  self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='assign: ignored exception ' + str(e))

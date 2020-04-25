@@ -1144,8 +1144,10 @@ class Sensation(object):
             return False
  
     def getNextId():
-        return systemTime.time()+random.uniform(Sensation.LOWPOINT_NUMBERVARIANCE, Sensation.HIGHPOINT_NUMBERVARIANCE)
+        return Sensation.getRandom(base=systemTime.time(), randomMin=Sensation.LOWPOINT_NUMBERVARIANCE, randomMax=Sensation.HIGHPOINT_NUMBERVARIANCE)
 
+    def getRandom(base, randomMin, randomMax):
+        return base + random.uniform(randomMin, randomMax)
 #     def nextId(self):
 #         return self.getTime()+random.uniform(Sensation.LOWPOINT_NUMBERVARIANCE, Sensation.HIGHPOINT_NUMBERVARIANCE)
         
