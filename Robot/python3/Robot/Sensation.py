@@ -439,8 +439,7 @@ class Sensation(object):
                      sensation,                             # sensation to connect
                      time=None,                             # last used
                      score = 0.0,                           # score of association, used at least with item, float
-                     feeling = Feeling.Neutral,             # feeling of association two sensations
-                     two_sided = True):                     # do we make path side of the association, default is True
+                     feeling = Feeling.Neutral):            # feeling of association two sensations
                                                             # stronger feeling make us (and robots) to remember association
                                                             # longer than neutral associations
                                                             # our behaver (and) robots has to goal to get good feelings
@@ -456,24 +455,7 @@ class Sensation(object):
             self.sensation = sensation
             self.score = score
             self.feeling = feeling
-#             if two_sided:
-#                 # other part
-#                 association = self.getAssociation(self.sensation)
-#                 # for some reason we find this association at other side
-#                 if association is not None:
-#                     association.time = self.time
-#                     association.score = self.score
-#                     association.feeling = self.feeling
-#                 else: # normal case, make association of other side looking to us
-#                     association = Association (sensation = self.self_sensation,
-#                                                time=self.time,                             
-#                                                score = self.score,                           
-#                                                feeling = self.feeling,             
-#                                                two_sided = False)
-#                     sensation.associatons.append(association)
 
-# TODO next method can't work
-    
         def getTime(self):
             return self.time
     
@@ -1468,22 +1450,6 @@ class Sensation(object):
             #print('addAssociation ' + self.toDebugStr() + ' to ' + association.getSensation().toDebugStr())
             self.associations.append(association)
             association.time = time
-        # other side
-# temporary test
-#         other_association = Sensation.Association(self_sensation=association.getSensation(),
-#                                                   sensation=self,
-#                                                   time=association.getTime(),
-#                                                   score=association.getScore(),
-#                                                   feeling=association.getFeeling(),
-#                                                   two_sided=False)
-#         if not other_association.getSensation().isConnected(association):
-#             #print('addAssociation ' + self.toDebugStr() + ' to ' + association.getSensation().toDebugStr())
-#             association.getSensation().associations.append(other_association)
-#             other_association.time = time
-        
-        
-            ## TODO howto do reverse association
-            #association.getSensation().addAssociation(Sensation.Association(self_sensation=, sensation=self))
             
     '''
     Helper function to create Association and add it 
@@ -1493,14 +1459,11 @@ class Sensation(object):
                   time=None,                             # last used
                   score = 0.0,                           # score of association, used at least with item, float
                   feeling = Association.Feeling.Neutral):             # feeling of association two sensations
-#                  two_sided = True):                     # do we make path side of the association, default is True
-# TODO self_sensation can be removed, it was bad idea
         self.addAssociation(Sensation.Association(self_sensation = self,
                                                   sensation = sensation,
                                                   time = time,
                                                   score = score,
                                                   feeling = feeling))
-#                                       two_sided = two_sided))
 
         sensation.addAssociation(Sensation.Association(self_sensation = sensation,
                                                        sensation = self,
