@@ -64,8 +64,7 @@ class Association(Robot):
                        sensation.getTime() >=  itemSensation.getTime() and\
                        len(itemSensation.getAssociations()) < Sensation.ASSOCIATIONS_MAX_ASSOCIATIONS:
                         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: sensation.associate(Sensation.Association(self_sensation==itemSensation ' +  itemSensation.toDebugStr() + ' sensation=sensation ' + sensation.toDebugStr())
-                        itemSensation.associate(sensation=sensation,
-                                                score=itemSensation.getScore())
+                        itemSensation.associate(sensation=sensation)
                     else:
                         self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: itemSensation ignored too much associations or items not newer than present itemSensation or sensation is present sensation ' + itemSensation.toDebugStr())
                 succeeded = True

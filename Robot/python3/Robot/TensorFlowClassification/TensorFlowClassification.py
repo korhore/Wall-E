@@ -607,9 +607,9 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                             #subsensation.associate(sensation=sensation, score=score)
                             subsensation.save()
                             
-                            itemsensation = self.createSensation( sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, direction = Sensation.Direction.Out, name=name,\
-                                                             presence = precence)
-                            itemsensation.associate(sensation=subsensation, score=score)
+                            itemsensation = self.createSensation( sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, direction = Sensation.Direction.Out,
+                                                                  name = name, score = score, presence = precence)
+                            itemsensation.associate(sensation=subsensation)
                             self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
                             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
                             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
@@ -666,9 +666,9 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                     #subsensation.associate(sensation=sensation, score=score)
                     subsensation.save()
                                       
-                    itemsensation = self.createSensation( sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, direction = Sensation.Direction.Out, name=name,\
-                                                          presence = precence)
-                    itemsensation.associate(sensation=subsensation, score=scores[i])
+                    itemsensation = self.createSensation( sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, direction = Sensation.Direction.Out,
+                                                          name=name, score=scores[i], presence = precence)
+                    itemsensation.associate(sensation=subsensation)
                     self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(scores[i]))
                     self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
                     self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))

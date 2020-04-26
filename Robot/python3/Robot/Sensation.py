@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 12.04.2020
+Edited on 26.04.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -113,6 +113,8 @@ class Sensation(object):
     NEAR_MAX_MIN_CACHE_MEMORABILITY = 1.5                    # max value of min memorability in sensation cache we think application does something sensible
     MIN_MIN_CACHE_MEMORABILITY = 0.1                         # min value of min memorability in sensation cache we think application does everything well and no need to
                                                              # set min_cache_memorability lower
+    MIN_SCORE = 0.1                                          # min score all Sensations have score > 0 to get Memorability. This is lower than detected Item.name
+
     NEAR_MIN_MIN_CACHE_MEMORABILITY = 0.2                    
     startSensationMemoryUsageLevel = 0.0                     # start memory usage level after creating first Sensation
     currentSensationMemoryUsageLevel = 0.0                   # current memory usage level when creating last Sensation
@@ -401,7 +403,7 @@ class Sensation(object):
          
     '''
     Association is a association between two sensations
-    There is score and time when used, so we cab calculate strength of this association.
+    There is time when used, so we cab calculate strength of this association.
     Association can be only with Long Term and Work Memory Sensations, because Sensory
     sensations don't live that long.
     Work Memory Associations can't be save but Long Term Memory Association can.
@@ -438,7 +440,6 @@ class Sensation(object):
                      self_sensation,                        # this side of Association
                      sensation,                             # sensation to connect
                      time=None,                             # last used
-                     score = 0.0,                           # score of association, used at least with item, float
                      feeling = Feeling.Neutral):            # feeling of association two sensations
                                                             # stronger feeling make us (and robots) to remember association
                                                             # longer than neutral associations
@@ -453,7 +454,6 @@ class Sensation(object):
                 self.time = systemTime.time()
             self.self_sensation = self_sensation
             self.sensation = sensation
-            self.score = score
             self.feeling = feeling
 
         def getTime(self):
@@ -484,19 +484,9 @@ class Sensation(object):
                self.sensation.addAssociation(self) 
             else:
                 association.time = self.time
-                association.score = self.score
                 association.feeling = self.feeling
         '''
-             
-        def getScore(self):
-            return self.score
     
-        def setScore(self, score):
-            self.score = score
-            # other part
-            association = self.sensation.getAssociation(self.self_sensation)
-            association.score = score
-
         def getFeeling(self):
             return self.feeling
     
@@ -567,12 +557,17 @@ class Sensation(object):
         Uses now Feeling as main factor and score as minor factor.
         Should use also time, so old Associations are not so important than
         new ones.
-       '''
+        '''
+        # old logic deprecated
+#         def getImportance(self):
+#             if self.feeling >= 0:
+#                 return float(self.feeling+1) * (1.0 + self.score)
+#             return float(self.feeling-1) * (1.0 + self.score)
+
         def getImportance(self):
             if self.feeling >= 0:
-                return float(self.feeling+1) * (1.0 + self.score)
-            return float(self.feeling-1) * (1.0 + self.score)
-
+                return float(self.feeling+1)
+            return float(self.feeling-1)
     '''
     default constructor for Sensation
     '''
@@ -601,6 +596,7 @@ class Sensation(object):
                  calibrateSensationType = SensationType.Unknown,
                  capabilities = None,                                       # capabilitis of sensorys, direction what way sensation go
                  name = '',                                                 # name of Item
+                 score = 0.0,                                               # used at least with item to define how good was the detection 0.0 - 1.0
                  presence = Presence.Unknown,                               # presence of Item
                  kind=Kind.Normal):                                         # kind (for instance voice)
                                        
@@ -622,7 +618,6 @@ class Sensation(object):
         for association in associations:
             self.associate(sensation=association.sensation,
                            time=association.time,
-                           score=association.score,
                            feeling=association.feeling)
 
         # associations are always both way
@@ -631,7 +626,6 @@ class Sensation(object):
             for association in sensation.associations:
                 self.associate(sensation=association.sensation,
                                time=association.time,
-                               score=association.score,
                                feeling=association.feeling)
                 
             self.receivedFrom=sensation.receivedFrom
@@ -657,6 +651,7 @@ class Sensation(object):
             self.calibrateSensationType = sensation.calibrateSensationType
             self.capabilities = sensation.capabilities
             self.name = sensation.name
+            self.score = sensation.score
             self.presence = sensation.presence
             self.kind = sensation.kind
             #self.attachedBy = sensation.attachedBy # keep self.attachedBy independent of original Sensation to be copied
@@ -689,6 +684,7 @@ class Sensation(object):
             self.calibrateSensationType = calibrateSensationType
             self.capabilities = capabilities
             self.name = name
+            self.score = score
             self.presence = presence
             self.kind = kind
             self.attachedBy = []
@@ -697,7 +693,6 @@ class Sensation(object):
             for association in associations:
                 self.associate(sensation=association.sensation,
                                time=association.time,
-                               score=association.score,
                                feeling=association.feeling)
            
             if receivedFrom == None:
@@ -799,6 +794,10 @@ class Sensation(object):
                     i += Sensation.ID_SIZE
                     self.name =bytesToStr(bytes[i:i+name_size])
                     i += name_size
+                                        
+                    self.score = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    i += Sensation.FLOAT_PACK_SIZE
+                    
                     self.presence = bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
                     i += Sensation.ENUM_SIZE
                     
@@ -812,9 +811,6 @@ class Sensation(object):
                     time = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
                 
-                    score = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-                    i += Sensation.FLOAT_PACK_SIZE
-                    
                     feeling = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER, signed=True)
                     i += Sensation.ID_SIZE
 
@@ -823,7 +819,6 @@ class Sensation(object):
                         # associate makes both sides
                         self.associate(sensation=sensation,
                                        time=time,
-                                       score=score,
                                        feeling=feeling)
                 
             except (ValueError):
@@ -1173,6 +1168,7 @@ class Sensation(object):
             s +=  ' ' + self.getCapabilities().toString()
         elif self.sensationType == Sensation.SensationType.Item:
             s +=  ' ' + self.name
+            s +=  ' ' + str(self.score)
             s +=  ' ' + self.presence
            
 #         elif self.sensationType == Sensation.SensationType.Stop:
@@ -1216,7 +1212,7 @@ class Sensation(object):
         if self.sensationType == Sensation.SensationType.Voice:
             s = s + ' ' + Sensation.getKindString(self.kind)
         elif self.sensationType == Sensation.SensationType.Item:
-            s = s + ' ' + self.name + ' ' + Sensation.getPresenceString(self.presence)
+            s = s + ' ' + self.name + ' ' + str(self.score) + ' ' + Sensation.getPresenceString(self.presence)
         return s
 
     def bytes(self):
@@ -1276,6 +1272,7 @@ class Sensation(object):
             name_size=len(self.name)
             b +=  name_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
             b +=  StrToBytes(self.name)
+            b +=  floatToBytes(self.score)
             b +=  StrToBytes(self.presence)
             
         #  at the end associations (ids)
@@ -1284,7 +1281,6 @@ class Sensation(object):
         for j in range(association_id):
             b +=  floatToBytes(self.associations[j].getSensation().getId())
             b +=  floatToBytes(self.associations[j].getTime())
-            b +=  floatToBytes(self.associations[j].getScore())
             b +=  (self.associations[j].getFeeling()).to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER, signed=True)
        #  at the end receivedFrom (list of words)
         blist = listToBytes(self.receivedFrom)
@@ -1457,18 +1453,15 @@ class Sensation(object):
     def associate(self,
                   sensation,                             # sensation to connect
                   time=None,                             # last used
-                  score = 0.0,                           # score of association, used at least with item, float
                   feeling = Association.Feeling.Neutral):             # feeling of association two sensations
         self.addAssociation(Sensation.Association(self_sensation = self,
                                                   sensation = sensation,
                                                   time = time,
-                                                  score = score,
                                                   feeling = feeling))
 
         sensation.addAssociation(Sensation.Association(self_sensation = sensation,
                                                        sensation = self,
                                                        time = time,
-                                                       score = score,
                                                        feeling = feeling))
 
     
@@ -1502,7 +1495,6 @@ class Sensation(object):
         for association in associations:
             self.associate( sensation = association.sensation,
                             time = association.time,
-                            score = association.score,
                             feeling = association.feeling)
 
     def getAssociations(self):
@@ -1539,19 +1531,21 @@ class Sensation(object):
         for association in self.associations:
             associationIds.append(association.getSensation().getId())
         return associationIds
- 
-    def getScore(self):
-        score = 0.0
-        # one level associations
-        best_association = None
-        for association in self.associations:
-            if association.getScore() > score:
-                score = association.getScore()
-                best_association = association
-        if best_association is not None:
-            best_association.time = systemTime.time()
-            
-        return score
+
+# TODO
+#deprecated old logic 
+#     def getScore(self):
+#         score = 0.0
+#         # one level associations
+#         best_association = None
+#         for association in self.associations:
+#             if association.getScore() > score:
+#                 score = association.getScore()
+#                 best_association = association
+#         if best_association is not None:
+#             best_association.time = systemTime.time()
+#             
+#         return score
     
     def getFeeling(self):
         feeling = Sensation.Association.Feeling.Neutral
@@ -1758,6 +1752,22 @@ class Sensation(object):
         self.name = name
     def getName(self):
         return self.name
+
+    def setScore(self, score):
+        self.score = score
+    '''
+    get highst score of associared  sensations
+    '''    
+    def getScore(self):
+        score = Sensation.MIN_SCORE
+        if self.score > score:
+            score = self.score
+        for association in self.getAssociations():
+            # study only direct associations scores
+            if association.getSensation().score > score:
+                score = association.getSensation().score
+
+        return score
 
     def setPresence(self, presence):
         self.presence = presence

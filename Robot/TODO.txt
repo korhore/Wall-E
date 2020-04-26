@@ -20,7 +20,19 @@ Develop
 -------
 
 Next step will be study and implement Association in Axon, Robot.process in memory level Robots, meaning MainRobot level. Association has score and feeling, so syudy how to implemt 'feel better,
-or feel worse about fron subject to object sensation,
+or feel worse about fron subject to object sensation.
+- score Sensation.Assosiation ->  Sentation.Item feature
+OK But Needs cleanup
+
+Delete not forgettable sensation before pickle, because we can't pickle them because they are associated with Robot. Anyway, thay are too old or under process, so they are obsolete.
+
+Virtual Robots Visual does not start always.
+X-client Probots Visual does not start very quicly always.
+
+It is not good idea to change Sensation processing Robot. It should be what it is.
+
+
+Identity is hard to stop. How to awake from sleep.
 
 When communicating, return also bestImuonimpia, kun mieloestäni laitoin kuviot ihan oikein, mutta ingrespä oli toista mieltä.age for Item.
 

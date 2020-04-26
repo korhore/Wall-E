@@ -144,7 +144,10 @@ class Visual(Robot):
         
     def process(self, transferDirection, sensation, association=None):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr() + '  len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) #called
-        if transferDirection == Sensation.TransferDirection.Up:
+        if sensation.getSensationType() == Sensation.SensationType.Stop:
+            self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: SensationSensationType.Stop')      
+            self.stop()
+        elif transferDirection == Sensation.TransferDirection.Up:
             if self.getParent() is not None: # if sensation is going up  and we have a parent
                 self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation))')      
                 self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation, association=None)

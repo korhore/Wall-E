@@ -218,8 +218,7 @@ class Communication(Robot):
                             if communicationItem.getSensation() is not None and\
                                 communicationItem.getAssociation() is not None:
                                 communicationItem.getSensation().associate(sensation=sensation,
-                                                                           feeling=communicationItem.getAssociation().getFeeling(),
-                                                                           score=communicationItem.getAssociation().getScore())
+                                                                           feeling=communicationItem.getAssociation().getFeeling())
                     if len(self.getMemory().presentItemSensations) > 0:          
                         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' got voice and tries to speak with presents ones' + self.getMemory().presenceToStr())
                         self.speak(onStart=False)
@@ -381,8 +380,7 @@ class Communication(Robot):
             # NOTE This is needed now, because Sensation.create parameters direction and memoryType parameters are  overwritten by sensation parameters
             self.spokedVoiceSensation.setKind(self.getKind())
             self.spokedVoiceSensation.setDirection(Sensation.Direction.In)  # speak        
-            association = self.mostImportantItemSensation.getAssociation(sensation = self.mostImportantVoiceSensation) #TODO can get AttributeError: 'NoneType' object has no attribute 'getAssociation'
-            #self.spokedVoiceSensation.setMemory(Sensation.MemoryType.Sensory) # OOPS Sensation.setMemory can delete too old Sensations, if this was done earlier
+            association = self.mostImportantItemSensation.getAssociation(sensation = self.mostImportantVoiceSensation)
             self.getMemory().setMemoryType(sensation=self.spokedVoiceSensation, memoryType=Sensation.MemoryType.Sensory)
             if association is not None: # be careful, association can be None, if there is no self.mostImportantVoiceSensation any more
                 association.setTime(time=None)  # renew association time, so no-one will delete these sensations and they are marked more important by time
@@ -390,8 +388,7 @@ class Communication(Robot):
                 #for communicationItem in candidate_communicationItems:
                 for communicationItem in self.communicationItems:
                     self.spokedVoiceSensation.associate(sensation = communicationItem.getSensation(),
-                                                   score=association.getScore(),
-                                                   feeling=association.getFeeling())
+                                                        feeling=association.getFeeling())
                     communicationItem.setAssociation(association=communicationItem.getSensation().getAssociation(self.spokedVoiceSensation))
             self.usedVoices.append(self.spokedVoiceSensation)
             self.usedVoiceLens.append(len(self.spokedVoiceSensation.getData()))      # TODO self.spokedVoiceSensation can be None          

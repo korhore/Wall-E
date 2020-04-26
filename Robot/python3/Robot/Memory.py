@@ -132,8 +132,9 @@ class Memory(object):
                  calibrateSensationType = Sensation.SensationType.Unknown,
                  capabilities = None,                                       # capabilities of sensorys, direction what way sensation go
                  name='',                                                   # name of Item
-                 presence=Sensation.Presence.Unknown,                                 # presence of Item
-                 kind=Sensation.Kind.Normal):                                         # Normal kind
+                 score = 0.0,                                               # used at least with item to define how good was the detection 0.0 - 1.0
+                 presence=Sensation.Presence.Unknown,                       # presence of Item
+                 kind=Sensation.Kind.Normal):                               # Normal kind
         if sensation == None:             # not an update, create new one
             self.log(logStr="Create new sensation by pure parameters for {}".format(robot.getWho()), logLevel=Memory.MemoryLogLevel.Normal)
         else:
@@ -162,7 +163,8 @@ class Memory(object):
                  image=image,
                  calibrateSensationType = calibrateSensationType,
                  capabilities = capabilities,
-                 name=name,
+                 name = name,
+                 score = score,
                  presence=presence,
                  kind=kind)
         sensation.attach(robot=robot)   # always create sensation attached by creator
@@ -224,8 +226,7 @@ class Memory(object):
                        sensation.getTime() >=  itemSensation.getTime() and\
                        len(itemSensation.getAssociations()) < Sensation.ASSOCIATIONS_MAX_ASSOCIATIONS:
                         self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='assign: sensation.associate(Sensation.Association(self_sensation==itemSensation ' +  itemSensation.toDebugStr() + ' sensation=sensation ' + sensation.toDebugStr())
-                        itemSensation.associate(sensation=sensation,
-                                                score=itemSensation.getScore())
+                        itemSensation.associate(sensation=sensation)
                     else:
                         self.log(logLevel=Memory.MemoryLogLevel.Detailed, logStr='assign: itemSensation ignored too much associations or items not newer than present itemSensation or sensation is present sensation ' + itemSensation.toDebugStr())
                 succeeded = True

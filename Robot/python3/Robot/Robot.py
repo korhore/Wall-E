@@ -667,7 +667,7 @@ class Robot(Thread):
 #                                                            image=image)
 #                     self.imageSensations.append(imageSensation)
 #                     self.selfSensation.associate(sensation=imageSensation,
-#                                                  score=1.0,      # we know this for sure
+#                                                  #score=1.0,      # we know this for sure
 #                                                  feeling =  Sensation.Association.Feeling.Happy) # we are happy about our image
 #                  # voices
 #                 for fname in voice_file_names:
@@ -693,7 +693,7 @@ class Robot(Thread):
 #                         self.voiceSensations.append(data)
 #                         voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.LongTerm, direction = Sensation.Direction.Out, data=data)
 #                         self.selfSensation.associate(sensation=voiceSensation,
-#                                                      score = 1.0, # we know this for sure
+#                                                      #score = 1.0, # we know this for sure
 #                                                      feeling = Sensation.Association.Feeling.Happy) # we are happy about our voices
 
     def getIdentitySensations(self, kind):
@@ -971,6 +971,7 @@ class Robot(Thread):
                  calibrateSensationType = Sensation.SensationType.Unknown,
                  capabilities = None,                                       # capabilities of sensorys, direction what way sensation go
                  name='',                                                   # name of Item
+                 score = 0.0,                                               # used at least with item to define how good was the detection 0.0 - 1.0
                  presence=Sensation.Presence.Unknown,                       # presence of Item
                  kind=Sensation.Kind.Normal):                               # Normal kind
         
@@ -997,6 +998,7 @@ class Robot(Thread):
                  calibrateSensationType = calibrateSensationType,
                  capabilities = capabilities,
                  name = name,
+                 score = score,
                  presence =presence,
                  kind = kind )            
                         
