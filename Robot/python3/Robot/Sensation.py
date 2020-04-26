@@ -82,7 +82,7 @@ Sensation is something Robot senses
 '''
 
 class Sensation(object):
-    VERSION=15          # version number to check, if we picle same version
+    VERSION=16          # version number to check, if we picle same version
                         # instances. Otherwise we get odd errors, with old
                         # version code instances
 
@@ -136,7 +136,7 @@ class Sensation(object):
     FLOAT_PACK_SIZE =   8
      
     # so many sensationtypes, that first letter is not good idea any more  
-    SensationType = enum(Drive='a', Stop='b', Who='c', Azimuth='d', Acceleration='e', Observation='f', HearDirection='g', Voice='h', Image='i',  Calibrate='j', Capability='k', Item='l', Unknown='m')
+    SensationType = enum(Drive='a', Stop='b', Who='c', Azimuth='d', Acceleration='e', Observation='f', HearDirection='g', Voice='h', Image='i',  Calibrate='j', Capability='k', Item='l', Association='m', Unknown='n')
     # Direction of a sensation. Example in Voice: In: Speaking,  Out: Hearing
     Direction = enum(In='I', Out='O')
     # Direction of a sensation transferring, used with Axon. Up: going up like fron AlsaMicroPhone to MainRobot, Down: going down from MainRobot to leaf Robots like AlsaPlayback
@@ -168,6 +168,7 @@ class Sensation(object):
     CALIBRATE="Calibrate"
     CAPABILITY="Capability"
     ITEM="Item"
+    ASSOCIATION="Association"
     UNKNOWN="Unknown"
     KIND="Kind"
     WALLE="Wall-E"
@@ -217,6 +218,7 @@ class Sensation(object):
                SensationType.Calibrate: CALIBRATE,
                SensationType.Capability: CAPABILITY,
                SensationType.Item: ITEM,
+               SensationType.Association: ASSOCIATION,
                SensationType.Unknown: UNKNOWN}
     SensationTypesOrdered=(
                SensationType.Drive,
@@ -231,6 +233,7 @@ class Sensation(object):
                SensationType.Calibrate,
                SensationType.Capability,
                SensationType.Item,
+               SensationType.Association,
                SensationType.Unknown)
     
     Kinds={Kind.WallE: WALLE,
@@ -516,7 +519,10 @@ class Sensation(object):
                  name = '',                                                 # name of Item
                  score = 0.0,                                               # used at least with item to define how good was the detection 0.0 - 1.0
                  presence = Presence.Unknown,                               # presence of Item
-                 kind=Kind.Normal):                                         # kind (for instance voice)
+                 kind=Kind.Normal,                                          # kind (for instance voice)
+                 firstAssociateSensation=None,                              # associated sensation first side
+                 otherAssociateSensation=None,                              # associated Sensation other side
+                 associateFeeling = Association.Feeling.Neutral):           # feeling of association
                                        
         from Config import Capabilities
         self.time=time
@@ -572,6 +578,10 @@ class Sensation(object):
             self.score = sensation.score
             self.presence = sensation.presence
             self.kind = sensation.kind
+            self.firstAssociateSensation = sensation.firstAssociateSensation
+            self.otherAssociateSensation = sensation.otherAssociateSensation
+            self.associateFeeling = sensation.associateFeeling
+            
             #self.attachedBy = sensation.attachedBy # keep self.attachedBy independent of original Sensation to be copied
             
             # We have here put values from sensation, but we should
@@ -605,6 +615,9 @@ class Sensation(object):
             self.score = score
             self.presence = presence
             self.kind = kind
+            self.firstAssociateSensation = firstAssociateSensation
+            self.otherAssociateSensation = otherAssociateSensation
+            self.associateFeeling = associateFeeling
             self.attachedBy = []
            
             # associate makes both sides
@@ -1344,9 +1357,9 @@ class Sensation(object):
     Helper function to create Association and add it 
     '''
     def associate(self,
-                  sensation,                             # sensation to connect
-                  time=None,                             # last used
-                  feeling = Association.Feeling.Neutral):             # feeling of association two sensations
+                  sensation,                                    # sensation to connect
+                  time=None,                                    # last used
+                  feeling = Association.Feeling.Neutral):       # feeling of association two sensations
         self.addAssociation(Sensation.Association(self_sensation = self,
                                                   sensation = sensation,
                                                   time = time,
@@ -1653,6 +1666,22 @@ class Sensation(object):
         self.kind = kind
     def getKind(self):
         return self.kind
+    
+    def setFirstAssociateSensation(self, firstAssociateSensation):
+        self.firstAssociateSensation = firstAssociateSensation
+    def getFirstAssociateSensation(self):
+        return self.firstAssociateSensation
+    
+    def setOtherAssociateSensation(self, otherAssociateSensation):
+        self.otherAssociateSensation = otherAssociateSensation
+    def getOtherAssociateSensation(self):
+        return self.otherAssociateSensation
+
+    def setAssociateFeeling(self, associateFeeling):
+        self.associateFeeling= associateFeeling
+    def getAssociateFeeling(self):
+        return self.associateFeeling
+    
 
     '''
         Attach a Sensation to be used by a Robot so, that

@@ -973,7 +973,11 @@ class Robot(Thread):
                  name='',                                                   # name of Item
                  score = 0.0,                                               # used at least with item to define how good was the detection 0.0 - 1.0
                  presence=Sensation.Presence.Unknown,                       # presence of Item
-                 kind=Sensation.Kind.Normal):                               # Normal kind
+                 kind=Sensation.Kind.Normal,                                # Normal kind
+                 firstAssociateSensation=None,                              # associated sensation first side
+                 otherAssociateSensation=None,                              # associated Sensation other side
+                 associateFeeling = Sensation.Association.Feeling.Neutral): # feeling of association
+
         
         return self.getMemory().create(
                  robot=self,

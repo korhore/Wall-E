@@ -134,7 +134,10 @@ class Memory(object):
                  name='',                                                   # name of Item
                  score = 0.0,                                               # used at least with item to define how good was the detection 0.0 - 1.0
                  presence=Sensation.Presence.Unknown,                       # presence of Item
-                 kind=Sensation.Kind.Normal):                               # Normal kind
+                 kind=Sensation.Kind.Normal,                                # Normal kind
+                 firstAssociateSensation=None,                              # associated sensation first side
+                 otherAssociateSensation=None,                              # associated Sensation other side
+                 associateFeeling = Sensation.Association.Feeling.Neutral): # feeling of association
         if sensation == None:             # not an update, create new one
             self.log(logStr="Create new sensation by pure parameters for {}".format(robot.getWho()), logLevel=Memory.MemoryLogLevel.Normal)
         else:
@@ -165,8 +168,11 @@ class Memory(object):
                  capabilities = capabilities,
                  name = name,
                  score = score,
-                 presence=presence,
-                 kind=kind)
+                 presence = presence,
+                 kind = kind,
+                 firstAssociateSensation = firstAssociateSensation,
+                 otherAssociateSensation = otherAssociateSensation,
+                 associateFeeling = associateFeeling)
         sensation.attach(robot=robot)   # always create sensation attached by creator
         self.addToSensationMemory(sensation)
         if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemoryType() == Sensation.MemoryType.Working and\
@@ -234,7 +240,17 @@ class Memory(object):
                  self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='assign: ignored exception ' + str(e))
                  succeeded = True
         
+    '''
+    Handle Association-yupe Sensatio
+    '''
+    def associate(self, sensation):
+        self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='associate: sensation ' + systemTime.ctime(sensation.getTime()) +  ' ' + sensation.toDebugStr())
         
+        if sensation.getSensationType() == Sensation.SensationType.Association and\
+           senssation.getFirstAssociateSensation() is not None and\
+           senssation.getOtherAssociateSensation() is not None:
+            senssation.getFirstAssociateSensation().associate(sensation=sensation.getOtherAssociateSensation(), feeling = sensation.getAssociateFeeling())
+      
     '''
     get memory usage
     '''
