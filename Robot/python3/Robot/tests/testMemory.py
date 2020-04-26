@@ -28,7 +28,8 @@ class MemoryTestCase(unittest.TestCase):
         self.memory = self.robot.getMemory()
         
         
-        self.sensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Sensory, name='test', presence=Sensation.Presence.Entering)
+        self.sensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Sensory,
+                                                    name='test', score=MemoryTestCase.SCORE, presence=Sensation.Presence.Entering)
         self.assertIs(self.sensation.getPresence(), Sensation.Presence.Entering, "should be entering")
         self.assertIsNot(self.sensation, None)
         self.assertIs(len(self.sensation.getAssociations()), 0)
@@ -248,13 +249,13 @@ class MemoryTestCase(unittest.TestCase):
 
     def test_Importance(self):        
         print("\ntest_Importance")
-        workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working, name='Working_Importance_test',presence=Sensation.Presence.Present)
+        workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
+                                                      name='Working_Importance_test', score=MemoryTestCase.SCORE, presence=Sensation.Presence.Present)
         self.assertIs(workingSensation.getPresence(), Sensation.Presence.Present, "should be present")
         self.assertIsNot(workingSensation, None)
         self.assertIs(len(workingSensation.getAssociations()), 0)
         workingSensation.associate(sensation=self.sensation,
-                                    score=MemoryTestCase.SCORE,
-                                    feeling=MemoryTestCase.FEELING)
+                                   feeling=MemoryTestCase.FEELING)
         Sensation.logAssociations(workingSensation)
         self.assertIs(len(workingSensation.getAssociations()), 1)
         association = self.sensation.getAssociation(sensation=workingSensation)
@@ -295,6 +296,9 @@ class MemoryTestCase(unittest.TestCase):
 
         
     def do_test_AddAssociation(self):
+        # test this test
+        self.assertEqual(self.sensation.getScore(), MemoryTestCase.SCORE)
+        
         # when we create sensation=self.sensation, other parameters can't be used
         addSensation = self.robot.createSensation(associations=None, sensation=self.sensation)
         self.assertIsNot(addSensation, None)
@@ -314,7 +318,6 @@ class MemoryTestCase(unittest.TestCase):
         Sensation.logAssociations(addSensation)
         
         self.sensation.associate(sensation=addSensation,
-                                 score=MemoryTestCase.SCORE,
                                  feeling=self.feeling)
 #         addAssociation = Sensation.Association(self_sensation=self.sensation,
 #                                                sensation=addSensation,
@@ -369,7 +372,7 @@ class MemoryTestCase(unittest.TestCase):
         # again, should not add association twise
         self.sensation.addAssociation(Sensation.Association(self_sensation=self.sensation,
                                                             sensation=addSensation,
-                                                            score=MemoryTestCase.SCORE2,
+#                                                            score=MemoryTestCase.SCORE2,
                                                             feeling=MemoryTestCase.TERRIFIED_FEELING))
         self.assertIs(len(self.sensation.getAssociations()), associationNumber+1)
         self.assertIs(self.sensation.getScore(), MemoryTestCase.SCORE)

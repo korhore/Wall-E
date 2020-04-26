@@ -1,6 +1,6 @@
 '''
 Created on 12.03.2020
-Updated on 16.03.2020
+Updated on 26.04.2020
 @author: reijo.korhonen@gmail.com
 
 test Visual class
@@ -30,8 +30,8 @@ class VisualTestCase(unittest.TestCase):
     
     TEST_RUNS=5
     ASSOCIATION_INTERVAL=3.0
-    TEST_TIME=300 # 5 min, when debugging
-    #TEST_TIME=30 # 30s when normal test
+    #TEST_TIME=300 # 5 min, when debugging
+    TEST_TIME=30 # 30s when normal test
 
     SCORE_1 = 0.1
     SCORE_2 = 0.2
@@ -80,7 +80,7 @@ class VisualTestCase(unittest.TestCase):
         self.history_sensationTime = systemTime.time() -2*max(VisualTestCase.ASSOCIATION_INTERVAL, Communication.COMMUNICATION_INTERVAL)
 
         self.stopSensation = self.visual.createSensation(memoryType=Sensation.MemoryType.Working,
-                                              sensationType=Sensation.SensationType.Stop,
+                                            sensationType=Sensation.SensationType.Stop,
                                             direction=Sensation.Direction.Out)
 
        # simulate item and image are connected each other with TensorflowClassifivation
@@ -91,6 +91,7 @@ class VisualTestCase(unittest.TestCase):
                                                       sensationType=Sensation.SensationType.Item,
                                                       direction=Sensation.Direction.Out,
                                                       name=VisualTestCase.NAME,
+                                                      score=VisualTestCase.SCORE_1,
                                                       presence = Sensation.Presence.Present)
         # Image is in LongTerm memoryType, it comes from TensorflowClassification and is crop of original big image
         #systemTime.sleep(0.1)  # wait to get really even id
@@ -98,8 +99,7 @@ class VisualTestCase(unittest.TestCase):
                                                        memoryType=Sensation.MemoryType.Working,
                                                        sensationType=Sensation.SensationType.Image,
                                                        direction=Sensation.Direction.Out)
-        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation,
-                                             score=VisualTestCase.SCORE_1)
+        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation)
         # set association also to history
         self.Wall_E_item_sensation.getAssociation(sensation=self.Wall_E_image_sensation).setTime(time=self.history_sensationTime)
         
@@ -113,10 +113,8 @@ class VisualTestCase(unittest.TestCase):
                                                        sensationType=Sensation.SensationType.Voice,
                                                        direction=Sensation.Direction.Out,
                                                        data="1")
-        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_voice_sensation,
-                                             score=VisualTestCase.SCORE_1)
-        self.Wall_E_image_sensation.associate(sensation=self.Wall_E_voice_sensation,
-                                             score=VisualTestCase.SCORE_1)
+        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_voice_sensation)
+        self.Wall_E_image_sensation.associate(sensation=self.Wall_E_voice_sensation,)
         # these connected each other
         self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 2)
         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 2)
@@ -144,25 +142,21 @@ class VisualTestCase(unittest.TestCase):
                                                       sensationType=Sensation.SensationType.Item,
                                                       direction=Sensation.Direction.Out,
                                                       name=VisualTestCase.NAME,
+                                                      score=VisualTestCase.SCORE_1,
                                                       presence = Sensation.Presence.Present)
-        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation,
-                                             score=VisualTestCase.SCORE_1)
-        # Image is in LongTerm memoryType, it comes from TensorflowClassification and is crop of original big image
-        #systemTime.sleep(0.1)  # wait to get really even id
-        if len(self.visual.getMemory().getRobot().images) > 0:
-            image=self.visual.getMemory().getRobot().images[0]
-        else:
-            image=None
+        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation)
+        image = self.visual.selfImage
         self.assertNotEqual(image, None, "image should not be None in this test")
 
         self.Wall_E_image_sensation = self.visual.createSensation( memoryType=Sensation.MemoryType.Working,
                                                        sensationType=Sensation.SensationType.Image,
                                                        direction=Sensation.Direction.Out,
                                                        image=image)
-        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation,
-                                             score=VisualTestCase.SCORE_1)
-        if len(self.visual.getMemory().getRobot().images) > 1:
-            image=self.visual.getMemory().getRobot().images[1]
+        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation)
+#         if len(self.visual.getMemory().getRobot().images) > 1:
+#             image=self.visual.getMemory().getRobot().images[1]
+        if len(self.visual.imageSensations) > 1:
+           image = self.visual.imageSensations[1].getImage()
         else:
             image=None
         self.assertNotEqual(image, None, "image should not be None in this test")
@@ -172,8 +166,7 @@ class VisualTestCase(unittest.TestCase):
                                                        image=image)
         
         
-        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation_2,
-                                             score=VisualTestCase.SCORE_2)
+        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation_2)
 
         # set association also to history
         self.Wall_E_item_sensation.getAssociation(sensation=self.Wall_E_image_sensation).setTime(time=self.history_sensationTime)
@@ -188,10 +181,8 @@ class VisualTestCase(unittest.TestCase):
                                                        sensationType=Sensation.SensationType.Voice,
                                                        direction=Sensation.Direction.Out,
                                                        data="1")
-        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_voice_sensation,
-                                             score=VisualTestCase.SCORE_1)
-        self.Wall_E_image_sensation.associate(sensation=self.Wall_E_voice_sensation,
-                                              score=VisualTestCase.SCORE_1)
+        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_voice_sensation)
+        self.Wall_E_image_sensation.associate(sensation=self.Wall_E_voice_sensation)
         # these connected each other
         self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 4)
         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 2)
@@ -212,10 +203,7 @@ class VisualTestCase(unittest.TestCase):
                                                       name=VisualTestCase.NAME,
                                                       presence = Sensation.Presence.Present)
 
-        if len(self.visual.getMemory().getRobot().images) > 0:
-            image=self.visual.getMemory().getRobot().images[0]
-        else:
-            image=None
+        image = self.visual.selfImage
         self.assertNotEqual(image, None, "image should not be None in this test")
         self.communication_image_sensation = self.visual.createSensation( memoryType=Sensation.MemoryType.Sensory,
                                                        sensationType=Sensation.SensationType.Image,
@@ -230,8 +218,8 @@ class VisualTestCase(unittest.TestCase):
 
 
     def tearDown(self):
-        self.visual.stop()
-        self.assertEqual(self.visual.getAxon().empty(), False, 'Axon should not be empty after self.visual.stop()')
+        #self.visual.stop()
+        #self.assertEqual(self.visual.getAxon().empty(), False, 'Axon should not be empty after self.visual.stop()')
         transferDirection, sensation, association = self.getAxon().get()
         self.assertEqual(sensation.getSensationType(), Sensation.SensationType.Stop, 'parent should get Stop sensation type after self.visual.stop()')
         
@@ -249,6 +237,9 @@ class VisualTestCase(unittest.TestCase):
         self.assertEqual(self.visual.getAxon().empty(), True, 'Axon should be empty at the beginning of test_Visual\nCannot test properly this!')
         self.visual.start()
         
+        sleeptime = Visual.SLEEPTIME+Visual.SLEEPTIMERANDOM
+        print("--- test sleeping " + str(sleeptime) + " second until starting to test")
+        systemTime.sleep(sleeptime ) # let Visual start before waiting it to stops
         for i in range(VisualTestCase.TEST_RUNS):
             self.getSenasations()
             
@@ -260,39 +251,62 @@ class VisualTestCase(unittest.TestCase):
             self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_item_sensation)
             self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_image_sensation)
             self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_voice_sensation)
-           
-            systemTime.sleep(3) # let Visual start before waiting it to stops           
+ 
+            sleeptime = 3
+            print("--- test sleeping " + str(sleeptime) + " second until test results")
+            systemTime.sleep(sleeptime ) # let Visual start before waiting it to stops
+            # OOps assertEqual removed, study
             self.assertEqual(self.visual.getAxon().empty(), True, 'Axon should be empty again at the end of test_Visual!')
-            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_voice_sensation)
+            #self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_voice_sensation)
         
+        print("--- put stop-sensation for Visual")
         self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.stopSensation)
         
+        print("--- test sleeping " + str(VisualTestCase.TEST_TIME) + " second until stop should be done")
         systemTime.sleep(VisualTestCase.TEST_TIME) # let result UI be shown until cleared           
+        print("--- Visual should be disappeared now")
         
     '''
-    functionality from MainRobot
+    functionality from Robot
     '''
     def studyOwnIdentity(self, robot):
-        kind = robot.config.getKind()
-        identitypath = robot.config.getIdentityDirPath(robot.getKind())
-        for dirName, subdirList, fileList in os.walk(identitypath):
-            image_file_names=[]
-            for fname in fileList:
-                print('studyOwnIdentity \t%s' % fname)
-                if fname.endswith(".jpg"):
-                    image_file_names.append(fname)
-# png is not working YET                    
-#                 if fname.endswith(".png"):
+#         kind = robot.config.getKind()
+#         identitypath = robot.config.getIdentityDirPath(robot.getKind())
+#         for dirName, subdirList, fileList in os.walk(identitypath):
+#             image_file_names=[]
+#             for fname in fileList:
+#                 print('studyOwnIdentity \t%s' % fname)
+#                 if fname.endswith(".jpg"):
 #                     image_file_names.append(fname)
-            # images
-            for fname in image_file_names:
-                image_path=os.path.join(dirName,fname)
-                sensation_filepath = os.path.join('/tmp/',fname)
-                shutil.copyfile(image_path, sensation_filepath)
-                image = PIL_Image.open(sensation_filepath)
-                image.load()
-                robot.images.append(image)
+# # png is not working YET                    
+# #                 if fname.endswith(".png"):
+# #                     image_file_names.append(fname)
+#             # images
+#             for fname in image_file_names:
+#                 image_path=os.path.join(dirName,fname)
+#                 sensation_filepath = os.path.join('/tmp/',fname)
+#                 shutil.copyfile(image_path, sensation_filepath)
+#                 image = PIL_Image.open(sensation_filepath)
+#                 image.load()
+#                 robot.images.append(image)
 
+        print("My name is " + robot.getWho())
+        # What kind we are
+        print("My kind is " + str(robot.getKind()))      
+        robot.selfSensation=robot.createSensation(sensationType=Sensation.SensationType.Item,
+                                                memoryType=Sensation.MemoryType.LongTerm,
+                                                direction=Sensation.Direction.Out,# We have found this
+                                                who = robot.getWho(),
+                                                name = robot.getWho(),
+                                                presence = Sensation.Presence.Present,
+                                                kind=robot.getKind())
+        #if robot.isMainRobot() or robot.getInstanceType() == Sensation.InstanceType.Virtual:
+        if True:
+            robot.imageSensations, robot.voiceSensations = robot.getIdentitySensations(kind=robot.getKind())
+            if len(robot.imageSensations) > 0:
+                robot.selfImage = robot.imageSensations[0].getImage()
+            else:
+                robot.selfImage = None
  
         
 if __name__ == '__main__':

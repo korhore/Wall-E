@@ -1,11 +1,13 @@
 '''
 Created on 21.06.2019
-Updated on 13.02.2020
+Updated on 26.04.2020
 @author: reijo.korhonen@gmail.com
 
 test Association class
 python3 -m unittest tests/testAssociation.py
 
+TODO This test needs TOTO because we don't use Association any more
+but Implementation is in Memory. We should update Memory test.
 
 '''
 import time as systemTime
@@ -50,56 +52,58 @@ class AssociationTestCase(unittest.TestCase):
     Parameters are exactly same than in default constructor
     '''
        
-    def createSensation(self,
-                 associations = None,
-                 sensation=None,
-                 bytes=None,
-                 id=None,
-                 time=None,
-                 receivedFrom=[],
-                 sensationType = Sensation.SensationType.Unknown,
-                 memoryType=Sensation.MemoryType.Sensory,
-                 direction=Sensation.Direction.In,
-                 who=None,
-                 leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
-                 azimuth = 0.0,                                             # Walle direction relative to magnetic north pole
-                 accelerationX=0.0, accelerationY=0.0, accelerationZ=0.0,   # acceleration of walle, coordinates relative to walle
-                 hearDirection = 0.0,                                       # sound direction heard by Walle, relative to Walle
-                 observationDirection= 0.0,observationDistance=-1.0,        # Walle's observation of something, relative to Walle
-                 filePath='',
-                 data=b'',
-                 image=None,
-                 calibrateSensationType = Sensation.SensationType.Unknown,
-                 capabilities = None,                                       # capabilities of sensorys, direction what way sensation go
-                 name='',                                                   # name of Item
-                 presence=Sensation.Presence.Unknown,                       # presence of Item
-                 kind=Sensation.Kind.Normal):                               # Normal kind
-        
-        return self.getMemory().create(
-                 robot=self,
-                 associations = associations,
-                 sensation=sensation,
-                 bytes=bytes,
-                 id=id,
-                 time=time,
-                 receivedFrom=receivedFrom,
-                 sensationType = sensationType,
-                 memoryType=memoryType,
-                 direction=direction,
-                 who=who,
-                 leftPower = leftPower, rightPower = rightPower,
-                 azimuth = azimuth,
-                 accelerationX=accelerationX, accelerationY = accelerationY, accelerationZ = accelerationZ,
-                 hearDirection = hearDirection,
-                 observationDirection = observationDirection, observationDistance = observationDistance,
-                 filePath = filePath,
-                 data = data,
-                 image = image,
-                 calibrateSensationType = calibrateSensationType,
-                 capabilities = capabilities,
-                 name = name,
-                 presence =presence,
-                 kind = kind )            
+#     def createSensation(self,
+#                  associations = None,
+#                  sensation=None,
+#                  bytes=None,
+#                  id=None,
+#                  time=None,
+#                  receivedFrom=[],
+#                  sensationType = Sensation.SensationType.Unknown,
+#                  memoryType = Sensation.MemoryType.Sensory,
+#                  direction=Sensation.Direction.In,
+#                  who=None,
+#                  leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
+#                  azimuth = 0.0,                                             # Walle direction relative to magnetic north pole
+#                  accelerationX=0.0, accelerationY=0.0, accelerationZ=0.0,   # acceleration of walle, coordinates relative to walle
+#                  hearDirection = 0.0,                                       # sound direction heard by Walle, relative to Walle
+#                  observationDirection= 0.0,observationDistance=-1.0,        # Walle's observation of something, relative to Walle
+#                  filePath='',
+#                  data=b'',
+#                  image=None,
+#                  calibrateSensationType = Sensation.SensationType.Unknown,
+#                  capabilities = None,                                       # capabilities of sensorys, direction what way sensation go
+#                  name='',                                                   # name of Item
+#                  score = 0.0,
+#                  presence=Sensation.Presence.Unknown,                       # presence of Item
+#                  kind=Sensation.Kind.Normal):                               # Normal kind
+#         
+#         return self.getMemory().create(
+#                  robot=self,
+#                  associations = associations,
+#                  sensation=sensation,
+#                  bytes=bytes,
+#                  id=id,
+#                  time=time,
+#                  receivedFrom=receivedFrom,
+#                  sensationType = sensationType,
+#                  memoryType=memoryType,
+#                  direction=direction,
+#                  who=who,
+#                  leftPower = leftPower, rightPower = rightPower,
+#                  azimuth = azimuth,
+#                  accelerationX=accelerationX, accelerationY = accelerationY, accelerationZ = accelerationZ,
+#                  hearDirection = hearDirection,
+#                  observationDirection = observationDirection, observationDistance = observationDistance,
+#                  filePath = filePath,
+#                  data = data,
+#                  image = image,
+#                  calibrateSensationType = calibrateSensationType,
+#                  capabilities = capabilities,
+#                  name = name,
+#                  score = score,
+#                  presence =presence,
+#                  kind = kind )            
 
     '''
     Testing    
@@ -139,6 +143,7 @@ class AssociationTestCase(unittest.TestCase):
     def test_ProcessItem(self):
         # First voice without item, it should not be connected
         Wall_E_voice_sensation = self.association.createSensation(sensationType=Sensation.SensationType.Voice, direction=Sensation.Direction.Out)
+        self.assertEqual(Wall_E_voice_sensation.getScore(), Sensation.MIN_SCORE)
         print("1 len(Wall_E_voice_sensation.getAssociations()) " + str(len(Wall_E_voice_sensation.getAssociations())))
               
         self.assertEqual(len(Wall_E_voice_sensation.getAssociations()), 0)
@@ -171,23 +176,23 @@ class AssociationTestCase(unittest.TestCase):
 #         self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 1)
 
         #finally  Item
-        Wall_E_item_sensation = self.association.createSensation(sensationType=Sensation.SensationType.Item,  direction=Sensation.Direction.Out, name='Wall-E', presence = Sensation.Presence.Present)
+        Wall_E_item_sensation = self.association.createSensation(sensationType=Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, direction=Sensation.Direction.Out,
+                                                                 name='Wall-E', score=AssociationTestCase.SCORE, presence = Sensation.Presence.Present)
+        # new Memory.PresetntIte should contan this Item, but do we have Memory?
         print('4 len(Wall_E_item_sensation.getAssociations()) ' + str(len(Wall_E_item_sensation.getAssociations())))
         self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 0)
        # TensorflowCalssification Connects image sub sensation and Item, so we simulate it
-        Wall_E_item_sensation.associate(sensation=Wall_E_image_sub_sensation,
-                                        score=AssociationTestCase.SCORE)
+        Wall_E_item_sensation.associate(sensation=Wall_E_image_sub_sensation)
         self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 1)
         self.assertEqual(len(Wall_E_image_sub_sensation.getAssociations()), 1)
-        self.assertEqual(Wall_E_item_sensation.getAssociations()[0].getScore(), AssociationTestCase.SCORE)
+        #self.assertEqual(Wall_E_item_sensation.getAssociations()[0].getScore(), AssociationTestCase.SCORE)
         self.assertEqual(Wall_E_item_sensation.getScore(), AssociationTestCase.SCORE)
 
         # again, this should not do anything, this can be removed from the test
-        Wall_E_item_sensation.associate(sensation=Wall_E_image_sub_sensation,
-                                        score=AssociationTestCase.SCORE)
+        Wall_E_item_sensation.associate(sensation=Wall_E_image_sub_sensation)
         self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 1)
         self.assertEqual(len(Wall_E_image_sub_sensation.getAssociations()), 1)
-        self.assertEqual(Wall_E_item_sensation.getAssociations()[0].getScore(), AssociationTestCase.SCORE)
+        #self.assertEqual(Wall_E_item_sensation.getAssociations()[0].getScore(), AssociationTestCase.SCORE)
         self.assertEqual(Wall_E_item_sensation.getScore(), AssociationTestCase.SCORE)
 
         print('5 len(Wall_E_image_sensation.getAssociations()) ' + str(len(Wall_E_image_sensation.getAssociations())))
@@ -197,7 +202,8 @@ class AssociationTestCase(unittest.TestCase):
         #simulate TensorflowClassification send presence item to MainBobot
         #self.association.tracePresents(Wall_E_item_sensation) # presence in Memory now
         # Now we should have 1 item in self.getMemory().presentItemSensations (can be assigned as self.association) with with  name and associations count
-        self.assertEqual(len(self.association.presentItemSensations[Wall_E_item_sensation.getName()].getAssociations()), 1)
+        # Nope, mowed to Memory
+        # self.assertEqual(len(self.association.presentItemSensations[Wall_E_item_sensation.getName()].getAssociations()), 1)
         
         #Finally test we heard a voice and Association.processes it
         # process situation, where voice was happened before Item
@@ -206,11 +212,13 @@ class AssociationTestCase(unittest.TestCase):
         
         #new voice after item present, it should be connected
         Wall_E_voice_sensation = self.association.createSensation(sensationType=Sensation.SensationType.Voice, direction=Sensation.Direction.Out)
+        self.assertEqual(len(Wall_E_voice_sensation.getAssociations()), 1)
+        # this does nothing more now, because Robot.createSensation but for test we test
         self.association.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_voice_sensation, association=None)
         self.assertEqual(len(Wall_E_voice_sensation.getAssociations()), 1)
         self.assertEqual(Wall_E_voice_sensation.getScore(), AssociationTestCase.SCORE)
         # Now we should have 1 item in self.getMemory().presentItemSensations (can be assigned as self.association) with with  name and associations count
-        self.assertEqual(len(self.association.presentItemSensations[Wall_E_item_sensation.getName()].getAssociations()), 2)
+        self.assertEqual(len(self.association.getMemory().presentItemSensations[Wall_E_item_sensation.getName()].getAssociations()), 2)
         
          #another new voice after item present, it should be connected
         Wall_E_voice_sensation = self.association.createSensation(sensationType=Sensation.SensationType.Voice, direction=Sensation.Direction.Out)
@@ -219,7 +227,7 @@ class AssociationTestCase(unittest.TestCase):
         self.assertEqual(Wall_E_voice_sensation.getScore(), AssociationTestCase.SCORE)
         
         # Now we should have 1 item in self.getMemory().presentItemSensations (can be assigned as self.association) with with  name and associations count
-        self.assertEqual(len(self.association.presentItemSensations[Wall_E_item_sensation.getName()].getAssociations()), 3)
+        self.assertEqual(len(self.association.getMemory().presentItemSensations[Wall_E_item_sensation.getName()].getAssociations()), 3)
 
        # final part of the test is not validated
 # 
@@ -240,11 +248,12 @@ class AssociationTestCase(unittest.TestCase):
 #
 # Simulate we will get another item present
         
-        Eva_item_sensation = self.association.createSensation(sensationType=Sensation.SensationType.Item,  direction=Sensation.Direction.Out, name='Eva', presence = Sensation.Presence.Present)
+        Eva_item_sensation = self.association.createSensation(sensationType=Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, direction=Sensation.Direction.Out,
+                                                              name='Eva', presence = Sensation.Presence.Present)
         #simulate TensorflowCalssification sernd presence item to MainBobot
-        self.association.tracePresents(Eva_item_sensation) # presence
+        #self.association.tracePresents(Eva_item_sensation) # presence
         # Now we should have 1 item in self.getMemory().presentItemSensations (can be assigned as self.association) with with  name and associations count
-        self.assertEqual(len(self.association.presentItemSensations[Eva_item_sensation.getName()].getAssociations()), 0)
+        self.assertEqual(len(self.association.getMemory().presentItemSensations[Eva_item_sensation.getName()].getAssociations()), 1)
         
          #another new voice after item present, it should be connected
         Wall_E_voice_sensation = self.association.createSensation(sensationType=Sensation.SensationType.Voice, direction=Sensation.Direction.Out)
@@ -253,8 +262,8 @@ class AssociationTestCase(unittest.TestCase):
         self.assertEqual(Wall_E_voice_sensation.getScore(), AssociationTestCase.SCORE)
         
         # Now we should have 2 items in self.getMemory().presentItemSensations (can be assigned as self.association) with with  name and associations count
-        self.assertEqual(len(self.association.presentItemSensations[Wall_E_item_sensation.getName()].getAssociations()), 4)
-        self.assertEqual(len(self.association.presentItemSensations[Eva_item_sensation.getName()].getAssociations()), 1)
+        self.assertEqual(len(self.association.getMemory().presentItemSensations[Wall_E_item_sensation.getName()].getAssociations()), 5)
+        self.assertEqual(len(self.association.getMemory().presentItemSensations[Eva_item_sensation.getName()].getAssociations()), 2)
         
          
 #         print('10 len(Eva_item_sensation.getAssociations()) ' + str(len(Eva_item_sensation.getAssociations())))

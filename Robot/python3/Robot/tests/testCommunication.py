@@ -68,15 +68,15 @@ class CommunicationTestCase(unittest.TestCase):
                                                       memoryType=Sensation.MemoryType.Working,
                                                       sensationType=Sensation.SensationType.Item,
                                                       direction=Sensation.Direction.Out,
-                                                      name=CommunicationTestCase.NAME)
+                                                      name=CommunicationTestCase.NAME,
+                                                      score=CommunicationTestCase.SCORE_1)
         # Image is in LongTerm memoryType, it comes from TensorflowClassification and is crop of original big image
         #systemTime.sleep(0.1)  # wait to get really even id
         self.Wall_E_image_sensation = self.communication.createSensation(time=self.history_sensationTime,
                                                        memoryType=Sensation.MemoryType.Working,
                                                        sensationType=Sensation.SensationType.Image,
                                                        direction=Sensation.Direction.Out)
-        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation,
-                                             score=CommunicationTestCase.SCORE_1)
+        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation)
         # set association also to history
         self.Wall_E_item_sensation.getAssociation(sensation=self.Wall_E_image_sensation).setTime(time=self.history_sensationTime)
         
@@ -90,10 +90,8 @@ class CommunicationTestCase(unittest.TestCase):
                                                        sensationType=Sensation.SensationType.Voice,
                                                        direction=Sensation.Direction.Out,
                                                        data="1")
-        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_voice_sensation,
-                                             score=CommunicationTestCase.SCORE_1)
-        self.Wall_E_image_sensation.associate(sensation=self.Wall_E_voice_sensation,
-                                             score=CommunicationTestCase.SCORE_1)
+        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_voice_sensation)
+        self.Wall_E_image_sensation.associate(sensation=self.Wall_E_voice_sensation)
         # these connected each other
         self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 2)
         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 2)
@@ -130,6 +128,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
+                                                 score=CommunicationTestCase.SCORE_1,
                                                  presence=Sensation.Presence.Entering)
         self.communication.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation, association=None)
         # Not sure do we always get a voice
@@ -150,15 +149,16 @@ class CommunicationTestCase(unittest.TestCase):
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
+                                                 score=CommunicationTestCase.SCORE_1,
                                                  presence=Sensation.Presence.Entering)
-        item_sensation.associate(sensation=voice_sensation,
-                                           score=CommunicationTestCase.SCORE_1)
+        item_sensation.associate(sensation=voice_sensation)
 
         #systemTime.sleep(0.1)  # wait to get really even id
         Wall_E_item_sensation = self.communication.createSensation(memoryType=Sensation.MemoryType.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
+                                                 score=CommunicationTestCase.SCORE_1,
                                                  presence=Sensation.Presence.Entering)
         #simulate TensorflowClassification send presence item to MainBobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
@@ -181,6 +181,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
+                                                 score=CommunicationTestCase.SCORE_1,
                                                  presence=Sensation.Presence.Present)
         #simulate TensorflowClassification send presence item to MainBobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
@@ -204,6 +205,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
+                                                 score=CommunicationTestCase.SCORE_1,
                                                  presence=Sensation.Presence.Present)
         #simulate TensorflowClassification send presence item to MainBobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
@@ -227,6 +229,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
+                                                 score=CommunicationTestCase.SCORE_1,
                                                  presence=Sensation.Presence.Absent)
         #simulate TensorflowClassification send presence item to MainBobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
@@ -256,9 +259,9 @@ class CommunicationTestCase(unittest.TestCase):
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
+                                                 score=CommunicationTestCase.SCORE_1,
                                                  presence=Sensation.Presence.Entering)
-        item_sensation.associate(sensation=voice_sensation,
-                                           score=CommunicationTestCase.SCORE_1)
+        item_sensation.associate(sensation=voice_sensation)
         
         # make entering item and process
         #systemTime.sleep(0.1)  # wait to get really even id
@@ -266,6 +269,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
+                                                 score=CommunicationTestCase.SCORE_1,
                                                  presence=Sensation.Presence.Entering)
         #simulate TensorflowClassification send presence item to MainBobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
@@ -295,9 +299,9 @@ class CommunicationTestCase(unittest.TestCase):
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME2,
+                                                 score=CommunicationTestCase.SCORE_2,
                                                  presence=Sensation.Presence.Entering)
-        item_sensation.associate(sensation=voice_sensation,
-                                           score=CommunicationTestCase.SCORE_2)
+        item_sensation.associate(sensation=voice_sensation)
         #simulate TensorflowClassification send presence item to MainBobot
         #self.communication.tracePresents(item_sensation) # presence
         # Now we should have 1 item in self.getMemory().presentItemSensations (can be assigned as self.association) with with  name and associations count
@@ -309,6 +313,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME2,
+                                                 score=CommunicationTestCase.SCORE_2,
                                                  presence=Sensation.Presence.Entering)
         #simulate TensorflowClassification send presence item to MainBobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
@@ -331,6 +336,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME2,
+                                                 score=CommunicationTestCase.SCORE_1,
                                                  presence=Sensation.Presence.Present)
          #simulate TensorflowClassification send presence item to MainBobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
@@ -351,6 +357,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME2,
+                                                 score=CommunicationTestCase.SCORE_1,
                                                  presence=Sensation.Presence.Present)
          #simulate TensorflowClassification send presence item to MainBobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
@@ -370,6 +377,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME2,
+                                                 score=CommunicationTestCase.SCORE_1,
                                                  presence=Sensation.Presence.Absent)
        
          #simulate TensorflowClassification send presence item to MainBobot
@@ -385,6 +393,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
+                                                 score=CommunicationTestCase.SCORE_1,
                                                  presence=Sensation.Presence.Absent)
          #simulate TensorflowClassification send presence item to MainBobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
@@ -465,15 +474,13 @@ class CommunicationTestCase(unittest.TestCase):
         self.assertEqual(len(Wall_E_voice_sensation_1.getAssociations()), 0)
         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), self.Wall_E_image_sensation_association_len)
         
-        Wall_E_voice_sensation_1.associate(sensation=self.Wall_E_image_sensation,
-                                           score=CommunicationTestCase.SCORE_1)
+        Wall_E_voice_sensation_1.associate(sensation=self.Wall_E_image_sensation)
                                                                      
         self.assertEqual(len(Wall_E_voice_sensation_1.getAssociations()), 1)
         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), self.Wall_E_image_sensation_association_len+1)
         self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
         
-        Wall_E_voice_sensation_1.associate(sensation=self.Wall_E_item_sensation,
-                                           score=CommunicationTestCase.SCORE_1)
+        Wall_E_voice_sensation_1.associate(sensation=self.Wall_E_item_sensation)
         self.assertEqual(len(Wall_E_voice_sensation_1.getAssociations()), 2)
         self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), self.Wall_E_item_sensation_association_len+1)
         self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
@@ -487,14 +494,12 @@ class CommunicationTestCase(unittest.TestCase):
                                                     direction=Sensation.Direction.Out,                                                   
                                                     data="666666")
         
-        Wall_E_voice_sensation_2.associate(sensation=self.Wall_E_image_sensation,
-                                           score=CommunicationTestCase.SCORE_2)
+        Wall_E_voice_sensation_2.associate(sensation=self.Wall_E_image_sensation)
         self.assertEqual(len(Wall_E_voice_sensation_2.getAssociations()), 1)
         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), self.Wall_E_image_sensation_association_len+1)
         self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
         
-        Wall_E_voice_sensation_2.associate(sensation=self.Wall_E_item_sensation,
-                                           score=CommunicationTestCase.SCORE_2)
+        Wall_E_voice_sensation_2.associate(sensation=self.Wall_E_item_sensation)
         self.assertEqual(len(Wall_E_voice_sensation_2.getAssociations()), 2)
         self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), self.Wall_E_item_sensation_association_len+1)
         self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
@@ -507,14 +512,12 @@ class CommunicationTestCase(unittest.TestCase):
                                                     direction=Sensation.Direction.Out,
                                                     data="7777777")
         
-        Wall_E_voice_sensation_3.associate(sensation=self.Wall_E_image_sensation,
-                                           score=CommunicationTestCase.SCORE_3)
+        Wall_E_voice_sensation_3.associate(sensation=self.Wall_E_image_sensation)
         self.assertEqual(len(Wall_E_voice_sensation_3.getAssociations()), 1)
         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), self.Wall_E_image_sensation_association_len+1)
         self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
         
-        Wall_E_voice_sensation_3.associate(sensation=self.Wall_E_item_sensation,
-                                           score=CommunicationTestCase.SCORE_3)
+        Wall_E_voice_sensation_3.associate(sensation=self.Wall_E_item_sensation)
         self.assertEqual(len(Wall_E_voice_sensation_3.getAssociations()), 2)
         self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), self.Wall_E_item_sensation_association_len+1)
         self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
@@ -532,6 +535,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
                                                  name=CommunicationTestCase.NAME,
+                                                 score=CommunicationTestCase.SCORE_1,
                                                  associations=[],
                                                  presence=Sensation.Presence.Entering)
         #systemTime.sleep(0.1)  # wait to ger really even id
@@ -539,8 +543,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                   sensationType=Sensation.SensationType.Image,
                                                   direction=Sensation.Direction.Out)
         
-        Wall_E_image_sensation.associate(sensation=Wall_E_item_sensation,
-                                         score=CommunicationTestCase.SCORE_1)
+        Wall_E_image_sensation.associate(sensation=Wall_E_item_sensation)
         # these connected each other
         self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 1)
         self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 1)
@@ -607,15 +610,13 @@ class CommunicationTestCase(unittest.TestCase):
         # To be sure to get a new response, no this will be too new
         #Wall_E_voice_response_sensation.setTime(systemTime.time())
        
-        Wall_E_voice_response_sensation.associate(sensation=self.Wall_E_image_sensation,
-                                           score=CommunicationTestCase.SCORE_2)
-        self.assertEqual(len(Wall_E_voice_response_sensation.getAssociations()), 1)
+        Wall_E_voice_response_sensation.associate(sensation=self.Wall_E_image_sensation)
+        self.assertEqual(len(Wall_E_voice_response_sensation.getAssociations()), 2)#1
         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), self.Wall_E_image_sensation_association_len+1)
         self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
         
-        Wall_E_voice_response_sensation.associate(sensation=self.Wall_E_item_sensation,
-                                           score=CommunicationTestCase.SCORE_2)
-        self.assertEqual(len(Wall_E_voice_response_sensation.getAssociations()), 2)
+        Wall_E_voice_response_sensation.associate(sensation=self.Wall_E_item_sensation)
+        self.assertEqual(len(Wall_E_voice_response_sensation.getAssociations()), 3)#2
         self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), self.Wall_E_item_sensation_association_len+1)
         self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
         

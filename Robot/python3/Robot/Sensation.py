@@ -149,7 +149,8 @@ class Sensation(object):
     Kind = enum(WallE='w', Eva='e', Normal='n')
     InstanceType = enum(Real='r', SubInstance='s', Virtual='v', Remote='e')
     Mode = enum(Normal='n', StudyOwnIdentity='t',Sleeping='l',Starting='s', Stopping='p', Interrupted='i')
-# enum items as strings    
+    
+    # enum items as strings    
     IN="In"
     OUT="Out"
     SENSORY="Sensory"
@@ -254,48 +255,38 @@ class Sensation(object):
            Presence.Absent:   ABSENT,
            Presence.Unknown:  UNKNOWN}
 
-    
-#deprecated
-#     sensationMemorys={                      # Sensation caches
-#         MemoryType.Sensory:  [],                # short time Sensation cache
-#         MemoryType.Working:  [],                # middle time Sensation cache
-#         MemoryType.LongTerm: [] }               # long time Sensation cache
-
-    sensationMemoryLiveTimes={             # Sensation cache times
+     # Sensation cache times
+    sensationMemoryLiveTimes={
         MemoryType.Sensory:  SENSORY_LIVE_TIME,
         MemoryType.Working:  WORKING_LIVE_TIME,
         MemoryType.LongTerm: LONG_TERM_LIVE_TIME }
 
 
-                            # The idea is keep Sensation in runtime memory if
-                            # there is a association for them for instance 10 mins
-                            #
-                            # After that we can produce higher level Sensations
-                            # with memory attribute in higher level,
-                            # Working or Memory, that association to basic
-                            # memory level, that is Sensory level.
-                            # That way we can produce meanings is higher level
-                            # of low level sensations. For instance we can get
-                            # a image (Sensory) and process it with tnsorFlow
-                            # which classifies it as get words and get
-                            # Working or Memory level Sensations that refers
-                            # to the original hearing, a Image, meaning
-                            # that robot has seen it at certain time.
-                            # THigher level Sensation can be processed also and
-                            # we can save original image in a file with
-                            # its classified names. After that our robot
-                            # knows how those classifies names look like,
-                            # what is has seen. 
+    # The idea is keep Sensation in runtime memory if
+    # there is a association for them for instance 10 mins
+    #
+    # After that we can produce higher level Sensations
+    # with memory attribute in higher level,
+    # Working or Memory, that association to basic
+    # memory level, that is Sensory level.
+    # That way we can produce meanings is higher level
+    # of low level sensations. For instance we can get
+    # a image (Sensory) and process it with tnsorFlow
+    # which classifies it as get words and get
+    # Working or Memory level Sensations that refers
+    # to the original hearing, a Image, meaning
+    # that robot has seen it at certain time.
+    # THigher level Sensation can be processed also and
+    # we can save original image in a file with
+    # its classified names. After that our robot
+    # knows how those classifies names look like,
+    # what is has seen. 
         
     def getDirectionString(direction):
         ret = Sensation.Directions.get(direction)
         return ret
     def getDirectionStrings():
-        ret=[]
-        for direction in Sensation.DirectionsOrdered:
-            ret.append(Sensation.Directions[direction])
-        return ret
-        #return Sensation.Directions.values()
+        return Sensation.Directions.values()
     
     def getMemoryTypeString(memoryType):
         ret = Sensation.MemoryTypes.get(memoryType)
@@ -332,74 +323,6 @@ class Sensation(object):
     '''
     def getAvailableMemory():
         return psutil.virtual_memory().available/(1024*1024)
-        
-    '''
-    Forget sensations that are not important
-    Other way we run out of memory very soon.
-    
-    This method is called from semaphore protected method, so we
-    should not protect this
-    '''
-# deprecated
-#     def forgetLessImportantSensations(sensation):
-#         numNotForgettables=0
-#         memory = Sensation.sensationMemorys[sensation.getMemoryType()]
-# 
-#         # calibrate memorability        
-#         if (Sensation.getMemoryUsage() > Sensation.maxRss or\
-#             Sensation.getAvailableMemory() < Sensation.minAvailMem) and\
-#             Sensation.min_cache_memorability < Sensation.MAX_MIN_CACHE_MEMORABILITY:
-#             if Sensation.min_cache_memorability >= Sensation.NEAR_MAX_MIN_CACHE_MEMORABILITY:
-#                 Sensation.min_cache_memorability = Sensation.min_cache_memorability + 0.01
-#             else:
-#                 Sensation.min_cache_memorability = Sensation.min_cache_memorability + 0.1
-#         elif (Sensation.getMemoryUsage() < Sensation.maxRss or\
-#               Sensation.getAvailableMemory() > Sensation.minAvailMem )and\
-#             Sensation.min_cache_memorability > Sensation.MIN_MIN_CACHE_MEMORABILITY:
-#             if Sensation.min_cache_memorability <= Sensation.NEAR_MIN_MIN_CACHE_MEMORABILITY:
-#                 Sensation.min_cache_memorability = Sensation.min_cache_memorability - 0.01
-#             else:
-#                 Sensation.min_cache_memorability = Sensation.min_cache_memorability - 0.1
-#         
-#         # delete quickly last created Sensations that are not important
-#         while len(memory) > 0 and memory[0].isForgettable() and memory[0].getMemorability() < Sensation.min_cache_memorability:
-#             print('delete from sensation cache {}'.format(memory[0].toDebugStr()))
-#             memory[0].delete()
-#             del memory[0]
-# 
-#         # if we are still using too much memory for Sensations, we should check all Sensations in the cache
-#         notForgettables={}
-#         if Sensation.getMemoryUsage() > Sensation.maxRss or\
-#            Sensation.getAvailableMemory() < Sensation.minAvailMem:
-#             i=0
-#             while i < len(memory):
-#                 if memory[i].isForgettable():
-#                     if memory[i].getMemorability() < Sensation.min_cache_memorability:
-#                         print('delete from sensation cache {}'.format(memory[i].toDebugStr()))
-#                         memory[i].delete()
-#                         del memory[i]
-#                     else:
-#                         i=i+1
-#                 else:
-#                     numNotForgettables=numNotForgettables+1
-#                     for robot in memory[i].getAttachedBy():
-#                         if robot.getWho() not in notForgettables:
-#                             notForgettables[robot.getWho()] = 1
-#                         else:
-#                             notForgettables[robot.getWho()] = notForgettables[robot.getWho()]+1
-#                     i=i+1
-#        
-# #        print('Sensations cache for {} {} {} {} {} {} Total memory usage {} MB with Sensation.min_cache_memorability {}'.\
-#         print('Sensations cache for {} {} {} {} {} {} Total memory  usage {} MB available {} MB with Sensation.min_cache_memorability {}'.\
-#               format(Sensation.getMemoryTypeString(Sensation.MemoryType.Sensory), len(Sensation.sensationMemorys[Sensation.MemoryType.Sensory]),\
-#                      Sensation.getMemoryTypeString(Sensation.MemoryType.Working), len(Sensation.sensationMemorys[Sensation.MemoryType.Working]),\
-#                      Sensation.getMemoryTypeString(Sensation.MemoryType.LongTerm), len(Sensation.sensationMemorys[Sensation.MemoryType.LongTerm]),\
-#                      Sensation.getMemoryUsage(), Sensation.getAvailableMemory(), Sensation.min_cache_memorability))
-#         if numNotForgettables > 0:
-#             print('Sensations cache deletion skipped {} Not Forgottable Sensation'.format(numNotForgettables))
-#             for robotName, notForgottableNumber in notForgettables.items():
-#                 print ('Sensations cache Not Forgottable robot {} number {}'.format(robotName, notForgottableNumber))
-#         #print('Memory usage for {} Sensations {} after {} MB'.format(len(memory), Sensation.getMemoryTypeString(sensation.getMemoryType()), Sensation.getMemoryUsage()-Sensation.startSensationMemoryUsageLevel))
          
     '''
     Association is a association between two sensations
@@ -558,16 +481,11 @@ class Sensation(object):
         Should use also time, so old Associations are not so important than
         new ones.
         '''
-        # old logic deprecated
-#         def getImportance(self):
-#             if self.feeling >= 0:
-#                 return float(self.feeling+1) * (1.0 + self.score)
-#             return float(self.feeling-1) * (1.0 + self.score)
-
         def getImportance(self):
             if self.feeling >= 0:
-                return float(self.feeling+1)
-            return float(self.feeling-1)
+                return float(self.feeling+1) * (1.0 + self.self_sensation.getScore())
+            return float(self.feeling-1) * (1.0 + self.self_sensation.getScore())
+
     '''
     default constructor for Sensation
     '''
@@ -1125,8 +1043,6 @@ class Sensation(object):
 
     def getRandom(base, randomMin, randomMax):
         return base + random.uniform(randomMin, randomMax)
-#     def nextId(self):
-#         return self.getTime()+random.uniform(Sensation.LOWPOINT_NUMBERVARIANCE, Sensation.HIGHPOINT_NUMBERVARIANCE)
         
     def __eq__(self, other):
         if isinstance(other, self.__class__):
@@ -1366,23 +1282,6 @@ class Sensation(object):
            
         return memorability
 
-    
-    # TODO Association time logic is different
-    
-#     def setAssociationTime(self, parents=None, association_time = None):
-#         if association_time == None:
-#             association_time = systemTime.time()
-#         self.association_time = association_time
-#         if parents is None:
-#             parents=[]
-#         parents.append(self)
-#         for association in self.associations:
-# #            association.setAssociationTime(association_time)
-# #            TODO comes infinite loop
-# #            Below works, if we have refenece as a star
-#             if parents is None or association not in  parents:
-#                 association.setAssociationTime(parents=parents, association_time=association_time)
-
 
     def setId(self, id):
         self.id = id
@@ -1393,12 +1292,6 @@ class Sensation(object):
         self.robotId = robotId
     
 
-# Cant do this. Look addAssociations. But this is not used    
-#     def setAssociations(self, associations):
-#         self.associations = associations
-#         time = systemTime.time()
-#         for association in self.associations:
-#             association.time = time
         
     '''
     for debugging reasons log what associations there is in our Long Term Memory
@@ -1498,10 +1391,6 @@ class Sensation(object):
                             feeling = association.feeling)
 
     def getAssociations(self):
-# don't set time, if just gets reference, but not known if even used
-#         time = systemTime.time()
-#         for association in self.associations:
-#             association.time = time
         return self.associations
     
     '''
@@ -1531,21 +1420,6 @@ class Sensation(object):
         for association in self.associations:
             associationIds.append(association.getSensation().getId())
         return associationIds
-
-# TODO
-#deprecated old logic 
-#     def getScore(self):
-#         score = 0.0
-#         # one level associations
-#         best_association = None
-#         for association in self.associations:
-#             if association.getScore() > score:
-#                 score = association.getScore()
-#                 best_association = association
-#         if best_association is not None:
-#             best_association.time = systemTime.time()
-#             
-#         return score
     
     def getFeeling(self):
         feeling = Sensation.Association.Feeling.Neutral
@@ -1560,6 +1434,7 @@ class Sensation(object):
             
         return feeling
     
+    # TODO Stidy logic    
     def getImportance(self, positive=True, negative=False, absolute=False):
         if positive:
             importance = Sensation.Association.Feeling.Terrified
@@ -1756,7 +1631,7 @@ class Sensation(object):
     def setScore(self, score):
         self.score = score
     '''
-    get highst score of associared  sensations
+    get highest score of associared  sensations
     '''    
     def getScore(self):
         score = Sensation.MIN_SCORE
