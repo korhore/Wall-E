@@ -393,8 +393,12 @@ class Sensation(object):
             association = self.sensation.getAssociation(self.self_sensation)
             association.time = time
      
+        def getSelfSensation(self):
+            return self.self_sensation
+        
         def getSensation(self):
             return self.sensation
+
 
         ''''
         setSensation is tricky
@@ -1347,30 +1351,61 @@ class Sensation(object):
     def addAssociation(self, association):
         # this side
         time = systemTime.time()
-        if association.getSensation() != self and \
-           not self.isConnected(association):
-            #print('addAssociation ' + self.toDebugStr() + ' to ' + association.getSensation().toDebugStr())
-            self.associations.append(association)
-            association.time = time
+        if association.getSensation() != self:
+            oldAssociation = association.getSelfSensation().getAssociation(association.getSensation())
+            if oldAssociation: #update old assiciation
+                oldAssociation.setFeeling(association.getFeeling())
+                oldAssociation.setTime(time)
+            else:                             # create new association
+                #print('addAssociation ' + self.toDebugStr() + ' to ' + association.getSensation().toDebugStr())
+                self.associations.append(association)
+                association.time = time
             
     '''
-    Helper function to create Association and add it 
+    Helper function to update or create an Association
     '''
     def associate(self,
                   sensation,                                    # sensation to connect
                   time=None,                                    # last used
                   feeling = Association.Feeling.Neutral):       # feeling of association two sensations
-        self.addAssociation(Sensation.Association(self_sensation = self,
+#         self.addAssociation(Sensation.Association(self_sensation = self,
+#                                                   sensation = sensation,
+#                                                   time = time,
+#                                                   feeling = feeling))
+# 
+#         sensation.addAssociation(Sensation.Association(self_sensation = sensation,
+#                                                        sensation = self,
+#                                                        time = time,
+#                                                        feeling = feeling))
+        self.upsertAssociation(self_sensation = self,
+                               sensation = sensation,
+                               feeling = feeling)
+
+        sensation.upsertAssociation(self_sensation = sensation,
+                                    sensation = self,
+                                    feeling = feeling)
+
+    '''
+    Helper function to update or create one side of Association
+    '''
+    def upsertAssociation(self,
+                          self_sensation,                               # sensation
+                          sensation,                                    # sensation to connect
+                          feeling = Association.Feeling.Neutral):       # feeling of association two sensations:
+        # this side
+        time = systemTime.time()
+        if self_sensation != sensation:
+            oldAssociation = self_sensation.getAssociation(sensation)
+            if oldAssociation: #update old assiciation
+                oldAssociation.setFeeling(feeling)
+                oldAssociation.setTime(time)
+            else:                             # create new association
+                #print('addAssociation ' + self.toDebugStr() + ' to ' + association.getSensation().toDebugStr())
+                self_sensation.associations.append(Sensation.Association(self_sensation = self,
                                                   sensation = sensation,
                                                   time = time,
                                                   feeling = feeling))
-
-        sensation.addAssociation(Sensation.Association(self_sensation = sensation,
-                                                       sensation = self,
-                                                       time = time,
-                                                       feeling = feeling))
-
-    
+     
     '''
     Is this Sensation in this Association already connected
     '''
@@ -1433,17 +1468,29 @@ class Sensation(object):
         for association in self.associations:
             associationIds.append(association.getSensation().getId())
         return associationIds
+
+    '''
+    get sensations feeling
     
-    def getFeeling(self):
+    if we gibe other sensation as parameter, we get exact feeling between them
+    if other sennsation is not given, we get  best or worst feeling of oll association this sensation has
+    '''    
+    def getFeeling(self, sensation=None):
         feeling = Sensation.Association.Feeling.Neutral
-        # one level associations
-        best_association = None
-        for association in self.associations:
-            if abs(association.getFeeling()) > abs(feeling):
+        if sensation:
+            association = self.getAssociation(sensation=sensation)
+            if association:
                 feeling = association.getFeeling()
-                best_association = association
-        if best_association is not None:
-            best_association.time = systemTime.time()
+                association.time = systemTime.time()
+        else:
+            # one level associations
+            best_association = None
+            for association in self.associations:
+                if abs(association.getFeeling()) > abs(feeling):
+                    feeling = association.getFeeling()
+                    best_association = association
+            if best_association is not None:
+                best_association.time = systemTime.time()
             
         return feeling
     

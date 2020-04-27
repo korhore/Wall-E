@@ -335,11 +335,11 @@ class SensationTestCase(unittest.TestCase):
 
         self.assertIs(len(self.sensation.getAssociations()), associationNumber+1)
         self.assertIs(self.sensation.getScore(), SensationTestCase.SCORE)
-        self.assertIs(self.sensation.getFeeling(), self.feeling)
+        self.assertIs(self.sensation.getFeeling(addSensation), self.feeling)
         
         self.assertIs(len(addSensation.getAssociations()), associationNumber+1)
         self.assertIs(addSensation.getScore(), SensationTestCase.SCORE)
-        self.assertIs(addSensation.getFeeling(), self.feeling)
+        self.assertIs(addSensation.getFeeling(self.sensation), self.feeling)
 
         # test bytes        
         bytes=self.sensation.bytes()
@@ -350,7 +350,7 @@ class SensationTestCase(unittest.TestCase):
        
         self.assertIs(len(fromBytesSensation.getAssociations()), associationNumber+1)
         self.assertEqual(fromBytesSensation.getScore(), SensationTestCase.SCORE)
-        self.assertEqual(fromBytesSensation.getFeeling(), self.feeling)
+        self.assertEqual(fromBytesSensation.getFeeling(addSensation), self.feeling)
         
         
         # test bytes        
@@ -360,7 +360,7 @@ class SensationTestCase(unittest.TestCase):
 
         self.assertIs(len(fromBytesSensation.getAssociations()), associationNumber+1)
         self.assertEqual(fromBytesSensation.getScore(), SensationTestCase.SCORE)
-        self.assertEqual(fromBytesSensation.getFeeling(), self.feeling)
+        self.assertEqual(fromBytesSensation.getFeeling(self.sensation), self.feeling)
        
         # TODO rest if the test
 
@@ -372,11 +372,11 @@ class SensationTestCase(unittest.TestCase):
                                                             feeling=SensationTestCase.TERRIFIED_FEELING))
         self.assertIs(len(self.sensation.getAssociations()), associationNumber+1)
         self.assertIs(self.sensation.getScore(), SensationTestCase.SCORE)
-        self.assertIs(self.sensation.getFeeling(), self.feeling)
+        self.assertIs(self.sensation.getFeeling(addSensation), SensationTestCase.TERRIFIED_FEELING)
         
         self.assertIs(len(addSensation.getAssociations()), associationNumber+1)
         self.assertIs(addSensation.getScore(), SensationTestCase.SCORE)
-        self.assertIs(addSensation.getFeeling(), self.feeling)
+        self.assertIs(addSensation.getFeeling(self.sensation), SensationTestCase.TERRIFIED_FEELING)
 
         #print('\nlogAssociations 6: test_AddAssociation')
         Sensation.logAssociations(self.sensation)
@@ -389,8 +389,8 @@ class SensationTestCase(unittest.TestCase):
         # change feeling in association        
         addAssociation.setFeeling(self.feeling)
         # and it should be changed in both way association in both ways
-        self.assertIs(self.sensation.getFeeling(), self.feeling)
-        self.assertIs(addSensation.getFeeling(), self.feeling)
+        self.assertIs(self.sensation.getFeeling(addSensation), self.feeling)
+        self.assertIs(addSensation.getFeeling(self.sensation), self.feeling)
 
     def test_Bytes(self):        
         print("\ntest_Bytes")

@@ -55,7 +55,7 @@ class Memory(object):
     currentSensationMemoryUsageLevel = 0.0                   # current memory usage level when creating last Sensation
     maxRss = 384.0                                           # how much there is space for Sensation as maxim MainRobot sets this from its Config
     minAvailMem = 50.0                                       # how available momory must be left. MainRobot sets this from its Config
-    process = psutil.Process(os.getpid())                    # get pid of current process, so we can calculate Process memory usage
+    psutilProcess = psutil.Process(os.getpid())                    # get pid of current process, so we can calculate Process memory usage
     # Robot settings"
     MemoryLogLevel = enum(Critical='a', Error='b', Normal='c', Detailed='d', Verbose='e')
     
@@ -241,22 +241,26 @@ class Memory(object):
                  succeeded = True
         
     '''
-    Handle Association-yupe Sensatio
+    process Sensation
+    We can handle Feeling-type sensation
     '''
-    def associate(self, sensation):
-        self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='associate: sensation ' + systemTime.ctime(sensation.getTime()) +  ' ' + sensation.toDebugStr())
+    def process(self, sensation):
+        self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='Memory process: sensation ' + systemTime.ctime(sensation.getTime()) +  ' ' + sensation.toDebugStr())
         
-        if sensation.getSensationType() == Sensation.SensationType.Association and\
-           senssation.getFirstAssociateSensation() is not None and\
-           senssation.getOtherAssociateSensation() is not None:
-            senssation.getFirstAssociateSensation().associate(sensation=sensation.getOtherAssociateSensation(), feeling = sensation.getAssociateFeeling())
+        if sensation.getSensationType() == Sensation.SensationType.Feeling and\
+           sensation.getFirstAssociateSensation() is not None and\
+           sensation.getOtherAssociateSensation() is not None:
+            sensation.getFirstAssociateSensation().associate(sensation=sensation.getOtherAssociateSensation(), feeling = sensation.getAssociateFeeling())
+            self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='Memory process: Feeling between sensations')
+        else:
+            self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='Memory process: No Feeling between sensations, because net Feeling sentionn or paremeter sensation(s) are None(s)')
       
     '''
     get memory usage
     '''
     def getMemoryUsage():     
          #memUsage= resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0            
-        return Memory.process.memory_info().rss/(1024*1024)              # hope this works better
+        return Memory.psutilProcess.memory_info().rss/(1024*1024)              # hope this works better
     
     '''
     get available memory

@@ -1003,8 +1003,11 @@ class Robot(Thread):
                  capabilities = capabilities,
                  name = name,
                  score = score,
-                 presence =presence,
-                 kind = kind )            
+                 presence = presence,
+                 kind = kind,
+                 firstAssociateSensation = firstAssociateSensation,
+                 otherAssociateSensation = otherAssociateSensation,
+                 associateFeeling = associateFeeling)       
                         
  
 # Identity
