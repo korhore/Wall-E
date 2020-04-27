@@ -18,7 +18,7 @@ class SensationTestCase(unittest.TestCase):
     SCORE=0.5
     SCORE2=0.8
     
-    FEELING = Sensation.Association.Feeling.Good
+    NORMAL_FEELING = Sensation.Association.Feeling.Good
     BETTER_FEELING = Sensation.Association.Feeling.Happy
     TERRIFIED_FEELING = Sensation.Association.Feeling.Terrified
 
@@ -32,7 +32,7 @@ class SensationTestCase(unittest.TestCase):
         #print('\nlogAssociations 1: setUp')
         Sensation.logAssociations(self.sensation)
         
-        self.feeling = SensationTestCase.FEELING
+        self.feeling = SensationTestCase.NORMAL_FEELING
 
     def tearDown(self):
         self.sensation.delete()
@@ -253,14 +253,14 @@ class SensationTestCase(unittest.TestCase):
         self.assertIsNot(workingSensation, None)
         self.assertIs(len(workingSensation.getAssociations()), 0)
         workingSensation.associate(sensation=self.sensation,
-                                    feeling=SensationTestCase.FEELING)
+                                    feeling=SensationTestCase.NORMAL_FEELING)
         Sensation.logAssociations(workingSensation)
         self.assertIs(len(workingSensation.getAssociations()), 1)
         association = self.sensation.getAssociation(sensation=workingSensation)
         self.assertIsNot(association, None)
-        print("SensationTestCase.FEELING association.getImportance() " + str(association.getImportance()))
+        print("SensationTestCase.NORMAL_FEELING association.getImportance() " + str(association.getImportance()))
         self.assertTrue(association.getImportance() > 0.0, "association importance must greater than zero")
-        print("SensationTestCase.FEELING workingSensation.getImportance() " + str(workingSensation.getImportance()))
+        print("SensationTestCase.NORMAL_FEELING workingSensation.getImportance() " + str(workingSensation.getImportance()))
         self.assertTrue(workingSensation.getImportance() > 0.0, "sensation now importance must greater than zero")
         
         previousAssociationImportance = association.getImportance()

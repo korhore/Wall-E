@@ -24,6 +24,7 @@ or feel worse about fron subject to object sensation.
 - score Sensation.Assosiation ->  Sentation.Item feature
 OK But Needs cleanup
 OK Cleanup
+Still change this as Feeling Sensationtype to be clear. This is always Feeling beetween Sensations
 Assosiation as SensationType
 - Assisiations handling has beeb there, but no as SensationType.
 - Actuaslly we need two parameters, thw Sensations to be associated,

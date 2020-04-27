@@ -58,10 +58,10 @@ from Config import Config
 
 class Communication(Robot):
 
-    COMMUNICATION_INTERVAL=30.0     # time window to history 
+    #COMMUNICATION_INTERVAL=30.0     # time window to history 
                                     # for sensations we communicate
     #COMMUNICATION_INTERVAL=15.0     # time window to history for test to be run quicker
-    #COMMUNICATION_INTERVAL=2.5     # time window to history for test to be run quicker
+    COMMUNICATION_INTERVAL=2.5     # time window to history for test to be run quicker
     CONVERSATION_INTERVAL=300.0     # if no change in present item.names and
                                     # last conversation is ended, how long
                                     # we wait until we will respond if

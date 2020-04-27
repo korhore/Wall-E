@@ -136,7 +136,7 @@ class Sensation(object):
     FLOAT_PACK_SIZE =   8
      
     # so many sensationtypes, that first letter is not good idea any more  
-    SensationType = enum(Drive='a', Stop='b', Who='c', Azimuth='d', Acceleration='e', Observation='f', HearDirection='g', Voice='h', Image='i',  Calibrate='j', Capability='k', Item='l', Association='m', Unknown='n')
+    SensationType = enum(Drive='a', Stop='b', Who='c', Azimuth='d', Acceleration='e', Observation='f', HearDirection='g', Voice='h', Image='i',  Calibrate='j', Capability='k', Item='l', Feeling='m', Unknown='n')
     # Direction of a sensation. Example in Voice: In: Speaking,  Out: Hearing
     Direction = enum(In='I', Out='O')
     # Direction of a sensation transferring, used with Axon. Up: going up like fron AlsaMicroPhone to MainRobot, Down: going down from MainRobot to leaf Robots like AlsaPlayback
@@ -168,7 +168,7 @@ class Sensation(object):
     CALIBRATE="Calibrate"
     CAPABILITY="Capability"
     ITEM="Item"
-    ASSOCIATION="Association"
+    FEELING="Feeling"
     UNKNOWN="Unknown"
     KIND="Kind"
     WALLE="Wall-E"
@@ -218,7 +218,7 @@ class Sensation(object):
                SensationType.Calibrate: CALIBRATE,
                SensationType.Capability: CAPABILITY,
                SensationType.Item: ITEM,
-               SensationType.Association: ASSOCIATION,
+               SensationType.Feeling: FEELING,
                SensationType.Unknown: UNKNOWN}
     SensationTypesOrdered=(
                SensationType.Drive,
@@ -233,7 +233,7 @@ class Sensation(object):
                SensationType.Calibrate,
                SensationType.Capability,
                SensationType.Item,
-               SensationType.Association,
+               SensationType.Feeling,
                SensationType.Unknown)
     
     Kinds={Kind.WallE: WALLE,
