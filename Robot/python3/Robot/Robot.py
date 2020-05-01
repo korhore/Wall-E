@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 18.04.2020
+Updated on 30.04.2020
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -668,7 +668,7 @@ class Robot(Thread):
 #                     self.imageSensations.append(imageSensation)
 #                     self.selfSensation.associate(sensation=imageSensation,
 #                                                  #score=1.0,      # we know this for sure
-#                                                  feeling =  Sensation.Association.Feeling.Happy) # we are happy about our image
+#                                                  feeling =  Sensation.Feeling.Happy) # we are happy about our image
 #                  # voices
 #                 for fname in voice_file_names:
 #                     image_path=os.path.join(dirName,fname)
@@ -694,7 +694,7 @@ class Robot(Thread):
 #                         voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.LongTerm, direction = Sensation.Direction.Out, data=data)
 #                         self.selfSensation.associate(sensation=voiceSensation,
 #                                                      #score = 1.0, # we know this for sure
-#                                                      feeling = Sensation.Association.Feeling.Happy) # we are happy about our voices
+#                                                      feeling = Sensation.Feeling.Happy) # we are happy about our voices
 
     def getIdentitySensations(self, kind):
         imageSensations=[]
@@ -834,6 +834,13 @@ class Robot(Thread):
             
     def process(self,transferDirection, sensation,  association=None):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
+         # MainRobot and Virtual robot has Memory
+        if ((sensation.sensationType is Sensation.SensationType.Feeling) and (self.isMainRobot())) or\
+             ((sensation.sensationType is Sensation.SensationType.Feeling) and (self.getInstanceType() == Sensation.InstanceType.Virtual)):
+            self.getMemory().process(sensation=sensation)# process locally
+            # we should also process this in tcp-connection and Virtual Robots.
+            # it is done below by nolmal route rules
+
         if sensation.getSensationType() == Sensation.SensationType.Stop:
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: SensationSensationType.Stop')      
             self.stop()
@@ -841,7 +848,7 @@ class Robot(Thread):
             self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: sensation.getSensationType() == Sensation.SensationType.Capability')      
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.setCapabilities(Capabilities(capabilities=sensation.getCapabilities() ' + sensation.getCapabilities().toDebugString('capabilities'))      
             self.setCapabilities(Capabilities(deepCopy=sensation.getCapabilities()))
-            self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: capabilities: ' + self.getCapabilities().toDebugString('saved capabilities'))      
+            self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: capabilities: ' + self.getCapabilities().toDebugString('saved capabilities'))
         # sensation going up
         elif transferDirection == Sensation.TransferDirection.Up:
             if self.getParent() is not None: # if sensation is going up  and we have a parent
@@ -976,7 +983,10 @@ class Robot(Thread):
                  kind=Sensation.Kind.Normal,                                # Normal kind
                  firstAssociateSensation=None,                              # associated sensation first side
                  otherAssociateSensation=None,                              # associated Sensation other side
-                 associateFeeling = Sensation.Association.Feeling.Neutral): # feeling of association
+                 associateFeeling = Sensation.Feeling.Neutral,              # feeling of association
+                 positiveFeeling=False,                                     # change association feeling to more positive direction if possible
+                 negativeFeeling=False):                                    # change association feeling to more negative direction if possible
+
 
         
         return self.getMemory().create(
@@ -1007,7 +1017,10 @@ class Robot(Thread):
                  kind = kind,
                  firstAssociateSensation = firstAssociateSensation,
                  otherAssociateSensation = otherAssociateSensation,
-                 associateFeeling = associateFeeling)       
+                 associateFeeling = associateFeeling,
+                 positiveFeeling=positiveFeeling,
+                 negativeFeeling=negativeFeeling)
+
                         
  
 # Identity

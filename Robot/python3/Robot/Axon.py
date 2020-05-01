@@ -25,7 +25,7 @@ class Axon():
         self.queue = Queue()
        
     def put(self, robot, transferDirection, sensation, association=None, detach=True):
-        print("Axon put from {} to {} with original queue length {} full {}".format(robot.getWho(),self.robot.getWho(), self.queue.qsize(), self.queue.full()))
+        self.robot.log("Axon put from {} to {} with original queue length {} full {}".format(robot.getWho(),self.robot.getWho(), self.queue.qsize(), self.queue.full()))
         sensation.attach(self.robot)    # take ownership
         if detach:
             sensation.detach(robot)         # release from caller
@@ -37,9 +37,9 @@ class Axon():
     so robot is not mentioned as parameter 
     '''       
     def get(self):
-        print("Axon get from {} original queue length {} empty {} full {}".format(self.robot.getWho(), self.queue.qsize(), self.queue.empty(), self.queue.full()))
+        self.robot.log("Axon get from {} original queue length {} empty {} full {}".format(self.robot.getWho(), self.queue.qsize(), self.queue.empty(), self.queue.full()))
         (transferDirection, sensation, association) = self.queue.get()
-        print("Axon done get from {} result queue length {} empty {} full {}".format(self.robot.getWho(), self.queue.qsize(), self.queue.empty(), self.queue.full()))
+        self.robot.log("Axon done get from {} result queue length {} empty {} full {}".format(self.robot.getWho(), self.queue.qsize(), self.queue.empty(), self.queue.full()))
         return transferDirection, sensation, association
         
     def empty(self):

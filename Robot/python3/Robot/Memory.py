@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 12.04.2020
+Edited on 02.05.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -137,7 +137,9 @@ class Memory(object):
                  kind=Sensation.Kind.Normal,                                # Normal kind
                  firstAssociateSensation=None,                              # associated sensation first side
                  otherAssociateSensation=None,                              # associated Sensation other side
-                 associateFeeling = Sensation.Association.Feeling.Neutral): # feeling of association
+                 associateFeeling = Sensation.Feeling.Neutral,              # feeling of association
+                 positiveFeeling=False,                                     # change association feeling to more positive direction if possible
+                 negativeFeeling=False):                                    # change association feeling to more negative direction if possible
         if sensation == None:             # not an update, create new one
             self.log(logStr="Create new sensation by pure parameters for {}".format(robot.getWho()), logLevel=Memory.MemoryLogLevel.Normal)
         else:
@@ -172,7 +174,9 @@ class Memory(object):
                  kind = kind,
                  firstAssociateSensation = firstAssociateSensation,
                  otherAssociateSensation = otherAssociateSensation,
-                 associateFeeling = associateFeeling)
+                 associateFeeling = associateFeeling,
+                 positiveFeeling = positiveFeeling,
+                 negativeFeeling = negativeFeeling)
         sensation.attach(robot=robot)   # always create sensation attached by creator
         self.addToSensationMemory(sensation)
         if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemoryType() == Sensation.MemoryType.Working and\
@@ -250,7 +254,10 @@ class Memory(object):
         if sensation.getSensationType() == Sensation.SensationType.Feeling and\
            sensation.getFirstAssociateSensation() is not None and\
            sensation.getOtherAssociateSensation() is not None:
-            sensation.getFirstAssociateSensation().associate(sensation=sensation.getOtherAssociateSensation(), feeling = sensation.getAssociateFeeling())
+            sensation.getFirstAssociateSensation().associate(sensation=sensation.getOtherAssociateSensation(), 
+                                                             feeling = sensation.getAssociateFeeling(),
+                                                             positiveFeeling = sensation.getPositiveFeeling(),
+                                                             negativeFeeling = sensation.getNegativeFeeling())
             self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='Memory process: Feeling between sensations')
         else:
             self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='Memory process: No Feeling between sensations, because net Feeling sentionn or paremeter sensation(s) are None(s)')

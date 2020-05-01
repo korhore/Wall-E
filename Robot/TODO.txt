@@ -19,6 +19,16 @@ and TensorflowClassification will stop
 Develop
 -------
 
+Simplyfy Communication much.
+When we don't get responce, we know present Item.named and original Voice that was chosen
+to be played.  played. Feel negative with Iten.name and that original Voice
+
+And opposite way if we get an response,
+
+Implement alsa Sensationype.Feeling positive, negative
+Less Logging to Visual
+Don't associate Feeling in Memory, but forget when done
+
 Next step will be study and implement Association in Axon, Robot.process in memory level Robots, meaning MainRobot level. Association has score and feeling, so syudy how to implemt 'feel better,
 or feel worse about fron subject to object sensation.
 - score Sensation.Assosiation ->  Sentation.Item feature

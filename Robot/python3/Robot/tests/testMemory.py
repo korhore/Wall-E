@@ -19,9 +19,9 @@ class MemoryTestCase(unittest.TestCase):
     SCORE=0.5
     SCORE2=0.8
     
-    FEELING = Sensation.Association.Feeling.Good
-    BETTER_FEELING = Sensation.Association.Feeling.Happy
-    TERRIFIED_FEELING = Sensation.Association.Feeling.Terrified
+    FEELING = Sensation.Feeling.Good
+    BETTER_FEELING = Sensation.Feeling.Happy
+    TERRIFIED_FEELING = Sensation.Feeling.Terrified
 
     def setUp(self):
         self.robot=Robot()

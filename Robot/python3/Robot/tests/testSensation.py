@@ -10,7 +10,7 @@ python3 -m unittest tests/testSensation.py
 '''
 import time as systemTime
 import unittest
-from Sensation import Sensation
+from Sensation import Sensation#, booleanToBytes, bytesToBoolean
 from Robot import Robot
 
 class SensationTestCase(unittest.TestCase):
@@ -18,9 +18,9 @@ class SensationTestCase(unittest.TestCase):
     SCORE=0.5
     SCORE2=0.8
     
-    NORMAL_FEELING = Sensation.Association.Feeling.Good
-    BETTER_FEELING = Sensation.Association.Feeling.Happy
-    TERRIFIED_FEELING = Sensation.Association.Feeling.Terrified
+    NORMAL_FEELING = Sensation.Feeling.Good
+    BETTER_FEELING = Sensation.Feeling.Happy
+    TERRIFIED_FEELING = Sensation.Feeling.Terrified
 
     def setUp(self):
         self.robot=Robot()
@@ -434,8 +434,83 @@ class SensationTestCase(unittest.TestCase):
         self.assertFalse(fromBytesVoiceSensation.isForgettable(), "should be False, until detached")
         fromBytesVoiceSensation.detach(robot=self.robot)
         self.assertTrue(fromBytesVoiceSensation.isForgettable(), "should be True after detach")
+
+        # Normal Feeling
+        
+        feelingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
+                                                      firstAssociateSensation=workingSensation, otherAssociateSensation=voiceSensation,
+                                                      associateFeeling=SensationTestCase.NORMAL_FEELING)
+        bytes=feelingSensation.bytes()
+        self.assertTrue(bytes != None, "should be get bytes")
+        fromBytesFeelingSensation = self.robot.createSensation(bytes=bytes)
+                
+        self.assertTrue(feelingSensation == fromBytesFeelingSensation, "should be equal")
+        self.assertTrue(feelingSensation.getFirstAssociateSensation() == fromBytesFeelingSensation.getFirstAssociateSensation(), "should be equal")
+        self.assertTrue(feelingSensation.getOtherAssociateSensation() == fromBytesFeelingSensation.getOtherAssociateSensation(), "should be equal")
+        self.assertTrue(feelingSensation.getAssociateFeeling() == fromBytesFeelingSensation.getAssociateFeeling(), "should be equal")        
+        self.assertEqual(fromBytesFeelingSensation.getAssociateFeeling(), SensationTestCase.NORMAL_FEELING, "should be equal")        
+        
+        self.assertFalse(fromBytesFeelingSensation.isForgettable(), "should be False, until detached")
+        fromBytesFeelingSensation.detach(robot=self.robot)
+        self.assertTrue(fromBytesFeelingSensation.isForgettable(), "should be True after detach")
  
+        # Better Feeling
+        
+        feelingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
+                                                      firstAssociateSensation=workingSensation, otherAssociateSensation=voiceSensation,
+                                                      positiveFeeling=True)
+        bytes=feelingSensation.bytes()
+        self.assertTrue(bytes != None, "should be get bytes")
+        fromBytesFeelingSensation = self.robot.createSensation(bytes=bytes)
+                
+        self.assertTrue(feelingSensation == fromBytesFeelingSensation, "should be equal")
+        self.assertTrue(feelingSensation.getFirstAssociateSensation() == fromBytesFeelingSensation.getFirstAssociateSensation(), "should be equal")
+        self.assertTrue(feelingSensation.getOtherAssociateSensation() == fromBytesFeelingSensation.getOtherAssociateSensation(), "should be equal")
+        self.assertTrue(feelingSensation.getPositiveFeeling(), "should be True")        
+        self.assertFalse(feelingSensation.getNegativeFeeling(), "should be False")        
+        #self.assertTrue(feelingSensation.getAssociateFeeling() == SensationTestCase.NORMAL_FEELING, "should be equal")        
+        self.assertTrue(fromBytesFeelingSensation.getPositiveFeeling(), "should be True")        
+        self.assertFalse(fromBytesFeelingSensation.getNegativeFeeling(), "should be False")        
+        
+        # Worse Feeling
+        
+        feelingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
+                                                      firstAssociateSensation=workingSensation, otherAssociateSensation=voiceSensation,
+                                                      negativeFeeling=True)
+        self.assertFalse(feelingSensation.isForgettable(), "should be False, until detached")
+
+        bytes=feelingSensation.bytes()
+        self.assertTrue(bytes != None, "should be get bytes")
+        fromBytesFeelingSensation = self.robot.createSensation(bytes=bytes)
+                
+        self.assertTrue(feelingSensation == fromBytesFeelingSensation, "should be equal")
+        self.assertTrue(feelingSensation.getFirstAssociateSensation() == fromBytesFeelingSensation.getFirstAssociateSensation(), "should be equal")
+        self.assertTrue(feelingSensation.getOtherAssociateSensation() == fromBytesFeelingSensation.getOtherAssociateSensation(), "should be equal")
+        self.assertFalse(feelingSensation.getPositiveFeeling(), "should be False")        
+        self.assertTrue(feelingSensation.getNegativeFeeling(), "should be True") 
+        
+        self.assertFalse(fromBytesFeelingSensation.getPositiveFeeling(), "should be False")        
+        self.assertTrue(fromBytesFeelingSensation.getNegativeFeeling(), "should be True")        
+               
+        #self.assertTrue(feelingSensation.getAssociateFeeling() == SensationTestCase.NORMAL_FEELING, "should be equal")        
+
+        self.assertFalse(fromBytesFeelingSensation.isForgettable(), "should be False, until detached")
+        fromBytesFeelingSensation.detach(robot=self.robot)
+        self.assertTrue(fromBytesFeelingSensation.isForgettable(), "should be True after detach")
+
         print("\ntest_Bytes DONE")
+        
+    def test_Boolean(self):        
+        print("\ntest_Bytes")
+        t = True
+        f = False
+        
+        b = Sensation.booleanToBytes(t)
+        self.assertEqual(t, Sensation.bytesToBoolean(b), "should be same")
+        #self.assertEqual(t, Sensation.intToBoolean(int(x=b, base=16)), "should be same") # Can't test this way
+        
+        b = Sensation.booleanToBytes(f)
+        self.assertEqual(f, Sensation.bytesToBoolean(b), "should be same")
 
 
         

@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 26.04.2020
+Edited on 30.04.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -16,6 +16,7 @@ import math
 from PIL import Image as PIL_Image
 import io
 import psutil
+#from builtins import True
 #import threading
 
 try:
@@ -33,49 +34,6 @@ def enum(*sequential, **named):
     enums = dict(zip(sequential, range(len(sequential))), **named)
     return type('Enum', (), enums)
 
-# try unicode-escape instead of utf8 toavoid error with non ascii characters bytes
-def StrToBytes(e):
-    return e.encode('unicode-escape')
-
-def bytesToStr(b):
-    try:
-        return b.decode('unicode-escape')
-    except UnicodeDecodeError as e:
-        print ('UnicodeDecodeError ' + str(e))
-        return ''
-    
-def listToBytes(l):
-    ret_s = ''
-    if l is not None:
-        i=0
-        for s in l:
-            if i == 0:
-                ret_s = s
-            else:
-                ret_s += LIST_SEPARATOR + s
-            i = i+1
-    return StrToBytes(ret_s)
-    
-def bytesToList(b):
-    #print('bytesToList b ' +str(b))
-
-    ret_s = bytesToStr(b)
-    #print('bytesToList ret_s ' +str(ret_s))
-    return ret_s.split(LIST_SEPARATOR)
-
-def strListToFloatList(l):
-    ret_s = []
-    if l is not None:
-        for s in l:
-            ret_s.append(float(s))
-    return ret_s
-
-
-def floatToBytes(f):
-    return bytearray(struct.pack(Sensation.FLOAT_PACK_TYPE, f)) 
-
-def bytesToFloat(b):
-    return struct.unpack(Sensation.FLOAT_PACK_TYPE, b)[0]
 
 '''
 Sensation is something Robot senses
@@ -134,6 +92,12 @@ class Sensation(object):
     BYTEORDER =         "little"
     FLOAT_PACK_TYPE =   "d"
     FLOAT_PACK_SIZE =   8
+    TRUE_AS_BYTE  =     b'\x01'
+    FALSE_AS_BYTE  =    b'\x00'
+    TRUE_AS_INT  =      1
+    FALSE_AS_INR  =     0
+    TRUE_AS_STR  =      'T'
+    FALSE_AS_STR  =     'F'
      
     # so many sensationtypes, that first letter is not good idea any more  
     SensationType = enum(Drive='a', Stop='b', Who='c', Azimuth='d', Acceleration='e', Observation='f', HearDirection='g', Voice='h', Image='i',  Calibrate='j', Capability='k', Item='l', Feeling='m', Unknown='n')
@@ -263,6 +227,30 @@ class Sensation(object):
         MemoryType.Sensory:  SENSORY_LIVE_TIME,
         MemoryType.Working:  WORKING_LIVE_TIME,
         MemoryType.LongTerm: LONG_TERM_LIVE_TIME }
+    
+    # Feeling
+    Terrified='Terrified' 
+    Afraid='Afraid'
+    Disappointed='Disappointed'
+    Worried='Worried'
+    Neutral='Neutral'
+    Normal='Normal'
+    Good='Good'
+    Happy='Happy'
+    InLove='InLove'
+    # Feeling, Feelings can be positive or negative, stronger or weaker
+    Feeling = enum(Terrified=-5, Afraid=-3, Disappointed=-2, Worried=-1, Neutral=0, Normal=1, Good=2, Happy=3, InLove=5)
+    Feelings = {
+        Feeling.Terrified : Terrified,
+        Feeling.Afraid : Afraid,
+        Feeling.Disappointed : Disappointed,
+        Feeling.Worried : Worried,
+        Feeling.Neutral : Neutral,
+        Feeling.Normal : Normal,
+        Feeling.Good : Good,
+        Feeling.Happy : Happy,
+        Feeling.InLove : InLove
+    }
 
 
     # The idea is keep Sensation in runtime memory if
@@ -284,6 +272,68 @@ class Sensation(object):
     # its classified names. After that our robot
     # knows how those classifies names look like,
     # what is has seen. 
+    
+    # byte conversions
+    # try unicode-escape instead of utf8 toavoid error with non ascii characters bytes
+    def strToBytes(e):
+        return e.encode('unicode-escape')
+    
+    def bytesToStr(b):
+        try:
+            return b.decode('unicode-escape')
+        except UnicodeDecodeError as e:
+            print ('UnicodeDecodeError ' + str(e))
+            return ''
+        
+    def listToBytes(l):
+        ret_s = ''
+        if l is not None:
+            i=0
+            for s in l:
+                if i == 0:
+                    ret_s = s
+                else:
+                    ret_s += LIST_SEPARATOR + s
+                i = i+1
+        return Sensation.strToBytes(ret_s)
+        
+    def bytesToList(b):
+        #print('bytesToList b ' +str(b))
+    
+        ret_s = Sensation.bytesToStr(b)
+        #print('bytesToList ret_s ' +str(ret_s))
+        return ret_s.split(LIST_SEPARATOR)
+    
+    def strListToFloatList(l):
+        ret_s = []
+        if l is not None:
+            for s in l:
+                ret_s.append(float(s))
+        return ret_s
+    
+    
+    def floatToBytes(f):
+        return bytearray(struct.pack(Sensation.FLOAT_PACK_TYPE, f)) 
+    
+    def bytesToFloat(b):
+        return struct.unpack(Sensation.FLOAT_PACK_TYPE, b)[0]
+    
+    def booleanToBytes(boolean):
+        if boolean:
+            return Sensation.TRUE_AS_BYTE
+        return Sensation.FALSE_AS_BYTE
+    
+    def bytesToBoolean(b):
+        if b == Sensation.TRUE_AS_BYTE:
+            return True
+        return False
+    def intToBoolean(i):
+        if i == Sensation.TRUE_AS_INT:
+            return True
+        return False
+
+    
+    #helpers
         
     def getDirectionString(direction):
         ret = Sensation.Directions.get(direction)
@@ -311,8 +361,11 @@ class Sensation(object):
         return Sensation.Kinds.get(kind)
     def getKindStrings():
         return Sensation.Kinds.values()
-    
 
+    def getFeelingString(feeling):
+        return Sensation.Feelings.get(feeling)
+    def getFeelingStrings():
+        return Sensation.Feelings.values()
         
     '''
     get memory usage
@@ -339,34 +392,13 @@ class Sensation(object):
     '''
         
     class Association(object):
-        Terrified='Terrified' 
-        Afraid='Afraid'
-        Disappointed='Disappointed'
-        Worried='Worried'
-        Neutral='Neutral'
-        Normal='Normal'
-        Good='Good'
-        Happy='Happy'
-        InLove='InLove'
-        # Feeling, Feelings can be positive or negative, stronger or weaker
-        Feeling = enum(Terrified=-5, Afraid=-3, Disappointed=-2, Worried=-1, Neutral=0, Normal=1, Good=2, Happy=3, InLove=5)
-        Feelings = {
-            Feeling.Terrified : Terrified,
-            Feeling.Afraid : Afraid,
-            Feeling.Disappointed : Disappointed,
-            Feeling.Worried : Worried,
-            Feeling.Neutral : Neutral,
-            Feeling.Normal : Normal,
-            Feeling.Good : Good,
-            Feeling.Happy : Happy,
-            Feeling.InLove : InLove
-        }
         
         def __init__(self,
                      self_sensation,                        # this side of Association
                      sensation,                             # sensation to connect
-                     time=None,                             # last used
-                     feeling = Feeling.Neutral):            # feeling of association two sensations
+                     feeling,                               # feeling of association two sensations
+                     time=None):                            # last used
+#                     feeling = Sensation.Feeling.Neutral):  # feeling of association two sensations
                                                             # stronger feeling make us (and robots) to remember association
                                                             # longer than neutral associations
                                                             # our behaver (and) robots has to goal to get good feelings
@@ -430,52 +462,52 @@ class Sensation(object):
         '''
         Change feeling to more positive or negative way
         '''    
-        def changeFeeling(self, positive=True, negative=False):
+        def changeFeeling(self, positive=True, negative=False, otherPart=False):
             # this part
             self.doChangeFeeling(association=self, positive=positive, negative=negative)
-            # other part
-            association = self.sensation.getAssociation(self.self_sensation)
-            if association is not None:
-                self.doChangeFeeling(association=association, positive=positive, negative=negative)
+            if otherPart:
+                association = self.sensation.getAssociation(self.self_sensation)
+                if association is not None:
+                    self.doChangeFeeling(association=association, positive=positive, negative=negative)
 
         '''
         helper association Change feeling to more positive or negative way
         '''    
         def doChangeFeeling(self, association, positive=True, negative=False):
             if positive or not negative: # must be positive
-                if association.feeling == association.Feeling.Terrified:
-                    association.feeling = association.Feeling.Afraid
-                elif association.feeling == association.Feeling.Afraid:
-                    association.feeling = association.Feeling.Disappointed
-                elif association.feeling == association.Feeling.Disappointed:
-                    association.feeling = association.Feeling.Worried
-                elif association.feeling == association.Feeling.Worried:
-                    association.feeling = association.Feeling.Neutral
-                elif association.feeling == association.Feeling.Neutral:
-                    association.feeling = association.Feeling.Normal
-                elif association.feeling == association.Feeling.Normal:
-                    association.feeling = association.Feeling.Good
-                elif association.feeling == association.Feeling.Good:
-                    association.feeling = association.Feeling.Happy
-                elif association.feeling == association.Feeling.Happy:
-                    association.feeling = association.Feeling.InLove
+                if association.feeling == Sensation.Feeling.Terrified:
+                    association.feeling = Sensation.Feeling.Afraid
+                elif association.feeling == Sensation.Feeling.Afraid:
+                    association.feeling = Sensation.Feeling.Disappointed
+                elif association.feeling == Sensation.Feeling.Disappointed:
+                    association.feeling = Sensation.Feeling.Worried
+                elif association.feeling == Sensation.Feeling.Worried:
+                    association.feeling = Sensation.Feeling.Neutral
+                elif association.feeling == Sensation.Feeling.Neutral:
+                    association.feeling = Sensation.Feeling.Normal
+                elif association.feeling == Sensation.Feeling.Normal:
+                    association.feeling = Sensation.Feeling.Good
+                elif association.feeling == Sensation.Feeling.Good:
+                    association.feeling = Sensation.Feeling.Happy
+                elif association.feeling == Sensation.Feeling.Happy:
+                    association.feeling = Sensation.Feeling.InLove
             else:
-                if association.feeling == association.Feeling.Afraid:
-                    association.feeling = association.Feeling.Terrified
-                elif association.feeling == association.Feeling.Disappointed:
-                    association.feeling = association.Feeling.Afraid
-                elif association.feeling == association.Feeling.Worried:
-                    association.feeling = association.Feeling.Disappointed
-                elif association.feeling == association.Feeling.Neutral:
-                    association.feeling = association.Feeling.Worried
-                elif association.feeling == association.Feeling.Normal:
-                    association.feeling = association.Feeling.Neutral
-                elif association.feeling == association.Feeling.Good:
-                    association.feeling = association.Feeling.Normal
-                elif association.feeling == association.Feeling.Happy:
-                    association.feeling = association.Feeling.Good
-                elif association.feeling == association.Feeling.InLove:
-                    association.feeling = association.Feeling.Happy
+                if association.feeling == Sensation.Feeling.Afraid:
+                    association.feeling = Sensation.Feeling.Terrified
+                elif association.feeling == Sensation.Feeling.Disappointed:
+                    association.feeling = Sensation.Feeling.Afraid
+                elif association.feeling == Sensation.Feeling.Worried:
+                    association.feeling = Sensation.Feeling.Disappointed
+                elif association.feeling == Sensation.Feeling.Neutral:
+                    association.feeling = Sensation.Feeling.Worried
+                elif association.feeling == Sensation.Feeling.Normal:
+                    association.feeling = Sensation.Feeling.Neutral
+                elif association.feeling == Sensation.Feeling.Good:
+                    association.feeling = Sensation.Feeling.Normal
+                elif association.feeling == Sensation.Feeling.Happy:
+                    association.feeling = Sensation.Feeling.Good
+                elif association.feeling == Sensation.Feeling.InLove:
+                    association.feeling = Sensation.Feeling.Happy
 
         '''
         How important this association is.
@@ -492,11 +524,11 @@ class Sensation(object):
             if self.feeling >= 0:
                 return float(self.feeling+1) * (1.0 + self.self_sensation.getScore())
             return float(self.feeling-1) * (1.0 + self.self_sensation.getScore())
+        
 
     '''
     default constructor for Sensation
-    '''
-       
+    '''       
     def __init__(self,
                  memory,
                  robotId,                                                    # robot id (should be always given)
@@ -524,9 +556,11 @@ class Sensation(object):
                  score = 0.0,                                               # used at least with item to define how good was the detection 0.0 - 1.0
                  presence = Presence.Unknown,                               # presence of Item
                  kind=Kind.Normal,                                          # kind (for instance voice)
-                 firstAssociateSensation=None,                              # associated sensation first side
-                 otherAssociateSensation=None,                              # associated Sensation other side
-                 associateFeeling = Association.Feeling.Neutral):           # feeling of association
+                 firstAssociateSensation = None,                            # associated sensation first side
+                 otherAssociateSensation = None,                            # associated Sensation other side
+                 associateFeeling = Feeling.Neutral,                        # feeling of association
+                 positiveFeeling=False,                                     # change association feeling to more positive direction if possible
+                 negativeFeeling=False):                                    # change association feeling to more negative direction if possible
                                        
         from Config import Capabilities
         self.time=time
@@ -585,6 +619,9 @@ class Sensation(object):
             self.firstAssociateSensation = sensation.firstAssociateSensation
             self.otherAssociateSensation = sensation.otherAssociateSensation
             self.associateFeeling = sensation.associateFeeling
+            self.positiveFeeling = sensation.positiveFeeling
+            self.negativeFeeling = sensation.negativeFeeling
+
             
             #self.attachedBy = sensation.attachedBy # keep self.attachedBy independent of original Sensation to be copied
             
@@ -622,6 +659,9 @@ class Sensation(object):
             self.firstAssociateSensation = firstAssociateSensation
             self.otherAssociateSensation = otherAssociateSensation
             self.associateFeeling = associateFeeling
+            self.positiveFeeling = positiveFeeling
+            self.negativeFeeling = negativeFeeling
+
             self.attachedBy = []
            
             # associate makes both sides
@@ -640,68 +680,68 @@ class Sensation(object):
                 l=len(bytes)
                 i=0
 
-                self.robotId = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                self.robotId = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                 i += Sensation.FLOAT_PACK_SIZE
                 
-                self.id = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                self.id = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                 i += Sensation.FLOAT_PACK_SIZE
                 
-                self.time = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                self.time = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                 i += Sensation.FLOAT_PACK_SIZE
 
-                self.memoryType = bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                self.memoryType = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
                 #print("memoryType " + str(memoryType))
                 i += Sensation.ENUM_SIZE
                 
-                self.sensationType = bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                self.sensationType = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
                 #print("sensationType " + str(sensationType))
                 i += Sensation.ENUM_SIZE
                 
-                self.direction = bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                self.direction = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
                 #print("direction " + str(direction))
                 i += Sensation.ENUM_SIZE
                 
                 if self.sensationType is Sensation.SensationType.Drive:
-                    self.leftPower = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    self.leftPower = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
-                    self.rightPower = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    self.rightPower = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
                 elif self.sensationType is Sensation.SensationType.HearDirection:
-                    self.hearDirection = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    self.hearDirection = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
                 elif self.sensationType is Sensation.SensationType.Azimuth:
-                    self.azimuth = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    self.azimuth = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
                 elif self.sensationType is Sensation.SensationType.Acceleration:
-                    self.accelerationX = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    self.accelerationX = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
-                    self.accelerationY = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    self.accelerationY = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
-                    self.accelerationZ = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    self.accelerationZ = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
                 elif self.sensationType is Sensation.SensationType.Observation:
-                    self.observationDirection = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    self.observationDirection = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
-                    self.observationDistance = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    self.observationDistance = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
                 elif self.sensationType is Sensation.SensationType.Voice:
                     filePath_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
                     #print("filePath_size " + str(filePath_size))
                     i += Sensation.ID_SIZE
-                    self.filePath =bytesToStr(bytes[i:i+filePath_size])
+                    self.filePath =Sensation.bytesToStr(bytes[i:i+filePath_size])
                     i += filePath_size
                     data_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
                     #print("data_size " + str(data_size))
                     i += Sensation.ID_SIZE
                     self.data = bytes[i:i+data_size]
                     i += data_size
-                    self.kind = bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                    self.kind = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
                     i += Sensation.ENUM_SIZE
                 elif self.sensationType is Sensation.SensationType.Image:
                     filePath_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
                     #print("filePath_size " + str(filePath_size))
                     i += Sensation.ID_SIZE
-                    self.filePath =bytesToStr(bytes[i:i+filePath_size])
+                    self.filePath =Sensation.bytesToStr(bytes[i:i+filePath_size])
                     i += filePath_size
                     data_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
                     #print("data_size " + str(data_size))
@@ -712,10 +752,10 @@ class Sensation(object):
                         self.image = None
                     i += data_size
                 elif self.sensationType is Sensation.SensationType.Calibrate:
-                    self.calibrateSensationType = bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                    self.calibrateSensationType = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
                     i += Sensation.ENUM_SIZE
                     if self.calibrateSensationType == Sensation.SensationType.HearDirection:
-                        self.hearDirection = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                        self.hearDirection = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                         i += Sensation.FLOAT_PACK_SIZE
                 elif self.sensationType is Sensation.SensationType.Capability:
                     capabilities_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
@@ -727,23 +767,49 @@ class Sensation(object):
                     name_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
                     #print("name_size " + str(name_size))
                     i += Sensation.ID_SIZE
-                    self.name =bytesToStr(bytes[i:i+name_size])
+                    self.name =Sensation.bytesToStr(bytes[i:i+name_size])
                     i += name_size
                                         
-                    self.score = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    self.score = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
                     
-                    self.presence = bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                    self.presence = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
                     i += Sensation.ENUM_SIZE
+                elif self.sensationType is Sensation.SensationType.Feeling:
+                    firstAssociateSensation_id=Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    i += Sensation.FLOAT_PACK_SIZE
+                    self.firstAssociateSensation = memory.getSensationFromSensationMemory(id=firstAssociateSensation_id)
+                    
+                    otherAssociateSensation_id=Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    i += Sensation.FLOAT_PACK_SIZE
+                    self.otherAssociateSensation = memory.getSensationFromSensationMemory(id=otherAssociateSensation_id)
+                    
+                    self.associateFeeling = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER, signed=True)
+                    i += Sensation.ID_SIZE
+                    
+                    self.positiveFeeling =  Sensation.intToBoolean(bytes[i])
+                    i += Sensation.ENUM_SIZE
+                    
+                    self.negativeFeeling = Sensation.intToBoolean(bytes[i])
+                    i += Sensation.ENUM_SIZE
+
+                    
+                    # TODO should we associate here or later
+#                     if self.firstAssociateSensation and\
+#                        self.otherAssociateSensation:
+#                         # associate makes both sides
+#                         first.AssociateSensation.associate(sensation=first.otherAssociateSensation,
+#                                                           time=None,
+#                                                           feeling=first.associateFeeling)
                     
                 association_id = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
                 print("association_id " + str(association_id))
                 i += Sensation.ID_SIZE
                 for j in range(association_id):
-                    sensation_id=bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    sensation_id=Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
                
-                    time = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    time = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
                 
                     feeling = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER, signed=True)
@@ -763,7 +829,7 @@ class Sensation(object):
             receivedFrom_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
             #print("receivedFrom_size " + str(receivedFrom_size))
             i += Sensation.ID_SIZE
-            self.receivedFrom=bytesToList(bytes[i:i+receivedFrom_size])
+            self.receivedFrom=Sensation.bytesToList(bytes[i:i+receivedFrom_size])
             i += receivedFrom_size
 
     '''
@@ -845,7 +911,7 @@ class Sensation(object):
 #             return newSensation
 # 
 #         if bytes != None:               # if bytes, we get id there
-#             id = bytesToFloat(bytes[0:Sensation.FLOAT_PACK_SIZE])
+#             id = Sensation.bytesToFloat(bytes[0:Sensation.FLOAT_PACK_SIZE])
 #  
 #         sensation = None          
 #         if id != None: # newer uswd try to find existing sensation by id 
@@ -925,52 +991,52 @@ class Sensation(object):
 #                 l=len(bytes)
 #                 i=0
 #  
-#                 sensation.id = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+#                 sensation.id = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
 #                 i += Sensation.FLOAT_PACK_SIZE
 #                    
-#                 sensation.time = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+#                 sensation.time = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
 #                 i += Sensation.FLOAT_PACK_SIZE
 #                 
-#                 sensation.memoryType = bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+#                 sensation.memoryType = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
 #                 #print("memoryType " + str(memoryType))
 #                 i += Sensation.ENUM_SIZE
 #                     
-#                 sensation.sensationType = bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+#                 sensation.sensationType = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
 #                 #print("sensationType " + str(sensationType))
 #                 i += Sensation.ENUM_SIZE
 #                     
-#                 sensation.direction = bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+#                 sensation.direction = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
 #                 #print("direction " + str(direction))
 #                 i += Sensation.ENUM_SIZE
 #                     
 #                 if sensation.sensationType is Sensation.SensationType.Drive:
-#                     sensation.leftPower = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+#                     sensation.leftPower = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
 #                     i += Sensation.FLOAT_PACK_SIZE
-#                     sensation.rightPower = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+#                     sensation.rightPower = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
 #                     i += Sensation.FLOAT_PACK_SIZE
 #                 elif sensation.sensationType is Sensation.SensationType.HearDirection:
-#                     sensation.hearDirection = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+#                     sensation.hearDirection = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
 #                     i += Sensation.FLOAT_PACK_SIZE
 #                 elif sensation.sensationType is Sensation.SensationType.Azimuth:
-#                     sensation.azimuth = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+#                     sensation.azimuth = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
 #                     i += Sensation.FLOAT_PACK_SIZE
 #                 elif sensation.sensationType is Sensation.SensationType.Acceleration:
-#                     sensation.accelerationX = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+#                     sensation.accelerationX = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
 #                     i += Sensation.FLOAT_PACK_SIZE
-#                     sensation.accelerationY = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+#                     sensation.accelerationY = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
 #                     i += Sensation.FLOAT_PACK_SIZE
-#                     sensation.accelerationZ = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+#                     sensation.accelerationZ = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
 #                     i += Sensation.FLOAT_PACK_SIZE
 #                 elif sensation.sensationType is Sensation.SensationType.Observation:
-#                     sensation.observationDirection = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+#                     sensation.observationDirection = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
 #                     i += Sensation.FLOAT_PACK_SIZE
-#                     sensation.observationDistance = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+#                     sensation.observationDistance = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
 #                     i += Sensation.FLOAT_PACK_SIZE
 #                 elif sensation.sensationType is Sensation.SensationType.Voice:
 #                     filePath_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
 #                     print("filePath_size " + str(filePath_size))
 #                     i += Sensation.ID_SIZE
-#                     sensation.filePath = bytesToStr(bytes[i:i+filePath_size])
+#                     sensation.filePath = Sensation.bytesToStr(bytes[i:i+filePath_size])
 #                     i += filePath_size
 #                     data_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
 #                     print("data_size " + str(data_size))
@@ -981,7 +1047,7 @@ class Sensation(object):
 #                     filePath_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
 #                     print("filePath_size " + str(filePath_size))
 #                     i += Sensation.ID_SIZE
-#                     sensation.filePath =bytesToStr(bytes[i:i+filePath_size])
+#                     sensation.filePath =Sensation.bytesToStr(bytes[i:i+filePath_size])
 #                     i += filePath_size
 #                     data_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
 #                     print("data_size " + str(data_size))
@@ -992,10 +1058,10 @@ class Sensation(object):
 #                         sensation.image = None
 #                     i += data_size
 #                 elif sensation.sensationType is Sensation.SensationType.Calibrate:
-#                     sensation.calibrateSensationType = bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+#                     sensation.calibrateSensationType = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
 #                     i += Sensation.ENUM_SIZE
 #                     if sensation.calibrateSensationType == Sensation.SensationType.HearDirection:
-#                         sensation.hearDirection = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+#                         sensation.hearDirection = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
 #                         i += Sensation.FLOAT_PACK_SIZE
 #                 elif sensation.sensationType is Sensation.SensationType.Capability:
 #                     capabilities_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
@@ -1007,20 +1073,20 @@ class Sensation(object):
 #                     name_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
 #                     print("name_size " + str(name_size))
 #                     i += Sensation.ID_SIZE
-#                     sensation.name =bytesToStr(bytes[i:i+name_size])
+#                     sensation.name =Sensation.bytesToStr(bytes[i:i+name_size])
 #                     i += name_size
 #                         
 #                 association_id = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
 #                 print("association_id " + str(association_id))
 #                 i += Sensation.ID_SIZE
 #                 for j in range(association_id):
-#                     sensation_id=bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+#                     sensation_id=Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
 #                     i += Sensation.FLOAT_PACK_SIZE
 #                
-#                     time = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+#                     time = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
 #                     i += Sensation.FLOAT_PACK_SIZE
 #                 
-#                     score = bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+#                     score = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
 #                     i += Sensation.FLOAT_PACK_SIZE
 #                     
 #                     feeling = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER)
@@ -1038,7 +1104,7 @@ class Sensation(object):
 #                 receivedFrom_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
 #                 print("receivedFrom_size " + str(receivedFrom_size))
 #                 i += Sensation.ID_SIZE
-#                 sensation.receivedFrom = bytesToList(bytes[i:i+receivedFrom_size])
+#                 sensation.receivedFrom = Sensation.bytesToList(bytes[i:i+receivedFrom_size])
 #                 i += receivedFrom_size
 #     
 #             except (ValueError):
@@ -1088,10 +1154,10 @@ class Sensation(object):
             s += ' ' + str(self.observationDirection)+ ' ' + str(self.observationDistance)
         elif self.sensationType == Sensation.SensationType.Voice:
             #don't write binary data to sring any more
-            s += ' ' + self.filePath# + ' ' + bytesToStr(self.data)
+            s += ' ' + self.filePath# + ' ' + Sensation.bytesToStr(self.data)
             s +=  ' ' + self.kind
         elif self.sensationType == Sensation.SensationType.Image:
-            s += ' ' + self.filePath# + ' ' +  bytesToStr(self.data)
+            s += ' ' + self.filePath# + ' ' +  Sensation.bytesToStr(self.data)
         elif self.sensationType == Sensation.SensationType.Calibrate:
             if self.calibrateSensationType == Sensation.SensationType.HearDirection:
                 s += ' ' + self.calibrateSensationType + ' ' + str(self.hearDirection)
@@ -1146,29 +1212,37 @@ class Sensation(object):
             s = s + ' ' + Sensation.getKindString(self.kind)
         elif self.sensationType == Sensation.SensationType.Item:
             s = s + ' ' + self.name + ' ' + str(self.score) + ' ' + Sensation.getPresenceString(self.presence)
+        elif self.sensationType == Sensation.SensationType.Feeling:
+            if self.getPositiveFeeling():
+                s = s + ' positiveFeeling'
+            if self.getNegativeFeeling():
+                s = s + ' negativeFeeling'
+            else:
+                s = s + ' ' + Sensation.getFeelingString(self.getAssociateFeeling())
+            
         return s
 
     def bytes(self):
 #        b = self.id.to_bytes(Sensation.ID_SIZE, byteorder=Sensation.BYTEORDER)
-        b = floatToBytes(self.robotId)
-        b += floatToBytes(self.id)
-        b += floatToBytes(self.time)
-        b += StrToBytes(self.memoryType)
-        b += StrToBytes(self.sensationType)
-        b += StrToBytes(self.direction)
+        b = Sensation.floatToBytes(self.robotId)
+        b += Sensation.floatToBytes(self.id)
+        b += Sensation.floatToBytes(self.time)
+        b += Sensation.strToBytes(self.memoryType)
+        b += Sensation.strToBytes(self.sensationType)
+        b += Sensation.strToBytes(self.direction)
 
-        if self.sensationType == Sensation.SensationType.Drive:
-            b += floatToBytes(self.leftPower) + floatToBytes(self.rightPower)
-        elif self.sensationType == Sensation.SensationType.HearDirection:
-            b +=  floatToBytes(self.hearDirection)
-        elif self.sensationType == Sensation.SensationType.Azimuth:
-            b +=  floatToBytes(self.azimuth)
-        elif self.sensationType == Sensation.SensationType.Acceleration:
-            b +=  floatToBytes(self.accelerationX) + floatToBytes(self.accelerationY) + floatToBytes(self.accelerationZ)
-        elif self.sensationType == Sensation.SensationType.Observation:
-            b +=  floatToBytes(self.observationDirection) + floatToBytes(self.observationDistance)
-        elif self.sensationType == Sensation.SensationType.Voice:
-            bfilePath =  StrToBytes(self.filePath)
+        if self.sensationType is Sensation.SensationType.Drive:
+            b += Sensation.floatToBytes(self.leftPower) + Sensation.floatToBytes(self.rightPower)
+        elif self.sensationType is Sensation.SensationType.HearDirection:
+            b +=  Sensation.floatToBytes(self.hearDirection)
+        elif self.sensationType is Sensation.SensationType.Azimuth:
+            b +=  Sensation.floatToBytes(self.azimuth)
+        elif self.sensationType is Sensation.SensationType.Acceleration:
+            b +=  Sensation.floatToBytes(self.accelerationX) + Sensation.floatToBytes(self.accelerationY) + Sensation.floatToBytes(self.accelerationZ)
+        elif self.sensationType is Sensation.SensationType.Observation:
+            b +=  Sensation.floatToBytes(self.observationDirection) + Sensation.floatToBytes(self.observationDistance)
+        elif self.sensationType is Sensation.SensationType.Voice:
+            bfilePath =  Sensation.strToBytes(self.filePath)
             filePath_size=len(bfilePath)
             b +=  filePath_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
             b += bfilePath
@@ -1176,11 +1250,11 @@ class Sensation(object):
             data_size=len(self.data)
             b +=  data_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
             b +=  self.data
-            b +=  StrToBytes(self.kind)
-        elif self.sensationType == Sensation.SensationType.Image:
+            b +=  Sensation.strToBytes(self.kind)
+        elif self.sensationType is Sensation.SensationType.Image:
             filePath_size=len(self.filePath)
             b +=  filePath_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
-            b +=  StrToBytes(self.filePath)
+            b +=  Sensation.strToBytes(self.filePath)
             stream = io.BytesIO()
             if self.image is None:
                 data = b''
@@ -1190,33 +1264,39 @@ class Sensation(object):
             data_size=len(data)
             b +=  data_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
             b +=  data
-        elif self.sensationType == Sensation.SensationType.Calibrate:
-            if self.calibrateSensationType == Sensation.SensationType.HearDirection:
-                b += StrToBytes(self.calibrateSensationType) + floatToBytes(self.hearDirection)
+        elif self.sensationType is Sensation.SensationType.Calibrate:
+            if self.calibrateSensationType is Sensation.SensationType.HearDirection:
+                b += Sensation.strToBytes(self.calibrateSensationType) + Sensation.floatToBytes(self.hearDirection)
 #             else:
 #                 return str(self.robotId) + ' ' + self.id) + ' ' + self.memoryType + ' ' + self.direction + ' ' + Sensation.SensationType.Unknown
-        elif self.sensationType == Sensation.SensationType.Capability:
+        elif self.sensationType is Sensation.SensationType.Capability:
             bytes = self.getCapabilities().toBytes()
             capabilities_size=len(bytes)
             print("capabilities_size " + str(capabilities_size))
             b += capabilities_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
             b += bytes
-        elif self.sensationType == Sensation.SensationType.Item:
+        elif self.sensationType is Sensation.SensationType.Item:
             name_size=len(self.name)
             b +=  name_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
-            b +=  StrToBytes(self.name)
-            b +=  floatToBytes(self.score)
-            b +=  StrToBytes(self.presence)
-            
+            b +=  Sensation.strToBytes(self.name)
+            b +=  Sensation.floatToBytes(self.score)
+            b +=  Sensation.strToBytes(self.presence)
+        elif self.sensationType is Sensation.SensationType.Feeling:
+            b +=  Sensation.floatToBytes(self.getFirstAssociateSensation().getId())
+            b +=  Sensation.floatToBytes(self.getOtherAssociateSensation().getId())
+            b +=  self.getAssociateFeeling().to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER, signed=True)
+            b +=  Sensation.booleanToBytes(self.getPositiveFeeling())
+            b +=  Sensation.booleanToBytes(self.getNegativeFeeling())
+           
         #  at the end associations (ids)
         association_id=len(self.associations)
         b +=  association_id.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
         for j in range(association_id):
-            b +=  floatToBytes(self.associations[j].getSensation().getId())
-            b +=  floatToBytes(self.associations[j].getTime())
+            b +=  Sensation.floatToBytes(self.associations[j].getSensation().getId())
+            b +=  Sensation.floatToBytes(self.associations[j].getTime())
             b +=  (self.associations[j].getFeeling()).to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER, signed=True)
        #  at the end receivedFrom (list of words)
-        blist = listToBytes(self.receivedFrom)
+        blist = Sensation.listToBytes(self.receivedFrom)
         #print(' blist ' +str(blist))
         blist_size=len(blist)
         b +=  blist_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
@@ -1350,16 +1430,14 @@ class Sensation(object):
     '''
     def addAssociation(self, association):
         # this side
-        time = systemTime.time()
         if association.getSensation() != self:
             oldAssociation = association.getSelfSensation().getAssociation(association.getSensation())
             if oldAssociation: #update old assiciation
                 oldAssociation.setFeeling(association.getFeeling())
-                oldAssociation.setTime(time)
+                oldAssociation.setTime(association.getTime())
             else:                             # create new association
                 #print('addAssociation ' + self.toDebugStr() + ' to ' + association.getSensation().toDebugStr())
                 self.associations.append(association)
-                association.time = time
             
     '''
     Helper function to update or create an Association
@@ -1367,7 +1445,9 @@ class Sensation(object):
     def associate(self,
                   sensation,                                    # sensation to connect
                   time=None,                                    # last used
-                  feeling = Association.Feeling.Neutral):       # feeling of association two sensations
+                  feeling = Feeling.Neutral,                    # feeling of association two sensations
+                  positiveFeeling = False,                      # change association feeling to more positive direction if possible
+                  negativeFeeling = False):                     # change association feeling to more negativee direction if possible
 #         self.addAssociation(Sensation.Association(self_sensation = self,
 #                                                   sensation = sensation,
 #                                                   time = time,
@@ -1379,11 +1459,17 @@ class Sensation(object):
 #                                                        feeling = feeling))
         self.upsertAssociation(self_sensation = self,
                                sensation = sensation,
-                               feeling = feeling)
+                               time=time,
+                               feeling = feeling,
+                               positiveFeeling = positiveFeeling,
+                               negativeFeeling = negativeFeeling)
 
         sensation.upsertAssociation(self_sensation = sensation,
                                     sensation = self,
-                                    feeling = feeling)
+                                    time=time,
+                                    feeling = feeling,
+                                    positiveFeeling = positiveFeeling,
+                                    negativeFeeling = negativeFeeling)
 
     '''
     Helper function to update or create one side of Association
@@ -1391,13 +1477,23 @@ class Sensation(object):
     def upsertAssociation(self,
                           self_sensation,                               # sensation
                           sensation,                                    # sensation to connect
-                          feeling = Association.Feeling.Neutral):       # feeling of association two sensations:
+                          time=None,                                    # last used
+                          feeling = Feeling.Neutral,                    # feeling of association two sensations
+                          positiveFeeling = False,                      # change association feeling to more positive direction if possible
+                          negativeFeeling = False):                     # change association feeling to more negativee direction if possible
         # this side
-        time = systemTime.time()
+        if time == None:
+            time = systemTime.time()
         if self_sensation != sensation:
             oldAssociation = self_sensation.getAssociation(sensation)
             if oldAssociation: #update old assiciation
-                oldAssociation.setFeeling(feeling)
+                if positiveFeeling:
+                    oldAssociation.changeFeeling(positive=True)
+                elif negativeFeeling:
+                    oldAssociation.changeFeeling(negative=True)
+                else:
+                    oldAssociation.setFeeling(feeling)
+                
                 oldAssociation.setTime(time)
             else:                             # create new association
                 #print('addAssociation ' + self.toDebugStr() + ' to ' + association.getSensation().toDebugStr())
@@ -1476,7 +1572,7 @@ class Sensation(object):
     if other sennsation is not given, we get  best or worst feeling of oll association this sensation has
     '''    
     def getFeeling(self, sensation=None):
-        feeling = Sensation.Association.Feeling.Neutral
+        feeling = Sensation.Feeling.Neutral
         if sensation:
             association = self.getAssociation(sensation=sensation)
             if association:
@@ -1497,7 +1593,7 @@ class Sensation(object):
     # TODO Stidy logic    
     def getImportance(self, positive=True, negative=False, absolute=False):
         if positive:
-            importance = Sensation.Association.Feeling.Terrified
+            importance = Sensation.Feeling.Terrified
         if negative:
              importance = Sensation.Feeling.InLove
         if absolute:
@@ -1725,9 +1821,19 @@ class Sensation(object):
         return self.otherAssociateSensation
 
     def setAssociateFeeling(self, associateFeeling):
-        self.associateFeeling= associateFeeling
+        self.associateFeeling = associateFeeling
     def getAssociateFeeling(self):
         return self.associateFeeling
+    
+    def setPositiveFeeling(self, positiveFeeling):
+        self.positiveFeeling = positiveFeeling
+    def getPositiveFeeling(self):
+        return self.positiveFeeling
+    
+    def setNegativeFeeling(self, negativeFeeling):
+        self.negativeFeeling = negativeFeeling
+    def getNegativeFeeling(self):
+        return self.negativeFeeling
     
 
     '''
