@@ -27,17 +27,6 @@ from Sensation import Sensation
 from Memory import Memory
 from AlsaAudio import Settings as AudioSettings
 
-#from Identity import Identity
-# from Romeo import Romeo
-# from ManualRomeo import ManualRomeo
-# from dbus.mainloop.glib import threads_init
-# from xdg.IconTheme import theme_cache
-# from _ast import Or
-# if 'Hearing.Hear' not in sys.modules:
-#     from Hearing.Hear import Hear
-# if 'Seeing.See' not in sys.modules:
-#     from Seeing.See import See
-
 def enum(*sequential, **named):
     enums = dict(zip(sequential, range(len(sequential))), **named)
     return type('Enum', (), enums)
@@ -146,27 +135,12 @@ class Robot(Thread):
                LogLevel.Detailed,
                LogLevel.Verbose)
     
-# these should be mentioned first in MainRobot-level
-    #presence variables
-#     presentItemSensations={}
-#     
-#     # (Main) Robots identity. All running Robot treads share these
-#     #idexes used in communication
-#     imageind=0
-#     voiceind=0
-#     # Features of Robot identity we can show and speak to
-#     images=[]
-#     voices=[]
-#     
     SOCKET_ERROR_WAIT_TIME  =   60.0
     HOST_RECONNECT_MAX_TRIES =  10
     IS_SOCKET_ERROR_TEST =      False
     SOCKET_ERROR_TEST_RATE =    10
     SOCKET_ERROR_TEST_NUMBER =  0
     
-#     sharedSensationHosts = []               # hosts with we have already shared our sensations
-#     mainRobotInstance = None                # singleton instance
-        
    
     def __init__(self,
                  parent=None,
@@ -179,9 +153,6 @@ class Robot(Thread):
         print("Robot 1")
         Thread.__init__(self)
         self.daemon = True      # if daemon, all sub Robots are killed, when this one dies.
-                                # OOPS cannot set all Robos as daemon, becaise TCP-Robots can die and we just create now onews, when needed
-                                # but if that are daemons, all other will gies. Stuudy this
-                                # NO its was that
         
         self.time = time.time()
         
@@ -193,7 +164,7 @@ class Robot(Thread):
         self.instanceType=instanceType
         self.level=level+1
         
-        #idexes used in communication
+        #indexes used in communication
         self.imageind=0
         self.voiceind=0
         # Features of Robot identity we can show and speak to
@@ -323,7 +294,6 @@ class Robot(Thread):
             module = subInstanceName+ '.' + subInstanceName
             imported_module = importlib.import_module(module)
             self.log(logLevel=Robot.LogLevel.Detailed, logStr='init ' + subInstanceName)
-#            self.log(logLevel=Robot.LogLevel.Normal, logStr='init ' + subInstanceName)
             robot = getattr(imported_module, subInstanceName)(parent=self,
                                                               memory=self.getMemory(),  # use same memory than self
                                                               instanceName=subInstanceName,
@@ -610,7 +580,7 @@ class Robot(Thread):
 
 
     '''
-    DoStop is used to stop server process and its subprocesses (threads)
+    doStop is used to stop server process and its subprocesses (threads)
     Technique is just give Stop Sensation to process.
     With same technique remote machines can stop us and we scan stop them
     '''
@@ -642,59 +612,6 @@ class Robot(Thread):
                 self.selfImage = self.imageSensations[0].getImage()
             else:
                 self.selfImage = None
-#             self.identitypath = self.config.getIdentityDirPath(self.getKind())
-#             self.log('My identitypath is ' + self.identitypath)      
-#             for dirName, subdirList, fileList in os.walk(self.identitypath):
-#                 self.log('Found directory: %s' % dirName)      
-#                 image_file_names=[]
-#                 voice_file_names=[]
-#                 for fname in fileList:
-#                     self.log('\t%s' % fname)
-#                     if fname.endswith(".jpg"):# or\
-#                     # png dows not work yet
-#                     #fname.endswith(".png"):
-#                         image_file_names.append(fname)
-#                     elif fname.endswith(".wav"):
-#                         voice_file_names.append(fname)
-#                 # images
-#                 for fname in image_file_names:
-#                     image_path=os.path.join(dirName,fname)
-#                     sensation_filepath = os.path.join('/tmp/',fname)
-#                     shutil.copyfile(image_path, sensation_filepath)
-#                     image = PIL_Image.open(sensation_filepath)
-#                     image.load()
-#                     imageSensation = self.createSensation( sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.LongTerm, direction = Sensation.Direction.Out,\
-#                                                            image=image)
-#                     self.imageSensations.append(imageSensation)
-#                     self.selfSensation.associate(sensation=imageSensation,
-#                                                  #score=1.0,      # we know this for sure
-#                                                  feeling =  Sensation.Feeling.Happy) # we are happy about our image
-#                  # voices
-#                 for fname in voice_file_names:
-#                     image_path=os.path.join(dirName,fname)
-#                     sensation_filepath = os.path.join('/tmp/',fname)
-#                     shutil.copyfile(image_path, sensation_filepath)
-#                     with open(sensation_filepath, 'rb') as f:
-#                         data = f.read()
-#                             
-#                         # length must be AudioSettings.AUDIO_PERIOD_SIZE
-#                         remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
-#                         if remainder is not 0:
-#                             self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) + " correcting " )
-#                             len_zerobytes = AudioSettings.AUDIO_PERIOD_SIZE - remainder
-#                             ba = bytearray(data)
-#                             for i in range(len_zerobytes):
-#                                 ba.append(0)
-#                             data = bytes(ba)
-#                             remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
-#                             if remainder is not 0:
-#                                 self.log("Did not succeed to fix!")
-#                                 self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) )
-#                         self.voiceSensations.append(data)
-#                         voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.LongTerm, direction = Sensation.Direction.Out, data=data)
-#                         self.selfSensation.associate(sensation=voiceSensation,
-#                                                      #score = 1.0, # we know this for sure
-#                                                      feeling = Sensation.Feeling.Happy) # we are happy about our voices
 
     def getIdentitySensations(self, kind):
         imageSensations=[]
@@ -751,52 +668,6 @@ class Robot(Thread):
 
 
                 
-    '''
-    get our identity
-    '''   
-#     def getOwnIdentity(self):
-#         self.identitypath = self.config.getIdentityDirPath(self.getKind())
-#         for dirName, subdirList, fileList in os.walk(self.identitypath):
-#             self.log('Found directory: %s' % dirName)      
-#             image_file_names=[]
-#             voice_file_names=[]
-#             for fname in fileList:
-#                 self.log('\t%s' % fname)
-#                 if fname.endswith(".jpg"):# or\
-#                    #fname.endswith(".png"):
-#                     image_file_names.append(fname)
-#                 elif fname.endswith(".wav"):
-#                     voice_file_names.append(fname)
-#             # images
-#             for fname in image_file_names:
-#                 image_path=os.path.join(dirName,fname)
-#                 sensation_filepath = os.path.join('/tmp/',fname)
-#                 shutil.copyfile(image_path, sensation_filepath)
-#                 image = PIL_Image.open(sensation_filepath)
-#                 image.load()
-#                 self.images.append(image)
-#              # voices
-#             for fname in voice_file_names:
-#                 image_path=os.path.join(dirName,fname)
-#                 sensation_filepath = os.path.join('/tmp/',fname)
-#                 shutil.copyfile(image_path, sensation_filepath)
-#                 with open(sensation_filepath, 'rb') as f:
-#                     data = f.read()
-#                         
-#                     # length must be AudioSettings.AUDIO_PERIOD_SIZE
-#                     remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
-#                     if remainder is not 0:
-#                         self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) + " correcting " )
-#                         len_zerobytes = AudioSettings.AUDIO_PERIOD_SIZE - remainder
-#                         ba = bytearray(data)
-#                         for i in range(len_zerobytes):
-#                             ba.append(0)
-#                         data = bytes(ba)
-#                         remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
-#                         if remainder is not 0:
-#                             self.log("Did not succeed to fix!")
-#                             self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) )
-#                     self.voiceSensations.append(data)
     
 
     '''
@@ -892,36 +763,6 @@ class Robot(Thread):
                     robot.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation, association=None, detach=False) # keep ownerdhip untill sent to all sub Robots
 
         sensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
-# Utilities
-#presence in Memory now
-#     def tracePresents(self, sensation):
-#         # present means pure Present, all other if handled not present
-#         # if present sensations must come in order
-#         if sensation.getName() in self.getMemory().presentItemSensations and\
-#            sensation.getTime() > self.getMemory().presentItemSensations[sensation.getName()].getTime(): 
-# 
-#             if sensation.getPresence() == Sensation.Presence.Entering or\
-#                sensation.getPresence() == Sensation.Presence.Present or\
-#                sensation.getPresence() == Sensation.Presence.Exiting:
-#                 self.getMemory().presentItemSensations[sensation.getName()] = sensation
-#                 self.log(logLevel=Robot.LogLevel.Normal, logStr="Entering, Present or Exiting " + sensation.getName())
-#             else:
-#                 del self.getMemory().presentItemSensations[sensation.getName()]
-#                 self.log(logLevel=Robot.LogLevel.Normal, logStr="Absent " + sensation.getName())
-#         # accept only sensation items that are not prensent, but not not in order ones
-#         # absetnt sensations don't have any mean at this case
-#         elif (sensation.getName() not in self.getMemory().presentItemSensations) and\
-#              (sensation.getPresence() == Sensation.Presence.Entering or\
-#                sensation.getPresence() == Sensation.Presence.Present or\
-#                sensation.getPresence() == Sensation.Presence.Exiting):
-#                 self.getMemory().presentItemSensations[sensation.getName()] = sensation
-#                 self.log(logLevel=Robot.LogLevel.Normal, logStr="Entering, Present or Exiting " + sensation.getName())
-# 
-#     def presenceToStr(self):
-#         namesStr=''
-#         for name, sensation in self.getMemory().presentItemSensations.items():
-#             namesStr = namesStr + ' ' + name
-#         return namesStr
             
     '''
     Memory functionality
@@ -1023,12 +864,11 @@ class Robot(Thread):
 
                         
  
-# Identity
-
-# from Robot import Robot
-# from Config import Config, Capabilities
-# from Sensation import Sensation
-
+# Identity Robot 
+# This sends Our Identity Sensations to other
+# Robots connected and to Our Awareness also
+# So thay know what kind of eperiences we have.
+# Experiences determine how we react to things (Item.names)
 
 class Identity(Robot):
     from threading import Timer
@@ -1060,121 +900,30 @@ class Identity(Robot):
         self.imageind=0
         self.voiceind=0
         self.sleeptime = Identity.SLEEPTIME
-#         self.imageSensations=[]
-#         self.voiceSensations=[]
-#         self.selfImage = None
         
 
     def run(self):
         self.running=True
         self.mode = Sensation.Mode.Starting
         self.log("run: Starting Identity Robot who " + self.getWho() + " kind " + self.getKind() + " instanceType " + self.getInstanceType())      
-           
-        # study own identity
-        # starting point of robot is always to study what it knows himself
-        #self.studyOwnIdentity() # use parent
-        #self.getOwnIdentity()
-        
-        
-#         # starting other threads/senders/capabilities
-#         for robot in self.subInstances:
-#             if robot.getInstanceType() != Sensation.InstanceType.Remote:
-#                 robot.start()
-        
+                   
         # wait until started so all others can start first        
         time.sleep(self.sleeptime)
-#         self.timer = Timer(interval=Identity.COMMUNICATION_INTERVAL, function=self.stopRunning)
-#         self.timer.start()
         
         self.mode = Sensation.Mode.Normal
         Robot.run(self) #normal Robot run
 
-
-#         # live until stopped
-#         self.mode = Sensation.Mode.Normal
-#         while self.running:
-#             # as a leaf sensor robot default processing for sensation we have got
-#             # in practice we can get stop sensation
-#             if not self.getAxon().empty():  
-#                 transferDirection, sensation, association = self.getAxon().get()
-#                 self.process(transferDirection=transferDirection, sensation=sensation, association=association)
-#             else:
-#                 self.sense()
-# 
-#         self.log("run ALL SHUT DOWN")  
-#         
     def stopRunning(self):
         self.running = False   
          
-    '''
-    get your identity
-    duplicate
-    '''   
-#     def getOwnIdentity(self):
-#         for dirName, subdirList, fileList in os.walk(self.identitypath):
-#             self.log('Found directory: %s' % dirName)      
-#             image_file_names=[]
-#             voice_file_names=[]
-#             for fname in fileList:
-#                 self.log('\t%s' % fname)
-#                 if fname.endswith(".jpg"):# or\
-#                    #fname.endswith(".png"):
-#                     image_file_names.append(fname)
-#                 elif fname.endswith(".wav"):
-#                     voice_file_names.append(fname)
-#             # images
-#             for fname in image_file_names:
-#                 image_path=os.path.join(dirName,fname)
-#                 sensation_filepath = os.path.join('/tmp/',fname)
-#                 shutil.copyfile(image_path, sensation_filepath)
-#                 image = PIL_Image.open(sensation_filepath)
-#                 image.load()
-#                 self.images.append(image)
-# 
-#                 imageSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, image=image, filePath=sensation_filepath)
-#                 self.log("getOwnIdentity: self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=" + imageSensation.toDebugStr())      
-#                 self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
-#                 imageSensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
-#              # voices
-#             for fname in voice_file_names:
-#                 image_path=os.path.join(dirName,fname)
-#                 sensation_filepath = os.path.join('/tmp/',fname)
-#                 shutil.copyfile(image_path, sensation_filepath)
-#                 with open(sensation_filepath, 'rb') as f:
-#                     data = f.read()
-#                     
-#                     # add missing 0 bytes for 
-#                     # length must be AudioSettings.AUDIO_PERIOD_SIZE
-#                     remainder = len(data) % (AudioSettings.AUDIO_PERIOD_SIZE*AudioSettings.AUDIO_CHANNELS)
-#                     if remainder is not 0:
-#                         self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) + " correcting " )
-#                         len_zerobytes = (AudioSettings.AUDIO_PERIOD_SIZE*AudioSettings.AUDIO_CHANNELS - remainder)
-#                         ba = bytearray(data)
-#                         for i in range(len_zerobytes):
-#                             ba.append(0)
-#                         data = bytes(ba)
-#                         remainder = len(data) % (AudioSettings.AUDIO_PERIOD_SIZE*AudioSettings.AUDIO_CHANNELS)
-#                         if remainder is not 0:
-#                             self.log("Did not succeed to fix!")
-#                             self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE*AudioSettings.AUDIO_CHANNELS) )
-#                     
-#                     self.voices.append(data)
-#                     time.sleep(Identity.SLEEP_BETWEEN_VOICES)
-#                     sensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, data=data, filePath=sensation_filepath)
-#                     self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None) # or self.process
-#                     self.log("getOwnIdentity: self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=" + sensation.toDebugStr())      
-#                     sensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
                  
     '''
     tell your identity
     '''   
     def tellOwnIdentity(self):
         
-        #image = self.imageSensations[self.imageind]
-        #imageSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, image=image)
-        selfSensation = self.createSensation( associations=[], sensation=self.getParent().selfSensation, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out)
-        #selfSensation.setMemoryType(memoryType = Sensation.MemoryType.Sensory)
         self.log('tellOwnIdentity: selfSensation self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=' + selfSensation.toDebugStr())      
+        selfSensation = self.createSensation( associations=[], sensation=self.getParent().selfSensation, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out)
         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=selfSensation, association=None) # or self.process
        
         imageSensation = self.createSensation( associations=[], sensation=self.getParent().imageSensations[self.imageind], memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out)
@@ -1189,7 +938,6 @@ class Identity(Robot):
         for i in range(Identity.VOICES_PER_CONVERSATION):          
             time.sleep(Identity.SLEEP_BETWEEN_VOICES)
             voiceSensation = self.createSensation( associations=[], sensation=self.getParent().voiceSensations[self.voiceind], memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out)
-            #voiceSensation.setMemoryType(memoryType = Sensation.MemoryType.Sensory)
             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation, association=None) # or self.process
             self.log("tellOwnIdentity: " + str(self.voiceind) + " self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=" + voiceSensation.toDebugStr())      
             self.voiceind=self.voiceind+1
@@ -1210,8 +958,6 @@ class Identity(Robot):
     
     def sense(self):
         if len(self.getParent().imageSensations) > 0 and len(self.getParent().voiceSensations) > 0:
-            # Oops, I'm afraid, we can't sleep in this thread, because we have wx
-            # terllOwnIdentity should be in its own thread
             time.sleep(self.sleeptime)
             self.tellOwnIdentity()
             self.sleeptime = 2*self.sleeptime
