@@ -22,8 +22,6 @@ import wx
 from Robot import Robot
 from Config import Config, Capabilities
 from Sensation import Sensation
-from setuptools.ssl_support import once
-from oneconf.paths import parent
 
 class Visual(Robot):
     SLEEPTIME = 30.0
