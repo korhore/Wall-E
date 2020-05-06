@@ -68,50 +68,6 @@ class Communication(Robot):
                                     # someone speaks
     SEARCH_LENGTH=10                # How many response voices we check
                                     
-#     class CommunicationItem():
-#         
-#         def __init__(self,
-#                      robot,                 # robot
-#                      name,                  # name of present sensation item
-#                      sensation,             # present sensation item
-#                      time,                  # time, when  we spoke
-#                      association = None):   # association to a spoken voice
-#             self.robot=robot
-#             self.name = name
-#             self.sensation = sensation
-#             if self.sensation is not None:
-#                 self.sensation.attach(robot=self.robot)
-#             self.time = time
-#             self.association = association
-#             
-#         def getName(self):
-#             return self.name
-#         def setName(self, name):
-#             self.name = name
-#             
-#         def getSensation(self):
-#             return self.sensation
-#         def setSensation(self, sensation):
-#             # detach old Sensation
-#             self.detach()
-#             
-#             self.sensation = sensation
-#             if self.sensation is not None:
-#                 self.sensation.attach(robot=self.robot)
-#           
-#         def getTime(self):
-#             return self.time
-#         def setTime(self, time):
-#             self.time = time
-#             
-#         def getAssociation(self):
-#             return self.association
-#         def setAssociation(self, association):
-#             self.association = association
-#             
-#         def detach(self):
-#             # detach Sensation
-#             if self.sensation is not None:
 #                 self.sensation.detach(robot=self.robot)
 
 
@@ -135,8 +91,6 @@ class Communication(Robot):
 
         self.lastConversationEndTime =None
 
-#         self.communicationItems = []
-#         self.communicationItemNames = []
         self.mostImportantItemSensation = None      # current most important item in conversation
         self.mostImportantVoiceAssociation  = None  # current association most important voice, item said in some previous conversation
                                                     # but not in this conversation
@@ -153,10 +107,9 @@ class Communication(Robot):
     def process(self, transferDirection, sensation, association=None):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         # don't communicate with history Sensation Items, we are communicating Item.name just seen.
-        self.log(logLevel=Robot.LogLevel.Normal, logStr="process: systemTime.time() " + str(systemTime.time()) + ' -  sensation.getTime() ' + str(sensation.getTime()) + ' < Communication.COMMUNICATION_INTERVAL ' + str(Communication.COMMUNICATION_INTERVAL))
+        #self.log(logLevel=Robot.LogLevel.Normal, logStr="process: systemTime.time() " + str(systemTime.time()) + ' -  sensation.getTime() ' + str(sensation.getTime()) + ' < Communication.COMMUNICATION_INTERVAL ' + str(Communication.COMMUNICATION_INTERVAL))
         self.log(logLevel=Robot.LogLevel.Normal, logStr="process: " + str(systemTime.time() - sensation.getTime()) + ' < ' + str(Communication.COMMUNICATION_INTERVAL))
         if systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL:
-#            if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemoryType() == Sensation.MemoryType.Working and\
             # all kind Items found
             if sensation.getSensationType() == Sensation.SensationType.Item and\
                sensation.getDirection() == Sensation.Direction.Out:

@@ -363,6 +363,8 @@ class Sensation(object):
         return Sensation.Kinds.values()
 
     def getFeelingString(feeling):
+        if feeling == None:
+            return ""
         return Sensation.Feelings.get(feeling)
     def getFeelingStrings():
         return Sensation.Feelings.values()

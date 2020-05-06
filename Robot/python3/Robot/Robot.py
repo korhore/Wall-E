@@ -922,8 +922,8 @@ class Identity(Robot):
     '''   
     def tellOwnIdentity(self):
         
-        self.log('tellOwnIdentity: selfSensation self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=' + selfSensation.toDebugStr())      
         selfSensation = self.createSensation( associations=[], sensation=self.getParent().selfSensation, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out)
+        self.log('tellOwnIdentity: selfSensation self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=' + selfSensation.toDebugStr())      
         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=selfSensation, association=None) # or self.process
        
         imageSensation = self.createSensation( associations=[], sensation=self.getParent().imageSensations[self.imageind], memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out)
