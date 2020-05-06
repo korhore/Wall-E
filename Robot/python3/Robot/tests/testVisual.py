@@ -31,7 +31,7 @@ class VisualTestCase(unittest.TestCase):
     TEST_RUNS=5
     ASSOCIATION_INTERVAL=3.0
     #TEST_TIME=300 # 5 min, when debugging
-    TEST_TIME=30 # 30s when normal test
+    TEST_TIME=60 # 30s when normal test
 
     SCORE_1 = 0.1
     SCORE_2 = 0.2
@@ -58,6 +58,11 @@ class VisualTestCase(unittest.TestCase):
         return 1.1
     def getWho(self):
         return "VisualTestCase"
+    def log(self, logStr, logLevel=None):
+        if logLevel == None:
+            logLevel = self.visual.LogLevel.Normal
+        if logLevel <= self.visual.getLogLevel():
+             print(self.visual.getWho() + ":" + str( self.visual.config.level) + ":" + Sensation.Modes[self.visual.mode] + ": " + logStr)
 
     '''
     Testing    
@@ -215,13 +220,23 @@ class VisualTestCase(unittest.TestCase):
                                                        direction=Sensation.Direction.In,
                                                        data="1")
         
+        self.communication_positive_feeling_sensation = self.visual.createSensation(memoryType=Sensation.MemoryType.Sensory,
+                                                       sensationType=Sensation.SensationType.Feeling,
+                                                       direction=Sensation.Direction.In,
+                                                       firstAssociateSensation=self.communication_item_sensation,
+                                                       otherAssociateSensation=self.communication_voice_sensation,
+                                                       positiveFeeling=True)
+        
 
 
     def tearDown(self):
         #self.visual.stop()
         #self.assertEqual(self.visual.getAxon().empty(), False, 'Axon should not be empty after self.visual.stop()')
-        transferDirection, sensation, association = self.getAxon().get()
-        self.assertEqual(sensation.getSensationType(), Sensation.SensationType.Stop, 'parent should get Stop sensation type after self.visual.stop()')
+        while(not self.getAxon().empty()):
+            transferDirection, sensation, association = self.getAxon().get()
+            self.assertTrue(sensation.getSensationType() == Sensation.SensationType.Stop or\
+                            sensation.getSensationType() == Sensation.SensationType.Feeling,
+                            'parent should get Stop or Feeling sensation type after test and self.visual.stop()')
         
         while self.visual.running:
             systemTime.sleep(1)
@@ -252,6 +267,8 @@ class VisualTestCase(unittest.TestCase):
             self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_image_sensation)
             self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_voice_sensation)
  
+            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_positive_feeling_sensation)
+                       
             sleeptime = 3
             print("--- test sleeping " + str(sleeptime) + " second until test results")
             systemTime.sleep(sleeptime ) # let Visual start before waiting it to stops

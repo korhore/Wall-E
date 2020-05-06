@@ -46,6 +46,12 @@ class CommunicationTestCase(unittest.TestCase):
         return 1.1
     def getWho(self):
         return "CommunicationTestCase"
+    def log(self, logStr, logLevel=None):
+        if logLevel == None:
+            logLevel = self.communication.LogLevel.Normal
+        if logLevel <= self.communication.getLogLevel():
+             print(self.communication.getWho() + ":" + str( self.communication.config.level) + ":" + Sensation.Modes[self.communication.mode] + ": " + logStr)
+    
 
     '''
     Testing    
@@ -117,7 +123,7 @@ class CommunicationTestCase(unittest.TestCase):
         del self.Wall_E_image_sensation
         del self.Wall_E_item_sensation
         
-    def re_test_Presense(self):
+    def test_Presense(self):
         print('\ntest_Presense')
         history_sensationTime = systemTime.time() -2*max(CommunicationTestCase.ASSOCIATION_INTERVAL, Communication.COMMUNICATION_INTERVAL)
 

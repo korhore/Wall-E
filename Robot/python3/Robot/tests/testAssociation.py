@@ -40,6 +40,11 @@ class AssociationTestCase(unittest.TestCase):
         return 1.1
     def getWho(self):
         return "AssociationTestCase"
+    def log(self, logStr, logLevel=None):
+        if logLevel == None:
+            logLevel = self.association.LogLevel.Normal
+        if logLevel <= self.association.getLogLevel():
+             print(self.association.getWho() + ":" + str( self.association.config.level) + ":" + Sensation.Modes[self.association.mode] + ": " + logStr)
            
     '''
     Sensation constructor that takes care, that we have only one instance
