@@ -621,10 +621,14 @@ class Visual(Robot):
     class CommunicationPanel(wx.Panel):
         """Class CommunicationPanel"""
         class FeelingButton(wx.Button):
-            def __init__ (self, parent,
+            def __init__ (self,
+                          parent,
+                          gs,
+                          number,
                           sensation,
+                          isPositive,
                           id=wx.ID_ANY, label="", pos=wx.DefaultPosition, size=wx.DefaultSize, style=0, validator=wx.DefaultValidator, name=wx.ButtonNameStr):
-                wx.Button._init__ (parent=parent,
+                super().__init__(parent=parent,
                                    id=id,
                                    label=label,
                                    pos=pos,
@@ -632,17 +636,39 @@ class Visual(Robot):
                                    style=style,
                                    validator=validator,
                                    name=name)
-                self.sensation = sensation
+                self.gs=gs
+                self.number=number
+                self.isPositive = isPositive
+                self.setSensation(sensation=sensation)
                 
             def getSensation(self):
                 return self.sensation
             def setSensation(self, sensation):
                 self.sensation = sensation
-                
+                if sensation is not None and\
+                   sensation.getFirstAssociateSensation() is not None and\
+                   sensation.getOtherAssociateSensation() is not None:                 
+                    if self.getIsPositive():
+                        self.Bind(wx.EVT_BUTTON, lambda evt, temp=sensation: self.GetParent().OnPositive(evt, temp) )
+                        self.SetLabel(str(sensation.getPositiveFeeling()))
+                    else:
+                        self.Bind(wx.EVT_BUTTON, lambda evt, temp=sensation: self.GetParent().OnNegative(evt, temp) )
+                        self.SetLabel(str(sensation.getNegativeFeeling()))
+                    self.gs.Show(self.number)
+                else:
+                    self.gs.Hide(self.number)
+
+            def getIsPositive(self):
+                return self.isPositive
+            def setIsPositive(self, isPositive):
+                 self.isPositive = isPositive
+               
         def __init__(self, parent, robot):
             """Create the MainFrame."""
             wx.Panel.__init__(self, parent) #called
             self.robot = robot
+            self.feelingSensations={}
+
      
             self.SetInitialSize((Visual.PANEL_WIDTH, Visual.PANEL_HEIGHT))
             
@@ -668,18 +694,23 @@ class Visual(Robot):
                                
             for i in range(Visual.COMMUNICATION_PANEL_SENSATION_LINES):
                 for j in range(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS):
-                    if j is Visual.COMMUNICATION_COLUMN_FIRST or j is Visual.COMMUNICATION_COLUMN_OTHER:
+                    if j == Visual.COMMUNICATION_COLUMN_FIRST or j is Visual.COMMUNICATION_COLUMN_OTHER:
                         data_gs = wx.GridSizer(cols=Visual.LOG_PANEL_COLUMN_DATA_TYPE_COLUMNS, vgap=5, hgap=5)
                         data_gs.AddMany([(wx.StaticText(self, label=''), 0, wx.EXPAND),
                                          (wx.StaticBitmap(parent=self, id=-1, pos=(0, -Visual.IMAGE_SIZE/2), size=(Visual.IMAGE_SIZE,Visual.IMAGE_SIZE)), 0, wx.EXPAND)
                                          ])                       
                         self.gs.Add(data_gs, 0, wx.EXPAND)
                         #self.gs.Add(wx.StaticBitmap(parent=self, id=-1, bitmap=None, pos=(10, 5), size=(0, 0)), 0, wx.EXPAND)
-                    elif j is Visual.COMMUNICATION_COLUMN_POSITIVE:
-                        self.gs.Add(wx.Button(self, Visual.ID_POSITIVE, Visual.COMMUNICATION_COLUMN_POSITIVE_NAME), wx.EXPAND)
+                    elif j == Visual.COMMUNICATION_COLUMN_POSITIVE:
+                        self.gs.Add(Visual.CommunicationPanel.FeelingButton(
+                                        sensation=None, isPositive=True,gs = self.gs, number=i*Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS +j,
+                                        parent=self, id=Visual.ID_POSITIVE, label=Visual.COMMUNICATION_COLUMN_POSITIVE_NAME), wx.EXPAND)
                         #self.gs.Hide(i*Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + j)
-                    elif j is Visual.COMMUNICATION_COLUMN_NEGATIVE:
-                        self.gs.Add(wx.Button(self, Visual.ID_NEGATIVE, Visual.COMMUNICATION_COLUMN_NEGATIVE_NAME), wx.EXPAND)
+                    elif j == Visual.COMMUNICATION_COLUMN_NEGATIVE:
+                        self.gs.Add(Visual.CommunicationPanel.FeelingButton(
+                                        sensation=None, isPositive=False,gs = self.gs, number=i*Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS +j,
+                                        parent=self, id=Visual.ID_POSITIVE, label=Visual.COMMUNICATION_COLUMN_POSITIVE_NAME), wx.EXPAND)
+                        #self.gs.Add(FeelingButton(sensation=None, parent=self, id=Visual.ID_NEGATIVE, label=Visual.COMMUNICATION_COLUMN_NEGATIVE_NAME), wx.EXPAND)
                         #self.gs.Hide(i*Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + j)
                     else:
                         self.gs.Add(wx.StaticText(self), 0, wx.EXPAND)
@@ -718,6 +749,9 @@ class Visual(Robot):
                         if from_item is not None and to_item is not None:
                             if from_item.IsWindow() and to_item.IsWindow():
                                to_item.GetWindow().SetLabel(from_item.GetWindow().GetLabel())
+                               # move feeling sensation down
+                               if j == Visual.COMMUNICATION_COLUMN_POSITIVE or j == Visual.COMMUNICATION_COLUMN_NEGATIVE:
+                                   to_item.GetWindow().setSensation(from_item.GetWindow().getSensation())                                   
                             elif from_item.IsSizer() and to_item.IsSizer():
                                 from_data_gs = from_item.GetSizer()
                                 to_data_gs = to_item.GetSizer()
@@ -781,16 +815,18 @@ class Visual(Robot):
                     self.showSensation(data_gs = item.GetSizer(), sensation=sensation.getOtherAssociateSensation())
 
                 item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_POSITIVE)
-                if item is not None and item.IsWindow():
-                    item.GetWindow().Bind(wx.EVT_BUTTON, lambda evt, temp=sensation: self.OnPositive(evt, temp) )                    
-                    item.GetWindow().SetLabel(str(sensation.getPositiveFeeling()))
-                    self.gs.Show(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_POSITIVE)
+                if item is not None and item.IsWindow() and not item.IsSizer():
+                    item.GetWindow().setSensation(sensation=sensation)
+#                     item.GetWindow().Bind(wx.EVT_BUTTON, lambda evt, temp=sensation: self.OnPositive(evt, temp) )                    
+#                     item.GetWindow().SetLabel(str(sensation.getPositiveFeeling()))
+#                     self.gs.Show(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_POSITIVE)
 
                 item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_NEGATIVE)
-                if item is not None and item.IsWindow():
-                    item.GetWindow().Bind(wx.EVT_BUTTON, lambda evt, temp=sensation: self.OnNegative(evt, temp) )                    
-                    item.GetWindow().SetLabel(str(sensation.getNegativeFeeling()))
-                    self.gs.Show(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_NEGATIVE)
+                if item is not None and item.IsWindow() and not item.IsSizer():
+                    item.GetWindow().setSensation(sensation=sensation)
+#                     item.GetWindow().Bind(wx.EVT_BUTTON, lambda evt, temp=sensation: self.OnNegative(evt, temp) )                    
+#                     item.GetWindow().SetLabel(str(sensation.getNegativeFeeling()))
+#                     self.gs.Show(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_NEGATIVE)
                     
                 item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_TIME)
                 if item is not None and item.IsWindow():

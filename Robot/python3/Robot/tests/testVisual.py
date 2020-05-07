@@ -275,13 +275,14 @@ class VisualTestCase(unittest.TestCase):
             # OOps assertEqual removed, study
             self.assertEqual(self.visual.getAxon().empty(), True, 'Axon should be empty again at the end of test_Visual!')
             #self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_voice_sensation)
-        
-        print("--- put stop-sensation for Visual")
-        self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.stopSensation)
+
+# TODO Reenable stop       
+#         print("--- put stop-sensation for Visual")
+#         self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.stopSensation)
         
         print("--- test sleeping " + str(VisualTestCase.TEST_TIME) + " second until stop should be done")
         systemTime.sleep(VisualTestCase.TEST_TIME) # let result UI be shown until cleared           
-        print("--- Visual should be disappeared now")
+        print("--- Visual should be disappear when you press Stop now")
         
     '''
     functionality from Robot
