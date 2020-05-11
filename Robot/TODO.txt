@@ -19,6 +19,35 @@ and TensorflowClassification will stop
 Develop
 -------
 
+When we transfer Sensation with TCP as bytes, do we restore also id exactly same
+in receiver that it was in sender?
+
+Add Location to Configuration, Robot and Sensation.
+Robots wll be organized by Location. One Location will include Robot group,
+that is reasonable "human being", senses to create4 Senstion and muscles like
+speak and show, move etc. and Memory. This group will also include Communication,
+So this is Location based Awareness.
+- When we hear, we hear in one Location,
+- When we speak as respense, we speak to that Location we heard.
+- Communication can give responce also based on other Locations heard Voices,
+  so Memory is not Location based, but Sensation includes Location.
+- Location based Robots and Sesatioions are now
+-- Microphone, Voice
+-- Speaker, Voice
+-- Camera, Image
+-- Projector, Image
+-- Communication, Voice, Image
+- They should all ne owned by one or many  'MainRobot(s)', in one
+or many computers. those 'MainRobots' also that have also Memory, so
+Memory is somehow distributes and nor t only inside one 'MainRobot'.
+So it seems that play with new parameter 'Location'. Seems that easiest way
+is set up one Communication for one Robot group LOcation.
+We coulkd also allow manu Rbo groups in one Location like Wall-E and Eva
+sharing same senses and muscles. Implementation could use VirtualRobot or the normal
+'MainRobots' in different computers. Start to build configuration where Ubuntu is 'Wall-E'
+and raspberry is Eva' nas senses come from Raspberry. There can be two speakers,
+one per computer fot debug reasons.
+ 
 Next Step would be to implement Awareness-type Robot. This is "new MainRobot
 with new name", but it will include missing Awareness-features, when
 technical MainRobot-features are moved to Robot-common implementation.
@@ -26,6 +55,7 @@ Awareness includes:
 - Memory
 - Feeling: mood of this whore Robot
 - Activitylevel
+- Location
 
 OK Simplyfy Communication much.
 When we don't get responce, we know present Item.named and original Voice that was chosen

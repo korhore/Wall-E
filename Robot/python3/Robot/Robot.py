@@ -808,6 +808,7 @@ class Robot(Thread):
                  memoryType=None,
                  direction=Sensation.Direction.In,
                  who=None,
+                 location='',
                  leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
                  azimuth = 0.0,                                             # Walle direction relative to magnetic north pole
                  accelerationX=0.0, accelerationY=0.0, accelerationZ=0.0,   # acceleration of walle, coordinates relative to walle
@@ -842,6 +843,7 @@ class Robot(Thread):
                  memoryType=memoryType,
                  direction=direction,
                  who=who,
+                 location=location,
                  leftPower = leftPower, rightPower = rightPower,
                  azimuth = azimuth,
                  accelerationX=accelerationX, accelerationY = accelerationY, accelerationZ = accelerationZ,

@@ -1,6 +1,6 @@
 '''
 Created on 28.04.2019
-Edited 27.04.2020
+Edited 11.05.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -60,6 +60,8 @@ class Config(ConfigParser):
 #    Microphones =       'MICROPHONES' 
     WHO =               'Who' 
     WALLE =             'Wall-E'
+    LOCATION =          'Location' 
+    LOCATION_DEFAULT =  'DefaultLacation' 
     KIND =              "Kind"
     INSTANCE =          "Instance"
     VIRTUALINSTANCES =  "Virtualinstances"
@@ -550,6 +552,13 @@ class Config(ConfigParser):
             print('self.set(Config.DEFAULT_SECTION, Config.WHO, Sensation.WALLE) exception ' + str(e))
             
         try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.LOCATION):
+                self.set(Config.DEFAULT_SECTION,Config.LOCATION, Config.LOCATION_DEFAULT)
+                self.is_changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION, Config.LOCATION, Config.LOCATION_DEFAULT) exception ' + str(e))
+
+        try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.KIND):
                 self.set(Config.DEFAULT_SECTION,Config.KIND, Sensation.getKindString(Sensation.Kind.Normal))
                 self.is_changes=True
@@ -800,6 +809,9 @@ class Config(ConfigParser):
         who = self.get(section=section, option=self.WHO)
         return who
 
+    def getLocation(self, section=LOCALHOST):
+        location = self.get(section=section, option=self.LOCATION)
+        return location
 
     def getKind(self, section=LOCALHOST):
         from Sensation import Sensation

@@ -67,7 +67,7 @@ class Visual(Robot):
     
     #communication panel
     COMMUNICATION_PANEL_SENSATION_LINES =     18
-    COMMUNICATION_PANEL_SENSATION_COLUMNS =   7
+    COMMUNICATION_PANEL_SENSATION_COLUMNS =   8
     
     COMMUNICATION_COLUMN_FIRST =              0
     COMMUNICATION_COLUMN_FEELING =            1
@@ -76,6 +76,7 @@ class Visual(Robot):
     COMMUNICATION_COLUMN_POSITIVE =           4
     COMMUNICATION_COLUMN_NEGATIVE =           5
     COMMUNICATION_COLUMN_TIME =               6
+    COMMUNICATION_COLUMN_RECEIVEDFROM =       7
 
     COMMUNICATION_COLUMN_FIRST_NAME =         'First'
     COMMUNICATION_COLUMN_FEELING_NAME =       'Feeling'
@@ -83,7 +84,8 @@ class Visual(Robot):
     COMMUNICATION_COLUMN_OTHER_NAME =         'Other'
     COMMUNICATION_COLUMN_POSITIVE_NAME =      'Positive'
     COMMUNICATION_COLUMN_NEGATIVE_NAME =      'Negative'
-    COMMUNICATION_COLUMN_TIME_NAME =          'Time' 
+    COMMUNICATION_COLUMN_TIME_NAME =          'Time'
+    COMMUNICATION_COLUMN_RECEIVEDFROM_NAME =  'ReceivedFrom'
     
     
     TREE_UNUSED_AREA_COLOUR =           wx.Colour( 7*255/8, 7*255/8, 7*255/8 )
@@ -380,25 +382,13 @@ class Visual(Robot):
                                 label = from_item_item.GetWindow().GetLabel()
                                 to_item_item = to_data_gs.GetItem(Visual.COLUMN_DATA_TYPE_ITEM)
                                 to_item_item.GetWindow().SetLabel(from_item_item.GetWindow().GetLabel())
-                                if from_data_gs.IsShown(Visual.COLUMN_DATA_TYPE_ITEM):
-                                    to_data_gs.Show(Visual.COLUMN_DATA_TYPE_ITEM)
-                                    #self.getRobot().log(logLevel=Robot.LogLevel.Detailed, logStr="OnSensation item fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetLabel " + label + " Show")
-                                    self.Refresh()
-                                else:
-                                    to_data_gs.Hide(Visual.COLUMN_DATA_TYPE_ITEM)
-                                    #self.getRobot().log(logLevel=Robot.LogLevel.Detailed, logStr="OnSensation item fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetLabel " + label + " Hide ")
-                                    self.Refresh()
+                                to_item_item.GetWindow().Show(show=from_item_item.GetWindow().IsShown())
                                 # image
                                 from_image_item = from_data_gs.GetItem(Visual.COLUMN_DATA_TYPE_IMAGE)
                                 to_image_item = to_data_gs.GetItem(Visual.COLUMN_DATA_TYPE_IMAGE)                                
                                 bitmap = from_image_item.GetWindow().GetBitmap()
                                 to_image_item .GetWindow().SetBitmap(bitmap)
-                                if from_data_gs.IsShown(Visual.COLUMN_DATA_TYPE_IMAGE):
-                                    to_data_gs.Show(Visual.COLUMN_DATA_TYPE_IMAGE)
-                                    #self.getRobot().log(logLevel=Robot.LogLevel.Detailed, logStr="OnSensation image fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetBitmap Show")
-                                    self.Refresh()
-                                else:
-                                    to_data_gs.Hide(Visual.COLUMN_DATA_TYPE_IMAGE)
+                                to_image_item.GetWindow().Show(show=from_image_item.GetWindow().IsShown())
                                     #self.getRobot().log(logLevel=Robot.LogLevel.Detailed, logStr="OnSensation image fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetBitmap Hide")
                                 self.Refresh()
                             else:
@@ -425,19 +415,21 @@ class Visual(Robot):
                                 bitmap = Visual.PILTowx(image=image, size=Visual.IMAGE_SIZE)
                                 image_item.GetWindow().SetBitmap(bitmap)
                                 image_item.GetWindow().SetSize((Visual.IMAGE_SIZE,Visual.IMAGE_SIZE))
+                                image_item.GetWindow().Show(show=True)                                
                             else:
-                                data_gs.Hide(Visual.COLUMN_DATA_TYPE_IMAGE)
+                                image_item.GetWindow().Show(show=False)                                
                         elif sensation.getSensationType() == Sensation.SensationType.Item:
-                            data_gs.Hide(Visual.COLUMN_DATA_TYPE_IMAGE)
+                            image_item.GetWindow().Show(show=False)                                
                             name = sensation.getName()
                             if name is not None:
                                 data_gs.Show(Visual.COLUMN_DATA_TYPE_ITEM)
                                 item_item.GetWindow().SetLabel(name)
+                                item_item.GetWindow().Show(show=True)                                
                             else:
-                                data_gs.Hide(Visual.SLOG_PANEL_COLUMN_DATA_TYPE_ITEM)
+                                item_item.GetWindow().Show(show=False)                                
                         else:
-                            data_gs.Hide(Visual.COLUMN_DATA_TYPE_ITEM)
-                            data_gs.Hide(Visual.COLUMN_DATA_TYPE_IMAGE)
+                            item_item.GetWindow().Show(show=False)                                
+                            image_item.GetWindow().Show(show=False)                                
                         self.Refresh()
                     
                 item = self.gs.GetItem(Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_MEMORY)
@@ -623,8 +615,6 @@ class Visual(Robot):
         class FeelingButton(wx.Button):
             def __init__ (self,
                           parent,
-                          gs,
-                          number,
                           sensation,
                           isPositive,
                           id=wx.ID_ANY, label="", pos=wx.DefaultPosition, size=wx.DefaultSize, style=0, validator=wx.DefaultValidator, name=wx.ButtonNameStr):
@@ -636,8 +626,6 @@ class Visual(Robot):
                                    style=style,
                                    validator=validator,
                                    name=name)
-                self.gs=gs
-                self.number=number
                 self.isPositive = isPositive
                 self.setSensation(sensation=sensation)
                 
@@ -654,9 +642,9 @@ class Visual(Robot):
                     else:
                         self.Bind(wx.EVT_BUTTON, lambda evt, temp=sensation: self.GetParent().OnNegative(evt, temp) )
                         self.SetLabel(str(sensation.getNegativeFeeling()))
-                    self.gs.Show(self.number)
+                    self.Show(show=True)
                 else:
-                    self.gs.Hide(self.number)
+                    self.Show(show=False)
 
             def getIsPositive(self):
                 return self.isPositive
@@ -667,8 +655,6 @@ class Visual(Robot):
             """Create the MainFrame."""
             wx.Panel.__init__(self, parent) #called
             self.robot = robot
-            self.feelingSensations={}
-
      
             self.SetInitialSize((Visual.PANEL_WIDTH, Visual.PANEL_HEIGHT))
             
@@ -687,7 +673,8 @@ class Visual(Robot):
                 (wx.StaticText(self, label=Visual.COMMUNICATION_COLUMN_OTHER_NAME), 0, wx.EXPAND),                     # 3
                 (wx.StaticText(self, label=Visual.COMMUNICATION_COLUMN_POSITIVE_NAME), 0, wx.EXPAND),                  # 4
                 (wx.StaticText(self, label=Visual.COMMUNICATION_COLUMN_NEGATIVE_NAME), 0, wx.EXPAND),                  # 5
-                (wx.StaticText(self, label=Visual.COMMUNICATION_COLUMN_TIME_NAME), 0, wx.EXPAND)])                     # 6
+                (wx.StaticText(self, label=Visual.COMMUNICATION_COLUMN_TIME_NAME), 0, wx.EXPAND),                      # 6
+                (wx.StaticText(self, label=Visual.COMMUNICATION_COLUMN_RECEIVEDFROM_NAME), 0, wx.EXPAND)])             # 7
             for j in range(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS):
                 item = self.gs.GetItem(j)               
                 item.GetWindow().SetFont(headerFont) 
@@ -703,15 +690,13 @@ class Visual(Robot):
                         #self.gs.Add(wx.StaticBitmap(parent=self, id=-1, bitmap=None, pos=(10, 5), size=(0, 0)), 0, wx.EXPAND)
                     elif j == Visual.COMMUNICATION_COLUMN_POSITIVE:
                         self.gs.Add(Visual.CommunicationPanel.FeelingButton(
-                                        sensation=None, isPositive=True,gs = self.gs, number=i*Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS +j,
+                                        sensation=None, isPositive=True,
                                         parent=self, id=Visual.ID_POSITIVE, label=Visual.COMMUNICATION_COLUMN_POSITIVE_NAME), wx.EXPAND)
                         #self.gs.Hide(i*Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + j)
                     elif j == Visual.COMMUNICATION_COLUMN_NEGATIVE:
                         self.gs.Add(Visual.CommunicationPanel.FeelingButton(
-                                        sensation=None, isPositive=False,gs = self.gs, number=i*Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS +j,
+                                        sensation=None, isPositive=False,
                                         parent=self, id=Visual.ID_POSITIVE, label=Visual.COMMUNICATION_COLUMN_POSITIVE_NAME), wx.EXPAND)
-                        #self.gs.Add(FeelingButton(sensation=None, parent=self, id=Visual.ID_NEGATIVE, label=Visual.COMMUNICATION_COLUMN_NEGATIVE_NAME), wx.EXPAND)
-                        #self.gs.Hide(i*Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + j)
                     else:
                         self.gs.Add(wx.StaticText(self), 0, wx.EXPAND)
                 
@@ -761,25 +746,13 @@ class Visual(Robot):
                                 label = from_item_item.GetWindow().GetLabel()
                                 to_item_item = to_data_gs.GetItem(Visual.COLUMN_DATA_TYPE_ITEM)
                                 to_item_item.GetWindow().SetLabel(from_item_item.GetWindow().GetLabel())
-                                if from_data_gs.IsShown(Visual.COLUMN_DATA_TYPE_ITEM):
-                                    to_data_gs.Show(Visual.COLUMN_DATA_TYPE_ITEM)
-                                    #self.getRobot().log(logLevel=Robot.LogLevel.Detailed, logStr="OnSensation item fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetLabel " + label + " Show")
-                                    self.Refresh()
-                                else:
-                                    to_data_gs.Hide(Visual.COLUMN_DATA_TYPE_ITEM)
-                                    #self.getRobot().log(logLevel=Robot.LogLevel.Detailed, logStr="OnSensation item fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetLabel " + label + " Hide ")
-                                    self.Refresh()
+                                to_item_item.GetWindow().Show(show=from_item_item.GetWindow().IsShown())
                                 # image
                                 from_image_item = from_data_gs.GetItem(Visual.COLUMN_DATA_TYPE_IMAGE)
                                 to_image_item = to_data_gs.GetItem(Visual.COLUMN_DATA_TYPE_IMAGE)                                
                                 bitmap = from_image_item.GetWindow().GetBitmap()
                                 to_image_item .GetWindow().SetBitmap(bitmap)
-                                if from_data_gs.IsShown(Visual.COLUMN_DATA_TYPE_IMAGE):
-                                    to_data_gs.Show(Visual.COLUMN_DATA_TYPE_IMAGE)
-                                    #self.getRobot().log(logLevel=Robot.LogLevel.Detailed, logStr="OnSensation image fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetBitmap Show")
-                                    self.Refresh()
-                                else:
-                                    to_data_gs.Hide(Visual.COLUMN_DATA_TYPE_IMAGE)
+                                to_image_item.GetWindow().Show(show=from_image_item.GetWindow().IsShown())
                                     #self.getRobot().log(logLevel=Robot.LogLevel.Detailed, logStr="OnSensation image fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetBitmap Hide")
                                 self.Refresh()
                             else:
@@ -815,22 +788,19 @@ class Visual(Robot):
                     self.showSensation(data_gs = item.GetSizer(), sensation=sensation.getOtherAssociateSensation())
 
                 item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_POSITIVE)
-                if item is not None and item.IsWindow() and not item.IsSizer():
+                if item is not None and item.IsWindow():
                     item.GetWindow().setSensation(sensation=sensation)
-#                     item.GetWindow().Bind(wx.EVT_BUTTON, lambda evt, temp=sensation: self.OnPositive(evt, temp) )                    
-#                     item.GetWindow().SetLabel(str(sensation.getPositiveFeeling()))
-#                     self.gs.Show(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_POSITIVE)
-
                 item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_NEGATIVE)
-                if item is not None and item.IsWindow() and not item.IsSizer():
+                if item is not None and item.IsWindow():
                     item.GetWindow().setSensation(sensation=sensation)
-#                     item.GetWindow().Bind(wx.EVT_BUTTON, lambda evt, temp=sensation: self.OnNegative(evt, temp) )                    
-#                     item.GetWindow().SetLabel(str(sensation.getNegativeFeeling()))
-#                     self.gs.Show(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_NEGATIVE)
                     
                 item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_TIME)
                 if item is not None and item.IsWindow():
                     item.GetWindow().SetLabel(time.ctime(sensation.getTime()))
+                    
+                item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_RECEIVEDFROM)
+                if item is not None and item.IsWindow():
+                    item.GetWindow().SetLabel(str(sensation.getReceivedFrom()))
                     
                 self.Refresh()
                 # in raspberry data_gs rows are not updated both SetLevels, if we don't change main windows size so
@@ -868,33 +838,33 @@ class Visual(Robot):
                item_item is not None and item_item.IsWindow():
                 if sensation is not None:
                     if sensation.getSensationType() == Sensation.SensationType.Image:
-                        data_gs.Hide(Visual.COLUMN_DATA_TYPE_ITEM)
+                        item_item.GetWindow().Show(show=False)
                         image = sensation.getImage()
                         if image is not None:
-                            data_gs.Show(Visual.COLUMN_DATA_TYPE_IMAGE)
                             bitmap = Visual.PILTowx(image=image, size=Visual.IMAGE_SIZE)
                             image_item.GetWindow().SetBitmap(bitmap)
                             image_item.GetWindow().SetSize((Visual.IMAGE_SIZE,Visual.IMAGE_SIZE))
+                            image_item.GetWindow().Show(show=True)
                         else:
-                            data_gs.Hide(Visual.COLUMN_DATA_TYPE_IMAGE)
+                            image_item.GetWindow().Show(show=False)
                     elif sensation.getSensationType() == Sensation.SensationType.Item:
-                        data_gs.Hide(Visual.COLUMN_DATA_TYPE_IMAGE)
+                        image_item.GetWindow().Show(show=False)
                         name = sensation.getName()
                         if name is not None:
-                            data_gs.Show(Visual.COLUMN_DATA_TYPE_ITEM)
                             item_item.GetWindow().SetLabel(name)
+                            item_item.GetWindow().Show(show=True)
                         else:
-                            data_gs.Hide(Visual.SLOG_PANEL_COLUMN_DATA_TYPE_ITEM)
+                            item_item.GetWindow().Show(show=False)
                     else:
-                        data_gs.Hide(Visual.COLUMN_DATA_TYPE_IMAGE)
-                        data_gs.Show(Visual.COLUMN_DATA_TYPE_ITEM)
+                        image_item.GetWindow().Show(show=False)
+                        item_item.GetWindow().Show(show=True)
                         item_item.GetWindow().SetLabel(Sensation.getSensationTypeString(sensation.getSensationType()))
                 else:
-                    data_gs.Hide(Visual.COLUMN_DATA_TYPE_ITEM)
-                    data_gs.Hide(Visual.COLUMN_DATA_TYPE_IMAGE)
+                    image_item.GetWindow().Show(show=False)
+                    item_item.GetWindow().Show(show=False)
             else:
-                data_gs.Hide(Visual.COLUMN_DATA_TYPE_ITEM)
-                data_gs.Hide(Visual.COLUMN_DATA_TYPE_IMAGE)
+                image_item.GetWindow().Show(show=False)
+                item_item.GetWindow().Show(show=False)
             self.Refresh()
            
             
