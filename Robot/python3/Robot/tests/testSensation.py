@@ -1,6 +1,6 @@
 '''
 Created on 10.06.2019
-Updated on 13.07.2019
+Updated on 11.05.2020
 @author: reijo.korhonen@gmail.com
 
 test Sensation class
@@ -414,8 +414,11 @@ class SensationTestCase(unittest.TestCase):
         self.assertTrue(fromBytesWorkingSensation == workingSensation, "should be equal")
         self.assertTrue(fromBytesWorkingSensation.getReceivedFrom() == receivedFrom, "should be equal")
 
+        # Voice
+        
         data=b'\x01\x02'
-        voiceSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, kind=Sensation.Kind.Eva)
+        location='testLocation'
+        voiceSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, location=location, kind=Sensation.Kind.Eva)
 
         self.assertFalse(voiceSensation.isForgettable(), "should be False, until detached")
         voiceSensation.detach(robot=self.robot)
@@ -426,14 +429,35 @@ class SensationTestCase(unittest.TestCase):
         self.assertTrue(bytes != None, "should be get bytes")
         fromBytesVoiceSensation = self.robot.createSensation(bytes=bytes)
         
-        
-        self.assertTrue(voiceSensation == fromBytesVoiceSensation, "should be equal")
-        self.assertTrue(voiceSensation.getKind() == fromBytesVoiceSensation.getKind(), "should be equal")
-        self.assertTrue(voiceSensation.getData() == fromBytesVoiceSensation.getData(), "should be equal")
+        self.assertEqual(voiceSensation, fromBytesVoiceSensation, "should be equal")
+        self.assertEqual(voiceSensation.getKind(), fromBytesVoiceSensation.getKind(), "should be equal")
+        self.assertEqual(voiceSensation.getData(), fromBytesVoiceSensation.getData(), "should be equal")
+        self.assertEqual(voiceSensation.getLocation(), fromBytesVoiceSensation.getLocation(), "should be equal")
         
         self.assertFalse(fromBytesVoiceSensation.isForgettable(), "should be False, until detached")
         fromBytesVoiceSensation.detach(robot=self.robot)
         self.assertTrue(fromBytesVoiceSensation.isForgettable(), "should be True after detach")
+
+        # Image
+        
+        location='testLocation2'
+        imageSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.Sensory, data=data, location=location, kind=Sensation.Kind.Eva)
+
+        self.assertFalse(imageSensation.isForgettable(), "should be False, until detached")
+        imageSensation.detach(robot=self.robot)
+        self.assertTrue(imageSensation.isForgettable(), "should be True after detach")
+
+        bytes=imageSensation.bytes()
+        self.assertTrue(bytes != None, "should be get bytes")
+        fromBytesImageSensation = self.robot.createSensation(bytes=bytes)
+
+        self.assertTrue(imageSensation == fromBytesImageSensation, "should be equal")
+        self.assertTrue(imageSensation.getImage() == fromBytesImageSensation.getImage(), "should be equal") # empty image, not given in creation, TODO
+        self.assertTrue(imageSensation.getLocation() == fromBytesImageSensation.getLocation(), "should be equal")
+        
+        self.assertFalse(fromBytesImageSensation.isForgettable(), "should be False, until detached")
+        fromBytesImageSensation.detach(robot=self.robot)
+        self.assertTrue(fromBytesImageSensation.isForgettable(), "should be True after detach")
 
         # Normal Feeling
         
