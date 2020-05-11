@@ -381,6 +381,20 @@ class Sensation(object):
     '''
     def getAvailableMemory():
         return psutil.virtual_memory().available/(1024*1024)
+    
+        
+    def strArrayToStr(sArray):
+        retS = ''
+        for s in sArray:
+            if len(retS) == 0:
+                retS=s
+            else:
+                retS += ' ' + s
+        return retS
+    
+    def strToStrArray(s):
+        return s.split(' ')
+    
          
     '''
     Association is a association between two sensations
@@ -544,7 +558,7 @@ class Sensation(object):
                  memoryType=None,
                  direction=Direction.Out,
                  who=None,
-                 location='',
+                 locations=[],
                  leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
                  azimuth = 0.0,                                             # Walle direction relative to magnetic north pole
                  accelerationX=0.0, accelerationY=0.0, accelerationZ=0.0,   # acceleration of walle, coordinates relative to walle
@@ -601,7 +615,7 @@ class Sensation(object):
                 self.memoryType = memoryType 
             self.direction = sensation.direction
             self.who = sensation.who
-            self.location = sensation.location
+            self.locations = sensation.locations
             self.leftPower = sensation.leftPower
             self.rightPower = sensation.rightPower
             self.hearDirection = sensation.hearDirection
@@ -642,7 +656,7 @@ class Sensation(object):
                 self.memoryType = memoryType
             self.direction = direction
             self.who = who
-            self.location = location
+            self.locations = locations
             self.leftPower = leftPower
             self.rightPower = rightPower
             self.hearDirection = hearDirection
@@ -746,7 +760,7 @@ class Sensation(object):
                     location_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
                     #print("location_size " + str(location_size))
                     i += Sensation.ID_SIZE
-                    self.location =Sensation.bytesToStr(bytes[i:i+location_size])
+                    self.locations = Sensation.strToStrArray(Sensation.bytesToStr(bytes[i:i+location_size]))
                     i += location_size
                 elif self.sensationType is Sensation.SensationType.Image:
                     filePath_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
@@ -766,7 +780,7 @@ class Sensation(object):
                     location_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
                     #print("location_size " + str(location_size))
                     i += Sensation.ID_SIZE
-                    self.location =Sensation.bytesToStr(bytes[i:i+location_size])
+                    self.locations = Sensation.strToStrArray(Sensation.bytesToStr(bytes[i:i+location_size]))
                     i += location_size
                 elif self.sensationType is Sensation.SensationType.Calibrate:
                     self.calibrateSensationType = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
@@ -873,7 +887,7 @@ class Sensation(object):
 #                  memoryType=MemoryType.Sensory,
 #                  direction=Direction.In,
 #                  who=None,
-#                  location=None,
+#                  locations=None,
 #                  leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
 #                  azimuth = 0.0,                                             # Walle direction relative to magnetic north pole
 #                  accelerationX=0.0, accelerationY=0.0, accelerationZ=0.0,   # acceleration of walle, coordinates relative to walle
@@ -904,7 +918,7 @@ class Sensation(object):
 #                  memoryType=memoryType,
 #                  direction=direction,
 #                  who=who,
-#                  location=location,
+#                  locations=locations,
 #                  leftPower = leftPower, rightPower = rightPower,                         # Walle motors state
 #                  azimuth = azimuth,                                             # Walle direction relative to magnetic north pole
 #                  accelerationX=accelerationX, accelerationY=accelerationY, accelerationZ=accelerationZ,   # acceleration of walle, coordinates relative to walle
@@ -1173,10 +1187,10 @@ class Sensation(object):
             s += ' ' + str(self.observationDirection)+ ' ' + str(self.observationDistance)
         elif self.sensationType == Sensation.SensationType.Voice:
             #don't write binary data to sring any more
-            s += ' ' + self.filePath + ' ' + self.location# + ' ' + Sensation.bytesToStr(self.data)
+            s += ' ' + self.filePath + ' ' + self.getLocationsStr()# + ' ' + Sensation.bytesToStr(self.data)
             s +=  ' ' + self.kind
         elif self.sensationType == Sensation.SensationType.Image:
-            s += ' ' + self.filePath + ' ' + self.location# + ' ' +  Sensation.bytesToStr(self.data)
+            s += ' ' + self.filePath + ' ' + self.getLocationsStr()# + ' ' +  Sensation.bytesToStr(self.data)
         elif self.sensationType == Sensation.SensationType.Calibrate:
             if self.calibrateSensationType == Sensation.SensationType.HearDirection:
                 s += ' ' + self.calibrateSensationType + ' ' + str(self.hearDirection)
@@ -1228,9 +1242,9 @@ class Sensation(object):
 #             s=self.__str__()
         s = systemTime.ctime(self.time) + ' ' + str(self.robotId) + ' ' + str(self.id) + ' ' + Sensation.getMemoryTypeString(self.memoryType) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
         if self.sensationType == Sensation.SensationType.Voice:
-            s = s + ' ' + Sensation.getKindString(self.kind) + ' ' + self.getLocation()
+            s = s + ' ' + Sensation.getKindString(self.kind) + ' ' + self.getLocationsStr()
         elif self.sensationType == Sensation.SensationType.Image:
-            s = s + ' ' + self.getLocation()
+            s = s + ' ' + self.getLocationsStr()
         elif self.sensationType == Sensation.SensationType.Item:
             s = s + ' ' + self.name + ' ' + str(self.score) + ' ' + Sensation.getPresenceString(self.presence)
         elif self.sensationType == Sensation.SensationType.Feeling:
@@ -1273,9 +1287,9 @@ class Sensation(object):
             b +=  self.data
             b +=  Sensation.strToBytes(self.kind)
             
-            location_size=len(self.location)
+            location_size=len(self.getLocationsStr())
             b +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
-            b +=  Sensation.strToBytes(self.location)
+            b +=  Sensation.strToBytes(self.getLocationsStr())
         elif self.sensationType is Sensation.SensationType.Image:
             filePath_size=len(self.filePath)
             b +=  filePath_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
@@ -1290,9 +1304,9 @@ class Sensation(object):
             b +=  data_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
             b +=  data
             
-            location_size=len(self.location)
+            location_size=len(self.getLocationsStr())
             b +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
-            b +=  Sensation.strToBytes(self.location)
+            b +=  Sensation.strToBytes(self.getLocationsStr())
         elif self.sensationType is Sensation.SensationType.Calibrate:
             if self.calibrateSensationType is Sensation.SensationType.HearDirection:
                 b += Sensation.strToBytes(self.calibrateSensationType) + Sensation.floatToBytes(self.hearDirection)
@@ -1744,11 +1758,14 @@ class Sensation(object):
     def getWho(self):
         return self.who
         
-    def setLocation(self, location):
-        self.location = location
-    def getLocation(self):
-        return self.location
-       
+    def setLocations(self, locations):
+        self.locations = locations
+    def getLocations(self):
+        return self.locations
+    def getLocationsStr(self):
+        #from Config import strArrayToStr
+        return Sensation.strArrayToStr(self.locations)
+      
     def setLeftPower(self, leftPower):
         self.leftPower = leftPower
     def getLeftPower(self):

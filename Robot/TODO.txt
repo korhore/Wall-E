@@ -30,8 +30,8 @@ So this is Location based Awareness.
 - When we hear, we hear in one Location,
 - When we speak as respense, we speak to that Location we heard.
 - Communication can give responce also based on other Locations heard Voices,
-  so Memory is not Location based, but Sensation includes Location.
-- Location based Robots and Sesatioions are now
+  so Memory is not Location based, but Sensation includes Location(s).
+- Location(s) based Robots and Sesatioions are now
 -- Microphone, Voice
 -- Speaker, Voice
 -- Camera, Image
@@ -47,6 +47,8 @@ sharing same senses and muscles. Implementation could use VirtualRobot or the no
 'MainRobots' in different computers. Start to build configuration where Ubuntu is 'Wall-E'
 and raspberry is Eva' nas senses come from Raspberry. There can be two speakers,
 one per computer fot debug reasons.
+
+Capabilities should have one level more, Location.
  
 Next Step would be to implement Awareness-type Robot. This is "new MainRobot
 with new name", but it will include missing Awareness-features, when

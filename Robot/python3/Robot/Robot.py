@@ -199,7 +199,8 @@ class Robot(Thread):
         print("Robot 4")
         self.logLevel=self.config.getLogLevel()
         self.setWho(self.config.getWho())
-        self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who " + self.getWho() + " kind " + self.getKind() + " instanceType " + self.getInstanceType() + self.capabilities.toDebugString())
+        self.setLocations(self.config.getLocations())
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who " + self.getWho() + " locations " + self.getLocations() + " kind " + self.getKind() + " instanceType " + self.getInstanceType() + self.capabilities.toDebugString())
         # global queue for senses and other robots to put sensations to robot
         self.axon = Axon(robot=self)
         #and create subinstances
@@ -326,6 +327,11 @@ class Robot(Thread):
     def getWho(self):
         return self.name
     
+    def setLocations(self, locations):
+        self.locations = locations
+    def getLocations(self):
+        return self.locations
+    
     def getKind(self):
         return self.config.getKind()
     
@@ -357,6 +363,8 @@ class Robot(Thread):
     '''
     get capabilities that main robot or all Sub,Virtual and Remote instances have
     We traverse to main robot and get orrred capabilities of all subinstances
+    
+    Method is used only for logging and debugging purposes
     '''
     def getMasterCapabilities(self):
         if self.getParent() is not None:
@@ -405,34 +413,34 @@ class Robot(Thread):
     '''
     Has this instance this capability
     ''' 
-    def hasCapability(self, direction, memoryType, sensationType):
+    def hasCapability(self, direction, memoryType, sensationType, locations):
         hasCapalility = False
         if self.is_alive() and self.getCapabilities() is not None:
-            hasCapalility = self.getCapabilities().hasCapability(direction, memoryType, sensationType)
+            hasCapalility = self.getCapabilities().hasCapability(direction, memoryType, sensationType, locations)
             if hasCapalility:
-                self.log(logLevel=Robot.LogLevel.Verbose, logStr="hasCapability direction " + str(direction) + " memoryType " + str(memoryType) + " sensationType " + str(sensationType) + ' ' + str(hasCapalility))      
+                self.log(logLevel=Robot.LogLevel.Verbose, logStr="hasCapability direction " + str(direction) + " memoryType " + str(memoryType) + " sensationType " + str(sensationType) + " locations " + locations + ' ' + str(hasCapalility))      
         return hasCapalility
     '''
     Has this instance or at least one of its subinstabces this capability
     ''' 
-    def hasSubCapability(self, direction, memoryType, sensationType):
+    def hasSubCapability(self, direction, memoryType, sensationType, locations):
         #self.log(logLevel=Robot.LogLevel.Verbose, logStr="hasSubCapability direction " + str(direction) + " memoryType " + str(memoryType) + " sensationType " + str(sensationType))
-        if self.hasCapability(direction, memoryType, sensationType):
+        if self.hasCapability(direction, memoryType, sensationType, locations):
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability self has direction ' + str(direction) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType) + ' True')      
             return True    
         for robot in self.getSubInstances():
-            if robot.getCapabilities().hasCapability(direction, memoryType, sensationType) or \
-               robot.hasSubCapability(direction, memoryType, sensationType):
-                self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability subInstance ' + robot.getWho() + ' has direction ' + str(direction) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType) + ' True')      
+            if robot.getCapabilities().hasCapability(direction, memoryType, sensationType, locations) or \
+               robot.hasSubCapability(direction, memoryType, sensationType, locations):
+                self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability subInstance ' + robot.getWho() + ' at ' + robot.getLocations() + ' has direction ' + str(direction) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType) + ' True')      
                 return True
         #self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability direction ' + str(direction) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType) + ' False')      
         return False
    
-    def getSubCapabilityInstances(self, direction, memoryType, sensationType):
+    def getSubCapabilityInstances(self, direction, memoryType, sensationType, locations):
         robots=[]
         for robot in self.getSubInstances():
-            if robot.hasCapability(direction, memoryType, sensationType) or \
-                robot.hasSubCapability(direction, memoryType, sensationType) or \
+            if robot.hasCapability(direction, memoryType, sensationType, locations) or \
+                robot.hasSubCapability(direction, memoryType, sensationType, locations) or \
                 robot.getInstanceType() == Sensation.InstanceType.Remote:       # append all Remotes so it gets same Memory
                 robots.append(robot)
         return robots
@@ -808,7 +816,7 @@ class Robot(Thread):
                  memoryType=None,
                  direction=Sensation.Direction.In,
                  who=None,
-                 location='',
+                 locations='',
                  leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
                  azimuth = 0.0,                                             # Walle direction relative to magnetic north pole
                  accelerationX=0.0, accelerationY=0.0, accelerationZ=0.0,   # acceleration of walle, coordinates relative to walle
@@ -843,7 +851,7 @@ class Robot(Thread):
                  memoryType=memoryType,
                  direction=direction,
                  who=who,
-                 location=location,
+                 locations=locations,
                  leftPower = leftPower, rightPower = rightPower,
                  azimuth = azimuth,
                  accelerationX=accelerationX, accelerationY = accelerationY, accelerationZ = accelerationZ,

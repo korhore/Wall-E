@@ -60,8 +60,8 @@ class Config(ConfigParser):
 #    Microphones =       'MICROPHONES' 
     WHO =               'Who' 
     WALLE =             'Wall-E'
-    LOCATION =          'Location' 
-    LOCATION_DEFAULT =  'DefaultLacation' 
+    LOCATIONS =          'locations' 
+    LOCATIONS_DEFAULT =  'DefaultLacation' 
     KIND =              "Kind"
     INSTANCE =          "Instance"
     VIRTUALINSTANCES =  "Virtualinstances"
@@ -489,6 +489,22 @@ class Config(ConfigParser):
                         print('self.set(' + section+', option, self.FALSE) exception ' + str(e))
 
         self.commit()
+    '''
+    helpers
+    '''
+        
+    def strArrayToStr(sArray):
+        retS = ''
+        for s in sArray:
+            if len(retS) == 0:
+                retS=s
+            else:
+                retS += ' ' + s
+        return retS
+    
+    def strToStrArray(s):
+        return s.split(' ')
+
 
     def createDefaultSection(self):
         #changes=False
@@ -552,11 +568,11 @@ class Config(ConfigParser):
             print('self.set(Config.DEFAULT_SECTION, Config.WHO, Sensation.WALLE) exception ' + str(e))
             
         try:                
-            if not self.has_option(Config.DEFAULT_SECTION, Config.LOCATION):
-                self.set(Config.DEFAULT_SECTION,Config.LOCATION, Config.LOCATION_DEFAULT)
+            if not self.has_option(Config.DEFAULT_SECTION, Config.LOCATIONS):
+                self.set(Config.DEFAULT_SECTION,Config.LOCATIONS, Config.strArrayToStr(Config.LOCATIONS_DEFAULT))
                 self.is_changes=True
         except Exception as e:
-            print('self.set(Config.DEFAULT_SECTION, Config.LOCATION, Config.LOCATION_DEFAULT) exception ' + str(e))
+            print('self.set(Config.DEFAULT_SECTION, Config.LOCATIONS, Config.strArrayToStr(Config.LOCATIONS_DEFAULT) exception ' + str(e))
 
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.KIND):
@@ -809,9 +825,9 @@ class Config(ConfigParser):
         who = self.get(section=section, option=self.WHO)
         return who
 
-    def getLocation(self, section=LOCALHOST):
-        location = self.get(section=section, option=self.LOCATION)
-        return location
+    def getLocations(self, section=LOCALHOST):
+        locations = self.get(section=section, option=self.LOCATIONS)
+        return locations
 
     def getKind(self, section=LOCALHOST):
         from Sensation import Sensation
