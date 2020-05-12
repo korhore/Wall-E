@@ -82,9 +82,24 @@ class Capabilities():
 
     '''
     Getter to get if single capability is set
+    in location this Capabilities set has
     '''
-    def hasCapability(self, direction, memoryType, sensationType):
-        return self.directions[direction][memoryType][sensationType]
+    def hasCapability(self, direction, memoryType, sensationType, locations):
+        if self.isInLocations(locations):
+            return self.directions[direction][memoryType][sensationType]
+        return False
+    
+    '''
+    Is one or more location is one of this Capabilitues set location
+    in location this Capabilities set has
+    '''
+    def isInLocations(self, locations):
+        if len(locations) == 0: # no location requirement
+            return True
+        for location in locations:
+            if location in self.getLocations():
+                return True
+        return False
  
     '''
     Setter to get if single capability is set
@@ -100,7 +115,7 @@ def test(name, capabilities):
     for direction, directionStr in Sensation.Directions.items():
         for memoryType, memoryStr in Sensation.MemoryTypes.items():
             for capability, capabilityStr in Sensation.SensationTypes.items():
-                is_set = capabilities.hasCapability(direction, memoryType, capability)
+                is_set = capabilities.hasCapability(direction, memoryType, capability, [])
                 if is_set:
                     print (name + ": " + str(directionStr) + ' ' + str(memoryStr) + ' ' + str(capabilityStr) + ': True')
 

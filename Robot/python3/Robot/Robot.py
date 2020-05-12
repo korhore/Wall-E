@@ -736,7 +736,10 @@ class Robot(Thread):
             else: # we are main Robot
                 # check if we have subrobot that has capability to process this sensation
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.getSubCapabilityInstances')      
-                robots = self.getSubCapabilityInstances(direction=sensation.getDirection(), memoryType=sensation.getMemoryType(), sensationType=sensation.getSensationType())
+                robots = self.getSubCapabilityInstances(direction=sensation.getDirection(),
+                                                        memoryType=sensation.getMemoryType(),
+                                                        sensationType=sensation.getSensationType(),
+                                                        locations=sensation.getLocations())
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr='process for ' + sensation.toDebugStr() + ' robots ' + str(robots))
                 for robot in robots:
                     if robot.getInstanceType() == Sensation.InstanceType.Remote:
@@ -755,7 +758,10 @@ class Robot(Thread):
         # sensation going down
         else:
             # which subinstances can process this
-            robots = self.getSubCapabilityInstances(direction=sensation.getDirection(), memoryType=sensation.getMemoryType(), sensationType=sensation.getSensationType())
+            robots = self.getSubCapabilityInstances(direction=sensation.getDirection(),
+                                                    memoryType=sensation.getMemoryType(),
+                                                    sensationType=sensation.getSensationType(),
+                                                    locations=sensation.getLocations())
             self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getSubCapabilityInstances' + str(robots))
             for robot in robots:
                 if robot.getInstanceType() == Sensation.InstanceType.Remote:
