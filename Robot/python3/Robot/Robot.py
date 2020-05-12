@@ -200,7 +200,7 @@ class Robot(Thread):
         self.logLevel=self.config.getLogLevel()
         self.setWho(self.config.getWho())
         self.setLocations(self.config.getLocations())
-        self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who " + self.getWho() + " locations " + self.getLocations() + " kind " + self.getKind() + " instanceType " + self.getInstanceType() + self.capabilities.toDebugString())
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who " + self.getWho() + " locations " + str(self.getLocations()) + " kind " + self.getKind() + " instanceType " + self.getInstanceType() + self.capabilities.toDebugString())
         # global queue for senses and other robots to put sensations to robot
         self.axon = Axon(robot=self)
         #and create subinstances
@@ -378,7 +378,7 @@ class Robot(Thread):
         return capabilities
     
     def _getCapabilities(self):
-        capabilities = Capabilities(deepCopy=self.getCapabilities())
+        capabilities = Capabilities(deepCopy=self.getCapabilities(), config=self.getCapabilities().config)
         for robot in self.getSubInstances():
             capabilities.Or(robot._getLocalCapabilities())
                                    
@@ -393,7 +393,7 @@ class Robot(Thread):
         if self.getParent() is not None:
             capabilities =  self.getParent().getLocalMasterCapabilities()
         else:   # we are parent, get our and subcapalities orred
-            capabilities = Capabilities(deepCopy=self.getCapabilities())
+            capabilities = Capabilities(deepCopy = self.getCapabilities(), config = self.getCapabilities().config)
             for robot in self.getSubInstances():
                 if robot.getInstanceType() != Sensation.InstanceType.Remote:
                     capabilities.Or(robot._getLocalCapabilities())
@@ -402,7 +402,7 @@ class Robot(Thread):
         return capabilities
 
     def _getLocalCapabilities(self):
-        capabilities = Capabilities(deepCopy=self.getCapabilities())
+        capabilities = Capabilities(deepCopy = self.getCapabilities(), config = self.getCapabilities().config)
         for robot in self.getSubInstances():
             if robot.getInstanceType() != Sensation.InstanceType.Remote:
                 capabilities.Or(robot._getLocalCapabilities())
@@ -418,7 +418,7 @@ class Robot(Thread):
         if self.is_alive() and self.getCapabilities() is not None:
             hasCapalility = self.getCapabilities().hasCapability(direction, memoryType, sensationType, locations)
             if hasCapalility:
-                self.log(logLevel=Robot.LogLevel.Verbose, logStr="hasCapability direction " + str(direction) + " memoryType " + str(memoryType) + " sensationType " + str(sensationType) + " locations " + locations + ' ' + str(hasCapalility))      
+                self.log(logLevel=Robot.LogLevel.Verbose, logStr="hasCapability direction " + str(direction) + " memoryType " + str(memoryType) + " sensationType " + str(sensationType) + " locations " + str(locations) + ' ' + str(hasCapalility))      
         return hasCapalility
     '''
     Has this instance or at least one of its subinstabces this capability
@@ -726,7 +726,7 @@ class Robot(Thread):
         elif sensation.getSensationType() == Sensation.SensationType.Capability:
             self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: sensation.getSensationType() == Sensation.SensationType.Capability')      
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.setCapabilities(Capabilities(capabilities=sensation.getCapabilities() ' + sensation.getCapabilities().toDebugString('capabilities'))      
-            self.setCapabilities(Capabilities(deepCopy=sensation.getCapabilities()))
+            self.setCapabilities(Capabilities(deepCopy=sensation.getCapabilities(), config=sensation.getCapabilities().config))
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: capabilities: ' + self.getCapabilities().toDebugString('saved capabilities'))
         # sensation going up
         elif transferDirection == Sensation.TransferDirection.Up:
@@ -822,7 +822,7 @@ class Robot(Thread):
                  memoryType=None,
                  direction=Sensation.Direction.In,
                  who=None,
-                 locations='',
+                 locations=[],
                  leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
                  azimuth = 0.0,                                             # Walle direction relative to magnetic north pole
                  accelerationX=0.0, accelerationY=0.0, accelerationZ=0.0,   # acceleration of walle, coordinates relative to walle

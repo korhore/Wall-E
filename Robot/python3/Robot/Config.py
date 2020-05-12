@@ -165,11 +165,11 @@ class Config(ConfigParser):
         # if we have microphones, read config for them    
         if self.canHear():   
             try:                
-                left_card = self.get(Config.LOCALHOST, Config.LEFT)
+                left_card = self.get(Config.LOCALHOST, Config.MICROPHONE_LEFT)
                 if left_card == None:
                     print('left_card == None')
                     self.canRun = False
-                right_card = self.get(Config.LOCALHOST, Config.RIGHT)
+                right_card = self.get(Config.LOCALHOST, Config.MICROPHONE_RIGHT)
                 if right_card == None:
                     print('right_card == None')
                     self.canRun = False
@@ -303,6 +303,12 @@ class Config(ConfigParser):
     def toBytes(self, section=LOCALHOST):
         from Sensation import Sensation
         b=b''
+        # first locations
+        location_size=len(self.getLocationsStr())
+        b +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
+        b +=  Sensation.strToBytes(self.getLocationsStr())
+        
+        # then capabilities
         for direction in Sensation.DirectionsOrdered:
             for memoryType in Sensation.MemoryTypesOrdered:
                 for sensationType in Sensation.SensationTypesOrdered:
@@ -310,7 +316,7 @@ class Config(ConfigParser):
                     is_set=self.getboolean(section, option)
 #                    if is_set:
 #                         print('toBytes ' + directionStr + ' ' + memoryStr + ' ' + capabilityStr + ': True')
-                    b = b + Config.boolToByte(is_set)
+                    b += Config.boolToByte(is_set)
 #         print('toBytes section ' + section + ' '+ str(len(b)))
         return b
  
@@ -327,7 +333,7 @@ class Config(ConfigParser):
                     is_set=self.getboolean(section, option)
 #                    if is_set:
 #                         print('toString ' + directionStr + ' ' + memoryStr + ' ' + capabilityStr + ': True')
-                    string = string + Config.boolToChar(is_set)
+                    string += Config.boolToChar(is_set)
         return string
     
     '''
@@ -826,8 +832,14 @@ class Config(ConfigParser):
         return who
 
     def getLocations(self, section=LOCALHOST):
+        self.locations=[]
         locations = self.get(section=section, option=self.LOCATIONS)
-        return locations
+        if locations != None and len(locations) > 0:
+            self.locations = locations.split()
+        return self.locations
+        
+    def getLocationsStr(self, section=LOCALHOST):
+        return Config.strArrayToStr(self.getLocations(section=section))
 
     def getKind(self, section=LOCALHOST):
         from Sensation import Sensation
@@ -901,8 +913,9 @@ class Config(ConfigParser):
             return None
         
     def getCapabilities(self, section=LOCALHOST):
+        self.getLocations(section=section)# should get Locations, bebause Capabilities are dependent on Locations
         bytes=self.toBytes(section=section)
-        return Capabilities(bytes=bytes)
+        return Capabilities(bytes=bytes, config=self)
 
     def canHear(self, section=LOCALHOST):
         from Sensation import Sensation
@@ -935,12 +948,19 @@ class Config(ConfigParser):
 class Capabilities():
     
     def __init__(self,
+                 config,
+                 locations=None,
                  string=None,
                  bytes=None,
-                 config=None,
                  Or =None,
                  And=None,
                  deepCopy=None):
+        self.config = config
+        # self.locations can be overwitten by bytes (or string, not tested)
+        self.locations = locations
+        if self.locations is None:
+            self.locations= self.config.getLocations()
+
         if string is not None:
             self.fromString(string=string)
         elif Or is not None:
@@ -958,6 +978,9 @@ class Capabilities():
                 bytes=self.config.toBytes()
     
             self.fromBytes(bytes=bytes)
+        # is overwritten
+        if locations is not None:
+            self.locations = locations
 
     
     '''
@@ -970,6 +993,15 @@ class Capabilities():
         self.directions={}
         # create three level dictionary about capabilitys by direction, by memoryType, by sensation type
         i=0
+        
+        #first location
+        location_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
+        #print("location_size " + str(location_size))
+        i += Sensation.ID_SIZE
+        self.locations = Sensation.strToStrArray(Sensation.bytesToStr(bytes[i:i+location_size]))
+        i += location_size
+       
+        # then capabilities
         for direction in Sensation.DirectionsOrdered:
             memorys={}
             self.directions[direction] = memorys
@@ -989,6 +1021,12 @@ class Capabilities():
     def toBytes(self):
         from Sensation import Sensation
         bytes=b''
+        # first locations            
+        location_size=len(self.getLocationsStr())
+        bytes +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
+        bytes +=  Sensation.strToBytes(self.getLocationsStr())
+        
+        # then capabilites
         for direction in Sensation.DirectionsOrdered:
             for memoryType in Sensation.MemoryTypesOrdered:
                 for sensationType in Sensation.SensationTypesOrdered:
@@ -997,6 +1035,7 @@ class Capabilities():
     
     '''
     Initiated from String
+    TODO locations should handled
     '''
     def fromString(self, string=None):
         from Sensation import Sensation
@@ -1020,6 +1059,7 @@ class Capabilities():
                     i=i+1
     '''
     to String
+    TODO locations should handled
     '''
     def toString(self):
         from Sensation import Sensation
@@ -1065,7 +1105,14 @@ class Capabilities():
                 return True
         return False
     
- 
+    def getLocations(self):
+        return self.locations
+    def getLocationsStr(self):
+        return Config.strArrayToStr(self.locations)
+    
+    def setLocations(self, locations):
+        self.locations = locations
+
     '''
     Setter to set if single capability is set
     '''
@@ -1163,14 +1210,16 @@ class Capabilities():
 test
 '''
 def test(name, capabilities):
+    print ('\n' + name)
     from Sensation import Sensation
     some_set=False
     for direction in Sensation.DirectionsOrdered:
         for memoryType in Sensation.MemoryTypesOrdered:
             for sensationType in Sensation.SensationTypesOrdered:
-                is_set = capabilities.hasCapability(direction, memoryType, sensationType)
+                is_set = capabilities.hasCapability(direction=direction, memoryType=memoryType, sensationType=sensationType, locations=capabilities.getLocations())
+                print (name + ": " + Sensation.getDirectionString(direction) + ' ' + Sensation.getMemoryTypeString(memoryType) + ' ' + Sensation.getSensationTypeString(sensationType) + ': ' + str(is_set))
                 if is_set:
-                    print (name + ": " + Sensation.getDirectionString(direction) + ' ' + Sensation.getMemoryTypeString(memoryType) + ' ' + Sensation.getSensationTypeString(sensationType) + ': True')
+                    #print (name + ": " + Sensation.getDirectionString(direction) + ' ' + Sensation.getMemoryTypeString(memoryType) + ' ' + Sensation.getSensationTypeString(sensationType) + ': True')
                     some_set=True
     if not some_set:
         print (name + ": ALL FALSE")
@@ -1209,16 +1258,22 @@ if __name__ == '__main__':
     hostNames = config.getHostNames()
     print('HostNames ' + str(hostNames))
 
-    hostNames = config.getHostNames()
+    locations = config.getLocations()
+    print('Locations ' + str(locations))
+
     print(config.getCapabilities().toDebugString('Capabilities from config'))
+    test(name="Capabilities from config", capabilities=config.getCapabilities())
    
     #capabilities
     print('')
-
+    locations=['testLocation']
     capabilities = Capabilities(config=config)
     test(name="Capabilities(config=config)", capabilities=capabilities)
-    capabilities.setCapability(direction=Sensation.Direction.In, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.VoiceData, is_set=True)
-    test(name="VoiceData set", capabilities=capabilities)
+    capabilities.setCapability(direction = Sensation.Direction.In,
+                               memoryType = Sensation.MemoryType.Sensory,
+                               sensationType = Sensation.SensationType.Voice,
+                               is_set = True)
+    test(name="Voice set", capabilities=capabilities)
    
     b = capabilities.toBytes()
     print('capabilities.toBytes  ' + str(b))
@@ -1229,7 +1284,7 @@ if __name__ == '__main__':
     print('capabilities.toBytes2 ' + str(b))
     print ('should be b == b2 True ', str(b==b2))
     
-    capabilities2 = Capabilities(bytes=b)
+    capabilities2 = Capabilities(bytes=b, config=config)
     test(name="capabilities original", capabilities=capabilities)
     test(name="capabilities2 from bytes", capabilities=capabilities2)
     b2 = capabilities2.toBytes()
@@ -1248,7 +1303,7 @@ if __name__ == '__main__':
     print ('should be string == string2 True ', str(string == string2))
     
     test(name="original", capabilities=capabilities)
-    capabilities2 = Capabilities(deepCopy=capabilities)
+    capabilities2 = Capabilities(deepCopy=capabilities, config=config)
     test(name="deepCopy", capabilities=capabilities2)
     print ('should be deepCopy capabilities  == capabilities2 True ', str(capabilities == capabilities2))
     capabilities.toDebugString('capabilities')
@@ -1291,11 +1346,11 @@ if __name__ == '__main__':
     test("default config", capabilities)
     
     bytes=config.toBytes(section="bytes")                
-    capabilities=Capabilities(bytes=bytes)
+    capabilities=Capabilities(bytes=bytes, config=config)
     test("bytes", capabilities)
 
     string=config.toString()                
-    capabilities = Capabilities(string=string)
+    capabilities = Capabilities(string=string, config=config)
     test("string", capabilities)
 
 

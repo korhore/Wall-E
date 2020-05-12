@@ -383,9 +383,11 @@ class Memory(object):
         sensations=[]
         for key, sensationMemory in self.sensationMemorys.items():
             for sensation in sensationMemory:
+                # accept sensations from all Locations
                 if capabilities.hasCapability(direction=sensation.getDirection(),
                                               memoryType=sensation.getMemoryType(),
-                                              sensationType=sensation.getSensationType()) and\
+                                              sensationType=sensation.getSensationType(),
+                                              locations=[]) and\
                    (timemin is None or sensation.getTime() > timemin) and\
                    (timemax is None or sensation.getTime() < timemax):
                     sensations.append(sensation)
