@@ -37,6 +37,7 @@ So this is Location based Awareness.
 -- Camera, Image
 -- Projector, Image
 -- Communication, Voice, Image
+-- TensorflowClassification, Item, presence
 - They should all ne owned by one or many  'MainRobot(s)', in one
 or many computers. those 'MainRobots' also that have also Memory, so
 Memory is somehow distributes and nor t only inside one 'MainRobot'.
@@ -47,8 +48,20 @@ sharing same senses and muscles. Implementation could use VirtualRobot or the no
 'MainRobots' in different computers. Start to build configuration where Ubuntu is 'Wall-E'
 and raspberry is Eva' nas senses come from Raspberry. There can be two speakers,
 one per computer fot debug reasons.
+-- Seems that all SensationTypes should have this Locations property, not only
+   Voice and Image, because it's hard to jnow whar are common and what are Location
+   based Sensation, so make all to be configurable in Robot.cfg
+
+TODO Now
+1) set locations from iwput Robots
+2) in Communication Robot we should process all,
+   but voices are set to locations fron inout
+3) MainRobot level sends respond voices to original voice source.
+4) Expand communication to vommunicate also with images, not waiting respomces yet.
 
 Capabilities should have one level more, Location.
+- Config and Capabilities have now locations, but no levels.
+  Capabilities are valid in these locations, but lot elsewhere
  
 Next Step would be to implement Awareness-type Robot. This is "new MainRobot
 with new name", but it will include missing Awareness-features, when

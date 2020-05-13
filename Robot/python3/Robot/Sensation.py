@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 11.05.2020
+Edited on 13.05.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -719,6 +719,12 @@ class Sensation(object):
                 self.direction = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
                 #print("direction " + str(direction))
                 i += Sensation.ENUM_SIZE
+                                    
+                location_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
+                #print("location_size " + str(location_size))
+                i += Sensation.ID_SIZE
+                self.locations = Sensation.strToStrArray(Sensation.bytesToStr(bytes[i:i+location_size]))
+                i += location_size
                 
                 if self.sensationType is Sensation.SensationType.Drive:
                     self.leftPower = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
@@ -756,12 +762,6 @@ class Sensation(object):
                     i += data_size
                     self.kind = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
                     i += Sensation.ENUM_SIZE
-                    
-                    location_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
-                    #print("location_size " + str(location_size))
-                    i += Sensation.ID_SIZE
-                    self.locations = Sensation.strToStrArray(Sensation.bytesToStr(bytes[i:i+location_size]))
-                    i += location_size
                 elif self.sensationType is Sensation.SensationType.Image:
                     filePath_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
                     #print("filePath_size " + str(filePath_size))
@@ -776,12 +776,6 @@ class Sensation(object):
                     else:
                         self.image = None
                     i += data_size
-                    
-                    location_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
-                    #print("location_size " + str(location_size))
-                    i += Sensation.ID_SIZE
-                    self.locations = Sensation.strToStrArray(Sensation.bytesToStr(bytes[i:i+location_size]))
-                    i += location_size
                 elif self.sensationType is Sensation.SensationType.Calibrate:
                     self.calibrateSensationType = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
                     i += Sensation.ENUM_SIZE
@@ -1174,7 +1168,7 @@ class Sensation(object):
 
                  
     def __str__(self):
-        s=str(self.robotId) + ' ' + str(self.id) + ' ' + str(self.time) + ' ' + self.memoryType + ' ' + self.direction + ' ' + self.sensationType
+        s=str(self.robotId) + ' ' + str(self.id) + ' ' + str(self.time) + ' ' + self.memoryType + ' ' + self.direction + ' ' + self.sensationType+ ' ' + self.getLocationsStr()
         if self.sensationType == Sensation.SensationType.Drive:
             s +=  ' ' + str(self.leftPower) +  ' ' + str(self.rightPower)
         elif self.sensationType == Sensation.SensationType.HearDirection:
@@ -1187,10 +1181,9 @@ class Sensation(object):
             s += ' ' + str(self.observationDirection)+ ' ' + str(self.observationDistance)
         elif self.sensationType == Sensation.SensationType.Voice:
             #don't write binary data to sring any more
-            s += ' ' + self.filePath + ' ' + self.getLocationsStr()# + ' ' + Sensation.bytesToStr(self.data)
-            s +=  ' ' + self.kind
+            s += ' ' + self.filePath + ' ' + self.kind
         elif self.sensationType == Sensation.SensationType.Image:
-            s += ' ' + self.filePath + ' ' + self.getLocationsStr()# + ' ' +  Sensation.bytesToStr(self.data)
+            s += ' ' + self.filePath
         elif self.sensationType == Sensation.SensationType.Calibrate:
             if self.calibrateSensationType == Sensation.SensationType.HearDirection:
                 s += ' ' + self.calibrateSensationType + ' ' + str(self.hearDirection)
@@ -1240,11 +1233,11 @@ class Sensation(object):
 #             s=str(self.robotId) + ' ' + str(self.id) + ' ' + str(self.time) + ' ' + str(self.association_time) + ' ' + Sensation.getMemoryTypeString(self.memoryType) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
 #         else:
 #             s=self.__str__()
-        s = systemTime.ctime(self.time) + ' ' + str(self.robotId) + ' ' + str(self.id) + ' ' + Sensation.getMemoryTypeString(self.memoryType) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
+        s = systemTime.ctime(self.time) + ' ' + str(self.robotId) + ' ' + str(self.id) + ' ' + Sensation.getMemoryTypeString(self.memoryType) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)+ ' ' + self.getLocationsStr()
         if self.sensationType == Sensation.SensationType.Voice:
-            s = s + ' ' + Sensation.getKindString(self.kind) + ' ' + self.getLocationsStr()
-        elif self.sensationType == Sensation.SensationType.Image:
-            s = s + ' ' + self.getLocationsStr()
+            s = s + ' ' + Sensation.getKindString(self.kind)
+#         elif self.sensationType == Sensation.SensationType.Image:
+#             s = s + ' ' + self.getLocationsStr()
         elif self.sensationType == Sensation.SensationType.Item:
             s = s + ' ' + self.name + ' ' + str(self.score) + ' ' + Sensation.getPresenceString(self.presence)
         elif self.sensationType == Sensation.SensationType.Feeling:
@@ -1265,6 +1258,10 @@ class Sensation(object):
         b += Sensation.strToBytes(self.memoryType)
         b += Sensation.strToBytes(self.sensationType)
         b += Sensation.strToBytes(self.direction)
+        
+        location_size=len(self.getLocationsStr())
+        b +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
+        b +=  Sensation.strToBytes(self.getLocationsStr())
 
         if self.sensationType is Sensation.SensationType.Drive:
             b += Sensation.floatToBytes(self.leftPower) + Sensation.floatToBytes(self.rightPower)
@@ -1286,10 +1283,6 @@ class Sensation(object):
             b +=  data_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
             b +=  self.data
             b +=  Sensation.strToBytes(self.kind)
-            
-            location_size=len(self.getLocationsStr())
-            b +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
-            b +=  Sensation.strToBytes(self.getLocationsStr())
         elif self.sensationType is Sensation.SensationType.Image:
             filePath_size=len(self.filePath)
             b +=  filePath_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
@@ -1303,10 +1296,6 @@ class Sensation(object):
             data_size=len(data)
             b +=  data_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
             b +=  data
-            
-            location_size=len(self.getLocationsStr())
-            b +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
-            b +=  Sensation.strToBytes(self.getLocationsStr())
         elif self.sensationType is Sensation.SensationType.Calibrate:
             if self.calibrateSensationType is Sensation.SensationType.HearDirection:
                 b += Sensation.strToBytes(self.calibrateSensationType) + Sensation.floatToBytes(self.hearDirection)

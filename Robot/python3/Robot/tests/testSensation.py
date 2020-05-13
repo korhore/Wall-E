@@ -22,6 +22,13 @@ class SensationTestCase(unittest.TestCase):
     BETTER_FEELING = Sensation.Feeling.Happy
     TERRIFIED_FEELING = Sensation.Feeling.Terrified
 
+    SET_1_1_LOCATIONS_1 = ['testLocation']
+    SET_1_1_LOCATIONS_2 = ['Ubuntu']
+    SET_1_2_LOCATIONS =   ['testLocation', 'Ubuntu']
+    
+    RECEIVEDFROM =        ['127.0.0.1', '192.168.0.0.1', '10.0.0.1']
+    
+
     def setUp(self):
         self.robot=Robot()
         self.sensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Sensory,
@@ -395,30 +402,42 @@ class SensationTestCase(unittest.TestCase):
     def test_Bytes(self):        
         print("\ntest_Bytes")
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
-                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=[])
+                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=[],
+                                                      locations = SensationTestCase.SET_1_2_LOCATIONS)
         self.assertTrue(workingSensation != None, "should be created")
+        self.assertEqual(workingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
         bytes=workingSensation.bytes()
         self.assertTrue(bytes != None, "should be get bytes")
         fromBytesWorkingSensation = self.robot.createSensation(bytes=bytes)
         self.assertTrue(fromBytesWorkingSensation != None, "should be created")
-        self.assertTrue(fromBytesWorkingSensation == workingSensation, "should be equal")
+        self.assertEqual(fromBytesWorkingSensation, workingSensation, "should be equal")
+        self.assertEqual(fromBytesWorkingSensation.getLocations(), workingSensation.getLocations(), "should be equal")
+        self.assertEqual(fromBytesWorkingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
         
-        receivedFrom=['127.0.0.1', '192.168.0.0.1', '10.0.0.1']
+        workingSensation.setLocations(locations = SensationTestCase.SET_1_1_LOCATIONS_1)
+        self.assertEqual(workingSensation.getLocations(), SensationTestCase.SET_1_1_LOCATIONS_1, "should be equal")
+        bytes=workingSensation.bytes()
+        self.assertTrue(bytes != None, "should be get bytes")
+        fromBytesWorkingSensation = self.robot.createSensation(bytes=bytes)
+        self.assertTrue(fromBytesWorkingSensation != None, "should be created")
+        self.assertEqual(fromBytesWorkingSensation, workingSensation, "should be equal")
+        self.assertEqual(fromBytesWorkingSensation.getLocations(), workingSensation.getLocations(), "should be equal")
+        self.assertEqual(fromBytesWorkingSensation.getLocations(), SensationTestCase.SET_1_1_LOCATIONS_1, "should be equal")
+       
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
-                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=receivedFrom)
+                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=SensationTestCase.RECEIVEDFROM)
         self.assertTrue(workingSensation != None, "should be created")
         bytes=workingSensation.bytes()
         self.assertTrue(bytes != None, "should be get bytes")
         fromBytesWorkingSensation = self.robot.createSensation(bytes=bytes)
         self.assertTrue(fromBytesWorkingSensation != None, "should be created")
         self.assertTrue(fromBytesWorkingSensation == workingSensation, "should be equal")
-        self.assertTrue(fromBytesWorkingSensation.getReceivedFrom() == receivedFrom, "should be equal")
+        self.assertTrue(fromBytesWorkingSensation.getReceivedFrom() == SensationTestCase.RECEIVEDFROM, "should be equal")
 
         # Voice
         
         data=b'\x01\x02'
-        locations=['testLocations','b']
-        voiceSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, locations=locations, kind=Sensation.Kind.Eva)
+        voiceSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, locations=SensationTestCase.SET_1_2_LOCATIONS, kind=Sensation.Kind.Eva)
 
         self.assertFalse(voiceSensation.isForgettable(), "should be False, until detached")
         voiceSensation.detach(robot=self.robot)
@@ -440,8 +459,7 @@ class SensationTestCase(unittest.TestCase):
 
         # Image
         
-        locations=['testLocations2','b']
-        imageSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.Sensory, data=data, locations=locations, kind=Sensation.Kind.Eva)
+        imageSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.Sensory, data=data, locations=SensationTestCase.SET_1_2_LOCATIONS, kind=Sensation.Kind.Eva)
 
         self.assertFalse(imageSensation.isForgettable(), "should be False, until detached")
         imageSensation.detach(robot=self.robot)

@@ -948,7 +948,7 @@ class Config(ConfigParser):
 class Capabilities():
     
     def __init__(self,
-                 config,
+                 config=None,
                  locations=None,
                  string=None,
                  bytes=None,
@@ -958,8 +958,8 @@ class Capabilities():
         self.config = config
         # self.locations can be overwitten by bytes (or string, not tested)
         self.locations = locations
-        if self.locations is None:
-            self.locations= self.config.getLocations()
+        if self.locations is None and self.config is not None:
+            self.locations = self.config.getLocations()
 
         if string is not None:
             self.fromString(string=string)
