@@ -949,7 +949,7 @@ class Capabilities():
     
     def __init__(self,
                  config=None,
-                 locations=None,
+                 locations=[],
                  string=None,
                  bytes=None,
                  Or =None,
@@ -958,7 +958,7 @@ class Capabilities():
         self.config = config
         # self.locations can be overwitten by bytes (or string, not tested)
         self.locations = locations
-        if self.locations is None and self.config is not None:
+        if (self.locations is None or len(self.locations) == 0) and self.config is not None:
             self.locations = self.config.getLocations()
 
         if string is not None:
@@ -978,8 +978,8 @@ class Capabilities():
                 bytes=self.config.toBytes()
     
             self.fromBytes(bytes=bytes)
-        # is overwritten
-        if locations is not None:
+        # TDO is finally overwritten or not
+        if locations is not None and len(locations) != 0:
             self.locations = locations
 
     

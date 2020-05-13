@@ -200,7 +200,7 @@ class Robot(Thread):
         self.logLevel=self.config.getLogLevel()
         self.setWho(self.config.getWho())
         self.setLocations(self.config.getLocations())
-        self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who " + self.getWho() + " locations " + str(self.getLocations()) + " kind " + self.getKind() + " instanceType " + self.getInstanceType() + self.capabilities.toDebugString())
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who " + self.getWho() + " locations " + self.getLocationsStr() + " kind " + self.getKind() + " instanceType " + self.getInstanceType() + self.capabilities.toDebugString())
         # global queue for senses and other robots to put sensations to robot
         self.axon = Axon(robot=self)
         #and create subinstances
@@ -331,6 +331,8 @@ class Robot(Thread):
         self.locations = locations
     def getLocations(self):
         return self.locations
+    def getLocationsStr(self):
+        return Sensation.strArrayToStr(self.locations)
     
     def getKind(self):
         return self.config.getKind()
@@ -431,7 +433,7 @@ class Robot(Thread):
         for robot in self.getSubInstances():
             if robot.getCapabilities().hasCapability(direction, memoryType, sensationType, locations) or \
                robot.hasSubCapability(direction, memoryType, sensationType, locations):
-                self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability subInstance ' + robot.getWho() + ' at ' + robot.getLocations() + ' has direction ' + str(direction) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType) + ' True')      
+                self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability subInstance ' + robot.getWho() + ' at ' + robot.getLocationsStr() + ' has direction ' + str(direction) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType) + ' True')      
                 return True
         #self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability direction ' + str(direction) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType) + ' False')      
         return False
