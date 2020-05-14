@@ -19,7 +19,16 @@ and TensorflowClassification will stop
 Develop
 -------
 
-When we transfer Sensation with TCP as bytes, do we restore also id exactly same
+Assign to most memorable assign, now we ignore assignation if max of assignations is reached.
+Accept new assignation, but forget less memorable one.
+
+Do we try to reconnect to hosts, if connection is lost.
+
+Should Identity send voiceds and images as 'Global'  and all robots route them
+so all can hear them?
+
+
+OK When we transfer Sensation with TCP as bytes, do we restore also id exactly same
 in receiver that it was in sender?
 
 Add Location to Configuration, Robot and Sensation.
@@ -51,6 +60,7 @@ one per computer fot debug reasons.
 -- Seems that all SensationTypes should have this Locations property, not only
    Voice and Image, because it's hard to jnow whar are common and what are Location
    based Sensation, so make all to be configurable in Robot.cfg
+-- Presence should also be Location based
 
 TODO Now
 1) set locations from iwput Robots

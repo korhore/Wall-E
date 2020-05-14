@@ -1098,7 +1098,10 @@ class Capabilities():
     in location this Capabilities set has
     '''
     def isInLocations(self, locations):
-        if len(locations) == 0: # no location requirement
+        # is no location requirement or Capabilities accepts all, return True
+        # in other case test if at least one location match
+        if len(locations) == 0 or\
+           len(self.getLocations()) == 0:
             return True
         for location in locations:
             if location in self.getLocations():

@@ -1233,7 +1233,7 @@ class Sensation(object):
 #             s=str(self.robotId) + ' ' + str(self.id) + ' ' + str(self.time) + ' ' + str(self.association_time) + ' ' + Sensation.getMemoryTypeString(self.memoryType) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
 #         else:
 #             s=self.__str__()
-        s = systemTime.ctime(self.time) + ' ' + str(self.robotId) + ' ' + str(self.id) + ' ' + Sensation.getMemoryTypeString(self.memoryType) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)+ ' ' + self.getLocationsStr()
+        s = systemTime.ctime(self.time) + ' ' + str(self.robotId) + ' ' + str(self.id) + ' ' + Sensation.getMemoryTypeString(self.memoryType) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)+ ' Locations ' + self.getLocationsStr()
         if self.sensationType == Sensation.SensationType.Voice:
             s = s + ' ' + Sensation.getKindString(self.kind)
 #         elif self.sensationType == Sensation.SensationType.Image:

@@ -200,7 +200,7 @@ class Robot(Thread):
         self.logLevel=self.config.getLogLevel()
         self.setWho(self.config.getWho())
         self.setLocations(self.config.getLocations())
-        self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who " + self.getWho() + " locations " + self.getLocationsStr() + " kind " + self.getKind() + " instanceType " + self.getInstanceType() + self.capabilities.toDebugString())
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who: " + self.getWho() + " locations: " + self.getLocationsStr() + " kind: " + self.getKind() + " instanceType: " + self.getInstanceType() + " capabilities: " + self.capabilities.toDebugString())
         # global queue for senses and other robots to put sensations to robot
         self.axon = Axon(robot=self)
         #and create subinstances
