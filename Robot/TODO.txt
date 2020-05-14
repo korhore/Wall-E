@@ -24,7 +24,7 @@ Accept new assignation, but forget less memorable one.
 
 Do we try to reconnect to hosts, if connection is lost.
 
-Should Identity send voiceds and images as 'Global'  and all robots route them
+Should Identity send voices and images as 'Global'  and all robots route them
 so all can hear them?
 
 
@@ -32,6 +32,12 @@ OK When we transfer Sensation with TCP as bytes, do we restore also id exactly s
 in receiver that it was in sender?
 
 Add Location to Configuration, Robot and Sensation.
+
+Next to do is is implement Location based Presence.
+Also Communicarion should support Location(s). Can we communicate to 'other'
+or many Locations. Yes, there is not only our own Location and in Memory, there
+are Sensations from many Locations.
+
 Robots wll be organized by Location. One Location will include Robot group,
 that is reasonable "human being", senses to create4 Senstion and muscles like
 speak and show, move etc. and Memory. This group will also include Communication,

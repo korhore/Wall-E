@@ -1,6 +1,6 @@
 '''
 Created on 04.05.2019
-Updated on 10.04.2020
+Updated on 15.04.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -31,6 +31,7 @@ class AlsaAudioPlayback(Robot):
     COMMUNICATION_INTERVAL=15.0     # time window to history 
                                     # for sensations we communicate
     WALLE_SPEAK_SPEED=1.25
+    EVA_SPEAK_SPEED=1.5
     NORMALIZED_VOICE_LEVEL=300.0
 
     def __init__(self,
@@ -99,41 +100,43 @@ class AlsaAudioPlayback(Robot):
                         self.log("process numpy.fromstring(data, dtype=dtype: ValueError")      
                         return
                     # convert voice as kind if needed
-                    if sensation.getKind() == Sensation.Kind.WallE:
-                        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: Sensation.SensationType.Voice play as Wall-E')
-                        step_length=self.WALLE_SPEAK_SPEED
-                        step_point = 0.0    # where we are in source as float
-                        ind_step_point = 0  # in which table index we are
-                        result_aaa=[]
-                        # while not and of source
-                        a={}
-                        while ind_step_point < len(aaa)/Settings.AUDIO_CHANNELS:
-                            for i in range(Settings.AUDIO_CHANNELS):
-                                a[i] = 0.0     # fill next a for destination
-                            dest_step=0.0
-                            while ind_step_point < len(aaa)/Settings.AUDIO_CHANNELS and\
-                                  dest_step <  step_length:
-                                # how much we we get on this source ind
-                                source_boundary = math.floor(step_point + 1.0)
-                                can_get = source_boundary - step_point
-                                if dest_step + can_get <= step_length:
-                                    for i in range(Settings.AUDIO_CHANNELS):
-                                        a[i] = a[i]+can_get*aaa[Settings.AUDIO_CHANNELS*ind_step_point+i]
-                                    step_point = float(source_boundary)
-                                    ind_step_point = ind_step_point+1   # source to next boundary
-                                else:
-                                    can_get = min(source_boundary - step_point, step_length- dest_step)
-                                    for i in range(Settings.AUDIO_CHANNELS):
-                                        a[i] =  a[i]+can_get*aaa[Settings.AUDIO_CHANNELS*ind_step_point+i]
-                                    step_point = step_point + can_get  # forward in this source ind
-                                    if abs(step_point-source_boundary) < 0.001:
-                                        ind_step_point = ind_step_point+1 # source to next boundary
-                                    
-                                dest_step = dest_step + can_get
-                                if dest_step >=  step_length:   # destination a is ready
-                                    for i in range(Settings.AUDIO_CHANNELS):
-                                        result_aaa.append(a[i]/step_length)    # normalize, so voice loudness don't change
-                        aaa = result_aaa
+                    aaa = self.changeVoiceByKind(kind=sensation.getKind(), aaa=aaa)
+# commented old implementation for Wall-E only
+#                     if sensation.getKind() == Sensation.Kind.WallE:
+#                         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: Sensation.SensationType.Voice play as Wall-E')
+#                         step_length=self.WALLE_SPEAK_SPEED
+#                         step_point = 0.0    # where we are in source as float
+#                         ind_step_point = 0  # in which table index we are
+#                         result_aaa=[]
+#                         # while not and of source
+#                         a={}
+#                         while ind_step_point < len(aaa)/Settings.AUDIO_CHANNELS:
+#                             for i in range(Settings.AUDIO_CHANNELS):
+#                                 a[i] = 0.0     # fill next a for destination
+#                             dest_step=0.0
+#                             while ind_step_point < len(aaa)/Settings.AUDIO_CHANNELS and\
+#                                   dest_step <  step_length:
+#                                 # how much we we get on this source ind
+#                                 source_boundary = math.floor(step_point + 1.0)
+#                                 can_get = source_boundary - step_point
+#                                 if dest_step + can_get <= step_length:
+#                                     for i in range(Settings.AUDIO_CHANNELS):
+#                                         a[i] = a[i]+can_get*aaa[Settings.AUDIO_CHANNELS*ind_step_point+i]
+#                                     step_point = float(source_boundary)
+#                                     ind_step_point = ind_step_point+1   # source to next boundary
+#                                 else:
+#                                     can_get = min(source_boundary - step_point, step_length- dest_step)
+#                                     for i in range(Settings.AUDIO_CHANNELS):
+#                                         a[i] =  a[i]+can_get*aaa[Settings.AUDIO_CHANNELS*ind_step_point+i]
+#                                     step_point = step_point + can_get  # forward in this source ind
+#                                     if abs(step_point-source_boundary) < 0.001:
+#                                         ind_step_point = ind_step_point+1 # source to next boundary
+#                                     
+#                                 dest_step = dest_step + can_get
+#                                 if dest_step >=  step_length:   # destination a is ready
+#                                     for i in range(Settings.AUDIO_CHANNELS):
+#                                         result_aaa.append(a[i]/step_length)    # normalize, so voice loudness don't change
+#                         aaa = result_aaa
                     # normalize voice                 
                     # calculate average   
                     # no need to take care of  Settings.AUDIO_CHANNELS 
@@ -192,6 +195,48 @@ class AlsaAudioPlayback(Robot):
             self.log(logLevel=Robot.LogLevel.Error, logStr='process: got sensation this robot can\'t process, NOT a Voice In or not running')
         self.log(logLevel=Robot.LogLevel.Detailed, logStr="self.running " + str(self.running))
         sensation.detach(robot=self) # finally release played sensation
+        
+    def changeVoiceByKind(self, kind, aaa):
+        if kind == Sensation.Kind.WallE:
+            aaa = self.changeVoiceSpeed(speed=self.WALLE_SPEAK_SPEED,aaa = aaa)
+        elif kind == Sensation.Kind.Eva:
+            aaa = self.changeVoiceSpeed(speed=self.EVA_SPEAK_SPEED,aaa = aaa)
+        return aaa
+
+    def changeVoiceSpeed(self, speed, aaa):
+        step_length=speed
+        step_point = 0.0    # where we are in source as float
+        ind_step_point = 0  # in which table index we are
+        result_aaa=[]
+        # while not and of source
+        a={}
+        while ind_step_point < len(aaa)/Settings.AUDIO_CHANNELS:
+            for i in range(Settings.AUDIO_CHANNELS):
+                a[i] = 0.0     # fill next a for destination
+            dest_step=0.0
+            while ind_step_point < len(aaa)/Settings.AUDIO_CHANNELS and\
+                  dest_step <  step_length:
+                # how much we we get on this source ind
+                source_boundary = math.floor(step_point + 1.0)
+                can_get = source_boundary - step_point
+                if dest_step + can_get <= step_length:
+                    for i in range(Settings.AUDIO_CHANNELS):
+                        a[i] = a[i]+can_get*aaa[Settings.AUDIO_CHANNELS*ind_step_point+i]
+                    step_point = float(source_boundary)
+                    ind_step_point = ind_step_point+1   # source to next boundary
+                else:
+                    can_get = min(source_boundary - step_point, step_length- dest_step)
+                    for i in range(Settings.AUDIO_CHANNELS):
+                        a[i] =  a[i]+can_get*aaa[Settings.AUDIO_CHANNELS*ind_step_point+i]
+                    step_point = step_point + can_get  # forward in this source ind
+                    if abs(step_point-source_boundary) < 0.001:
+                        ind_step_point = ind_step_point+1 # source to next boundary
+                                    
+                dest_step = dest_step + can_get
+                if dest_step >=  step_length:   # destination a is ready
+                    for i in range(Settings.AUDIO_CHANNELS):
+                        result_aaa.append(a[i]/step_length)    # normalize, so voice loudness don't change
+        return result_aaa
         
     def getPlaybackTime(self, datalen=None):
         if datalen == None:
