@@ -235,12 +235,12 @@ class Memory(object):
             try:
                 for itemSensation in self.presentItemSensations.values():
                     if sensation is not itemSensation and\
-                       sensation.getTime() >=  itemSensation.getTime() and\
-                       len(itemSensation.getAssociations()) < Sensation.ASSOCIATIONS_MAX_ASSOCIATIONS:
-                        self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='assign: sensation.associate(Sensation.Association(self_sensation==itemSensation ' +  itemSensation.toDebugStr() + ' sensation=sensation ' + sensation.toDebugStr())
+                       sensation.getTime() >=  itemSensation.getTime():
+                        # and len(itemSensation.getAssociations()) < Sensation.ASSOCIATIONS_MAX_ASSOCIATIONS: #removed limitation
+                        self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='assign: itemSensation= ' +  itemSensation.toDebugStr() + ' sensation= ' + sensation.toDebugStr())
                         itemSensation.associate(sensation=sensation)
                     else:
-                        self.log(logLevel=Memory.MemoryLogLevel.Detailed, logStr='assign: itemSensation ignored too much associations or items not newer than present itemSensation or sensation is present sensation ' + itemSensation.toDebugStr())
+                        self.log(logLevel=Memory.MemoryLogLevel.Detailed, logStr='assign: sensation ignored not newer than present itemSensation or sensation is present itemSensation= ' + itemSensation.toDebugStr() + ' sensation= ' + sensation.toDebugStr())
                 succeeded = True
             except Exception as e:
                  self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='assign: ignored exception ' + str(e))
