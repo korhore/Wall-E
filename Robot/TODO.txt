@@ -18,6 +18,10 @@ and TensorflowClassification will stop
 
 Develop
 -------
+Study swarm intelligence. Should we delegate communication as a best response to our swarm
+and can we just choose best response. Can we define swarm intually? Or should we deny swarm
+to communicate and reserve only one Communication per location. This means that Communication uses
+that Menory, that is is found in its (computer's) MainRobot.
 
 Assign to most memorable assign, now we ignore assignation if max of assignations is reached.
 Accept new assignation, but forget less memorable one.
@@ -37,6 +41,11 @@ Next to do is is implement Location based Presence.
 Also Communicarion should support Location(s). Can we communicate to 'other'
 or many Locations. Yes, there is not only our own Location and in Memory, there
 are Sensations from many Locations.
+
+When we or Capabilities, we should or also Locations, but only by Direction.In Location, speak out, etc.,
+but that we can't do, because capabilituis can't be separated by foreihn Robots,
+so make just or for Locations and test how it works. This  orred capabilities should be
+sent to other part of tcp-connection.
 
 Robots wll be organized by Location. One Location will include Robot group,
 that is reasonable "human being", senses to create4 Senstion and muscles like
@@ -64,9 +73,10 @@ sharing same senses and muscles. Implementation could use VirtualRobot or the no
 and raspberry is Eva' nas senses come from Raspberry. There can be two speakers,
 one per computer fot debug reasons.
 -- Seems that all SensationTypes should have this Locations property, not only
-   Voice and Image, because it's hard to jnow whar are common and what are Location
-   based Sensation, so make all to be configurable in Robot.cfg
+   Voice and Image, because it's hard to know what are common and what are Location
+   based Sensations, so make all to be configurable in Robot.cfg
 -- Presence should also be Location based
+-- Routing: should we have a route max. Otherwise there will come too much trafffic in the network.
 
 TODO Now
 1) set locations from iwput Robots

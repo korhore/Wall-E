@@ -262,7 +262,7 @@ class Memory(object):
                                                              negativeFeeling = sensation.getNegativeFeeling())
             self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='Memory process: Feeling between sensations')
         else:
-            self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='Memory process: No Feeling between sensations, because net Feeling sentionn or paremeter sensation(s) are None(s)')
+            self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='Memory process: No Feeling between sensations, because not Feeling sensation or parameter sensation(s) are None(s)')
       
     '''
     get memory usage

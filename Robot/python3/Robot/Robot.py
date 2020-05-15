@@ -617,17 +617,17 @@ class Robot(Thread):
                                                 presence = Sensation.Presence.Present,
                                                 kind=self.getKind())
         if self.isMainRobot() or self.getInstanceType() == Sensation.InstanceType.Virtual:
-            self.imageSensations, self.voiceSensations = self.getIdentitySensations(kind=self.getKind())
+            self.imageSensations, self.voiceSensations = self.getIdentitySensations(who=self.getWho())
             if len(self.imageSensations) > 0:
                 self.selfImage = self.imageSensations[0].getImage()
             else:
                 self.selfImage = None
 
-    def getIdentitySensations(self, kind):
+    def getIdentitySensations(self, who):
         imageSensations=[]
         voiceSensations=[]
-        identitypath = self.config.getIdentityDirPath(kind)
-        self.log('Identitypath for {} is {}'.format(kind, identitypath))
+        identitypath = self.config.getIdentityDirPath(who)
+        self.log('Identitypath for {} is {}'.format(who, identitypath))
         for dirName, subdirList, fileList in os.walk(identitypath):
             self.log('Found directory: %s' % dirName)      
             image_file_names=[]

@@ -283,9 +283,8 @@ class Config(ConfigParser):
     def getConfigFilePath(self):
         return self.config_file_path
                     
-    def getIdentityDirPath(self, kind):
-        from Sensation import Sensation
-        return self.IDENTITYS +'/'+ Sensation.getKindString(kind)
+    def getIdentityDirPath(self, who):
+        return self.IDENTITYS +'/'+ who
 
                 
     def getVirtualinstanceConfigFilePath(self, virtualinstance):
