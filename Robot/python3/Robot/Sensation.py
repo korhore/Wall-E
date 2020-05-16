@@ -1233,20 +1233,20 @@ class Sensation(object):
 #             s=str(self.robotId) + ' ' + str(self.id) + ' ' + str(self.time) + ' ' + str(self.association_time) + ' ' + Sensation.getMemoryTypeString(self.memoryType) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
 #         else:
 #             s=self.__str__()
-        s = systemTime.ctime(self.time) + ' ' + str(self.robotId) + ' ' + str(self.id) + ' ' + Sensation.getMemoryTypeString(self.memoryType) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)+ ' Locations ' + self.getLocationsStr()
+        s = systemTime.ctime(self.time) + ':' + str(self.robotId) + ':' + str(self.id) + ':' + Sensation.getMemoryTypeString(self.memoryType) + ':' + Sensation.getDirectionString(self.direction) + ':' + Sensation.getSensationTypeString(self.sensationType)+ ':' + self.getLocationsStr()+ ':'
         if self.sensationType == Sensation.SensationType.Voice:
-            s = s + ' ' + Sensation.getKindString(self.kind)
+            s = s + ':' + Sensation.getKindString(self.kind)
 #         elif self.sensationType == Sensation.SensationType.Image:
-#             s = s + ' ' + self.getLocationsStr()
+#             s = s + ':' + self.getLocationsStr()
         elif self.sensationType == Sensation.SensationType.Item:
-            s = s + ' ' + self.name + ' ' + str(self.score) + ' ' + Sensation.getPresenceString(self.presence)
+            s = s + ':' + self.name + ':' + str(self.score) + ':' + Sensation.getPresenceString(self.presence)
         elif self.sensationType == Sensation.SensationType.Feeling:
             if self.getPositiveFeeling():
-                s = s + ' positiveFeeling'
+                s = s + ':positiveFeeling'
             if self.getNegativeFeeling():
-                s = s + ' negativeFeeling'
+                s = s + ':negativeFeeling'
             else:
-                s = s + ' ' + Sensation.getFeelingString(self.getAssociateFeeling())
+                s = s + ':' + Sensation.getFeelingString(self.getAssociateFeeling())
             
         return s
 

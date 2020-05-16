@@ -137,7 +137,8 @@ class RaspberryPiCamera(Robot):
         if self.isChangedImage(image):
             self.log("sense self.getParent().getAxon().put(robot=self, sensation) stream {}".format(len(stream.getvalue())))
             # put direction out (seen image) to the parent Axon going up to main Robot
-            sensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, image=image)
+            sensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out,
+                                              image=image, locations=self.getLocations())
 #            sensation.save()
             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation, association=None)
         else:

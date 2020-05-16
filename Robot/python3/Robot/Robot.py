@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 30.04.2020
+Updated on 16.05.2020
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -568,7 +568,7 @@ class Robot(Thread):
         
     def log(self, logStr, logLevel=LogLevel.Normal):
          if logLevel <= self.getLogLevel():
-             print(self.getWho() + ":" + str( self.config.level) + ":" + Sensation.Modes[self.mode] + ": " + logStr)
+             print(self.getWho() + ":" + str(self.config.level) + ":" + Sensation.Modes[self.mode] + ":" + self.getLocationsStr() + ": " + logStr)
 
     def stop(self):
         self.log(logLevel=Robot.LogLevel.Normal, logStr="Stopping robot")      
@@ -615,7 +615,8 @@ class Robot(Thread):
                                                 who = self.getWho(),
                                                 name = self.getWho(),
                                                 presence = Sensation.Presence.Present,
-                                                kind=self.getKind())
+                                                kind=self.getKind(),
+                                                locations='')           # valid everywhere)
         if self.isMainRobot() or self.getInstanceType() == Sensation.InstanceType.Virtual:
             self.imageSensations, self.voiceSensations = self.getIdentitySensations(who=self.getWho())
             if len(self.imageSensations) > 0:
@@ -891,12 +892,14 @@ class Robot(Thread):
 class Identity(Robot):
     from threading import Timer
 
-    SLEEPTIME = 60.0
+    # test
+    SLEEPTIME = 10.0
+    # normal
+    #SLEEPTIME = 60.0
 #    SLEEPTIME = 5.0
     SLEEP_BETWEEN_IMAGES = 20.0
     SLEEP_BETWEEN_VOICES = 10.0
     VOICES_PER_CONVERSATION = 4
-    COMMUNICATION_INTERVAL=600       # continue 10 mins and then stop
    
     def __init__(self,
                  parent,
@@ -914,16 +917,23 @@ class Identity(Robot):
                        instanceType=instanceType,
                        level=level)
         print("We are in Identity, not Robot")
-        self.identitypath = self.config.getIdentityDirPath(self.getKind())
+        self.identitypath = self.config.getIdentityDirPath(self.getParent().getWho()) # parent's location, parent's Identity
         self.imageind=0
         self.voiceind=0
         self.sleeptime = Identity.SLEEPTIME
+
+    '''
+    Always get locations from parent
+    '''        
+    def getLocations(self):
+        return self.getParent().getLocations(self)
+        
         
 
     def run(self):
         self.running=True
         self.mode = Sensation.Mode.Starting
-        self.log("run: Starting Identity Robot who " + self.getWho() + " kind " + self.getKind() + " instanceType " + self.getInstanceType())      
+        self.log("run: Starting Identity Robot for who " + self.getParent().getWho() + " kind " + self.getKind() + " instanceType " + self.getInstanceType())      
                    
         # wait until started so all others can start first        
         time.sleep(self.sleeptime)
@@ -940,11 +950,13 @@ class Identity(Robot):
     '''   
     def tellOwnIdentity(self):
         
-        selfSensation = self.createSensation( associations=[], sensation=self.getParent().selfSensation, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out)
+        selfSensation = self.createSensation( associations=[], sensation=self.getParent().selfSensation, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out,
+                                              locations='') # valid everywhere
         self.log('tellOwnIdentity: selfSensation self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=' + selfSensation.toDebugStr())      
         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=selfSensation, association=None) # or self.process
        
-        imageSensation = self.createSensation( associations=[], sensation=self.getParent().imageSensations[self.imageind], memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out)
+        imageSensation = self.createSensation( associations=[], sensation=self.getParent().imageSensations[self.imageind], memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out,
+                                               locations='') # valid everywhere
         #imageSensation.setMemoryType(memoryType = Sensation.MemoryType.Sensory)
         self.log('tellOwnIdentity: self.imageind  ' + str(self.imageind) + ' self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=' + imageSensation.toDebugStr())      
         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None) # or self.process
@@ -955,7 +967,8 @@ class Identity(Robot):
 
         for i in range(Identity.VOICES_PER_CONVERSATION):          
             time.sleep(Identity.SLEEP_BETWEEN_VOICES)
-            voiceSensation = self.createSensation( associations=[], sensation=self.getParent().voiceSensations[self.voiceind], memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out)
+            voiceSensation = self.createSensation( associations=[], sensation=self.getParent().voiceSensations[self.voiceind], memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out,
+                                                    locations='') # valid everywhere
             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation, association=None) # or self.process
             self.log("tellOwnIdentity: " + str(self.voiceind) + " self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=" + voiceSensation.toDebugStr())      
             self.voiceind=self.voiceind+1

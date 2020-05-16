@@ -110,6 +110,13 @@ class AlsaAudioMicrophonePlayback(Robot):
                         #self.alsaAudioPlayback.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation, association=association)
                         self.nextSenseTime = systemTime.time() + self.alsaAudioPlayback.getPlaybackTime(datalen=len(sensation.getData()))
                         self.alsaAudioPlayback.process(transferDirection=transferDirection, sensation=sensation, association=association)
+                        if  self.nextSenseTime is None:
+                            self.nextSenseTime = systemTime.time() + self.alsaAudioPlayback.getPlaybackTime(datalen=len(sensation.getData()))
+                        elif self.nextSenseTime > systemTime.time(): # there was pending wait time
+                            self.nextSenseTime = self.nextSenseTime - systemTime.time() + systemTime.time() + self.alsaAudioPlayback.getPlaybackTime(datalen=len(sensation.getData()))
+                        else:   # no pending wait time left, sleep normal time for this voice
+                            self.nextSenseTime = systemTime.time() + self.alsaAudioPlayback.getPlaybackTime(datalen=len(sensation.getData()))
+
                         
                         # sleep voice playing length, so we don't sense spoken voices
                         #systemTime.sleep(self.alsaAudioPlayback.getPlaybackTime())

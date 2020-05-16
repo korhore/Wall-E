@@ -198,10 +198,10 @@ class Config(ConfigParser):
         # handle identitys
         if not os.path.exists(self.IDENTITYS):
             os.makedirs(self.IDENTITYS)
-        for kind, kindstr in Sensation.Kinds.items():
-            dir = self.getIdentityDirPath(kind)
-            if not os.path.exists(dir):
-                os.makedirs(dir)
+#         for kind, kindstr in Sensation.Kinds.items():
+#             dir = self.getIdentityDirPath(kind)
+#             if not os.path.exists(dir):
+#                 os.makedirs(dir)
                     
          # handle subInstances (senses, muscles)
          # for two levels

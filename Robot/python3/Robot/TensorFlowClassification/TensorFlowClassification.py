@@ -1,6 +1,6 @@
 '''
 Created on 30.04.2019
-Updated on 10.04.2020
+Updated on 16.05.2020
 
 @author: reijo.korhonen@gmail.com
 '''
@@ -659,7 +659,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                     subsubimage = subimage.crop(size)
                               
                     subsensation = self.createSensation( sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Working, direction = Sensation.Direction.Out,\
-                                                         image=subsubimage)
+                                                         image=subsubimage, locations=self.getLocations())
                     self.log("process created subimage sensation " + subsensation.toDebugStr())
                     # don't associate to original image sensation
                     # we wan't to save memory and subimage is important, not whore image
@@ -667,7 +667,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                     subsensation.save()
                                       
                     itemsensation = self.createSensation( sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, direction = Sensation.Direction.Out,
-                                                          name=name, score=scores[i], presence = precence)
+                                                          name=name, score=scores[i], presence = precence, locations=self.getLocations())
                     itemsensation.associate(sensation=subsensation)
                     self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(scores[i]))
                     self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))

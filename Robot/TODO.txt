@@ -18,6 +18,9 @@ and TensorflowClassification will stop
 
 Develop
 -------
+Don't change Voice more than once. But this should be true, voice is changed in Playback.
+Maybe Microphone captures voice enen ttine, when should not.
+
 Study swarm intelligence. Should we delegate communication as a best response to our swarm
 and can we just choose best response. Can we define swarm intually? Or should we deny swarm
 to communicate and reserve only one Communication per location. This means that Communication uses

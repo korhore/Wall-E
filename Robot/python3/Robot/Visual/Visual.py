@@ -1,6 +1,6 @@
 '''
 Created on 12.03.2020
-Updated on 02.05.2020
+Updated on 16.05.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -46,46 +46,51 @@ class Visual(Robot):
     COLUMN_DATA_TYPE_IMAGE =   1
     
     # log panel
-    LOG_PANEL_SENSATION_LINES =          18
-    LOG_PANEL_SENSATION_COLUMNS =        5
+    LOG_PANEL_SENSATION_LINES =          16
+    LOG_PANEL_SENSATION_COLUMNS =        7
     LOG_PANEL_COLUMN_DATA_TYPE_COLUMNS = 2
     
     LOG_PANEL_COLUMN_TYPE =              0
     LOG_PANEL_COLUMN_DATA =              1
     LOG_PANEL_COLUMN_MEMORY =            2
     LOG_PANEL_COLUMN_DIRECTION =         3
-    LOG_PANEL_COLUMN_TIME =              4
+    LOG_PANEL_COLUMN_LOCATIONS =         4
+    LOG_PANEL_COLUMN_RECEIVEDFROM =      5
+    LOG_PANEL_COLUMN_TIME =              6
+    
+    # Common panel column names
+    PANEL_COLUMN_TIME_NAME =             'Time'
+    PANEL_COLUMN_LOCATIONS_NAME =        'Locations'
+    PANEL_COLUMN_RECEIVEDFROM_NAME =     'ReceivedFrom'
 
     # log penel
     LOG_PANEL_COLUMN_TYPE_NAME =         'Type'
     LOG_PANEL_COLUMN_DATA_NAME =         'Data'
     LOG_PANEL_COLUMN_MEMORY_NAME =       'Memory'
     LOG_PANEL_COLUMN_DIRECTION_NAME =    'Direction'
-    LOG_PANEL_COLUMN_TIME_NAME =         'Time'
     
     # tree log panel
     
     #communication panel
-    COMMUNICATION_PANEL_SENSATION_LINES =     18
-    COMMUNICATION_PANEL_SENSATION_COLUMNS =   8
+    COMMUNICATION_PANEL_SENSATION_LINES =     16
+    COMMUNICATION_PANEL_SENSATION_COLUMNS =   9
     
     COMMUNICATION_COLUMN_FIRST =              0
-    COMMUNICATION_COLUMN_FEELING =            1
-    COMMUNICATION_COLUMN_FEELING_DIRECTION =  2
-    COMMUNICATION_COLUMN_OTHER =              3
+    COMMUNICATION_COLUMN_OTHER =              1
+    COMMUNICATION_COLUMN_FEELING =            2
+    COMMUNICATION_COLUMN_FEELING_DIRECTION =  3
     COMMUNICATION_COLUMN_POSITIVE =           4
     COMMUNICATION_COLUMN_NEGATIVE =           5
-    COMMUNICATION_COLUMN_TIME =               6
+    COMMUNICATION_COLUMN_LOCATIONS =          6
     COMMUNICATION_COLUMN_RECEIVEDFROM =       7
+    COMMUNICATION_COLUMN_TIME =               8
 
     COMMUNICATION_COLUMN_FIRST_NAME =         'First'
+    COMMUNICATION_COLUMN_OTHER_NAME =         'Other'
     COMMUNICATION_COLUMN_FEELING_NAME =       'Feeling'
     COMMUNICATION_COLUMN_FEELING_DIRECTION_NAME =  'Change'
-    COMMUNICATION_COLUMN_OTHER_NAME =         'Other'
     COMMUNICATION_COLUMN_POSITIVE_NAME =      'Positive'
     COMMUNICATION_COLUMN_NEGATIVE_NAME =      'Negative'
-    COMMUNICATION_COLUMN_TIME_NAME =          'Time'
-    COMMUNICATION_COLUMN_RECEIVEDFROM_NAME =  'ReceivedFrom'
     
     
     TREE_UNUSED_AREA_COLOUR =           wx.Colour( 7*255/8, 7*255/8, 7*255/8 )
@@ -321,7 +326,9 @@ class Visual(Robot):
                 (wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_DATA_NAME), 0, wx.EXPAND),                       # 1
                 (wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_MEMORY_NAME), 0, wx.EXPAND),                     # 2
                 (wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_DIRECTION_NAME), 0, wx.EXPAND|wx.ALIGN_CENTER),  # 3
-                (wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_TIME_NAME), 0, wx.EXPAND)])                      # 4
+                (wx.StaticText(self, label=Visual.PANEL_COLUMN_LOCATIONS_NAME), 0, wx.EXPAND),                      # 4
+                (wx.StaticText(self, label=Visual.PANEL_COLUMN_RECEIVEDFROM_NAME), 0, wx.EXPAND),                   # 5
+                (wx.StaticText(self, label=Visual.PANEL_COLUMN_TIME_NAME), 0, wx.EXPAND)])                          # 6
             for j in range(Visual.LOG_PANEL_SENSATION_COLUMNS):
                 item = self.gs.GetItem(j)               
                 item.GetWindow().SetFont(headerFont) 
@@ -440,6 +447,14 @@ class Visual(Robot):
                 if item is not None and item.IsWindow():
                     item.GetWindow().SetLabel(Sensation.getDirectionString(direction=sensation.getDirection()))
                     
+                item = self.gs.GetItem(Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_LOCATIONS)
+                if item is not None and item.IsWindow():
+                    item.GetWindow().SetLabel(sensation.getLocationsStr())
+                    
+                item = self.gs.GetItem(Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_RECEIVEDFROM)
+                if item is not None and item.IsWindow():
+                    item.GetWindow().SetLabel(str(sensation.getReceivedFrom()))
+
                 item = self.gs.GetItem(Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_TIME)
                 if item is not None and item.IsWindow():
                     item.GetWindow().SetLabel(time.ctime(sensation.getTime()))
@@ -668,13 +683,14 @@ class Visual(Robot):
             headerFont = wx.Font(18, wx.DECORATIVE, wx.ITALIC, wx.BOLD)
              
             self.gs.AddMany( [(wx.StaticText(self, label=Visual.COMMUNICATION_COLUMN_FIRST_NAME), 0, wx.EXPAND),       # 0
-                (wx.StaticText(self, label=Visual.COMMUNICATION_COLUMN_FEELING_NAME), 0, wx.EXPAND),                   # 1
-                (wx.StaticText(self, label=Visual.COMMUNICATION_COLUMN_FEELING_DIRECTION_NAME), 0, wx.EXPAND),         # 2
-                (wx.StaticText(self, label=Visual.COMMUNICATION_COLUMN_OTHER_NAME), 0, wx.EXPAND),                     # 3
+                (wx.StaticText(self, label=Visual.COMMUNICATION_COLUMN_OTHER_NAME), 0, wx.EXPAND),                     # 1
+                (wx.StaticText(self, label=Visual.COMMUNICATION_COLUMN_FEELING_NAME), 0, wx.EXPAND),                   # 2
+                (wx.StaticText(self, label=Visual.COMMUNICATION_COLUMN_FEELING_DIRECTION_NAME), 0, wx.EXPAND),         # 3
                 (wx.StaticText(self, label=Visual.COMMUNICATION_COLUMN_POSITIVE_NAME), 0, wx.EXPAND),                  # 4
                 (wx.StaticText(self, label=Visual.COMMUNICATION_COLUMN_NEGATIVE_NAME), 0, wx.EXPAND),                  # 5
-                (wx.StaticText(self, label=Visual.COMMUNICATION_COLUMN_TIME_NAME), 0, wx.EXPAND),                      # 6
-                (wx.StaticText(self, label=Visual.COMMUNICATION_COLUMN_RECEIVEDFROM_NAME), 0, wx.EXPAND)])             # 7
+                (wx.StaticText(self, label=Visual.PANEL_COLUMN_LOCATIONS_NAME), 0, wx.EXPAND),                         # 6
+                (wx.StaticText(self, label=Visual.PANEL_COLUMN_RECEIVEDFROM_NAME), 0, wx.EXPAND),                      # 7
+                (wx.StaticText(self, label=Visual.PANEL_COLUMN_TIME_NAME), 0, wx.EXPAND)])                             # 8
             for j in range(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS):
                 item = self.gs.GetItem(j)               
                 item.GetWindow().SetFont(headerFont) 
@@ -768,6 +784,10 @@ class Visual(Robot):
                 if item is not None and item.IsSizer():
                     self.showSensation(data_gs = item.GetSizer(), sensation=sensation.getFirstAssociateSensation())
                     
+                item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_OTHER)
+                if item is not None and item.IsSizer():
+                    self.showSensation(data_gs = item.GetSizer(), sensation=sensation.getOtherAssociateSensation())
+
                 item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_FEELING)
                 if item is not None and item.IsWindow():
                     label=''
@@ -783,10 +803,6 @@ class Visual(Robot):
                 if item is not None and item.IsWindow():
                     item.GetWindow().SetLabel(self.getFeelingDirectionString(sensation = sensation))
 
-                item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_OTHER)
-                if item is not None and item.IsSizer():
-                    self.showSensation(data_gs = item.GetSizer(), sensation=sensation.getOtherAssociateSensation())
-
                 item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_POSITIVE)
                 if item is not None and item.IsWindow():
                     item.GetWindow().setSensation(sensation=sensation)
@@ -794,13 +810,17 @@ class Visual(Robot):
                 if item is not None and item.IsWindow():
                     item.GetWindow().setSensation(sensation=sensation)
                     
-                item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_TIME)
+                item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_LOCATIONS)
                 if item is not None and item.IsWindow():
-                    item.GetWindow().SetLabel(time.ctime(sensation.getTime()))
+                    item.GetWindow().SetLabel(sensation.getLocationsStr())
                     
                 item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_RECEIVEDFROM)
                 if item is not None and item.IsWindow():
                     item.GetWindow().SetLabel(str(sensation.getReceivedFrom()))
+
+                item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_TIME)
+                if item is not None and item.IsWindow():
+                    item.GetWindow().SetLabel(time.ctime(sensation.getTime()))
                     
                 self.Refresh()
                 # in raspberry data_gs rows are not updated both SetLevels, if we don't change main windows size so

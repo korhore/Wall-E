@@ -166,7 +166,7 @@ class Communication(Robot):
                     feelingSensation = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                       firstAssociateSensation=self.mostImportantItemSensation, otherAssociateSensation=self.mostImportantVoiceSensation,
                                                       #associateFeeling=communicationItem.getAssociation().getFeeling())
-                                                      positiveFeeling=True)
+                                                      positiveFeeling=True, locations=self.getLocations()) # valid in this location, can be chosen other way
                     self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation, association=None)
                         # TODO
                         
@@ -271,7 +271,8 @@ class Communication(Robot):
         if onStart and len(self.getMemory().getRobot().voiceSensations) > 0:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: onStart')
             #data = self.getMemory().getRobot().voices[self.voiceind]
-            self.spokedVoiceSensation = self.createSensation( associations=[], sensation=self.getMemory().getRobot().voiceSensations[self.voiceind], memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out)
+            self.spokedVoiceSensation = self.createSensation( associations=[], sensation=self.getMemory().getRobot().voiceSensations[self.voiceind],
+                                                              memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, locations=self.getLocations())
             #self.spokedVoiceSensation.setMemoryType(memoryType = Sensation.MemoryType.Sensory)
             #self.spokedVoiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, data=data)
             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation, association=None) # or self.process
@@ -339,7 +340,8 @@ class Communication(Robot):
             self.mostImportantVoiceSensation.save()     # for debug reasons save voices we have spoken as heard voices
             
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: self.getMemory().getMostImportantSensation did find self.mostImportantItemSensation OK')
-            self.spokedVoiceSensation = self.createSensation( sensation = self.mostImportantVoiceSensation, kind=self.getKind() )
+            self.spokedVoiceSensation = self.createSensation( sensation = self.mostImportantVoiceSensation, kind=self.getKind(),
+                                                              locations=self.getLocations() )
             self.spokedVoiceSensation.attach(robot=self)         #attach Sensation until speaking is ended based on these voices
             # test
             #self.spokedVoiceSensation = self.mostImportantVoiceSensation
@@ -387,7 +389,7 @@ class Communication(Robot):
             feelingSensation = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                     firstAssociateSensation=self.mostImportantItemSensation, otherAssociateSensation=self.mostImportantVoiceSensation,
                                                           #associateFeeling=communicationItem.getAssociation().getFeeling())
-                                                    negativeFeeling=True)
+                                                    negativeFeeling=True, locations=self.getLocations()) # valid in this location, can be chosen also other way
             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation, association=None)
         
  

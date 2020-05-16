@@ -27,8 +27,9 @@ class Axon():
     def put(self, robot, transferDirection, sensation, association=None, detach=True):
         self.robot.log("Axon put from {} to {} with original queue length {} full {}".format(robot.getWho(),self.robot.getWho(), self.queue.qsize(), self.queue.full()))
         sensation.attach(self.robot)                        # take ownership
-        if len(sensation.getLocations()) == 0:              # if sensations does not have locations yet, set it as robots locations.
-            sensation.setLocations(self.robot.getLocations())   #
+# let Robots decide locations
+#         if len(sensation.getLocations()) == 0:              # if sensations does not have locations yet, set it as robots locations.
+#             sensation.setLocations(self.robot.getLocations())   #
         if detach:
             sensation.detach(robot)         # release from caller
         self.queue.put((transferDirection, sensation, association))
