@@ -1702,7 +1702,7 @@ class Sensation(object):
     Add single receivedFrom
     '''
     def addReceived(self, host):
-        if host not in self.receivedFrom:
+        if len(host) > 0 and host not in self.receivedFrom:
             self.receivedFrom.append(host)
          
     '''
