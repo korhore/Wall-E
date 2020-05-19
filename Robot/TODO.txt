@@ -1,97 +1,39 @@
 Critical
 --------
 
-OOps
-Sensations cache Not Forgottable robot SocketClient: ('192.168.117.247', 2000) number 1394
-
-With raspberry
-- tensorflow Version: 1.14.0
-
-- model coco v1 can get (got once)
-
-2020-02-28 18:59:09.755980: W tensorflow/core/grappler/optimizers/meta_optimizer.cc:573] memory_optimizer failed: Deadline exceeded: memory_optimizer exceeded deadline., time = 563687.375ms.
-tensorflow/core/grappler/optimizers/meta_optimizer.cc:573]
-
-and TensorflowClassification will stop
-
-
-
 Develop
 -------
-Don't change Voice more than once. But this should be true, voice is changed in Playback.
-Maybe Microphone captures voice enen ttine, when should not.
+
+Allow tcp-connection starting both sides, so last started site can connect
+ 
+non-verbal expression
+- is it enoungh to use Feeling sensation type
+
+Alertness:
+- sleeping, normal, tired etc.
+-- this allows us imlement sleeping functionalitys like organice momory (save to database,
+   pic longTerm SEnsations, dream (meaning what if somethong happenes or granice memory to more clear)
+
+Allow non-verbal expression sense by keyboard
+Implenebt non-verba- expression to Visual
 
 Study swarm intelligence. Should we delegate communication as a best response to our swarm
 and can we just choose best response. Can we define swarm intually? Or should we deny swarm
 to communicate and reserve only one Communication per location. This means that Communication uses
-that Menory, that is is found in its (computer's) MainRobot.
-
-Assign to most memorable assign, now we ignore assignation if max of assignations is reached.
-Accept new assignation, but forget less memorable one.
+that Memory, that is is found in its (computer's) MainRobot.
 
 Do we try to reconnect to hosts, if connection is lost.
 
-Should Identity send voices and images as 'Global'  and all robots route them
-so all can hear them?
-
-
-OK When we transfer Sensation with TCP as bytes, do we restore also id exactly same
-in receiver that it was in sender?
-
-Add Location to Configuration, Robot and Sensation.
-
 Next to do is is implement Location based Presence.
-Also Communicarion should support Location(s). Can we communicate to 'other'
+Also Communication should support Location(s). Can we communicate to 'other'
 or many Locations. Yes, there is not only our own Location and in Memory, there
 are Sensations from many Locations.
+- But is this wice? Many communications in one place, where Robot should know that voice comes from other Robot,
+  so itemName should be that Robot speking. But we don't handle speaking Item.name now very well,
+  because we don't know what prent Irem.name is actually speaking. We should solve also this problem. 
+  One solutions is mark in Micxrophone all present Item.names as speaker (just assign)
+  and when speaker is Robot itself, set just Iten.Name==Robot.who as speaker.
 
-When we or Capabilities, we should or also Locations, but only by Direction.In Location, speak out, etc.,
-but that we can't do, because capabilituis can't be separated by foreihn Robots,
-so make just or for Locations and test how it works. This  orred capabilities should be
-sent to other part of tcp-connection.
-
-Robots wll be organized by Location. One Location will include Robot group,
-that is reasonable "human being", senses to create4 Senstion and muscles like
-speak and show, move etc. and Memory. This group will also include Communication,
-So this is Location based Awareness.
-- When we hear, we hear in one Location,
-- When we speak as respense, we speak to that Location we heard.
-- Communication can give responce also based on other Locations heard Voices,
-  so Memory is not Location based, but Sensation includes Location(s).
-- Location(s) based Robots and Sesatioions are now
--- Microphone, Voice
--- Speaker, Voice
--- Camera, Image
--- Projector, Image
--- Communication, Voice, Image
--- TensorflowClassification, Item, presence
-- They should all ne owned by one or many  'MainRobot(s)', in one
-or many computers. those 'MainRobots' also that have also Memory, so
-Memory is somehow distributes and nor t only inside one 'MainRobot'.
-So it seems that play with new parameter 'Location'. Seems that easiest way
-is set up one Communication for one Robot group LOcation.
-We coulkd also allow manu Rbo groups in one Location like Wall-E and Eva
-sharing same senses and muscles. Implementation could use VirtualRobot or the normal
-'MainRobots' in different computers. Start to build configuration where Ubuntu is 'Wall-E'
-and raspberry is Eva' nas senses come from Raspberry. There can be two speakers,
-one per computer fot debug reasons.
--- Seems that all SensationTypes should have this Locations property, not only
-   Voice and Image, because it's hard to know what are common and what are Location
-   based Sensations, so make all to be configurable in Robot.cfg
--- Presence should also be Location based
--- Routing: should we have a route max. Otherwise there will come too much trafffic in the network.
-
-TODO Now
-1) set locations from iwput Robots
-2) in Communication Robot we should process all,
-   but voices are set to locations fron inout
-3) MainRobot level sends respond voices to original voice source.
-4) Expand communication to vommunicate also with images, not waiting respomces yet.
-
-Capabilities should have one level more, Location.
-- Config and Capabilities have now locations, but no levels.
-  Capabilities are valid in these locations, but lot elsewhere
- 
 Next Step would be to implement Awareness-type Robot. This is "new MainRobot
 with new name", but it will include missing Awareness-features, when
 technical MainRobot-features are moved to Robot-common implementation.
@@ -101,15 +43,8 @@ Awareness includes:
 - Activitylevel
 - Location
 
-OK Simplyfy Communication much.
-When we don't get responce, we know present Item.named and original Voice that was chosen
-to be played.  played. Feel negative with Iten.name and that original Voice
-
-And opposite way if we get an response,
-
-Implement alsa Sensationype.Feeling positive, negative
 Less Logging to Visual
-Don't associate Feeling in Memory, but forget when done
+Don't associate Sensory.Feeling in Memory, but forget when done
 
 OK Next step will be study and implement Association in Axon, Robot.process in memory level Robots, meaning MainRobot level. Association has score and feeling, so syudy how to implemt 'feel better,
 or feel worse about fron subject to object sensation.
@@ -345,7 +280,114 @@ People log to present <-              !   !
   instance 2/3 rate ( meaning, that we use produce 2/3 sample amount of 1
   
 - Robot should deliver sensations only to subRobots running
--- low priority, because problen comes, if some subrobot die and they don't if no developing problems.  
+-- low priority, because problen comes, if some subrobot die and they don't if no developing problems.
+
+Corrected
+---------
+
+OK Don't associate Sensory.Feeling in Memory, but forget when done
+- getMemorability for feeling is 0.0, so it will be deleted soon
+
+OK Simplyfy Communication much.
+- When we don't get responce, we know present Item.named and original Voice that was chosen
+  to be played. Feel negative with Iten.name and that original Voice
+
+  And opposite way if we get an response,
+
+OK Implement Sensationype.Feeling positive, negative
+
+OK When we transfer Sensation with TCP as bytes, do we restore also id exactly same
+in receiver that it was in sender?
+
+OK Add Location to Configuration, Robot and Sensation.
+OK all for this
+When we use Capabilities, we should or also use Locations, but only by Direction.In Location, speak out, etc.,
+but that we can't do, because capabilituis can't be separated by foreign Robots,
+so make just or for Locations and test how it works. This  orred capabilities should be
+sent to other part of tcp-connection.
+
+Robots wll be organized by Location. One Location will include Robot group,
+that is reasonable "human being", senses to create4 Senstion and muscles like
+speak and show, move etc. and Memory. This group will also include Communication,
+So this is Location based Awareness.
+- When we hear, we hear in one Location,
+- When we speak as respense, we speak to that Location we heard.
+- Communication can give responce also based on other Locations heard Voices,
+  so Memory is not Location based, but Sensation includes Location(s).
+- Location(s) based Robots and Sesatioions are now
+-- Microphone, Voice
+-- Speaker, Voice
+-- Camera, Image
+-- Projector, Image
+-- Communication, Voice, Image
+-- TensorflowClassification, Item, presence
+- They should all be owned by one or many  'MainRobot(s)', in one
+or many computers. those 'MainRobots' also that have also Memory, so
+Memory is somehow distributes and nor t only inside one 'MainRobot'.
+So it seems that play with new parameter 'Location'. Seems that easiest way
+is set up one Communication for one Robot group Location.
+We coulkd also allow many Robot groups in one Location like Wall-E and Eva
+sharing same senses and muscles. Implementation could use VirtualRobot or the normal
+'MainRobots' in different computers. Start to build configuration where Ubuntu is 'Wall-E'
+and raspberry is Eva' nas senses come from Raspberry. There can be two speakers,
+one per computer fot debug reasons.
+-- Seems that all SensationTypes should have this Locations property, not only
+   Voice and Image, because it's hard to know what are common and what are Location
+   based Sensations, so make all to be configurable in Robot.cfg
+-- Presence should also be Location based
+-- Routing: should we have a route max. Otherwise there will come too much trafffic in the network.
+
+TODO Now
+1) set locations from input Robots
+2) in Communication Robot we should process all,
+   but voices are set to locations fron inout
+3) MainRobot level sends respond voices to original voice source.
+4) Expand communication to vommunicate also with images, not waiting respomces yet.
+
+Capabilities should have one level more, Location.
+- Config and Capabilities have now locations, but no levels.
+  Capabilities are valid in these locations, but not elsewhere
+ 
+
+
+OK Should Identity send voices and images as 'Global'  and all robots route them
+so all can hear them?
+-- Yes, this is done to sel Location empty
+
+OK Maybe Microphone captures voice at  time, when should not.
+-- corrected creating and routing wrong sensation
+OK Don't change Voice more than once. But this should be true, voice is changed in Playback.
+-- But what is this? Voices should not be played or changes elsewhere than in Playback, so this shouls not be happened.
+-- Original problem was with Playback ans Microphone, that allows Microphone record, when playback was on. Error was routing wrong Sensation to Microphone,
+   as explained above.
+
+
+OK Assign to most memorable assign, now we ignore assignation if max of assignations is reached.
+Accept new assignation, but forget less memorable one.
+- just removed limitation
+
+
+OK model coco v1 can get (got once)
+
+2020-02-28 18:59:09.755980: W tensorflow/core/grappler/optimizers/meta_optimizer.cc:573] memory_optimizer failed: Deadline exceeded: memory_optimizer exceeded deadline., time = 563687.375ms.
+tensorflow/core/grappler/optimizers/meta_optimizer.cc:573]
+
+and TensorflowClassification will stop
+-- not got any more, no critical
+
+OK OOps
+Sensations cache Not Forgottable robot SocketClient: ('192.168.117.247', 2000) number 1394
+Not problem any more
+
+
+Configuration info
+------------------
+
+With raspberry
+- tensorflow Version: 1.14.0
+
+
+
   
 
 

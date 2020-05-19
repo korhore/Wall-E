@@ -44,7 +44,7 @@ class SensationTestCase(unittest.TestCase):
     def tearDown(self):
         self.sensation.delete()
         
-    def test_Memorybility(self):        
+    def test_Memorybility(self):
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
                                                       name='Working_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Exiting)
         self.assertIs(workingSensation.getPresence(), Sensation.Presence.Exiting, "should be exiting")
@@ -83,6 +83,12 @@ class SensationTestCase(unittest.TestCase):
         print("longTermSensation.getLiveTimeLeftRatio() " + str(longTermSensation.getLiveTimeLeftRatio()))
         print("longTermSensation.getMemorability() " + str(longTermSensation.getMemorability()))
         self.assertTrue(workingSensation.getMemorability() > longTermSensation.getMemorability(), 'half Sensory lifetime Working sensation must be more Memorability than LongTerm sensation')
+
+        # test Feeling, it is not worth to remember after processed
+        feelingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
+                                                     firstAssociateSensation=longTermSensation, otherAssociateSensation=workingSensation,
+                                                     negativeFeeling=True, locations=self.robot.getLocations())
+        self.assertTrue(feelingSensation.getMemorability() == 0.0, 'feelingSensation sensation must be zero')
 
         # set sensation more to the past and look again        
         history_time = Sensation.sensationMemoryLiveTimes[self.sensation.getMemoryType()] * 0.8      
@@ -251,6 +257,14 @@ class SensationTestCase(unittest.TestCase):
         self.assertTrue(self.sensation.getMemorability() == 0.0, 'beyond end Sensory lifetime Sensory sensation must be zero')
         self.assertTrue(workingSensation.getMemorability() == 0.0, 'beyond end working lifetime Sensory sensation must be zero')
         self.assertTrue(longTermSensation.getMemorability()  == 0.0, 'beyond end long term lifetime Sensory sensation must be zero')
+        
+        # test Feeling, it is not worth to remember aftered processed
+        feelingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
+                                                     firstAssociateSensation=longTermSensation, otherAssociateSensation=workingSensation,
+                                                     negativeFeeling=True, locations=self.robot.getLocations())
+        self.assertTrue(feelingSensation.getMemorability()  == 0.0, 'feelingSensation sensation must be zero')
+             
+        
 
     def test_Importance(self):        
         print("\ntest_Importance")

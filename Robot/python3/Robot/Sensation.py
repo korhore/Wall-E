@@ -1396,7 +1396,9 @@ class Sensation(object):
        '''
     def getMemorability(self):
         try:
-            if self.getMemoryType() == Sensation.MemoryType.Sensory:
+            if self.getSensationType() == Sensation.SensationType.Feeling:   ## Feeling is functional Sensation
+                memorability = 0.0
+            elif self.getMemoryType() == Sensation.MemoryType.Sensory:
                 memorability =  10.0 * (math.log10(10.0 + 10.0 * self.getLiveTimeLeftRatio()) -1.0)
             elif self.getMemoryType() == Sensation.MemoryType.Working:
                 memorability =  math.e * (math.log(math.e + math.e * self.getLiveTimeLeftRatio()) - 1.0)

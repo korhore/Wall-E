@@ -184,7 +184,9 @@ class Memory(object):
         if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemoryType() == Sensation.MemoryType.Working and\
                sensation.getDirection() == Sensation.Direction.Out:
                self.tracePresents(sensation)
-        self.assign(sensation)
+        # assign other than Feeling sensations
+        if sensation.getSensationType() != Sensation.SensationType.Feeling:
+            self.assign(sensation)
         
         return sensation
     
@@ -217,7 +219,7 @@ class Memory(object):
                 
             sensation.memoryType = memoryType
             #sensation.time = systemTime.time()   # if we change memoryType, this is new Sensation, NO keep times, association handles if associated later
-            self.forgetLessImportantSensations(sensation) # muat forget here. because if not created, this is only place fot Longerm-Senasations to be removed from cache
+            self.forgetLessImportantSensations(sensation) # must forget here. because if not created, this is only place fot Longerm-Senasations to be removed from cache
             self.sensationMemorys[memoryType].append(sensation)
             self.memoryLock.releaseWrite()  # thread_safe
 
