@@ -179,8 +179,35 @@ class Memory(object):
                  associateFeeling = associateFeeling,
                  positiveFeeling = positiveFeeling,
                  negativeFeeling = negativeFeeling)
-        sensation.attach(robot=robot)   # always create sensation attached by creator
-        self.addToSensationMemory(sensation)
+        # if bytes, then same Sensation can live in many memories
+        # check if we have a copy and choose newer one and delete older one
+        if bytes != None:
+            oldSensation = self.getSensationFromSensationMemory(id=sensation.getId())
+            if oldSensation is not None:
+                if oldSensation.getTime() > sensation.getTime():
+                    # TODO how to properly delete sensation with associations to same sensation ids?
+                    del sensation
+                    sensation=oldSensation    # keep old sensation as it is
+                else:
+                    #update old sensation
+                    Sensation.updateBaseFields(destination=oldSensation, source=sensation)
+                    for associationIds in sensation.associations:
+                        associateSensation = self.getSensationFromSensationMemory(id=associationIds.getSensationId())
+                        if associateSensation is not None:
+                            oldSensation.associate(sensation=associateSensation,
+                                                   time = associationIds.getTime(),
+                                                   feeling = associationIds.getFeeling())
+                    oldSensation.receivedFrom=sensation.receivedFrom
+                    del sensation
+                    sensation=oldSensation           # keep old updated sensation
+                sensation.attach(robot=robot)        # always create sensation attached by creator
+            else:
+                sensation.attach(robot=robot)        # always create sensation attached by creator
+                self.addToSensationMemory(sensation) # pure new sensation must be added to memory
+        else:
+            sensation.attach(robot=robot)   # always create sensation attached by creator
+            self.addToSensationMemory(sensation) # pure new sensation must be added to memory
+
         if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemoryType() == Sensation.MemoryType.Working and\
                sensation.getDirection() == Sensation.Direction.Out:
                self.tracePresents(sensation)

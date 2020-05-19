@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 13.05.2020
+Edited on 19.05.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -543,6 +543,41 @@ class Sensation(object):
         
 
     '''
+    AssociationSensationIds is a association between two sensations ids
+    It is helper class to save information of real association with sensations
+    '''
+        
+    class AssociationSensationIds(object):
+        
+        def __init__(self,
+                     sensation_id,                          # sensation_id to connect
+                     feeling,                               # feeling of association two sensation_ids
+                     time=None):                            # last used
+            self.time = time
+            if self.time == None:
+                self.time = systemTime.time()
+            self.sensation_id = sensation_id
+            self.feeling = feeling
+
+        def getTime(self):
+            return self.time
+    
+        def setTime(self, time = None):
+            if time == None:
+                time = systemTime.time()
+            self.time = time
+             
+        def getSensationId(self):
+            return self.sensation_id
+    
+        def getFeeling(self):
+            return self.feeling
+    
+        def setFeeling(self, feeling):
+            self.feeling = feeling
+        
+
+    '''
     default constructor for Sensation
     '''       
     def __init__(self,
@@ -602,6 +637,7 @@ class Sensation(object):
         # associations are always both way
         if sensation is not None:   # copy constructor
             # associate makes both sides
+            Sensation.updateBaseFields(destination=self, source=sensation)
             for association in sensation.associations:
                 self.associate(sensation=association.sensation,
                                time=association.time,
@@ -612,33 +648,34 @@ class Sensation(object):
             if memoryType == None:
                 self.memoryType = sensation.memoryType
             else:
-                self.memoryType = memoryType 
-            self.direction = sensation.direction
-            self.who = sensation.who
-            self.locations = sensation.locations
-            self.leftPower = sensation.leftPower
-            self.rightPower = sensation.rightPower
-            self.hearDirection = sensation.hearDirection
-            self.azimuth = sensation.azimuth
-            self.accelerationX = sensation.accelerationX
-            self.accelerationY = sensation.accelerationY
-            self.accelerationZ = sensation.accelerationZ
-            self.observationDirection = sensation.observationDirection
-            self.observationDistance = sensation.observationDistance
-            self.filePath = sensation.filePath
-            self.data = sensation.data
-            self.image = sensation.image
-            self.calibrateSensationType = sensation.calibrateSensationType
-            self.capabilities = sensation.capabilities
-            self.name = sensation.name
-            self.score = sensation.score
-            self.presence = sensation.presence
-            self.kind = sensation.kind
-            self.firstAssociateSensation = sensation.firstAssociateSensation
-            self.otherAssociateSensation = sensation.otherAssociateSensation
-            self.associateFeeling = sensation.associateFeeling
-            self.positiveFeeling = sensation.positiveFeeling
-            self.negativeFeeling = sensation.negativeFeeling
+                self.memoryType = memoryType
+                
+#             self.direction = sensation.direction
+#             self.who = sensation.who
+#             self.locations = sensation.locations
+#             self.leftPower = sensation.leftPower
+#             self.rightPower = sensation.rightPower
+#             self.hearDirection = sensation.hearDirection
+#             self.azimuth = sensation.azimuth
+#             self.accelerationX = sensation.accelerationX
+#             self.accelerationY = sensation.accelerationY
+#             self.accelerationZ = sensation.accelerationZ
+#             self.observationDirection = sensation.observationDirection
+#             self.observationDistance = sensation.observationDistance
+#             self.filePath = sensation.filePath
+#             self.data = sensation.data
+#             self.image = sensation.image
+#             self.calibrateSensationType = sensation.calibrateSensationType
+#             self.capabilities = sensation.capabilities
+#             self.name = sensation.name
+#             self.score = sensation.score
+#             self.presence = sensation.presence
+#             self.kind = sensation.kind
+#             self.firstAssociateSensation = sensation.firstAssociateSensation
+#             self.otherAssociateSensation = sensation.otherAssociateSensation
+#             self.associateFeeling = sensation.associateFeeling
+#             self.positiveFeeling = sensation.positiveFeeling
+#             self.negativeFeeling = sensation.negativeFeeling
 
             
             #self.attachedBy = sensation.attachedBy # keep self.attachedBy independent of original Sensation to be copied
@@ -698,6 +735,7 @@ class Sensation(object):
             try:
                 l=len(bytes)
                 i=0
+#                yougestTime=0.0
 
                 self.robotId = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                 i += Sensation.FLOAT_PACK_SIZE
@@ -706,6 +744,7 @@ class Sensation(object):
                 i += Sensation.FLOAT_PACK_SIZE
                 
                 self.time = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+#                yougestTime=self.time
                 i += Sensation.FLOAT_PACK_SIZE
 
                 self.memoryType = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
@@ -831,21 +870,30 @@ class Sensation(object):
                 print("association_id " + str(association_id))
                 i += Sensation.ID_SIZE
                 for j in range(association_id):
-                    sensation_id=Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    sensation_id = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
                
                     time = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+#                    if time > yougestTime:
+#                        yougestTime=time
                     i += Sensation.FLOAT_PACK_SIZE
                 
                     feeling = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER, signed=True)
                     i += Sensation.ID_SIZE
 
-                    sensation=memory.getSensationFromSensationMemory(id=sensation_id)
-                    if sensation is not None:
-                        # associate makes both sides
-                        self.associate(sensation=sensation,
-                                       time=time,
-                                       feeling=feeling)
+                    #sensation=memory.getSensationFromSensationMemory(id=sensation_id)
+                    #if sensation is not None:
+                       # TODO should not associate yet, but let Memory choose if we use this instance of
+                       # sensation with its associations or keep old instabce, if we already have a copy
+                       # of sensation with this id in our memory
+                       # associate makes both sides
+#                         self.associate(sensation=sensation,
+#                                        time=time,
+#                                        feeling=feeling)
+                    self.associations.append(Sensation.AssociationSensationIds(sensation_id=sensation_id,
+                                                                     time=time,
+                                                                     feeling=feeling))
+                # TODO should not associate yet
                 
             except (ValueError):
                 self.sensationType = Sensation.SensationType.Unknown
@@ -856,6 +904,43 @@ class Sensation(object):
             i += Sensation.ID_SIZE
             self.receivedFrom=Sensation.bytesToList(bytes[i:i+receivedFrom_size])
             i += receivedFrom_size
+            
+            # TODO Decide here is we should return this sensation or a copy of old one
+            # but should we check it here or elsewhere
+            
+    '''
+    update base fields
+    '''
+    def updateBaseFields(source, destination):
+        destination.sensationType = source.sensationType
+        destination.memoryType = source.memoryType
+        destination.direction = source.direction
+        destination.who = source.who
+        destination.locations = source.locations
+        destination.leftPower = source.leftPower
+        destination.rightPower = source.rightPower
+        destination.hearDirection = source.hearDirection
+        destination.azimuth = source.azimuth
+        destination.accelerationX = source.accelerationX
+        destination.accelerationY = source.accelerationY
+        destination.accelerationZ = source.accelerationZ
+        destination.observationDirection = source.observationDirection
+        destination.observationDistance = source.observationDistance
+        destination.filePath = source.filePath
+        destination.data = source.data
+        destination.image = source.image
+        destination.calibrateSensationType = source.calibrateSensationType
+        destination.capabilities = source.capabilities
+        destination.name = source.name
+        destination.score = source.score
+        destination.presence = source.presence
+        destination.kind = source.kind
+        destination.firstAssociateSensation = source.firstAssociateSensation
+        destination.otherAssociateSensation = source.otherAssociateSensation
+        destination.associateFeeling = source.associateFeeling
+        destination.positiveFeeling = source.positiveFeeling
+        destination.negativeFeeling = source.negativeFeeling
+
 
     '''
     DEPRECATED

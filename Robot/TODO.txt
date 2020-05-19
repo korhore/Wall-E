@@ -4,6 +4,9 @@ Critical
 Develop
 -------
 
+We should share LongTerm-Sensations with Sites and not cre og Location in sharing
+LonfTerm-Sensation to implement swarm intelligense.
+
 Allow tcp-connection starting both sides, so last started site can connect
  
 non-verbal expression
@@ -17,7 +20,7 @@ Alertness:
 Allow non-verbal expression sense by keyboard
 Implenebt non-verba- expression to Visual
 
-Study swarm intelligence. Should we delegate communication as a best response to our swarm
+Study swarm intelligense. Should we delegate communication as a best response to our swarm
 and can we just choose best response. Can we define swarm intually? Or should we deny swarm
 to communicate and reserve only one Communication per location. This means that Communication uses
 that Memory, that is is found in its (computer's) MainRobot.
@@ -287,6 +290,7 @@ Corrected
 
 OK Don't associate Sensory.Feeling in Memory, but forget when done
 - getMemorability for feeling is 0.0, so it will be deleted soon
+- Memory does not associate Feelings
 
 OK Simplyfy Communication much.
 - When we don't get responce, we know present Item.named and original Voice that was chosen

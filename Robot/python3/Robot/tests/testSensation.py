@@ -1,6 +1,6 @@
 '''
 Created on 10.06.2019
-Updated on 11.05.2020
+Updated on 19.05.2020
 @author: reijo.korhonen@gmail.com
 
 test Sensation class
