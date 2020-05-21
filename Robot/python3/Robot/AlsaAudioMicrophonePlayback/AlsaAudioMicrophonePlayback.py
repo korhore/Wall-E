@@ -116,8 +116,8 @@ class AlsaAudioMicrophonePlayback(Robot):
                             self.nextSenseTime = self.nextSenseTime - systemTime.time() + systemTime.time() + self.alsaAudioPlayback.getPlaybackTime(datalen=len(sensation.getData()))
                         else:   # no pending wait time left, sleep normal time for this voice
                             self.nextSenseTime = systemTime.time() + self.alsaAudioPlayback.getPlaybackTime(datalen=len(sensation.getData()))
-
-                        
+                            
+                    sensation.detach(robot=self) # all done, for this sensation remember to detach                 
                         # sleep voice playing length, so we don't sense spoken voices
                         #systemTime.sleep(self.alsaAudioPlayback.getPlaybackTime())
             # we have time to sense

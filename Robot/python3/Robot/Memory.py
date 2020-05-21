@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 11.05.2020
+Edited on 21.05.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -185,13 +185,12 @@ class Memory(object):
             oldSensation = self.getSensationFromSensationMemory(id=sensation.getId())
             if oldSensation is not None:
                 if oldSensation.getTime() > sensation.getTime():
-                    # TODO how to properly delete sensation with associations to same sensation ids?
                     del sensation
                     sensation=oldSensation    # keep old sensation as it is
                 else:
                     #update old sensation
                     Sensation.updateBaseFields(destination=oldSensation, source=sensation)
-                    for associationIds in sensation.associations:
+                    for associationIds in sensation.potentialAssociations:
                         associateSensation = self.getSensationFromSensationMemory(id=associationIds.getSensationId())
                         if associateSensation is not None:
                             oldSensation.associate(sensation=associateSensation,
@@ -201,7 +200,15 @@ class Memory(object):
                     del sensation
                     sensation=oldSensation           # keep old updated sensation
                 sensation.attach(robot=robot)        # always create sensation attached by creator
-            else:
+            else:                                    # this is new sensation, all values a valid,
+                sensation.associations=[]            # clear list to contain normal associations found from potentialAssociations
+                for associationIds in sensation.potentialAssociations:
+                    associateSensation = self.getSensationFromSensationMemory(id=associationIds.getSensationId())
+                    if associateSensation is not None:
+                        sensation.associate(sensation=associateSensation,
+                                            time = associationIds.getTime(),
+                                            feeling = associationIds.getFeeling())
+                sensation.potentialAssociations=[]                        # clear potential association listl
                 sensation.attach(robot=robot)        # always create sensation attached by creator
                 self.addToSensationMemory(sensation) # pure new sensation must be added to memory
         else:

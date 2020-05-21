@@ -991,9 +991,10 @@ class Visual(Robot):
                     wx.PostEvent(self.logPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
                     # TODO logic is still unclear
                     # if sensation is output then log it in communication tab
-                    if sensation.getDirection() == Sensation.Direction.In:# and\
-                    #sensation.getMemoryType() == Sensation.MemoryType.Sensory:
-                        wx.PostEvent(self.treeLogPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
+                    #if sensation.getDirection() == Sensation.Direction.In:# and\
+                    ##sensation.getMemoryType() == Sensation.MemoryType.Sensory:
+                    # all to log
+                    wx.PostEvent(self.treeLogPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
                     if sensation.getSensationType() == Sensation.SensationType.Feeling:
                         wx.PostEvent(self.communicationPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
 

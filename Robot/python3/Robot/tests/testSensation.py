@@ -33,9 +33,9 @@ class SensationTestCase(unittest.TestCase):
         self.robot=Robot()
         self.sensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Sensory,
                                                     name='test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Entering)
-        self.assertIs(self.sensation.getPresence(), Sensation.Presence.Entering, "should be entering")
+        self.assertEqual(self.sensation.getPresence(), Sensation.Presence.Entering, "should be entering")
         self.assertIsNot(self.sensation, None)
-        self.assertIs(len(self.sensation.getAssociations()), 0)
+        self.assertEqual(len(self.sensation.getAssociations()), 0)
         #print('\nlogAssociations 1: setUp')
         Sensation.logAssociations(self.sensation)
         
@@ -47,15 +47,15 @@ class SensationTestCase(unittest.TestCase):
     def test_Memorybility(self):
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
                                                       name='Working_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Exiting)
-        self.assertIs(workingSensation.getPresence(), Sensation.Presence.Exiting, "should be exiting")
+        self.assertEqual(workingSensation.getPresence(), Sensation.Presence.Exiting, "should be exiting")
         self.assertIsNot(workingSensation, None)
-        self.assertIs(len(workingSensation.getAssociations()), 0)
+        self.assertEqual(len(workingSensation.getAssociations()), 0)
 
         longTermSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.LongTerm,
                                                        name='LongTerm', score=SensationTestCase.SCORE, presence=Sensation.Presence.Exiting)
-        self.assertIs(longTermSensation.getPresence(), Sensation.Presence.Exiting, "should be exiting")
+        self.assertEqual(longTermSensation.getPresence(), Sensation.Presence.Exiting, "should be exiting")
         self.assertIsNot(longTermSensation, None)
-        self.assertIs(len(longTermSensation.getAssociations()), 0)
+        self.assertEqual(len(longTermSensation.getAssociations()), 0)
 
         print("\nSensory time now")
         print("self.sensation.getLiveTimeLeftRatio() " + str(self.sensation.getLiveTimeLeftRatio()))
@@ -270,13 +270,13 @@ class SensationTestCase(unittest.TestCase):
         print("\ntest_Importance")
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
                                                       name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present)
-        self.assertIs(workingSensation.getPresence(), Sensation.Presence.Present, "should be present")
+        self.assertEqual(workingSensation.getPresence(), Sensation.Presence.Present, "should be present")
         self.assertIsNot(workingSensation, None)
-        self.assertIs(len(workingSensation.getAssociations()), 0)
+        self.assertEqual(len(workingSensation.getAssociations()), 0)
         workingSensation.associate(sensation=self.sensation,
                                     feeling=SensationTestCase.NORMAL_FEELING)
         Sensation.logAssociations(workingSensation)
-        self.assertIs(len(workingSensation.getAssociations()), 1)
+        self.assertEqual(len(workingSensation.getAssociations()), 1)
         association = self.sensation.getAssociation(sensation=workingSensation)
         self.assertIsNot(association, None)
         print("SensationTestCase.NORMAL_FEELING association.getImportance() " + str(association.getImportance()))
@@ -322,11 +322,11 @@ class SensationTestCase(unittest.TestCase):
         addSensation = self.robot.createSensation(associations=None, sensation=self.sensation)
         self.assertIsNot(addSensation, None)
         addSensation.setName(name='connect_test')
-        self.assertIs(addSensation.getName(), 'connect_test', "should be \'connect_test\' ")
+        self.assertEqual(addSensation.getName(), 'connect_test', "should be \'connect_test\' ")
         self.robot.getMemory().setMemoryType(sensation=addSensation, memoryType=Sensation.MemoryType.Working)
-        self.assertIs(addSensation.getMemoryType(), Sensation.MemoryType.Working, "should be Sensation.MemoryType.Working")
+        self.assertEqual(addSensation.getMemoryType(), Sensation.MemoryType.Working, "should be Sensation.MemoryType.Working")
         addSensation.setPresence(presence=Sensation.Presence.Present)
-        self.assertIs(addSensation.getPresence(), Sensation.Presence.Present, "should be present")
+        self.assertEqual(addSensation.getPresence(), Sensation.Presence.Present, "should be present")
         
         addSensation.setName('connect_test')
         self.robot.getMemory().setMemoryType(sensation=addSensation, memoryType=Sensation.MemoryType.Working)
@@ -354,13 +354,13 @@ class SensationTestCase(unittest.TestCase):
         #for association in addSensation.getAssociations():
             #print ('addSensation association ' + str(dir(association)))
 
-        self.assertIs(len(self.sensation.getAssociations()), associationNumber+1)
-        self.assertIs(self.sensation.getScore(), SensationTestCase.SCORE)
-        self.assertIs(self.sensation.getFeeling(addSensation), self.feeling)
+        self.assertEqual(len(self.sensation.getAssociations()), associationNumber+1)
+        self.assertEqual(self.sensation.getScore(), SensationTestCase.SCORE)
+        self.assertEqual(self.sensation.getFeeling(addSensation), self.feeling)
         
-        self.assertIs(len(addSensation.getAssociations()), associationNumber+1)
-        self.assertIs(addSensation.getScore(), SensationTestCase.SCORE)
-        self.assertIs(addSensation.getFeeling(self.sensation), self.feeling)
+        self.assertEqual(len(addSensation.getAssociations()), associationNumber+1)
+        self.assertEqual(addSensation.getScore(), SensationTestCase.SCORE)
+        self.assertEqual(addSensation.getFeeling(self.sensation), self.feeling)
 
         # test bytes        
         bytes=self.sensation.bytes()
@@ -369,7 +369,7 @@ class SensationTestCase(unittest.TestCase):
         self.assertTrue(fromBytesSensation != None, "fromBytesSensation should be created")
         self.assertTrue(fromBytesSensation == self.sensation, "fromBytesSensation should be equal")
        
-        self.assertIs(len(fromBytesSensation.getAssociations()), associationNumber+1)
+        self.assertEqual(len(fromBytesSensation.getAssociations()), associationNumber+1)
         self.assertEqual(fromBytesSensation.getScore(), SensationTestCase.SCORE)
         self.assertEqual(fromBytesSensation.getFeeling(addSensation), self.feeling)
         
@@ -379,7 +379,7 @@ class SensationTestCase(unittest.TestCase):
         self.assertTrue(bytes != None, "should be get bytes")
         fromBytesSensation = self.robot.createSensation(bytes=bytes)
 
-        self.assertIs(len(fromBytesSensation.getAssociations()), associationNumber+1)
+        self.assertEqual(len(fromBytesSensation.getAssociations()), associationNumber+1)
         self.assertEqual(fromBytesSensation.getScore(), SensationTestCase.SCORE)
         self.assertEqual(fromBytesSensation.getFeeling(self.sensation), self.feeling)
        
@@ -391,13 +391,13 @@ class SensationTestCase(unittest.TestCase):
         self.sensation.addAssociation(Sensation.Association(self_sensation=self.sensation,
                                                             sensation=addSensation,
                                                             feeling=SensationTestCase.TERRIFIED_FEELING))
-        self.assertIs(len(self.sensation.getAssociations()), associationNumber+1)
-        self.assertIs(self.sensation.getScore(), SensationTestCase.SCORE)
-        self.assertIs(self.sensation.getFeeling(addSensation), SensationTestCase.TERRIFIED_FEELING)
+        self.assertEqual(len(self.sensation.getAssociations()), associationNumber+1)
+        self.assertEqual(self.sensation.getScore(), SensationTestCase.SCORE)
+        self.assertEqual(self.sensation.getFeeling(addSensation), SensationTestCase.TERRIFIED_FEELING)
         
-        self.assertIs(len(addSensation.getAssociations()), associationNumber+1)
-        self.assertIs(addSensation.getScore(), SensationTestCase.SCORE)
-        self.assertIs(addSensation.getFeeling(self.sensation), SensationTestCase.TERRIFIED_FEELING)
+        self.assertEqual(len(addSensation.getAssociations()), associationNumber+1)
+        self.assertEqual(addSensation.getScore(), SensationTestCase.SCORE)
+        self.assertEqual(addSensation.getFeeling(self.sensation), SensationTestCase.TERRIFIED_FEELING)
 
         #print('\nlogAssociations 6: test_AddAssociation')
         Sensation.logAssociations(self.sensation)
@@ -410,8 +410,8 @@ class SensationTestCase(unittest.TestCase):
         # change feeling in association        
         addAssociation.setFeeling(self.feeling)
         # and it should be changed in both way association in both ways
-        self.assertIs(self.sensation.getFeeling(addSensation), self.feeling)
-        self.assertIs(addSensation.getFeeling(self.sensation), self.feeling)
+        self.assertEqual(self.sensation.getFeeling(addSensation), self.feeling)
+        self.assertEqual(addSensation.getFeeling(self.sensation), self.feeling)
 
     def test_Bytes(self):        
         print("\ntest_Bytes")
