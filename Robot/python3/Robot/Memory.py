@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 21.05.2020
+Edited on 22.05.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -66,10 +66,12 @@ class Memory(object):
         self.robot = robot
         self.maxRss = maxRss
         self.minAvailMem =  minAvailMem
-        self.sensationMemorys={                         # Sensation caches
-                               Sensation.MemoryType.Sensory:  [],     # short time Sensation cache
-                               Sensation.MemoryType.Working:  [],     # middle time Sensation cache
-                               Sensation.MemoryType.LongTerm: [] }    # long time Sensation cache
+#         self.sensationMemorys={                         # Sensation caches
+#                                Sensation.MemoryType.Sensory:  [],     # short time Sensation cache
+#                                Sensation.MemoryType.Working:  [],     # middle time Sensation cache
+#                                Sensation.MemoryType.LongTerm: [] }    # long time Sensation cache
+        self.sensationMemory=[]                         # Sensation cache
+        
         self.presentItemSensations={}                                 # present item.name sensations
         self.sharedSensationHosts = []                                # hosts with we have already shared our sensations
 
@@ -232,7 +234,8 @@ class Memory(object):
     def addToSensationMemory(self, sensation):
         self.memoryLock.acquireWrite()  # thread_safe                                     
         self.forgetLessImportantSensations(sensation)        
-        self.sensationMemorys[sensation.getMemoryType()].append(sensation)        
+#        self.sensationMemorys[sensation.getMemoryType()].append(sensation)        
+        self.sensationMemory.append(sensation)        
         self.memoryLock.releaseWrite()  # thread_safe
         
     '''
@@ -242,20 +245,20 @@ class Memory(object):
        
     def setMemoryType(self, sensation, memoryType):
         if sensation.getMemoryType() != memoryType:
-            self.memoryLock.acquireWrite()  # thread_safe                                     
-            oldMemoryCache = self.sensationMemorys[sensation.getMemoryType()]
-            try:
-                # remove from current memory type cache and add to a new one
-                oldMemoryCache.remove(sensation)
-            except ValueError as e:
-                self.log(logStr="oldMemoryCache.remove(sensation) error " + str(e), logLevel=Memory.MemoryLogLevel.Normal)
-                self.log(logStr="where sensation == " + sensation.toDebugStr(), logLevel=Memory.MemoryLogLevel.Normal)
-                
-            sensation.memoryType = memoryType
-            #sensation.time = systemTime.time()   # if we change memoryType, this is new Sensation, NO keep times, association handles if associated later
-            self.forgetLessImportantSensations(sensation) # must forget here. because if not created, this is only place fot Longerm-Senasations to be removed from cache
-            self.sensationMemorys[memoryType].append(sensation)
-            self.memoryLock.releaseWrite()  # thread_safe
+             self.memoryLock.acquireWrite()  # thread_safe                                     
+#             oldMemoryCache = self.sensationMemorys[sensation.getMemoryType()]
+#             try:
+#                 # remove from current memory type cache and add to a new one
+#                 oldMemoryCache.remove(sensation)
+#             except ValueError as e:
+#                 self.log(logStr="oldMemoryCache.remove(sensation) error " + str(e), logLevel=Memory.MemoryLogLevel.Normal)
+#                 self.log(logStr="where sensation == " + sensation.toDebugStr(), logLevel=Memory.MemoryLogLevel.Normal)
+#                 
+             sensation.memoryType = memoryType
+#             #sensation.time = systemTime.time()   # if we change memoryType, this is new Sensation, NO keep times, association handles if associated later
+#             self.forgetLessImportantSensations(sensation) # must forget here. because if not created, this is only place fot Longerm-Senasations to be removed from cache
+#             self.sensationMemorys[memoryType].append(sensation)
+             self.memoryLock.releaseWrite()  # thread_safe
 
     '''
     Assign just created sensation with other present Item sensations
@@ -323,7 +326,7 @@ class Memory(object):
 
     def forgetLessImportantSensations(self, sensation):
         numNotForgettables=0
-        memoryType = self.sensationMemorys[sensation.getMemoryType()]
+#        memoryType = self.sensationMemorys[sensation.getMemoryType()]
 
         # calibrate memorability        
         if (Memory.getMemoryUsage() > self.getMaxRss() or\
@@ -342,44 +345,47 @@ class Memory(object):
                 self.min_cache_memorability = self.min_cache_memorability - 0.1
         
         # delete quickly last created Sensations that are not important
-        while len(memoryType) > 0 and memoryType[0].isForgettable() and memoryType[0].getMemorability() < self.min_cache_memorability:
-            self.log(logStr='delete from sensation cache {}'.format(memoryType[0].toDebugStr()), logLevel=Memory.MemoryLogLevel.Normal)
-            memoryType[0].delete()
-            del memoryType[0]
+#        while len(memoryType) > 0 and memoryType[0].isForgettable() and memoryType[0].getMemorability() < self.min_cache_memorability:
+        while len(self.sensationMemory) > 0 and self.sensationMemory[0].isForgettable() and self.sensationMemory[0].getMemorability() < self.min_cache_memorability:
+            self.log(logStr='delete from sensation cache {}'.format(self.sensationMemory[0].toDebugStr()), logLevel=Memory.MemoryLogLevel.Normal)
+            self.sensationMemory[0].delete()
+            del self.sensationMemory[0]
 
-        # if we are still using too much memoryType for Sensations, we should check all Sensations in the cache
+        # if we are still using too much self.sensationMemory for Sensations, we should check all Sensations in the cache
         notForgettables={}
         if Memory.getMemoryUsage() > self.getMaxRss() or\
            Memory.getAvailableMemory() < self.getMinAvailMem():
             i=0
-            while i < len(memoryType):
-                if memoryType[i].isForgettable():
-                    if memoryType[i].getMemorability() < self.min_cache_memorability:
-                        self.log(logStr='delete from sensation cache {}'.format(memoryType[i].toDebugStr()))
-                        memoryType[i].delete()
-                        del memoryType[i]
+            while i < len(self.sensationMemory):
+                if self.sensationMemory[i].isForgettable():
+                    if self.sensationMemory[i].getMemorability() < self.min_cache_memorability:
+                        self.log(logStr='delete from sensation cache {}'.format(self.sensationMemory[i].toDebugStr()))
+                        self.sensationMemory[i].delete()
+                        del self.sensationMemory[i]
                     else:
                         i=i+1
                 else:
                     numNotForgettables=numNotForgettables+1
-                    for robot in memoryType[i].getAttachedBy():
+                    for robot in self.sensationMemory[i].getAttachedBy():
                         if robot.getWho() not in notForgettables:
                             notForgettables[robot.getWho()] = 1
                         else:
                             notForgettables[robot.getWho()] = notForgettables[robot.getWho()]+1
                     i=i+1
        
-#        self.log(logStr='Sensations cache for {} {} {} {} {} {} Total memoryType usage {} MB with Sensation.min_cache_memorability {}'.\
-        self.log(logStr='Sensations cache for {} {} {} {} {} {} Total memoryType  usage {} MB available {} MB with Sensation.min_cache_memorability {}'.\
-              format(Sensation.getMemoryTypeString(Sensation.MemoryType.Sensory), len(self.sensationMemorys[Sensation.MemoryType.Sensory]),\
-                     Sensation.getMemoryTypeString(Sensation.MemoryType.Working), len(self.sensationMemorys[Sensation.MemoryType.Working]),\
-                     Sensation.getMemoryTypeString(Sensation.MemoryType.LongTerm), len(self.sensationMemorys[Sensation.MemoryType.LongTerm]),\
+#        self.log(logStr='Sensations cache for {} {} {} {} {} {} Total self.sensationMemory usage {} MB with Sensation.min_cache_memorability {}'.\
+        self.log(logStr='Sensations cache for {} Total self.sensationMemory  usage {} MB available {} MB with Sensation.min_cache_memorability {}'.\
+#               format(Sensation.getMemoryTypeString(Sensation.MemoryType.Sensory), len(self.sensationMemorys[Sensation.MemoryType.Sensory]),\
+#                      Sensation.getMemoryTypeString(Sensation.MemoryType.Working), len(self.sensationMemorys[Sensation.MemoryType.Working]),\
+#                      Sensation.getMemoryTypeString(Sensation.MemoryType.LongTerm), len(self.sensationMemorys[Sensation.MemoryType.LongTerm]),\
+#                      Memory.getMemoryUsage(), Memory.getAvailableMemory(), self.min_cache_memorability), logLevel=Memory.MemoryLogLevel.Normal)
+              format(len(self.sensationMemory),\
                      Memory.getMemoryUsage(), Memory.getAvailableMemory(), self.min_cache_memorability), logLevel=Memory.MemoryLogLevel.Normal)
         if numNotForgettables > 0:
             self.log(logStr='Sensations cache deletion skipped {} Not Forgottable Sensation'.format(numNotForgettables), logLevel=Memory.MemoryLogLevel.Normal)
             for robotName, notForgottableNumber in notForgettables.items():
                 print ('Sensations cache Not Forgottable robot {} number {}'.format(robotName, notForgottableNumber))
-        #self.log(logStr='Memory usage for {} Sensations {} after {} MB'.format(len(memoryType), Sensation.getMemoryTypeString(sensation.getMemoryType()), Sensation.getMemoryUsage()-Sensation.startSensationMemoryUsageLevel), logLevel=Memory.MemoryLogLevel.Normal)
+        #self.log(logStr='Memory usage for {} Sensations {} after {} MB'.format(len(self.sensationMemory), Sensation.getMemoryTypeString(sensation.getMemoryType()), Sensation.getMemoryUsage()-Sensation.startSensationMemoryUsageLevel), logLevel=Memory.MemoryLogLevel.Normal)
 
     '''
     sensation getters
@@ -387,24 +393,34 @@ class Memory(object):
     def getSensationFromSensationMemory(self, id):
         self.memoryLock.acquireRead()                  # read thread_safe
  
-        for key, sensationMemory in self.sensationMemorys.items():
-            for sensation in sensationMemory:
-                if sensation.getId() == id:
-                    self.memoryLock.releaseRead()  # read thread_safe
-                    return sensation
+#         for key, sensationMemory in self.sensationMemorys.items():
+#             for sensation in sensationMemory:
+#                 if sensation.getId() == id:
+#                     self.memoryLock.releaseRead()  # read thread_safe
+#                     return sensation
+        for sensation in self.sensationMemory:
+            if sensation.getId() == id:
+                self.memoryLock.releaseRead()  # read thread_safe
+                return sensation
         self.memoryLock.releaseRead()                  # read thread_safe
         return None
 
     def getSensationsFromSensationMemory(self, associationId):
-        self.memoryLock.acquireRead()                  # read thread_safe
+        #self.memoryLock.acquireRead()                  # read thread_safe
         sensations=[]
-        for key, sensationMemory in self.sensationMemorys.items():
-            if len(sensationMemory) > 0:
-                for sensation in sensationMemory:
-                    if sensation.getId() == associationId or \
-                       associationId in sensation.getAssociationIds():
-                        if not sensation in sensations:
-                            sensations.append(sensation)
+#         for key, sensationMemory in self.sensationMemorys.items():
+#             if len(sensationMemory) > 0:
+#                 for sensation in sensationMemory:
+#                     if sensation.getId() == associationId or \
+#                        associationId in sensation.getAssociationIds():
+#                         if not sensation in sensations:
+#                             sensations.append(sensation)
+        self.memoryLock.acquireRead()                  # read thread_safe
+        for sensation in self.sensationMemory:
+            if sensation.getId() == associationId or \
+                associationId in sensation.getAssociationIds():
+                if not sensation in sensations:
+                    sensations.append(sensation)
         memoryLock.releaseRead()                  # read thread_safe
         return sensations
                      
@@ -417,18 +433,36 @@ class Memory(object):
     def getSensations(self, capabilities, timemin=None, timemax=None):
         self.memoryLock.acquireRead()                  # read thread_safe
         sensations=[]
-        for key, sensationMemory in self.sensationMemorys.items():
-            for sensation in sensationMemory:
-                # accept sensations from all Locations
-                if capabilities.hasCapability(direction=sensation.getDirection(),
-                                              memoryType=sensation.getMemoryType(),
-                                              sensationType=sensation.getSensationType(),
-                                              locations=[]) and\
-                   (timemin is None or sensation.getTime() > timemin) and\
-                   (timemax is None or sensation.getTime() < timemax):
-                    sensations.append(sensation)
+#         for key, sensationMemory in self.sensationMemorys.items():
+#             for sensation in sensationMemory:
+#                 # accept sensations from all Locations
+#                 if capabilities.hasCapability(direction=sensation.getDirection(),
+#                                               memoryType=sensation.getMemoryType(),
+#                                               sensationType=sensation.getSensationType(),
+#                                               locations=[]) and\
+#                    (timemin is None or sensation.getTime() > timemin) and\
+#                    (timemax is None or sensation.getTime() < timemax):
+#                     sensations.append(sensation)
+        for sensation in self.sensationMemory:
+            # accept sensations from all Locations
+            if capabilities.hasCapability(direction=sensation.getDirection(),
+                                          memoryType=sensation.getMemoryType(),
+                                          sensationType=sensation.getSensationType(),
+                                        locations=[]) and\
+                (timemin is None or sensation.getTime() > timemin) and\
+                (timemax is None or sensation.getTime() < timemax):
+                sensations.append(sensation)
         self.memoryLock.releaseRead()                  # read thread_safe
         return sensations
+    
+    '''
+    prevalence of item.name per Sensation.Sensationtype.
+    TODO implöement first flat memory, meanimg that there will not be
+    per Memomorytype tables
+    '''
+    
+    def getPrevalence(self, name, sensationType):
+        return None
     
     '''
     Get best specified sensation from sensation memory by score
@@ -455,23 +489,39 @@ class Memory(object):
                           ignoredVoiceLens=[]):
         self.memoryLock.acquireRead()                  # read thread_safe
         bestSensation = None
-        for key, sensationMemory in self.sensationMemorys.items():
-            for sensation in sensationMemory:
-                if sensation.getSensationType() == sensationType and\
-                   sensation.getDirection() == direction and\
-                   sensation.hasAssociationSensationType(associationSensationType=associationSensationType,
-                                                         associationDirection = associationDirection,
-                                                         ignoredVoiceLens=ignoredVoiceLens) and\
-                   (timemin is None or sensation.getTime() > timemin) and\
-                   (timemax is None or sensation.getTime() < timemax):
-                    if sensationType != Sensation.SensationType.Item or\
-                       notName is None and sensation.getName() == name or\
-                       name is None and sensation.getName() != notName or\
-                       name is None and notName is None:
-                        if bestSensation is None or\
-                           sensation.getScore() > bestSensation.getScore():
-                            bestSensation = sensation
-                            self.log(logStr="getBestSensation " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getScore()), logLevel=Memory.MemoryLogLevel.Normal)
+#         for key, sensationMemory in self.sensationMemorys.items():
+#             for sensation in sensationMemory:
+#                 if sensation.getSensationType() == sensationType and\
+#                    sensation.getDirection() == direction and\
+#                    sensation.hasAssociationSensationType(associationSensationType=associationSensationType,
+#                                                          associationDirection = associationDirection,
+#                                                          ignoredVoiceLens=ignoredVoiceLens) and\
+#                    (timemin is None or sensation.getTime() > timemin) and\
+#                    (timemax is None or sensation.getTime() < timemax):
+#                     if sensationType != Sensation.SensationType.Item or\
+#                        notName is None and sensation.getName() == name or\
+#                        name is None and sensation.getName() != notName or\
+#                        name is None and notName is None:
+#                         if bestSensation is None or\
+#                            sensation.getScore() > bestSensation.getScore():
+#                             bestSensation = sensation
+#                             self.log(logStr="getBestSensation " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getScore()), logLevel=Memory.MemoryLogLevel.Normal)
+        for sensation in self.sensationMemory:
+            if sensation.getSensationType() == sensationType and\
+               sensation.getDirection() == direction and\
+               sensation.hasAssociationSensationType(associationSensationType=associationSensationType,
+                                                     associationDirection = associationDirection,
+                                                     ignoredVoiceLens=ignoredVoiceLens) and\
+               (timemin is None or sensation.getTime() > timemin) and\
+               (timemax is None or sensation.getTime() < timemax):
+                if sensationType != Sensation.SensationType.Item or\
+                   notName is None and sensation.getName() == name or\
+                   name is None and sensation.getName() != notName or\
+                   name is None and notName is None:
+                    if bestSensation is None or\
+                       sensation.getScore() > bestSensation.getScore():
+                        bestSensation = sensation
+                        self.log(logStr="getBestSensation " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getScore()), logLevel=Memory.MemoryLogLevel.Normal)
         self.memoryLock.releaseRead()                  # read thread_safe
         return bestSensation
     
@@ -533,41 +583,73 @@ class Memory(object):
         # if best scored item.name has only bad voices, we newer can get
         # good voices
         found_candidates=0
-        for key, sensationMemory in self.sensationMemorys.items():
-            if found_candidates >= searchLength:
-                break
-            for sensation in sensationMemory:
-                if sensation not in ignoredSensations and\
-                   sensation.getSensationType() == sensationType and\
-                   sensation.getDirection() == direction and\
-                   sensation.hasAssociationSensationType(associationSensationType=associationSensationType,
-                                                         associationDirection = associationDirection,
-                                                         ignoredSensations=ignoredSensations,
-                                                         ignoredVoiceLens=ignoredVoiceLens) and\
-                   (timemin is None or sensation.getTime() > timemin) and\
-                   (timemax is None or sensation.getTime() < timemax):
-                    if sensationType != Sensation.SensationType.Item or\
-                       notName is None and sensation.getName() == name or\
-                       name is None and sensation.getName() != notName or\
-                       name is None and notName is None:
-                        bestAssociationSensationImportance = None 
-                        for association in sensation.getAssociationsbBySensationType(associationSensationType=associationSensationType,
-                                                                                     associationDirection = associationDirection,
-                                                                                     ignoredSensations=ignoredSensations,
-                                                                                     ignoredVoiceLens=ignoredVoiceLens):
-                            if bestAssociationSensationImportance is None or\
-                                bestAssociationSensationImportance < association.getSensation().getImportance():
-                                bestAssociationSensationImportance = association.getSensation().getImportance()
-                                bestSensation = sensation
-                                bestAssociation = association
-                                bestAssociationSensation = association.getSensation()
-                                #self.log(logStr="getMostImportantSensation found " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getImportance()), logLevel=Memory.MemoryLogLevel.Normal)
-                                #self.log(logStr="getMostImportantSensation found bestAssociationSensation candidate " + bestAssociationSensation.toDebugStr() + ' ' + str(bestAssociationSensationImportance), logLevel=Memory.MemoryLogLevel.Normal)
-                                found_candidates +=1
-                                if found_candidates >= searchLength:
-                                    break
-                    if found_candidates >= searchLength:
-                        break
+#         for key, sensationMemory in self.sensationMemorys.items():
+#             if found_candidates >= searchLength:
+#                 break
+#             for sensation in sensationMemory:
+#                 if sensation not in ignoredSensations and\
+#                    sensation.getSensationType() == sensationType and\
+#                    sensation.getDirection() == direction and\
+#                    sensation.hasAssociationSensationType(associationSensationType=associationSensationType,
+#                                                          associationDirection = associationDirection,
+#                                                          ignoredSensations=ignoredSensations,
+#                                                          ignoredVoiceLens=ignoredVoiceLens) and\
+#                    (timemin is None or sensation.getTime() > timemin) and\
+#                    (timemax is None or sensation.getTime() < timemax):
+#                     if sensationType != Sensation.SensationType.Item or\
+#                        notName is None and sensation.getName() == name or\
+#                        name is None and sensation.getName() != notName or\
+#                        name is None and notName is None:
+#                         bestAssociationSensationImportance = None 
+#                         for association in sensation.getAssociationsbBySensationType(associationSensationType=associationSensationType,
+#                                                                                      associationDirection = associationDirection,
+#                                                                                      ignoredSensations=ignoredSensations,
+#                                                                                      ignoredVoiceLens=ignoredVoiceLens):
+#                             if bestAssociationSensationImportance is None or\
+#                                 bestAssociationSensationImportance < association.getSensation().getImportance():
+#                                 bestAssociationSensationImportance = association.getSensation().getImportance()
+#                                 bestSensation = sensation
+#                                 bestAssociation = association
+#                                 bestAssociationSensation = association.getSensation()
+#                                 #self.log(logStr="getMostImportantSensation found " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getImportance()), logLevel=Memory.MemoryLogLevel.Normal)
+#                                 #self.log(logStr="getMostImportantSensation found bestAssociationSensation candidate " + bestAssociationSensation.toDebugStr() + ' ' + str(bestAssociationSensationImportance), logLevel=Memory.MemoryLogLevel.Normal)
+#                                 found_candidates +=1
+#                                 if found_candidates >= searchLength:
+#                                     break
+#                     if found_candidates >= searchLength:
+#                         break
+        for sensation in self.sensationMemory:
+            if sensation not in ignoredSensations and\
+               sensation.getSensationType() == sensationType and\
+               sensation.getDirection() == direction and\
+               sensation.hasAssociationSensationType(associationSensationType=associationSensationType,
+                                                     associationDirection = associationDirection,
+                                                     ignoredSensations=ignoredSensations,
+                                                     ignoredVoiceLens=ignoredVoiceLens) and\
+                                                     (timemin is None or sensation.getTime() > timemin) and\
+                                                     (timemax is None or sensation.getTime() < timemax):
+                if sensationType != Sensation.SensationType.Item or\
+                   notName is None and sensation.getName() == name or\
+                   name is None and sensation.getName() != notName or\
+                   name is None and notName is None:
+                    bestAssociationSensationImportance = None 
+                    for association in sensation.getAssociationsbBySensationType(associationSensationType=associationSensationType,
+                                                                                 associationDirection = associationDirection,
+                                                                                 ignoredSensations=ignoredSensations,
+                                                                                 ignoredVoiceLens=ignoredVoiceLens):
+                        if bestAssociationSensationImportance is None or\
+                           bestAssociationSensationImportance < association.getSensation().getImportance():
+                            bestAssociationSensationImportance = association.getSensation().getImportance()
+                            bestSensation = sensation
+                            bestAssociation = association
+                            bestAssociationSensation = association.getSensation()
+                            #self.log(logStr="getMostImportantSensation found " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getImportance()), logLevel=Memory.MemoryLogLevel.Normal)
+                            #self.log(logStr="getMostImportantSensation found bestAssociationSensation candidate " + bestAssociationSensation.toDebugStr() + ' ' + str(bestAssociationSensationImportance), logLevel=Memory.MemoryLogLevel.Normal)
+                            found_candidates +=1
+                            if found_candidates >= searchLength:
+                                break
+                if found_candidates >= searchLength:
+                    break
         if bestSensation == None:
             self.log(logStr="getMostImportantSensation did not find any", logLevel=Memory.MemoryLogLevel.Normal)
         else:

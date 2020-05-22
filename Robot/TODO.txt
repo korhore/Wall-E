@@ -1,21 +1,16 @@
 Critical
 --------
-Sensations cache Not Forgottable robot Wall-E number 797
-Seems that we can't forget now!
 
 Develop
 -------
 
-Correct Communication configuration and accepting
-Make presentation changes as Sensory sensations, not Working,
-because they are Sensory level
+Implement flat Memory, no MemoryType divided any more
 
-Finalize conditional associations with proper variables
+Implement prevalence, meaning that we calculate number of connection and ages or
+then for Item.name. That way we can guess, which Item.name is speaking.
+Formula is += 1/Age() per every connection of Sensation.SensationType
 
-Studu Communication SensationType: should be intrested about speken Voice: Sensory, as well as seen Item; sensory?,
-but not else? because Working is for processing and LongTerm is for remebering?
-
-Try centralized knoeledle, tyhat knows everyting with communication.
+Try centralized knowledle, tyhat knows everyting with communication.
 This need communication with Communications per Location. 
 
 We should share LongTerm-Sensations with Sites and not cre og Location in sharing
@@ -301,6 +296,19 @@ People log to present <-              !   !
 
 Corrected
 ---------
+
+OK Correct Communication configuration and accepting
+OK, Wotking is correct
+Make presentation changes as Sensory sensations, not Working,
+because they are Sensory level.
+-- OOps this was not good idea, because it leads to infinite loop in
+   TensorflowClassification
+Try Working
+
+OK Configuration for Communication if Voice: Sensory, Out, Item: Working, Out 
+Study Communication SensationType: should be intrested about speken Voice: Sensory, as well as seen Item; sensory?,
+but not else? because Working is for processing and LongTerm is for remebering?
+
 
 OK Don't associate Sensory.Feeling in Memory, but forget when done
 - getMemorability for feeling is 0.0, so it will be deleted soon
@@ -614,6 +622,12 @@ Develop
 ------
 Done
 ----
+
+OK Sensations cache Not Forgottable robot Wall-E number 797
+Seems that we can't forget now!
+
+OK Finalize conditional associations with proper variables
+
 
 OK Not needed any more
   starting MainRobot with Tensorflow by command line needs now

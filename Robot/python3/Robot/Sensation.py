@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 21.05.2020
+Edited on 22.05.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -440,6 +440,9 @@ class Sensation(object):
             # other part
             association = self.sensation.getAssociation(self.self_sensation)
             association.time = time
+            
+        def Age(self):
+            return systemTime.time() - self.getTime()
      
         def getSelfSensation(self):
             return self.self_sensation

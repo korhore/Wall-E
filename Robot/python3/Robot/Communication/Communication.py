@@ -110,8 +110,8 @@ class Communication(Robot):
         #self.log(logLevel=Robot.LogLevel.Normal, logStr="process: systemTime.time() " + str(systemTime.time()) + ' -  sensation.getTime() ' + str(sensation.getTime()) + ' < Communication.COMMUNICATION_INTERVAL ' + str(Communication.COMMUNICATION_INTERVAL))
         self.log(logLevel=Robot.LogLevel.Normal, logStr="process: " + str(systemTime.time() - sensation.getTime()) + ' < ' + str(Communication.COMMUNICATION_INTERVAL))
         # accept heard voices and Item.name presentation Item.name changes
+        #sensation.getMemoryType() == Sensation.MemoryType.Working and# No item is Working, voice is Ssensory
         if systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL and\
-           sensation.getMemoryType() == Sensation.MemoryType.Sensory and\
            sensation.getDirection() == Sensation.Direction.Out:
             # all kind Items found
             if sensation.getSensationType() == Sensation.SensationType.Item and\
