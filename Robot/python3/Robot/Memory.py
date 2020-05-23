@@ -60,16 +60,16 @@ class Memory(object):
     MemoryLogLevel = enum(Critical='a', Error='b', Normal='c', Detailed='d', Verbose='e')
     
     def __init__(self,
-                robot,                             # owner robot
+                robot,                          # owner robot
                 maxRss,
                 minAvailMem):
         self.robot = robot
         self.maxRss = maxRss
         self.minAvailMem =  minAvailMem
-        self.sensationMemory=[]                         # Sensation cache
+        self.sensationMemory=[]                 # Sensation cache
         
-        self.presentItemSensations={}                                 # present item.name sensations
-        self.sharedSensationHosts = []                                # hosts with we have already shared our sensations
+        self.presentItemSensations={}           # present item.name sensations
+        self.sharedSensationHosts = []          # hosts with we have already shared our sensations
 
 
 
@@ -649,7 +649,7 @@ class Memory(object):
                 finally:
                     f.close()
         except Exception as e:
-                self.log(logStr="open(fileName, wb) as f error " + str(e), logLevel=Memory.MemoryLogLevel.Normal)
+                self.log(logStr="saveLongTermMemory open(fileName, wb) as f error " + str(e), logLevel=Memory.MemoryLogLevel.Normal)
         self.memoryLock.releaseRead()                  # read thread_safe
 
     '''

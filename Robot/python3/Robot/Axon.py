@@ -33,6 +33,7 @@ class Axon():
         if detach:
             sensation.detach(robot)         # release from caller
         self.queue.put((transferDirection, sensation, association))
+        self.robot.log("Axon put from {} to {} with final queue length {} full {}".format(robot.getWho(),self.robot.getWho(), self.queue.qsize(), self.queue.full()))
  
     '''
     Robot calls this to get its sensations

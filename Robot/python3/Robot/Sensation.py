@@ -1677,8 +1677,8 @@ class Sensation(object):
             os.makedirs(Sensation.DATADIR)
             
         if self.getSensationType() == Sensation.SensationType.Image:       
-            fileName = Sensation.DATADIR + '/' + '{}'.format(self.getId()) + \
-                       '.' +  Sensation.IMAGE_FORMAT
+            fileName = '{}/{}.{}'.format(Sensation.DATADIR, self.getId(),\
+                                         Sensation.IMAGE_FORMAT)
             self.setFilePath(fileName)
             try:
                 if not os.path.exists(fileName):
@@ -1687,31 +1687,31 @@ class Sensation(object):
                             try:
                                 self.getImage().save(f)
                             except IOError as e:
-                                print("self.getImage().save(f)) error " + str(e))
+                                print("self.getImage().save(f)) error {}".format(str(e)))
                             finally:
                                 f.close()
                     except Exception as e:
-                        print('os.path.exists(' + fileName + ') error ' + str(e))
+                        print("Sensation.save Image open({}), wb) as f error {}".format(fileName, str(e)))
             except Exception as e:
-                print("open(fileName, wb) as f error " + str(e))
+                print('os.path.exists({}) error {}'.format(fileName, str(e)))
         elif self.getSensationType() == Sensation.SensationType.Voice:       
-            fileName = Sensation.DATADIR + '/' + '{}'.format(self.getId()) + \
-                       '.' +  Sensation.VOICE_FORMAT
+            fileName = '{}/{}.{}'.format(Sensation.DATADIR,self.getId(),Sensation.VOICE_FORMAT)
             self.setFilePath(fileName)
             try:
                 if not os.path.exists(fileName):
                     try:
-                        with open(fileName, "wb") as f:
+                        print("open({}) ".format(fileName))
+                        with open(fileName, 'wb') as f:
                             try:
                                 f.write(self.getData())
                             except IOError as e:
-                                print("f.write(self.getData()) error " + str(e))
+                                print("f.write(self.getData()) error {}".format(str(e)))
                             finally:
                                 f.close()
                     except Exception as e:
-                            print("open(fileName, wb) as f error " + str(e))
+                        print("Sensation.save Voice1 open({}), wb) as f error {}".format(fileName, str(e)))
             except Exception as e:
-                print("open(fileName, wb) as f error " + str(e))
+                print("Sensation.save Voice2 not os.path.exists({}) error {}".format(fileName, str(e)))
      
     '''
     delete sensation data permanently

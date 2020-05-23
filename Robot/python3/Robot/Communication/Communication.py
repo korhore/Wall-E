@@ -58,10 +58,10 @@ from Config import Config
 
 class Communication(Robot):
 
-    COMMUNICATION_INTERVAL=30.0     # time window to history 
+    #COMMUNICATION_INTERVAL=30.0     # time window to history 
                                     # for sensations we communicate
     #COMMUNICATION_INTERVAL=15.0     # time window to history for test to be run quicker
-    #COMMUNICATION_INTERVAL=2.5     # time window to history for test to be run quicker
+    COMMUNICATION_INTERVAL=2.5     # time window to history for test to be run quicker
     CONVERSATION_INTERVAL=300.0     # if no change in present item.names and
                                     # last conversation is ended, how long
                                     # we wait until we will respond if
@@ -399,7 +399,9 @@ class Communication(Robot):
                                                     firstAssociateSensation=self.mostImportantItemSensation, otherAssociateSensation=self.mostImportantVoiceSensation,
                                                           #associateFeeling=communicationItem.getAssociation().getFeeling())
                                                     negativeFeeling=True, locations='')#self.getLocations()) # valid in this location, can be chosen also other way
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="stopWaitingResponse: self.getParent().getAxon().put do")
             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation, association=None)
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="stopWaitingResponse: self.getParent().getAxon().put done")
         
  
 #         if self.mostImportantVoiceAssociation is not None:

@@ -4,11 +4,15 @@ Critical
 Develop
 -------
 
-Implement flat Memory, no MemoryType divided any more
+Sould correct Communication to check input Sensation type and
+not trus that configuration os OK.
+Check test.
 
 Implement prevalence, meaning that we calculate number of connection and ages or
 then for Item.name. That way we can guess, which Item.name is speaking.
 Formula is += 1/Age() per every connection of Sensation.SensationType
+self.prevalence={}                      # item.name prevalence, not variable, but function
+
 
 Try centralized knowledle, tyhat knows everyting with communication.
 This need communication with Communications per Location. 
@@ -296,6 +300,8 @@ People log to present <-              !   !
 
 Corrected
 ---------
+
+OK Implement flat Memory, no MemoryType divided any more
 
 OK Correct Communication configuration and accepting
 OK, Wotking is correct
