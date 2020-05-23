@@ -1,6 +1,6 @@
 '''
 Created on 21.06.2019
-Updated on 13.02.2020
+Updated on 23.05.2020
 @author: reijo.korhonen@gmail.com
 
 test Association class
@@ -49,16 +49,16 @@ class CommunicationTestCase(unittest.TestCase):
     '''
     
     def getAxon(self):
-        print('CommunicationTestCase getAxon')
+        #print('CommunicationTestCase getAxon')
         return self.axon
     def getId(self):
-        print('CommunicationTestCase getId')
+        #print('CommunicationTestCase getId')
         return 1.1
     def getWho(self):
-        print('CommunicationTestCase getWho')
+        #print('CommunicationTestCase getWho')
         return "CommunicationTestCase"
     def log(self, logStr, logLevel=None):
-        print('CommunicationTestCase log')
+        #print('CommunicationTestCase log')
         if hasattr(self, 'communication'):
             if self.communication:
                 if logLevel == None:
@@ -388,7 +388,7 @@ class CommunicationTestCase(unittest.TestCase):
         print("test is sleeping " + str(sleepTime) + " until continuing. To get faster test change temporarely Communication.COMMUNICATION_INTERVAL\n(Test logic does not change, but functionality is for testing only, not for human communication then, so change it back)")       
         systemTime.sleep(sleepTime)
         print("Now stopWaitingResponse should be happened and we test it")  
-        self.logAxon()     
+        #self.logAxon()     
         # should get Voice Feeling between Voice and Item
         # BUT is hard t0 test, just log
         self.expect(name='NO response', isEmpty=False, isSpokenVoice=False, isHeardVoice=False,  isFeeling=True)
@@ -410,7 +410,6 @@ class CommunicationTestCase(unittest.TestCase):
         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), self.Wall_E_image_sensation_association_len)
         
         print('\n current Present')
-        #systemTime.sleep(0.1)  # wait to get really even id
         Wall_E_item_sensation = self.communication.createSensation(memoryType=Sensation.MemoryType.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  direction=Sensation.Direction.Out,
@@ -421,22 +420,12 @@ class CommunicationTestCase(unittest.TestCase):
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
         # Now we should have 1 item in self.getMemory().presentItemSensations (can be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.communication.getMemory().presentItemSensations), 1, 'len(self.communication.getMemory().presentItemSensations should be 1')
-
-#         #process       
-#         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation, association=None)
-#         self.assertEqual(len(self.communication.getMemory().presentItemSensations), 1, 'len(self.communication.getMemory().presentItemSensations should be 1')
-#         # at this point we have Voice in Axon
-        self.assertEqual((self.getAxon().empty()), True,  'Axon should  be empty when entering again because only Voice is used')
+        self.assertEqual((self.getAxon().empty()), True,  'Axon should  be empty before testing')
         
         print('self.do_test_ProcessItemVoice(memoryType=Sensation.MemoryType.Working)')
         self.do_test_ProcessItemVoice(memoryType=Sensation.MemoryType.Working)
         
-        # nope, Memory.Sensory is not ment to work
-#         print('self.do_test_ProcessItemVoice(memoryType=Sensation.MemoryType.Sensory)')
-#         self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
-#         self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
-        #self.do_test_ProcessItemVoice(memoryType=Sensation.MemoryType.Sensory)
-        
+        # Note, Memory.Sensory is not ment to work
         # test again
 
         print('self.do_test_ProcessItemVoice(memoryType=Sensation.MemoryType.Working)')
@@ -444,24 +433,12 @@ class CommunicationTestCase(unittest.TestCase):
         self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
         self.do_test_ProcessItemVoice(memoryType=Sensation.MemoryType.Working)
         
-        # nope, Memory.Sensory is not ment to work
-#         print('self.do_test_ProcessItemVoice(memoryType=Sensation.MemoryType.Sensory)')
-#         self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
-#         self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
-#         self.do_test_ProcessItemVoice(memoryType=Sensation.MemoryType.Sensory)
-
         # and test again once more 
 
         print('self.do_test_ProcessItemVoice(memoryType=Sensation.MemoryType.Working)')
         self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
         self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
         self.do_test_ProcessItemVoice(memoryType=Sensation.MemoryType.Working)
-        
-        # nope, Memory.Sensory is not ment to work
-#         print('self.do_test_ProcessItemVoice(memoryType=Sensation.MemoryType.Sensory)')
-#         self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
-#         self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
-#         self.do_test_ProcessItemVoice(memoryType=Sensation.MemoryType.Sensory)
 
        
     '''
@@ -485,7 +462,7 @@ class CommunicationTestCase(unittest.TestCase):
     
     8) Communication.process(Voice)
     
-    Commuunication reacts and
+    Communication reacts and
     
     9) parent Axon should get self.Wall_E_voice_sensation
     10) parent Axon should get Sensation.SensationType.Feeling
@@ -499,7 +476,7 @@ class CommunicationTestCase(unittest.TestCase):
     TensorfloClassafication produces
     Item.name Working Out
     
-    AlsaAudioMicrophone producudes  
+    AlsaAudioMicrophone produces  
     Voice Sensory Out
     
     And Communication should react to those and produce
@@ -610,7 +587,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 1)
         # TODO this verifies test, but not implementation
         '''
-        Commented out, so we can  correct implementation
+        Commented out, so we can correct implementation
         # simulate Association has connected an voice to Item and Image 
         Wall_E_voice_sensation_1 = self.communication.createSensation(sensationType=Sensation.SensationType.Voice, 
                                                        associations=[Sensation.Association(sensation=Wall_E_image_sensation,
@@ -632,7 +609,7 @@ class CommunicationTestCase(unittest.TestCase):
         #######################
         '''
 
-         #simulate TensorflowClassification send presence item to MainBobot
+         #simulate TensorflowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
         self.assertEqual(len(self.communication.getMemory().presentItemSensations), 1, 'len(self.communication.getMemory().presentItemSensations should be 1')
 
@@ -674,42 +651,12 @@ class CommunicationTestCase(unittest.TestCase):
 
         # should get Voice and a Feeling between Voice and Item
         self.expect(name='response', isEmpty=False, isSpokenVoice=True, isHeardVoice=False,  isFeeling=True)
-        # We should have a Voice to be spoken out again 
-        # minimum is that we get something
-
-        # wait some time        
-        #systemTime.sleep(5)
-        # OOPS Why we don't get response, but getMostImportantSensation did not find any 
-        
-#         self.assertEqual(self.getAxon().empty(), False, 'Axon should not be empty')
-#         while not self.getAxon().empty():        
-#             tranferDirection, sensation, association = self.getAxon().get()
-#             if sensation.getSensationType() == Sensation.SensationType.Item: #Item
-#                 print("got Minimum Item {} BUT IT SHOULD NOT".format(sensation.toDebugStr()))
-#             if sensation.getSensationType() == Sensation.SensationType.Feeling: #Feeling
-#                 print("got Minimum Feeling {} Voice AS IT SHOULD".format(sensation.toDebugStr()))
-#             elif sensation.getSensationType() == Sensation.SensationType.Voice: #Voice
-#                 print("got Minimum Voice {} Voice AS IT SHOULD".format(sensation.toDebugStr()))
-#             else:
-#                 print("got Minimum else {} BUT IT SHOULD NOT".format(sensation.toDebugStr()))
-        
-#         self.assertEqual(sensation.getSensationType(),Sensation.SensationType.Feeling, 'should get Feeling')
-# 
-# #         tranferDirection, sensation, association = self.getAxon().get()
-# #         #Feeling
-# #         self.assertEqual(sensation.getSensationType(),Sensation.SensationType.Feeling, 'should get Feeling')
-#         
-#         tranferDirection, sensation, association = self.getAxon().get()
-#         #Voice
-#         self.assertEqual(sensation.getSensationType(),Sensation.SensationType.Voice, 'should get Voice')
-#         # to be spoken
-#         self.assertEqual(sensation.getDirection(),Sensation.Direction.In, 'should get Voice to be spoken')
         
 
         # we don't response any more, so Communication.stopWaitingResponse
         # should be run and self.communication.communicationItems) should be empty
         # wait some time
-        sleepTime = Communication.COMMUNICATION_INTERVAL+ 5.0
+        sleepTime = Communication.COMMUNICATION_INTERVAL+ 1.0
         print("test is sleeping " + str(sleepTime) + " until continuing. To get faster test change temporarely Communication.COMMUNICATION_INTERVAL\n(Test logic does not change, but functionality is for testing only, not for human communication then, so change it back)")       
         systemTime.sleep(sleepTime)
         print("Now stopWaitingResponse should be happened and we test it")       

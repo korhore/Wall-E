@@ -43,7 +43,7 @@ class Axon():
     def get(self):
         self.robot.log("Axon get from {} original queue length {} empty {} full {}".format(self.robot.getWho(), self.queue.qsize(), self.queue.empty(), self.queue.full()))
         (transferDirection, sensation, association) = self.queue.get()
-        self.robot.log("Axon done get from {} result queue length {} empty {} full {}".format(self.robot.getWho(), self.queue.qsize(), self.queue.empty(), self.queue.full()))
+        self.robot.log("Axon done get from {} final queue length {} empty {} full {}".format(self.robot.getWho(), self.queue.qsize(), self.queue.empty(), self.queue.full()))
         return transferDirection, sensation, association
         
     def empty(self):
