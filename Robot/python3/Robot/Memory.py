@@ -420,7 +420,20 @@ class Memory(object):
     '''
     
     def getPrevalence(self, name, sensationType):
-        return None
+        prevalence = 0.1
+        
+        self.memoryLock.acquireRead()                  # read thread_safe
+        for sensation in self.sensationMemory:
+            if sensation.getSensationType() == Sensation.SensationType.Item and\
+               sensation.getName() == name:
+                for association in sensation.getAssociations():
+                    associatedSensation = association.getSensation()
+                    if associatedSensation.getSensationType() == sensationType:
+                         prevalence += 1.0/association.getAge() # Age from Association TODO Study Sensation.getAge()
+        self.memoryLock.releaseRead()                  # read thread_safe
+        
+        return prevalence
+        
     
     '''
     Get best specified sensation from sensation memory by score
@@ -447,6 +460,7 @@ class Memory(object):
                           ignoredVoiceLens=[]):
         self.memoryLock.acquireRead()                  # read thread_safe
         bestSensation = None
+            
         for sensation in self.sensationMemory:
             if sensation.getSensationType() == sensationType and\
                sensation.getDirection() == direction and\
@@ -520,6 +534,11 @@ class Memory(object):
         bestSensation = None
         bestAssociation = None
         bestAssociationSensation = None
+        if name == None:
+            prevalence = 0.1
+        else:
+            prevalence = self.getPrevalence(name=name, sensationType=sensationType)
+        
         # TODO starting with best score is not a good idea
         # if best scored item.name has only bad voices, we newer can get
         # good voices
@@ -543,9 +562,10 @@ class Memory(object):
                                                                                  associationDirection = associationDirection,
                                                                                  ignoredSensations=ignoredSensations,
                                                                                  ignoredVoiceLens=ignoredVoiceLens):
+                        importance = prevalence * association.getSensation().getImportance() # use prevalence and inportance to get prevalence based importance
                         if bestAssociationSensationImportance is None or\
-                           bestAssociationSensationImportance < association.getSensation().getImportance():
-                            bestAssociationSensationImportance = association.getSensation().getImportance()
+                           bestAssociationSensationImportance < importance:
+                            bestAssociationSensationImportance = importance
                             bestSensation = sensation
                             bestAssociation = association
                             bestAssociationSensation = association.getSensation()

@@ -441,7 +441,7 @@ class Sensation(object):
             association = self.sensation.getAssociation(self.self_sensation)
             association.time = time
             
-        def Age(self):
+        def getAge(self):
             return systemTime.time() - self.getTime()
      
         def getSelfSensation(self):
