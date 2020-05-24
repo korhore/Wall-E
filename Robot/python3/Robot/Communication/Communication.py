@@ -100,10 +100,9 @@ class Communication(Robot):
         self.spokedVoiceSensation = None            # last voice we have said
 
         self.timer=None
-        self.usedVoices = []    # Voices we have used in all conversations
+        self.usedVoices = []    # Voices we have used in this conversation 
                                 # always say something, that we have not yet said
-        self.usedVoiceLens = [] # Voices we have used in all conversations
-        self.heardVoices = []    # Voices we have used in this conversation        
+        self.usedVoiceLens = [] # Voices we have used in this conversation 
  
     def process(self, transferDirection, sensation, association=None):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
@@ -134,12 +133,12 @@ class Communication(Robot):
                 else:
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' joined to communication, but don\'t know if heard previous voices. wait someone to speak')
                 # else maybe change in present items, no need other way than keep track on present items
-            # if a voice
+            # if a Spaken Voice voice
             elif sensation.getSensationType() == Sensation.SensationType.Voice and\
+                 sensation.getMemoryType() == Sensation.MemoryType.Sensory and\
                  sensation.getDirection() == Sensation.Direction.Out:
                 # if response in a going on conversation 
-                if sensation not in self.heardVoices and\
-                   systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL and\
+                if systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL and\
                    self.isConversationOn():
 #                    len(self.communicationItems) > 0:
                     # we have someone to talk with
@@ -155,7 +154,6 @@ class Communication(Robot):
                     # don't use this voice in this same conversation
                     self.usedVoices.append(sensation)
                     self.usedVoices.append(len(sensation.getData()))
-                    self.heardVoices.append(sensation)
                     
                     # mark original item Sensation to be remembered
                     # and also good feeling to the original voice
@@ -221,7 +219,6 @@ class Communication(Robot):
                     # don't use this voice in this same conversation
                     self.usedVoices.append(sensation)
                     self.usedVoices.append(len(sensation.getData()))
-                    self.heardVoices.append(sensation)
                 
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' got voice and tries to speak with presents ones' + self.getMemory().presenceToStr())
                     self.speak(onStart=True)
@@ -448,7 +445,6 @@ class Communication(Robot):
 #         self.log(logLevel=Robot.LogLevel.Normal, logStr="stopWaitingResponse: del self.usedVoices[:]")
         del self.usedVoices[:]                          # clear used voices, communication is ended, so used voices are free to be used in next conversation.
         del self.usedVoiceLens[:]                          # clear used voices, communication is ended, so used voices are free to be used in next conversation.
-        del self.heardVoices[:]                          # clear heard voices, communication is ended, so used voices are free to be used in next conversation. 
         self.timer = None
         self.lastConversationEndTime=systemTime.time()
         

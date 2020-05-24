@@ -739,6 +739,7 @@ class Robot(Thread):
                 self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation, association=None)
             else: # we are main Robot
                 # check if we have subrobot that has capability to process this sensation
+                needToDetach=True
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.getSubCapabilityInstances')      
                 robots = self.getSubCapabilityInstances(direction=sensation.getDirection(),
                                                         memoryType=sensation.getMemoryType(),
@@ -754,14 +755,18 @@ class Robot(Thread):
                         else:
                             self.log(logLevel=Robot.LogLevel.Verbose, logStr='Remote robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)')
                             robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation, association=None, detach=False) # keep ownerdhip untill sent to all sub Robots
+                            needToDetach=False
                     else:
                         self.log(logLevel=Robot.LogLevel.Verbose, logStr='Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)')
                         # new instance or sensation for process
                         robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation, association=None, detach=False) # keep ownerdhip untill sent to all sub Robots
-                #sensation.detach(robot=self) # when sent to subrobots, detach
+                        needToDetach=False
+                if needToDetach:
+                    sensation.detach(robot=self) # detach if no subRobot found
         # sensation going down
         else:
             # which subinstances can process this
+            needToDetach=True
             robots = self.getSubCapabilityInstances(direction=sensation.getDirection(),
                                                     memoryType=sensation.getMemoryType(),
                                                     sensationType=sensation.getSensationType(),
@@ -776,11 +781,13 @@ class Robot(Thread):
                     else:
                         self.log(logLevel=Robot.LogLevel.Detailed, logStr='Remote robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(robot=self, sensation)')
                         robot.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation, association=None, detach=False) # keep ownerdhip untill sent to all sub Robots
+                        needToDetach=False
                 else:
                     self.log(logLevel=Robot.LogLevel.Verbose, logStr='Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(robot=self, sensation)')
                     robot.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation, association=None, detach=False) # keep ownerdhip untill sent to all sub Robots
-
-        sensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
+                    needToDetach=False
+            if needToDetach:
+                sensation.detach(robot=self) # detach if no subRobot found
             
     '''
     Memory functionality
