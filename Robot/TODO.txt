@@ -4,9 +4,12 @@ Critical
 Develop
 -------
 
-Sould correct Communication to check input Sensation type and
-not trus that configuration os OK.
-Check test.
+Introduce Robot with random own Voice, not first one as now.
+Try same with Identification
+
+Should correct Communication to check input Sensation type and
+not trust that configuration os OK.
+Check Communication test.
 
 Implement prevalence, meaning that we calculate number of connection and ages or
 then for Item.name. That way we can guess, which Item.name is speaking.

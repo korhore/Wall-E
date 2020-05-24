@@ -14,7 +14,7 @@ import resource
 import time as systemTime
 from enum import Enum
 import struct
-import random
+#import random
 import math
 from PIL import Image as PIL_Image
 import io
@@ -415,8 +415,8 @@ class Memory(object):
     
     '''
     prevalence of item.name per Sensation.Sensationtype.
-    TODO implöement first flat memory, meanimg that there will not be
-    per Memomorytype tables
+    TODO implement first flat memory, meaning that there will not be
+    per MemoryType tables
     '''
     
     def getPrevalence(self, name, sensationType):

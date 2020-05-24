@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 28.04.2020
+Updated on 24.05.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -51,6 +51,7 @@ else
 '''
 import time as systemTime
 import threading 
+import random
 
 from Robot import Robot
 from Sensation import Sensation
@@ -58,10 +59,10 @@ from Config import Config
 
 class Communication(Robot):
 
-    #COMMUNICATION_INTERVAL=30.0     # time window to history 
+    COMMUNICATION_INTERVAL=30.0     # time window to history 
                                     # for sensations we communicate
     #COMMUNICATION_INTERVAL=15.0     # time window to history for test to be run quicker
-    COMMUNICATION_INTERVAL=2.5     # time window to history for test to be run quicker
+    #COMMUNICATION_INTERVAL=2.5     # time window to history for test to be run quicker
     CONVERSATION_INTERVAL=300.0     # if no change in present item.names and
                                     # last conversation is ended, how long
                                     # we wait until we will respond if
@@ -279,16 +280,17 @@ class Communication(Robot):
         candidate_communicationItems = []
         if onStart and len(self.getMemory().getRobot().voiceSensations) > 0:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: onStart')
-            #data = self.getMemory().getRobot().voices[self.voiceind]
-            self.spokedVoiceSensation = self.createSensation( associations=[], sensation=self.getMemory().getRobot().voiceSensations[self.voiceind],
+            # use randown own voice instead of self.voiceind
+            voiceind = random.randint(0, len(self.getMemory().getRobot().voiceSensations)-1)
+            self.spokedVoiceSensation = self.createSensation( associations=[], sensation=self.getMemory().getRobot().voiceSensations[voiceind],
                                                               memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, locations=self.getLocations())
             #self.spokedVoiceSensation.setMemoryType(memoryType = Sensation.MemoryType.Sensory)
             #self.spokedVoiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, data=data)
             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation, association=None) # or self.process
-            self.log("speak: Starting with presenting Robot voiceind={} self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation={}".format(str(self.voiceind), self.spokedVoiceSensation.toDebugStr()))
-            self.voiceind=self.voiceind+1
-            if self.voiceind >= len(self.getMemory().getRobot().voiceSensations):
-                self.voiceind = 0
+            self.log("speak: Starting with presenting Robot voiceind={} self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation={}".format(str(voiceind), self.spokedVoiceSensation.toDebugStr()))
+#             self.voiceind=self.voiceind+1
+#             if self.voiceind >= len(self.getMemory().getRobot().voiceSensations):
+#                 self.voiceind = 0
             self.usedVoices.append(self.spokedVoiceSensation)
             self.usedVoiceLens.append(len(self.spokedVoiceSensation.getData()))                
                

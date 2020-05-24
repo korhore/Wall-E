@@ -1,6 +1,6 @@
 '''
 Created on 21.06.2019
-Updated on 23.05.2020
+Updated on 24.05.2020
 @author: reijo.korhonen@gmail.com
 
 test Association class
@@ -76,10 +76,18 @@ class CommunicationTestCase(unittest.TestCase):
     def setUp(self):
         print('\nsetUp')
         self.axon = Axon(robot=self)
+        # Communication gets its own Memory
+        # this is not same situation thab in normal run, where MainRobot level own Memory
+        # this should be handled in test
         self.communication = Communication(parent=self,
                                            instanceName='Communication',
                                            instanceType= Sensation.InstanceType.SubInstance,
                                            level=2)
+        # should get Identity for proper functionality. Use Wall-E Identity in test
+        self.communication.imageSensations, self.communication.voiceSensations = \
+            self.communication.getIdentitySensations(who=CommunicationTestCase.NAME)
+        self.assertTrue(len(self.communication.getMemory().getRobot().voiceSensations) > 0, "should have identity for testing")
+        # test setup   
         # define time in history, that is different than in all tests
         # not too far away in history, so sensation will not be deleted
         self.history_sensationTime = systemTime.time() -2*max(CommunicationTestCase.ASSOCIATION_INTERVAL, Communication.COMMUNICATION_INTERVAL)
@@ -129,8 +137,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
         self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
         self.Wall_E_voice_sensation_association_len = len(self.Wall_E_voice_sensation.getAssociations())
-       
-
+        
 
     def tearDown(self):
         print('\ntearDown')       
@@ -283,7 +290,7 @@ class CommunicationTestCase(unittest.TestCase):
         #process                      
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation, association=None)
         #self.assertEqual((self.getAxon().empty()), False,  'Axon should not be empty, when entering')
-        self.expect(name='Present Name 2, Conversation continues', isEmpty=True, isSpokenVoice=False, isHeardVoice=False, isFeeling=True)
+        self.expect(name='Present Name 2, Conversation continues', isEmpty=True, isSpokenVoice=False, isHeardVoice=False, isFeeling=True, isPositiveFeeling=True)
         
         print('\n NAME2 current Entering')
         # make potential response
@@ -391,7 +398,7 @@ class CommunicationTestCase(unittest.TestCase):
         #self.logAxon()     
         # should get Voice Feeling between Voice and Item
         # BUT is hard t0 test, just log
-        self.expect(name='NO response', isEmpty=False, isSpokenVoice=False, isHeardVoice=False,  isFeeling=True)
+        self.expect(name='NO response', isEmpty=False, isSpokenVoice=False, isHeardVoice=False,  isFeeling=True, isNegativeFeeling=True)
         # no communicationItems should be left in 
         #self.assertEqual(len(self.communication.communicationItems),0, 'no communicationItems should be left in Communication ')
         print("test continues, should have got Feeling from stopWaitingResponse")
@@ -650,7 +657,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_voice_response_sensation, association=None)
 
         # should get Voice and a Feeling between Voice and Item
-        self.expect(name='response', isEmpty=False, isSpokenVoice=True, isHeardVoice=False,  isFeeling=True)
+        self.expect(name='response', isEmpty=False, isSpokenVoice=True, isHeardVoice=False,  isFeeling=True, isPositiveFeeling=True)
         
 
         # we don't response any more, so Communication.stopWaitingResponse
@@ -662,7 +669,7 @@ class CommunicationTestCase(unittest.TestCase):
         print("Now stopWaitingResponse should be happened and we test it")       
         # should get Voice Feeling between Voice and Item
         # BUT is hard t0 test, just log
-        self.expect(name='NO response', isEmpty=False, isSpokenVoice=False, isHeardVoice=False,  isFeeling=True)
+        self.expect(name='NO response', isEmpty=False, isSpokenVoice=False, isHeardVoice=False,  isFeeling=True, isNegativeFeeling=True)
         # no communicationItems should be left in 
         #self.assertEqual(len(self.communication.communicationItems),0, 'no communicationItems should be left in Communication ')
         print("test continues, should have got Feeling from stopWaitingResponse")
@@ -678,7 +685,7 @@ class CommunicationTestCase(unittest.TestCase):
     isFeeling      do we expect to get Feeling
     '''
         
-    def expect(self, name, isEmpty, isSpokenVoice, isHeardVoice, isFeeling):
+    def expect(self, name, isEmpty, isSpokenVoice, isHeardVoice, isFeeling, isPositiveFeeling=False, isNegativeFeeling=False):
         print("Now expect")       
         errortext = '{}: Axon empty should not be {}'.format(name, str(self.getAxon().empty()))
         self.assertEqual(self.getAxon().empty(), isEmpty, errortext)
@@ -703,6 +710,9 @@ class CommunicationTestCase(unittest.TestCase):
                     errortext =  '{}: got unexpected Feeling Another Feeling {}'.format(name, str(not isFeelingStillExpected))
                     self.assertTrue(isFeelingStillExpected, errortext)
                     isFeelingStillExpected = False
+                    self.assertEqual(sensation.getPositiveFeeling(), isPositiveFeeling)
+                    self.assertEqual(sensation.getNegativeFeeling(), isNegativeFeeling)
+                  
             # check that we got all
             self.assertFalse(isSpokenVoiceStillExpected, 'Did not get expected voice to be Spoken')                   
             self.assertFalse(isHeardVoiceStillExpected, 'Did not get expected  voice to be Heard')                   

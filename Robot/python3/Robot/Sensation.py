@@ -1700,7 +1700,6 @@ class Sensation(object):
             try:
                 if not os.path.exists(fileName):
                     try:
-                        print("open({}) ".format(fileName))
                         with open(fileName, 'wb') as f:
                             try:
                                 f.write(self.getData())
