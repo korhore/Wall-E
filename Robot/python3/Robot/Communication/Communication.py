@@ -153,7 +153,7 @@ class Communication(Robot):
                     self.getMemory().setMemoryType(sensation=sensation, memoryType=Sensation.MemoryType.Working)
                     # don't use this voice in this same conversation
                     self.usedVoices.append(sensation)
-                    self.usedVoices.append(len(sensation.getData()))
+                    self.usedVoiceLens.append(len(sensation.getData()))
                     
                     # mark original item Sensation to be remembered
                     # and also good feeling to the original voice
@@ -218,14 +218,14 @@ class Communication(Robot):
                     self.getMemory().setMemoryType(sensation=sensation, memoryType=Sensation.MemoryType.Working)
                     # don't use this voice in this same conversation
                     self.usedVoices.append(sensation)
-                    self.usedVoices.append(len(sensation.getData()))
+                    self.usedVoiceLens.append(len(sensation.getData()))
                 
-                    self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' got voice and tries to speak with presents ones' + self.getMemory().presenceToStr())
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' got voice and tries to speak with presents ones ' + self.getMemory().presenceToStr())
                     self.speak(onStart=True)
             else:
-                self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process: not Item or RESPONSE Voice in communication or too soon from last conversation' + sensation.toDebugStr())
+                self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process: not Item or RESPONSE Voice in communication or too soon from last conversation ' + sensation.toDebugStr())
         else:
-            self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process: too old sensation or not heard voice of detected item' + sensation.toDebugStr())
+            self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process: too old sensation or not heard voice of detected item ' + sensation.toDebugStr())
         
         sensation.detach(robot=self)    # detach processed sensation
         
