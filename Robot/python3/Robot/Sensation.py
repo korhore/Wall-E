@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 22.05.2020
+Edited on 25.05.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -40,7 +40,7 @@ Sensation is something Robot senses
 '''
 
 class Sensation(object):
-    VERSION=16          # version number to check, if we picle same version
+    VERSION=17          # version number to check, if we picle same version
                         # instances. Otherwise we get odd errors, with old
                         # version code instances
 
@@ -101,9 +101,9 @@ class Sensation(object):
      
     # so many sensationtypes, that first letter is not good idea any more  
     SensationType = enum(Drive='a', Stop='b', Who='c', Azimuth='d', Acceleration='e', Observation='f', HearDirection='g', Voice='h', Image='i',  Calibrate='j', Capability='k', Item='l', Feeling='m', Unknown='n')
-    # Direction of a sensation. Example in Voice: In: Speaking,  Out: Hearing
-    Direction = enum(In='I', Out='O')
-    # Direction of a sensation transferring, used with Axon. Up: going up like fron AlsaMicroPhone to MainRobot, Down: going down from MainRobot to leaf Robots like AlsaPlayback
+    # RobotType of a sensation. Example in Voice: Muscle: Speaking,  Sense: Hearing In->Muscle Out->Sense
+    RobotType = enum(Muscle='M', Sense='S')
+    # RobotType of a sensation transferring, used with Axon. Up: going up like fron AlsaMicroPhone to MainRobot, Down: going down from MainRobot to leaf Robots like AlsaPlayback
     TransferDirection = enum(Up='U', Down='D')
     # Presence of Item  
     Presence = enum(Entering='a', Present='b', Exiting='c', Absent='d', Unknown='e')
@@ -115,8 +115,8 @@ class Sensation(object):
     Mode = enum(Normal='n', StudyOwnIdentity='t',Sleeping='l',Starting='s', Stopping='p', Interrupted='i')
     
     # enum items as strings    
-    IN="In"
-    OUT="Out"
+    MUSCLE="Muscle"
+    SENSE="Sense"
     SENSORY="Sensory"
     WORKING="Working"
     LONG_TERM="LongTerm"
@@ -154,11 +154,11 @@ class Sensation(object):
     ABSENT="Absent"
 
       
-    Directions={Direction.In: IN,
-                Direction.Out: OUT}
-    DirectionsOrdered=(
-                Direction.In,
-                Direction.Out)
+    RobotTypes={RobotType.Muscle: MUSCLE,
+                RobotType.Sense: SENSE}
+    RobotTypesOrdered=(
+                RobotType.Muscle,
+                RobotType.Sense)
     
     MemoryTypes = {
                MemoryType.Sensory: SENSORY,
@@ -335,11 +335,11 @@ class Sensation(object):
     
     #helpers
         
-    def getDirectionString(direction):
-        ret = Sensation.Directions.get(direction)
+    def getRobotTypeString(robotType):
+        ret = Sensation.RobotTypes.get(robotType)
         return ret
-    def getDirectionStrings():
-        return Sensation.Directions.values()
+    def getRobotTypeStrings():
+        return Sensation.RobotTypes.values()
     
     def getMemoryTypeString(memoryType):
         ret = Sensation.MemoryTypes.get(memoryType)
@@ -594,19 +594,19 @@ class Sensation(object):
                  receivedFrom=[],
                  sensationType = SensationType.Unknown,
                  memoryType=None,
-                 direction=Direction.Out,
+                 robotType=RobotType.Sense,
                  who=None,
                  locations=[],
                  leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
-                 azimuth = 0.0,                                             # Walle direction relative to magnetic north pole
+                 azimuth = 0.0,                                             # Walle robotType relative to magnetic north pole
                  accelerationX=0.0, accelerationY=0.0, accelerationZ=0.0,   # acceleration of walle, coordinates relative to walle
-                 hearDirection = 0.0,                                       # sound direction heard by Walle, relative to Walle
+                 hearDirection = 0.0,                                       # sound robotType heard by Walle, relative to Walle
                  observationDirection= 0.0,observationDistance=-1.0,        # Walle's observation of something, relative to Walle
                  filePath='',
                  data=b'',                                                  # ALSA voice is string (uncompressed voice information)
                  image=None,                                                # Image internal representation is PIl.Image 
                  calibrateSensationType = SensationType.Unknown,
-                 capabilities = None,                                       # capabilitis of sensorys, direction what way sensation go
+                 capabilities = None,                                       # capabilitis of sensorys, robotType what way sensation go
                  name = '',                                                 # name of Item
                  score = 0.0,                                               # used at least with item to define how good was the detection 0.0 - 1.0
                  presence = Presence.Unknown,                               # presence of Item
@@ -614,8 +614,8 @@ class Sensation(object):
                  firstAssociateSensation = None,                            # associated sensation first side
                  otherAssociateSensation = None,                            # associated Sensation other side
                  associateFeeling = Feeling.Neutral,                        # feeling of association
-                 positiveFeeling=False,                                     # change association feeling to more positive direction if possible
-                 negativeFeeling=False):                                    # change association feeling to more negative direction if possible
+                 positiveFeeling=False,                                     # change association feeling to more positive robotType if possible
+                 negativeFeeling=False):                                    # change association feeling to more negative robotType if possible
                                        
         from Config import Capabilities
         self.time=time
@@ -666,7 +666,7 @@ class Sensation(object):
                 self.memoryType = Sensation.MemoryType.Sensory
             else:
                 self.memoryType = memoryType
-            self.direction = direction
+            self.robotType = robotType
             self.who = who
             self.locations = locations
             self.leftPower = leftPower
@@ -730,8 +730,8 @@ class Sensation(object):
                 #print("sensationType " + str(sensationType))
                 i += Sensation.ENUM_SIZE
                 
-                self.direction = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
-                #print("direction " + str(direction))
+                self.robotType = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                #print("robotType " + str(robotType))
                 i += Sensation.ENUM_SIZE
                                     
                 location_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
@@ -872,7 +872,7 @@ class Sensation(object):
     def updateBaseFields(source, destination):
         destination.sensationType = source.sensationType
         destination.memoryType = source.memoryType
-        destination.direction = source.direction
+        destination.robotType = source.robotType
         destination.who = source.who
         destination.locations = source.locations
         destination.leftPower = source.leftPower
@@ -930,7 +930,7 @@ class Sensation(object):
 
                  
     def __str__(self):
-        s=str(self.robotId) + ' ' + str(self.id) + ' ' + str(self.time) + ' ' + self.memoryType + ' ' + self.direction + ' ' + self.sensationType+ ' ' + self.getLocationsStr()
+        s=str(self.robotId) + ' ' + str(self.id) + ' ' + str(self.time) + ' ' + self.memoryType + ' ' + self.robotType + ' ' + self.sensationType+ ' ' + self.getLocationsStr()
         if self.sensationType == Sensation.SensationType.Drive:
             s +=  ' ' + str(self.leftPower) +  ' ' + str(self.rightPower)
         elif self.sensationType == Sensation.SensationType.HearDirection:
@@ -950,7 +950,7 @@ class Sensation(object):
             if self.calibrateSensationType == Sensation.SensationType.HearDirection:
                 s += ' ' + self.calibrateSensationType + ' ' + str(self.hearDirection)
             else:
-                s = str(self.robotId) + ' ' + str(self.id) + ' ' + self.memoryType + ' ' + self.direction + ' ' +  Sensation.SensationType.Unknown
+                s = str(self.robotId) + ' ' + str(self.id) + ' ' + self.memoryType + ' ' + self.robotType + ' ' +  Sensation.SensationType.Unknown
         elif self.sensationType == Sensation.SensationType.Capability:
             s +=  ' ' + self.getCapabilities().toString()
         elif self.sensationType == Sensation.SensationType.Item:
@@ -992,10 +992,10 @@ class Sensation(object):
     def toDebugStr(self):
         # we can't make yet printable bytes, but as a debug purposes, it is rare neended
 #         if self.sensationType == Sensation.SensationType.Voice or self.sensationType == Sensation.SensationType.Image :
-#             s=str(self.robotId) + ' ' + str(self.id) + ' ' + str(self.time) + ' ' + str(self.association_time) + ' ' + Sensation.getMemoryTypeString(self.memoryType) + ' ' + Sensation.getDirectionString(self.direction) + ' ' + Sensation.getSensationTypeString(self.sensationType)
+#             s=str(self.robotId) + ' ' + str(self.id) + ' ' + str(self.time) + ' ' + str(self.association_time) + ' ' + Sensation.getMemoryTypeString(self.memoryType) + ' ' + Sensation.getRobotTypeString(self.robotType) + ' ' + Sensation.getSensationTypeString(self.sensationType)
 #         else:
 #             s=self.__str__()
-        s = systemTime.ctime(self.time) + ':' + str(self.robotId) + ':' + str(self.id) + ':' + Sensation.getMemoryTypeString(self.memoryType) + ':' + Sensation.getDirectionString(self.direction) + ':' + Sensation.getSensationTypeString(self.sensationType)+ ':' + self.getLocationsStr()+ ':'
+        s = systemTime.ctime(self.time) + ':' + str(self.robotId) + ':' + str(self.id) + ':' + Sensation.getMemoryTypeString(self.memoryType) + ':' + Sensation.getRobotTypeString(self.robotType) + ':' + Sensation.getSensationTypeString(self.sensationType)+ ':' + self.getLocationsStr()+ ':'
         if self.sensationType == Sensation.SensationType.Voice:
             s = s + ':' + Sensation.getKindString(self.kind)
 #         elif self.sensationType == Sensation.SensationType.Image:
@@ -1019,7 +1019,7 @@ class Sensation(object):
         b += Sensation.floatToBytes(self.time)
         b += Sensation.strToBytes(self.memoryType)
         b += Sensation.strToBytes(self.sensationType)
-        b += Sensation.strToBytes(self.direction)
+        b += Sensation.strToBytes(self.robotType)
         
         location_size=len(self.getLocationsStr())
         b +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
@@ -1062,7 +1062,7 @@ class Sensation(object):
             if self.calibrateSensationType is Sensation.SensationType.HearDirection:
                 b += Sensation.strToBytes(self.calibrateSensationType) + Sensation.floatToBytes(self.hearDirection)
 #             else:
-#                 return str(self.robotId) + ' ' + self.id) + ' ' + self.memoryType + ' ' + self.direction + ' ' + Sensation.SensationType.Unknown
+#                 return str(self.robotId) + ' ' + self.id) + ' ' + self.memoryType + ' ' + self.robotType + ' ' + Sensation.SensationType.Unknown
         elif self.sensationType is Sensation.SensationType.Capability:
             bytes = self.getCapabilities().toBytes()
             capabilities_size=len(bytes)
@@ -1099,11 +1099,11 @@ class Sensation(object):
 
 # all other done
 #         elif self.sensationType == Sensation.SensationType.Stop:
-#             return str(self.robotId) + ' ' +str(self.id) + ' ' + self.memoryType + ' ' + self.direction + ' ' + self.sensationType
+#             return str(self.robotId) + ' ' +str(self.id) + ' ' + self.memoryType + ' ' + self.robotType + ' ' + self.sensationType
 #         elif self.sensationType == Sensation.SensationType.Who:
-#             return str(self.robotId) + ' ' +str(self.id) + ' ' + self.memoryType + ' ' + self.direction + ' ' + self.sensationType
+#             return str(self.robotId) + ' ' +str(self.id) + ' ' + self.memoryType + ' ' + self.robotType + ' ' + self.sensationType
 #         else:
-#             return str(self.robotId) + ' ' +str(self.id) + ' ' + self.memoryType + ' ' + self.direction + ' ' + self.sensationType
+#             return str(self.robotId) + ' ' +str(self.id) + ' ' + self.memoryType + ' ' + self.robotType + ' ' + self.sensationType
         
         return b
 
@@ -1240,8 +1240,8 @@ class Sensation(object):
                   sensation,                                    # sensation to connect
                   time=None,                                    # last used
                   feeling = Feeling.Neutral,                    # feeling of association two sensations
-                  positiveFeeling = False,                      # change association feeling to more positive direction if possible
-                  negativeFeeling = False):                     # change association feeling to more negativee direction if possible
+                  positiveFeeling = False,                      # change association feeling to more positive robotType if possible
+                  negativeFeeling = False):                     # change association feeling to more negativee robotType if possible
 #         self.addAssociation(Sensation.Association(self_sensation = self,
 #                                                   sensation = sensation,
 #                                                   time = time,
@@ -1273,8 +1273,8 @@ class Sensation(object):
                           sensation,                                    # sensation to connect
                           time=None,                                    # last used
                           feeling = Feeling.Neutral,                    # feeling of association two sensations
-                          positiveFeeling = False,                      # change association feeling to more positive direction if possible
-                          negativeFeeling = False):                     # change association feeling to more negativee direction if possible
+                          positiveFeeling = False,                      # change association feeling to more positive robotType if possible
+                          negativeFeeling = False):                     # change association feeling to more negativee robotType if possible
         # this side
         if time == None:
             time = systemTime.time()
@@ -1428,13 +1428,13 @@ class Sensation(object):
     which SensationType is 'associationSensationType'
     '''
     def hasAssociationSensationType(self, associationSensationType,
-                                    associationDirection = Direction.Out,
+                                    associationDirection = RobotType.Sense,
                                     ignoredSensations=[],
                                     ignoredVoiceLens=[]):
         has=False
         for association in self.associations:
             if association.getSensation().getSensationType() == associationSensationType and\
-               association.getSensation().getDirection() == associationDirection and\
+               association.getSensation().getRobotType() == associationDirection and\
                association.getSensation() not in ignoredSensations and\
                len(association.getSensation().getData()) not in ignoredVoiceLens:
                 has=True
@@ -1446,13 +1446,13 @@ class Sensation(object):
     which SensationType is 'associationSensationType'
     '''
     def getAssociationsbBySensationType(self, associationSensationType,
-                                        associationDirection = Direction.Out,
+                                        associationDirection = RobotType.Sense,
                                         ignoredSensations=[],
                                         ignoredVoiceLens=[]):
         associations=[]
         for association in self.associations:
             if association.getSensation().getSensationType() == associationSensationType and\
-               association.getSensation().getDirection() == associationDirection and\
+               association.getSensation().getRobotType() == associationDirection and\
                association.getSensation() not in ignoredSensations and\
                len(association.getSensation().getData()) not in ignoredVoiceLens:
                 associations.append(association)
@@ -1499,10 +1499,10 @@ class Sensation(object):
     def getMemoryType(self):
         return self.memoryType
        
-    def setDirection(self, direction):
-        self.direction = direction
-    def getDirection(self):
-        return self.direction
+    def setRobotType(self, robotType):
+        self.robotType = robotType
+    def getRobotType(self):
+        return self.robotType
     
     def setWho(self, who):
         self.who = who
@@ -1749,7 +1749,7 @@ if __name__ == '__main__':
     config = Config()
     capabilities = Capabilities(config=config)
     
-    s_Drive=Sensation(associations=[], sensationType = Sensation.SensationType.Drive, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, leftPower = 0.77, rightPower = 0.55)
+    s_Drive=Sensation(associations=[], sensationType = Sensation.SensationType.Drive, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, leftPower = 0.77, rightPower = 0.55)
     print("str s  " + str(s_Drive))
     sensations=Sensation.getSensationsFromSensationMemory(s_Drive.getId())
     b=s_Drive.bytes()
@@ -1761,7 +1761,7 @@ if __name__ == '__main__':
     
     #test with create
     print("test with create")
-    s_Drive_create=Sensation.create(associations=[], sensationType = Sensation.SensationType.Drive, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, leftPower = 0.77, rightPower = 0.55)
+    s_Drive_create=Sensation.create(associations=[], sensationType = Sensation.SensationType.Drive, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, leftPower = 0.77, rightPower = 0.55)
     print(("Sensation.create: str s  " + str(s_Drive_create)))
     sensations=Sensation.getSensationsFromSensationMemory(s_Drive_create.getId())
     b=s_Drive_create.bytes()
@@ -1773,7 +1773,7 @@ if __name__ == '__main__':
     print()
 
     
-    s_Stop=Sensation(associations=[], sensationType = Sensation.SensationType.Stop, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In)
+    s_Stop=Sensation(associations=[], sensationType = Sensation.SensationType.Stop, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle)
     print("str s  " + str(s_Stop))
     b=s_Stop.bytes()
     s2=Sensation(associations=[], bytes=b)
@@ -1782,7 +1782,7 @@ if __name__ == '__main__':
 
     #test with create
     print("test with create")
-    s_Stop_create=Sensation.create(associations=[], sensationType = Sensation.SensationType.Stop, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In)
+    s_Stop_create=Sensation.create(associations=[], sensationType = Sensation.SensationType.Stop, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle)
     print(("Sensation.create: str s  " + str(s_Stop_create)))
     b=s_Stop_create.bytes()
     s2=Sensation.create(associations=[], bytes=b)
@@ -1790,7 +1790,7 @@ if __name__ == '__main__':
     print("Sensation.create: " + str(s_Stop_create == s2))
     print()
     
-    s_Who=Sensation(associations=[], sensationType = Sensation.SensationType.Who, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In)
+    s_Who=Sensation(associations=[], sensationType = Sensation.SensationType.Who, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle)
     print("str s  " + str(s_Who))
     b=s_Who.bytes()
     s2=Sensation(associations=[], bytes=b)
@@ -1799,7 +1799,7 @@ if __name__ == '__main__':
     
     #test with create
     print("test with create")
-    s_Who_create=Sensation.create(associations=[], sensationType = Sensation.SensationType.Who, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In)
+    s_Who_create=Sensation.create(associations=[], sensationType = Sensation.SensationType.Who, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle)
     print(("Sensation.create: str s  " + str(s_Who_create)))
     b=s_Who_create.bytes()
     s2=Sensation.create(associations=[], bytes=b)
@@ -1810,7 +1810,7 @@ if __name__ == '__main__':
  
     # TODO
     # We can't  test this way any more, because SEnsation we create cant be used until it is created  
-#     s_HearDirection=Sensation(associations=[Sensation.Association(self_sensation=s_HearDirection, sensation=s_Drive)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.HearDirection, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, hearDirection = 0.85)
+#     s_HearDirection=Sensation(associations=[Sensation.Association(self_sensation=s_HearDirection, sensation=s_Drive)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.HearDirection, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, hearDirection = 0.85)
 #     print(("str s  " + str(s_HearDirection)))
 #     b=s_HearDirection.bytes()
 #     s2=Sensation(associations=[], bytes=b)
@@ -1819,7 +1819,7 @@ if __name__ == '__main__':
 # 
 #     #test with create
 #     print("test with create")
-#     s_HearDirection_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_HearDirection_create, sensation=s_Drive_create)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.HearDirection, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, hearDirection = 0.85)
+#     s_HearDirection_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_HearDirection_create, sensation=s_Drive_create)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.HearDirection, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, hearDirection = 0.85)
 #     print(("Sensation.create: str s  " + str(s_HearDirection_create)))
 #     b=s_HearDirection_create.bytes()
 #     s2=Sensation.create(associations=[], bytes=b)
@@ -1827,7 +1827,7 @@ if __name__ == '__main__':
 #     print("Sensation.create: " + str(s_HearDirection_create == s2))
 #     print()
 # 
-#     s_Azimuth=Sensation(associations=[Sensation.Association(self_sensation=s_Azimuth, sensation=s_HearDirection)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.Azimuth, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, azimuth = -0.85)
+#     s_Azimuth=Sensation(associations=[Sensation.Association(self_sensation=s_Azimuth, sensation=s_HearDirection)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.Azimuth, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, azimuth = -0.85)
 #     print(("str s  " + str(s_Azimuth)))
 #     b=s_Azimuth.bytes()
 #     s2=Sensation(associations=[], bytes=b)
@@ -1836,7 +1836,7 @@ if __name__ == '__main__':
 # 
 #     #test with create
 #     print("test with create")
-#     s_Azimuth_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_Azimuth_create, sensation=s_Who_create)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.Azimuth, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, azimuth = -0.85)
+#     s_Azimuth_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_Azimuth_create, sensation=s_Who_create)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.Azimuth, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, azimuth = -0.85)
 #     print(("Sensation.create: str s  " + str(s_Azimuth_create)))
 #     b=s_Azimuth_create.bytes()
 #     s2=Sensation.create(associations=[], bytes=b)
@@ -1844,7 +1844,7 @@ if __name__ == '__main__':
 #     print("Sensation.create: " + str(s_Azimuth_create == s2))
 #     print()
 # 
-#     s_Acceleration=Sensation(associations=[Sensation.Association(self_sensation=s_Acceleration, sensation=s_HearDirection),Sensation.Association(self_sensation=s_Acceleration, sensation=s_Azimuth)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.Acceleration, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, accelerationX = -0.85, accelerationY = 2.33, accelerationZ = -0.085)
+#     s_Acceleration=Sensation(associations=[Sensation.Association(self_sensation=s_Acceleration, sensation=s_HearDirection),Sensation.Association(self_sensation=s_Acceleration, sensation=s_Azimuth)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.Acceleration, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, accelerationX = -0.85, accelerationY = 2.33, accelerationZ = -0.085)
 #     print(("str s  " + str(s_Acceleration)))
 #     b=s_Acceleration.bytes()
 #     s2=Sensation(associations=[], bytes=b)
@@ -1853,7 +1853,7 @@ if __name__ == '__main__':
 # 
 #     #test with create
 #     print("test with create")
-#     s_Acceleration_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_Acceleration_create, sensation=s_HearDirection_create),Sensation.Association(self_sensation=s_Acceleration_create, sensation=s_Azimuth_create)], receivedFrom=['localhost', 'raspberry', 'virtualWalle'], sensationType = Sensation.SensationType.Acceleration, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, accelerationX = -0.85, accelerationY = 2.33, accelerationZ = -0.085)
+#     s_Acceleration_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_Acceleration_create, sensation=s_HearDirection_create),Sensation.Association(self_sensation=s_Acceleration_create, sensation=s_Azimuth_create)], receivedFrom=['localhost', 'raspberry', 'virtualWalle'], sensationType = Sensation.SensationType.Acceleration, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, accelerationX = -0.85, accelerationY = 2.33, accelerationZ = -0.085)
 #     print(("Sensation.create: str s  " + str(s_Acceleration_create)))
 #     b=s_Acceleration_create.bytes()
 #     s2=Sensation.create(associations=[], bytes=b)
@@ -1862,7 +1862,7 @@ if __name__ == '__main__':
 #     print()
 # 
 #     
-#     s_Observation=Sensation(associations=[Sensation.Association(self_sensation=s_Observation, sensation=s_HearDirection),Sensation.Association(self_sensation=s_Observation, sensation=s_Azimuth),Sensation.Association(self_sensation=s_Observation, sensation=s_Acceleration)], receivedFrom=['localhost', 'raspberry', 'virtualWalle'], sensationType = Sensation.SensationType.Observation, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, observationDirection= -0.85, observationDistance=-3.75)
+#     s_Observation=Sensation(associations=[Sensation.Association(self_sensation=s_Observation, sensation=s_HearDirection),Sensation.Association(self_sensation=s_Observation, sensation=s_Azimuth),Sensation.Association(self_sensation=s_Observation, sensation=s_Acceleration)], receivedFrom=['localhost', 'raspberry', 'virtualWalle'], sensationType = Sensation.SensationType.Observation, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, observationDirection= -0.85, observationDistance=-3.75)
 #     print(("str s  " + str(s_Observation)))
 #     b=s_Observation.bytes()
 #     s2=Sensation(associations=[], bytes=b)
@@ -1871,7 +1871,7 @@ if __name__ == '__main__':
 # 
 #     #test with create
 #     print("test with create")
-#     s_Observation_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_Observation_create, sensation=s_HearDirection_create),Sensation.Association(self_sensation=s_Observation_create, sensation=s_Azimuth_create),Sensation.Association(self_sensation=s_Observation_create, sensation=s_Acceleration_create)],  receivedFrom=['localhost', 'raspberry', 'virtualWalle',  'remoteWalle'], sensationType = Sensation.SensationType.Observation, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, observationDirection= -0.85, observationDistance=-3.75)
+#     s_Observation_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_Observation_create, sensation=s_HearDirection_create),Sensation.Association(self_sensation=s_Observation_create, sensation=s_Azimuth_create),Sensation.Association(self_sensation=s_Observation_create, sensation=s_Acceleration_create)],  receivedFrom=['localhost', 'raspberry', 'virtualWalle',  'remoteWalle'], sensationType = Sensation.SensationType.Observation, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, observationDirection= -0.85, observationDistance=-3.75)
 #     print(("Sensation.create: str s  " + str(s_Observation_create)))
 #     b=s_Observation_create.bytes()
 #     s2=Sensation.create(associations=[], bytes=b)
@@ -1880,7 +1880,7 @@ if __name__ == '__main__':
 #     print()
 #     
 #     # voice
-#     s_VoiceFilePath=Sensation(associations=[Sensation.Association(self_sensation=s_VoiceFilePath, sensation=s_Observation),Sensation.Association(self_sensation=s_VoiceFilePath, sensation=s_HearDirection),Sensation.Association(self_sensation=s_VoiceFilePath, sensation=s_Azimuth),Sensation.Association(self_sensation=s_VoiceFilePath, sensation=s_Acceleration)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
+#     s_VoiceFilePath=Sensation(associations=[Sensation.Association(self_sensation=s_VoiceFilePath, sensation=s_Observation),Sensation.Association(self_sensation=s_VoiceFilePath, sensation=s_HearDirection),Sensation.Association(self_sensation=s_VoiceFilePath, sensation=s_Azimuth),Sensation.Association(self_sensation=s_VoiceFilePath, sensation=s_Acceleration)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, filePath="my/own/path/to/file")
 #     print("str s  " + str(s_VoiceFilePath))
 #     b=s_VoiceFilePath.bytes()
 #     s2=Sensation(associations=[], bytes=b)
@@ -1889,7 +1889,7 @@ if __name__ == '__main__':
 # 
 #     #test with create
 #     print("test with create")
-#     s_VoiceFilePath_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_VoiceFilePath_create, sensation=s_Observation_create),Sensation.Association(self_sensation=s_VoiceFilePath_create, sensation=s_HearDirection_create),Sensation.Association(self_sensation=s_VoiceFilePath_create, sensation=s_Azimuth_create),Sensation.Association(self_sensation=s_VoiceFilePath_create, sensation=s_Acceleration_create)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
+#     s_VoiceFilePath_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_VoiceFilePath_create, sensation=s_Observation_create),Sensation.Association(self_sensation=s_VoiceFilePath_create, sensation=s_HearDirection_create),Sensation.Association(self_sensation=s_VoiceFilePath_create, sensation=s_Azimuth_create),Sensation.Association(self_sensation=s_VoiceFilePath_create, sensation=s_Acceleration_create)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, filePath="my/own/path/to/file")
 #     print(("Sensation.create: str s  " + str(s_VoiceFilePath_create)))
 #     b=s_VoiceFilePath_create.bytes()
 #     s2=Sensation.create(associations=[], bytes=b)
@@ -1897,7 +1897,7 @@ if __name__ == '__main__':
 #     print("Sensation.create: " + str(s_VoiceFilePath_create == s2))
 #     print()
 # 
-#     s_VoiceData=Sensation(associations=[Sensation.Association(self_sensation=s_VoiceData, sensation=s_VoiceFilePath),Sensation.Association(self_sensation=s_VoiceData, sensation=s_Observation),Sensation.Association(self_sensation=s_VoiceData, sensation=s_HearDirection),Sensation.Association(self_sensation=s_VoiceData, sensation=s_Azimuth),Sensation.Association(self_sensation=s_VoiceData, sensation=s_Acceleration)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, data=b'\x01\x02\x03\x04\x05')
+#     s_VoiceData=Sensation(associations=[Sensation.Association(self_sensation=s_VoiceData, sensation=s_VoiceFilePath),Sensation.Association(self_sensation=s_VoiceData, sensation=s_Observation),Sensation.Association(self_sensation=s_VoiceData, sensation=s_HearDirection),Sensation.Association(self_sensation=s_VoiceData, sensation=s_Azimuth),Sensation.Association(self_sensation=s_VoiceData, sensation=s_Acceleration)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, data=b'\x01\x02\x03\x04\x05')
 #     print(("str s  " + str(s_VoiceData)))
 #     b=s_VoiceData.bytes()
 #     s2=Sensation(associations=[], bytes=b)
@@ -1906,7 +1906,7 @@ if __name__ == '__main__':
 # 
 #     #test with create
 #     print("test with create")
-#     s_VoiceData_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_VoiceData_create, sensation=s_VoiceFilePath_create),Sensation.Association(self_sensation=s_VoiceData_create, sensation=s_Observation_create),Sensation.Association(self_sensation=s_VoiceData_create, sensation=s_HearDirection_create),Sensation.Association(self_sensation=s_VoiceData_create, sensation=s_Azimuth_create),Sensation.Association(self_sensation=s_VoiceData_create, sensation=s_Acceleration_create)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In,  data=b'\x01\x02\x03\x04\x05')
+#     s_VoiceData_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_VoiceData_create, sensation=s_VoiceFilePath_create),Sensation.Association(self_sensation=s_VoiceData_create, sensation=s_Observation_create),Sensation.Association(self_sensation=s_VoiceData_create, sensation=s_HearDirection_create),Sensation.Association(self_sensation=s_VoiceData_create, sensation=s_Azimuth_create),Sensation.Association(self_sensation=s_VoiceData_create, sensation=s_Acceleration_create)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle,  data=b'\x01\x02\x03\x04\x05')
 #     print(("Sensation.create: str s  " + str(s_VoiceData_create)))
 #     b=s_VoiceData_create.bytes()
 #     s2=Sensation.create(associations=[], bytes=b)
@@ -1915,7 +1915,7 @@ if __name__ == '__main__':
 #     print()
 #     
 #     # image    
-#     s_ImageFilePath=Sensation(associations=[Sensation.Association(self_sensation=s_ImageFilePath, sensation=s_Observation),Sensation.Association(self_sensation=s_ImageFilePath, sensation=s_HearDirection),Sensation.Association(self_sensation=s_ImageFilePath, sensation=s_Azimuth),Sensation.Association(self_sensation=s_ImageFilePath, sensation=s_Acceleration)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
+#     s_ImageFilePath=Sensation(associations=[Sensation.Association(self_sensation=s_ImageFilePath, sensation=s_Observation),Sensation.Association(self_sensation=s_ImageFilePath, sensation=s_HearDirection),Sensation.Association(self_sensation=s_ImageFilePath, sensation=s_Azimuth),Sensation.Association(self_sensation=s_ImageFilePath, sensation=s_Acceleration)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, filePath="my/own/path/to/file")
 #     print(("str s  " + str(s_ImageFilePath)))
 #     b=s_ImageFilePath.bytes()
 #     s2=Sensation(associations=[], bytes=b)
@@ -1924,7 +1924,7 @@ if __name__ == '__main__':
 # 
 #     #test with create
 #     print("test with create")
-#     s_ImageFilePath_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_ImageFilePath_create, sensation=s_Observation_create),Sensation.Association(self_sensation=s_ImageFilePath_create, sensation=s_HearDirection_create),Sensation.Association(self_sensation=s_ImageFilePath_create, sensation=s_Azimuth_create),Sensation.Association(self_sensation=s_ImageFilePath_create, sensation=s_Acceleration_create)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, filePath="my/own/path/to/file")
+#     s_ImageFilePath_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_ImageFilePath_create, sensation=s_Observation_create),Sensation.Association(self_sensation=s_ImageFilePath_create, sensation=s_HearDirection_create),Sensation.Association(self_sensation=s_ImageFilePath_create, sensation=s_Azimuth_create),Sensation.Association(self_sensation=s_ImageFilePath_create, sensation=s_Acceleration_create)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, filePath="my/own/path/to/file")
 #     print(("Sensation.create: str s  " + str(s_ImageFilePath_create)))
 #     b=s_ImageFilePath_create.bytes()
 #     s2=Sensation.create(associations=[], bytes=b)
@@ -1932,7 +1932,7 @@ if __name__ == '__main__':
 #     print("Sensation.create: " + str(s_ImageFilePath_create == s2))
 #     print()
 # 
-#     s_ImageData=Sensation(associations=[Sensation.Association(self_sensation=s_ImageData, sensation=s_ImageFilePath),Sensation.Association(self_sensation=s_ImageData, sensation=s_Observation),Sensation.Association(self_sensation=s_ImageData, sensation=s_HearDirection),Sensation.Association(self_sensation=s_ImageData, sensation=s_Azimuth),Sensation.Association(self_sensation=s_ImageData, sensation=s_Acceleration)], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, image=PIL_Image.new(mode=Sensation.MODE, size=(10,10)))
+#     s_ImageData=Sensation(associations=[Sensation.Association(self_sensation=s_ImageData, sensation=s_ImageFilePath),Sensation.Association(self_sensation=s_ImageData, sensation=s_Observation),Sensation.Association(self_sensation=s_ImageData, sensation=s_HearDirection),Sensation.Association(self_sensation=s_ImageData, sensation=s_Azimuth),Sensation.Association(self_sensation=s_ImageData, sensation=s_Acceleration)], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, image=PIL_Image.new(mode=Sensation.MODE, size=(10,10)))
 #     print("str s  " + str(s_ImageData))
 #     b=s_ImageData.bytes()
 #     s2=Sensation(associations=[], bytes=b)
@@ -1941,7 +1941,7 @@ if __name__ == '__main__':
 # 
 #     #test with create
 #     print("test with create")
-#     s_ImageData_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_ImageData_create, sensation=s_ImageFilePath_create),Sensation.Association(self_sensation=s_ImageData_create, sensation=s_Observation_create),Sensation.Association(self_sensation=s_ImageData_create, sensation=s_HearDirection_create),Sensation.Association(self_sensation=s_ImageData_create, sensation=s_Azimuth_create),Sensation.Association(self_sensation=s_ImageData_create, sensation=s_Acceleration_create)], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, image=PIL_Image.new(mode=Sensation.MODE, size=(10,10)))
+#     s_ImageData_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_ImageData_create, sensation=s_ImageFilePath_create),Sensation.Association(self_sensation=s_ImageData_create, sensation=s_Observation_create),Sensation.Association(self_sensation=s_ImageData_create, sensation=s_HearDirection_create),Sensation.Association(self_sensation=s_ImageData_create, sensation=s_Azimuth_create),Sensation.Association(self_sensation=s_ImageData_create, sensation=s_Acceleration_create)], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, image=PIL_Image.new(mode=Sensation.MODE, size=(10,10)))
 #     print("Sensation.create: str s  " + str(s_ImageData_create))
 #     b=s_ImageData_create.bytes()
 #     s2=Sensation.create(associations=[], bytes=b)
@@ -1949,7 +1949,7 @@ if __name__ == '__main__':
 #     print("Sensation.create: " +str(s_ImageData_create == s2))
 #     print()
 # 
-#     s_Calibrate=Sensation(associations=[Sensation.Association(self_sensation=s_Calibrate, sensation=s_ImageData),Sensation.Association(self_sensation=s_Calibrate, sensation=s_ImageFilePath),Sensation.Association(self_sensation=s_Calibrate, sensation=s_Observation),Sensation.Association(self_sensation=s_Calibrate, sensation=s_HearDirection),Sensation.Association(self_sensation=s_Calibrate, sensation=s_Azimuth),Sensation.Association(self_sensation=s_Calibrate, sensation=s_Acceleration)], sensationType = Sensation.SensationType.Calibrate, memoryType = Sensation.MemoryType.Sensory, calibrateSensationType = Sensation.SensationType.HearDirection, direction = Sensation.Direction.In, hearDirection = 0.85)
+#     s_Calibrate=Sensation(associations=[Sensation.Association(self_sensation=s_Calibrate, sensation=s_ImageData),Sensation.Association(self_sensation=s_Calibrate, sensation=s_ImageFilePath),Sensation.Association(self_sensation=s_Calibrate, sensation=s_Observation),Sensation.Association(self_sensation=s_Calibrate, sensation=s_HearDirection),Sensation.Association(self_sensation=s_Calibrate, sensation=s_Azimuth),Sensation.Association(self_sensation=s_Calibrate, sensation=s_Acceleration)], sensationType = Sensation.SensationType.Calibrate, memoryType = Sensation.MemoryType.Sensory, calibrateSensationType = Sensation.SensationType.HearDirection, robotType = Sensation.RobotType.Muscle, hearDirection = 0.85)
 #     print("str s  " + str(s_Calibrate))
 #     b=s_Calibrate.bytes()
 #     s2=Sensation(associations=[], bytes=b)
@@ -1958,7 +1958,7 @@ if __name__ == '__main__':
 # 
 #     #test with create
 #     print("test with create")
-#     s_Calibrate_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_Calibrate_create, sensation=s_ImageData_create),Sensation.Association(self_sensation=s_Calibrate_create, sensation=s_ImageFilePath_create),Sensation.Association(self_sensation=s_Calibrate_create, sensation=s_Observation_create),Sensation.Association(self_sensation=s_Calibrate_create, sensation=s_HearDirection_create),Sensation.Association(self_sensation=s_Calibrate_create, sensation=s_Azimuth_create),Sensation.Association(self_sensation=s_Calibrate_create, sensation=s_Acceleration_create)], sensationType = Sensation.SensationType.Calibrate, memoryType = Sensation.MemoryType.Sensory, calibrateSensationType = Sensation.SensationType.HearDirection, direction = Sensation.Direction.In, hearDirection = 0.85)
+#     s_Calibrate_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_Calibrate_create, sensation=s_ImageData_create),Sensation.Association(self_sensation=s_Calibrate_create, sensation=s_ImageFilePath_create),Sensation.Association(self_sensation=s_Calibrate_create, sensation=s_Observation_create),Sensation.Association(self_sensation=s_Calibrate_create, sensation=s_HearDirection_create),Sensation.Association(self_sensation=s_Calibrate_create, sensation=s_Azimuth_create),Sensation.Association(self_sensation=s_Calibrate_create, sensation=s_Acceleration_create)], sensationType = Sensation.SensationType.Calibrate, memoryType = Sensation.MemoryType.Sensory, calibrateSensationType = Sensation.SensationType.HearDirection, robotType = Sensation.RobotType.Muscle, hearDirection = 0.85)
 #     print("Sensation.create: str s  " + str(s_Calibrate_create))
 #     b=s_Calibrate_create.bytes()
 #     s2=Sensation.create(associations=[], bytes=b)
@@ -1966,8 +1966,8 @@ if __name__ == '__main__':
 #     print("Sensation.create: " + str(s_Calibrate_create == s2))
 #     print()
 # 
-# #    s_Capability=Sensation(associations=[s_Calibrate,s_VoiceData,s_VoiceFilePath,s_ImageData,s_ImageFilePath,s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.Capability, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, capabilities = [Sensation.SensationType.Drive, Sensation.SensationType.HearDirection, Sensation.SensationType.Azimuth])
-#     s_Capability=Sensation(associations=[Sensation.Association(self_sensation=s_Capability, sensation=s_Calibrate),Sensation.Association(self_sensation=s_Capability, sensation=s_VoiceData),Sensation.Association(self_sensation=s_Capability, sensation=s_VoiceFilePath),Sensation.Association(self_sensation=s_Capability, sensation=s_ImageData),Sensation.Association(self_sensation=s_Capability, sensation=s_ImageFilePath),Sensation.Association(self_sensation=s_Capability, sensation=s_Observation),Sensation.Association(self_sensation=s_Capability, sensation=s_HearDirection),Sensation.Association(self_sensation=s_Capability, sensation=s_Azimuth),Sensation.Association(self_sensation=s_Capability, sensation=s_Acceleration)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Capability, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, capabilities = capabilities)
+# #    s_Capability=Sensation(associations=[s_Calibrate,s_VoiceData,s_VoiceFilePath,s_ImageData,s_ImageFilePath,s_Observation,s_HearDirection,s_Azimuth,s_Acceleration], sensationType = Sensation.SensationType.Capability, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense, capabilities = [Sensation.SensationType.Drive, Sensation.SensationType.HearDirection, Sensation.SensationType.Azimuth])
+#     s_Capability=Sensation(associations=[Sensation.Association(self_sensation=s_Capability, sensation=s_Calibrate),Sensation.Association(self_sensation=s_Capability, sensation=s_VoiceData),Sensation.Association(self_sensation=s_Capability, sensation=s_VoiceFilePath),Sensation.Association(self_sensation=s_Capability, sensation=s_ImageData),Sensation.Association(self_sensation=s_Capability, sensation=s_ImageFilePath),Sensation.Association(self_sensation=s_Capability, sensation=s_Observation),Sensation.Association(self_sensation=s_Capability, sensation=s_HearDirection),Sensation.Association(self_sensation=s_Capability, sensation=s_Azimuth),Sensation.Association(self_sensation=s_Capability, sensation=s_Acceleration)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Capability, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense, capabilities = capabilities)
 #     print(("str s  " + str(s_Capability)))
 #     b=s_Capability.bytes()
 #     s2=Sensation(associations=[], bytes=b)
@@ -1976,7 +1976,7 @@ if __name__ == '__main__':
 #     
 #      #test with create
 #     print("test with create")
-#     s_Capability_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_Capability_create, sensation=s_Calibrate_create),Sensation.Association(self_sensation=s_Capability_create, sensation=s_VoiceData_create),Sensation.Association(self_sensation=s_Capability_create, sensation=s_VoiceFilePath_create),Sensation.Association(self_sensation=s_Capability_create, sensation=s_ImageData_create),Sensation.Association(self_sensation=s_Capability_create, sensation=s_ImageFilePath_create),Sensation.Association(self_sensation=s_Capability_create, sensation=s_Observation_create),Sensation.Association(self_sensation=s_Capability_create, sensation=s_HearDirection_create),Sensation.Association(self_sensation=s_Capability_create, sensation=s_Azimuth_create),Sensation.Association(self_sensation=s_Capability_create, sensation=s_Acceleration_create)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Capability, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, capabilities = capabilities)
+#     s_Capability_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_Capability_create, sensation=s_Calibrate_create),Sensation.Association(self_sensation=s_Capability_create, sensation=s_VoiceData_create),Sensation.Association(self_sensation=s_Capability_create, sensation=s_VoiceFilePath_create),Sensation.Association(self_sensation=s_Capability_create, sensation=s_ImageData_create),Sensation.Association(self_sensation=s_Capability_create, sensation=s_ImageFilePath_create),Sensation.Association(self_sensation=s_Capability_create, sensation=s_Observation_create),Sensation.Association(self_sensation=s_Capability_create, sensation=s_HearDirection_create),Sensation.Association(self_sensation=s_Capability_create, sensation=s_Azimuth_create),Sensation.Association(self_sensation=s_Capability_create, sensation=s_Acceleration_create)], receivedFrom=['localhost'], sensationType = Sensation.SensationType.Capability, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense, capabilities = capabilities)
 #     print(("Sensation.create: str s  " + str(s_Capability_create)))
 #     b=s_Capability_create.bytes()
 #     s2=Sensation.create(associations=[], bytes=b)
@@ -1985,7 +1985,7 @@ if __name__ == '__main__':
 #     
 #     # item
 #     
-#     s_Item=Sensation(associations=[Sensation.Association(self_sensation=s_Item, sensation=s_Calibrate),Sensation.Association(self_sensation=s_Item, sensation=s_VoiceData),Sensation.Association(self_sensation=s_Item, sensation=s_VoiceFilePath),Sensation.Association(self_sensation=s_Item, sensation=s_ImageData),Sensation.Association(self_sensation=s_Item, sensation=s_ImageFilePath),Sensation.Association(self_sensation=s_Item, sensation=s_Observation),Sensation.Association(self_sensation=s_Item, sensation=s_HearDirection),Sensation.Association(self_sensation=s_Item, sensation=s_Azimuth),Sensation.Association(self_sensation=s_Item, sensation=s_Acceleration)], sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, name='person')
+#     s_Item=Sensation(associations=[Sensation.Association(self_sensation=s_Item, sensation=s_Calibrate),Sensation.Association(self_sensation=s_Item, sensation=s_VoiceData),Sensation.Association(self_sensation=s_Item, sensation=s_VoiceFilePath),Sensation.Association(self_sensation=s_Item, sensation=s_ImageData),Sensation.Association(self_sensation=s_Item, sensation=s_ImageFilePath),Sensation.Association(self_sensation=s_Item, sensation=s_Observation),Sensation.Association(self_sensation=s_Item, sensation=s_HearDirection),Sensation.Association(self_sensation=s_Item, sensation=s_Azimuth),Sensation.Association(self_sensation=s_Item, sensation=s_Acceleration)], sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense, name='person')
 #     print(("str s  " + str(s_Item)))
 #     b=s_Item.bytes()
 #     s2=Sensation(associations=[], bytes=b)
@@ -1994,7 +1994,7 @@ if __name__ == '__main__':
 #     
 #      #test with create
 #     print("test with create")
-#     s_Item_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_Item_create, sensation=s_Calibrate_create),Sensation.Association(self_sensation=s_Item_create, sensation=s_VoiceData_create),Sensation.Association(self_sensation=s_Item_create, sensation=s_VoiceFilePath_create),Sensation.Association(self_sensation=s_Item_create, sensation=s_ImageData_create),Sensation.Association(self_sensation=s_Item_create, sensation=s_ImageFilePath_create),Sensation.Association(self_sensation=s_Item_create, sensation=s_Observation_create),Sensation.Association(self_sensation=s_Item_create, sensation=s_HearDirection_create),Sensation.Association(self_sensation=s_Item_create, sensation=s_Azimuth_create),Sensation.Association(self_sensation=s_Item_create, sensation=s_Acceleration_create)], sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, name='person')
+#     s_Item_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_Item_create, sensation=s_Calibrate_create),Sensation.Association(self_sensation=s_Item_create, sensation=s_VoiceData_create),Sensation.Association(self_sensation=s_Item_create, sensation=s_VoiceFilePath_create),Sensation.Association(self_sensation=s_Item_create, sensation=s_ImageData_create),Sensation.Association(self_sensation=s_Item_create, sensation=s_ImageFilePath_create),Sensation.Association(self_sensation=s_Item_create, sensation=s_Observation_create),Sensation.Association(self_sensation=s_Item_create, sensation=s_HearDirection_create),Sensation.Association(self_sensation=s_Item_create, sensation=s_Azimuth_create),Sensation.Association(self_sensation=s_Item_create, sensation=s_Acceleration_create)], sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense, name='person')
 #     print(("Sensation.create: str s  " + str(s_Item_create)))
 #     b=s_Item_create.bytes()
 #     s2=Sensation.create(associations=[], bytes=b)

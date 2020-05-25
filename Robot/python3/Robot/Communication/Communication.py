@@ -112,7 +112,7 @@ class Communication(Robot):
         # accept heard voices and Item.name presentation Item.name changes
         #sensation.getMemoryType() == Sensation.MemoryType.Working and# No item is Working, voice is Ssensory
         if systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL and\
-           sensation.getDirection() == Sensation.Direction.Out:
+           sensation.getRobotType() == Sensation.RobotType.Sense:
             # all kind Items found
             if sensation.getSensationType() == Sensation.SensationType.Item and\
                (sensation.getPresence() == Sensation.Presence.Entering or\
@@ -136,7 +136,7 @@ class Communication(Robot):
             # if a Spaken Voice voice
             elif sensation.getSensationType() == Sensation.SensationType.Voice and\
                  sensation.getMemoryType() == Sensation.MemoryType.Sensory and\
-                 sensation.getDirection() == Sensation.Direction.Out:
+                 sensation.getRobotType() == Sensation.RobotType.Sense:
                 # if response in a going on conversation 
                 if systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL and\
                    self.isConversationOn():
@@ -280,9 +280,9 @@ class Communication(Robot):
             # use randown own voice instead of self.voiceind
             voiceind = random.randint(0, len(self.getMemory().getRobot().voiceSensations)-1)
             self.spokedVoiceSensation = self.createSensation( associations=[], sensation=self.getMemory().getRobot().voiceSensations[voiceind],
-                                                              memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, locations=self.getLocations())
+                                                              memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense, locations=self.getLocations())
             #self.spokedVoiceSensation.setMemoryType(memoryType = Sensation.MemoryType.Sensory)
-            #self.spokedVoiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, data=data)
+            #self.spokedVoiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, data=data)
             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation, association=None) # or self.process
             self.log("speak: Starting with presenting Robot voiceind={} self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation={}".format(str(voiceind), self.spokedVoiceSensation.toDebugStr()))
 #             self.voiceind=self.voiceind+1
@@ -304,13 +304,13 @@ class Communication(Robot):
                     
                     candidate_for_communication_item, candidate_for_association, candidate_for_voice = \
                         self.getMemory().getMostImportantSensation( sensationType = Sensation.SensationType.Item,
-                                                             direction = Sensation.Direction.Out,
+                                                             robotType = Sensation.RobotType.Sense,
                                                              name = name,
                                                              notName = None,
                                                              timemin = None,
                                                              timemax = None,
                                                              associationSensationType=Sensation.SensationType.Voice,
-                                                             associationDirection = Sensation.Direction.Out,
+                                                             associationDirection = Sensation.RobotType.Sense,
                                                              #ignoredSensations = []) # TESTING
                                                              ignoredSensations = self.usedVoices,
                                                              ignoredVoiceLens = self.usedVoiceLens,
@@ -325,13 +325,13 @@ class Communication(Robot):
                 if self.mostImportantItemSensation is None:     # if no voices assosiated to present item.names, then any voice will do
                     self.mostImportantItemSensation, self.mostImportantVoiceAssociation, self.mostImportantVoiceSensation = \
                         self.getMemory().getMostImportantSensation( sensationType = Sensation.SensationType.Item,
-                                                             direction = Sensation.Direction.Out,
+                                                             robotType = Sensation.RobotType.Sense,
                                                              name = None,
                                                              notName = None,
                                                              timemin = None,
                                                              timemax = None,
                                                              associationSensationType=Sensation.SensationType.Voice,
-                                                             associationDirection = Sensation.Direction.Out,
+                                                             associationDirection = Sensation.RobotType.Sense,
                                                              #ignoredSensations = []) # TESTING
                                                              ignoredSensations = self.usedVoices,
                                                              ignoredVoiceLens = self.usedVoiceLens,
@@ -353,9 +353,9 @@ class Communication(Robot):
             self.spokedVoiceSensation.attach(robot=self)         #attach Sensation until speaking is ended based on these voices
             # test
             #self.spokedVoiceSensation = self.mostImportantVoiceSensation
-            # NOTE This is needed now, because Sensation.create parameters direction and memoryType parameters are  overwritten by sensation parameters
+            # NOTE This is needed now, because Sensation.create parameters robotType and memoryType parameters are  overwritten by sensation parameters
             self.spokedVoiceSensation.setKind(self.getKind())
-            self.spokedVoiceSensation.setDirection(Sensation.Direction.In)  # speak        
+            self.spokedVoiceSensation.setRobotType(Sensation.RobotType.Muscle)  # speak        
             association = self.mostImportantItemSensation.getAssociation(sensation = self.mostImportantVoiceSensation)
             self.getMemory().setMemoryType(sensation=self.spokedVoiceSensation, memoryType=Sensation.MemoryType.Sensory)
             # TODO at this point we why present items and voice to be spoken.

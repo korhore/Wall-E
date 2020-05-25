@@ -445,7 +445,7 @@ class Visual(Robot):
                     
                 item = self.gs.GetItem(Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_DIRECTION)
                 if item is not None and item.IsWindow():
-                    item.GetWindow().SetLabel(Sensation.getDirectionString(direction=sensation.getDirection()))
+                    item.GetWindow().SetLabel(Sensation.getRobotTypeString(robotType=sensation.getRobotType()))
                     
                 item = self.gs.GetItem(Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_LOCATIONS)
                 if item is not None and item.IsWindow():
@@ -553,7 +553,7 @@ class Visual(Robot):
                 if sensation.getSensationType() == Sensation.SensationType.Item:
                     text = text + ' ' + sensation.getName()
                 text = text + ' ' + Sensation.getMemoryTypeString(memoryType=sensation.getMemoryType()) + \
-                              ' ' + Sensation.getDirectionString(direction=sensation.getDirection()) +\
+                              ' ' + Sensation.getRobotTypeString(robotType=sensation.getRobotType()) +\
                               ' ' + time.ctime(sensation.getTime())
                 treeItem = self.tree.InsertItem (parent=parent,
                                                  pos=0,
@@ -846,7 +846,7 @@ class Visual(Robot):
             feelingSensation=self.getRobot().createSensation(sensation=sensation)
             feelingSensation.setPositiveFeeling(isPositive)
             feelingSensation.setNegativeFeeling(not isPositive)
-            feelingSensation.setDirection(Sensation.Direction.Out)
+            feelingSensation.setRobotType(Sensation.RobotType.Sense)
             self.getRobot().getMemory().setMemoryType(sensation=feelingSensation, memoryType=Sensation.MemoryType.Sensory)
             self.getRobot().getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation, association=None)
                 
@@ -991,7 +991,7 @@ class Visual(Robot):
                     wx.PostEvent(self.logPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
                     # TODO logic is still unclear
                     # if sensation is output then log it in communication tab
-                    #if sensation.getDirection() == Sensation.Direction.In:# and\
+                    #if sensation.getRobotType() == Sensation.RobotType.Muscle:# and\
                     ##sensation.getMemoryType() == Sensation.MemoryType.Sensory:
                     # all to log
                     wx.PostEvent(self.treeLogPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))

@@ -161,7 +161,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
                     image = image.resize((int(image.size[0]*160/image.size[1]), 160))
                 print('resized image.size) ' + str(image.size))
 
-            sensations.append(self.tensorFlowClassification.createSensation(associations=[], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.Out, image=image, filePath=testImageFileName))
+            sensations.append(self.tensorFlowClassification.createSensation(associations=[], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense, image=image, filePath=testImageFileName))
 
         # test Entering, Present and Absent so, then in next picture absent Item,names are from previous picture
         # removed as a test     
@@ -221,7 +221,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
         while not self.getAxon().empty():
                 transferDirection, sensation, association = self.getAxon().get()
                 print("external: got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
-                if sensation.getDirection() == Sensation.Direction.Out and \
+                if sensation.getRobotType() == Sensation.RobotType.Sense and \
                     sensation.getSensationType() == Sensation.SensationType.Image:
                     print("external: got crop image of item " + str(transferDirection) + ' ' + sensation.toDebugStr())
                 elif sensation.getSensationType() == Sensation.SensationType.Item and\
@@ -271,7 +271,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
             if not self.getAxon().empty():
                 transferDirection, sensation, association = self.getAxon().get()
                 print("1: got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
-                if sensation.getDirection() == Sensation.Direction.Out and \
+                if sensation.getRobotType() == Sensation.RobotType.Sense and \
                     sensation.getSensationType() == Sensation.SensationType.Image:
                     print("1: got crop image of item " + str(transferDirection) + ' ' + sensation.toDebugStr())
                 elif sensation.getSensationType() == Sensation.SensationType.Item and\

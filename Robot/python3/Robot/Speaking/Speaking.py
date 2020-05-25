@@ -52,14 +52,14 @@ class Speaking(Robot):
             
             
 #     def process(self, sensation):
-#         self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + sensation.toDebugStr())      
+#         self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getRobotType()) + ' ' + sensation.toDebugStr())      
 #         if self.getLevel() == 2 and sensation.getSensationType() == Sensation.SensationType.VoiceData:
 #             self.log('process: self.getLevel() == 2 and Sensation.SensationType.VoiceData')
 #             # for testing purposes write this back to all out subInstances playback gets it
 #             for robot in self.subInstances:
 #                 if robot.getWho() == "AlsaAudioPlayback":
 #                     # TODO should we make a copy, because we should not change original sensation
-#                     sensation.setDirection(Sensation.Direction.In)
+#                     sensation.setRobotType(Sensation.RobotType.Muscle)
 #                     self.log('process: Sensation.SensationType.VoiceData AlsaAudioPlayback robot.getInAxon().put(sensation)')
 #                     robot.getInAxon().put(sensation)
 #                     return  
@@ -92,9 +92,9 @@ class Speaking(Robot):
 #                 self.inAxon.put(observation)
 #                 
 #                 #process by remote robotes
-#                 # mark hearing sensation to be processed to set direction out of memory, we forget it
-#                 sensation.setDirection(Sensation.Direction.Out)
-#                 observation.setDirection(Sensation.Direction.Out)
+#                 # mark hearing sensation to be processed to set robotType out of memory, we forget it
+#                 sensation.setRobotType(Sensation.RobotType.Sense)
+#                 observation.setRobotType(Sensation.RobotType.Sense)
 #                 #inform external senses that we don't remember hearing any more           
 #                 self.log("process: put HearDirection to out_axon")
 #                 self.out_axon.put(sensation)
@@ -115,14 +115,14 @@ class Speaking(Robot):
 #                 self.observation_angle = sensation.getObservationDirection()
 #                 self.turn()
 #                 self.log("process: put Observation to out_axon")
-#                 sensation.setDirection(Sensation.Direction.Out)
+#                 sensation.setRobotType(Sensation.RobotType.Sense)
 #                 self.out_axon.put(sensation)
 #         elif sensation.getSensationType() == Sensation.SensationType.ImageFilePath:
 #             self.log('process: Sensation.SensationType.ImageFilePath')      
 #         elif sensation.getSensationType() == Sensation.SensationType.Calibrate:
 #             self.log('process: Sensation.SensationType.Calibrate')      
 #             if sensation.getMemoryType() == Sensation.MemoryType.Working:
-#                 if sensation.getDirection() == Sensation.Direction.In:
+#                 if sensation.getRobotType() == Sensation.RobotType.Muscle:
 #                     self.log('process: asked to start calibrating mode')      
 #                     self.calibrating = True
 #                 else:
@@ -136,11 +136,11 @@ class Speaking(Robot):
 #                         print (self.name + ": Robotserver.process turning_to_object, can't start calibrate activity yet")
 #                     else:
 #                         # allow requester to start calibration activaties
-#                         if sensation.getDirection() == Sensation.Direction.In:
+#                         if sensation.getRobotType() == Sensation.RobotType.Muscle:
 #                             self.log('process: asked to start calibrating activity')      
 #                             self.calibrating_angle = sensation.getHearDirection()
 #                             self.hearing.setCalibrating(calibrating=True, calibrating_angle=self.calibrating_angle)
-#                             sensation.setDirection(Sensation.Direction.In)
+#                             sensation.setRobotType(Sensation.RobotType.Muscle)
 #                             self.log('process: calibrating put HearDirection to out_axon')      
 #                             self.out_axon.put(sensation)
 #                             #self.calibratingTimer = Timer(Robot.ACTION_TIME, self.stopCalibrating)

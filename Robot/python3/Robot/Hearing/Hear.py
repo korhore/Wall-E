@@ -42,10 +42,10 @@ class Hear(Thread):
     
     So we must do also something second best. This goes with thery, man uses this also as second way to locate by hearing.
     We will also think that if only one microphone hears a sound,
-    sound comes on that direction. If there are two sounds in left and right ear, we will analyse level of sound
+    sound comes on that robotType. If there are two sounds in left and right ear, we will analyse level of sound
     and get angle of sound from that power line.
     
-    There is also 3) way to analyse sound direction, use HRTF = head-related transfer function, but we will pass this.
+    There is also 3) way to analyse sound robotType, use HRTF = head-related transfer function, but we will pass this.
     
     Technically we analyse sound, when we have heard it some time or it has lasted.
     """
@@ -223,14 +223,14 @@ class Hear(Thread):
             right_sound = self.sound[Hear.RIGHT]
             change=False
             
-            # if there is not yet sound from another ear, sound comes from this ear's direction
+            # if there is not yet sound from another ear, sound comes from this ear's robotType
             # but we can't be sure, that another sound comes, so we must wait
             #
-            # TODO Only got Sound from left/Right  No other sound, no direction
+            # TODO Only got Sound from left/Right  No other sound, no robotType
             # TODO Maybe one ear logic should be ignored before stop of sound, to make logic more simple
             # because if one ear sound is reported, two ear sound newer even gets change
             if self.sound_status == Hear.SOUND_ONE_EAR:
-                #print "Sound from " + Hear.ear_names[id] + " No other sound, no direction, other sound stopped " + str( sound.get_start_time() - other_sound.get_stop_time())
+                #print "Sound from " + Hear.ear_names[id] + " No other sound, no robotType, other sound stopped " + str( sound.get_start_time() - other_sound.get_stop_time())
                 if sound.get_start_time() - other_sound.get_stop_time() < Hear.SOUND_LIMIT:
                     if self.debug:
                         print("Sound from " + Hear.ear_names[id] + " No other sound, but other sound just stopped " + str( sound.get_start_time() - other_sound.get_stop_time()))
@@ -240,13 +240,13 @@ class Hear(Thread):
                         self.calibrate_level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
                     self.angle = self.level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
                     if self.debug:
-                        print("Sound from " + Hear.ear_names[id] + " direction by volume level " + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (self.angle))
+                        print("Sound from " + Hear.ear_names[id] + " robotType by volume level " + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (self.angle))
                     #self.report_queue.put(SoundPosition(time=self.sound[self.id].get_start_time(), angle=self.angle, type=Hear.SOUND_TWO_EAR))
                     self.reported_level = True
                     self.report()
                 else:  
                     if self.debug:
-                        print("Sound from " + Hear.ear_names[id] + " No other sound, no direction, other sound stopped " + str( sound.get_start_time() - other_sound.get_stop_time()))
+                        print("Sound from " + Hear.ear_names[id] + " No other sound, no robotType, other sound stopped " + str( sound.get_start_time() - other_sound.get_stop_time()))
                     self.angle = self.single_sound_to_degrees(self.is_sound[Hear.LEFT], self.is_sound[Hear.RIGHT])
                     if self.debug:
                         print("Sound from " + Hear.ear_names[id] + " single " + str(self.is_sound[Hear.LEFT]) + ' ' + str(self.is_sound[Hear.RIGHT]) + " degrees " + str (self.angle))
@@ -258,16 +258,16 @@ class Hear(Thread):
                     self.reported_timing = True
                     self.report()
                     if self.debug or self.log:
-                        print("Sound direction by TIMING reported from " + Hear.ear_names[id] + " has other sound, direction by timing " + str(other_sound.get_start_time() - sound.get_start_time()) + " degrees " + str (self.angle))
+                        print("Sound robotType by TIMING reported from " + Hear.ear_names[id] + " has other sound, robotType by timing " + str(other_sound.get_start_time() - sound.get_start_time()) + " degrees " + str (self.angle))
                 else:
                     if self.debug:
-                        print("Sound direction by timing already reported from " + Hear.ear_names[id] + " has other sound, direction by timing " + str(other_sound.get_start_time() - sound.get_start_time()) + " degrees " + str (self.angle))
+                        print("Sound robotType by timing already reported from " + Hear.ear_names[id] + " has other sound, robotType by timing " + str(other_sound.get_start_time() - sound.get_start_time()) + " degrees " + str (self.angle))
 
             else:
                 # TODO Two eard sound is not needed to calculate yet, here it is calcilated for debug purposes, remove this
                 self.angle = self.level_to_degrees(left_sound.get_volume_level(), right_sound.get_volume_level())
                 if Hear.debug:
-                    print("Sound direction by volume level no reported yet from " + Hear.ear_names[id] + ' ' + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (self.angle))
+                    print("Sound robotType by volume level no reported yet from " + Hear.ear_names[id] + ' ' + str(left_sound.get_volume_level()) + ' ' + str(right_sound.get_volume_level()) + " degrees " + str (self.angle))
                 #self.report_queue.put(SoundPosition(self.angle))
                 #self.reported = True
                    

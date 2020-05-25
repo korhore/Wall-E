@@ -4,7 +4,7 @@ Created on 28.04.2018
 @author: reijo.korhonen@gmail.com
 
 Internal implementation of capabilities set on three levels
-direction, memoryType, capability
+robotType, memoryType, capability
 
 Can be initialized from bytes, string, config or default config for localhost
 
@@ -43,17 +43,17 @@ class Capabilities():
             bytes=self.config.toBytes()
         self.directions={}
         i=0
-        # create three level dictionary about capabilitys by direction, by memoryType, by sensation type
-        for direction, _ in Sensation.Directions.items():
+        # create three level dictionary about capabilitys by robotType, by memoryType, by sensation type
+        for robotType, _ in Sensation.Directions.items():
             memorys={}
-            self.directions[direction] = memorys
+            self.directions[robotType] = memorys
             for memoryType, _ in Sensation.MemoryTypes.items():
                 capabilitys={}
                 memorys[memoryType] = capabilitys
                 for capability, _ in Sensation.SensationTypes.items():
                     is_set=Config.intToBool(b=bytes[i])
 #                     if is_set:
-#                         print (str(direction) + str(memoryType) + str(capability) + ': TRUE')
+#                         print (str(robotType) + str(memoryType) + str(capability) + ': TRUE')
                     capabilitys[capability] = is_set
 #                     print ('i ' + str(i) + ': ' + str(bytes[i]) + ' ' + str(is_set))
                     i=i+1
@@ -65,17 +65,17 @@ class Capabilities():
             string=self.config.toString()
         self.directions={}
         i=0
-        # create three level dictionary about capabilitys by direction, by memoryType, by sensation type
-        for direction, _ in Sensation.Directions.items():
+        # create three level dictionary about capabilitys by robotType, by memoryType, by sensation type
+        for robotType, _ in Sensation.Directions.items():
             memorys={}
-            self.directions[direction] = memorys
+            self.directions[robotType] = memorys
             for memoryType, _ in Sensation.MemoryTypes.items():
                 capabilitys={}
                 memorys[memoryType] = capabilitys
                 for capability, _ in Sensation.SensationTypes.items():
                     is_set=Config.charToBool(string[i])
 #                     if is_set:
-#                         print (str(direction) + str(memoryType) + str(capability) + ': TRUE')
+#                         print (str(robotType) + str(memoryType) + str(capability) + ': TRUE')
                     capabilitys[capability] = is_set
 #                     print ('i ' + str(i) + ': ' + str(bytes[i]) + ' ' + str(is_set))
                     i=i+1
@@ -84,9 +84,9 @@ class Capabilities():
     Getter to get if single capability is set
     in location this Capabilities set has
     '''
-    def hasCapability(self, direction, memoryType, sensationType, locations):
+    def hasCapability(self, robotType, memoryType, sensationType, locations):
         if self.isInLocations(locations):
-            return self.directions[direction][memoryType][sensationType]
+            return self.directions[robotType][memoryType][sensationType]
         return False
     
     '''
@@ -104,18 +104,18 @@ class Capabilities():
     '''
     Setter to get if single capability is set
     '''
-    def setCapability(self, direction, memoryType, sensationType, is_set):
-        self.directions[direction][memoryType][sensationType] = is_set
+    def setCapability(self, robotType, memoryType, sensationType, is_set):
+        self.directions[robotType][memoryType][sensationType] = is_set
         
         
 '''
 test
 '''
 def test(name, capabilities):
-    for direction, directionStr in Sensation.Directions.items():
+    for robotType, directionStr in Sensation.Directions.items():
         for memoryType, memoryStr in Sensation.MemoryTypes.items():
             for capability, capabilityStr in Sensation.SensationTypes.items():
-                is_set = capabilities.hasCapability(direction, memoryType, capability, [])
+                is_set = capabilities.hasCapability(robotType, memoryType, capability, [])
                 if is_set:
                     print (name + ": " + str(directionStr) + ' ' + str(memoryStr) + ' ' + str(capabilityStr) + ': True')
 
@@ -132,18 +132,18 @@ if __name__ == '__main__':
  
     # set all True 
     print ("Set all True")
-    for direction, directionStr in Sensation.Directions.items():
+    for robotType, directionStr in Sensation.Directions.items():
         for memoryType, memoryStr in Sensation.MemoryTypes.items():
             for capability, capabilityStr in Sensation.SensationTypes.items():
-                capabilities.setCapability(direction, memoryType, capability, True)
+                capabilities.setCapability(robotType, memoryType, capability, True)
     test(name="Set all True", capabilities=capabilities)
 
      # set all False 
     print ("Set all False")
-    for direction, directionStr in Sensation.Directions.items():
+    for robotType, directionStr in Sensation.Directions.items():
         for memoryType, memoryStr in Sensation.MemoryTypes.items():
             for capability, capabilityStr in Sensation.SensationTypes.items():
-                capabilities.setCapability(direction, memoryType, capability, False)
+                capabilities.setCapability(robotType, memoryType, capability, False)
     test(name="Set all False", capabilities=capabilities)
 
     config=Config()

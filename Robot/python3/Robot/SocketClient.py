@@ -65,13 +65,13 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
 
         
     def process(self, sensation, association=None):
-        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getDirection()) + ' ' + sensation.toDebugStr())
+        self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getRobotType()) + ' ' + sensation.toDebugStr())
         if sensation.getSensationType() == Sensation.SensationType.Stop:
             self.log('process: SensationSensationType.Stop')      
             self.stop()
 
-        # We handle only sensation going in-direction
-        elif sensation.getDirection() == Sensation.Direction.In:
+        # We handle only sensation going in-robotType
+        elif sensation.getRobotType() == Sensation.RobotType.Muscle:
              self.running = SocketClient.sendSensation(sensation, self.socket, self.address)                
 
         self.socket.close()

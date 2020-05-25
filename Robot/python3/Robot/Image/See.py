@@ -97,7 +97,7 @@ class See(Thread):
         id=view.get_id()
         print(str(id) + " Processing " + view.get_file_path())
         sensation = Sensation()
-        sensation=Sensation(sensationType = Sensation.SensationType.ImageFilePath, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, imageFilePath=view.get_file_path())
+        sensation=Sensation(sensationType = Sensation.SensationType.ImageFilePath, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, imageFilePath=view.get_file_path())
         self.outAxon.put(sensation)
 
 

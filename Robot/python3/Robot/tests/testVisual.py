@@ -86,7 +86,7 @@ class VisualTestCase(unittest.TestCase):
 
         self.stopSensation = self.visual.createSensation(memoryType=Sensation.MemoryType.Working,
                                             sensationType=Sensation.SensationType.Stop,
-                                            direction=Sensation.Direction.Out)
+                                            robotType=Sensation.RobotType.Sense)
 
        # simulate item and image are connected each other with TensorflowClassifivation
         # Item is in LongTerm memoryType
@@ -94,7 +94,7 @@ class VisualTestCase(unittest.TestCase):
         self.Wall_E_item_sensation = self.visual.createSensation(time=self.history_sensationTime,
                                                       memoryType=Sensation.MemoryType.Working,
                                                       sensationType=Sensation.SensationType.Item,
-                                                      direction=Sensation.Direction.Out,
+                                                      robotType=Sensation.RobotType.Sense,
                                                       name=VisualTestCase.NAME,
                                                       score=VisualTestCase.SCORE_1,
                                                       presence = Sensation.Presence.Present)
@@ -103,7 +103,7 @@ class VisualTestCase(unittest.TestCase):
         self.Wall_E_image_sensation = self.visual.createSensation(time=self.history_sensationTime,
                                                        memoryType=Sensation.MemoryType.Working,
                                                        sensationType=Sensation.SensationType.Image,
-                                                       direction=Sensation.Direction.Out)
+                                                       robotType=Sensation.RobotType.Sense)
         self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation)
         # set association also to history
         self.Wall_E_item_sensation.getAssociation(sensation=self.Wall_E_image_sensation).setTime(time=self.history_sensationTime)
@@ -116,7 +116,7 @@ class VisualTestCase(unittest.TestCase):
         self.Wall_E_voice_sensation = self.visual.createSensation(time=self.history_sensationTime,
                                                        memoryType=Sensation.MemoryType.Sensory,
                                                        sensationType=Sensation.SensationType.Voice,
-                                                       direction=Sensation.Direction.Out,
+                                                       robotType=Sensation.RobotType.Sense,
                                                        data="1")
         self.Wall_E_item_sensation.associate(sensation=self.Wall_E_voice_sensation)
         self.Wall_E_image_sensation.associate(sensation=self.Wall_E_voice_sensation,)
@@ -145,7 +145,7 @@ class VisualTestCase(unittest.TestCase):
         #systemTime.sleep(0.1)  # wait to get really even id
         self.Wall_E_item_sensation = self.visual.createSensation(memoryType=Sensation.MemoryType.Working,
                                                       sensationType=Sensation.SensationType.Item,
-                                                      direction=Sensation.Direction.Out,
+                                                      robotType=Sensation.RobotType.Sense,
                                                       name=VisualTestCase.NAME,
                                                       score=VisualTestCase.SCORE_1,
                                                       presence = Sensation.Presence.Present)
@@ -155,7 +155,7 @@ class VisualTestCase(unittest.TestCase):
 
         self.Wall_E_image_sensation = self.visual.createSensation( memoryType=Sensation.MemoryType.Working,
                                                        sensationType=Sensation.SensationType.Image,
-                                                       direction=Sensation.Direction.Out,
+                                                       robotType=Sensation.RobotType.Sense,
                                                        image=image)
         self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation)
 #         if len(self.visual.getMemory().getRobot().images) > 1:
@@ -167,7 +167,7 @@ class VisualTestCase(unittest.TestCase):
         self.assertNotEqual(image, None, "image should not be None in this test")
         self.Wall_E_image_sensation_2 = self.visual.createSensation( memoryType=Sensation.MemoryType.Working,
                                                        sensationType=Sensation.SensationType.Image,
-                                                       direction=Sensation.Direction.Out,
+                                                       robotType=Sensation.RobotType.Sense,
                                                        image=image)
         
         
@@ -184,7 +184,7 @@ class VisualTestCase(unittest.TestCase):
         #systemTime.sleep(0.1)  # wait to get really even id
         self.Wall_E_voice_sensation = self.visual.createSensation(memoryType=Sensation.MemoryType.Sensory,
                                                        sensationType=Sensation.SensationType.Voice,
-                                                       direction=Sensation.Direction.Out,
+                                                       robotType=Sensation.RobotType.Sense,
                                                        data="1")
         self.Wall_E_item_sensation.associate(sensation=self.Wall_E_voice_sensation)
         self.Wall_E_image_sensation.associate(sensation=self.Wall_E_voice_sensation)
@@ -204,7 +204,7 @@ class VisualTestCase(unittest.TestCase):
         # communication
         self.communication_item_sensation = self.visual.createSensation(memoryType=Sensation.MemoryType.Sensory,
                                                       sensationType=Sensation.SensationType.Item,
-                                                      direction=Sensation.Direction.In,
+                                                      robotType=Sensation.RobotType.Muscle,
                                                       name=VisualTestCase.NAME,
                                                       presence = Sensation.Presence.Present)
 
@@ -212,17 +212,17 @@ class VisualTestCase(unittest.TestCase):
         self.assertNotEqual(image, None, "image should not be None in this test")
         self.communication_image_sensation = self.visual.createSensation( memoryType=Sensation.MemoryType.Sensory,
                                                        sensationType=Sensation.SensationType.Image,
-                                                       direction=Sensation.Direction.In,
+                                                       robotType=Sensation.RobotType.Muscle,
                                                        image=image)
         
         self.communication_voice_sensation = self.visual.createSensation(memoryType=Sensation.MemoryType.Sensory,
                                                        sensationType=Sensation.SensationType.Voice,
-                                                       direction=Sensation.Direction.In,
+                                                       robotType=Sensation.RobotType.Muscle,
                                                        data="1")
         
         self.communication_positive_feeling_sensation = self.visual.createSensation(memoryType=Sensation.MemoryType.Sensory,
                                                        sensationType=Sensation.SensationType.Feeling,
-                                                       direction=Sensation.Direction.In,
+                                                       robotType=Sensation.RobotType.Muscle,
                                                        firstAssociateSensation=self.communication_item_sensation,
                                                        otherAssociateSensation=self.communication_voice_sensation,
                                                        positiveFeeling=True)
@@ -313,7 +313,7 @@ class VisualTestCase(unittest.TestCase):
         print("My kind is " + str(robot.getKind()))      
         robot.selfSensation=robot.createSensation(sensationType=Sensation.SensationType.Item,
                                                 memoryType=Sensation.MemoryType.LongTerm,
-                                                direction=Sensation.Direction.Out,# We have found this
+                                                robotType=Sensation.RobotType.Sense,# We have found this
                                                 who = robot.getWho(),
                                                 name = robot.getWho(),
                                                 presence = Sensation.Presence.Present,

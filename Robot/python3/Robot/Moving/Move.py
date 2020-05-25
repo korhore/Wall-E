@@ -95,7 +95,7 @@ class Move(Thread):
         print(str(id) + " Processing " + view.get_file_path())
         sensation = Sensation()
         self.number = self.number+1
-        sensation=Sensation(sensationType = Sensation.SensationType.ImageFilePath, memoryType = Sensation.MemoryType.Sensory, direction = Sensation.Direction.In, imageFilePath=view.get_file_path())
+        sensation=Sensation(sensationType = Sensation.SensationType.ImageFilePath, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, imageFilePath=view.get_file_path())
         self.report_queue.put(sensation)
 
 

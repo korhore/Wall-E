@@ -117,19 +117,19 @@ class Memory(object):
                  receivedFrom=[],
                  sensationType = Sensation.SensationType.Unknown,
                  memoryType=None,
-                 direction=Sensation.Direction.In,
+                 robotType=Sensation.RobotType.Muscle,
                  who=None,
                  locations='',
                  leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
-                 azimuth = 0.0,                                             # Walle direction relative to magnetic north pole
+                 azimuth = 0.0,                                             # Walle robotType relative to magnetic north pole
                  accelerationX=0.0, accelerationY=0.0, accelerationZ=0.0,   # acceleration of walle, coordinates relative to walle
-                 hearDirection = 0.0,                                       # sound direction heard by Walle, relative to Walle
+                 hearDirection = 0.0,                                       # sound robotType heard by Walle, relative to Walle
                  observationDirection= 0.0,observationDistance=-1.0,        # Walle's observation of something, relative to Walle
                  filePath='',
                  data=b'',
                  image=None,
                  calibrateSensationType = Sensation.SensationType.Unknown,
-                 capabilities = None,                                       # capabilities of sensorys, direction what way sensation go
+                 capabilities = None,                                       # capabilities of sensorys, robotType what way sensation go
                  name='',                                                   # name of Item
                  score = 0.0,                                               # used at least with item to define how good was the detection 0.0 - 1.0
                  presence=Sensation.Presence.Unknown,                       # presence of Item
@@ -137,8 +137,8 @@ class Memory(object):
                  firstAssociateSensation=None,                              # associated sensation first side
                  otherAssociateSensation=None,                              # associated Sensation other side
                  associateFeeling = Sensation.Feeling.Neutral,              # feeling of association
-                 positiveFeeling=False,                                     # change association feeling to more positive direction if possible
-                 negativeFeeling=False):                                    # change association feeling to more negative direction if possible
+                 positiveFeeling=False,                                     # change association feeling to more positive robotType if possible
+                 negativeFeeling=False):                                    # change association feeling to more negative robotType if possible
         if sensation == None:             # not an update, create new one
             self.log(logStr="Create new sensation by pure parameters for {}".format(robot.getWho()), logLevel=Memory.MemoryLogLevel.Normal)
         else:
@@ -155,13 +155,13 @@ class Memory(object):
                  receivedFrom=receivedFrom,
                  sensationType = sensationType,
                  memoryType=memoryType,
-                 direction=direction,
+                 robotType=robotType,
                  who=who,
                  locations=locations,
                  leftPower = leftPower, rightPower = rightPower,                         # Walle motors state
-                 azimuth = azimuth,                                             # Walle direction relative to magnetic north pole
+                 azimuth = azimuth,                                             # Walle robotType relative to magnetic north pole
                  accelerationX=accelerationX, accelerationY=accelerationY, accelerationZ=accelerationZ,   # acceleration of walle, coordinates relative to walle
-                 hearDirection = hearDirection,                                       # sound direction heard by Walle, relative to Walle
+                 hearDirection = hearDirection,                                       # sound robotType heard by Walle, relative to Walle
                  observationDirection = observationDirection,observationDistance = observationDistance,        # Walle's observation of something, relative to Walle
                  filePath=filePath,
                  data=data,
@@ -214,7 +214,7 @@ class Memory(object):
             self.addToSensationMemory(sensation) # pure new sensation must be added to memory
 
         if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemoryType() == Sensation.MemoryType.Working and\
-               sensation.getDirection() == Sensation.Direction.Out:
+               sensation.getRobotType() == Sensation.RobotType.Sense:
                self.tracePresents(sensation)
         # assign other than Feeling sensations
         if sensation.getSensationType() != Sensation.SensationType.Feeling:
@@ -403,7 +403,7 @@ class Memory(object):
         sensations=[]
         for sensation in self.sensationMemory:
             # accept sensations from all Locations
-            if capabilities.hasCapability(direction=sensation.getDirection(),
+            if capabilities.hasCapability(robotType=sensation.getRobotType(),
                                           memoryType=sensation.getMemoryType(),
                                           sensationType=sensation.getSensationType(),
                                         locations=[]) and\
@@ -452,18 +452,18 @@ class Memory(object):
                           sensationType,
                           timemin,
                           timemax,
-                          direction = Sensation.Direction.Out,
+                          robotType = Sensation.RobotType.Sense,
                           name = None,
                           notName = None,
                           associationSensationType = None,
-                          associationDirection = Sensation.Direction.Out,
+                          associationDirection = Sensation.RobotType.Sense,
                           ignoredVoiceLens=[]):
         self.memoryLock.acquireRead()                  # read thread_safe
         bestSensation = None
             
         for sensation in self.sensationMemory:
             if sensation.getSensationType() == sensationType and\
-               sensation.getDirection() == direction and\
+               sensation.getRobotType() == robotType and\
                sensation.hasAssociationSensationType(associationSensationType=associationSensationType,
                                                      associationDirection = associationDirection,
                                                      ignoredVoiceLens=ignoredVoiceLens) and\
@@ -521,11 +521,11 @@ class Memory(object):
                                    sensationType,
                                    timemin,
                                    timemax,
-                                   direction = Sensation.Direction.Out,
+                                   robotType = Sensation.RobotType.Sense,
                                    name = None,
                                    notName = None,
                                    associationSensationType = None,
-                                   associationDirection = Sensation.Direction.Out,
+                                   associationDirection = Sensation.RobotType.Sense,
                                    ignoredSensations = [],
                                    ignoredVoiceLens = [],
                                    searchLength = 10):
@@ -546,7 +546,7 @@ class Memory(object):
         for sensation in self.sensationMemory:
             if sensation not in ignoredSensations and\
                sensation.getSensationType() == sensationType and\
-               sensation.getDirection() == direction and\
+               sensation.getRobotType() == robotType and\
                sensation.hasAssociationSensationType(associationSensationType=associationSensationType,
                                                      associationDirection = associationDirection,
                                                      ignoredSensations=ignoredSensations,

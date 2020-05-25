@@ -25,7 +25,7 @@ class ConfigTestCase(unittest.TestCase):
     SET_2_1_LOCATIONS_2 = ['raspberry']
     SET_2_2_LOCATIONS =   ['testLocation2', 'raspberry']
     
-    TEST_DIRECTION =    Sensation.Direction.In
+    TEST_DIRECTION =    Sensation.RobotType.Muscle
     TEST_MEMORYTYPE =   Sensation.MemoryType.Working
     TEST_SENSATIONTYPE = Sensation.SensationType.Voice
     
@@ -127,49 +127,49 @@ class ConfigTestCase(unittest.TestCase):
     def testLocations(self):
         #  single location from set 1 for capabilities
         self.capabilities.setLocations(ConfigTestCase.SET_1_1_LOCATIONS_1)
-        self.capabilities.setCapability(direction=ConfigTestCase.TEST_DIRECTION,
+        self.capabilities.setCapability(robotType=ConfigTestCase.TEST_DIRECTION,
                                         memoryType=ConfigTestCase.TEST_MEMORYTYPE,
                                         sensationType=ConfigTestCase.TEST_SENSATIONTYPE,
                                         is_set= True)
         # test test
-        self.assertTrue(self.capabilities.hasCapability(direction=ConfigTestCase.TEST_DIRECTION,
+        self.assertTrue(self.capabilities.hasCapability(robotType=ConfigTestCase.TEST_DIRECTION,
                                                         memoryType=ConfigTestCase.TEST_MEMORYTYPE,
                                                         sensationType=ConfigTestCase.TEST_SENSATIONTYPE,
                                                         locations=ConfigTestCase.SET_1_1_LOCATIONS_1),
                                                         "should be True")
         # change to other single location
         self.capabilities.setLocations(ConfigTestCase.SET_1_1_LOCATIONS_2)
-        self.assertFalse(self.capabilities.hasCapability(direction=ConfigTestCase.TEST_DIRECTION,
+        self.assertFalse(self.capabilities.hasCapability(robotType=ConfigTestCase.TEST_DIRECTION,
                                                         memoryType=ConfigTestCase.TEST_MEMORYTYPE,
                                                         sensationType=ConfigTestCase.TEST_SENSATIONTYPE,
                                                         locations=ConfigTestCase.SET_1_1_LOCATIONS_1),
                                                         "should be False")
         #  double location for capabilities
         self.capabilities.setLocations(ConfigTestCase.SET_1_2_LOCATIONS)
-        self.capabilities.setCapability(direction=ConfigTestCase.TEST_DIRECTION,
+        self.capabilities.setCapability(robotType=ConfigTestCase.TEST_DIRECTION,
                                         memoryType=ConfigTestCase.TEST_MEMORYTYPE,
                                         sensationType=ConfigTestCase.TEST_SENSATIONTYPE,
                                         is_set= True)
         # test test
-        self.assertTrue(self.capabilities.hasCapability(direction=ConfigTestCase.TEST_DIRECTION,
+        self.assertTrue(self.capabilities.hasCapability(robotType=ConfigTestCase.TEST_DIRECTION,
                                                         memoryType=ConfigTestCase.TEST_MEMORYTYPE,
                                                         sensationType=ConfigTestCase.TEST_SENSATIONTYPE,
                                                         locations=ConfigTestCase.SET_1_1_LOCATIONS_1),
                                                         "should be True")
         # change to other single location
-        self.assertTrue(self.capabilities.hasCapability(direction=ConfigTestCase.TEST_DIRECTION,
+        self.assertTrue(self.capabilities.hasCapability(robotType=ConfigTestCase.TEST_DIRECTION,
                                                         memoryType=ConfigTestCase.TEST_MEMORYTYPE,
                                                         sensationType=ConfigTestCase.TEST_SENSATIONTYPE,
                                                         locations=ConfigTestCase.SET_1_1_LOCATIONS_2),
                                                         "should be True")
         # change to first single location in other set
-        self.assertFalse(self.capabilities.hasCapability(direction=ConfigTestCase.TEST_DIRECTION,
+        self.assertFalse(self.capabilities.hasCapability(robotType=ConfigTestCase.TEST_DIRECTION,
                                                         memoryType=ConfigTestCase.TEST_MEMORYTYPE,
                                                         sensationType=ConfigTestCase.TEST_SENSATIONTYPE,
                                                         locations=ConfigTestCase.SET_2_1_LOCATIONS_1),
                                                         "should be False")
         # change to other single location in other set
-        self.assertFalse(self.capabilities.hasCapability(direction=ConfigTestCase.TEST_DIRECTION,
+        self.assertFalse(self.capabilities.hasCapability(robotType=ConfigTestCase.TEST_DIRECTION,
                                                         memoryType=ConfigTestCase.TEST_MEMORYTYPE,
                                                         sensationType=ConfigTestCase.TEST_SENSATIONTYPE,
                                                         locations=ConfigTestCase.SET_2_1_LOCATIONS_2),
@@ -179,49 +179,49 @@ class ConfigTestCase(unittest.TestCase):
         # change capabilities location to single location from set 2
         #  single location from set 2 for capabilities
         self.capabilities.setLocations(ConfigTestCase.SET_2_1_LOCATIONS_1)
-        self.capabilities.setCapability(direction=ConfigTestCase.TEST_DIRECTION,
+        self.capabilities.setCapability(robotType=ConfigTestCase.TEST_DIRECTION,
                                         memoryType=ConfigTestCase.TEST_MEMORYTYPE,
                                         sensationType=ConfigTestCase.TEST_SENSATIONTYPE,
                                         is_set= True)
         # test test
-        self.assertTrue(self.capabilities.hasCapability(direction=ConfigTestCase.TEST_DIRECTION,
+        self.assertTrue(self.capabilities.hasCapability(robotType=ConfigTestCase.TEST_DIRECTION,
                                                         memoryType=ConfigTestCase.TEST_MEMORYTYPE,
                                                         sensationType=ConfigTestCase.TEST_SENSATIONTYPE,
                                                         locations=ConfigTestCase.SET_2_1_LOCATIONS_1),
                                                         "should be True")
         # change to other single location
         self.capabilities.setLocations(ConfigTestCase.SET_2_1_LOCATIONS_2)
-        self.assertFalse(self.capabilities.hasCapability(direction=ConfigTestCase.TEST_DIRECTION,
+        self.assertFalse(self.capabilities.hasCapability(robotType=ConfigTestCase.TEST_DIRECTION,
                                                         memoryType=ConfigTestCase.TEST_MEMORYTYPE,
                                                         sensationType=ConfigTestCase.TEST_SENSATIONTYPE,
                                                         locations=ConfigTestCase.SET_2_1_LOCATIONS_1),
                                                         "should be False")
         #  double location for capabilities
         self.capabilities.setLocations(ConfigTestCase.SET_2_2_LOCATIONS)
-        self.capabilities.setCapability(direction=ConfigTestCase.TEST_DIRECTION,
+        self.capabilities.setCapability(robotType=ConfigTestCase.TEST_DIRECTION,
                                         memoryType=ConfigTestCase.TEST_MEMORYTYPE,
                                         sensationType=ConfigTestCase.TEST_SENSATIONTYPE,
                                         is_set= True)
         # test test
-        self.assertTrue(self.capabilities.hasCapability(direction=ConfigTestCase.TEST_DIRECTION,
+        self.assertTrue(self.capabilities.hasCapability(robotType=ConfigTestCase.TEST_DIRECTION,
                                                         memoryType=ConfigTestCase.TEST_MEMORYTYPE,
                                                         sensationType=ConfigTestCase.TEST_SENSATIONTYPE,
                                                         locations=ConfigTestCase.SET_2_1_LOCATIONS_1),
                                                         "should be True")
         # change to other single location
-        self.assertTrue(self.capabilities.hasCapability(direction=ConfigTestCase.TEST_DIRECTION,
+        self.assertTrue(self.capabilities.hasCapability(robotType=ConfigTestCase.TEST_DIRECTION,
                                                         memoryType=ConfigTestCase.TEST_MEMORYTYPE,
                                                         sensationType=ConfigTestCase.TEST_SENSATIONTYPE,
                                                         locations=ConfigTestCase.SET_2_1_LOCATIONS_2),
                                                         "should be True")
         # change to first single location in first set
-        self.assertFalse(self.capabilities.hasCapability(direction=ConfigTestCase.TEST_DIRECTION,
+        self.assertFalse(self.capabilities.hasCapability(robotType=ConfigTestCase.TEST_DIRECTION,
                                                         memoryType=ConfigTestCase.TEST_MEMORYTYPE,
                                                         sensationType=ConfigTestCase.TEST_SENSATIONTYPE,
                                                         locations=ConfigTestCase.SET_1_1_LOCATIONS_1),
                                                         "should be False")
         # change to other single location in other set
-        self.assertFalse(self.capabilities.hasCapability(direction=ConfigTestCase.TEST_DIRECTION,
+        self.assertFalse(self.capabilities.hasCapability(robotType=ConfigTestCase.TEST_DIRECTION,
                                                         memoryType=ConfigTestCase.TEST_MEMORYTYPE,
                                                         sensationType=ConfigTestCase.TEST_SENSATIONTYPE,
                                                         locations=ConfigTestCase.SET_1_1_LOCATIONS_2),
@@ -290,7 +290,7 @@ if __name__ == '__main__':
 #     locations=['testLocation']
 #     capabilities = Capabilities(config=config)
 #     test(name="Capabilities(config=config)", capabilities=capabilities)
-#     capabilities.setCapability(direction = Sensation.Direction.In,
+#     capabilities.setCapability(robotType = Sensation.RobotType.Muscle,
 #                                memoryType = Sensation.MemoryType.Sensory,
 #                                sensationType = Sensation.SensationType.Voice,
 #                                is_set = True)
@@ -337,27 +337,27 @@ if __name__ == '__main__':
 #  
 #     # set all True 
 #     print ("Set all True")
-#     for direction, directionStr in Sensation.Directions.items():
+#     for robotType, directionStr in Sensation.Directions.items():
 #         for memoryType, memoryStr in Sensation.MemoryTypes.items():
 #             for sensationType, capabilityStr in Sensation.SensationTypes.items():
-#                 capabilities.setCapability(direction, memoryType, sensationType, True)
+#                 capabilities.setCapability(robotType, memoryType, sensationType, True)
 #     test(name="Set all True", capabilities=capabilities)
 #     capabilities.And(other=capabilities2)
 #     test(name="Set all True capabilities And capabilities2", capabilities=capabilities)
 # 
-#     for direction, directionStr in Sensation.Directions.items():
+#     for robotType, directionStr in Sensation.Directions.items():
 #         for memoryType, memoryStr in Sensation.MemoryTypes.items():
 #             for sensationType, capabilityStr in Sensation.SensationTypes.items():
-#                 capabilities.setCapability(direction, memoryType, sensationType, True)
+#                 capabilities.setCapability(robotType, memoryType, sensationType, True)
 #     capabilities.Or(other=capabilities2)
 #     test(name="Set all True capabilities Or capabilities2", capabilities=capabilities)
 # 
 #      # set all False 
 #     print ("Set all False")
-#     for direction, directionStr in Sensation.Directions.items():
+#     for robotType, directionStr in Sensation.Directions.items():
 #         for memoryType, memoryStr in Sensation.MemoryTypes.items():
 #             for sensationType, capabilityStr in Sensation.SensationTypes.items():
-#                 capabilities.setCapability(direction, memoryType, sensationType, False)
+#                 capabilities.setCapability(robotType, memoryType, sensationType, False)
 #     test(name="Set all False", capabilities=capabilities)
 #     capabilities.Or(other=capabilities2)
 #     test(name="Set all False Or capabilities2", capabilities=capabilities)

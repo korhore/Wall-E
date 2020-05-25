@@ -144,7 +144,7 @@ class MainRobot(Robot):
             self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
             # We are main Robot, keep track of presence
             if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemoryType() == Sensation.MemoryType.Working and\
-               sensation.getDirection() == Sensation.Direction.Out:
+               sensation.getRobotType() == Sensation.RobotType.Sense:
                self.tracePresents(sensation)
             
                
@@ -513,7 +513,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                  
         try:
             # tell who we are, speaking
-            sensation=MainRobot.getInstance().createSensation(associations=[], direction=Sensation.Direction.In, sensationType = Sensation.SensationType.Who, who=self.getWho())
+            sensation=MainRobot.getInstance().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Who, who=self.getWho())
             self.log('run: sendSensation(sensation=Sensation(robot=MainRobot.getInstance(),sensationType = Sensation.SensationType.Who), sock=self.sock,'  + str(self.address) + ')')
             self.running =  self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
             sensation.detach(robot=MainRobot.getInstance())
@@ -529,7 +529,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                 self.log('run: self.getLocalMasterCapabilities() '  + capabilities.toString())
                 self.log('run: self.getLocalMasterCapabilities() ' +capabilities.toDebugString())
 
-                sensation=MainRobot.getInstance().createSensation(associations=[], direction=Sensation.Direction.In, sensationType = Sensation.SensationType.Capability, capabilities=capabilities)
+                sensation=MainRobot.getInstance().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Capability, capabilities=capabilities)
                 self.log('run: sendSensation(sensationType = Sensation.SensationType.Capability, capabilities=self.getLocalCapabilities()), sock=self.sock,'  + str(self.address) + ')')
                 self.running = self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
                 sensation.detach(robot=MainRobot.getInstance())
@@ -548,7 +548,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         
     def process(self, transferDirection, sensation, association=None):
         self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
-        # We can handle only sensation going down transfer-direction
+        # We can handle only sensation going down transfer-robotType
         if transferDirection == Sensation.TransferDirection.Down:
             self.running = self.sendSensation(sensation, self.sock, self.address)
             # if we have got broken pipe -error, meaning that socket writing does not work any more
@@ -797,7 +797,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         # starting other threads/senders/capabilities
         
         # if we don't know our capabilities, we should ask them
-        # Wed can't talk to out  host direction, but client can,
+        # Wed can't talk to out  host robotType, but client can,
         # so we ask it to do the job
 #         if self.getCapabilities() is None and self.socketClient is not None:
 #             self.socketClient.askCapabilities()
