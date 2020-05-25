@@ -59,48 +59,51 @@ class Robot(Thread):
     as a thread. But we have also implemented networking-type Robot, so Robot can work connected together
     with axons also on different sites in different computers and in different virtualized computers etc.
     
-    Robot skills are defined as Capabilities. Examples of Capability are Voice and Image. Capability is used with a Direction.
-    Direction is related to Main Robot, which is model of pur brain. If Capability 'Voice' Direction is 'In', we are hearing
-    and if Direction is 'Out', we are speaking.
+    Robot skills are defined as Capabilities. Examples of Capability are Voice and Image. Capability is used with a Robot Type.
+    Robot Type is related to Main Robot, which is model of pour brain. If Capability 'Voice' Direction is 'Sense', we are hearing
+    and if Robot Type  'Muscle', we are speaking.
     
     All Robot has defined set of Capabilities, skills what it can do. Sense-type Robots produced Sensations that are transferred by
-    Axons to MainRobot(brain) -robotType our muscle-type Robots that have Cabibilities to make functions like speaking.
+    Axons to MainRobot(brain) -robotType our muscle-type Robots that have Capabilities to make functions like speaking.
     For that we must have another robotType concept, Transfer-robotType, that tells in what robotType Sensation is going
     
     Robot knows its subRobots and it can communicate with its parentRobot with Axon. Subrobots always tell their Capabilities
     to their parent. Now we have an architecture where each Robot knows their subRobots Capabilitys and can transfer sensation to
-    all subRobot-robotType if some of its sub, sub-sub etc. Robot has a Capabitity to process a Sensation with Capability asked.
+    all subRobot-robotType if some of its sub, sub-sub etc. Robot has a Capability to process a Sensation with Capability asked.
     Each Sensations has a Capability, meaning of Sensation and Robot has Capability to process its, so we just check al all subRobot-levels
     which subRobot has Capability and transfer Sensation to that one, which makes same decision, processes Sensation itself
     and/or gives Sensation to its child.
     
-    Sensations have Memory-level, Sensory or Long-Term. This mimics our Memory-functions. At sensory level Sansation processing is very fast,
+    Sensations have Memory-level, Sensory or Long-Term. This mimics our Memory-functions. At sensory level Sensation processing is very fast,
     but Sensations can't have high-level meanings. Robot can have meanings of sensed things like Images or Voices, when we connect those
-    little memories together, like out brains do. Meaning in a special SensationType Item, that has on ly oner attribyr, name.
-    This is lowest level mean tu give names of thing Robots detects.
+    little memories together, like out brains do. Meaning in a special SensationType Item, that has only oner attribute, name.
+    This is lowest level mean to give names of thing Robots detects.
     
     Out Brain main physical functionality is process what we see. We borrow this to our Robot. We use Tensorflow to classify what out Robot sees.
-    This way we can give names  of thing what Robots has seen, crob subImagesof big Images and find out that Robot has seen for instance 'human' 'table'
+    This way we can give names  of thing what Robots has seen, crop subImagesof big Images and find out that Robot has seen for instance 'human' 'table'
     and 'chair' and heard certain voice at that moment.
     
     This a point, where we can start to build intelligence to our Robot. subRobot can be build to process Sensations likke Items, sunImages and Voices.
     WE have made Association-naming subrobot, that connects together Sensations that happen at same moment. For example we have Item named 'Human'
-    and Voice-sensation at same moment. We have build also Communnication-naming subRobot that can process Item-Sensations and if it finds one,
-    it tries to find out association to a Voice. If it finds out this knd association made before, it speaks it out and listens.
-    If it hears a voice as a response, it remembers this and will be very, very happy (Sense a sensationtype 'feeling')
+    and Voice-sensation at same moment. We have build also Communication-naming subRobot that can process Item-Sensations and if it finds one,
+    it tries to find out association to a Voice. If it finds out this kind association made before, it speaks it out and listens.
+    If it hears a voice as a response, it remembers this and will be very, very happy (Sense a SensationYype 'feeling')
     
     This is a moment we have implemented a Robot that can feel and communicate.
     
     Real examples of Robot-devices.
-    - RaspberryPI: we use raspberryPI Camere, mictophone nad playback-devices. RaspberryPi is networkingCapable device so its is connected
+    - RaspberryPI: we use raspberryPI Camers, microphone and playback-devices. RaspberryPi is networkingCapable device so its is connected
       with other Robot-devices
-    - Linux-deskstops: we use microphone and coukld use also webcam or other camere devices, but there is not yet camera used but is is easy to do.
-      These are devices with powefull processors and a lot of memory, so we run Tensorflow at linux.devices. In prionciple eapberry PI is linux-decioce also
-      and in principlr Raspberry PI 3 can run Tensorflow and it does it in practice also, but we have found, that it boots itself if we do so.
+    - Linux-desktops: we use microphone and could use also webcam or other camera devices, but there is not yet camera used but is is easy to do.
+      These are devices with powerfull processors and a lot of memory, so we run Tensorflow at linux.devices. In principle raspberry PI is linux-device also
+      and in principle Raspberry PI 3 can run Tensorflow and it does it in practice it runs LITE version, but we have found, that it boots itself if we do so
+      with non LITE Tendorflow. But Tensorflow LITE is enough for deteecting objects like 'person'.
+      Non LITE Tensorfloflow could be teached to lean detecting new kind objects like Voices, but Robot is not yet ready to do so.
+      
       So in out tests we use RsapberryPi and linux-device networked together and having common mind, meaning that all senses arfe shared by
       subRobot-Capability-principle across device border.
-    - virtual servers. Thse cand act as Sense-robot or Muscle-level, because they don't have real devices like cameras or licrohones or playback-devices,
-      but they casn run Tensorflow and brain-level subRobots like Vonnections and Communication explained above.
+    - virtual servers. These can act as Sense-robot or Muscle-level, because they don't have real devices like cameras or microphones or playback-devices,
+      but they can run Tensorflow and brain-level subRobots like Communication explained above.
     
     
     

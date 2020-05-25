@@ -1,5 +1,5 @@
 '''
-Created on 28.04.2019
+Created on 25.05.2019
 Edited 11.05.2020
 
 @author: reijo.korhonen@gmail.com
@@ -7,14 +7,14 @@ Edited 11.05.2020
 Config
 
     config file is on level by sections, but we need three level by host
-    - Direction
+    - Robot Type
     - Memory
-    - Capability
+    - Sensation Type
     
     Implementation sets these level in option names likes this
     in_sensory_drive = False
     
-    Default configutation is False for all capabilities in all levels
+    Default configuration is False for all capabilities in all levels
     In 'LOCALHOST' sections localhost those capabilities can be set True
     that have hardware for those.
     

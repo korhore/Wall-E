@@ -64,10 +64,10 @@ class Visual(Robot):
     PANEL_COLUMN_RECEIVEDFROM_NAME =     'ReceivedFrom'
 
     # log penel
-    LOG_PANEL_COLUMN_TYPE_NAME =         'Type'
+    LOG_PANEL_COLUMN_SENSATION_TYPE_NAME ='Sens. Type'
     LOG_PANEL_COLUMN_DATA_NAME =         'Data'
     LOG_PANEL_COLUMN_MEMORY_NAME =       'Memory'
-    LOG_PANEL_COLUMN_DIRECTION_NAME =    'Direction'
+    LOG_PANEL_COLUMN_ROBOT_TYPE_NAME =   'Robot Type'
     
     # tree log panel
     
@@ -322,10 +322,10 @@ class Visual(Robot):
                                    5, 5)
             headerFont = wx.Font(18, wx.DECORATIVE, wx.ITALIC, wx.BOLD)
              
-            self.gs.AddMany( [(wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_TYPE_NAME), 0, wx.EXPAND),         # 0
+            self.gs.AddMany( [(wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_SENSATION_TYPE_NAME), 0, wx.EXPAND), # 0
                 (wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_DATA_NAME), 0, wx.EXPAND),                       # 1
                 (wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_MEMORY_NAME), 0, wx.EXPAND),                     # 2
-                (wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_DIRECTION_NAME), 0, wx.EXPAND|wx.ALIGN_CENTER),  # 3
+                (wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_ROBOT_TYPE_NAME), 0, wx.EXPAND|wx.ALIGN_CENTER), # 3
                 (wx.StaticText(self, label=Visual.PANEL_COLUMN_LOCATIONS_NAME), 0, wx.EXPAND),                      # 4
                 (wx.StaticText(self, label=Visual.PANEL_COLUMN_RECEIVEDFROM_NAME), 0, wx.EXPAND),                   # 5
                 (wx.StaticText(self, label=Visual.PANEL_COLUMN_TIME_NAME), 0, wx.EXPAND)])                          # 6
