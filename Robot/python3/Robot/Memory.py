@@ -692,9 +692,8 @@ class Memory(object):
                             i=0
                             while i < len(self.sensationMemory):
                                 if  self.sensationMemory[i].getMemorability() <  Sensation.MIN_CACHE_MEMORABILITY:
-                                    self.log(logStr='delete sensation{} {} with too low memorability {}'.format(i,self.sensationMemory[i].getMemorability()), logLevel=Memory.MemoryLogLevel.Normal)
+                                    self.log(logStr='delete sensation {} {} with too low memorability {}'.format(i, self.sensationMemory[i].toDebugStr(), self.sensationMemory[i].getMemorability()), logLevel=Memory.MemoryLogLevel.Normal)
                                     self.sensationMemory[i].delete()
-                                    # TODO we should delete this also from but how?
                                     del self.sensationMemory[i]
                                 else:
                                     i=i+1
