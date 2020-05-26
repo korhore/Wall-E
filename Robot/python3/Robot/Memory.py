@@ -637,15 +637,18 @@ class Memory(object):
         # there can be LOngTerm sensations in Sensation.sensationMemorys[Sensation.MemoryType.Sensory]
         # because it is allowed to change memoryType rtpe after sensation is created
         self.memoryLock.acquireRead()                  # read thread_safe
-        for sensation in self.sensationMemory:
-            sensation.attachedBy = []
-            if sensation.getMemoryType() == Sensation.MemoryType.LongTerm and\
-               sensation.getMemorability() >  Sensation.MIN_CACHE_MEMORABILITY:
-                sensation.attachedBy = [] # clear references to Robots
+        i=0
+        while i < len(self.sensationMemory):
+            self.sensationMemory[i].attachedBy = []
+            if self.sensationMemory[i].getMemoryType() == Sensation.MemoryType.LongTerm and\
+               self.sensationMemory[i].getMemorability() >  Sensation.MIN_CACHE_MEMORABILITY:
+                self.sensationMemory[i].attachedBy = [] # clear references to Robots
                                           # they are not valid wlen loaded and they cannoc be dumped
-                sensation.save()
+                self.sensationMemory[i].save()
+                i=i+1
             else:
-                sensation.delete()
+                self.sensationMemory[i].delete()
+                del self.sensationMemory[i]
                
         # save sensation instances
         if not os.path.exists(Sensation.DATADIR):
@@ -658,18 +661,18 @@ class Memory(object):
                     pickler.dump(Sensation.VERSION)
                     pickler.dump(self.sensationMemory)
                     #print ('saveLongTermMemory dumped ' + str(len(Sensation.sensationMemorys[Sensation.MemoryType.LongTerm])))
-                    print ('saveLongTermMemory dumped ' + str(len(self.sensationMemory)))
+                    self.log(logStr='saveLongTermMemory dumped {} sensations'.format(len(self.sensationMemory)), logLevel=Memory.MemoryLogLevel.Normal)
                 except IOError as e:
-                    self.log(logStr='pickler.dump(Sensation.sensationMemorys[MemoryType.LongTerm]) IOError ' + str(e), logLevel=Memory.MemoryLogLevel.Normal)
+                    self.log(logStr='pickler.dump(Sensation.sensationMemorys[MemoryType.LongTerm]) IOError ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
                 except pickle.PickleError as e:
-                    self.log(logStr='pickler.dump(Sensation.sensationMemorys[MemoryType.LongTerm]) PickleError ' + str(e), logLevel=Memory.MemoryLogLevel.Normal)
+                    self.log(logStr='pickler.dump(Sensation.sensationMemorys[MemoryType.LongTerm]) PickleError ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
                 except pickle.PicklingError as e:
-                    self.log(logStr='pickler.dump(Sensation.sensationMemorys[MemoryType.LongTerm]) PicklingError ' + str(e), logLevel=Memory.MemoryLogLevel.Normal)
+                    self.log(logStr='pickler.dump(Sensation.sensationMemorys[MemoryType.LongTerm]) PicklingError ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
 
                 finally:
                     f.close()
         except Exception as e:
-                self.log(logStr="saveLongTermMemory open(fileName, wb) as f error " + str(e), logLevel=Memory.MemoryLogLevel.Normal)
+                self.log(logStr="saveLongTermMemory open(fileName, wb) as f error " + str(e), logLevel=Memory.MemoryLogLevel.Error)
         self.memoryLock.releaseRead()                  # read thread_safe
 
     '''
@@ -688,7 +691,7 @@ class Memory(object):
                         version = pickle.load(f)
                         if version == Sensation.VERSION:
                             self.sensationMemory = pickle.load(f)
-                            print ('loaded {}'.format(str(len(self.sensationMemory))))
+                            self.log(logStr='loaded {} sensations'.format(str(len(self.sensationMemory))), logLevel=Memory.MemoryLogLevel.Normal)
                             i=0
                             while i < len(self.sensationMemory):
                                 if  self.sensationMemory[i].getMemorability() <  Sensation.MIN_CACHE_MEMORABILITY:
@@ -702,17 +705,17 @@ class Memory(object):
                         else:
                             self.log(logStr="Sensation could not be loaded. because Sensation cache version {} does not match current sensation version {}".format(version,Sensation.VERSION), logLevel=Memory.MemoryLogLevel.Normal)
                     except IOError as e:
-                        self.log(logStr="pickle.load(f) error " + str(e), logLevel=Memory.MemoryLogLevel.Normal)
+                        self.log(logStr="pickle.load(f) error " + str(e), logLevel=Memory.MemoryLogLevel.Error)
                     except pickle.PickleError as e:
-                        self.log(logStr='pickle.load(f) PickleError ' + str(e), logLevel=Memory.MemoryLogLevel.Normal)
+                        self.log(logStr='pickle.load(f) PickleError ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
                     except pickle.PicklingError as e:
-                        self.log(logStr='pickle.load(f) PicklingError ' + str(e), logLevel=Memory.MemoryLogLevel.Normal)
+                        self.log(logStr='pickle.load(f) PicklingError ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
                     except Exception as e:
-                        self.log(logStr='pickle.load(f) Exception ' + str(e), logLevel=Memory.MemoryLogLevel.Normal)
+                        self.log(logStr='pickle.load(f) Exception ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
                     finally:
                         f.close()
             except Exception as e:
-                    self.log(logStr='with open(' + Sensation.PATH_TO_PICLE_FILE + ',"rb") as f error ' + str(e), logLevel=Memory.MemoryLogLevel.Normal)
+                    self.log(logStr='with open(' + Sensation.PATH_TO_PICLE_FILE + ',"rb") as f error ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
             self.memoryLock.releaseWrite()                  # write thread_safe
  
     '''
