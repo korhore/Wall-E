@@ -691,15 +691,15 @@ class Memory(object):
                             print ('loaded {}'.format(str(len(self.sensationMemory))))
                             i=0
                             while i < len(self.sensationMemory):
-                                if  sensationMemory[i].getMemorability() <  Sensation.MIN_CACHE_MEMORABILITY:
+                                if  self.sensationMemory[i].getMemorability() <  Sensation.MIN_CACHE_MEMORABILITY:
                                     self.log(logStr='delete sensation{} {} with too low memorability {}'.format(i,self.sensationMemory[i].getMemorability()), logLevel=Memory.MemoryLogLevel.Normal)
-                                    sensationMemory[i].delete()
+                                    self.sensationMemory[i].delete()
                                     # TODO we should delete this also from but how?
-                                    del sensationMemory[i]
+                                    del self.sensationMemory[i]
                                 else:
                                     i=i+1
                             self.log(logStr='after load and verification {}'.format(str(len(self.sensationMemory))), logLevel=Memory.MemoryLogLevel.Normal)
-                            #print ('{} after load and verification {}'.format(Sensation.getMemoryTypeString(sensationMemory), len(sensationMemory)))
+                            #print ('{} after load and verification {}'.format(Sensation.getMemoryTypeString(self.sensationMemory), len(self.sensationMemory)))
                         else:
                             self.log(logStr="Sensation could not be loaded. because Sensation cache version {} does not match current sensation version {}".format(version,Sensation.VERSION), logLevel=Memory.MemoryLogLevel.Normal)
                     except IOError as e:
