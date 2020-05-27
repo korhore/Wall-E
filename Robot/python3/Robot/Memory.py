@@ -19,6 +19,7 @@ import math
 from PIL import Image as PIL_Image
 import io
 import psutil
+import math
 #import threading
 #from Robot import LogLevel as LogLevel
 # We cannot import Robot, because Robot import us,
@@ -285,10 +286,17 @@ class Memory(object):
                                                              feeling = sensation.getAssociateFeeling(),
                                                              positiveFeeling = sensation.getPositiveFeeling(),
                                                              negativeFeeling = sensation.getNegativeFeeling())
+            firstFeeling = sensation.getFirstAssociateSensation().getFeeling()
+            otherFeeling = sensation.getOtherAssociateSensation().getFeeling()
+            if abs(firstFeeling) > abs(otherFeeling):
+                return firstFeeling
+            return otherFeeling 
+            
             self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='Memory process: Feeling between sensations')
         else:
             self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='Memory process: No Feeling between sensations, because not Feeling sensation or parameter sensation(s) are None(s)')
-      
+ 
+        return None
     '''
     get memory usage
     '''

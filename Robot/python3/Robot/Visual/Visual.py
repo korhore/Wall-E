@@ -921,6 +921,7 @@ class Visual(Robot):
             hbox = wx.BoxSizer(wx.VERTICAL)
             #self.identity = wx.TextCtrl(self, style=wx.TE_RIGHT)
             self.identityText = wx.StaticText(self, label=self.robot.getMemory().getRobot().getWho())
+            self.FeelingText = wx.StaticText(self, label=Sensation.getFeelingString(self.robot.getMemory().getRobot().getFeeling()))
             hbox.Add(self.identityText, 0, flag=wx.CENTER, border=4)
             if robot.getMemory().getRobot().selfImage:
                 bitmap = Visual.PILTowx(image=robot.getMemory().getRobot().selfImage, size=Visual.IDENTITY_SIZE, setMask=True)
@@ -931,6 +932,7 @@ class Visual(Robot):
                 self.SetIcon(icon)                
                 #self.SetIcon(wx.IconFromBitmap(bitmap))
                 hbox.Add(self.identityBitMap, flag=wx.CENTER, border=4)
+            hbox.Add(self.FeelingText, flag=wx.CENTER, border=4)
             vbox.Add(hbox, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
             
             
@@ -997,6 +999,8 @@ class Visual(Robot):
                     wx.PostEvent(self.treeLogPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
                     if sensation.getSensationType() == Sensation.SensationType.Feeling:
                         wx.PostEvent(self.communicationPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
+                        self.FeelingText.SetLabel(label = Sensation.getFeelingString(self.robot.getMemory().getRobot().getFeeling()))
+
 
         '''
         Presence

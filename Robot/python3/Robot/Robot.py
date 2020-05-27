@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 24.05.2020
+Updated on 27.05.2020
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -47,10 +47,10 @@ class Robot(Thread):
     """
     Base class of Robot.
     
-    Robot contzains Robots. Robot is very simple implementation that can handle Sensations and tranfers
-    these Sensations to other Robots that ptocess them with their very special skill. Idea is minic a human that has
-    organs with ans senses with their dedidicated functionality. Human and Robot have Axons that transfers Sensation
-    from Senses to our brain and from our brain to muscles thich will make some functionality.
+    Robot contains Robots. Robot is very simple implementation that can handle Sensations and transfers
+    these Sensations to other Robots that process them with their very special skill. Idea is mimic a human that has
+    organs, muscles  and senses with their dedicated functionality. Human and Robot have Axons that transfers Sensation
+    from Senses to our brain and from our brain to muscles which will make some functionality.
     
     AlsaMicrophone is an example of Sense-type Robot. AlsaPlöayback is an example of muscle-type Robot.
     
@@ -95,7 +95,7 @@ class Robot(Thread):
     - RaspberryPI: we use raspberryPI Camers, microphone and playback-devices. RaspberryPi is networkingCapable device so its is connected
       with other Robot-devices
     - Linux-desktops: we use microphone and could use also webcam or other camera devices, but there is not yet camera used but is is easy to do.
-      These are devices with powerfull processors and a lot of memory, so we run Tensorflow at linux.devices. In principle raspberry PI is linux-device also
+      These are devices with powerful processors and a lot of memory, so we run Tensorflow at linux.devices. In principle raspberry PI is linux-device also
       and in principle Raspberry PI 3 can run Tensorflow and it does it in practice it runs LITE version, but we have found, that it boots itself if we do so
       with non LITE Tendorflow. But Tensorflow LITE is enough for deteecting objects like 'person'.
       Non LITE Tensorfloflow could be teached to lean detecting new kind objects like Voices, but Robot is not yet ready to do so.
@@ -144,6 +144,12 @@ class Robot(Thread):
     IS_SOCKET_ERROR_TEST =      False
     SOCKET_ERROR_TEST_RATE =    10
     SOCKET_ERROR_TEST_NUMBER =  0
+    STOPWAIT = 5                    # Tryes to Stop subRobots and Wait Time
+    
+    
+    AVERAGE_PERIOD=3600.0               # used as period in seconds
+    SHORT_AVERAGE_PERIOD=36.0           # used as period in seconds
+    
     
    
     def __init__(self,
@@ -230,6 +236,8 @@ class Robot(Thread):
         if self.level == 1:                        
             Robot.mainRobotInstance = self
             self._isMainRobot = True
+            self.feeling = Sensation.Feeling.Neutral
+            self.activityLevel = Sensation.ActivityLevel.Normal
             
             
             # Robot-level variables are instantiated here
@@ -340,6 +348,31 @@ class Robot(Thread):
     
     def getKind(self):
         return self.config.getKind()
+    
+    '''
+    get Feeling of MainRobot
+    '''   
+    def getFeeling(self):
+        if self.isMainRobot():
+            if self.feeling > (Sensation.Feeling.InLove + Sensation.Feeling.Happy)/2.0:
+                return Sensation.Feeling.InLove
+            elif self.feeling > (Sensation.Feeling.Happy + Sensation.Feeling.Good)/2.0:
+                return Sensation.Feeling.Happy
+            elif self.feeling > (Sensation.Feeling.Good + Sensation.Feeling.Good)/2.0:
+                return Sensation.Feeling.Good
+            elif self.feeling > (Sensation.Feeling.Normal + Sensation.Feeling.Neutral)/2.0:
+                return Sensation.Feeling.Normal
+            
+            elif self.feeling < (Sensation.Feeling.Terrified + Sensation.Feeling.Afraid)/2.0:
+                return Sensation.Feeling.Terrified
+            elif self.feeling < (Sensation.Feeling.Afraid + Sensation.Feeling.Disappointed)/2.0:
+                return Sensation.Feeling.Afraid
+            elif self.feeling < (Sensation.Feeling.Disappointed + Sensation.Feeling.Worried)/2.0:
+                return Sensation.Feeling.Disappointed
+            elif self.feeling < (Sensation.Feeling.Worried + Sensation.Feeling.Neutral)/2.0:
+                return Sensation.Feeling.Worried
+            
+        return Sensation.Feeling.Neutral
     
     def getInstanceType(self):
         return self.instanceType
@@ -522,8 +555,8 @@ class Robot(Thread):
                 someRunning = True
                 break 
         i=0
-        while i < 10 and someRunning:
-            time.sleep(10)
+        while i < Robot.STOPWAIT and someRunning:
+            time.sleep(Robot.STOPWAIT)
             someRunning = False
             for robot in self.subInstances:
                 if robot.isAlive():
@@ -534,21 +567,21 @@ class Robot(Thread):
 
         if self.isMainRobot():
             i=0
-            while i < 10 and self.identity.isAlive():
+            while i < Robot.STOPWAIT and self.identity.isAlive():
                 self.log("MainRobot waiting self.identity Stopping " + self.identity.getWho())
-                time.sleep(10)
+                time.sleep(Robot.STOPWAIT)
                 i = i+1    
-            while i < 10 and self.tcpServer.isAlive():
+            while i < Robot.STOPWAIT and self.tcpServer.isAlive():
                 self.log("MainRobot waiting self.tcpServer Stopping " + self.tcpServer.getWho())
-                time.sleep(10)
+                time.sleep(Robot.STOPWAIT)
                 i = i+1    
             # finally save memories
             self.getMemory().saveLongTermMemory()
         elif self.getInstanceType() == Sensation.InstanceType.Virtual:
             i=0
-            while i < 10 and self.identity.isAlive():
+            while i < Robot.STOPWAIT and self.identity.isAlive():
                 self.log("VirtualRobot waiting self.identity Stopping " + self.identity.getWho())
-                time.sleep(10)
+                time.sleep(Robot.STOPWAIT)
                 i = i+1
             # TODO we have commo0n data directory, but we should have one per Memory
             # Now we can't save virtual Robots memory
@@ -723,9 +756,12 @@ class Robot(Thread):
          # MainRobot and Virtual robot has Memory
         if ((sensation.sensationType is Sensation.SensationType.Feeling) and (self.isMainRobot())) or\
              ((sensation.sensationType is Sensation.SensationType.Feeling) and (self.getInstanceType() == Sensation.InstanceType.Virtual)):
-            self.getMemory().process(sensation=sensation)# process locally
+            feeling = self.getMemory().process(sensation=sensation)# process locally
+            if feeling is not None:
+                self.feeling = ((Robot.SHORT_AVERAGE_PERIOD-1.0)/Robot.SHORT_AVERAGE_PERIOD) * self.feeling +\
+                               (1.0/Robot.SHORT_AVERAGE_PERIOD) * feeling
             # we should also process this in tcp-connection and Virtual Robots.
-            # it is done below by nolmal route rules
+            # it is done below by normal route rules
 
         if sensation.getSensationType() == Sensation.SensationType.Stop:
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: SensationSensationType.Stop')      

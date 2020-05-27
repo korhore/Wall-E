@@ -4,6 +4,13 @@ Critical
 Develop
 -------
 
+Robot Feeling
+
+Robot Activity
+
+father:1:Normal:Ubuntu: Sensations cache deletion skipped 30 Not Forgottable Sensation
+25 father
+
 Still need a proper Communication-tab in Visual
 
 Sensation cache length variates in raspberry from ~200 to ~1000 Sensations,
@@ -11,9 +18,6 @@ but Robot will stay alive > 12h
 but finally we get not forgettables and Memory will end.
 
 Study TensorFlowClassification and do cleanup.
-
-Introduce Robot with random own Voice, not first one as now.
-Try same with Identification
 
 Should correct Communication to check input Sensation type and
 not trust that configuration os OK.
@@ -311,6 +315,9 @@ People log to present <-              !   !
 
 Corrected
 ---------
+
+OK Introduce Robot with random own Voice, not first one as now.
+Try same with Identification
 
 OK Implement flat Memory, no MemoryType divided any more
 

@@ -239,7 +239,7 @@ class Sensation(object):
     Happy='Happy'
     InLove='InLove'
     # Feeling, Feelings can be positive or negative, stronger or weaker
-    Feeling = enum(Terrified=-5, Afraid=-3, Disappointed=-2, Worried=-1, Neutral=0, Normal=1, Good=2, Happy=3, InLove=5)
+    Feeling = enum(Terrified=-1000, Afraid=-100, Disappointed=-10, Worried=-1, Neutral=0, Normal=1, Good=10, Happy=100, InLove=1000)
     Feelings = {
         Feeling.Terrified : Terrified,
         Feeling.Afraid : Afraid,
@@ -252,6 +252,29 @@ class Sensation(object):
         Feeling.InLove : InLove
     }
 
+    # ActivityLevel
+    BreakingActivityLevel='Breaking' 
+    TiredActivityLevel='Tired'
+    HurryActivityLevel='Hurry'
+    BusyActivityLevel='Busy'
+    NormalActivityLevel='Normal'
+    RelaxedActivityLevel='Relaxed'
+    LazyActivityLevel='Lazy'
+    DreamingActivityLevel='Dreaming'
+    SleepingActivityLevel = 'Sleeping'
+    # Feeling, Feelings can be positive or negative, stronger or weaker
+    ActivityLevel = enum(Sleeping=-4, Dreaming=-3, Lazy=-2, Relaxed=-1,Normal=0, Busy=1, Hurry=2, Tired=3, Breaking=4)
+    ActivityLevels = {
+        ActivityLevel.Sleeping : SleepingActivityLevel,
+        ActivityLevel.Dreaming : DreamingActivityLevel,
+        ActivityLevel.Lazy : LazyActivityLevel,
+        ActivityLevel.Relaxed : RelaxedActivityLevel,
+        ActivityLevel.Normal : NormalActivityLevel,
+        ActivityLevel.Busy : BusyActivityLevel,
+        ActivityLevel.Hurry : HurryActivityLevel,
+        ActivityLevel.Tired : TiredActivityLevel,
+        ActivityLevel.Breaking : BreakingActivityLevel
+    }
 
     # The idea is keep Sensation in runtime memory if
     # there is a association for them for instance 10 mins
@@ -368,6 +391,14 @@ class Sensation(object):
         return Sensation.Feelings.get(feeling)
     def getFeelingStrings():
         return Sensation.Feelings.values()
+        
+
+    def getActivityLevelString(activityLevel):
+        if activityLevel== None:
+            return ""
+        return Sensation.ActivityLevels.get(activityLevel)
+    def getActivityLevelStrings():
+        return Sensation.ActivityLevels.values()
         
     '''
     get memory usage
