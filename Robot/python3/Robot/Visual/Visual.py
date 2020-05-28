@@ -1,6 +1,6 @@
 '''
 Created on 12.03.2020
-Updated on 16.05.2020
+Updated on 28.05.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -919,24 +919,29 @@ class Visual(Robot):
             vbox = wx.BoxSizer(wx.VERTICAL)
             self.SetSizer(vbox)
             hbox = wx.BoxSizer(wx.HORIZONTAL)
-            #self.identity = wx.TextCtrl(self, style=wx.TE_RIGHT)
+            
             self.identityText = wx.StaticText(self, label=self.robot.getMemory().getRobot().getWho())
             self.feelingText = wx.StaticText(self, label=Sensation.getFeelingString(self.robot.getMemory().getRobot().getFeeling()))
             self.activityLevelText = wx.StaticText(self, label=Sensation.getActivityLevelString(self.robot.getMemory().getRobot().getActivityLevel()))
-            hbox.Add(self.identityText, 0, flag=wx.TOP|wx.BOTTOM, border=8)
+            
+            hbox.Add(self.identityText, proportion=1, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+            # set font
+            headerFont = wx.Font(18, wx.DECORATIVE, wx.ITALIC, wx.BOLD)
+            item = hbox.GetItem(0)               
+            item.GetWindow().SetFont(headerFont) 
+            
+            
             if robot.getMemory().getRobot().selfImage:
                 bitmap = Visual.PILTowx(image=robot.getMemory().getRobot().selfImage, size=Visual.IDENTITY_SIZE, setMask=True)
                 self.identityBitMap = wx.StaticBitmap(self, -1, bitmap, (10, 5), (bitmap.GetWidth(), bitmap.GetHeight()))
-                #icon = wx.EmptyIcon()
                 icon = wx.Icon()
                 icon.CopyFromBitmap(bitmap)
                 self.SetIcon(icon)                
-                #self.SetIcon(wx.IconFromBitmap(bitmap))
-                hbox.Add(self.identityBitMap, flag=wx.EXPAND|wx.CENTER, border=8)
-            hbox.Add(self.feelingText, flag=wx.TOP|wx.BOTTOM, border=8)
-            hbox.Add(self.activityLevelText, flag=wx.TOP|wx.BOTTOM, border=8)
-            vbox.Add(hbox, flag=wx.CENTER, border=8)
+                hbox.Add(self.identityBitMap, proportion=1, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+            hbox.Add(self.feelingText, proportion=1, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+            hbox.Add(self.activityLevelText, proportion=1, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
             
+            vbox.Add(hbox, 0, wx.EXPAND)
             
             vbox.Add(panel, 1, wx.EXPAND)
              
@@ -955,10 +960,10 @@ class Visual(Robot):
             panel.SetSizer(sizer)
            
             #mainframe presents           
-            preseceHbox = wx.BoxSizer(wx.HORIZONTAL)
-            self.preseceText = wx.StaticText(self, label="Empty")#label=self.robot.getMemory().presenceToStr())
-            preseceHbox.Add(self.preseceText, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
-            vbox.Add(preseceHbox, flag=wx.EXPAND)
+            presenceHbox = wx.BoxSizer(wx.HORIZONTAL)
+            self.presenceText = wx.StaticText(self, label="Empty")#label=self.robot.getMemory().presenceToStr())
+            presenceHbox.Add(self.presenceText, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+            vbox.Add(presenceHbox, flag=wx.EXPAND)
             
             #mainframe buttons           
             buttonHbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -991,10 +996,10 @@ class Visual(Robot):
                 # deliver to tabs
                 sensation=event.data
                 if sensation.getSensationType() == Sensation.SensationType.Stop:
-                    self.tracePresents(sensation=sensation)
+                    self.tracePresence(sensation=sensation)
                 else:
                     if sensation.getSensationType() == Sensation.SensationType.Item:
-                        self.tracePresents(sensation)
+                        self.tracePresence(sensation)
                     wx.PostEvent(self.logPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
                     # TODO logic is still unclear
                     # if sensation is output then log it in communication tab
@@ -1010,10 +1015,10 @@ class Visual(Robot):
         '''
         Presence
         '''
-        def tracePresents(self, sensation):
+        def tracePresence(self, sensation):
             # present means pure Present, all other if handled not present
             # if present sensations must come in order
-            self.preseceText.SetLabel(label=self.robot.getMemory().presenceToStr())
+            self.presenceText.SetLabel(label=self.robot.getMemory().presenceToStr())
                 
  
     class MainApp(wx.App):

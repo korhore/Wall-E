@@ -147,7 +147,7 @@ class Robot(Thread):
     STOPWAIT = 5                    # Tryes to Stop subRobots and Wait Time
     
     
-    ACTIVITE_LOGGING_AVERAGE_PERIOD =       100.0     # used as period in seconds
+    ACTIVITE_LOGGING_AVERAGE_PERIOD =       300.0     # used as period in seconds
     ACTIVITE_LOGGING_SHORT_AVERAGE_PERIOD = 3.0       # used as period in seconds
     ACTIVITE_LOGGING_INTERVAL =             60
     
@@ -625,23 +625,28 @@ class Robot(Thread):
         if self.level == 1 and\
            self.activityAverage > 0.0 and\
            self.shortActivityAverage > 0.0:
-            activityLevel = 2.0*self.activityAverage/9.0 #self.activityAverage/float(len(Sensation.ActivityLevel))
+            # 9 level
+            # 1/4 of activity too low, 1/4 too far
+            # so we take base = 1/4, which means self.activityAverage/2
+            # because self.activityAverage is middle
+            base = self.activityAverage/2
+            activityLevel = self.activityAverage/9.0 #self.activityAverage/float(len(Sensation.ActivityLevel))
             
-            if self.shortActivityAverage < 0.5 * activityLevel:
+            if self.shortActivityAverage < base + 0.5 * activityLevel:
                 return Sensation.ActivityLevel.Sleeping
-            if self.shortActivityAverage < 1.5 * activityLevel:
+            if self.shortActivityAverage < base + 1.5 * activityLevel:
                 return Sensation.ActivityLevel.Dreaming
-            if self.shortActivityAverage < 2.5 * activityLevel:
+            if self.shortActivityAverage < base + 2.5 * activityLevel:
                 return Sensation.ActivityLevel.Lazy
-            if self.shortActivityAverage < 3.5 * activityLevel:
+            if self.shortActivityAverage < base + 3.5 * activityLevel:
                 return Sensation.ActivityLevel.Relaxed
-            if self.shortActivityAverage > 8.5 * activityLevel:
+            if self.shortActivityAverage > base + 8.5 * activityLevel:
                 return Sensation.ActivityLevel.Breaking
-            if self.shortActivityAverage > 7.5 * activityLevel:
+            if self.shortActivityAverage > base + 7.5 * activityLevel:
                 return Sensation.ActivityLevel.Tired
-            if self.shortActivityAverage > 6.5 * activityLevel:
+            if self.shortActivityAverage > base + 6.5 * activityLevel:
                 return Sensation.ActivityLevel.Hurry
-            if self.shortActivityAverage > 5.5 * activityLevel:
+            if self.shortActivityAverage > base + 5.5 * activityLevel:
                 return Sensation.ActivityLevel.Busy
             
         return Sensation.ActivityLevel.Normal
