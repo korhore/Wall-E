@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 27.05.2020
+Updated on 28.05.2020
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -147,9 +147,11 @@ class Robot(Thread):
     STOPWAIT = 5                    # Tryes to Stop subRobots and Wait Time
     
     
-    AVERAGE_PERIOD=3600.0               # used as period in seconds
-    SHORT_AVERAGE_PERIOD=36.0           # used as period in seconds
+    ACTIVITE_LOGGING_AVERAGE_PERIOD =       100.0     # used as period in seconds
+    ACTIVITE_LOGGING_SHORT_AVERAGE_PERIOD = 3.0       # used as period in seconds
+    ACTIVITE_LOGGING_INTERVAL =             60
     
+    FEELING_LOGGING_SHORT_AVERAGE_PERIOD =  30.0      # used as period in seconds
     
    
     def __init__(self,
@@ -238,6 +240,7 @@ class Robot(Thread):
             self._isMainRobot = True
             self.feeling = Sensation.Feeling.Neutral
             self.activityLevel = Sensation.ActivityLevel.Normal
+            
             
             
             # Robot-level variables are instantiated here
@@ -505,8 +508,13 @@ class Robot(Thread):
             self.identity.start()
         elif self.getInstanceType() == Sensation.InstanceType.Virtual:
             self.identity.start()
-
-
+            
+        if self.level == 1:
+            self.activityAverage = self.shortActivityAverage = self.config.getActivityAvegageLevel()
+            self.activityNumber = 0
+            self.activityPeriodStartTime = time.time()
+            Timer(interval=Robot.ACTIVITE_LOGGING_INTERVAL, function=self.logActivity).start()
+            
         # live until stopped
         self.mode = Sensation.Mode.Normal
         while self.running:
@@ -588,6 +596,57 @@ class Robot(Thread):
 
         self.log("run ALL SHUT DOWN")      
         self.log(logLevel=Robot.LogLevel.Normal, logStr="run ALL SHUT DOWN")
+        
+    '''
+    logging activity
+    '''
+        
+    def logActivity(self):
+        activityLevel = float(self.activityNumber)/(time.time() - self.activityPeriodStartTime)
+        self.log("logActivity activityLevel {} ".format(activityLevel))
+        self.activityAverage = ((self.activityAverage * (Robot.ACTIVITE_LOGGING_AVERAGE_PERIOD - 1.0))  + activityLevel)/Robot.ACTIVITE_LOGGING_AVERAGE_PERIOD
+        self.log("logActivity activityAverage {} ".format(self.activityAverage))
+        self.shortActivityAverage = ((self.activityAverage * (Robot.ACTIVITE_LOGGING_SHORT_AVERAGE_PERIOD - 1.0))  + activityLevel)/Robot.ACTIVITE_LOGGING_SHORT_AVERAGE_PERIOD
+        self.log("logActivity shortActivityAverage {} ".format(self.shortActivityAverage))
+       # normal
+        #self.config.setActivityAvegageLevel(activityLevelAverage = self.activityAverage)
+        # to define default level
+        self.config.setActivityAvegageLevel(activityLevelAverage = self.activityAverage)
+        
+        if self.running:
+            self.activityNumber = 0
+            self.activityPeriodStartTime = time.time()
+            Timer(interval=Robot.ACTIVITE_LOGGING_INTERVAL, function=self.logActivity).start()
+        
+    '''
+    get Feeling of MainRobot
+    '''   
+    def getActivityLevel(self):
+        if self.level == 1 and\
+           self.activityAverage > 0.0 and\
+           self.shortActivityAverage > 0.0:
+            activityLevel = 2.0*self.activityAverage/9.0 #self.activityAverage/float(len(Sensation.ActivityLevel))
+            
+            if self.shortActivityAverage < 0.5 * activityLevel:
+                return Sensation.ActivityLevel.Sleeping
+            if self.shortActivityAverage < 1.5 * activityLevel:
+                return Sensation.ActivityLevel.Dreaming
+            if self.shortActivityAverage < 2.5 * activityLevel:
+                return Sensation.ActivityLevel.Lazy
+            if self.shortActivityAverage < 3.5 * activityLevel:
+                return Sensation.ActivityLevel.Relaxed
+            if self.shortActivityAverage > 8.5 * activityLevel:
+                return Sensation.ActivityLevel.Breaking
+            if self.shortActivityAverage > 7.5 * activityLevel:
+                return Sensation.ActivityLevel.Tired
+            if self.shortActivityAverage > 6.5 * activityLevel:
+                return Sensation.ActivityLevel.Hurry
+            if self.shortActivityAverage > 5.5 * activityLevel:
+                return Sensation.ActivityLevel.Busy
+            
+        return Sensation.ActivityLevel.Normal
+
+        
 
     '''
     Default implementation can not sense
@@ -753,13 +812,18 @@ class Robot(Thread):
             
     def process(self,transferDirection, sensation,  association=None):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
+
+        # log MainTobot activity
+        if self.level == 1:
+            self.activityNumber += 1
+
          # MainRobot and Virtual robot has Memory
         if ((sensation.sensationType is Sensation.SensationType.Feeling) and (self.isMainRobot())) or\
              ((sensation.sensationType is Sensation.SensationType.Feeling) and (self.getInstanceType() == Sensation.InstanceType.Virtual)):
             feeling = self.getMemory().process(sensation=sensation)# process locally
             if feeling is not None:
-                self.feeling = ((Robot.SHORT_AVERAGE_PERIOD-1.0)/Robot.SHORT_AVERAGE_PERIOD) * self.feeling +\
-                               (1.0/Robot.SHORT_AVERAGE_PERIOD) * feeling
+                self.feeling = ((Robot.FEELING_LOGGING_SHORT_AVERAGE_PERIOD-1.0)/Robot.FEELING_LOGGING_SHORT_AVERAGE_PERIOD) * self.feeling +\
+                               (1.0/Robot.FEELING_LOGGING_SHORT_AVERAGE_PERIOD) * feeling
             # we should also process this in tcp-connection and Virtual Robots.
             # it is done below by normal route rules
 
@@ -937,7 +1001,6 @@ class Robot(Thread):
 # Experiences determine how we react to things (Item.names)
 
 class Identity(Robot):
-    from threading import Timer
 
     # test
     #SLEEPTIME = 10.0

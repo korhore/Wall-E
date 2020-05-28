@@ -8,6 +8,9 @@ Robot Feeling
 
 Robot Activity
 
+To implement proper pickle, we need Sensation.__init__ with making a copy
+without anything else, than LongTerm dependency.
+
 father:1:Normal:Ubuntu: Sensations cache deletion skipped 30 Not Forgottable Sensation
 25 father
 

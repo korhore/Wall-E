@@ -1,6 +1,6 @@
 '''
 Created on 25.05.2019
-Edited 11.05.2020
+Edited 28.05.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -96,6 +96,10 @@ class Config(ConfigParser):
     MICROPHONE_CHANNELS_DEFAULT =  2
     
     PLAYBACK =          'playback'
+    
+    ACTIVITY_LEVEL_AVERAGE = 'activity_average_level'
+    ACTIVITY_LEVEL_AVERAGE_DEFAULT = 2.0
+    
 
     DEFAULT_SECTION =   'DEFAULT'
 
@@ -628,6 +632,13 @@ class Config(ConfigParser):
             print('self.set(Config.DEFAULT_SECTION,Config.VIRTUALINSTANCES, Config.EMPTY) exception ' + str(e))
 
         try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.ACTIVITY_LEVEL_AVERAGE):
+                self.set(Config.DEFAULT_SECTION, Config.ACTIVITY_LEVEL_AVERAGE, str(Config.ACTIVITY_LEVEL_AVERAGE_DEFAULT))
+                self.is_changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION, Config.ACTIVITY_LEVEL_AVERAGE, Config.ACTIVITY_LEVEL_AVERAGE_DEFAULT) ' + str(e))
+
+        try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.MICROPHONE):
                 self.set(Config.DEFAULT_SECTION, Config.MICROPHONE, Config.EMPTY)
                 self.is_changes=True
@@ -867,6 +878,38 @@ class Config(ConfigParser):
           
         return instanceType
     
+    def getActivityAvegageLevel(self, section=LOCALHOST):
+        try:
+            return self.getfloat(section=section, option=self.ACTIVITY_LEVEL_AVERAGE)
+        except Exception as e:
+            print('self.getfloat(section=section, option=self.ACTIVITY_LEVEL_AVERAGE)' + str(e))
+            return None
+        
+    def setActivityAvegageLevel(self, section=LOCALHOST, activityLevelAverage=ACTIVITY_LEVEL_AVERAGE_DEFAULT, commit=True):
+        try:
+            self.set(section=section, option=self.ACTIVITY_LEVEL_AVERAGE, value=str(activityLevelAverage))
+            self.is_changes = True
+        except Exception as e:
+            print('self.set(section=section, option=self.ACTIVITY_LEVEL_AVERAGE, value=str(activityLevelAverage))' + str(e))
+        if commit:
+            self.commit()
+
+    def getMicrophoneVoiceAvegageLevel(self, section=LOCALHOST):
+        try:
+            return self.getfloat(section=section, option=self.MICROPHONE_VOICE_LEVEL_AVERAGE)
+        except Exception as e:
+            print('self.getfloat(section=section, option=self.MICROPHONE_VOICE_LEVEL_AVERAGE)' + str(e))
+            return None
+        
+    def setMicrophoneVoiceAvegageLevel(self, section=LOCALHOST, voiceLevelAverage=str(MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT), commit=True):
+        try:
+            self.set(section=section, option=self.MICROPHONE_VOICE_LEVEL_AVERAGE, value=str(voiceLevelAverage))
+            self.is_changes = True
+        except Exception as e:
+            print('self.set(section=section, option=self.MICROPHONE_VOICE_LEVEL_AVERAGE, value=str(voiceLevelAverage))' + str(e))
+        if commit:
+            self.commit()
+
     def getMicrophone(self, section=LOCALHOST):
         try:
             return self.get(section=section, option=self.MICROPHONE)

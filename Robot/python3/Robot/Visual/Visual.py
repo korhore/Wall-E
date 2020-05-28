@@ -918,11 +918,12 @@ class Visual(Robot):
 
             vbox = wx.BoxSizer(wx.VERTICAL)
             self.SetSizer(vbox)
-            hbox = wx.BoxSizer(wx.VERTICAL)
+            hbox = wx.BoxSizer(wx.HORIZONTAL)
             #self.identity = wx.TextCtrl(self, style=wx.TE_RIGHT)
             self.identityText = wx.StaticText(self, label=self.robot.getMemory().getRobot().getWho())
-            self.FeelingText = wx.StaticText(self, label=Sensation.getFeelingString(self.robot.getMemory().getRobot().getFeeling()))
-            hbox.Add(self.identityText, 0, flag=wx.CENTER, border=4)
+            self.feelingText = wx.StaticText(self, label=Sensation.getFeelingString(self.robot.getMemory().getRobot().getFeeling()))
+            self.activityLevelText = wx.StaticText(self, label=Sensation.getActivityLevelString(self.robot.getMemory().getRobot().getActivityLevel()))
+            hbox.Add(self.identityText, 0, flag=wx.TOP|wx.BOTTOM, border=8)
             if robot.getMemory().getRobot().selfImage:
                 bitmap = Visual.PILTowx(image=robot.getMemory().getRobot().selfImage, size=Visual.IDENTITY_SIZE, setMask=True)
                 self.identityBitMap = wx.StaticBitmap(self, -1, bitmap, (10, 5), (bitmap.GetWidth(), bitmap.GetHeight()))
@@ -931,9 +932,10 @@ class Visual(Robot):
                 icon.CopyFromBitmap(bitmap)
                 self.SetIcon(icon)                
                 #self.SetIcon(wx.IconFromBitmap(bitmap))
-                hbox.Add(self.identityBitMap, flag=wx.CENTER, border=4)
-            hbox.Add(self.FeelingText, flag=wx.CENTER, border=4)
-            vbox.Add(hbox, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+                hbox.Add(self.identityBitMap, flag=wx.EXPAND|wx.CENTER, border=8)
+            hbox.Add(self.feelingText, flag=wx.TOP|wx.BOTTOM, border=8)
+            hbox.Add(self.activityLevelText, flag=wx.TOP|wx.BOTTOM, border=8)
+            vbox.Add(hbox, flag=wx.CENTER, border=8)
             
             
             vbox.Add(panel, 1, wx.EXPAND)
@@ -981,6 +983,9 @@ class Visual(Robot):
             
         def OnSensation(self, event):
             """OnSensation."""
+            #show activity
+            self.activityLevelText.SetLabel(label=Sensation.getActivityLevelString(self.robot.getMemory().getRobot().getActivityLevel()))
+
             #show sensation
             if event.data is not None:
                 # deliver to tabs
@@ -999,7 +1004,7 @@ class Visual(Robot):
                     wx.PostEvent(self.treeLogPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
                     if sensation.getSensationType() == Sensation.SensationType.Feeling:
                         wx.PostEvent(self.communicationPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
-                        self.FeelingText.SetLabel(label = Sensation.getFeelingString(self.robot.getMemory().getRobot().getFeeling()))
+                        self.feelingText.SetLabel(label = Sensation.getFeelingString(self.robot.getMemory().getRobot().getFeeling()))
 
 
         '''
