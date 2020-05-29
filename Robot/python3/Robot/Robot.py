@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 28.05.2020
+Updated on 29.05.2020
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -147,7 +147,7 @@ class Robot(Thread):
     STOPWAIT = 5                    # Tryes to Stop subRobots and Wait Time
     
     
-    ACTIVITE_LOGGING_AVERAGE_PERIOD =       300.0     # used as period in seconds
+    ACTIVITE_LOGGING_AVERAGE_PERIOD =       3000.0     # used as period in seconds
     ACTIVITE_LOGGING_SHORT_AVERAGE_PERIOD = 3.0       # used as period in seconds
     ACTIVITE_LOGGING_INTERVAL =             60
     
@@ -411,7 +411,7 @@ class Robot(Thread):
     def getMasterCapabilities(self):
         if self.getParent() is not None:
             capabilities =  self.getParent().getLocalMasterCapabilities()
-        else:   # we are parent, get our ans subcapalities orred
+        else:   # we are parent, get our and subcapalities orred
             capabilities = Capabilities(deepCopy=self.getCapabilities())
             for robot in self.getSubInstances():
                 capabilities.Or(robot._getCapabilities())
@@ -829,6 +829,21 @@ class Robot(Thread):
             if feeling is not None:
                 self.feeling = ((Robot.FEELING_LOGGING_SHORT_AVERAGE_PERIOD-1.0)/Robot.FEELING_LOGGING_SHORT_AVERAGE_PERIOD) * self.feeling +\
                                (1.0/Robot.FEELING_LOGGING_SHORT_AVERAGE_PERIOD) * feeling
+                newMainRobotFeeling = ((Robot.FEELING_LOGGING_SHORT_AVERAGE_PERIOD-1.0)/Robot.FEELING_LOGGING_SHORT_AVERAGE_PERIOD) * self.feeling +\
+                                       (1.0/Robot.FEELING_LOGGING_SHORT_AVERAGE_PERIOD) * feeling
+                if newMainRobotFeeling != self.feeling:
+                    self.feeling = newMainRobotFeeling
+                    # create plain feeling to all others know this does not assigned to for instance certain Item.name
+                    # TODO Study, do we fins out, that we feel like something (Sense) or do we wan't to tell that feel something  (Muscle) or both
+                    # We choose both now
+                    feelingSensation = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
+                                                            robotType=Sensation.RobotType.Sense, feeling = self.feeling, locations=self.getLocations()) # valid in this location
+                    self.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation, association=None)
+                    feelingSensation2 = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
+                                                            robotType=Sensation.RobotType.Muscle, feeling = self.feeling, locations=self.getLocations()) # valid in this location
+                    self.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation2, association=None)
+                                                           
+                    # send it to us
             # we should also process this in tcp-connection and Virtual Robots.
             # it is done below by normal route rules
 
@@ -958,7 +973,7 @@ class Robot(Thread):
                  kind=Sensation.Kind.Normal,                                # Normal kind
                  firstAssociateSensation=None,                              # associated sensation first side
                  otherAssociateSensation=None,                              # associated Sensation other side
-                 associateFeeling = Sensation.Feeling.Neutral,              # feeling of association
+                 feeling = Sensation.Feeling.Neutral,              # feeling of association
                  positiveFeeling=False,                                     # change association feeling to more positive robotType if possible
                  negativeFeeling=False):                                    # change association feeling to more negative robotType if possible
 
@@ -993,7 +1008,7 @@ class Robot(Thread):
                  kind = kind,
                  firstAssociateSensation = firstAssociateSensation,
                  otherAssociateSensation = otherAssociateSensation,
-                 associateFeeling = associateFeeling,
+                 feeling = feeling,
                  positiveFeeling=positiveFeeling,
                  negativeFeeling=negativeFeeling)
 

@@ -173,7 +173,7 @@ class Communication(Robot):
 #                         self.mostImportantVoiceAssociation.changeFeeling(positive=True) #last voice was a good one because we got a response
                     feelingSensation = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                       firstAssociateSensation=self.mostImportantItemSensation, otherAssociateSensation=self.mostImportantVoiceSensation,
-                                                      #associateFeeling=communicationItem.getAssociation().getFeeling())
+                                                      #feeling=communicationItem.getAssociation().getFeeling())
                                                       positiveFeeling=True, locations='')#self.getLocations()) # valid in this location, can be chosen other way
                     self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation, association=None)
                         # TODO
@@ -193,7 +193,7 @@ class Communication(Robot):
 #                                 # TODO Same as Feeling sensation
 #                                 feelingSensation = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
 #                                                       firstAssociateSensation=communicationItem.getSensation(), otherAssociateSensation=sensation,
-#                                                       associateFeeling=communicationItem.getAssociation().getFeeling())
+#                                                       feeling=communicationItem.getAssociation().getFeeling())
 #                                 self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation, association=None)
                     if len(self.getMemory().presentItemSensations) > 0:          
                         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' got voice and tries to speak with presents ones' + self.getMemory().presenceToStr())
@@ -371,7 +371,7 @@ class Communication(Robot):
 #                     # same as Feeling Sensation
 #                     feelingSensation = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
 #                                                       firstAssociateSensation=self.spokedVoiceSensation, otherAssociateSensation=communicationItem.getSensation(),
-#                                                       associateFeeling=association.getFeeling())
+#                                                       feeling=association.getFeeling())
 #                     self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation, association=None)
             self.usedVoices.append(self.spokedVoiceSensation)
             self.usedVoiceLens.append(len(self.spokedVoiceSensation.getData()))      # TODO self.spokedVoiceSensation can be None          
@@ -396,7 +396,7 @@ class Communication(Robot):
         
             feelingSensation = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                     firstAssociateSensation=self.mostImportantItemSensation, otherAssociateSensation=self.mostImportantVoiceSensation,
-                                                          #associateFeeling=communicationItem.getAssociation().getFeeling())
+                                                          #feeling=communicationItem.getAssociation().getFeeling())
                                                     negativeFeeling=True, locations='')#self.getLocations()) # valid in this location, can be chosen also other way
             self.log(logLevel=Robot.LogLevel.Normal, logStr="stopWaitingResponse: self.getParent().getAxon().put do")
             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation, association=None)

@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 25.05.2020
+Edited on 29.05.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -40,7 +40,7 @@ Sensation is something Robot senses
 '''
 
 class Sensation(object):
-    VERSION=17          # version number to check, if we picle same version
+    VERSION=18          # version number to check, if we picle same version
                         # instances. Otherwise we get odd errors, with old
                         # version code instances
 
@@ -644,7 +644,7 @@ class Sensation(object):
                  kind=Kind.Normal,                                          # kind (for instance voice)
                  firstAssociateSensation = None,                            # associated sensation first side
                  otherAssociateSensation = None,                            # associated Sensation other side
-                 associateFeeling = Feeling.Neutral,                        # feeling of association
+                 feeling = Feeling.Neutral,                                 # feeling of sensation or association
                  positiveFeeling=False,                                     # change association feeling to more positive robotType if possible
                  negativeFeeling=False):                                    # change association feeling to more negative robotType if possible
                                        
@@ -720,7 +720,7 @@ class Sensation(object):
             self.kind = kind
             self.firstAssociateSensation = firstAssociateSensation
             self.otherAssociateSensation = otherAssociateSensation
-            self.associateFeeling = associateFeeling
+            self.feeling = feeling
             self.positiveFeeling = positiveFeeling
             self.negativeFeeling = negativeFeeling
 
@@ -765,6 +765,9 @@ class Sensation(object):
                 #print("robotType " + str(robotType))
                 i += Sensation.ENUM_SIZE
                                     
+                self.feeling = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER, signed=True)
+                i += Sensation.ID_SIZE
+                    
                 location_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
                 #print("location_size " + str(location_size))
                 i += Sensation.ID_SIZE
@@ -854,9 +857,6 @@ class Sensation(object):
                     i += Sensation.FLOAT_PACK_SIZE
                     self.otherAssociateSensation = memory.getSensationFromSensationMemory(id=otherAssociateSensation_id)
                     
-                    self.associateFeeling = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER, signed=True)
-                    i += Sensation.ID_SIZE
-                    
                     self.positiveFeeling =  Sensation.intToBoolean(bytes[i])
                     i += Sensation.ENUM_SIZE
                     
@@ -904,6 +904,7 @@ class Sensation(object):
         destination.sensationType = source.sensationType
         destination.memoryType = source.memoryType
         destination.robotType = source.robotType
+        destination.feeling = source.feeling
         destination.who = source.who
         destination.locations = source.locations
         destination.leftPower = source.leftPower
@@ -926,7 +927,6 @@ class Sensation(object):
         destination.kind = source.kind
         destination.firstAssociateSensation = source.firstAssociateSensation
         destination.otherAssociateSensation = source.otherAssociateSensation
-        destination.associateFeeling = source.associateFeeling
         destination.positiveFeeling = source.positiveFeeling
         destination.negativeFeeling = source.negativeFeeling
 
@@ -1039,7 +1039,12 @@ class Sensation(object):
             if self.getNegativeFeeling():
                 s = s + ':negativeFeeling'
             else:
-                s = s + ':' + Sensation.getFeelingString(self.getAssociateFeeling())
+                ## OOPS Can be NoneType
+                string = Sensation.getFeelingString(self.getFeeling())
+                if string :
+                    s = s + ':' + string 
+                else:
+                    s = s + ':None'                 
             
         return s
 
@@ -1051,6 +1056,7 @@ class Sensation(object):
         b += Sensation.strToBytes(self.memoryType)
         b += Sensation.strToBytes(self.sensationType)
         b += Sensation.strToBytes(self.robotType)
+        b +=  self.getFeeling().to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER, signed=True)
         
         location_size=len(self.getLocationsStr())
         b +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
@@ -1107,9 +1113,16 @@ class Sensation(object):
             b +=  Sensation.floatToBytes(self.score)
             b +=  Sensation.strToBytes(self.presence)
         elif self.sensationType is Sensation.SensationType.Feeling:
-            b +=  Sensation.floatToBytes(self.getFirstAssociateSensation().getId())
-            b +=  Sensation.floatToBytes(self.getOtherAssociateSensation().getId())
-            b +=  self.getAssociateFeeling().to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER, signed=True)
+            if self.getFirstAssociateSensation():
+                id = self.getFirstAssociateSensation().getId()
+            else:
+                id = 0.0
+            b +=  Sensation.floatToBytes(id)
+            if self.getOtherAssociateSensation():
+                id = self.getFirstAssociateSensation().getId()
+            else:
+                id = 0.0
+            b +=  Sensation.floatToBytes(id)
             b +=  Sensation.booleanToBytes(self.getPositiveFeeling())
             b +=  Sensation.booleanToBytes(self.getNegativeFeeling())
            
@@ -1393,10 +1406,11 @@ class Sensation(object):
     '''
     get sensations feeling
     
-    if we gibe other sensation as parameter, we get exact feeling between them
+    if we give other sensation as parameter, we get exact feeling between them
     if other sennsation is not given, we get  best or worst feeling of oll association this sensation has
+    getFeeling -> getAssociationFeeling()
     '''    
-    def getFeeling(self, sensation=None):
+    def getAssociationFeeling(self, sensation=None):
         feeling = Sensation.Feeling.Neutral
         if sensation:
             association = self.getAssociation(sensation=sensation)
@@ -1650,11 +1664,16 @@ class Sensation(object):
         self.otherAssociateSensation = otherAssociateSensation
     def getOtherAssociateSensation(self):
         return self.otherAssociateSensation
+    
+    '''
+    setAssociateFeeling -> setFeeling
+    getAssociateFeeling -> getFeeling
+    '''
 
-    def setAssociateFeeling(self, associateFeeling):
-        self.associateFeeling = associateFeeling
-    def getAssociateFeeling(self):
-        return self.associateFeeling
+    def setFeeling(self, feeling):
+        self.feeling = feeling
+    def getFeeling(self):
+        return self.feeling
     
     def setPositiveFeeling(self, positiveFeeling):
         self.positiveFeeling = positiveFeeling

@@ -323,11 +323,11 @@ class MemoryTestCase(unittest.TestCase):
 
         self.assertEqual(len(self.sensation.getAssociations()), associationNumber+1)
         self.assertEqual(self.sensation.getScore(), MemoryTestCase.SCORE)
-        self.assertEqual(self.sensation.getFeeling(addSensation), MemoryTestCase.NORMAL_FEELING)
+        self.assertEqual(self.sensation.getAssociationFeeling(addSensation), MemoryTestCase.NORMAL_FEELING)
         
         self.assertEqual(len(addSensation.getAssociations()), associationNumber+1)
         self.assertEqual(addSensation.getScore(), MemoryTestCase.SCORE)
-        self.assertEqual(addSensation.getFeeling(self.sensation), MemoryTestCase.NORMAL_FEELING)
+        self.assertEqual(addSensation.getAssociationFeeling(self.sensation), MemoryTestCase.NORMAL_FEELING)
 
         # test bytes        
         bytes=self.sensation.bytes()
@@ -338,7 +338,7 @@ class MemoryTestCase(unittest.TestCase):
        
         self.assertEqual(len(fromBytesSensation.getAssociations()), associationNumber+1)
         self.assertEqual(fromBytesSensation.getScore(), MemoryTestCase.SCORE)
-        self.assertEqual(fromBytesSensation.getFeeling(addSensation), MemoryTestCase.NORMAL_FEELING)
+        self.assertEqual(fromBytesSensation.getAssociationFeeling(addSensation), MemoryTestCase.NORMAL_FEELING)
         
         
         # test bytes        
@@ -348,7 +348,7 @@ class MemoryTestCase(unittest.TestCase):
 
         self.assertEqual(len(fromBytesSensation.getAssociations()), associationNumber+1)
         self.assertEqual(fromBytesSensation.getScore(), MemoryTestCase.SCORE)
-        self.assertEqual(fromBytesSensation.getFeeling(self.sensation), MemoryTestCase.NORMAL_FEELING)
+        self.assertEqual(fromBytesSensation.getAssociationFeeling(self.sensation), MemoryTestCase.NORMAL_FEELING)
        
         # TODO rest if the test
 
@@ -361,11 +361,11 @@ class MemoryTestCase(unittest.TestCase):
                                                             feeling=MemoryTestCase.TERRIFIED_FEELING))
         self.assertEqual(len(self.sensation.getAssociations()), associationNumber+1)
         self.assertEqual(self.sensation.getScore(), MemoryTestCase.SCORE)
-        self.assertEqual(self.sensation.getFeeling(addSensation), MemoryTestCase.TERRIFIED_FEELING)
+        self.assertEqual(self.sensation.getAssociationFeeling(addSensation), MemoryTestCase.TERRIFIED_FEELING)
         
         self.assertEqual(len(addSensation.getAssociations()), associationNumber+1)
         self.assertEqual(addSensation.getScore(), MemoryTestCase.SCORE)
-        self.assertEqual(addSensation.getFeeling(self.sensation), MemoryTestCase.TERRIFIED_FEELING)
+        self.assertEqual(addSensation.getAssociationFeeling(self.sensation), MemoryTestCase.TERRIFIED_FEELING)
 
         #print('\nlogAssociations 6: test_AddAssociation')
         Sensation.logAssociations(self.sensation)
@@ -377,8 +377,8 @@ class MemoryTestCase(unittest.TestCase):
         # change feeling in association        
         addAssociation.setFeeling(MemoryTestCase.BETTER_FEELING)
         # and it should be changed in both way association in both ways
-        self.assertEqual(self.sensation.getFeeling(addSensation), MemoryTestCase.BETTER_FEELING)
-        self.assertEqual(addSensation.getFeeling(self.sensation), MemoryTestCase.BETTER_FEELING)
+        self.assertEqual(self.sensation.getAssociationFeeling(addSensation), MemoryTestCase.BETTER_FEELING)
+        self.assertEqual(addSensation.getAssociationFeeling(self.sensation), MemoryTestCase.BETTER_FEELING)
 
     def test_Feeling(self):
         for i in range(MemoryTestCase.TEST_RUNS):
@@ -411,17 +411,17 @@ class MemoryTestCase(unittest.TestCase):
         
         feelingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                       firstAssociateSensation=self.sensation, otherAssociateSensation=addSensation,
-                                                      associateFeeling=MemoryTestCase.NORMAL_FEELING)
+                                                      feeling=MemoryTestCase.NORMAL_FEELING)
         self.memory.process(sensation=feelingSensation)
         
 
         self.assertEqual(len(self.sensation.getAssociations()), associationNumber+1)
         self.assertEqual(self.sensation.getScore(), MemoryTestCase.SCORE)
-        self.assertEqual(self.sensation.getFeeling(addSensation), MemoryTestCase.NORMAL_FEELING)
+        self.assertEqual(self.sensation.getAssociationFeeling(addSensation), MemoryTestCase.NORMAL_FEELING)
         
         self.assertEqual(len(addSensation.getAssociations()), associationNumber+1)
         self.assertEqual(addSensation.getScore(), MemoryTestCase.SCORE)
-        self.assertEqual(addSensation.getFeeling(self.sensation), MemoryTestCase.NORMAL_FEELING)
+        self.assertEqual(addSensation.getAssociationFeeling(self.sensation), MemoryTestCase.NORMAL_FEELING)
 
         # test bytes        
         bytes=self.sensation.bytes()
@@ -432,7 +432,7 @@ class MemoryTestCase(unittest.TestCase):
        
         self.assertEqual(len(fromBytesSensation.getAssociations()), associationNumber+1)
         self.assertEqual(fromBytesSensation.getScore(), MemoryTestCase.SCORE)
-        self.assertEqual(fromBytesSensation.getFeeling(addSensation), MemoryTestCase.NORMAL_FEELING)
+        self.assertEqual(fromBytesSensation.getAssociationFeeling(addSensation), MemoryTestCase.NORMAL_FEELING)
         
         
         # test bytes        
@@ -442,7 +442,7 @@ class MemoryTestCase(unittest.TestCase):
 
         self.assertEqual(len(fromBytesSensation.getAssociations()), associationNumber+1)
         self.assertEqual(fromBytesSensation.getScore(), MemoryTestCase.SCORE)
-        self.assertEqual(fromBytesSensation.getFeeling(self.sensation), MemoryTestCase.NORMAL_FEELING)
+        self.assertEqual(fromBytesSensation.getAssociationFeeling(self.sensation), MemoryTestCase.NORMAL_FEELING)
        
         # TODO rest if the test
 
@@ -456,16 +456,16 @@ class MemoryTestCase(unittest.TestCase):
         
         feelingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                       firstAssociateSensation=self.sensation, otherAssociateSensation=addSensation,
-                                                      associateFeeling=MemoryTestCase.TERRIFIED_FEELING)
+                                                      feeling=MemoryTestCase.TERRIFIED_FEELING)
         self.memory.process(sensation=feelingSensation)
         
         self.assertEqual(len(self.sensation.getAssociations()), associationNumber+1)
         self.assertEqual(self.sensation.getScore(), MemoryTestCase.SCORE)
-        self.assertEqual(self.sensation.getFeeling(addSensation), MemoryTestCase.TERRIFIED_FEELING)
+        self.assertEqual(self.sensation.getAssociationFeeling(addSensation), MemoryTestCase.TERRIFIED_FEELING)
         
         self.assertEqual(len(addSensation.getAssociations()), associationNumber+1)
         self.assertEqual(addSensation.getScore(), MemoryTestCase.SCORE)
-        self.assertEqual(addSensation.getFeeling(self.sensation), MemoryTestCase.TERRIFIED_FEELING)
+        self.assertEqual(addSensation.getAssociationFeeling(self.sensation), MemoryTestCase.TERRIFIED_FEELING)
 
         #print('\nlogAssociations 6: test_AddAssociation')
         Sensation.logAssociations(self.sensation)
@@ -479,11 +479,11 @@ class MemoryTestCase(unittest.TestCase):
         # and it should be changed in both way association in both ways
         feelingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                       firstAssociateSensation=self.sensation, otherAssociateSensation=addSensation,
-                                                      associateFeeling=MemoryTestCase.BETTER_FEELING)
+                                                      feeling=MemoryTestCase.BETTER_FEELING)
         self.memory.process(sensation=feelingSensation)
 
-        self.assertEqual(self.sensation.getFeeling(addSensation), MemoryTestCase.BETTER_FEELING)
-        self.assertEqual(addSensation.getFeeling(self.sensation), MemoryTestCase.BETTER_FEELING)
+        self.assertEqual(self.sensation.getAssociationFeeling(addSensation), MemoryTestCase.BETTER_FEELING)
+        self.assertEqual(addSensation.getAssociationFeeling(self.sensation), MemoryTestCase.BETTER_FEELING)
 
     def test_Bytes(self):        
         print("\ntest_Bytes")
@@ -557,7 +557,7 @@ class MemoryTestCase(unittest.TestCase):
         
         feelingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                       firstAssociateSensation=workingSensation, otherAssociateSensation=voiceSensation,
-                                                      associateFeeling=MemoryTestCase.NORMAL_FEELING)
+                                                      feeling=MemoryTestCase.NORMAL_FEELING)
         bytes=feelingSensation.bytes()
         self.assertTrue(bytes != None, "should be get bytes")
         fromBytesFeelingSensation = self.robot.createSensation(bytes=bytes)
@@ -565,8 +565,8 @@ class MemoryTestCase(unittest.TestCase):
         self.assertTrue(feelingSensation == fromBytesFeelingSensation, "should be equal")
         self.assertTrue(feelingSensation.getFirstAssociateSensation() == fromBytesFeelingSensation.getFirstAssociateSensation(), "should be equal")
         self.assertTrue(feelingSensation.getOtherAssociateSensation() == fromBytesFeelingSensation.getOtherAssociateSensation(), "should be equal")
-        self.assertTrue(feelingSensation.getAssociateFeeling() == fromBytesFeelingSensation.getAssociateFeeling(), "should be equal")        
-        self.assertEqual(fromBytesFeelingSensation.getAssociateFeeling(), MemoryTestCase.NORMAL_FEELING, "should be equal")        
+        self.assertTrue(feelingSensation.getFeeling() == fromBytesFeelingSensation.getFeeling(), "should be equal")        
+        self.assertEqual(fromBytesFeelingSensation.getFeeling(), MemoryTestCase.NORMAL_FEELING, "should be equal")        
         
         self.assertFalse(fromBytesFeelingSensation.isForgettable(), "should be False, until detached")
         fromBytesFeelingSensation.detach(robot=self.robot)
@@ -586,7 +586,7 @@ class MemoryTestCase(unittest.TestCase):
         self.assertTrue(feelingSensation.getOtherAssociateSensation() == fromBytesFeelingSensation.getOtherAssociateSensation(), "should be equal")
         self.assertTrue(feelingSensation.getPositiveFeeling(), "should be True")        
         self.assertFalse(feelingSensation.getNegativeFeeling(), "should be False")        
-        #self.assertTrue(feelingSensation.getAssociateFeeling() == MemoryTestCase.NORMAL_FEELING, "should be equal")        
+        #self.assertTrue(feelingSensation.getFeeling() == MemoryTestCase.NORMAL_FEELING, "should be equal")        
         self.assertTrue(fromBytesFeelingSensation.getPositiveFeeling(), "should be True")        
         self.assertFalse(fromBytesFeelingSensation.getNegativeFeeling(), "should be False")        
         
@@ -610,7 +610,7 @@ class MemoryTestCase(unittest.TestCase):
         self.assertFalse(fromBytesFeelingSensation.getPositiveFeeling(), "should be False")        
         self.assertTrue(fromBytesFeelingSensation.getNegativeFeeling(), "should be True")        
                
-        #self.assertTrue(feelingSensation.getAssociateFeeling() == MemoryTestCase.NORMAL_FEELING, "should be equal")        
+        #self.assertTrue(feelingSensation.getFeeling() == MemoryTestCase.NORMAL_FEELING, "should be equal")        
 
         self.assertFalse(fromBytesFeelingSensation.isForgettable(), "should be False, until detached")
         fromBytesFeelingSensation.detach(robot=self.robot)

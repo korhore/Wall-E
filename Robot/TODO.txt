@@ -4,9 +4,35 @@ Critical
 Develop
 -------
 
+When we run out of memory, MainRobot keeps to have Non Forgottable Sensation
+It cam mean that some Subrobot does not accept Sensation?
+Increase. logging to Memory.
+We can also just ignore NotForgettable, id we have tryed to get more memory some time,
+but this decreas motivation to correct real problem with memory. But MainRobot
+is not interested of Sensations, so it can Forget them anyway and tries.
+
+Communication
+Now we communicate with voices, but there is no reason, we we don't communicate with Items and Images also,
+all kind of Sebsory type Sensations we have. We can coversate also of Fealings.
+This means that we should repomd to all kind RobotType.Sensory with RobotType.Muscle Sensation.
+Study if we could use palette in SensationType.
+
 Robot Feeling
+- in progress
+- implement Sensation.SensationType.Feeling with no associated sensation. Conversion to/from bytes don't work
+  Make also feeling as a property of all SensationTypes
 
 Robot Activity
+- In progres
+- implement SensationType
+- What we will do, when we Dream or Sleep?
+  We should save our memory to ne ready for restart.
+  Now this means that we delete all Sensory ans Work Sensations, but it does not matter,
+  if we are sleaping. We should also restart our subrobots, so our Robot is reborn
+  but all Memories are found, but Identity should not be started at start,
+  keeps its state. Basically all other Senses ans Muscles have same situation,
+  because they remember their state, even if onle AlsaAudioMicroPhone has something to remember.
+  
 
 To implement proper pickle, we need Sensation.__init__ with making a copy
 without anything else, than LongTerm dependency.

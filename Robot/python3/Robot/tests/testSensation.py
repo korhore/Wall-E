@@ -1,6 +1,6 @@
 '''
 Created on 10.06.2019
-Updated on 19.05.2020
+Updated on 29.05.2020
 @author: reijo.korhonen@gmail.com
 
 test Sensation class
@@ -356,11 +356,11 @@ class SensationTestCase(unittest.TestCase):
 
         self.assertEqual(len(self.sensation.getAssociations()), associationNumber+1)
         self.assertEqual(self.sensation.getScore(), SensationTestCase.SCORE)
-        self.assertEqual(self.sensation.getFeeling(addSensation), self.feeling)
+        self.assertEqual(self.sensation.getAssociationFeeling(addSensation), self.feeling)
         
         self.assertEqual(len(addSensation.getAssociations()), associationNumber+1)
         self.assertEqual(addSensation.getScore(), SensationTestCase.SCORE)
-        self.assertEqual(addSensation.getFeeling(self.sensation), self.feeling)
+        self.assertEqual(addSensation.getAssociationFeeling(self.sensation), self.feeling)
 
         # test bytes        
         bytes=self.sensation.bytes()
@@ -371,7 +371,7 @@ class SensationTestCase(unittest.TestCase):
        
         self.assertEqual(len(fromBytesSensation.getAssociations()), associationNumber+1)
         self.assertEqual(fromBytesSensation.getScore(), SensationTestCase.SCORE)
-        self.assertEqual(fromBytesSensation.getFeeling(addSensation), self.feeling)
+        self.assertEqual(fromBytesSensation.getAssociationFeeling(addSensation), self.feeling)
         
         
         # test bytes        
@@ -381,7 +381,7 @@ class SensationTestCase(unittest.TestCase):
 
         self.assertEqual(len(fromBytesSensation.getAssociations()), associationNumber+1)
         self.assertEqual(fromBytesSensation.getScore(), SensationTestCase.SCORE)
-        self.assertEqual(fromBytesSensation.getFeeling(self.sensation), self.feeling)
+        self.assertEqual(fromBytesSensation.getAssociationFeeling(self.sensation), self.feeling)
        
         # TODO rest if the test
 
@@ -393,11 +393,11 @@ class SensationTestCase(unittest.TestCase):
                                                             feeling=SensationTestCase.TERRIFIED_FEELING))
         self.assertEqual(len(self.sensation.getAssociations()), associationNumber+1)
         self.assertEqual(self.sensation.getScore(), SensationTestCase.SCORE)
-        self.assertEqual(self.sensation.getFeeling(addSensation), SensationTestCase.TERRIFIED_FEELING)
+        self.assertEqual(self.sensation.getAssociationFeeling(addSensation), SensationTestCase.TERRIFIED_FEELING)
         
         self.assertEqual(len(addSensation.getAssociations()), associationNumber+1)
         self.assertEqual(addSensation.getScore(), SensationTestCase.SCORE)
-        self.assertEqual(addSensation.getFeeling(self.sensation), SensationTestCase.TERRIFIED_FEELING)
+        self.assertEqual(addSensation.getAssociationFeeling(self.sensation), SensationTestCase.TERRIFIED_FEELING)
 
         #print('\nlogAssociations 6: test_AddAssociation')
         Sensation.logAssociations(self.sensation)
@@ -410,8 +410,8 @@ class SensationTestCase(unittest.TestCase):
         # change feeling in association        
         addAssociation.setFeeling(self.feeling)
         # and it should be changed in both way association in both ways
-        self.assertEqual(self.sensation.getFeeling(addSensation), self.feeling)
-        self.assertEqual(addSensation.getFeeling(self.sensation), self.feeling)
+        self.assertEqual(self.sensation.getAssociationFeeling(addSensation), self.feeling)
+        self.assertEqual(addSensation.getAssociationFeeling(self.sensation), self.feeling)
 
     def test_Bytes(self):        
         print("\ntest_Bytes")
@@ -495,7 +495,7 @@ class SensationTestCase(unittest.TestCase):
         
         feelingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                       firstAssociateSensation=workingSensation, otherAssociateSensation=voiceSensation,
-                                                      associateFeeling=SensationTestCase.NORMAL_FEELING)
+                                                      feeling=SensationTestCase.NORMAL_FEELING)
         bytes=feelingSensation.bytes()
         self.assertTrue(bytes != None, "should be get bytes")
         fromBytesFeelingSensation = self.robot.createSensation(bytes=bytes)
@@ -503,8 +503,8 @@ class SensationTestCase(unittest.TestCase):
         self.assertTrue(feelingSensation == fromBytesFeelingSensation, "should be equal")
         self.assertTrue(feelingSensation.getFirstAssociateSensation() == fromBytesFeelingSensation.getFirstAssociateSensation(), "should be equal")
         self.assertTrue(feelingSensation.getOtherAssociateSensation() == fromBytesFeelingSensation.getOtherAssociateSensation(), "should be equal")
-        self.assertTrue(feelingSensation.getAssociateFeeling() == fromBytesFeelingSensation.getAssociateFeeling(), "should be equal")        
-        self.assertEqual(fromBytesFeelingSensation.getAssociateFeeling(), SensationTestCase.NORMAL_FEELING, "should be equal")        
+        self.assertTrue(feelingSensation.getFeeling() == fromBytesFeelingSensation.getFeeling(), "should be equal")        
+        self.assertEqual(fromBytesFeelingSensation.getFeeling(), SensationTestCase.NORMAL_FEELING, "should be equal")        
         
         self.assertFalse(fromBytesFeelingSensation.isForgettable(), "should be False, until detached")
         fromBytesFeelingSensation.detach(robot=self.robot)
@@ -524,7 +524,7 @@ class SensationTestCase(unittest.TestCase):
         self.assertTrue(feelingSensation.getOtherAssociateSensation() == fromBytesFeelingSensation.getOtherAssociateSensation(), "should be equal")
         self.assertTrue(feelingSensation.getPositiveFeeling(), "should be True")        
         self.assertFalse(feelingSensation.getNegativeFeeling(), "should be False")        
-        #self.assertTrue(feelingSensation.getAssociateFeeling() == SensationTestCase.NORMAL_FEELING, "should be equal")        
+        #self.assertTrue(feelingSensation.getFeeling() == SensationTestCase.NORMAL_FEELING, "should be equal")        
         self.assertTrue(fromBytesFeelingSensation.getPositiveFeeling(), "should be True")        
         self.assertFalse(fromBytesFeelingSensation.getNegativeFeeling(), "should be False")        
         
@@ -548,11 +548,78 @@ class SensationTestCase(unittest.TestCase):
         self.assertFalse(fromBytesFeelingSensation.getPositiveFeeling(), "should be False")        
         self.assertTrue(fromBytesFeelingSensation.getNegativeFeeling(), "should be True")        
                
-        #self.assertTrue(feelingSensation.getAssociateFeeling() == SensationTestCase.NORMAL_FEELING, "should be equal")        
+        #self.assertTrue(feelingSensation.getFeeling() == SensationTestCase.NORMAL_FEELING, "should be equal")        
 
         self.assertFalse(fromBytesFeelingSensation.isForgettable(), "should be False, until detached")
         fromBytesFeelingSensation.detach(robot=self.robot)
         self.assertTrue(fromBytesFeelingSensation.isForgettable(), "should be True after detach")
+        
+        # Feeling is property of every SensationType
+        workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
+                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=[],
+                                                      locations = SensationTestCase.SET_1_2_LOCATIONS,
+                                                      feeling=SensationTestCase.NORMAL_FEELING)
+        self.assertTrue(workingSensation != None, "should be created")
+        self.assertEqual(workingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
+        bytes=workingSensation.bytes()
+        self.assertTrue(bytes != None, "should be get bytes")
+        fromBytesWorkingSensation = self.robot.createSensation(bytes=bytes)
+        self.assertTrue(fromBytesWorkingSensation != None, "should be created")
+        self.assertEqual(fromBytesWorkingSensation, workingSensation, "should be equal")
+        self.assertEqual(fromBytesWorkingSensation.getLocations(), workingSensation.getLocations(), "should be equal")
+        self.assertEqual(fromBytesWorkingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
+        self.assertEqual(fromBytesWorkingSensation.getFeeling(), SensationTestCase.NORMAL_FEELING, "should be equal")
+       
+        # Image
+        
+        imageSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.Sensory,
+                                                    data=data, locations=SensationTestCase.SET_1_2_LOCATIONS, kind=Sensation.Kind.Eva,
+                                                    feeling=SensationTestCase.BETTER_FEELING)
+        self.assertEqual(imageSensation.getFeeling(), SensationTestCase.BETTER_FEELING, "should be equal")
+
+        self.assertFalse(imageSensation.isForgettable(), "should be False, until detached")
+        imageSensation.detach(robot=self.robot)
+        self.assertTrue(imageSensation.isForgettable(), "should be True after detach")
+
+        bytes=imageSensation.bytes()
+        self.assertTrue(bytes != None, "should be get bytes")
+        fromBytesImageSensation = self.robot.createSensation(bytes=bytes)
+
+        self.assertTrue(imageSensation == fromBytesImageSensation, "should be equal")
+        self.assertTrue(imageSensation.getImage() == fromBytesImageSensation.getImage(), "should be equal") # empty image, not given in creation, TODO
+        self.assertTrue(imageSensation.getLocations() == fromBytesImageSensation.getLocations(), "should be equal")
+        self.assertEqual(fromBytesImageSensation.getFeeling(), SensationTestCase.BETTER_FEELING, "should be equal")
+        
+        self.assertFalse(fromBytesImageSensation.isForgettable(), "should be False, until detached")
+        fromBytesImageSensation.detach(robot=self.robot)
+        self.assertTrue(fromBytesImageSensation.isForgettable(), "should be True after detach")
+
+        # Voice
+        
+        data=b'\x01\x02'
+        voiceSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data,
+                                                    locations=SensationTestCase.SET_1_2_LOCATIONS, kind=Sensation.Kind.Eva,
+                                                    feeling=SensationTestCase.TERRIFIED_FEELING)
+        self.assertEqual(voiceSensation.getFeeling(), SensationTestCase.TERRIFIED_FEELING, "should be equal")
+
+        self.assertFalse(voiceSensation.isForgettable(), "should be False, until detached")
+        voiceSensation.detach(robot=self.robot)
+        self.assertTrue(voiceSensation.isForgettable(), "should be True after detach")
+
+        self.assertTrue(voiceSensation.getKind() == Sensation.Kind.Eva, "should be equal")
+        bytes=voiceSensation.bytes()
+        self.assertTrue(bytes != None, "should be get bytes")
+        fromBytesVoiceSensation = self.robot.createSensation(bytes=bytes)
+        
+        self.assertEqual(voiceSensation, fromBytesVoiceSensation, "should be equal")
+        self.assertEqual(voiceSensation.getKind(), fromBytesVoiceSensation.getKind(), "should be equal")
+        self.assertEqual(voiceSensation.getData(), fromBytesVoiceSensation.getData(), "should be equal")
+        self.assertEqual(voiceSensation.getLocations(), fromBytesVoiceSensation.getLocations(), "should be equal")
+        self.assertEqual(fromBytesVoiceSensation.getFeeling(), SensationTestCase.TERRIFIED_FEELING, "should be equal")
+        
+        self.assertFalse(fromBytesVoiceSensation.isForgettable(), "should be False, until detached")
+        fromBytesVoiceSensation.detach(robot=self.robot)
+        self.assertTrue(fromBytesVoiceSensation.isForgettable(), "should be True after detach")
 
         print("\ntest_Bytes DONE")
         

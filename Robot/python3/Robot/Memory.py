@@ -137,7 +137,7 @@ class Memory(object):
                  kind=Sensation.Kind.Normal,                                # Normal kind
                  firstAssociateSensation=None,                              # associated sensation first side
                  otherAssociateSensation=None,                              # associated Sensation other side
-                 associateFeeling = Sensation.Feeling.Neutral,              # feeling of association
+                 feeling = Sensation.Feeling.Neutral,              # feeling of association
                  positiveFeeling=False,                                     # change association feeling to more positive robotType if possible
                  negativeFeeling=False):                                    # change association feeling to more negative robotType if possible
         if sensation == None:             # not an update, create new one
@@ -175,7 +175,7 @@ class Memory(object):
                  kind = kind,
                  firstAssociateSensation = firstAssociateSensation,
                  otherAssociateSensation = otherAssociateSensation,
-                 associateFeeling = associateFeeling,
+                 feeling = feeling,
                  positiveFeeling = positiveFeeling,
                  negativeFeeling = negativeFeeling)
         # if bytes, then same Sensation can live in many memories
@@ -283,11 +283,11 @@ class Memory(object):
            sensation.getFirstAssociateSensation() is not None and\
            sensation.getOtherAssociateSensation() is not None:
             sensation.getFirstAssociateSensation().associate(sensation=sensation.getOtherAssociateSensation(), 
-                                                             feeling = sensation.getAssociateFeeling(),
+                                                             feeling = sensation.getFeeling(),
                                                              positiveFeeling = sensation.getPositiveFeeling(),
                                                              negativeFeeling = sensation.getNegativeFeeling())
-            firstFeeling = sensation.getFirstAssociateSensation().getFeeling()
-            otherFeeling = sensation.getOtherAssociateSensation().getFeeling()
+            firstFeeling = sensation.getFirstAssociateSensation().getAssociationFeeling()
+            otherFeeling = sensation.getOtherAssociateSensation().getAssociationFeeling()
             if abs(firstFeeling) > abs(otherFeeling):
                 return firstFeeling
             return otherFeeling 
@@ -379,13 +379,14 @@ class Memory(object):
     sensation getters
     '''
     def getSensationFromSensationMemory(self, id):
-        self.memoryLock.acquireRead()                  # read thread_safe
- 
-        for sensation in self.sensationMemory:
-            if sensation.getId() == id:
-                self.memoryLock.releaseRead()  # read thread_safe
-                return sensation
-        self.memoryLock.releaseRead()                  # read thread_safe
+        if id > 0.0:
+            self.memoryLock.acquireRead()                  # read thread_safe
+     
+            for sensation in self.sensationMemory:
+                if sensation.getId() == id:
+                    self.memoryLock.releaseRead()  # read thread_safe
+                    return sensation
+            self.memoryLock.releaseRead()                  # read thread_safe
         return None
 
     def getSensationsFromSensationMemory(self, associationId):
