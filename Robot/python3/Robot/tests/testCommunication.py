@@ -1,6 +1,6 @@
 '''
 Created on 21.06.2019
-Updated on 24.05.2020
+Updated on 31.05.2020
 @author: reijo.korhonen@gmail.com
 
 test Association class
@@ -152,6 +152,7 @@ class CommunicationTestCase(unittest.TestCase):
     '''    
     def test_Presense(self):
         print('\ntest_Presense')
+                
         history_sensationTime = systemTime.time() -2*max(CommunicationTestCase.ASSOCIATION_INTERVAL, Communication.COMMUNICATION_INTERVAL)
 
         self.assertEqual(self.getAxon().empty(), True, 'Axon should be empty at the beginning of test_Presense\nCannot test properly this!')
@@ -212,13 +213,14 @@ class CommunicationTestCase(unittest.TestCase):
                                                  presence=Sensation.Presence.Present)
         #simulate TensorflowClassification send presence item to MainBobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
-        # Now we should have 1 item in self.getMemory().presentItemSensations (can be assigned as self.association) with with  name and associations count
+        # Now we should have 1 item in self.getMemory().presentItemSensations (and be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.communication.getMemory().presentItemSensations), 1, 'len(self.communication.getMemory().presentItemSensations should be 1')
 
         # process       
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation, association=None)
         self.assertEqual(len(self.communication.getMemory().presentItemSensations), 1, 'len(self.communication.getMemory().presentItemSensations should be 1')
-        self.expect(name='Present, used response', isEmpty=True, isSpokenVoice=False, isHeardVoice=False, isFeeling=False)
+        # TODO is this so?
+        self.expect(name='Present, response', isEmpty=False, isSpokenVoice=True, isHeardVoice=False, isFeeling=False)
 
         print('\n current Present again')
         #systemTime.sleep(0.1)  # wait to get really even id
@@ -236,6 +238,7 @@ class CommunicationTestCase(unittest.TestCase):
         #process       
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation, association=None)
         self.assertEqual(len(self.communication.getMemory().presentItemSensations), 1, 'len(self.communication.getMemory().presentItemSensations should be 1')
+        # TODO is this so?
         self.expect(name='Present again, used response', isEmpty=True, isSpokenVoice=False, isHeardVoice=False, isFeeling=False)
         
         print('\n current Absent')
@@ -254,6 +257,7 @@ class CommunicationTestCase(unittest.TestCase):
         #process              
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
         self.assertEqual(len(self.communication.getMemory().presentItemSensations), 0, 'len(self.communication.getMemory().presentItemSensations should be 0')
+        # if adsent, Communication does not anyone to speak with
         self.expect(name='Absent', isEmpty=True, isSpokenVoice=False, isHeardVoice=False, isFeeling=False)
  
     # #NAME2
@@ -290,7 +294,7 @@ class CommunicationTestCase(unittest.TestCase):
         #process                      
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation, association=None)
         #self.assertEqual((self.getAxon().empty()), False,  'Axon should not be empty, when entering')
-        self.expect(name='Present Name 2, Conversation continues', isEmpty=True, isSpokenVoice=False, isHeardVoice=False, isFeeling=True, isPositiveFeeling=True)
+        self.expect(name='Present Name 2, Conversation continues', isEmpty=False, isSpokenVoice=True, isHeardVoice=False, isFeeling=False)
         
         print('\n NAME2 current Entering')
         # make potential response
@@ -325,7 +329,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.assertEqual(len(self.communication.getMemory().presentItemSensations), 2, 'len(self.communication.getMemory().presentItemSensations after Entering Item NAME2 Sensation should NAME2 be 2')
 
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation, association=None)
-        self.expect(name='Entering Name 2, No basic change in presentation', isEmpty=True, isSpokenVoice=False, isHeardVoice=False, isFeeling=False)
+        self.expect(name='Entering Name 2, change in presentation',  isEmpty=False, isSpokenVoice=True, isHeardVoice=False, isFeeling=False)
         
         print('\n NAME2 current Present')
         #systemTime.sleep(0.1)  # wait to get really even id
@@ -340,8 +344,7 @@ class CommunicationTestCase(unittest.TestCase):
        
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation, association=None)
         self.assertEqual(len(self.communication.getMemory().presentItemSensations), 2, 'len(self.communication.getMemory().presentItemSensations should be 2')
-        self.assertEqual((self.getAxon().empty()), True,  'Axon should  be empty')
-        self.expect(name='Present Name 2, No basic change in presentation', isEmpty=True, isSpokenVoice=False, isHeardVoice=False, isFeeling=False)
+        self.expect(name='Present Name 2, change in presentation',  isEmpty=False, isSpokenVoice=True, isHeardVoice=False, isFeeling=False)
 
         print('\n NAME2 current Present again')
         #systemTime.sleep(0.1)  # wait to get really even id
@@ -356,7 +359,7 @@ class CommunicationTestCase(unittest.TestCase):
        
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation, association=None)
         self.assertEqual(len(self.communication.getMemory().presentItemSensations), 2, 'len(self.communication.getMemory().presentItemSensations should be 2')
-        self.expect(name='Present NAME2 again No basic change in presentation', isEmpty=True, isSpokenVoice=False, isHeardVoice=False, isFeeling=False)
+        self.expect(name='Present NAME2 againbasic change in presentation', isEmpty=False, isSpokenVoice=True, isHeardVoice=False, isFeeling=False)
         
         print('\n NAME2 current Absent')
         #systemTime.sleep(0.1)  # wait to get really even id
