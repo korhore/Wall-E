@@ -5,11 +5,16 @@ Develop
 -------
 
 When we run out of memory, MainRobot keeps to have Non Forgottable Sensation
-It cam mean that some Subrobot does not accept Sensation?
+It can mean that some Subrobot does not accept Sensation?
 Increase. logging to Memory.
 We can also just ignore NotForgettable, id we have tryed to get more memory some time,
 but this decreas motivation to correct real problem with memory. But MainRobot
 is not interested of Sensations, so it can Forget them anyway and tries.
+
+More logging to non forgettables
+When creating new SocketClient, trabsfer sensation fron old one to the new one.
+This can be reason why we run out of memory.
+
 
 Communication
 Now we communicate with voices, but there is no reason, we we don't communicate with Items and Images also,

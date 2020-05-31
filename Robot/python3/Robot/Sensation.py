@@ -40,7 +40,7 @@ Sensation is something Robot senses
 '''
 
 class Sensation(object):
-    VERSION=18          # version number to check, if we picle same version
+    VERSION=19          # version number to check, if we picle same version
                         # instances. Otherwise we get odd errors, with old
                         # version code instances
 
@@ -1027,6 +1027,12 @@ class Sensation(object):
 #         else:
 #             s=self.__str__()
         s = systemTime.ctime(self.time) + ':' + str(self.robotId) + ':' + str(self.id) + ':' + Sensation.getMemoryTypeString(self.memoryType) + ':' + Sensation.getRobotTypeString(self.robotType) + ':' + Sensation.getSensationTypeString(self.sensationType)+ ':' + self.getLocationsStr()+ ':'
+        ## OOPS Can be NoneType
+        string = Sensation.getFeelingString(self.getFeeling())
+        if string :
+            s = s + ':' + string 
+        else:
+            s = s + ':None'                 
         if self.sensationType == Sensation.SensationType.Voice:
             s = s + ':' + Sensation.getKindString(self.kind)
 #         elif self.sensationType == Sensation.SensationType.Image:
@@ -1038,13 +1044,6 @@ class Sensation(object):
                 s = s + ':positiveFeeling'
             if self.getNegativeFeeling():
                 s = s + ':negativeFeeling'
-            else:
-                ## OOPS Can be NoneType
-                string = Sensation.getFeelingString(self.getFeeling())
-                if string :
-                    s = s + ':' + string 
-                else:
-                    s = s + ':None'                 
             
         return s
 
@@ -1056,7 +1055,7 @@ class Sensation(object):
         b += Sensation.strToBytes(self.memoryType)
         b += Sensation.strToBytes(self.sensationType)
         b += Sensation.strToBytes(self.robotType)
-        b +=  self.getFeeling().to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER, signed=True)
+        b += self.feeling.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER, signed=True)
         
         location_size=len(self.getLocationsStr())
         b +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)

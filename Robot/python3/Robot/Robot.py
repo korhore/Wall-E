@@ -239,6 +239,7 @@ class Robot(Thread):
             Robot.mainRobotInstance = self
             self._isMainRobot = True
             self.feeling = Sensation.Feeling.Neutral
+            self.feelingLevel = float(Sensation.Feeling.Neutral)
             self.activityLevel = Sensation.ActivityLevel.Normal
             
             
@@ -276,7 +277,7 @@ class Robot(Thread):
                                    instanceType= Sensation.InstanceType.SubInstance,
                                    level=level)
         elif self.getInstanceType() == Sensation.InstanceType.Virtual:
-            # also virtual instace has identity as level 1 mainrobot
+            # also virtual instance has identity as level 1 mainrobot
             self.identity=Identity(parent=self,
                                    memory=self.getMemory(),  # use same memory than self
                                    instanceName='Identity',
@@ -357,22 +358,22 @@ class Robot(Thread):
     '''   
     def getFeeling(self):
         if self.isMainRobot():
-            if self.feeling > (Sensation.Feeling.InLove + Sensation.Feeling.Happy)/2.0:
+            if self.feelingLevel > (Sensation.Feeling.InLove + Sensation.Feeling.Happy)/2.0:
                 return Sensation.Feeling.InLove
-            elif self.feeling > (Sensation.Feeling.Happy + Sensation.Feeling.Good)/2.0:
+            elif self.feelingLevel > (Sensation.Feeling.Happy + Sensation.Feeling.Good)/2.0:
                 return Sensation.Feeling.Happy
-            elif self.feeling > (Sensation.Feeling.Good + Sensation.Feeling.Good)/2.0:
+            elif self.feelingLevel > (Sensation.Feeling.Good + Sensation.Feeling.Good)/2.0:
                 return Sensation.Feeling.Good
-            elif self.feeling > (Sensation.Feeling.Normal + Sensation.Feeling.Neutral)/2.0:
+            elif self.feelingLevel > (Sensation.Feeling.Normal + Sensation.Feeling.Neutral)/2.0:
                 return Sensation.Feeling.Normal
             
-            elif self.feeling < (Sensation.Feeling.Terrified + Sensation.Feeling.Afraid)/2.0:
+            elif self.feelingLevel < (Sensation.Feeling.Terrified + Sensation.Feeling.Afraid)/2.0:
                 return Sensation.Feeling.Terrified
-            elif self.feeling < (Sensation.Feeling.Afraid + Sensation.Feeling.Disappointed)/2.0:
+            elif self.feelingLevel < (Sensation.Feeling.Afraid + Sensation.Feeling.Disappointed)/2.0:
                 return Sensation.Feeling.Afraid
-            elif self.feeling < (Sensation.Feeling.Disappointed + Sensation.Feeling.Worried)/2.0:
+            elif self.feelingLevel < (Sensation.Feeling.Disappointed + Sensation.Feeling.Worried)/2.0:
                 return Sensation.Feeling.Disappointed
-            elif self.feeling < (Sensation.Feeling.Worried + Sensation.Feeling.Neutral)/2.0:
+            elif self.feelingLevel < (Sensation.Feeling.Worried + Sensation.Feeling.Neutral)/2.0:
                 return Sensation.Feeling.Worried
             
         return Sensation.Feeling.Neutral
@@ -717,6 +718,7 @@ class Robot(Thread):
                                                 name = self.getWho(),
                                                 presence = Sensation.Presence.Present,
                                                 kind=self.getKind(),
+                                                feeling=self.getFeeling(),
                                                 locations='')           # valid everywhere)
         if self.isMainRobot() or self.getInstanceType() == Sensation.InstanceType.Virtual:
             self.imageSensations, self.voiceSensations = self.getIdentitySensations(who=self.getWho())
@@ -827,10 +829,9 @@ class Robot(Thread):
              ((sensation.sensationType is Sensation.SensationType.Feeling) and (self.getInstanceType() == Sensation.InstanceType.Virtual)):
             feeling = self.getMemory().process(sensation=sensation)# process locally
             if feeling is not None:
-                self.feeling = ((Robot.FEELING_LOGGING_SHORT_AVERAGE_PERIOD-1.0)/Robot.FEELING_LOGGING_SHORT_AVERAGE_PERIOD) * self.feeling +\
-                               (1.0/Robot.FEELING_LOGGING_SHORT_AVERAGE_PERIOD) * feeling
-                newMainRobotFeeling = ((Robot.FEELING_LOGGING_SHORT_AVERAGE_PERIOD-1.0)/Robot.FEELING_LOGGING_SHORT_AVERAGE_PERIOD) * self.feeling +\
-                                       (1.0/Robot.FEELING_LOGGING_SHORT_AVERAGE_PERIOD) * feeling
+                self.feelingLevel = ((Robot.FEELING_LOGGING_SHORT_AVERAGE_PERIOD-1.0)/Robot.FEELING_LOGGING_SHORT_AVERAGE_PERIOD) * self.feeling +\
+                                    (1.0/Robot.FEELING_LOGGING_SHORT_AVERAGE_PERIOD) * feeling
+                newMainRobotFeeling = self.getFeeling()
                 if newMainRobotFeeling != self.feeling:
                     self.feeling = newMainRobotFeeling
                     # create plain feeling to all others know this does not assigned to for instance certain Item.name
@@ -1192,7 +1193,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                 tries=0
                 while self.running and not connected and tries < Robot.HOST_RECONNECT_MAX_TRIES:
                     self.log('run: TCPServer.connectToHost ' + str(hostName))
-                    connected = self.connectToHost(hostName)
+                    connected, socketClient, socketServer = self.connectToHost(hostName)
 
                     if self.running and not connected:
                         self.log('run: TCPServer.connectToHost did not succeed ' + str(hostName) + ' time.sleep(Robot.SOCKET_ERROR_WAIT_TIME)')
@@ -1247,6 +1248,8 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                              type=SOCKET_TYPE)
                 
         connected=False
+        socketClient = None
+        socketServer = None
         try:
             self.log('connectToHost: sock.connect('  + str(address) + ')')
             sock.connect(address)
@@ -1268,7 +1271,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
             time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
             socketClient.start()
             time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
-        return connected
+        return connected, socketClient, socketServer
         
 
     def stop(self):
@@ -1419,13 +1422,19 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                 tries=0
                 while not connected and tries < Robot.HOST_RECONNECT_MAX_TRIES:
                     self.log('process: interrupted self.tcpServer.connectToHost ' + str(self.getHost()))
-                    connected = self.tcpServer.connectToHost(self.getHost())
+                    connected, socketClient, socketServer = self.tcpServer.connectToHost(self.getHost())
                     if not connected:
                         self.log('process: interrupted self.tcpServer.connectToHost did not succeed ' + str(self.getHost()) + ' time.sleep(Robot.SOCKET_ERROR_WAIT_TIME)')
                         time.sleep(Robot.SOCKET_ERROR_WAIT_TIME)
                         tries=tries+1
                 if connected:
                     self.log('process: interrupted self.tcpServer.connectToHost SUCCEEDED to ' + str(self.getHost()))
+                    # transfer sensation we could not send to the new SocketClient
+                    socketClient.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation, association=association)
+                    # transfer all sensation from out Axon to the new SocketClient
+                    while(not self.getAxon().empty()):
+                        tranferDirection, sensationToMove, association = self.getAxon().get()
+                        socketClient.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensationToMove, association=association)
                 else:
                     self.log('process: interrupted self.tcpServer.connectToHost did not succeed FINAL, no more tries to ' + str(self.getHost()))
                 # we are stopped anyway, if we are lucky we have new SocketServer and SocketClient now to our host
