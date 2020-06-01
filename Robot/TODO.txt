@@ -4,6 +4,11 @@ Critical
 Develop
 -------
 
+Umplement exposure. Exposure is like VirtualRobot, but it is runs under
+Identification. When identification introduces itself, it sens Sensations also
+to Exposure, which responseses. Exposures Location is Exposure name, because
+it is basically a memory.
+
 When we run out of memory, MainRobot keeps to have Non Forgottable Sensation
 It can mean that some Subrobot does not accept Sensation?
 Increase. logging to Memory.

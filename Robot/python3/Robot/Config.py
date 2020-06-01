@@ -98,7 +98,7 @@ class Config(ConfigParser):
     PLAYBACK =          'playback'
     
     ACTIVITY_LEVEL_AVERAGE = 'activity_average_level'
-    ACTIVITY_LEVEL_AVERAGE_DEFAULT = 2.0
+    ACTIVITY_LEVEL_AVERAGE_DEFAULT = 1.0
     
 
     DEFAULT_SECTION =   'DEFAULT'
