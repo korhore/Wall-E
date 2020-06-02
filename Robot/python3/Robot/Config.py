@@ -1,6 +1,6 @@
 '''
 Created on 25.05.2019
-Edited 28.05.2020
+Edited 01.06.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -69,6 +69,7 @@ class Config(ConfigParser):
     REMOTESUBINSTANCES = "RemoteSubinstances"
     HOSTS =             "Hosts"
     IDENTITYS =         "Identitys"
+    EXPOSURES =         "Exposures"
     LOGLEVEL =          "LogLevel"
     MAXRSS =            "maxrss"    # maximum resident set size
                                     # limit is set in MB, but in Linux documentation KB
@@ -202,6 +203,11 @@ class Config(ConfigParser):
         # handle identitys
         if not os.path.exists(self.IDENTITYS):
             os.makedirs(self.IDENTITYS)
+            
+        # handle exposures
+        if not os.path.exists(self.EXPOSURES):
+            os.makedirs(self.EXPOSURES)
+            
 #         for kind, kindstr in Sensation.Kinds.items():
 #             dir = self.getIdentityDirPath(kind)
 #             if not os.path.exists(dir):
@@ -252,7 +258,7 @@ class Config(ConfigParser):
             if not os.path.exists(etc_directory):
                 print('os.makedirs ' + etc_directory)
                 os.makedirs(etc_directory)
-            #finallu create or update default config file for virtual instanceName 
+            #finally create or update default config file for virtual instanceName 
             print('Config(' + config_file_path +')')
             # TODO Here we should make onlt onle level morem because otherwise we get
             #endless loop
@@ -287,16 +293,18 @@ class Config(ConfigParser):
     def getConfigFilePath(self):
         return self.config_file_path
                     
-    def getIdentityDirPath(self, who):
-        return self.IDENTITYS +'/'+ who
+    def getIdentityDirPath(self, name):
+        return self.IDENTITYS +'/'+ name
 
                 
-    def getVirtualinstanceConfigFilePath(self, virtualinstance):
-        return virtualinstance + '/' + Config.CONFIG_FILE_PATH
+#     def getVirtualinstanceConfigFilePath(self, virtualinstance):
+#         return virtualinstance + '/' + Config.CONFIG_FILE_PATH
         
-    def getSubinstanceConfigFilePath(self, instanceName):
-        return instanceName + '/' + Config.CONFIG_FILE_PATH
+#     def getSubinstanceConfigFilePath(self, instanceName):
+#         return instanceName + '/' + Config.CONFIG_FILE_PATH
 
+    def getConfigNameFilePath(self, name):
+        return name + '/' + Config.CONFIG_FILE_PATH
                 
             
 
@@ -632,6 +640,13 @@ class Config(ConfigParser):
             print('self.set(Config.DEFAULT_SECTION,Config.VIRTUALINSTANCES, Config.EMPTY) exception ' + str(e))
 
         try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.EXPOSURES):
+                self.set(Config.DEFAULT_SECTION,Config.EXPOSURES, Config.EMPTY)
+                self.is_changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION,Config.EXPOSURES, Config.EMPTY) exception ' + str(e))
+
+        try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.ACTIVITY_LEVEL_AVERAGE):
                 self.set(Config.DEFAULT_SECTION, Config.ACTIVITY_LEVEL_AVERAGE, str(Config.ACTIVITY_LEVEL_AVERAGE_DEFAULT))
                 self.is_changes=True
@@ -780,6 +795,14 @@ class Config(ConfigParser):
             
         return self.virtualInstanceNames
     
+    def getExposures(self, section=LOCALHOST):
+        self.exposures=[]
+        exposures = self.get(section=section, option=self.EXPOSURES)
+        if exposures != None and len(exposures) > 0:
+            self.exposures = exposures.split()
+            
+        return self.exposures
+
     def getHostNames(self, section=LOCALHOST):
         self.hostNames=[]
         hostNames = self.get(section=section, option=self.HOSTS)

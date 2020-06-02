@@ -3,11 +3,49 @@ Critical
 
 Develop
 -------
+Study directory strucrure
 
-Umplement exposure. Exposure is like VirtualRobot, but it is runs under
+Some ideas. Problen is loadModule, which is hard to change.
+Base directory Robot
+Platforn files
+- Robot/android
+- Robot/linux
+- Robot/windows
+pythob3-code in one level
+Robot/python3.
+- study if this works
+Robot config files
+- Robot/etc
+Robot Identitys files
+- per directory
+-- Robot/Identitys/"name"
+data
+- Robot/data
+
+Python base classes
+Robot/Subrobot
+- subsubots like Commnication etc.
+Robot/etc
+- config tiles for those, but also
+  per config who as
+  - *name.cfg
+Robot/data
+- data file for all
+Robot/tests
+If per file type
+data -name data 1-level
+etc - Robot.etc files
+etc/InstanceName.cfg - Robot instance nale li Robot, Communication etc
+
+
+Implement exposure. Exposure is like VirtualRobot, but it is runs under
 Identification. When identification introduces itself, it sens Sensations also
 to Exposure, which responseses. Exposures Location is Exposure name, because
 it is basically a memory.
+
+Exposure in Indentity does not get Sensations. But is this right place for Exposure?
+Try same level as Virtual
+VIRTUAL and EXPOSURE Functionality is SAME. Check and remove Exposure.
 
 When we run out of memory, MainRobot keeps to have Non Forgottable Sensation
 It can mean that some Subrobot does not accept Sensation?

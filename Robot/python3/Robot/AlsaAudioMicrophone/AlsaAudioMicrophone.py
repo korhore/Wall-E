@@ -92,7 +92,7 @@ class AlsaAudioMicrophone(Robot):
 
         
     def run(self):
-        self.log(" Starting robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))      
+        self.log(" run robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))      
         
         # starting other threads/senders/capabilities
         
