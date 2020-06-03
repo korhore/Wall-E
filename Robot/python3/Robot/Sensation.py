@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 29.05.2020
+Edited on 02.06.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -16,8 +16,6 @@ import math
 from PIL import Image as PIL_Image
 import io
 import psutil
-#from builtins import True
-#import threading
 
 try:
     import cPickle as pickle
@@ -111,7 +109,7 @@ class Sensation(object):
     MemoryType = enum(Sensory='S', Working='W', LongTerm='L' )
     #MemoryType = enum(Sensory='S', LongTerm='L' )
     Kind = enum(WallE='w', Eva='e', Normal='n')
-    InstanceType = enum(Real='r', SubInstance='s', Virtual='v', Remote='e')
+    InstanceType = enum(Real='r', SubInstance='s', Virtual='v', Exposure= 'e', Remote='m')
     Mode = enum(Normal='n', StudyOwnIdentity='t',Sleeping='l',Starting='s', Stopping='p', Interrupted='i')
     
     # enum items as strings    
@@ -141,6 +139,7 @@ class Sensation(object):
     REAL="Real"
     SUBINSTANCE="SubInstance"
     VIRTUAL="Virtual"
+    EXPOSURE="Exposure"
     REMOTE="Remote"
     NORMAL="Normal"
     STUDYOWNIDENTITY="StudyOwnIdentity"
@@ -206,6 +205,7 @@ class Sensation(object):
     InstanceTypes={InstanceType.Real: REAL,
                    InstanceType.SubInstance: SUBINSTANCE,
                    InstanceType.Virtual: VIRTUAL,
+                   InstanceType.Exposure: EXPOSURE,
                    InstanceType.Remote: REMOTE}
 
     Modes={Mode.Normal: NORMAL,

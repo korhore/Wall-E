@@ -38,7 +38,28 @@ etc - Robot.etc files
 etc/InstanceName.cfg - Robot instance nale li Robot, Communication etc
 
 
-Implement exposure. Exposure is like VirtualRobot, but it is runs under
+Implement exposure.
+
+Better idea is to Memory.setMemorySensarion(feeling, ItemSensations,ImageSensations,VoiceSensations, feeling)
+whics adds randomly associations between those. Problem is still that we need IdentityRobot to get ItemSensation,
+ImageSensations, VoiceSesations and, which needs TensoflowClassification to that.
+Lets implement and start with Identity, which will handle the job. 
+
+Old idea is Exposure is VirtualRobot, but it uses MainRobots Memory
+ins it does not have any other SubRobot than Identity. Reason is that
+it will react to everyting just same way than MainRobot even it had Communication,
+but it's meaning is exposure MainRobot to Memories, identity of Exposures identity,
+what ity has looked like and what it has said. What is odd, is that it MainRobot speaks out
+what it  responses to the Virtual Robot. Well anyway, we can do this exposure at backgrond
+if we don't let any Sensation soutside Exposure Robot and don't let any Sensation to fo in
+Exposure, letting it to live in its buddle, Try this nesx. We naed one Robot type more.
+
+Should prevent Exposure to get any Sensations except Stop.
+Styudy hasSubCapability and hasCapability
+Exposure Communicates very long sequences, because it gets its responces back
+but it should revers Muscle to Sensory.
+Make test to test Exposure.
+
 Identification. When identification introduces itself, it sens Sensations also
 to Exposure, which responseses. Exposures Location is Exposure name, because
 it is basically a memory.
