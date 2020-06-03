@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 29.05.2020
+Updated on 03.06.2020
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -234,7 +234,7 @@ class Robot(Thread):
             else:
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr="init robot virtual instanceName " + instanceName + " is None")
                 
-        for instanceName in self.config.getExposures():
+        for instanceName in self.getExposures():
             robot = Robot(parent=self,
                           instanceName=instanceName,
                           instanceType=Sensation.InstanceType.Exposure,
@@ -286,16 +286,16 @@ class Robot(Thread):
                                    instanceType= Sensation.InstanceType.SubInstance,
                                    level=level)
             
-            for exposure in self.config.getExposures():
-                robot = Exposure(parent=self,
-                              memory=self.getMemory(),  # use same memory than self
-                              instanceName=exposure,
-                              instanceType=Sensation.InstanceType.Exposure,
-                              level=self.level)
-                if robot is not None:
-                    self.subInstances.append(robot)
-                else:
-                    self.log(logLevel=Robot.LogLevel.Verbose, logStr="init robot virtual exposure " + exposure + " is None")
+#             for exposure in self.config.getExposures():
+#                 robot = Exposure(parent=self,
+#                               memory=self.getMemory(),  # use same memory than self
+#                               instanceName=exposure,
+#                               instanceType=Sensation.InstanceType.Exposure,
+#                               level=self.level)
+#                 if robot is not None:
+#                     self.subInstances.append(robot)
+#                 else:
+#                     self.log(logLevel=Robot.LogLevel.Verbose, logStr="init robot virtual exposure " + exposure + " is None")
             
         elif self.getInstanceType() == Sensation.InstanceType.Virtual or\
              self.getInstanceType() == Sensation.InstanceType.Exposure:
@@ -379,6 +379,10 @@ class Robot(Thread):
     
     def getKind(self):
         return self.config.getKind()
+    
+    def getExposures(self):
+        return self.config.getExposures()
+
     
     '''
     get Feeling of MainRobot
@@ -1065,14 +1069,20 @@ class Robot(Thread):
 class Identity(Robot):
 
     # test
-    #SLEEPTIME = 10.0
+    SLEEPTIME = 1.0
     # normal
-    SLEEPTIME = 60.0
+    #SLEEPTIME = 60.0
+    # test
+    CLASSIFICATION_TIME = 10.0      # can take a long time
+    #CLASSIFICATION_TIME = 40.0      # can take a long time
 #    SLEEPTIME = 5.0
     SLEEP_BETWEEN_IMAGES = 20.0
     SLEEP_BETWEEN_VOICES = 10.0
     VOICES_PER_CONVERSATION = 4
-   
+    
+    IMAGE_FILENAME_TYPE = ".jpg"
+    VOICE_FILENAME_TYPE = ".wav"
+  
     def __init__(self,
                  parent,
                  instanceName,
@@ -1089,13 +1099,21 @@ class Identity(Robot):
                        instanceType=instanceType,
                        level=level)
         print("We are in Identity, not Robot")
+#         self.itemSensations=[]
+#         self.imageSensations=[]
+#         self.voiceSensations=[]
+        
+        self.selfItemSensation = None
+        self.selfImageSensation = None
+        self.selfVoiceSensation = None
+
         self.identitypath = self.config.getIdentityDirPath(self.getParent().getWho()) # parent's location, parent's Identity
 #         self.imageind=0
 #         self.voiceind=0
         self.sleeptime = Identity.SLEEPTIME
         
 
-#         for exposure in self.getParent().config.getExposures():
+#         for exposure in self.getParent().getExposures():
 #             robot = Exposure(parent=self,
 #                           instanceName=exposure,
 #                           instanceType=Sensation.InstanceType.Virtual,
@@ -1104,6 +1122,139 @@ class Identity(Robot):
 #                 self.subInstances.append(robot)
 #             else:
 #                 self.log(logLevel=Robot.LogLevel.Verbose, logStr="init robot virtual exposure " + exposure + " is None")
+
+    '''
+    get identity sensations 
+    '''
+
+    def getIdentitySensations(self, who, exposures, feeling):
+        from TensorFlowClassification.TensorFlowClassification import TensorFlowClassification
+        
+        tensorFlowClassification = TensorFlowClassification(parent=self,
+                                                            instanceName='TensorFlowClassification',
+                                                            instanceType= Sensation.InstanceType.SubInstance,
+                                                            level=self.level)
+        tensorFlowClassification.start()
+        
+        names = exposures
+        names.append(who)
+        
+        for name in names:
+            imageSensations=[]
+            
+            identityItemSensations=[]
+            identityImageSensations=[]
+            identityVoiceSensations=[]
+        
+            identitypath = self.config.getIdentityDirPath(name)
+            self.log('{} Identitypath is {}'.format(name, identitypath))
+            for dirName, subdirList, fileList in os.walk(identitypath):
+                self.log('Found directory: %s' % dirName)      
+#                image_file_names=[]
+#                voice_file_names=[]4
+                for fname in fileList:
+                    self.log('\t%s' % fname)
+                    # We must copy original files to /tmp
+                    # because files in Sensation are temporary and
+                    # will be deleted in some point
+                    
+                    if fname.endswith(Identity.IMAGE_FILENAME_TYPE):# or\
+                        # png dows not work yet
+                        #fname.endswith(".png"):
+                        #image_file_names.append(fname)
+                        file_path=os.path.join(dirName,fname)
+                        sensation_filepath = os.path.join('/tmp/',fname)
+                        shutil.copyfile(file_path, sensation_filepath)
+                        image = PIL_Image.open(sensation_filepath)
+                        image.load()
+                        imageSensation = self.createSensation( sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,\
+                                                               image=image)
+                        imageSensations.append(imageSensation)
+                        if fname == who + Identity.IMAGE_FILENAME_TYPE:
+                           self.selfImageSensation = imageSensation
+                        
+                        
+                    elif fname.endswith(Identity.VOICE_FILENAME_TYPE):
+ #                       voice_file_names.append(fname)
+                        file_path=os.path.join(dirName,fname)
+                        sensation_filepath = os.path.join('/tmp/',fname)
+                        shutil.copyfile(file_path, sensation_filepath)
+                        with open(sensation_filepath, 'rb') as f:
+                            data = f.read()
+                                    
+                            # length must be AudioSettings.AUDIO_PERIOD_SIZE
+                            remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
+                            if remainder is not 0:
+                                self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) + " correcting " )
+                                len_zerobytes = AudioSettings.AUDIO_PERIOD_SIZE - remainder
+                                ba = bytearray(data)
+                                for i in range(len_zerobytes):
+                                    ba.append(0)
+                                data = bytes(ba)
+                                remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
+                                if remainder is not 0:
+                                    self.log("Did not succeed to fix!")
+                                    self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) )
+                            voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.LongTerm, robotType = Sensation.RobotType.Sense, data=data)
+                            identityVoiceSensations.append(voiceSensation)
+                            
+                            if fname == who + Identity.VOICE_FILENAME_TYPE:
+                               self.selfVoiceSensation = voiceSensation
+                           
+            # now we need help of TensrlFlowClassification to get subImages and Item.names it can detect
+            isFirstSleep = True
+            self.log('{} Identity imageSensations {}'.format(name, len(imageSensations)))
+            for imageSensation in imageSensations:
+                self.log('{} Identity tensorFlowClassification {}'.format(name, imageSensation.toDebugStr()))
+                tensorFlowClassification.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
+                # give tensorFlowClassification                
+                if isFirstSleep:
+                    waitTime =  2*Identity.CLASSIFICATION_TIME       # give Robot some time to process
+                    isFirstSleep=False
+                else:
+                    waitTime =  Identity.CLASSIFICATION_TIME       # give Robot some time to process
+                self.log('{} Identity time.sleep({})'.format(name, waitTime))
+                time.sleep(waitTime)
+                   
+                self.log('{} Identity slept time.sleep({}) self.getAxon().empty() {}'.format(name, waitTime, self.getAxon().empty()))
+                while not self.getAxon().empty():
+                    transferDirection, sensation, association = self.getAxon().get()
+                    self.log('{} Identity get from tensorFlowClassification {}'.format(name, sensation.toDebugStr()))
+                    if sensation.getSensationType() == Sensation.SensationType.Image:
+                        identityImageSensations.append(sensation)
+                    elif sensation.getSensationType() == Sensation.SensationType.Item and\
+                         sensation.getPresence() == Sensation.Presence.Entering:
+                        identityItemSensations.append(sensation)
+                            
+            for imageSensation in imageSensations:
+                imageSensation.detach(robot=self)
+                imageSensation.delete()
+                del imageSensation
+       
+            # now we have 
+            #identityItemSensations
+            #identityImageSensations
+            #identityVoiceSensations
+            # assign them with feeling given.
+                
+            self.log('{} Identity identityItemSensations {}'.format(name, len(identityItemSensations)))
+            self.log('{} Identity identityImageSensations {}'.format(name, len(identityImageSensations)))
+            self.log('{} Identity identityVoiceSensations {}'.format(name, len(identityVoiceSensations)))
+            for identityItemSensation in identityItemSensations:
+                self.getMemory().setMemoryType(sensation=identityItemSensation, memoryType=Sensation.MemoryType.LongTerm)
+                for identityImageSensation in identityImageSensations:
+                    self.getMemory().setMemoryType(sensation=identityImageSensation, memoryType=Sensation.MemoryType.LongTerm)
+                    identityImageSensation.associate(sensation=identityItemSensation, 
+                                                     feeling = feeling)
+                for identityVoiceSensation in identityVoiceSensations:
+                    identityVoiceSensation.associate(sensation=identityItemSensation, 
+                                                     feeling = feeling)
+            for identityImageSensation in identityImageSensations:
+                for identityVoiceSensation in identityVoiceSensations:
+                        identityVoiceSensation.associate(sensation=identityImageSensation, 
+                                                         feeling = feeling)
+
+        tensorFlowClassification.stop()
 
     '''
     Always get locations from parent
@@ -1120,13 +1271,22 @@ class Identity(Robot):
                    
         # wait until started so all others can start first        
         time.sleep(self.sleeptime)
+        # prepare Memory ance
+        self.getIdentitySensations(who=self.getParent().getWho(), exposures=self.getParent().getExposures(), feeling = Sensation.Feeling.InLove)
         
         self.mode = Sensation.Mode.Normal
-        Robot.run(self) #normal Robot run
+        
+        
+        ##Robot.run(self) #normal Robot run
+        
+        self.running=False
+        self.mode = Sensation.Mode.Stopping
+
 
     def stopRunning(self):
         self.running = False   
-         
+        self.mode = Sensation.Mode.Stopping
+        
                  
     '''
     tell your identity
@@ -1161,7 +1321,7 @@ class Identity(Robot):
     We are Sense type Robot
     '''        
     def canSense(self):
-        return True 
+        return False 
     
     '''
     sense
