@@ -234,15 +234,6 @@ class Robot(Thread):
             else:
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr="init robot virtual instanceName " + instanceName + " is None")
                 
-        for instanceName in self.getExposures():
-            robot = Robot(parent=self,
-                          instanceName=instanceName,
-                          instanceType=Sensation.InstanceType.Exposure,
-                          level=self.level)
-            if robot is not None:
-                self.subInstances.append(robot)
-            else:
-                self.log(logLevel=Robot.LogLevel.Verbose, logStr="init robot exposure instanceName " + instanceName + " is None")
         # in main robot, set up Long_tem Memory and set up TCPServer
         if self.level == 1:                        
             Robot.mainRobotInstance = self
@@ -286,19 +277,7 @@ class Robot(Thread):
                                    instanceType= Sensation.InstanceType.SubInstance,
                                    level=level)
             
-#             for exposure in self.config.getExposures():
-#                 robot = Exposure(parent=self,
-#                               memory=self.getMemory(),  # use same memory than self
-#                               instanceName=exposure,
-#                               instanceType=Sensation.InstanceType.Exposure,
-#                               level=self.level)
-#                 if robot is not None:
-#                     self.subInstances.append(robot)
-#                 else:
-#                     self.log(logLevel=Robot.LogLevel.Verbose, logStr="init robot virtual exposure " + exposure + " is None")
-            
-        elif self.getInstanceType() == Sensation.InstanceType.Virtual or\
-             self.getInstanceType() == Sensation.InstanceType.Exposure:
+        elif self.getInstanceType() == Sensation.InstanceType.Virtual:#
             # also virtual instance has feeling and activity
             self.feeling = Sensation.Feeling.Neutral
             self.feelingLevel = float(Sensation.Feeling.Neutral)
@@ -513,11 +492,9 @@ class Robot(Thread):
     def getSubCapabilityInstances(self, robotType, memoryType, sensationType, locations):
         robots=[]
         for robot in self.getSubInstances():
-            # don't give capabilities from Exposure, so nothing is selivered down to it
-            if robot.getInstanceType() != Sensation.InstanceType.Exposure and\
-               (robot.hasCapability(robotType, memoryType, sensationType, locations) or \
-                robot.hasSubCapability(robotType, memoryType, sensationType, locations) or \
-                robot.getInstanceType() == Sensation.InstanceType.Remote):       # append all Remotes so it gets same Memory
+            if robot.hasCapability(robotType, memoryType, sensationType, locations) or \
+               robot.hasSubCapability(robotType, memoryType, sensationType, locations) or \
+               robot.getInstanceType() == Sensation.InstanceType.Remote:       # append all Remotes so it gets same Memory
                 robots.append(robot)
         return robots
 
@@ -528,8 +505,7 @@ class Robot(Thread):
         
         # study own identity
         # starting point of robot is always to study what it knows himself
-        if self.isMainRobot() or self.getInstanceType() == Sensation.InstanceType.Virtual or\
-           self.getInstanceType() == Sensation.InstanceType.Exposure:
+        if self.isMainRobot() or self.getInstanceType() == Sensation.InstanceType.Virtual:# or\
             self.studyOwnIdentity()
             #self.getOwnIdentity()
         # starting other threads/senders/capabilities
@@ -541,8 +517,7 @@ class Robot(Thread):
             # main robot starts tcpServer first so clients gets association
             self.tcpServer.start()
             self.identity.start()
-        elif self.getInstanceType() == Sensation.InstanceType.Virtual or\
-             self.getInstanceType() == Sensation.InstanceType.Exposure:
+        elif self.getInstanceType() == Sensation.InstanceType.Virtual:
             self.identity.start()
             
         if self.level == 1:
@@ -589,9 +564,6 @@ class Robot(Thread):
         elif self.getInstanceType() == Sensation.InstanceType.Virtual:
             self.log("VirtualRobot Stopping self.identity " + self.identity.getWho())      
             self.identity.stop()
-        elif self.getInstanceType() == Sensation.InstanceType.Exposure:
-            self.log("ExposureRobot Stopping self.identity " + self.identity.getWho())      
-            self.identity.stop()
 
         someRunning = False
         for robot in self.subInstances:
@@ -628,13 +600,7 @@ class Robot(Thread):
                 self.log("VirtualRobot waiting self.identity Stopping " + self.identity.getWho())
                 time.sleep(Robot.STOPWAIT)
                 i = i+1
-        elif self.getInstanceType() == Sensation.InstanceType.Exposure:
-            i=0
-            while i < Robot.STOPWAIT and self.identity.isAlive():
-                self.log("ExposureRobot waiting self.identity Stopping " + self.identity.getWho())
-                time.sleep(Robot.STOPWAIT)
-                i = i+1
-            # TODO we have commo0n data directory, but we should have one per Memory
+            # TODO we have common data directory, but we should have one per Memory
             # Now we can't save virtual Robots memory
 
         self.log("run ALL SHUT DOWN")      
@@ -762,8 +728,7 @@ class Robot(Thread):
                                                 kind=self.getKind(),
                                                 feeling=self.getFeeling(),
                                                 locations='')           # valid everywhere)
-        if self.isMainRobot() or self.getInstanceType() == Sensation.InstanceType.Virtual or\
-           self.getInstanceType() == Sensation.InstanceType.Exposure:
+        if self.isMainRobot() or self.getInstanceType() == Sensation.InstanceType.Virtual:
             self.imageSensations, self.voiceSensations = self.getIdentitySensations(who=self.getWho())
             if len(self.imageSensations) > 0:
                 self.selfImage = self.imageSensations[0].getImage()
@@ -869,8 +834,7 @@ class Robot(Thread):
 
          # MainRobot and Virtual robot has Memory
         if ((sensation.sensationType is Sensation.SensationType.Feeling) and (self.isMainRobot())) or\
-             ((sensation.sensationType is Sensation.SensationType.Feeling) and (self.getInstanceType() == Sensation.InstanceType.Virtual)) or\
-             ((sensation.sensationType is Sensation.SensationType.Feeling) and (self.getInstanceType() == Sensation.InstanceType.Exposure)):
+             ((sensation.sensationType is Sensation.SensationType.Feeling) and (self.getInstanceType() == Sensation.InstanceType.Virtual)):
             feeling = self.getMemory().process(sensation=sensation)# process locally
             if feeling is not None:
                 self.feelingLevel = ((Robot.FEELING_LOGGING_SHORT_AVERAGE_PERIOD-1.0)/Robot.FEELING_LOGGING_SHORT_AVERAGE_PERIOD) * self.feeling +\
@@ -902,8 +866,8 @@ class Robot(Thread):
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: capabilities: ' + self.getCapabilities().toDebugString('saved capabilities'))
         # sensation going up
         elif transferDirection == Sensation.TransferDirection.Up:
-            # if sensation is going up  and we have a parent but Exposure Robot lives is it's own bubble.
-            if self.getParent() is None or self.getInstanceType() == Sensation.InstanceType.Exposure:
+            # if sensation is going up  and we have a parent
+            if self.getParent() is None:
                 # check if we have subRobot that has capability to process this sensation
                 needToDetach=True
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.getSubCapabilityInstances')      
@@ -1069,7 +1033,7 @@ class Robot(Thread):
 class Identity(Robot):
 
     # test
-    SLEEPTIME = 1.0
+    SLEEPTIME = 10.0
     # normal
     #SLEEPTIME = 60.0
     # test
@@ -1112,16 +1076,6 @@ class Identity(Robot):
 #         self.voiceind=0
         self.sleeptime = Identity.SLEEPTIME
         
-
-#         for exposure in self.getParent().getExposures():
-#             robot = Exposure(parent=self,
-#                           instanceName=exposure,
-#                           instanceType=Sensation.InstanceType.Virtual,
-#                           level=self.level)
-#             if robot is not None:
-#                 self.subInstances.append(robot)
-#             else:
-#                 self.log(logLevel=Robot.LogLevel.Verbose, logStr="init robot virtual exposure " + exposure + " is None")
 
     '''
     get identity sensations 
@@ -1335,152 +1289,6 @@ class Identity(Robot):
         else:
             self.running = False
             
-# Exposure Robot 
-# This produces Sensations of its own identity
-# and acts like Virtual Robot
-
-class Exposure(Robot):
-
-    # test
-    #SLEEPTIME = 10.0
-    # normal
-    SLEEPTIME = 9.0
-    WAITTIME  = 15.0
-    #    SLEEPTIME = 5.0
-    SLEEP_BETWEEN_IMAGES = 20.0
-    SLEEP_BETWEEN_VOICES = 10.0
-    VOICES_PER_CONVERSATION = 4
-   
-    def __init__(self,
-                 parent,
-                 instanceName,
-                 level,
-                 memory = None,
-                 instanceType = Sensation.InstanceType.SubInstance,
-                 maxRss = Config.MAXRSS_DEFAULT,
-                 minAvailMem = Config.MINAVAILMEM_DEFAULT):
-        level=level+1   # don' loop Identitys
-        Robot.__init__(self,
-                       memory=memory,
-                       parent=parent,
-                       instanceName=instanceName,
-                       instanceType=instanceType,
-                       level=level)
-        print("We are in Identity, not Robot")
-        self.identitypath = self.config.getIdentityDirPath(self.getParent().getWho()) # parent's location, parent's Identity
-#         self.imageind=0
-#         self.voiceind=0
-        self.sleeptime = Exposure.SLEEPTIME
-        
-
-    '''
-    Always get locations from parent
-    '''        
-    def getLocations(self):
-        return self.getParent().getLocations(self)
-        
-        
-
-    def run(self):
-        self.log(" run Exposure who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))      
-        
-        # starting other threads/senders/capabilities
-        
-        self.running=True
-                
-        # live until stopped
-        self.mode = Sensation.Mode.Normal
-        
-        # wait until started so all others can start first        
-        time.sleep(self.sleeptime)
-        self.nextSenseTime = time.time() + self.sleeptime
-
-        self.studyOwnIdentity()
-        self.mode = Sensation.Mode.Normal
-        
-        while self.running:
-            # as a leaf sensor robot default processing for sensation we have got
-            # in practice we can get stop sensation
-            if not self.getAxon().empty():
-                transferDirection, sensation, association = self.getAxon().get()
-                self.log(logLevel=Robot.LogLevel.Normal, logStr="Exposure got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
-#                 if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemoryType() == Sensation.MemoryType.Working and\
-#                    sensation.getRobotType() == Sensation.RobotType.Sense: 
-#                     self.tracePresents(sensation)
-#                 else:
-                self.process(transferDirection=transferDirection, sensation=sensation, association=association)
-                sensation.detach(robot=self)
-            else:
-                self.sense()
-                    
-
-        self.log("Stopping Exposure")
-        self.mode = Sensation.Mode.Stopping
-       
-        self.log("run ALL SHUT DOWN")
-
-    def stopRunning(self):
-        self.running = False   
-         
-                 
-    '''
-    tell your identity
-    '''   
-    def tellOwnIdentity(self):
-        
-        selfSensation = self.createSensation( associations=[], sensation=self.selfSensation, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
-                                              locations='') # valid everywhere
-        self.log('tellOwnIdentity: selfSensation self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=' + selfSensation.toDebugStr())      
-        #self.getParent().getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=selfSensation, association=None) # or self.process
-        self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=selfSensation, association=None) # or self.process
-       
-        imageind = random.randint(0, len(self.imageSensations)-1)
-        imageSensation = self.createSensation( associations=[], sensation=self.imageSensations[imageind], memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
-                                               locations='') # valid everywhere
-        #imageSensation.setMemoryType(memoryType = Sensation.MemoryType.Sensory)
-        self.log('tellOwnIdentity: imageind  ' + str(imageind) + ' self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=' + imageSensation.toDebugStr())      
-#        self.getParent().getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None) # or self.process
-        self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None) # or self.process
-#         self.imageind=self.imageind+1
-#         if self.imageind >= len(self.imageSensations):
-#             self.imageind = 0
-        imageSensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
-
-        for i in range(Identity.VOICES_PER_CONVERSATION):          
-            time.sleep(Identity.SLEEP_BETWEEN_VOICES)
-            
-            voiceind = random.randint(0, len(self.voiceSensations)-1)
-            voiceSensation = self.createSensation(associations=[], sensation=self.voiceSensations[voiceind], memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
-                                                  locations='') # valid everywhere
-            #self.getParent().getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation, association=None) # or self.process
-            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation, association=None) # or self.process
-            #self.log("tellOwnIdentity: " + str(voiceind) + " self.getParent().getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=" + voiceSensation.toDebugStr())      
-            self.log("tellOwnIdentity: " + str(voiceind) + " self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=" + voiceSensation.toDebugStr())      
-            #self.getParent().getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation, association=None) # or self.process
-            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation, association=None) # or self.process
-            voiceSensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
-
-    '''
-    We can sense
-    We are Sense type Robot
-    '''        
-    def canSense(self):
-        return True 
-    
-    '''
-    sense
-    '''
-    
-    def sense(self):
-        if len(self.imageSensations) > 0 and len(self.voiceSensations) > 0:
-            if time.time() < self.nextSenseTime:
-                time.sleep(Exposure.WAITTIME)
-            else:
-                self.tellOwnIdentity()
-                self.sleeptime = 2*self.sleeptime
-                self.nextSenseTime = time.time() + self.sleeptime 
-        else:
-            self.running = False
             
 
 '''
