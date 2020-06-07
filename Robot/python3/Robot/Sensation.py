@@ -324,7 +324,9 @@ class Sensation(object):
     
         ret_s = Sensation.bytesToStr(b)
         #print('bytesToList ret_s ' +str(ret_s))
-        return ret_s.split(LIST_SEPARATOR)
+        if len(ret_s) > 0:
+            return ret_s.split(LIST_SEPARATOR)
+        return []
     
     def strListToFloatList(l):
         ret_s = []
@@ -731,8 +733,8 @@ class Sensation(object):
                                time=association.time,
                                feeling=association.feeling)
            
-            if receivedFrom == None:
-                receivedFrom=[]
+#             if receivedFrom == None:
+#                 receivedFrom=[]
             self.receivedFrom=[]
             self.addReceivedFrom(receivedFrom)
 
@@ -1500,8 +1502,8 @@ class Sensation(object):
                len(association.getSensation().getData()) not in ignoredVoiceLens:
                 associations.append(association)
         return associations
-    def setReceivedFrom(self, receivedFrom):
-        self.receivedFrom = receivedFrom
+#     def setReceivedFrom(self, receivedFrom):
+#         self.receivedFrom = receivedFrom
         
     '''
     Add single receivedFrom

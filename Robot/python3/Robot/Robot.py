@@ -1491,7 +1491,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         self.socketClients.append(socketClient)
         return socketClient
 
-class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
 
     def __init__(self,
                  memory,

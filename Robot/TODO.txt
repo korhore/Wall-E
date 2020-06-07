@@ -4,6 +4,11 @@ When other host stops to ansver, we will get huge number
 father:1:Normal:Ubuntu: Sensations cache Not Forgottable robot SocketClient: ('192.168.117.247', 2000) Sensation Thu Jun  4 10:29:44 2020:1591227466.5333443:1591255771.647056:Working:Sense:Voice:::Neutral:Normal
 Meaning that we can't forget these.
 
+Seems that Sensations make at least one trp back to origin host from other host.
+Is the reason ReceivedFron ''.'real receivedFrom'
+
+OPPS clear configuration!
+
 Develop
 -------
 Study directory strucrure
@@ -40,10 +45,17 @@ data -name data 1-level
 etc - Robot.etc files
 etc/InstanceName.cfg - Robot instance nale li Robot, Communication etc
 
+Some Basics
+- SensationType.Feeling is assosiate, so Robot.process(assosiation... and
+  Axon.put/get(Associsation... are not needed
+- MainRobot has selfSensagtions, so SensaTionType.Feeling should aleays have firstSensation.
 
 Implement exposure.
 
-Ipmplementt exposure with base identity and all exposures per each with a fealing.
+Separate (again) identiyu and exposures-
+Make exposure a Sensation, so we can reconfigure Robot in live-
+
+Implement exposure with base identity and all exposures per each with a fealing.
 
 Better idea is to Memory.setMemorySensarion(feeling, ItemSensations,ImageSensations,VoiceSensations, feeling)
 whics adds randomly associations between those. Problem is still that we need IdentityRobot to get ItemSensation,

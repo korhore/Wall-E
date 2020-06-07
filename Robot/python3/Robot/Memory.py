@@ -354,7 +354,7 @@ class Memory(object):
                    Memory.getAvailableMemory() < self.getMinAvailMem()):
                 if self.sensationMemory[i].isForgettable():
                     if self.sensationMemory[i].getMemorability() < self.min_cache_memorability:
-                        self.log(logStr='delete from sensation cache {}'.format(self.sensationMemory[i].toDebugStr()))
+                        self.log(logStr='delete from sensation cache {}'.format(self.sensationMemory[i].toDebugStr()), logLevel=Memory.MemoryLogLevel.Normal)
                         self.sensationMemory[i].delete()
                         del self.sensationMemory[i]
                     else:
