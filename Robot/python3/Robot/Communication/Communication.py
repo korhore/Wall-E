@@ -105,7 +105,7 @@ class Communication(Robot):
                                 # always say something, that we have not yet said
         self.usedVoiceLens = [] # Voices we have used in this conversation 
  
-    def process(self, transferDirection, sensation, association=None):
+    def process(self, transferDirection, sensation):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         # don't communicate with history Sensation Items, we are communicating Item.name just seen.
         #self.log(logLevel=Robot.LogLevel.Normal, logStr="process: systemTime.time() " + str(systemTime.time()) + ' -  sensation.getTime() ' + str(sensation.getTime()) + ' < Communication.COMMUNICATION_INTERVAL ' + str(Communication.COMMUNICATION_INTERVAL))
@@ -160,12 +160,12 @@ class Communication(Robot):
                         if self.mostImportantItemSensation.getMemoryType() != Sensation.MemoryType.LongTerm:
                             self.getMemory().setMemoryType(sensation=self.mostImportantItemSensation, memoryType=Sensation.MemoryType.LongTerm)
                             # publish update to other sites
-                            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.mostImportantItemSensation, association=None)
+                            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.mostImportantItemSensation)
                     if self.mostImportantVoiceSensation is not None:
                         if self.mostImportantVoiceSensation.getMemoryType() != Sensation.MemoryType.LongTerm:
                             self.getMemory().setMemoryType(sensation=self.mostImportantItemSensation, memoryType=Sensation.MemoryType.LongTerm)
                             # publish update to other sites
-                            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.mostImportantVoiceSensation, association=None)
+                            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.mostImportantVoiceSensation)
                     #  mark also good feeling to original voice we said
 #                     if self.mostImportantVoiceAssociation is not None:
 #                         self.mostImportantVoiceAssociation.changeFeeling(positive=True) #last voice was a good one because we got a response
@@ -173,7 +173,7 @@ class Communication(Robot):
                         feelingSensation = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                           firstAssociateSensation=self.mostImportantItemSensation, otherAssociateSensation=self.mostImportantVoiceSensation,
                                                           positiveFeeling=True, locations='')#self.getLocations()) # valid in this location, can be chosen other way
-                        self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation, association=None)
+                        self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
                     
                     if len(self.getMemory().presentItemSensations) > 0:          
                         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' got voice and tries to speak with presents ones' + self.getMemory().presenceToStr())
@@ -250,11 +250,11 @@ class Communication(Robot):
 
         if onStart and len(self.getMemory().getRobot().voiceSensations) > 0:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: onStart')
-            # use randown own voice instead of self.voiceind
+            # use random own voice instead of self.voiceind
             voiceind = random.randint(0, len(self.getMemory().getRobot().voiceSensations)-1)
             self.spokedVoiceSensation = self.createSensation( associations=[], sensation=self.getMemory().getRobot().voiceSensations[voiceind],
                                                               memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense, locations=self.getLocations())
-            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation, association=None) # or self.process
+            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation) # or self.process
             self.log("speak: Starting with presenting Robot voiceind={} self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation={}".format(str(voiceind), self.spokedVoiceSensation.toDebugStr()))
             self.usedVoices.append(self.spokedVoiceSensation)
             self.usedVoiceLens.append(len(self.spokedVoiceSensation.getData()))                
@@ -319,7 +319,7 @@ class Communication(Robot):
             self.usedVoices.append(self.mostImportantVoiceSensation)   
             self.usedVoiceLens.append(len(self.mostImportantVoiceSensation.getData()))               
             # speak                 
-            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation, association=None)
+            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation)
             # wait response
             if self.timer is not None:
                 self.timer.cancel() # cancel previous one
@@ -349,7 +349,7 @@ class Communication(Robot):
                                                     firstAssociateSensation=self.mostImportantItemSensation, otherAssociateSensation=self.mostImportantVoiceSensation,
                                                     negativeFeeling=True, locations='')#self.getLocations()) # valid in this location, can be chosen also other way
             self.log(logLevel=Robot.LogLevel.Normal, logStr="stopWaitingResponse: self.getParent().getAxon().put do")
-            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation, association=None)
+            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
             self.log(logLevel=Robot.LogLevel.Normal, logStr="stopWaitingResponse: self.getParent().getAxon().put done")
         
         self.endConversation()

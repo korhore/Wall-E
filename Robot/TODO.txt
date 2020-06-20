@@ -13,7 +13,7 @@ Develop
 -------
 Study directory strucrure
 
-Some ideas. Problen is loadModule, which is hard to change.
+Some ideas. Problem is loadModule, which is hard to change.
 Base directory Robot
 Platforn files
 - Robot/android
@@ -46,7 +46,7 @@ etc - Robot.etc files
 etc/InstanceName.cfg - Robot instance nale li Robot, Communication etc
 
 Some Basics
-- SensationType.Feeling is assosiate, so Robot.process(assosiation... and
+- SensationType.Feeling is assosiate, so Robot.process(association... and
   Axon.put/get(Associsation... are not needed
 - MainRobot has selfSensagtions, so SensaTionType.Feeling should aleays have firstSensation.
 

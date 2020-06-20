@@ -165,7 +165,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  name=CommunicationTestCase.NAME,
                                                  score=CommunicationTestCase.SCORE_1,
                                                  presence=Sensation.Presence.Entering)
-        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation, association=None)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
         # We get Voice, if Communication can respond but it cant
         self.expect(name='Entering, Too old response', isEmpty=True, isSpokenVoice=False, isHeardVoice=False, isFeeling=False)        # Not sure do we always get a voice
         self.assertEqual(len(self.communication.getMemory().presentItemSensations), 1, 'len(self.communication.getMemory().presentItemSensations should be 1')
@@ -199,7 +199,7 @@ class CommunicationTestCase(unittest.TestCase):
         #self.assertEqual(len(self.communication.getMemory().presentItemSensations[Wall_E_item_sensation.getName()].getAssociations()), 1)
         
         # process
-        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation, association=None)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
         # now we should get Voice, Robot is presenting itself
         self.expect(name='Entering, response', isEmpty=False, isSpokenVoice=True, isHeardVoice=False, isFeeling=False)
         
@@ -217,7 +217,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.assertEqual(len(self.communication.getMemory().presentItemSensations), 1, 'len(self.communication.getMemory().presentItemSensations should be 1')
 
         # process       
-        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation, association=None)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
         self.assertEqual(len(self.communication.getMemory().presentItemSensations), 1, 'len(self.communication.getMemory().presentItemSensations should be 1')
         # TODO is this so?
         self.expect(name='Present, response', isEmpty=False, isSpokenVoice=True, isHeardVoice=False, isFeeling=False)
@@ -236,7 +236,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.assertEqual(len(self.communication.getMemory().presentItemSensations), 1, 'len(self.communication.getMemory().presentItemSensations should be 1')
 
         #process       
-        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation, association=None)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
         self.assertEqual(len(self.communication.getMemory().presentItemSensations), 1, 'len(self.communication.getMemory().presentItemSensations should be 1')
         # TODO is this so?
         self.expect(name='Present again, used response', isEmpty=True, isSpokenVoice=False, isHeardVoice=False, isFeeling=False)
@@ -292,7 +292,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.assertEqual(len(self.communication.getMemory().presentItemSensations), 1, 'len(self.communication.getMemory().presentItemSensations after Entering Item Sensation should be 1')
 
         #process                      
-        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation, association=None)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
         #self.assertEqual((self.getAxon().empty()), False,  'Axon should not be empty, when entering')
         self.expect(name='Present Name 2, Conversation continues', isEmpty=False, isSpokenVoice=True, isHeardVoice=False, isFeeling=False)
         
@@ -328,7 +328,7 @@ class CommunicationTestCase(unittest.TestCase):
         # Now we should have 1 item in self.getMemory().presentItemSensations (can be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.communication.getMemory().presentItemSensations), 2, 'len(self.communication.getMemory().presentItemSensations after Entering Item NAME2 Sensation should NAME2 be 2')
 
-        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation, association=None)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
         self.expect(name='Entering Name 2, change in presentation',  isEmpty=False, isSpokenVoice=True, isHeardVoice=False, isFeeling=False)
         
         print('\n NAME2 current Present')
@@ -342,7 +342,7 @@ class CommunicationTestCase(unittest.TestCase):
         #simulate TensorflowClassification send presence item to MainBobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
        
-        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation, association=None)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
         self.assertEqual(len(self.communication.getMemory().presentItemSensations), 2, 'len(self.communication.getMemory().presentItemSensations should be 2')
         self.expect(name='Present Name 2, change in presentation',  isEmpty=False, isSpokenVoice=True, isHeardVoice=False, isFeeling=False)
 
@@ -357,7 +357,7 @@ class CommunicationTestCase(unittest.TestCase):
         #simulate TensorflowClassification send presence item to MainBobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
        
-        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation, association=None)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
         self.assertEqual(len(self.communication.getMemory().presentItemSensations), 2, 'len(self.communication.getMemory().presentItemSensations should be 2')
         self.expect(name='Present NAME2 againbasic change in presentation', isEmpty=False, isSpokenVoice=True, isHeardVoice=False, isFeeling=False)
         
@@ -373,7 +373,7 @@ class CommunicationTestCase(unittest.TestCase):
         #simulate TensorflowClassification send presence item to MainBobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
 
-        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation, association=None)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
         self.assertEqual(len(self.communication.getMemory().presentItemSensations), 1, 'len(self.communication.getMemory().presentItemSensations should be 1')
         self.expect(name='Absent NAME2', isEmpty=True, isSpokenVoice=False, isHeardVoice=False, isFeeling=False)
     
@@ -387,7 +387,7 @@ class CommunicationTestCase(unittest.TestCase):
         #simulate TensorflowClassification send presence item to MainBobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
        
-        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation, association=None)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
         self.assertEqual(len(self.communication.getMemory().presentItemSensations), 0, 'len(self.communication.getMemory().presentItemSensations should be 0')
         self.expect(name='Absent NAME', isEmpty=True, isSpokenVoice=False, isHeardVoice=False, isFeeling=False)
         
@@ -624,7 +624,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.assertEqual(len(self.communication.getMemory().presentItemSensations), 1, 'len(self.communication.getMemory().presentItemSensations should be 1')
 
         #Item is entering, process
-        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation, association=None)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
         # should get just Voice as introducing Robot
         self.expect(name='introducing self', isEmpty=False, isSpokenVoice=True, isHeardVoice=False, isFeeling=False)
 
@@ -657,7 +657,7 @@ class CommunicationTestCase(unittest.TestCase):
         
         self.assertEqual(len(self.communication.getMemory().presentItemSensations), 1, 'len(self.communication.getMemory().presentItemSensations should be 1')
         # process
-        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_voice_response_sensation, association=None)
+        self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_voice_response_sensation)
 
         # should get Voice and a Feeling between Voice and Item
         self.expect(name='response', isEmpty=False, isSpokenVoice=True, isHeardVoice=False,  isFeeling=True, isPositiveFeeling=True)
@@ -698,7 +698,7 @@ class CommunicationTestCase(unittest.TestCase):
             isHeardVoiceStillExpected = isHeardVoice
             isFeelingStillExpected = isFeeling
             while(not self.getAxon().empty()):
-                tranferDirection, sensation, association = self.getAxon().get()
+                tranferDirection, sensation = self.getAxon().get()
                 if sensation.getSensationType() == Sensation.SensationType.Voice:
                     if isSpokenVoiceStillExpected:
                         if sensation.getRobotType() == Sensation.RobotType.Muscle:
@@ -744,7 +744,7 @@ class CommunicationTestCase(unittest.TestCase):
             isHeardVoiceStillExpected = isHeardVoice
             isFeelingStillExpected = isFeeling
             while(not self.getAxon().empty()):
-                tranferDirection, sensation, association = self.getAxon().get()
+                tranferDirection, sensation = self.getAxon().get()
                 if sensation.getSensationType() == Sensation.SensationType.Voice:
                     if isSpokenVoiceStillExpected:
                         if sensation.getRobotType() == Sensation.RobotType.Muscle:

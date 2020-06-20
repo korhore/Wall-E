@@ -75,10 +75,13 @@ class AlsaAudioMicrophonePlayback(Robot):
         self.running=True
         self.alsaAudioPlayback.running=True
         self.alsaAudioMicrophone.running=True
+
         self.nextSenseTime = None
                 
         # live until stopped
         self.mode = Sensation.Mode.Normal
+        self.alsaAudioPlayback.mode = Sensation.Mode.Normal
+        self.alsaAudioMicrophone.mode = Sensation.Mode.Normal
 #         voice_data=None
 #         voice_l=0
         while self.running:
@@ -88,28 +91,28 @@ class AlsaAudioMicrophonePlayback(Robot):
                 # interrupt voice and put it to parent for processing
                 self.alsaAudioMicrophone.putVoiceToParent()
 
-                transferDirection, sensation, association = self.getAxon().get()
+                transferDirection, sensation = self.getAxon().get()
                 self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())  
                 if transferDirection == Sensation.TransferDirection.Up:
                     self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation))')      
-                    self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation, association=association)
+                    self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)
                 else:
                     # stop
                     if sensation.getSensationType() == Sensation.SensationType.Stop:
-                        #self.alsaAudioMicrophone.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation, association=association)
-                        self.alsaAudioMicrophone.process(transferDirection=transferDirection, sensation=sensation, association=association)
-                        self.alsaAudioPlayback.process(transferDirection=transferDirection, sensation=sensation, association=association)
+                        #self.alsaAudioMicrophone.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)
+                        self.alsaAudioMicrophone.process(transferDirection=transferDirection, sensation=sensation)
+                        self.alsaAudioPlayback.process(transferDirection=transferDirection, sensation=sensation)
                         self.running=False
                    # Item.name.presence to microphone
 #                     elif sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemoryType() == Sensation.MemoryType.Working and\
 #                          sensation.getRobotType() == Sensation.RobotType.Sense:
-#                         #self.alsaAudioMicrophone.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation, association=association)
-#                         self.alsaAudioMicrophone.process(transferDirection=transferDirection, sensation=sensation, association=association)
+#                         #self.alsaAudioMicrophone.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)
+#                         self.alsaAudioMicrophone.process(transferDirection=transferDirection, sensation=sensation)
                     # Voice to playback
                     else:
                         #self.alsaAudioPlayback.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation, association=association)
                         self.nextSenseTime = systemTime.time() + self.alsaAudioPlayback.getPlaybackTime(datalen=len(sensation.getData()))
-                        self.alsaAudioPlayback.process(transferDirection=transferDirection, sensation=sensation, association=association)
+                        self.alsaAudioPlayback.process(transferDirection=transferDirection, sensation=sensation)
                         if  self.nextSenseTime is None:
                             self.nextSenseTime = systemTime.time() + self.alsaAudioPlayback.getPlaybackTime(datalen=len(sensation.getData()))
                         elif self.nextSenseTime > systemTime.time(): # there was pending wait time
@@ -122,7 +125,7 @@ class AlsaAudioMicrophonePlayback(Robot):
                         #systemTime.sleep(self.alsaAudioPlayback.getPlaybackTime())
             # we have time to sense
             else:
-                # check, id playback is going on
+                # check, if playback is going on
                 if self.nextSenseTime is not None and\
                    systemTime.time() < self.nextSenseTime:
                     systemTime.sleep(self.nextSenseTime - systemTime.time())

@@ -71,6 +71,14 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
         return 1.1
     def getWho(self):
         return "TensorFlowClassificationTestCase"
+    def log(self, logStr, logLevel=None):
+        #print('CommunicationTestCase log')
+        if hasattr(self, 'tensorFlowClassification'):
+            if self.tensorFlowClassification:
+                if logLevel == None:
+                    logLevel = self.tensorFlowClassification.LogLevel.Normal
+                if logLevel <= self.tensorFlowClassification.getLogLevel():
+                     print(self.tensorFlowClassification.getWho() + ":" + str( self.tensorFlowClassification.config.level) + ":" + Sensation.Modes[self.tensorFlowClassification.mode] + ": " + logStr)
     
     '''
     Testing    
@@ -102,8 +110,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
         systemTime.sleep(TensorFlowClassificationTestCase.TEST_TIME)       # give Robot some time to stop
         self.tensorFlowClassification.getAxon().put(robot=self,
                                                     transferDirection=Sensation.TransferDirection.Up,
-                                                    sensation=self.tensorFlowClassification.createSensation(associations=[], sensationType = Sensation.SensationType.Stop),
-                                                    association=None)
+                                                    sensation=self.tensorFlowClassification.createSensation(associations=[], sensationType = Sensation.SensationType.Stop))
         print('sleep ' + str(TensorFlowClassificationTestCase.TEST_STOP_TIME) + ' time for Robot to process Stop Sensation')
         systemTime.sleep(TensorFlowClassificationTestCase.TEST_STOP_TIME)       # give Robot some time to stop
 
@@ -219,7 +226,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
         # test removed temporarely
         #self.assertTrue(self.getAxon().empty(), 'self.getAxon().empty() should be empty')
         while not self.getAxon().empty():
-                transferDirection, sensation, association = self.getAxon().get()
+                transferDirection, sensation = self.getAxon().get()
                 print("external: got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
                 if sensation.getRobotType() == Sensation.RobotType.Sense and \
                     sensation.getSensationType() == Sensation.SensationType.Image:
@@ -248,7 +255,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
         print('doTestItemSensations start')
         
         testStartTime = systemTime.time()
-        self.tensorFlowClassification.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation, association=None)
+        self.tensorFlowClassification.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation)
         
         if self.isFirstSleep:
             waitTime =  2*TensorFlowClassificationTestCase.TEST_CLASSIFICATION_TIME       # give Robot some time to stop
@@ -269,7 +276,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
                and \
               (systemTime.time() - testStartTime < waitTime):
             if not self.getAxon().empty():
-                transferDirection, sensation, association = self.getAxon().get()
+                transferDirection, sensation = self.getAxon().get()
                 print("1: got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
                 if sensation.getRobotType() == Sensation.RobotType.Sense and \
                     sensation.getSensationType() == Sensation.SensationType.Image:

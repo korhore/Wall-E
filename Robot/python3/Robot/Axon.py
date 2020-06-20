@@ -24,7 +24,7 @@ class Axon():
         self.robot = robot      # owner robot of this axon
         self.queue = Queue()
        
-    def put(self, robot, transferDirection, sensation, association=None, detach=True):
+    def put(self, robot, transferDirection, sensation, detach=True):
         self.robot.log("Axon put from {} to {} with original queue length {} full {}".format(robot.getWho(),self.robot.getWho(), self.queue.qsize(), self.queue.full()))
         sensation.attach(self.robot)                        # take ownership
 # let Robots decide locations
@@ -32,7 +32,7 @@ class Axon():
 #             sensation.setLocations(self.robot.getLocations())   #
         if detach:
             sensation.detach(robot)         # release from caller
-        self.queue.put((transferDirection, sensation, association))
+        self.queue.put((transferDirection, sensation))
         self.robot.log("Axon put from {} to {} with final queue length {} full {}".format(robot.getWho(),self.robot.getWho(), self.queue.qsize(), self.queue.full()))
  
     '''
@@ -42,9 +42,9 @@ class Axon():
     '''       
     def get(self):
         self.robot.log("Axon get from {} original queue length {} empty {} full {}".format(self.robot.getWho(), self.queue.qsize(), self.queue.empty(), self.queue.full()))
-        (transferDirection, sensation, association) = self.queue.get()
+        (transferDirection, sensation) = self.queue.get()
         self.robot.log("Axon done get from {} final queue length {} empty {} full {}".format(self.robot.getWho(), self.queue.qsize(), self.queue.empty(), self.queue.full()))
-        return transferDirection, sensation, association
+        return transferDirection, sensation
         
     def empty(self):
         return self.queue.empty()

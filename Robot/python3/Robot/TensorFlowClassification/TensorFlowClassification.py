@@ -524,16 +524,16 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
         
         self.log(logLevel=Robot.LogLevel.Normal, logStr="Running")
         while self.running:
-            transferDirection, sensation, association = self.getAxon().get()
+            transferDirection, sensation = self.getAxon().get()
             self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
-            self.process(transferDirection=transferDirection, sensation=sensation, association=association)
+            self.process(transferDirection=transferDirection, sensation=sensation)
         self.log("Stopping TensorFlowClassification")
         self.mode = Sensation.Mode.Stopping
 #         self.camera.close() 
        
         self.log("run ALL SHUT DOWN")
 
-    def process(self, transferDirection, sensation, association=None):
+    def process(self, transferDirection, sensation):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         if sensation.getSensationType() == Sensation.SensationType.Stop:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='process: SensationSensationType.Stop')      
@@ -611,8 +611,11 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                                                                   name = name, score = score, presence = precence)
                             itemsensation.associate(sensation=subsensation)
                             self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
-                            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
-                            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
+                            # TODO Here we used association. Study if this has some effect and use Feeling sensation if needed. Seems that no effect-
+                            #self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
+                            #self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
+                            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
+                            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
                             self.log("Created Working subImage and item sensation for this")
                         # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
                     i = i+1
@@ -670,8 +673,11 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                                                           name=name, score=scores[i], presence = precence, locations=self.getLocations())
                     itemsensation.associate(sensation=subsensation)
                     self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(scores[i]))
-                    self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
-                    self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
+                    # TODO study if paramameter association has some effect and use Feeling sensation, if it had
+                    #self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
+                    #self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
+                    self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+                    self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
                     self.log("Created Working subImage and item sensation for this")
         return current_present
     
@@ -752,7 +758,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                    TensorFlowClassification.present[name] = presence
                 itemsensation = self.createSensation( sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense, name=name,\
                                                  presence = presence)
-                self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=None)
+                self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
                 self.log("process created exiting/absent itemsensation " + itemsensation.toDebugStr())
         # can't del in loop, do it here
         for name in absent_names:

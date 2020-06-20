@@ -161,9 +161,9 @@ class Visual(Robot):
             # if we can't sense, the we wait until we get something into Axon
             # or if we can sense, but there is something in our Axon, process it
             if not self.getAxon().empty() or not self.canSense():
-                transferDirection, sensation, association = self.getAxon().get()
+                transferDirection, sensation = self.getAxon().get()
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr() + ' len(sensation.getAssociations()) '+ str(len(sensation.getAssociations())))      
-                self.process(transferDirection=transferDirection, sensation=sensation, association=association)
+                self.process(transferDirection=transferDirection, sensation=sensation)
             else:
                 self.sense()
  
@@ -179,7 +179,7 @@ class Visual(Robot):
        
         self.log(logLevel=Robot.LogLevel.Normal, logStr="run ALL SHUT DOWN")
         
-    def process(self, transferDirection, sensation, association=None):
+    def process(self, transferDirection, sensation):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr() + '  len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) #called
         if sensation.getSensationType() == Sensation.SensationType.Stop:
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: SensationSensationType.Stop')      
@@ -187,7 +187,7 @@ class Visual(Robot):
         elif transferDirection == Sensation.TransferDirection.Up:
             if self.getParent() is not None: # if sensation is going up  and we have a parent
                 self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation))')      
-                self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation, association=None)
+                self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)
         else:
             # just pass Sensation to wx-process
             wx.PostEvent(self.app.frame, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
@@ -776,10 +776,6 @@ class Visual(Robot):
                         else:
                             self.getRobot().log("OnSensation fromInd " + str(fromInd) + " toInd "+ str(toInd) + " None error")
                
-#                 item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_TYPE)
-#                 if item is not None and item.IsWindow():
-#                     item.GetWindow().SetLabel(Sensation.getSensationTypeString(sensationType=sensation.getSensationType()))
-                    
                 item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_FIRST)
                 if item is not None and item.IsSizer():
                     self.showSensation(data_gs = item.GetSizer(), sensation=sensation.getFirstAssociateSensation())
@@ -792,11 +788,16 @@ class Visual(Robot):
                 if item is not None and item.IsWindow():
                     label=''
                     item.GetWindow().SetLabel('')
+                    # associated feeling between Sensations
                     if sensation.getFirstAssociateSensation() is not None and\
                        sensation.getOtherAssociateSensation() is not None :
                         association=sensation.getFirstAssociateSensation().getAssociation(sensation.getOtherAssociateSensation())
                         if association is not None:
                             label=Sensation.getFeelingString(association.getFeeling())
+                    # global feeling
+                    elif sensation.getFirstAssociateSensation() is None and\
+                         sensation.getOtherAssociateSensation() is None:
+                        label=Sensation.getFeelingString(sensation.getFeeling())
                     item.GetWindow().SetLabel(label)
                     
                 item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_FEELING_DIRECTION)
@@ -848,7 +849,7 @@ class Visual(Robot):
             feelingSensation.setNegativeFeeling(not isPositive)
             feelingSensation.setRobotType(Sensation.RobotType.Sense)
             self.getRobot().getMemory().setMemoryType(sensation=feelingSensation, memoryType=Sensation.MemoryType.Sensory)
-            self.getRobot().getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation, association=None)
+            self.getRobot().getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
                 
                 
         def showSensation(self, data_gs, sensation):

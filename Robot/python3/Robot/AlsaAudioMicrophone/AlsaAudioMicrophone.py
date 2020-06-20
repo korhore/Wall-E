@@ -109,13 +109,13 @@ class AlsaAudioMicrophone(Robot):
                 # interrupt voice and put it to parent for processing
                 self.putVoiceToParent()
 
-                transferDirection, sensation, association = self.getAxon().get()
+                transferDirection, sensation = self.getAxon().get()
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr="got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
 #                 if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemoryType() == Sensation.MemoryType.Working and\
 #                    sensation.getRobotType() == Sensation.RobotType.Sense: 
 #                     self.tracePresents(sensation)
 #                 else:
-                self.process(transferDirection=transferDirection, sensation=sensation, association=association)
+                self.process(transferDirection=transferDirection, sensation=sensation)
                 sensation.detach(robot=self)
             else:
                 if len(self.getMemory().presentItemSensations) > 0: # listen is we have items that can speak
@@ -176,7 +176,7 @@ class AlsaAudioMicrophone(Robot):
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: voice from " + name)
                 itemSensation.associate(sensation=voiceSensation)
             self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: self.getParent().getAxon().put(robot=self, sensation)")
-            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation, association=None)
+            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)
             self.voice_data=None
             self.voice_l=0
         

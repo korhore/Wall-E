@@ -86,8 +86,7 @@ class IdentityTestCase(unittest.TestCase):
         systemTime.sleep(IdentityTestCase.TEST_TIME)       # give Robot some time to stop
         self.identity.getAxon().put(robot=self,
                                                     transferDirection=Sensation.TransferDirection.Up,
-                                                    sensation=self.identity.createSensation(associations=[], sensationType = Sensation.SensationType.Stop),
-                                                    association=None)
+                                                    sensation=self.identity.createSensation(associations=[], sensationType = Sensation.SensationType.Stop))
         print('sleep ' + str(IdentityTestCase.TEST_STOP_TIME) + ' time for Robot to process Stop Sensation')
         systemTime.sleep(IdentityTestCase.TEST_STOP_TIME)       # give Robot some time to stop
 

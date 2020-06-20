@@ -52,7 +52,7 @@ class Association(Robot):
                        maxRss =  maxRss,
                        minAvailMem = minAvailMem)
         
-    def process(self, transferDirection, sensation, association=None):
+    def process(self, transferDirection, sensation):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: sensation ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         #self.getMemory().presentItemSensations can be changed
         #TODO logic can lead to infinite loop

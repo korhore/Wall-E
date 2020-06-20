@@ -57,7 +57,7 @@ class VisualTestCase(unittest.TestCase):
     def getId(self):
         return 1.1
     def getWho(self):
-        return "VisualTestCase"
+        return VisualTestCase.NAME
     def log(self, logStr, logLevel=None):
         if logLevel == None:
             logLevel = self.visual.LogLevel.Normal
@@ -233,7 +233,7 @@ class VisualTestCase(unittest.TestCase):
         #self.visual.stop()
         #self.assertEqual(self.visual.getAxon().empty(), False, 'Axon should not be empty after self.visual.stop()')
         while(not self.getAxon().empty()):
-            transferDirection, sensation, association = self.getAxon().get()
+            transferDirection, sensation = self.getAxon().get()
             self.assertTrue(sensation.getSensationType() == Sensation.SensationType.Stop or\
                             sensation.getSensationType() == Sensation.SensationType.Feeling,
                             'parent should get Stop or Feeling sensation type after test and self.visual.stop()')
@@ -320,7 +320,7 @@ class VisualTestCase(unittest.TestCase):
                                                 kind=robot.getKind())
         #if robot.isMainRobot() or robot.getInstanceType() == Sensation.InstanceType.Virtual:
         if True:
-            robot.imageSensations, robot.voiceSensations = robot.getIdentitySensations(kind=robot.getKind())
+            robot.imageSensations, robot.voiceSensations = robot.getIdentitySensations(who=robot.getWho())
             if len(robot.imageSensations) > 0:
                 robot.selfImage = robot.imageSensations[0].getImage()
             else:
