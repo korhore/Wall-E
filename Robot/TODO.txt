@@ -17,7 +17,7 @@ It can have name as not, but also coordinates.
 We can decide, if Robot has enough knowledge to route Sensations down by location and Capabilities as now.
 or if Robot decides itself what to do with a Sensation. Sensations are assigned to Location Sensation.
 Location has
-- locationX=0.0, locationY=0.0, locationZ=0.0,   # location of Robot
+- X=0.0, Y=0.0, Z=0.0, radius=0.0   # location of Robot
 - name
 Implementation from Accelaration + name
 Firsts step is implement places-methods with SensationType.Place.

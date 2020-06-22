@@ -70,7 +70,7 @@ class AssociationTestCase(unittest.TestCase):
 #                  who=None,
 #                  leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
 #                  azimuth = 0.0,                                             # Walle robotType relative to magnetic north pole
-#                  accelerationX=0.0, accelerationY=0.0, accelerationZ=0.0,   # acceleration of walle, coordinates relative to walle
+#                  x=0.0, y=0.0, z=0.0,   # acceleration of walle, coordinates relative to walle
 #                  hearDirection = 0.0,                                       # sound robotType heard by Walle, relative to Walle
 #                  observationDirection= 0.0,observationDistance=-1.0,        # Walle's observation of something, relative to Walle
 #                  filePath='',
@@ -97,7 +97,7 @@ class AssociationTestCase(unittest.TestCase):
 #                  who=who,
 #                  leftPower = leftPower, rightPower = rightPower,
 #                  azimuth = azimuth,
-#                  accelerationX=accelerationX, accelerationY = accelerationY, accelerationZ = accelerationZ,
+#                  x=x, y = y, z = z,
 #                  hearDirection = hearDirection,
 #                  observationDirection = observationDirection, observationDistance = observationDistance,
 #                  filePath = filePath,

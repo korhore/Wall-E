@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 02.06.2020
+Edited on 22.06.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -38,7 +38,7 @@ Sensation is something Robot senses
 '''
 
 class Sensation(object):
-    VERSION=20          # version number to check, if we picle same version
+    VERSION=21          # version number to check, if we picle same version
                         # instances. Otherwise we get odd errors, with old
                         # version code instances
 
@@ -98,7 +98,7 @@ class Sensation(object):
     FALSE_AS_STR  =     'F'
      
     # so many sensationtypes, that first letter is not good idea any more  
-    SensationType = enum(Drive='a', Stop='b', Who='c', Azimuth='d', Acceleration='e', Observation='f', HearDirection='g', Voice='h', Image='i',  Calibrate='j', Capability='k', Item='l', Feeling='m', Unknown='n')
+    SensationType = enum(Drive='a', Stop='b', Who='c', Azimuth='d', Acceleration='e', Location='f', Observation='g', HearDirection='h', Voice='i', Image='j',  Calibrate='k', Capability='l', Item='m', Feeling='n', Unknown='o')
     # RobotType of a sensation. Example in Voice: Muscle: Speaking,  Sense: Hearing In->Muscle Out->Sense
     RobotType = enum(Muscle='M', Sense='S')
     # RobotType of a sensation transferring, used with Axon. Up: going up like fron AlsaMicroPhone to MainRobot, Down: going down from MainRobot to leaf Robots like AlsaPlayback
@@ -123,6 +123,7 @@ class Sensation(object):
     WHO="Who"
     AZIMUTH="Azimuth"
     ACCELERATION="Acceleration"
+    LOCATION="Location"
     OBSERVATION="Observation"
     HEARDIRECTION="HearDirection"
     VOICE="Voice"
@@ -173,6 +174,7 @@ class Sensation(object):
                SensationType.Who: WHO,
                SensationType.Azimuth: AZIMUTH,
                SensationType.Acceleration: ACCELERATION,
+               SensationType.Location: LOCATION,
                SensationType.Observation: OBSERVATION,
                SensationType.HearDirection: HEARDIRECTION,
                SensationType.Voice: VOICE,
@@ -188,6 +190,7 @@ class Sensation(object):
                SensationType.Who,
                SensationType.Azimuth,
                SensationType.Acceleration,
+               SensationType.Location,
                SensationType.Observation,
                SensationType.HearDirection,
                SensationType.Voice,
@@ -631,7 +634,7 @@ class Sensation(object):
                  locations=[],
                  leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
                  azimuth = 0.0,                                             # Walle robotType relative to magnetic north pole
-                 accelerationX=0.0, accelerationY=0.0, accelerationZ=0.0,   # acceleration of walle, coordinates relative to walle
+                 x=0.0, y=0.0, z=0.0, radius=0.0,                           # location and acceleration of Robot
                  hearDirection = 0.0,                                       # sound robotType heard by Walle, relative to Walle
                  observationDirection= 0.0,observationDistance=-1.0,        # Walle's observation of something, relative to Walle
                  filePath='',
@@ -705,9 +708,10 @@ class Sensation(object):
             self.rightPower = rightPower
             self.hearDirection = hearDirection
             self.azimuth = azimuth
-            self.accelerationX = accelerationX
-            self.accelerationY = accelerationY
-            self.accelerationZ = accelerationZ
+            self.x = x
+            self.y = y
+            self.z = z
+            self.radius = radius
             self.observationDirection = observationDirection
             self.observationDistance = observationDistance
             self.filePath = filePath
@@ -788,12 +792,26 @@ class Sensation(object):
                     self.azimuth = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
                 elif self.sensationType is Sensation.SensationType.Acceleration:
-                    self.accelerationX = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    self.x = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
-                    self.accelerationY = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    self.y = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
-                    self.accelerationZ = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    self.z = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
+                elif self.sensationType is Sensation.SensationType.Location:
+                    self.x = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    i += Sensation.FLOAT_PACK_SIZE
+                    self.y = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    i += Sensation.FLOAT_PACK_SIZE
+                    self.z = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    i += Sensation.FLOAT_PACK_SIZE
+                    self.radius = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    i += Sensation.FLOAT_PACK_SIZE
+                    
+                    name_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
+                    i += Sensation.ID_SIZE
+                    self.name =Sensation.bytesToStr(bytes[i:i+name_size])
+                    i += name_size
                 elif self.sensationType is Sensation.SensationType.Observation:
                     self.observationDirection = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
@@ -840,7 +858,6 @@ class Sensation(object):
                     i += capabilities_size
                 elif self.sensationType is Sensation.SensationType.Item:
                     name_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
-                    #print("name_size " + str(name_size))
                     i += Sensation.ID_SIZE
                     self.name =Sensation.bytesToStr(bytes[i:i+name_size])
                     i += name_size
@@ -913,9 +930,10 @@ class Sensation(object):
         destination.rightPower = source.rightPower
         destination.hearDirection = source.hearDirection
         destination.azimuth = source.azimuth
-        destination.accelerationX = source.accelerationX
-        destination.accelerationY = source.accelerationY
-        destination.accelerationZ = source.accelerationZ
+        destination.x = source.x
+        destination.y = source.y
+        destination.z = source.z
+        destination.radius = source.radius
         destination.observationDirection = source.observationDirection
         destination.observationDistance = source.observationDistance
         destination.filePath = source.filePath
@@ -971,7 +989,9 @@ class Sensation(object):
         elif self.sensationType == Sensation.SensationType.Azimuth:
             s += ' ' + str(self.azimuth)
         elif self.sensationType == Sensation.SensationType.Acceleration:
-            s +=  ' ' + str(self.accelerationX)+ ' ' + str(self.accelerationY) + ' ' + str(self.accelerationZ)
+            s +=  ' ' + str(self.x)+ ' ' + str(self.y) + ' ' + str(self.z)
+        elif self.sensationType == Sensation.SensationType.Location:
+            s +=  ' ' + str(self.x)+ ' ' + str(self.y) + ' ' + str(self.z) + ' ' + str(self.radius)
         elif self.sensationType == Sensation.SensationType.Observation:
             s += ' ' + str(self.observationDirection)+ ' ' + str(self.observationDistance)
         elif self.sensationType == Sensation.SensationType.Voice:
@@ -1070,7 +1090,12 @@ class Sensation(object):
         elif self.sensationType is Sensation.SensationType.Azimuth:
             b +=  Sensation.floatToBytes(self.azimuth)
         elif self.sensationType is Sensation.SensationType.Acceleration:
-            b +=  Sensation.floatToBytes(self.accelerationX) + Sensation.floatToBytes(self.accelerationY) + Sensation.floatToBytes(self.accelerationZ)
+            b +=  Sensation.floatToBytes(self.x) + Sensation.floatToBytes(self.y) + Sensation.floatToBytes(self.z)
+        elif self.sensationType is Sensation.SensationType.Location:
+            b +=  Sensation.floatToBytes(self.x) + Sensation.floatToBytes(self.y) + Sensation.floatToBytes(self.z) + Sensation.floatToBytes(self.radius)
+            name_size=len(self.name)
+            b +=  name_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
+            b +=  Sensation.strToBytes(self.name)            
         elif self.sensationType is Sensation.SensationType.Observation:
             b +=  Sensation.floatToBytes(self.observationDirection) + Sensation.floatToBytes(self.observationDistance)
         elif self.sensationType is Sensation.SensationType.Voice:
@@ -1583,18 +1608,22 @@ class Sensation(object):
     def getAzimuth(self):
         return self.azimuth
 
-    def setAccelerationX(self, accelerationX):
-        self.accelerationX = accelerationX
-    def getAccelerationX(self):
-        return self.accelerationX
-    def setAccelerationY(self, accelerationY):
-        self.accelerationY = accelerationY
-    def getAccelerationY(self):
-        return self.accelerationY
-    def setAccelerationZ(self, accelerationZ):
-        self.accelerationZ = accelerationZ
-    def getAccelerationZ(self):
-        return self.accelerationZ
+    def setX(self, x):
+        self.x = x
+    def getX(self):
+        return self.x
+    def setY(self, y):
+        self.y = y
+    def getY(self):
+        return self.y
+    def setZ(self, z):
+        self.z = z
+    def getZ(self):
+        return self.z
+    def setRadius(self, radius):
+        self.radius = radius
+    def getRadius(self):
+        return self.radius
 
     def setObservationDirection(self, observationDirection):
         self.observationDirection = observationDirection
@@ -1895,7 +1924,7 @@ if __name__ == '__main__':
 #     print("Sensation.create: " + str(s_Azimuth_create == s2))
 #     print()
 # 
-#     s_Acceleration=Sensation(associations=[Sensation.Association(self_sensation=s_Acceleration, sensation=s_HearDirection),Sensation.Association(self_sensation=s_Acceleration, sensation=s_Azimuth)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.Acceleration, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, accelerationX = -0.85, accelerationY = 2.33, accelerationZ = -0.085)
+#     s_Acceleration=Sensation(associations=[Sensation.Association(self_sensation=s_Acceleration, sensation=s_HearDirection),Sensation.Association(self_sensation=s_Acceleration, sensation=s_Azimuth)], receivedFrom=['localhost', 'raspberry'], sensationType = Sensation.SensationType.Acceleration, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, x = -0.85, y = 2.33, z = -0.085)
 #     print(("str s  " + str(s_Acceleration)))
 #     b=s_Acceleration.bytes()
 #     s2=Sensation(associations=[], bytes=b)
@@ -1904,7 +1933,7 @@ if __name__ == '__main__':
 # 
 #     #test with create
 #     print("test with create")
-#     s_Acceleration_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_Acceleration_create, sensation=s_HearDirection_create),Sensation.Association(self_sensation=s_Acceleration_create, sensation=s_Azimuth_create)], receivedFrom=['localhost', 'raspberry', 'virtualWalle'], sensationType = Sensation.SensationType.Acceleration, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, accelerationX = -0.85, accelerationY = 2.33, accelerationZ = -0.085)
+#     s_Acceleration_create=Sensation.create(associations=[Sensation.Association(self_sensation=s_Acceleration_create, sensation=s_HearDirection_create),Sensation.Association(self_sensation=s_Acceleration_create, sensation=s_Azimuth_create)], receivedFrom=['localhost', 'raspberry', 'virtualWalle'], sensationType = Sensation.SensationType.Acceleration, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, x = -0.85, y = 2.33, z = -0.085)
 #     print(("Sensation.create: str s  " + str(s_Acceleration_create)))
 #     b=s_Acceleration_create.bytes()
 #     s2=Sensation.create(associations=[], bytes=b)

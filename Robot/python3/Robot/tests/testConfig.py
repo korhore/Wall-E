@@ -37,6 +37,8 @@ class ConfigTestCase(unittest.TestCase):
                              instanceType=Sensation.InstanceType.Real,
                              level=0)
         self.capabilities = Capabilities(config=self.config)
+        #self.assertEqual(self.capabilities.toString(), self.config.getCapabilities().toString(), "should be equal")
+        #self.assertEqual(self.capabilities, self.config.getCapabilities(), "should be equal")
 
         
     def tearDown(self):
@@ -44,38 +46,51 @@ class ConfigTestCase(unittest.TestCase):
         del self.config
        
     def testConfigBytes(self):
-        print("self.config " + self.config.toString())
+        print("testConfigBytes 1: self.config " + self.config.toString())
         b=self.config.toBytes()
         
-        # create copy and change it         
+        # create copy and change it, capabilities differ
         fromBytesConfig = Config(instanceName=Config.DEFAULT_INSTANCE,
                                  instanceType=Sensation.InstanceType.Real,
                                  level=0)    # should get another copy
-        print("self.config " + self.config.toString())
-        print("fromBytes   " + fromBytesConfig.toString())
-        self.compareConfig(self.config, fromBytesConfig)
+        capabilities = Capabilities(config=fromBytesConfig)
+        # exact copy created same way, than self.config
+        print("testConfigBytes 2: self.config " + self.config.toString())
+        print("testConfigBytes 3: fromBytes   " + fromBytesConfig.toString())
+        self.compareConfig('self.config, fromBytesConfig', self.config, fromBytesConfig)
         
         self.assertEqual(fromBytesConfig, self.config, "should be equal")
         
         fromBytesConfig.fromBytes(b=b)  # this sets itself
-        print("fromBytes   " + fromBytesConfig.toString())
-        self.compareConfig(self.config, fromBytesConfig)
+        print("testConfigBytes 4: fromBytes   " + fromBytesConfig.toString())
+        self.compareConfig('self.config, fromBytesConfig', self.config, fromBytesConfig)
         self.assertEqual(fromBytesConfig, self.config, "should now be equal")
 
         fromBytesConfigBytes = fromBytesConfig.toBytes()
         self.assertEqual(fromBytesConfigBytes, b, "should be equal")
         
-    def compareConfig(self, firstConfig, secondConfig):
-        if firstConfig.instanceName !=secondConfig.instanceName:
-            print ("instanceName differs " +  firstConfig.instanceName + ' '+ secondConfig.instanceName)
-        if firstConfig.instanceType !=secondConfig.instanceType:
-            print ("instanceType differs " +  str(firstConfig.instanceType) + ' '+ str(secondConfig.instanceType))
-        if firstConfig.level !=secondConfig.level:
-            print ("level differs " +  str(firstConfig.level) + ' '+ str(secondConfig.level))
-        if firstConfig.getLocations() !=secondConfig.getLocations():
-            print ("getLocations() differs " +  str(firstConfig.getLocations()) + ' '+ str(secondConfig.getLocations()))
+    def compareConfig(self, logStr, firstConfig, secondConfig):
+        if firstConfig.instanceName != secondConfig.instanceName:
+            print (logStr + " instanceName differs " +  firstConfig.instanceName + ' '+ secondConfig.instanceName)
+        if firstConfig.instanceType != secondConfig.instanceType:
+            print (logStr +" instanceType differs " +  str(firstConfig.instanceType) + ' '+ str(secondConfig.instanceType))
+        if firstConfig.level != secondConfig.level:
+            print (logStr + " level differs " +  str(firstConfig.level) + ' '+ str(secondConfig.level))
+        if firstConfig.getLocations() != secondConfig.getLocations():
+            print (logStr + " getLocations() differs " +  str(firstConfig.getLocations()) + ' '+ str(secondConfig.getLocations()))
         else:
-           print ("getLocations() equal " +  str(firstConfig.getLocations()) + ' '+ str(secondConfig.getLocations()))
+            print (logStr + " getLocations() equal " +  str(firstConfig.getLocations()) + ' '+ str(secondConfig.getLocations()))
+
+# TODO Don't know if ever used, so implementation and test is commented out           
+#         if firstConfig.getCapabilities().toString() != secondConfig.getCapabilities().toString():
+#             print (logStr + " getCapabilities().toString() differs " + firstConfig.getCapabilities().toString() + ' '+ secondConfig.getCapabilities().toString())
+#         else:
+#            print (logStr + " getCapabilities().toString() equal " +  firstConfig.getCapabilities().toString() + ' '+ secondConfig.getCapabilities().toString())
+# 
+#         if firstConfig.getCapabilities() != secondConfig.getCapabilities():
+#             print (logStr + " getCapabilities() differs " + firstConfig.getCapabilities().toString() + ' '+ secondConfig.getCapabilities().toString())
+#         else:
+#            print (logStr + " getCapabilities() equal " +  firstConfig.getCapabilities().toString() + ' '+ secondConfig.getCapabilities().toString())
             
 
     def testCapabilitiesBytes(self):

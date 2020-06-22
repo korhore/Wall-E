@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 22.05.2020
+Edited on 22.06.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -123,7 +123,7 @@ class Memory(object):
                  locations='',
                  leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
                  azimuth = 0.0,                                             # Walle robotType relative to magnetic north pole
-                 accelerationX=0.0, accelerationY=0.0, accelerationZ=0.0,   # acceleration of walle, coordinates relative to walle
+                 x=0.0, y=0.0, z=0.0, radius=0.0,                           # location and acceleration of Robot
                  hearDirection = 0.0,                                       # sound robotType heard by Walle, relative to Walle
                  observationDirection= 0.0,observationDistance=-1.0,        # Walle's observation of something, relative to Walle
                  filePath='',
@@ -161,7 +161,7 @@ class Memory(object):
                  locations=locations,
                  leftPower = leftPower, rightPower = rightPower,                         # Walle motors state
                  azimuth = azimuth,                                             # Walle robotType relative to magnetic north pole
-                 accelerationX=accelerationX, accelerationY=accelerationY, accelerationZ=accelerationZ,   # acceleration of walle, coordinates relative to walle
+                 x=x, y=y, z=z, radius=radius,                           # location and acceleration of Robot
                  hearDirection = hearDirection,                                       # sound robotType heard by Walle, relative to Walle
                  observationDirection = observationDirection,observationDistance = observationDistance,        # Walle's observation of something, relative to Walle
                  filePath=filePath,
