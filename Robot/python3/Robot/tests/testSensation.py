@@ -277,7 +277,7 @@ class SensationTestCase(unittest.TestCase):
         self.assertTrue(feelingSensation.getMemorability()  == 0.0, 'feelingSensation sensation must be zero')
         
     '''
-    Same Memorability test, but here we use Locatio(s) implemented as Sensation also
+    Same Memorability test, but here we use Location(s) implemented as Sensation also
     Final version will be locations parameter removed
     '''
              
@@ -658,14 +658,15 @@ class SensationTestCase(unittest.TestCase):
                                                       name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=[],
                                                       locations = SensationTestCase.SET_1_2_LOCATIONS)
         self.assertTrue(workingSensation != None, "should be created")
-        self.assertEqual(workingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
-        bytes=workingSensation.bytes()
-        self.assertTrue(bytes != None, "should be get bytes")
-        fromBytesWorkingSensation = self.robot.createSensation(bytes=bytes)
-        self.assertTrue(fromBytesWorkingSensation != None, "should be created")
-        self.assertEqual(fromBytesWorkingSensation, workingSensation, "should be equal")
-        self.assertEqual(fromBytesWorkingSensation.getLocations(), workingSensation.getLocations(), "should be equal")
-        self.assertEqual(fromBytesWorkingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
+# meny location is deprecated as property.
+#         self.assertEqual(workingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
+#         bytes=workingSensation.bytes()
+#         self.assertTrue(bytes != None, "should be get bytes")
+#         fromBytesWorkingSensation = self.robot.createSensation(bytes=bytes)
+#         self.assertTrue(fromBytesWorkingSensation != None, "should be created")
+#         self.assertEqual(fromBytesWorkingSensation, workingSensation, "should be equal")
+#         self.assertEqual(fromBytesWorkingSensation.getLocations(), workingSensation.getLocations(), "should be equal")
+#         self.assertEqual(fromBytesWorkingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
         
         workingSensation.setLocations(locations = SensationTestCase.SET_1_1_LOCATIONS_1)
         self.assertEqual(workingSensation.getLocations(), SensationTestCase.SET_1_1_LOCATIONS_1, "should be equal")
@@ -799,15 +800,16 @@ class SensationTestCase(unittest.TestCase):
                                                       locations = SensationTestCase.SET_1_2_LOCATIONS,
                                                       feeling=SensationTestCase.NORMAL_FEELING)
         self.assertTrue(workingSensation != None, "should be created")
-        self.assertEqual(workingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
-        bytes=workingSensation.bytes()
-        self.assertTrue(bytes != None, "should be get bytes")
-        fromBytesWorkingSensation = self.robot.createSensation(bytes=bytes)
-        self.assertTrue(fromBytesWorkingSensation != None, "should be created")
-        self.assertEqual(fromBytesWorkingSensation, workingSensation, "should be equal")
-        self.assertEqual(fromBytesWorkingSensation.getLocations(), workingSensation.getLocations(), "should be equal")
-        self.assertEqual(fromBytesWorkingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
-        self.assertEqual(fromBytesWorkingSensation.getFeeling(), SensationTestCase.NORMAL_FEELING, "should be equal")
+# many locations is deprecated as property
+#         self.assertEqual(workingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
+#         bytes=workingSensation.bytes()
+#         self.assertTrue(bytes != None, "should be get bytes")
+#         fromBytesWorkingSensation = self.robot.createSensation(bytes=bytes)
+#         self.assertTrue(fromBytesWorkingSensation != None, "should be created")
+#         self.assertEqual(fromBytesWorkingSensation, workingSensation, "should be equal")
+#         self.assertEqual(fromBytesWorkingSensation.getLocations(), workingSensation.getLocations(), "should be equal")
+#         self.assertEqual(fromBytesWorkingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
+#         self.assertEqual(fromBytesWorkingSensation.getFeeling(), SensationTestCase.NORMAL_FEELING, "should be equal")
        
         # Image
         

@@ -35,6 +35,8 @@ def enum(*sequential, **named):
 
 '''
 Sensation is something Robot senses
+
+TODO locations is deprecated and now it should support only one locations, not many.
 '''
 
 class Sensation(object):
@@ -1579,14 +1581,21 @@ class Sensation(object):
         self.who = who
     def getWho(self):
         return self.who
-        
+
+    '''
+    locations are deprecated as a property and
+    now they support only one location
+    '''        
     def setLocations(self, locations):
         self.locations = locations
     def getLocations(self):
+        if len(self.locations) > 0:
+            name = self.locations[0]
+            return [name]
         return self.locations
     def getLocationsStr(self):
         #from Config import strArrayToStr
-        return Sensation.strArrayToStr(self.locations)
+        return Sensation.strArrayToStr(self.getLocations())
       
     def setLeftPower(self, leftPower):
         self.leftPower = leftPower

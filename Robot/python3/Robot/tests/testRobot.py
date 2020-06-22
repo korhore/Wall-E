@@ -203,7 +203,7 @@ class RobotTestCase(unittest.TestCase):
         # should not be routed to muscle
         self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty')
         
-        # set sensation contain  one Location and muscle to contain many locations and one match, routing should succeed again
+        # set sensation contain one Location and muscle to contain many locations and one match, routing should succeed again
         # in muscle we should set also capabilities, look SetUp
         self.muscle.setLocations(RobotTestCase.SET_1_2_LOCATIONS)
         capabilities  =  self.muscle.getCapabilities()
@@ -285,7 +285,6 @@ class RobotTestCase(unittest.TestCase):
         tranferDirection, sensation = self.mainRobot.getAxon().get()
        # TODO test routing to muscle
         self.mainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
-        # should be routed to mainRobot
         self.assertFalse(self.muscle.getAxon().empty(),'muscle Axon should not be empty')
         tranferDirection, sensation = self.muscle.getAxon().get()
      
@@ -312,7 +311,11 @@ class RobotTestCase(unittest.TestCase):
         # should be routed to mainRobot
         self.assertFalse(self.muscle.getAxon().empty(),'muscle Axon should not be empty')        
         tranferDirection, sensation = self.muscle.getAxon().get()
-        self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty after self.muscle.getAxon().get()')        
+        self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty after self.muscle.getAxon().get()')  
+        
+    '''
+    These tests fail. because Location-Sensation routing is not implemented
+    '''     
      
     def test_Routing_LocationSensation(self):
         print('\ntest_Sensation Routing with Location Sensation')

@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 03.06.2020
+Updated on 22.06.2020
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -182,6 +182,9 @@ class Robot(Thread):
         # Features of Robot identity we can show and speak to
         self.imageSensations=[]
         self.voiceSensations=[]
+        self.locationSensation = None
+                                      # Robot has only one location, but it includes radius
+                                      # so many Robots can be near each other and see and hear same things
         self.selfImage = None
         
         
@@ -211,7 +214,14 @@ class Robot(Thread):
         print("Robot 4")
         self.logLevel=self.config.getLogLevel()
         self.setWho(self.config.getWho())
+        # create empty self.locationSensation
+        self.locationSensation = self.createSensation(
+                                                 memoryType=Sensation.MemoryType.Sensory,
+                                                 sensationType=Sensation.SensationType.Location,
+                                                 robotType=Sensation.RobotType.Sense,
+                                                 name='')
         self.setLocations(self.config.getLocations())
+
         self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who: " + self.getWho() + " locations: " + self.getLocationsStr() + " kind: " + self.getKind() + " instanceType: " + self.getInstanceType() + " capabilities: " + self.capabilities.toDebugString())
         # global queue for senses and other robots to put sensations to robot
         self.axon = Axon(robot=self)
@@ -349,12 +359,23 @@ class Robot(Thread):
     def getWho(self):
         return self.name
     
+    '''
+    setLocations, getLocations and getLocationsStr are deprecated and support now only one location
+    ''' 
+    
     def setLocations(self, locations):
-        self.locations = locations
+        name = ''
+        if locations is not None and len(locations) > 0:
+            name = locations[0]
+        self.locationSensation.setName(name)
     def getLocations(self):
-        return self.locations
+        if self.locationSensation is None:
+            return []
+        return [self.locationSensation.getName()]
     def getLocationsStr(self):
-        return Sensation.strArrayToStr(self.locations)
+        if self.locationSensation is None:
+            return ''
+        return self.locationSensation.getName()
  
     '''
     Is one or more location in one of this Robots set location
@@ -362,8 +383,10 @@ class Robot(Thread):
     def isInLocations(self, locations):
         # is no location requirement or Capabilities accepts all, return True
         # in other case test if at least one location match
+            # TODO dirty fix to support only one location in Robot
+            #len(self.getLocations()) == 0:
         if len(locations) == 0 or\
-           len(self.getLocations()) == 0:
+           len(self.getLocations()[0]) == 0:
             return True
         for location in locations:
             if location in self.getLocations():
