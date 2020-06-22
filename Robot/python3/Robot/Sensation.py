@@ -735,8 +735,9 @@ class Sensation(object):
            
 #             if receivedFrom == None:
 #                 receivedFrom=[]
-            self.receivedFrom=[]
-            self.addReceivedFrom(receivedFrom)
+#             self.receivedFrom=[]
+#             self.addReceivedFrom(receivedFrom)
+            self.receivedFrom=receivedFrom
 
         if bytes != None:
             try:

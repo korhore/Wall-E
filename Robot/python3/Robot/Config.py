@@ -309,7 +309,7 @@ class Config(ConfigParser):
             
 
     '''
-    localhost capaliliys to bytes
+    localhost capabilitys to bytes
     '''
     def toBytes(self, section=LOCALHOST):
         from Sensation import Sensation
@@ -894,8 +894,10 @@ class Config(ConfigParser):
         if instanceName != None and len(instanceName) > 0:
             if instanceName == Sensation.InstanceTypes[Sensation.InstanceType.Real]:
                 instanceType = Sensation.InstanceType.Real
-            if instanceName == Sensation.InstanceTypes[Sensation.InstanceType.SubInstance]:
+            elif instanceName == Sensation.InstanceTypes[Sensation.InstanceType.SubInstance]:
                 instanceType = Sensation.InstanceType.SubInstance
+            elif instanceName == Sensation.InstanceTypes[Sensation.InstanceType.Remote]:
+                instanceType = Sensation.InstanceType.Remote
             else:
                 instanceType = Sensation.InstanceType.Virtual
           
@@ -977,10 +979,14 @@ class Config(ConfigParser):
             print('self.get(section=section, option=self.PLAYBACK) ' + str(e))
             return None
         
-    def getCapabilities(self, section=LOCALHOST):
-        self.getLocations(section=section)# should get Locations, bebause Capabilities are dependent on Locations
-        bytes=self.toBytes(section=section)
-        return Capabilities(bytes=bytes, config=self)
+    # TODO
+    # this is cryptic way to create Capabilities and not sure id ever used
+    # so commented out
+        
+#     def getCapabilities(self, section=LOCALHOST):
+#         self.getLocations(section=section)# should get Locations, because Capabilities are dependent on Locations
+#         bytes=self.toBytes(section=section)
+#         return Capabilities(bytes=bytes, config=self)
 
     def canHear(self, section=LOCALHOST):
         from Sensation import Sensation
@@ -1021,7 +1027,7 @@ class Capabilities():
                  And=None,
                  deepCopy=None):
         self.config = config
-        # self.locations can be overwitten by bytes (or string, not tested)
+        # self.locations can be overwritten by bytes (or string, not tested)
         self.locations = locations
         if (self.locations is None or len(self.locations) == 0) and self.config is not None:
             self.locations = self.config.getLocations()
@@ -1104,8 +1110,20 @@ class Capabilities():
     '''
     def fromString(self, string=None):
         from Sensation import Sensation
+        # handle first locations
         if string == None:
             string=self.config.toString()
+        locationsPlusCapabilities = Config.strToStrArray(string) 
+        # last string is capabilities
+        if len(locationsPlusCapabilities) > 1:
+            string = locationsPlusCapabilities[len(locationsPlusCapabilities)-1]
+            # other are locations
+            del locationsPlusCapabilities[len(locationsPlusCapabilities)-1]
+            self.locations = locationsPlusCapabilities
+        else:
+            self.locations=[]
+            string=''
+                                                  
         self.directions={}
         i=0
         # create three level dictionary about capabilitys by robotType, by memoryType, by sensation type
@@ -1128,7 +1146,9 @@ class Capabilities():
     '''
     def toString(self):
         from Sensation import Sensation
-        string=''
+        string=self.getLocationsStr()
+        if len(string) > 0:
+            string += ' '
         for robotType in Sensation.RobotTypesOrdered:
             for memoryType in Sensation.MemoryTypesOrdered:
                 for sensationType in Sensation.SensationTypesOrdered:
@@ -1153,25 +1173,30 @@ class Capabilities():
     Getter to get if single capability is set
     in location this Capabilities set has
     '''
-    def hasCapability(self, robotType, memoryType, sensationType, locations):
-        if self.isInLocations(locations):
-            return self.directions[robotType][memoryType][sensationType]
-        return False
+    def hasCapability(self, robotType, memoryType, sensationType):
+        return self.directions[robotType][memoryType][sensationType]
+    
+#     def hasCapability(self, robotType, memoryType, sensationType, locations):
+#         if self.isInLocations(locations):
+#             return self.directions[robotType][memoryType][sensationType]
+#         return False
     
     '''
     Is one or more location is one of this Capabilities set location
     in location this Capabilities set has
+    
+    Deprecated
     '''
-    def isInLocations(self, locations):
-        # is no location requirement or Capabilities accepts all, return True
-        # in other case test if at least one location match
-        if len(locations) == 0 or\
-           len(self.getLocations()) == 0:
-            return True
-        for location in locations:
-            if location in self.getLocations():
-                return True
-        return False
+#     def isInLocations(self, locations):
+#         # is no location requirement or Capabilities accepts all, return True
+#         # in other case test if at least one location match
+#         if len(locations) == 0 or\
+#            len(self.getLocations()) == 0:
+#             return True
+#         for location in locations:
+#             if location in self.getLocations():
+#                 return True
+#         return False
     
     def getLocations(self):
         return self.locations

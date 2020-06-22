@@ -355,7 +355,21 @@ class Robot(Thread):
         return self.locations
     def getLocationsStr(self):
         return Sensation.strArrayToStr(self.locations)
-    
+ 
+    '''
+    Is one or more location in one of this Robots set location
+    '''
+    def isInLocations(self, locations):
+        # is no location requirement or Capabilities accepts all, return True
+        # in other case test if at least one location match
+        if len(locations) == 0 or\
+           len(self.getLocations()) == 0:
+            return True
+        for location in locations:
+            if location in self.getLocations():
+                return True
+        return False
+   
     def getKind(self):
         return self.config.getKind()
     
@@ -462,19 +476,86 @@ class Robot(Thread):
                                     
         self.log(logLevel=Robot.LogLevel.Verbose, logStr='_getLocalCapabilities ' +capabilities.toDebugString())
         return capabilities
+    
+#############
+
+    '''
+    get locations that main robot or all Sub and Virtual instances have
+    We traverse to main robot and get orrred locations of all subinstances
+    
+    TODO
+    Remote robots are ignored, so we don't get double TCPServer locations back,
+    but in future, we should accept all other remotes,
+    but caller remote SocketServer and SocketClient
+
+    '''
+    def getLocalMasterLocations(self):
+        if self.getParent() is not None:
+            locations =  self.getParent().getLocalMasterLocations()
+        else:   # we are parent, get our and sublocations orred
+            locations = self.getLocations()
+            for robot in self.getSubInstances():
+                if robot.getInstanceType() != Sensation.InstanceType.Remote:
+                    for location in robot._getLocations():
+                        if location not in locations:
+                            locations.append(location)
+                                    
+        self.log(logLevel=Robot.LogLevel.Verbose, logStr='getMasterLocations ' + str(locations))
+        return locations
+    
+    def _getLocations(self):
+        locations = self.getLocations()
+        for robot in self.getSubInstances():
+            if robot.getInstanceType() != Sensation.InstanceType.Remote:
+                for location in robot._getLocations():
+                    if location not in locations:
+                        locations.append(location)
+                                  
+        self.log(logLevel=Robot.LogLevel.Verbose, logStr='_getLocations ' + str(locations))
+        return locations
+    
+#     '''
+#     get locations that main robot or all Sub and virtual instances have
+#     We traverse to main robot and get orrred locations of all subinstances not remote
+#     '''
+#     
+#     def getLocalMasterLocations(self):
+#         if self.getParent() is not None:
+#             locations =  self.getParent().getLocalMasterLocations()
+#         else:   # we are parent, get our and subcapalities orred
+#             locations = Locations(deepCopy = self.getLocations(), config = self.getLocations().config)
+#             for robot in self.getSubInstances():
+#                 if robot.getInstanceType() != Sensation.InstanceType.Remote:
+#                     locations.Or(robot._getLocalLocations())
+#                                     
+#         self.log(logLevel=Robot.LogLevel.Verbose, logStr='getLocalMasterLocations ' +locations.toDebugString())
+#         return locations
+# 
+#     def _getLocalLocations(self):
+#         locations = Locations(deepCopy = self.getLocations(), config = self.getLocations().config)
+#         for robot in self.getSubInstances():
+#             if robot.getInstanceType() != Sensation.InstanceType.Remote:
+#                 locations.Or(robot._getLocalLocations())
+#                                     
+#         self.log(logLevel=Robot.LogLevel.Verbose, logStr='_getLocalLocations ' +locations.toDebugString())
+#         return locations
+
+#############
        
     '''
     Has this instance this capability
     ''' 
     def hasCapability(self, robotType, memoryType, sensationType, locations):
         hasCapalility = False
-        if self.is_alive() and self.getCapabilities() is not None:
-            hasCapalility = self.getCapabilities().hasCapability(robotType, memoryType, sensationType, locations)
+        if self.is_alive() and self.getCapabilities() is not None and\
+           self.isInLocations(locations) :
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="hasCapability isInLocations locations " + str(locations) + " self.getLocations " + str(self.getLocations()))      
+            hasCapalility = self.getCapabilities().hasCapability(robotType, memoryType, sensationType)
             if hasCapalility:
-                self.log(logLevel=Robot.LogLevel.Verbose, logStr="hasCapability robotType " + str(robotType) + " memoryType " + str(memoryType) + " sensationType " + str(sensationType) + " locations " + str(locations) + ' ' + str(hasCapalility))      
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="hasCapability robotType " + str(robotType) + " memoryType " + str(memoryType) + " sensationType " + str(sensationType) + " locations " + str(locations) + ' ' + str(hasCapalility))      
         return hasCapalility
     '''
-    Has this instance or at least one of its subinstabces this capability
+    Has this instance or at least one of its subinstances this capability
     ''' 
     def hasSubCapability(self, robotType, memoryType, sensationType, locations):
         #self.log(logLevel=Robot.LogLevel.Verbose, logStr="hasSubCapability robotType " + str(robotType) + " memoryType " + str(memoryType) + " sensationType " + str(sensationType))
@@ -482,7 +563,7 @@ class Robot(Thread):
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability self has robotType ' + str(robotType) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType) + ' True')      
             return True    
         for robot in self.getSubInstances():
-            if robot.getCapabilities().hasCapability(robotType, memoryType, sensationType, locations) or \
+            if robot.isInLocations(locations) and robot.getCapabilities().hasCapability(robotType, memoryType, sensationType) or \
                robot.hasSubCapability(robotType, memoryType, sensationType, locations):
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability subInstance ' + robot.getWho() + ' at ' + robot.getLocationsStr() + ' has robotType ' + str(robotType) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType) + ' True')      
                 return True
@@ -493,8 +574,8 @@ class Robot(Thread):
         robots=[]
         for robot in self.getSubInstances():
             if robot.hasCapability(robotType, memoryType, sensationType, locations) or \
-               robot.hasSubCapability(robotType, memoryType, sensationType, locations) or \
-               robot.getInstanceType() == Sensation.InstanceType.Remote:       # append all Remotes so it gets same Memory
+               robot.hasSubCapability(robotType, memoryType, sensationType, locations): # or \
+               #robot.getInstanceType() == Sensation.InstanceType.Remote:       # append all Remotes so it gets same Memory NOPE Bad idea, Robot will process this, not just put to memory
                 robots.append(robot)
         return robots
 
@@ -819,8 +900,6 @@ class Robot(Thread):
     
     transferDirection is sensation going up to MainBobot or down so leaf Robots
     sensation         Sensation to process
-    association       Association - more information how processing should be done
-                      optional
 
         
     '''
@@ -862,8 +941,10 @@ class Robot(Thread):
         elif sensation.getSensationType() == Sensation.SensationType.Capability:
             self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: sensation.getSensationType() == Sensation.SensationType.Capability')      
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.setCapabilities(Capabilities(capabilities=sensation.getCapabilities() ' + sensation.getCapabilities().toDebugString('capabilities'))      
-            self.setCapabilities(Capabilities(deepCopy=sensation.getCapabilities(), config=sensation.getCapabilities().config))
+            self.setCapabilities(Capabilities(deepCopy=sensation.getCapabilities()))#, config=sensation.getCapabilities().config))
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: capabilities: ' + self.getCapabilities().toDebugString('saved capabilities'))
+            self.setLocations(locations=sensation.getLocations())
+            self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: locations: ' + self.getLocationsStr())
         # sensation going up
         elif transferDirection == Sensation.TransferDirection.Up:
             # if sensation is going up  and we have a parent
@@ -1552,9 +1633,12 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
                  # in infinite loop
                 capabilities=self.getLocalMasterCapabilities()
                 self.log('run: self.getLocalMasterCapabilities() '  + capabilities.toString())
-                self.log('run: self.getLocalMasterCapabilities() ' +capabilities.toDebugString())
+                self.log('run: self.getLocalMasterCapabilities() '  + capabilities.toDebugString())
+                locations = self.getLocalMasterLocations();
+                self.log('run: self.getLocalMasterLocations() '  + str(locations))
 
-                sensation=Robot.getMainRobotInstance().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Capability, capabilities=capabilities)
+                sensation=Robot.getMainRobotInstance().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Capability,
+                                                                       capabilities=capabilities, locations=locations)
                 self.log('run: sendSensation(sensationType = Sensation.SensationType.Capability, capabilities=self.getLocalCapabilities()), sock=self.sock,'  + str(self.address) + ')')
                 self.running = self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
                 sensation.detach(robot=Robot.getMainRobotInstance())
@@ -1620,10 +1704,33 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
     '''
     Create local method with different name
     We use this to send capabilities to remote
-        '''
-    def getLocalCapabilities(self):
-        return self.capabilities
+    Not used, deprecated
+#     '''
+#     def getLocalCapabilities(self):
+#         return self.capabilities
 
+ 
+    '''
+    Overwrite local method. This way we can use remote Robot
+    same way than local ones.
+    
+    our server has got locarions from remote host
+    our own locations are meaningless
+    '''
+    def getLocations(self):
+        if self.getSocketServer() is not None:
+            self.log(logLevel=Robot.LogLevel.Verbose, logStr='getLocations: self.getSocketServer().getLocations() ' + self.getSocketServer().getLocationsStr())
+            return self.getSocketServer().getLocations()
+        return None
+
+    '''
+    Create local method with different name
+    We use this to send locations to remote
+    Not used
+    '''
+#     def getLocalLocations(self):
+#         return self.locations
+    
     '''
     share out knowledge of sensation memory out client has capabilities
        
@@ -1694,7 +1801,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
                         #self.log("SocketClient wrote Sensation to " + str(address))
                         self.log("SocketClient.sendSensation wrote sensation " + sensation.toDebugStr() + " to " + str(address))
                         # try to send same sensation only once
-                        # TODO maybe not a good idea, id sensation is changed by us
+                        # TODO maybe not a good idea, if sensation is changed by us
                         sensation.addReceived(self.getHost())
                         sensation.addReceived(self.getSocketServer().getHost())
                     except Exception as err:

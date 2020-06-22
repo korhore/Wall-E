@@ -253,7 +253,8 @@ class Communication(Robot):
             # use random own voice instead of self.voiceind
             voiceind = random.randint(0, len(self.getMemory().getRobot().voiceSensations)-1)
             self.spokedVoiceSensation = self.createSensation( associations=[], sensation=self.getMemory().getRobot().voiceSensations[voiceind],
-                                                              memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense, locations=self.getLocations())
+                                                              memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
+                                                              locations=self.getLocations())
             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation) # or self.process
             self.log("speak: Starting with presenting Robot voiceind={} self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation={}".format(str(voiceind), self.spokedVoiceSensation.toDebugStr()))
             self.usedVoices.append(self.spokedVoiceSensation)

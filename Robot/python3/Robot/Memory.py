@@ -414,11 +414,10 @@ class Memory(object):
         self.memoryLock.acquireRead()                  # read thread_safe
         sensations=[]
         for sensation in self.sensationMemory:
-            # accept sensations from all Locations
+            # accept sensations from all Locations #locations=[]) and
             if capabilities.hasCapability(robotType=sensation.getRobotType(),
                                           memoryType=sensation.getMemoryType(),
-                                          sensationType=sensation.getSensationType(),
-                                        locations=[]) and\
+                                          sensationType=sensation.getSensationType()) and\
                 (timemin is None or sensation.getTime() > timemin) and\
                 (timemax is None or sensation.getTime() < timemax):
                 sensations.append(sensation)

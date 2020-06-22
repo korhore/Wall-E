@@ -11,6 +11,18 @@ OPPS clear configuration!
 
 Develop
 -------
+
+Back to basics. Study Location(s) if is a Sensation, not a special properity. Robot own it.
+It can have name as not, but also coordinates.
+We can decide, if Robot has enough knowledge to route Sensations down by location and Capabilities as now.
+or if Robot decides itself what to do with a Sensation. Sensations are assigned to Location Sensation.
+Location has
+- locationX=0.0, locationY=0.0, locationZ=0.0,   # location of Robot
+- name
+Implementation from Accelaration + name
+Firsts step is implement places-methods with SensationType.Place.
+
+
 Study directory strucrure
 
 Some ideas. Problem is loadModule, which is hard to change.
@@ -49,6 +61,29 @@ Some Basics
 - SensationType.Feeling is assosiate, so Robot.process(association... and
   Axon.put/get(Associsation... are not needed
 - MainRobot has selfSensagtions, so SensaTionType.Feeling should aleays have firstSensation.
+
+raspberry gets Ubuntu voices and visa versa, but why? They should not be interestedof other voices.
+Hmm...
+SocketClient: ('192.168.117.247', 2000):3:Normal:: got sensation from queue D Sun Jun 21 02:30:31 2020:1592695635.3461475:1592695852.6954086:Sensory:Sense:Voice:raspberry::Neutral:Normal
+Seems that somehow location ib SocketClient/SocketServer is changed to be wrong. SocketClient should use location SocketServer gives.
+TCPServer.connectToHost
+- TCPServer.createSocketServer
+- TCPServer.createSocketClient
+- TCPServer.createSocketServer.start
+--  if sensation.getSensationType() == Sensation.SensationType.Capability:
+        # standard process for capabilities, this assembles our remote host capabilities and locations.
+        self.process(transferDirection=Sensation.TransferDirection.Up, sensation=sensation)
+        if self.getSocketClient() is not None:
+                self.getSocketClient().shareSensations(self.getCapabilities())
+                
+We must set receivedFrom to out own sensation to reject unfished loop fot sending.
+If we remove this, UI is OK, but functionality not.
+
+Some Robot also generate sensation without locations.
+Sommunication is problematic, because if we publish update to other sites, they
+can't know that only memory should be updated. Without location this will be delivered
+to all sites, is it valid in all sites in other locations, hmm...?
+
 
 Implement exposure.
 
