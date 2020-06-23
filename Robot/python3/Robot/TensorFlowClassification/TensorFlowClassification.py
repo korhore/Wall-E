@@ -662,7 +662,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                     subsubimage = subimage.crop(size)
                               
                     subsensation = self.createSensation( sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense,\
-                                                         image=subsubimage, locations=self.getLocations())
+                                                         image=subsubimage, location=self.getLocation())
                     self.log("process created subimage sensation " + subsensation.toDebugStr())
                     # don't associate to original image sensation
                     # we wan't to save memory and subimage is important, not whore image
@@ -670,7 +670,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                     subsensation.save()
                                       
                     itemsensation = self.createSensation( sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense,
-                                                          name=name, score=scores[i], presence = precence, locations=self.getLocations())
+                                                          name=name, score=scores[i], presence = precence, location=self.getLocation())
                     itemsensation.associate(sensation=subsensation)
                     self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(scores[i]))
                     # TODO study if paramameter association has some effect and use Feeling sensation, if it had

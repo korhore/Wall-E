@@ -449,7 +449,7 @@ class Visual(Robot):
                     
                 item = self.gs.GetItem(Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_LOCATIONS)
                 if item is not None and item.IsWindow():
-                    item.GetWindow().SetLabel(sensation.getLocationsStr())
+                    item.GetWindow().SetLabel(sensation.getLocation())
                     
                 item = self.gs.GetItem(Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_RECEIVEDFROM)
                 if item is not None and item.IsWindow():
@@ -813,7 +813,7 @@ class Visual(Robot):
                     
                 item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_LOCATIONS)
                 if item is not None and item.IsWindow():
-                    item.GetWindow().SetLabel(sensation.getLocationsStr())
+                    item.GetWindow().SetLabel(sensation.getLocation())
                     
                 item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_RECEIVEDFROM)
                 if item is not None and item.IsWindow():

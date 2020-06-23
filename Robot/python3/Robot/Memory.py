@@ -120,7 +120,7 @@ class Memory(object):
                  memoryType=None,
                  robotType=Sensation.RobotType.Muscle,
                  who=None,
-                 locations='',
+                 location='',
                  leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
                  azimuth = 0.0,                                             # Walle robotType relative to magnetic north pole
                  x=0.0, y=0.0, z=0.0, radius=0.0,                           # location and acceleration of Robot
@@ -158,7 +158,7 @@ class Memory(object):
                  memoryType=memoryType,
                  robotType=robotType,
                  who=who,
-                 locations=locations,
+                 location=location,
                  leftPower = leftPower, rightPower = rightPower,                         # Walle motors state
                  azimuth = azimuth,                                             # Walle robotType relative to magnetic north pole
                  x=x, y=y, z=z, radius=radius,                           # location and acceleration of Robot
@@ -414,7 +414,7 @@ class Memory(object):
         self.memoryLock.acquireRead()                  # read thread_safe
         sensations=[]
         for sensation in self.sensationMemory:
-            # accept sensations from all Locations #locations=[]) and
+            # accept sensations from all Locations #location='') and
             if capabilities.hasCapability(robotType=sensation.getRobotType(),
                                           memoryType=sensation.getMemoryType(),
                                           sensationType=sensation.getSensationType()) and\

@@ -20,7 +20,10 @@ Location has
 - X=0.0, Y=0.0, Z=0.0, radius=0.0   # location of Robot
 - name
 Implementation from Accelaration + name
-Firsts step is implement places-methods with SensationType.Place.
+Firsts step is implement Location-methods with SensationType.Location.
+
+Capabilities should not contain locations,
+but Config should have Locations -> Location
 
 
 Study directory strucrure

@@ -633,7 +633,7 @@ class Sensation(object):
                  memoryType=None,
                  robotType=RobotType.Sense,
                  who=None,
-                 locations=[],
+                 location='',
                  leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
                  azimuth = 0.0,                                             # Walle robotType relative to magnetic north pole
                  x=0.0, y=0.0, z=0.0, radius=0.0,                           # location and acceleration of Robot
@@ -705,7 +705,7 @@ class Sensation(object):
                 self.memoryType = memoryType
             self.robotType = robotType
             self.who = who
-            self.locations = locations
+            self.location = location
             self.leftPower = leftPower
             self.rightPower = rightPower
             self.hearDirection = hearDirection
@@ -775,12 +775,13 @@ class Sensation(object):
                                     
                 self.feeling = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER, signed=True)
                 i += Sensation.ID_SIZE
-                    
+                
+                # location is deprecated    
                 location_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
                 #print("location_size " + str(location_size))
                 i += Sensation.ID_SIZE
-                self.locations = Sensation.strToStrArray(Sensation.bytesToStr(bytes[i:i+location_size]))
-                i += location_size
+                self.location =Sensation.bytesToStr(bytes[i:i+location_size])
+                i += location_size                
                 
                 if self.sensationType is Sensation.SensationType.Drive:
                     self.leftPower = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
@@ -927,7 +928,7 @@ class Sensation(object):
         destination.robotType = source.robotType
         destination.feeling = source.feeling
         destination.who = source.who
-        destination.locations = source.locations
+        destination.location = source.location
         destination.leftPower = source.leftPower
         destination.rightPower = source.rightPower
         destination.hearDirection = source.hearDirection
@@ -983,7 +984,7 @@ class Sensation(object):
 
                  
     def __str__(self):
-        s=str(self.robotId) + ' ' + str(self.id) + ' ' + str(self.time) + ' ' + self.memoryType + ' ' + self.robotType + ' ' + self.sensationType+ ' ' + self.getLocationsStr()
+        s=str(self.robotId) + ' ' + str(self.id) + ' ' + str(self.time) + ' ' + self.memoryType + ' ' + self.robotType + ' ' + self.sensationType+ ' ' + self.getLocation()
         if self.sensationType == Sensation.SensationType.Drive:
             s +=  ' ' + str(self.leftPower) +  ' ' + str(self.rightPower)
         elif self.sensationType == Sensation.SensationType.HearDirection:
@@ -1050,7 +1051,7 @@ class Sensation(object):
 #             s=str(self.robotId) + ' ' + str(self.id) + ' ' + str(self.time) + ' ' + str(self.association_time) + ' ' + Sensation.getMemoryTypeString(self.memoryType) + ' ' + Sensation.getRobotTypeString(self.robotType) + ' ' + Sensation.getSensationTypeString(self.sensationType)
 #         else:
 #             s=self.__str__()
-        s = systemTime.ctime(self.time) + ':' + str(self.robotId) + ':' + str(self.id) + ':' + Sensation.getMemoryTypeString(self.memoryType) + ':' + Sensation.getRobotTypeString(self.robotType) + ':' + Sensation.getSensationTypeString(self.sensationType)+ ':' + self.getLocationsStr()+ ':'
+        s = systemTime.ctime(self.time) + ':' + str(self.robotId) + ':' + str(self.id) + ':' + Sensation.getMemoryTypeString(self.memoryType) + ':' + Sensation.getRobotTypeString(self.robotType) + ':' + Sensation.getSensationTypeString(self.sensationType)+ ':' + self.getLocation() + ':'
         ## OOPS Can be NoneType
         string = Sensation.getFeelingString(self.getFeeling())
         if string :
@@ -1060,7 +1061,7 @@ class Sensation(object):
         if self.sensationType == Sensation.SensationType.Voice:
             s = s + ':' + Sensation.getKindString(self.kind)
 #         elif self.sensationType == Sensation.SensationType.Image:
-#             s = s + ':' + self.getLocationsStr()
+#             s = s + ':' + self.getLocation()
         elif self.sensationType == Sensation.SensationType.Item:
             s = s + ':' + self.name + ':' + str(self.score) + ':' + Sensation.getPresenceString(self.presence)
         elif self.sensationType == Sensation.SensationType.Feeling:
@@ -1081,9 +1082,13 @@ class Sensation(object):
         b += Sensation.strToBytes(self.robotType)
         b += self.feeling.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER, signed=True)
         
-        location_size=len(self.getLocationsStr())
+#         location_size=len(self.getLocation())
+#         b +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
+#         b +=  Sensation.strToBytes(self.getLocation())
+        # location is deprecated
+        location_size=len(self.location)
         b +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
-        b +=  Sensation.strToBytes(self.getLocationsStr())
+        b +=  Sensation.strToBytes(self.location)            
 
         if self.sensationType is Sensation.SensationType.Drive:
             b += Sensation.floatToBytes(self.leftPower) + Sensation.floatToBytes(self.rightPower)
@@ -1582,20 +1587,23 @@ class Sensation(object):
     def getWho(self):
         return self.who
 
-    '''
-    locations are deprecated as a property and
-    now they support only one location
-    '''        
-    def setLocations(self, locations):
-        self.locations = locations
-    def getLocations(self):
-        if len(self.locations) > 0:
-            name = self.locations[0]
-            return [name]
-        return self.locations
-    def getLocationsStr(self):
-        #from Config import strArrayToStr
-        return Sensation.strArrayToStr(self.getLocations())
+#     '''
+#     locations are deprecated as a property and
+#     now they support only one location
+# they will be implemented assigning Other SentionTypes to
+# SensationType.Location
+# TODO Real implementation
+#     '''        
+    def setLocation(self, location):
+        self.location = location
+    def getLocation(self):
+        if self.location is None:
+            return ''
+        return self.location
+
+#     def getLocationsStr(self):
+#         #from Config import strArrayToStr
+#         return Sensation.strArrayToStr(self.getLocations())
       
     def setLeftPower(self, leftPower):
         self.leftPower = leftPower

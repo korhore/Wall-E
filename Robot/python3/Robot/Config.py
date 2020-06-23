@@ -1,6 +1,6 @@
 '''
 Created on 25.05.2019
-Edited 01.06.2020
+Edited 23.06.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -60,8 +60,8 @@ class Config(ConfigParser):
 #    Microphones =       'MICROPHONES' 
     WHO =               'Who' 
     WALLE =             'Wall-E'
-    LOCATIONS =          'locations' 
-    LOCATIONS_DEFAULT =  '' 
+    LOCATION =          'location' 
+    LOCATION_DEFAULT =   '' 
     KIND =              "Kind"
     INSTANCE =          "Instance"
     VIRTUALINSTANCES =  "Virtualinstances"
@@ -314,10 +314,10 @@ class Config(ConfigParser):
     def toBytes(self, section=LOCALHOST):
         from Sensation import Sensation
         b=b''
-        # first locations
-        location_size=len(self.getLocationsStr())
-        b +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
-        b +=  Sensation.strToBytes(self.getLocationsStr())
+#         # first locations
+#         location_size=len(self.getLocationsStr())
+#         b +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
+#         b +=  Sensation.strToBytes(self.getLocationsStr())
         
         # then capabilities
         for robotType in Sensation.RobotTypesOrdered:
@@ -585,11 +585,11 @@ class Config(ConfigParser):
             print('self.set(Config.DEFAULT_SECTION, Config.WHO, Sensation.WALLE) exception ' + str(e))
             
         try:                
-            if not self.has_option(Config.DEFAULT_SECTION, Config.LOCATIONS):
-                self.set(Config.DEFAULT_SECTION,Config.LOCATIONS, Config.strArrayToStr(Config.LOCATIONS_DEFAULT))
+            if not self.has_option(Config.DEFAULT_SECTION, Config.LOCATION):
+                self.set(Config.DEFAULT_SECTION,Config.LOCATION, Config.strArrayToStr(Config.LOCATION_DEFAULT))
                 self.is_changes=True
         except Exception as e:
-            print('self.set(Config.DEFAULT_SECTION, Config.LOCATIONS, Config.strArrayToStr(Config.LOCATIONS_DEFAULT) exception ' + str(e))
+            print('self.set(Config.DEFAULT_SECTION, Config.LOCATION, Config.strArrayToStr(Config.LOCATION_DEFAULT) exception ' + str(e))
 
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.KIND):
@@ -864,12 +864,9 @@ class Config(ConfigParser):
         who = self.get(section=section, option=self.WHO)
         return who
 
-    def getLocations(self, section=LOCALHOST):
-        self.locations=[]
-        locations = self.get(section=section, option=self.LOCATIONS)
-        if locations != None and len(locations) > 0:
-            self.locations = locations.split()
-        return self.locations
+    def getLocation(self, section=LOCALHOST):
+        location = self.get(section=section, option=self.LOCATION)
+        return location
         
     def getLocationsStr(self, section=LOCALHOST):
         return Config.strArrayToStr(self.getLocations(section=section))
@@ -1020,17 +1017,17 @@ class Capabilities():
     
     def __init__(self,
                  config=None,
-                 locations=[],
+#                  locations=[],
                  string=None,
                  bytes=None,
                  Or =None,
                  And=None,
                  deepCopy=None):
         self.config = config
-        # self.locations can be overwritten by bytes (or string, not tested)
-        self.locations = locations
-        if (self.locations is None or len(self.locations) == 0) and self.config is not None:
-            self.locations = self.config.getLocations()
+#         # self.locations can be overwritten by bytes (or string, not tested)
+#         self.locations = locations
+#         if (self.locations is None or len(self.locations) == 0) and self.config is not None:
+#             self.locations = self.config.getLocations()
 
         if string is not None:
             self.fromString(string=string)
@@ -1049,9 +1046,9 @@ class Capabilities():
                 bytes=self.config.toBytes()
     
             self.fromBytes(bytes=bytes)
-        # TDO is finally overwritten or not
-        if locations is not None and len(locations) != 0:
-            self.locations = locations
+#         # TODO is finally overwritten or not
+#         if locations is not None and len(locations) != 0:
+#             self.locations = locations
 
     
     '''
@@ -1065,12 +1062,12 @@ class Capabilities():
         # create three level dictionary about capabilitys by robotType, by memoryType, by sensation type
         i=0
         
-        #first location
-        location_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
-        #print("location_size " + str(location_size))
-        i += Sensation.ID_SIZE
-        self.locations = Sensation.strToStrArray(Sensation.bytesToStr(bytes[i:i+location_size]))
-        i += location_size
+#         #first location
+#         location_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
+#         #print("location_size " + str(location_size))
+#         i += Sensation.ID_SIZE
+#         self.locations = Sensation.strToStrArray(Sensation.bytesToStr(bytes[i:i+location_size]))
+#         i += location_size
        
         # then capabilities
         for robotType in Sensation.RobotTypesOrdered:
@@ -1092,10 +1089,10 @@ class Capabilities():
     def toBytes(self):
         from Sensation import Sensation
         bytes=b''
-        # first locations            
-        location_size=len(self.getLocationsStr())
-        bytes +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
-        bytes +=  Sensation.strToBytes(self.getLocationsStr())
+#         # first locations            
+#         location_size=len(self.getLocationsStr())
+#         bytes +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
+#         bytes +=  Sensation.strToBytes(self.getLocationsStr())
         
         # then capabilites
         for robotType in Sensation.RobotTypesOrdered:
@@ -1113,16 +1110,16 @@ class Capabilities():
         # handle first locations
         if string == None:
             string=self.config.toString()
-        locationsPlusCapabilities = Config.strToStrArray(string) 
-        # last string is capabilities
-        if len(locationsPlusCapabilities) > 1:
-            string = locationsPlusCapabilities[len(locationsPlusCapabilities)-1]
-            # other are locations
-            del locationsPlusCapabilities[len(locationsPlusCapabilities)-1]
-            self.locations = locationsPlusCapabilities
-        else:
-            self.locations=[]
-            string=''
+#         locationsPlusCapabilities = Config.strToStrArray(string) 
+#         # last string is capabilities
+#         if len(locationsPlusCapabilities) > 1:
+#             string = locationsPlusCapabilities[len(locationsPlusCapabilities)-1]
+#             # other are locations
+#             del locationsPlusCapabilities[len(locationsPlusCapabilities)-1]
+#             self.locations = locationsPlusCapabilities
+#         else:
+#             self.locations=[]
+#             string=''
                                                   
         self.directions={}
         i=0
@@ -1146,9 +1143,10 @@ class Capabilities():
     '''
     def toString(self):
         from Sensation import Sensation
-        string=self.getLocationsStr()
-        if len(string) > 0:
-            string += ' '
+#         string=self.getLocationsStr()
+#         if len(string) > 0:
+#             string += ' '
+        string = ''
         for robotType in Sensation.RobotTypesOrdered:
             for memoryType in Sensation.MemoryTypesOrdered:
                 for sensationType in Sensation.SensationTypesOrdered:
@@ -1198,13 +1196,13 @@ class Capabilities():
 #                 return True
 #         return False
     
-    def getLocations(self):
-        return self.locations
-    def getLocationsStr(self):
-        return Config.strArrayToStr(self.locations)
-    
-    def setLocations(self, locations):
-        self.locations = locations
+#     def getLocations(self):
+#         return self.locations
+#     def getLocationsStr(self):
+#         return Config.strArrayToStr(self.locations)
+#     
+#     def setLocations(self, locations):
+#         self.locations = locations
 
     '''
     Setter to set if single capability is set

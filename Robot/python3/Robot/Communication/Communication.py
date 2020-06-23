@@ -172,7 +172,7 @@ class Communication(Robot):
                     if self.mostImportantItemSensation is not None and self.mostImportantVoiceSensation is not None:
                         feelingSensation = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                           firstAssociateSensation=self.mostImportantItemSensation, otherAssociateSensation=self.mostImportantVoiceSensation,
-                                                          positiveFeeling=True, locations='')#self.getLocations()) # valid in this location, can be chosen other way
+                                                          positiveFeeling=True, location='')#self.getLocation()) # valid in this location, can be chosen other way
                         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
                     
                     if len(self.getMemory().presentItemSensations) > 0:          
@@ -254,7 +254,7 @@ class Communication(Robot):
             voiceind = random.randint(0, len(self.getMemory().getRobot().voiceSensations)-1)
             self.spokedVoiceSensation = self.createSensation( associations=[], sensation=self.getMemory().getRobot().voiceSensations[voiceind],
                                                               memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
-                                                              locations=self.getLocations())
+                                                              location=self.getLocation())
             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation) # or self.process
             self.log("speak: Starting with presenting Robot voiceind={} self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation={}".format(str(voiceind), self.spokedVoiceSensation.toDebugStr()))
             self.usedVoices.append(self.spokedVoiceSensation)
@@ -308,7 +308,7 @@ class Communication(Robot):
             
             self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: self.getMemory().getMostImportantSensation did find self.mostImportantItemSensation OK')
             self.spokedVoiceSensation = self.createSensation( sensation = self.mostImportantVoiceSensation, kind=self.getKind(),
-                                                              locations=self.getLocations() )
+                                                              location=self.getLocation() )
             # NOTE This is needed now, because Sensation.create parameters robotType and memoryType parameters are  overwritten by sensation parameters
             self.spokedVoiceSensation.setKind(self.getKind())
             self.spokedVoiceSensation.setRobotType(Sensation.RobotType.Muscle)  # speak        
@@ -348,7 +348,7 @@ class Communication(Robot):
         
             feelingSensation = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                     firstAssociateSensation=self.mostImportantItemSensation, otherAssociateSensation=self.mostImportantVoiceSensation,
-                                                    negativeFeeling=True, locations='')#self.getLocations()) # valid in this location, can be chosen also other way
+                                                    negativeFeeling=True, location='')#self.getLocation()) # valid in this location, can be chosen also other way
             self.log(logLevel=Robot.LogLevel.Normal, logStr="stopWaitingResponse: self.getParent().getAxon().put do")
             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
             self.log(logLevel=Robot.LogLevel.Normal, logStr="stopWaitingResponse: self.getParent().getAxon().put done")
