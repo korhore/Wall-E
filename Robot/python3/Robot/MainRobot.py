@@ -513,11 +513,11 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                  
         try:
             # tell who we are, speaking
-            sensation=MainRobot.getInstance().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Who, who=self.getWho())
-            self.log('run: sendSensation(sensation=Sensation(robot=MainRobot.getInstance(),sensationType = Sensation.SensationType.Who), sock=self.sock,'  + str(self.address) + ')')
+            sensation=MainRobot.getInstance().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Robot, robot=self.getWho())
+            self.log('run: sendSensation(sensation=Sensation(robot=MainRobot.getInstance(),sensationType = Sensation.SensationType.Robot), sock=self.sock,'  + str(self.address) + ')')
             self.running =  self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
             sensation.detach(robot=MainRobot.getInstance())
-            self.log('run: done sendSensation(sensation=Sensation(robot=MainRobot.getInstance(), sensationType = Sensation.SensationType.Who), sock=self.sock,'  + str(self.address) + ')')
+            self.log('run: done sendSensation(sensation=Sensation(robot=MainRobot.getInstance(), sensationType = Sensation.SensationType.Robot), sock=self.sock,'  + str(self.address) + ')')
             if self.running:
                  # tell our local capabilities
                  # it is important to deliver only local capabilities to the remote,

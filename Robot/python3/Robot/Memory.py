@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 22.06.2020
+Edited on 26.06.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -58,8 +58,8 @@ class Memory(object):
     minAvailMem = 50.0                                       # how available momory must be left. MainRobot sets this from its Config
     psutilProcess = psutil.Process(os.getpid())                    # get pid of current process, so we can calculate Process memory usage
     # Robot settings"
-    MemoryLogLevel = enum(Critical='a', Error='b', Normal='c', Detailed='d', Verbose='e')
-    
+    MemoryLogLevel = enum(No='a', Critical='b', Error='c', Normal='d', Detailed='e', Verbose='f')
+   
     def __init__(self,
                 robot,                          # owner robot
                 maxRss,
@@ -110,40 +110,43 @@ class Memory(object):
        
     def create(  self,
                  robot,                                                      # caller Robot, should be always given
+                 log=True,
                  associations = None,
                  sensation=None,
                  bytes=None,
                  id=None,
                  time=None,
                  receivedFrom=[],
-                 sensationType = Sensation.SensationType.Unknown,
-                 memoryType=None,
-                 robotType=Sensation.RobotType.Muscle,
-                 who=None,
-                 location='',
-                 leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
-                 azimuth = 0.0,                                             # Walle robotType relative to magnetic north pole
-                 x=0.0, y=0.0, z=0.0, radius=0.0,                           # location and acceleration of Robot
-                 hearDirection = 0.0,                                       # sound robotType heard by Walle, relative to Walle
-                 observationDirection= 0.0,observationDistance=-1.0,        # Walle's observation of something, relative to Walle
-                 filePath='',
-                 data=b'',
-                 image=None,
-                 calibrateSensationType = Sensation.SensationType.Unknown,
-                 capabilities = None,                                       # capabilities of sensorys, robotType what way sensation go
-                 name='',                                                   # name of Item
-                 score = 0.0,                                               # used at least with item to define how good was the detection 0.0 - 1.0
-                 presence=Sensation.Presence.Unknown,                       # presence of Item
-                 kind=Sensation.Kind.Normal,                                # Normal kind
-                 firstAssociateSensation=None,                              # associated sensation first side
-                 otherAssociateSensation=None,                              # associated Sensation other side
-                 feeling = Sensation.Feeling.Neutral,              # feeling of association
-                 positiveFeeling=False,                                     # change association feeling to more positive robotType if possible
-                 negativeFeeling=False):                                    # change association feeling to more negative robotType if possible
-        if sensation == None:             # not an update, create new one
-            self.log(logStr="Create new sensation by pure parameters for {}".format(robot.getWho()), logLevel=Memory.MemoryLogLevel.Normal)
-        else:
-            self.log(logStr="Create new sensation by parameter sensation and parameters for {}".format(robot.getWho()), logLevel=Memory.MemoryLogLevel.Normal)
+                 # base field are by default None, so we know what fields are given and what not
+                 sensationType = None,
+                 memoryType = None,
+                 robotType = None,
+                 location =  None,
+                 leftPower = None, rightPower = None,                        # Walle motors state
+                 azimuth = None,                                             # Walle robotType relative to magnetic north pole
+                 x=None, y=None, z=None, radius=None,                        # location and acceleration of Robot
+                 hearDirection = None,                                       # sound robotType heard by Walle, relative to Walle
+                 observationDirection = None,observationDistance = None,     # Walle's observation of something, relative to Walle
+                 filePath = None,
+                 data = None,                                                # ALSA voice is string (uncompressed voice information)
+                 image = None,                                               # Image internal representation is PIl.Image 
+                 calibrateSensationType = None,
+                 capabilities = None,                                        # capabilitis of sensorys, robotType what way sensation go
+                 name = None,                                                # name of Item
+                 score = None,                                               # used at least with item to define how good was the detection 0.0 - 1.0
+                 presence = None,                                            # presence of Item
+                 kind = None,                                                # kind (for instance voice)
+                 firstAssociateSensation = None,                             # associated sensation first side
+                 otherAssociateSensation = None,                             # associated Sensation other side
+                 feeling = None,                                             # feeling of sensation or association
+                 positiveFeeling = None,                                     # change association feeling to more positive robotType if possible
+                 negativeFeeling = None):                                    # change association feeling to more negative robotType if possible
+# commented out, we can get unfinite loop with log with getLocation, which uses Sensation.        
+#         if log:
+#             if sensation == None:             # not an update, create new one
+#                 self.log(logStr="Create new sensation by pure parameters for {}".format(robot.getWho()), logLevel=Memory.MemoryLogLevel.Normal)
+#             else:
+#                 self.log(logStr="Create new sensation by parameter sensation and parameters for {}".format(robot.getWho()), logLevel=Memory.MemoryLogLevel.Normal)
             
         sensation = Sensation(
                  memory=self,
@@ -157,13 +160,14 @@ class Memory(object):
                  sensationType = sensationType,
                  memoryType=memoryType,
                  robotType=robotType,
-                 who=who,
+                 robot=robot,
                  location=location,
                  leftPower = leftPower, rightPower = rightPower,                         # Walle motors state
-                 azimuth = azimuth,                                             # Walle robotType relative to magnetic north pole
-                 x=x, y=y, z=z, radius=radius,                           # location and acceleration of Robot
-                 hearDirection = hearDirection,                                       # sound robotType heard by Walle, relative to Walle
-                 observationDirection = observationDirection,observationDistance = observationDistance,        # Walle's observation of something, relative to Walle
+                 azimuth = azimuth,                                                      # Walle robotType relative to magnetic north pole
+                 x=x, y=y, z=z, radius=radius,                                           # location and acceleration of Robot
+                 hearDirection = hearDirection,                                          # sound robotType heard by Walle, relative to Walle
+                 observationDirection = observationDirection,
+                 observationDistance = observationDistance,                              # Walle's observation of something, relative to Walle
                  filePath=filePath,
                  data=data,
                  image=image,
@@ -188,7 +192,33 @@ class Memory(object):
                     sensation=oldSensation    # keep old sensation as it is
                 else:
                     #update old sensation
-                    Sensation.updateBaseFields(destination=oldSensation, source=sensation)
+                    Sensation.updateBaseFields(destination=oldSensation, source=sensation,
+                                               sensationType=sensationType,
+                                               memoryType=memoryType,
+                                               robotType=robotType,
+                                               robot=robot,
+                                               location=location,
+                                               leftPower=leftPower,rightPower=rightPower,                   # Walle motors state
+                                               azimuth=azimuth,                                             # Walle robotType relative to magnetic north pole
+                                               x=x, y=y, z=z, radius=radius,                                # location and acceleration of Robot
+                                               hearDirection=hearDirection,                                 # sound robotType heard by Walle, relative to Walle
+                                               observationDirection=observationDirection,
+                                               observationDistance=observationDistance,                     # Walle's observation of something, relative to Walle
+                                               filePath=filePath,
+                                               data=data,                                                   # ALSA voice is string (uncompressed voice information)
+                                               image=image,                                                 # Image internal representation is PIl.Image 
+                                               calibrateSensationType=calibrateSensationType,
+                                               capabilities=capabilities,                                   # capabilitis of sensorys, robotType what way sensation go
+                                               name=name,                                                   # name of Item
+                                               score=score,                                                 # used at least with item to define how good was the detection 0.0 - 1.0
+                                               presence=presence,                                           # presence of Item
+                                               kind=kind,                                                   # kind (for instance voice)
+                                               firstAssociateSensation=firstAssociateSensation,             # associated sensation first side
+                                               otherAssociateSensation=otherAssociateSensation,             # associated Sensation other side
+                                               feeling=feeling,                                             # feeling of sensation or association
+                                               positiveFeeling=positiveFeeling,                             # change association feeling to more positive robotType if possible
+                                               negativeFeeling=negativeFeeling)                                       
+                                               
                     for associationIds in sensation.potentialAssociations:
                         associateSensation = self.getSensationFromSensationMemory(id=associationIds.getSensationId())
                         if associateSensation is not None:
@@ -219,7 +249,7 @@ class Memory(object):
                self.tracePresents(sensation)
         # assign other than Feeling sensations
         if sensation.getSensationType() != Sensation.SensationType.Feeling:
-            self.assign(sensation)
+            self.assign(log = log, sensation=sensation)
         
         return sensation
     
@@ -252,8 +282,9 @@ class Memory(object):
     TODO Study if present presentItemSensations and present functionality
     should be moved from Robot to Memory
     '''
-    def assign(self, sensation):
-        self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='assign: sensation ' + systemTime.ctime(sensation.getTime()) +  ' ' + sensation.toDebugStr())
+    def assign(self, sensation, log=True):
+        if log:
+            self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='assign: sensation ' + systemTime.ctime(sensation.getTime()) +  ' ' + sensation.toDebugStr())
         #self.getMemory().getRobot().presentItemSensations can be changed
         #TODO logic can lead to infinite loop
         succeeded = False
@@ -263,14 +294,16 @@ class Memory(object):
                     if sensation is not itemSensation and\
                        sensation.getTime() >=  itemSensation.getTime():
                         # and len(itemSensation.getAssociations()) < Sensation.ASSOCIATIONS_MAX_ASSOCIATIONS: #removed limitation
-                        self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='assign: itemSensation= ' +  itemSensation.toDebugStr() + ' sensation= ' + sensation.toDebugStr())
+                        if log:
+                            self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='assign: itemSensation= ' +  itemSensation.toDebugStr() + ' sensation= ' + sensation.toDebugStr())
                         itemSensation.associate(sensation=sensation)
                     else:
                         self.log(logLevel=Memory.MemoryLogLevel.Detailed, logStr='assign: sensation ignored not newer than present itemSensation or sensation is present itemSensation= ' + itemSensation.toDebugStr() + ' sensation= ' + sensation.toDebugStr())
                 succeeded = True
             except Exception as e:
-                 self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='assign: ignored exception ' + str(e))
-                 succeeded = True
+                if log:
+                    self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='assign: ignored exception ' + str(e))
+                succeeded = True
         
     '''
     process Sensation
@@ -803,6 +836,9 @@ class Memory(object):
     '''
     
     def log(self, logStr, logLevel=MemoryLogLevel.Normal):
-        self.getRobot().log(logStr=logStr, logLevel=logLevel)
+        # should test, if we have initiated Robot enough
+        if hasattr(self.getRobot(), 'selfSensation') and\
+           self.getRobot().logLevel != Memory.MemoryLogLevel.No:
+            self.getRobot().log(logStr=logStr, logLevel=logLevel)
     
    

@@ -68,8 +68,8 @@ class Speaking(Robot):
 #         elif sensation.getSensationType() == Sensation.SensationType.Stop:
 #             self.log('process: SensationSensationType.Stop')      
 #             self.stop()
-#         elif sensation.getSensationType() == Sensation.SensationType.Who:
-#             print (self.name + ": Robotserver.process Sensation.SensationType.Who")
+#         elif sensation.getSensationType() == Sensation.SensationType.Robot:
+#             print (self.name + ": Robotserver.process Sensation.SensationType.Robot")
 #             
 #         # TODO study what capabilities out subrobots have ins put sensation to them
 #         elif self.config.canHear() and sensation.getSensationType() == Sensation.SensationType.HearDirection:

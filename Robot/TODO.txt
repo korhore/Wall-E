@@ -12,7 +12,101 @@ OPPS clear configuration!
 Develop
 -------
 
-Back to basics. Study Location(s) if is a Sensation, not a special properity. Robot own it.
+Back to basics.
+- Make Sensation immutable
+- remove all set-methods
+-- setTime
+--- used in test methods
+-- setId
+--- used once in test method
+-- setRobotId
+--- used once in Robot.py
+-- setSensationType
+--- not used
+-- setRobotType
+--- used once in Communication.py
+-- setWho
+--- not used
+-- setLocation
+--- used in test methods
+-- setLeftPower
+--- not used
+-- setRightPower
+--- not used
+-- setHearDirection
+--- not used
+-- setAzimuth
+--- not used
+-- setX
+--- not used
+-- setY
+--- not used
+-- setZ
+--- not used
+-- setRadius
+--- not used
+-- setObservationDirection
+--- not used
+-- setObservationDistance
+--- not used
+-- setData
+--- not used
+-- setImage
+--- not used
+-- setFilePath
+--- used 2 times in Sensation.py
+-- setCapabilities
+--- not used
+-- setName
+--- idef in tests
+-- setScore
+--- not used
+-- setPresence
+--- used in tests
+-- setKind
+--- not used
+-- setFirstAssociateSensation
+--- not used
+-- setOtherAssociateSensation
+--- not used
+-- setFeeling
+--- not used
+-- setPositiveFeeling
+--- not used
+-- setNegativeFeeling
+--- not used
+- When creating Sensation, first copy propertieds from sensation-parameter
+  and then overwite properties, that are not default ones.
+- All are Sensations
+- Make Robot a SensationType and Sensation
+-- Robot class itself can't be Sensation, because it is nutable and Thread class denies mutability.
+   Only solution is aggregate selfSensation and proviice functionality by that.
+   We can implement association and use one Sensation to keep all Sensation information.
+-- SensationType
+--- Keep Configuration Who
+--- Who -> Robot Who -> Robot
+--- who -> robot
+--- WHO -> ROBOT
+- Make Capabilities Sensation
+- With those you can assign
+  -- Robot to 1 Capabilities
+  -- Robot to many location
+  --- Robot know its Locations its capabilities are valid
+  --- Robot know its subrobots capabilities, becausu they can tell it. Routing can be done
+  --- LATER We could study Star connected Robots, not only Up and Down, Parent - Children.
+  -- Put in SensationType.Robot
+  --- name
+  --- Capabilities
+  --- location
+-- NO NO Assosiation is simple inner class of Sensation. i,plementing associations between Sensations.
+   It includes properties of associations and there is now only one, Feeling and this is the way to
+   present what Robot feel of this association. It is fine.  
+-- We should also repalce Association with SensationType.Feeling. This is association, but
+   relationship is 1:n, not 1:1, but at first SensationType.Feeling should work fine.
+   Make test for this. First Sensation.associate should create SensationType.Feeling-type Sensation
+   to assiciations-array.
+  
+- Study Location(s) if is a Sensation, not a special properity. Robot own it.
 It can have name as not, but also coordinates.
 We can decide, if Robot has enough knowledge to route Sensations down by location and Capabilities as now.
 or if Robot decides itself what to do with a Sensation. Sensations are assigned to Location Sensation.

@@ -74,7 +74,7 @@ class RaspberryPiCamera(Robot):
         self.debug_time=time.time()
         
     def run(self):
-        self.log(" Starting robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))      
+        self.log(" Starting robot robot " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))      
         
         # starting other threads/senders/capabilities
         

@@ -43,13 +43,13 @@ class MemoryTestCase(unittest.TestCase):
         self.sensation.delete()
         
     def test_Memorybility(self):        
-        workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working, name='Working_test',presence=Sensation.Presence.Exiting)
-        self.assertEqual(workingSensation.getPresence(), Sensation.Presence.Exiting, "should be exiting")
+        workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working, name='Working_test',presence=Sensation.Presence.Absent)
+        self.assertEqual(workingSensation.getPresence(), Sensation.Presence.Absent, "should be Absent")
         self.assertIsNot(workingSensation, None)
         self.assertEqual(len(workingSensation.getAssociations()), 0)
 
-        longTermSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.LongTerm, name='LongTerm',presence=Sensation.Presence.Exiting)
-        self.assertEqual(longTermSensation.getPresence(), Sensation.Presence.Exiting, "should be exiting")
+        longTermSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.LongTerm, name='LongTerm',presence=Sensation.Presence.Absent)
+        self.assertEqual(longTermSensation.getPresence(), Sensation.Presence.Absent, "should be Absent")
         self.assertIsNot(longTermSensation, None)
         self.assertEqual(len(longTermSensation.getAssociations()), 0)
 
@@ -496,7 +496,7 @@ class MemoryTestCase(unittest.TestCase):
         self.assertEqual(fromBytesWorkingSensation, workingSensation, "should be equal")
         self.assertEqual(fromBytesWorkingSensation.getId(), workingSensation.getId(), "should be equal")
         self.assertEqual(self.robot.getMemory().getSensationFromSensationMemory(fromBytesWorkingSensation.getId()).getId(), workingSensation.getId(), "should be equal")
-        # TODO Fealing
+        # TODO Feeling
         
 
         receivedFrom=['127.0.0.1', '192.168.0.0.1', '10.0.0.1']
@@ -510,8 +510,8 @@ class MemoryTestCase(unittest.TestCase):
         self.assertTrue(fromBytesWorkingSensation.getReceivedFrom() == receivedFrom, "should be equal")
 
         data=b'\x01\x02'
-        locations=['testLocations', 'a']
-        voiceSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, locations=locations, kind=Sensation.Kind.Eva)
+        location='testLocation'
+        voiceSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, location=location, kind=Sensation.Kind.Eva)
 
         self.assertFalse(voiceSensation.isForgettable(), "should be False, until detached")
         voiceSensation.detach(robot=self.robot)
@@ -526,7 +526,7 @@ class MemoryTestCase(unittest.TestCase):
         self.assertEqual(voiceSensation, fromBytesVoiceSensation, "should be equal")
         self.assertEqual(voiceSensation.getKind(), fromBytesVoiceSensation.getKind(), "should be equal")
         self.assertEqual(voiceSensation.getData(), fromBytesVoiceSensation.getData(), "should be equal")
-        self.assertEqual(voiceSensation.getLocations(), fromBytesVoiceSensation.getLocations(), "should be equal")
+        self.assertEqual(voiceSensation.getLocation(), fromBytesVoiceSensation.getLocation(), "should be equal")
        
         self.assertFalse(fromBytesVoiceSensation.isForgettable(), "should be False, until detached")
         fromBytesVoiceSensation.detach(robot=self.robot)
@@ -534,8 +534,8 @@ class MemoryTestCase(unittest.TestCase):
  
         # Image
         
-        locations=['testLocations2','b']
-        imageSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.Sensory, data=data, locations=locations, kind=Sensation.Kind.Eva)
+        location='testLocation2'
+        imageSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.Sensory, data=data, location=location, kind=Sensation.Kind.Eva)
 
         self.assertFalse(imageSensation.isForgettable(), "should be False, until detached")
         imageSensation.detach(robot=self.robot)
@@ -547,7 +547,7 @@ class MemoryTestCase(unittest.TestCase):
 
         self.assertTrue(imageSensation == fromBytesImageSensation, "should be equal")
         self.assertTrue(imageSensation.getImage() == fromBytesImageSensation.getImage(), "should be equal") # empty image, not given in creation, TODO
-        self.assertTrue(imageSensation.getLocations() == fromBytesImageSensation.getLocations(), "should be equal")
+        self.assertTrue(imageSensation.getLocation() == fromBytesImageSensation.getLocation(), "should be equal")
         
         self.assertFalse(fromBytesImageSensation.isForgettable(), "should be False, until detached")
         fromBytesImageSensation.detach(robot=self.robot)
@@ -657,7 +657,8 @@ class MemoryTestCase(unittest.TestCase):
         # make new older sensation and association to it
         # make associations to younger one
         
-        olderVoiceSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, locations=locations, kind=Sensation.Kind.Eva)
+        olderVoiceSensation = self.robot.createSensation(#time = systemTime.time()-5.0,
+                                                         associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, location=location, kind=Sensation.Kind.Eva)
         olderLongTermSensation = self.robot.createSensation(#time = systemTime.time()-10.0,
                                                             associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.LongTerm, name=self.OLDER_LONGTERM_ITEM_NAME,presence=Sensation.Presence.Present, receivedFrom=receivedFrom)
         self.assertTrue(olderLongTermSensation != None, "should be created")
@@ -665,26 +666,27 @@ class MemoryTestCase(unittest.TestCase):
         
         olderLongTermSensation.associate(sensation=olderVoiceSensation,
                                          feeling=MemoryTestCase.NORMAL_FEELING)
-        self.assertEqual(len(olderLongTermSensation.getAssociations()), 1)
+        self.assertEqual(len(olderLongTermSensation.getAssociations()), 2)#
         olderAssociation = olderLongTermSensation.getAssociation(sensation=olderVoiceSensation)
         self.assertTrue(olderAssociation.getTime() <  systemTime.time(), "should be older than present")
 
         # create now younger sensation and association
-        youngerVoiceSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, locations=locations, kind=Sensation.Kind.Eva)
-        youngerLongTermSensation = self.robot.createSensation(#time = systemTime.time()-10.0,
+        youngerVoiceSensation = self.robot.createSensation(#time = systemTime.time()-2.0,
+                                                           associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, location=location, kind=Sensation.Kind.Eva)
+        youngerLongTermSensation = self.robot.createSensation(#time = systemTime.time()-1.0,
                                                               associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.LongTerm, name=self.OLDER_LONGTERM_ITEM_NAME,presence=Sensation.Presence.Present, receivedFrom=receivedFrom)
         self.assertTrue(youngerLongTermSensation != None, "should be created")
         self.assertTrue(youngerLongTermSensation.getTime() <  systemTime.time(), "should be older than present")
         
         youngerLongTermSensation.associate(sensation=youngerVoiceSensation,
-                                         feeling=MemoryTestCase.NORMAL_FEELING)
-        self.assertEqual(len(youngerLongTermSensation.getAssociations()), 1)
+                                          feeling=MemoryTestCase.NORMAL_FEELING)
+        self.assertEqual(len(youngerLongTermSensation.getAssociations()), 2)# 1
         youngerAssociation = youngerLongTermSensation.getAssociation(sensation=youngerVoiceSensation)
         self.assertTrue(youngerAssociation.getTime() <  systemTime.time(), "should be older than present")
         
         #compare times
-        self.assertTrue(olderAssociation.getTime() <  youngerLongTermSensation.getTime(), "older should be older than younger")
-        self.assertTrue(olderAssociation.getTime() <  youngerAssociation.getTime(), "older should be older than younger")
+        self.assertTrue(olderAssociation.getTime() <  youngerLongTermSensation.getTime(), "older {} should be older than younger {}".format(olderAssociation.getTime(), youngerLongTermSensation.getTime()))
+        self.assertTrue(olderAssociation.getTime() <  youngerAssociation.getTime(), "older {} should be older than younger {}".format(olderAssociation.getTime(), youngerAssociation.getTime()))
         
         # manipulate sensation ids and times same
         # make same id so we have two copies of same Sensation
@@ -702,7 +704,7 @@ class MemoryTestCase(unittest.TestCase):
         #but item name should come from newer one
         self.assertEqual(fromByteslongTermSensation.getName(),  youngerLongTermSensation.getName(), "name should be from younger")
         
-        self.assertEqual(len(fromByteslongTermSensation.getAssociations()), 2)  # now old one + new one TODO is this OK
+        self.assertEqual(len(fromByteslongTermSensation.getAssociations()), 3) #2 # now old one + new one TODO is this OK
         fromBytesAssociation = fromByteslongTermSensation.getAssociation(sensation=youngerVoiceSensation)
         self.assertEqual(youngerAssociation.getSensation(),fromBytesAssociation.getSensation(), "should be equal")
 
@@ -718,7 +720,7 @@ class MemoryTestCase(unittest.TestCase):
         #but item name should come from newer one
         self.assertEqual(fromByteslongTermSensation.getName(),  youngerLongTermSensation.getName(), "name should be from younger")
         
-        self.assertEqual(len(fromByteslongTermSensation.getAssociations()), 2) # now old one + new one TODO is this OK
+        self.assertEqual(len(fromByteslongTermSensation.getAssociations()), 3) # 2# now old one + new one TODO is this OK
         fromBytesAssociation = fromByteslongTermSensation.getAssociation(sensation=youngerVoiceSensation)
         self.assertEqual(youngerAssociation.getSensation(),fromBytesAssociation.getSensation(), "should be equal")
                

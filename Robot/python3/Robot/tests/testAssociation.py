@@ -67,7 +67,7 @@ class AssociationTestCase(unittest.TestCase):
 #                  sensationType = Sensation.SensationType.Unknown,
 #                  memoryType = Sensation.MemoryType.Sensory,
 #                  robotType=Sensation.RobotType.Muscle,
-#                  who=None,
+#                  robot=None,
 #                  leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
 #                  azimuth = 0.0,                                             # Walle robotType relative to magnetic north pole
 #                  x=0.0, y=0.0, z=0.0,   # acceleration of walle, coordinates relative to walle
@@ -94,7 +94,7 @@ class AssociationTestCase(unittest.TestCase):
 #                  sensationType = sensationType,
 #                  memoryType=memoryType,
 #                  robotType=robotType,
-#                  who=who,
+#                  robot=robot,
 #                  leftPower = leftPower, rightPower = rightPower,
 #                  azimuth = azimuth,
 #                  x=x, y = y, z = z,

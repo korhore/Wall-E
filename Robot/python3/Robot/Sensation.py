@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 22.06.2020
+Edited on 26.06.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -100,7 +100,7 @@ class Sensation(object):
     FALSE_AS_STR  =     'F'
      
     # so many sensationtypes, that first letter is not good idea any more  
-    SensationType = enum(Drive='a', Stop='b', Who='c', Azimuth='d', Acceleration='e', Location='f', Observation='g', HearDirection='h', Voice='i', Image='j',  Calibrate='k', Capability='l', Item='m', Feeling='n', Unknown='o')
+    SensationType = enum(Drive='a', Stop='b', Robot='c', Azimuth='d', Acceleration='e', Location='f', Observation='g', HearDirection='h', Voice='i', Image='j',  Calibrate='k', Capability='l', Item='m', Feeling='n', Unknown='o')
     # RobotType of a sensation. Example in Voice: Muscle: Speaking,  Sense: Hearing In->Muscle Out->Sense
     RobotType = enum(Muscle='M', Sense='S')
     # RobotType of a sensation transferring, used with Axon. Up: going up like fron AlsaMicroPhone to MainRobot, Down: going down from MainRobot to leaf Robots like AlsaPlayback
@@ -122,7 +122,7 @@ class Sensation(object):
     LONG_TERM="LongTerm"
     DRIVE="Drive"
     STOP="Stop"
-    WHO="Who"
+    ROBOT="Robot"
     AZIMUTH="Azimuth"
     ACCELERATION="Acceleration"
     LOCATION="Location"
@@ -173,7 +173,7 @@ class Sensation(object):
     SensationTypes={
                SensationType.Drive: DRIVE,
                SensationType.Stop: STOP,
-               SensationType.Who: WHO,
+               SensationType.Robot: ROBOT,
                SensationType.Azimuth: AZIMUTH,
                SensationType.Acceleration: ACCELERATION,
                SensationType.Location: LOCATION,
@@ -189,7 +189,7 @@ class Sensation(object):
     SensationTypesOrdered=(
                SensationType.Drive,
                SensationType.Stop,
-               SensationType.Who,
+               SensationType.Robot,
                SensationType.Azimuth,
                SensationType.Acceleration,
                SensationType.Location,
@@ -629,30 +629,31 @@ class Sensation(object):
                  id=None,
                  time=None,
                  receivedFrom=[],
-                 sensationType = SensationType.Unknown,
-                 memoryType=None,
-                 robotType=RobotType.Sense,
-                 who=None,
-                 location='',
-                 leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
-                 azimuth = 0.0,                                             # Walle robotType relative to magnetic north pole
-                 x=0.0, y=0.0, z=0.0, radius=0.0,                           # location and acceleration of Robot
-                 hearDirection = 0.0,                                       # sound robotType heard by Walle, relative to Walle
-                 observationDirection= 0.0,observationDistance=-1.0,        # Walle's observation of something, relative to Walle
-                 filePath='',
-                 data=b'',                                                  # ALSA voice is string (uncompressed voice information)
-                 image=None,                                                # Image internal representation is PIl.Image 
-                 calibrateSensationType = SensationType.Unknown,
-                 capabilities = None,                                       # capabilitis of sensorys, robotType what way sensation go
-                 name = '',                                                 # name of Item
-                 score = 0.0,                                               # used at least with item to define how good was the detection 0.0 - 1.0
-                 presence = Presence.Unknown,                               # presence of Item
-                 kind=Kind.Normal,                                          # kind (for instance voice)
-                 firstAssociateSensation = None,                            # associated sensation first side
-                 otherAssociateSensation = None,                            # associated Sensation other side
-                 feeling = Feeling.Neutral,                                 # feeling of sensation or association
-                 positiveFeeling=False,                                     # change association feeling to more positive robotType if possible
-                 negativeFeeling=False):                                    # change association feeling to more negative robotType if possible
+                 # base field are by default None, so we know what fields are given and what not
+                 sensationType = None,
+                 memoryType = None,
+                 robotType = None,
+                 robot = None,
+                 location =  None,
+                 leftPower = None, rightPower = None,                        # Walle motors state
+                 azimuth = None,                                             # Walle robotType relative to magnetic north pole
+                 x=None, y=None, z=None, radius=None,                        # location and acceleration of Robot
+                 hearDirection = None,                                       # sound robotType heard by Walle, relative to Walle
+                 observationDirection = None,observationDistance = None,     # Walle's observation of something, relative to Walle
+                 filePath = None,
+                 data = None,                                                # ALSA voice is string (uncompressed voice information)
+                 image = None,                                               # Image internal representation is PIl.Image 
+                 calibrateSensationType = None,
+                 capabilities = None,                                        # capabilitis of sensorys, robotType what way sensation go
+                 name = None,                                                # name of Item
+                 score = None,                                               # used at least with item to define how good was the detection 0.0 - 1.0
+                 presence = None,                                            # presence of Item
+                 kind = None,                                                # kind (for instance voice)
+                 firstAssociateSensation = None,                             # associated sensation first side
+                 otherAssociateSensation = None,                             # associated Sensation other side
+                 feeling = None,                                             # feeling of sensation or association
+                 positiveFeeling = None,                                     # change association feeling to more positive robotType if possible
+                 negativeFeeling = None):                                    # change association feeling to more negative robotType if possible
                                        
         from Config import Capabilities
         self.time=time
@@ -679,57 +680,115 @@ class Sensation(object):
         # associations are always both way
         if sensation is not None:   # copy constructor
             # associate makes both sides
-            Sensation.updateBaseFields(destination=self, source=sensation)
+            Sensation.updateBaseFields(destination=self, source=sensation,
+                                       sensationType=sensationType,
+                                       memoryType=memoryType,
+                                       robotType=robotType,
+                                       robot=robot,
+                                       location=location,
+                                       leftPower=leftPower,rightPower=rightPower,                   # Walle motors state
+                                       azimuth=azimuth,                                             # Walle robotType relative to magnetic north pole
+                                       x=x, y=y, z=z, radius=radius,                                # location and acceleration of Robot
+                                       hearDirection=hearDirection,                                 # sound robotType heard by Walle, relative to Walle
+                                       observationDirection=observationDirection,
+                                       observationDistance=observationDistance,                     # Walle's observation of something, relative to Walle
+                                       filePath=filePath,
+                                       data=data,                                                   # ALSA voice is string (uncompressed voice information)
+                                       image=image,                                                 # Image internal representation is PIl.Image 
+                                       calibrateSensationType=calibrateSensationType,
+                                       capabilities=capabilities,                                   # capabilitis of sensorys, robotType what way sensation go
+                                       name=name,                                                   # name of Item
+                                       score=score,                                                 # used at least with item to define how good was the detection 0.0 - 1.0
+                                       presence=presence,                                           # presence of Item
+                                       kind=kind,                                                   # kind (for instance voice)
+                                       firstAssociateSensation=firstAssociateSensation,             # associated sensation first side
+                                       otherAssociateSensation=otherAssociateSensation,             # associated Sensation other side
+                                       feeling=feeling,                                             # feeling of sensation or association
+                                       positiveFeeling=positiveFeeling,                             # change association feeling to more positive robotType if possible
+                                       negativeFeeling=negativeFeeling)                                       
             for association in sensation.associations:
                 self.associate(sensation=association.sensation,
                                time=association.time,
                                feeling=association.feeling)
                 
             self.receivedFrom=sensation.receivedFrom
-            self.sensationType = sensation.sensationType
-            if memoryType == None:
-                self.memoryType = sensation.memoryType
-            else:
-                self.memoryType = memoryType
+#             self.sensationType = sensation.sensationType
+#             if memoryType == None:
+#                 self.memoryType = sensation.memoryType
+#             else:
+#                 self.memoryType = memoryType
                 
             # We have here put values from sensation, but we should
             # also set values that are overwritten
             # and we don't know them exactly
             # so we don't set then, but code should use set methods itself explicitly
+            
+            # only way to solve this is set default values to None and fot every
+            # property set only those propertys, that are bot None
+            
+            # this will cause that, that if vontructor, where no sensation is given,
+            # we should set default value by habd.
 
-        else:                
-            self.sensationType = sensationType
-            if memoryType == None:
-                self.memoryType = Sensation.MemoryType.Sensory
-            else:
-                self.memoryType = memoryType
-            self.robotType = robotType
-            self.who = who
-            self.location = location
-            self.leftPower = leftPower
-            self.rightPower = rightPower
-            self.hearDirection = hearDirection
-            self.azimuth = azimuth
-            self.x = x
-            self.y = y
-            self.z = z
-            self.radius = radius
-            self.observationDirection = observationDirection
-            self.observationDistance = observationDistance
-            self.filePath = filePath
-            self.data = data
-            self.image = image
-            self.calibrateSensationType = calibrateSensationType
-            self.capabilities = capabilities
-            self.name = name
-            self.score = score
-            self.presence = presence
-            self.kind = kind
-            self.firstAssociateSensation = firstAssociateSensation
-            self.otherAssociateSensation = otherAssociateSensation
-            self.feeling = feeling
-            self.positiveFeeling = positiveFeeling
-            self.negativeFeeling = negativeFeeling
+        else:            
+            Sensation.setBaseFields(   destination=self,
+                                       sensationType=sensationType,
+                                       memoryType=memoryType,
+                                       robotType=robotType,
+                                       robot=robot,
+                                       location=location,
+                                       leftPower=leftPower,rightPower=rightPower,                   # Walle motors state
+                                       azimuth=azimuth,                                             # Walle robotType relative to magnetic north pole
+                                       x=x, y=y, z=z, radius=radius,                                # location and acceleration of Robot
+                                       hearDirection=hearDirection,                                 # sound robotType heard by Walle, relative to Walle
+                                       observationDirection=observationDirection,
+                                       observationDistance=observationDistance,                     # Walle's observation of something, relative to Walle
+                                       filePath=filePath,
+                                       data=data,                                                   # ALSA voice is string (uncompressed voice information)
+                                       image=image,                                                 # Image internal representation is PIl.Image 
+                                       calibrateSensationType=calibrateSensationType,
+                                       capabilities=capabilities,                                   # capabilitis of sensorys, robotType what way sensation go
+                                       name=name,                                                   # name of Item
+                                       score=score,                                                 # used at least with item to define how good was the detection 0.0 - 1.0
+                                       presence=presence,                                           # presence of Item
+                                       kind=kind,                                                   # kind (for instance voice)
+                                       firstAssociateSensation=firstAssociateSensation,             # associated sensation first side
+                                       otherAssociateSensation=otherAssociateSensation,             # associated Sensation other side
+                                       feeling=feeling,                                             # feeling of sensation or association
+                                       positiveFeeling=positiveFeeling,                             # change association feeling to more positive robotType if possible
+                                       negativeFeeling=negativeFeeling)                                       
+                          
+#             self.sensationType = sensationType
+#             if memoryType == None:
+#                 self.memoryType = Sensation.MemoryType.Sensory
+#             else:
+#                 self.memoryType = memoryType
+#             self.robotType = robotType
+#             self.robot = robot
+#             self.location = location
+#             self.leftPower = leftPower
+#             self.rightPower = rightPower
+#             self.hearDirection = hearDirection
+#             self.azimuth = azimuth
+#             self.x = x
+#             self.y = y
+#             self.z = z
+#             self.radius = radius
+#             self.observationDirection = observationDirection
+#             self.observationDistance = observationDistance
+#             self.filePath = filePath
+#             self.data = data
+#             self.image = image
+#             self.calibrateSensationType = calibrateSensationType
+#             self.capabilities = capabilities
+#             self.name = name
+#             self.score = score
+#             self.presence = presence
+#             self.kind = kind
+#             self.firstAssociateSensation = firstAssociateSensation
+#             self.otherAssociateSensation = otherAssociateSensation
+#             self.feeling = feeling
+#             self.positiveFeeling = positiveFeeling
+#             self.negativeFeeling = negativeFeeling
 
             self.attachedBy = []
            
@@ -920,38 +979,351 @@ class Sensation(object):
             # but should we check it here or elsewhere
             
     '''
+    set base fields
+    '''
+    def setBaseFields(destination,
+                      sensationType,
+                      memoryType,
+                      robotType,
+                      robot,
+                      location,
+                      leftPower, rightPower,                            # Walle motors state
+                      azimuth,                                          # Walle robotType relative to magnetic north pole
+                      x, y, z, radius,                                  # location and acceleration of Robot
+                      hearDirection,                                    # sound robotType heard by Walle, relative to Walle
+                      observationDirection,observationDistance,         # Walle's observation of something, relative to Walle
+                      filePath,
+                      data,                                             # ALSA voice is string (uncompressed voice information)
+                      image,                                            # Image internal representation is PIl.Image 
+                      calibrateSensationType,
+                      capabilities,                                     # capabilitis of sensorys, robotType what way sensation go
+                      name,                                             # name of Item
+                      score,                                            # used at least with item to define how good was the detection 0.0 - 1.0
+                      presence,                                         # presence of Item
+                      kind,                                             # kind (for instance voice)
+                      firstAssociateSensation,                          # associated sensation first side
+                      otherAssociateSensation,                          # associated Sensation other side
+                      feeling,                                          # feeling of sensation or association
+                      positiveFeeling,                                  # change association feeling to more positive robotType if possible
+                      negativeFeeling):                                 # change association feeling to more negative robotType if possible
+        if sensationType is not None:
+            destination.sensationType = sensationType
+        else:
+            destination.sensationType = Sensation.SensationType.Unknown
+            
+        if memoryType is not None:
+            destination.memoryType = memoryType
+        else:
+            destination.memoryType = Sensation.MemoryType.Sensory
+
+        if robotType is not None:
+            destination.robotType = robotType
+        else:
+            destination.robotType =  Sensation.RobotType.Sense
+
+        if robot is not None:
+            destination.robot = robot
+        else:
+            destination.robot = None
+            
+        if location is not None:
+            destination.location = location
+        else:
+            destination.location = ''
+            
+        if leftPower is not None:
+            destination.leftPower = leftPower
+        else:
+            destination.leftPower = 0.0
+
+        if rightPower is not None:
+            destination.rightPower = rightPower
+        else:
+            destination.rightPower = 0.0
+
+        if hearDirection is not None:
+            destination.hearDirection = hearDirection
+        else:
+            destination.hearDirection = 0.0
+
+        if azimuth is not None:
+            destination.azimuth = azimuth
+        else:
+            destination.azimuth =  0.0
+        
+        if x is not None:
+            destination.x = x
+        else:
+            destination.x = 0.0
+        
+        if y is not None:
+            destination.y = y
+        else:
+            destination.y = 0.0
+                
+        if z is not None:
+            destination.z = z
+        else:
+            destination.z = 0.0
+        
+        if radius is not None:
+            destination.radius = radius
+        else:
+            destination.radius = 0.0
+
+        if observationDirection is not None:
+            destination.observationDirection = observationDirection
+        else:
+            destination.observationDirection = 0.0
+
+        if observationDistance is not None:
+            destination.observationDistance = observationDistance
+        else:
+            destination.observationDistance = 0.0
+
+        if filePath is not None:
+            destination.filePath = filePath
+        else:
+            destination.filePath = ''
+            
+        if data is not None:
+            destination.data = data
+        else:
+            destination.data = b''
+            
+        if image is not None:
+            destination.image = image
+        else:
+            destination.image = None
+            
+        if calibrateSensationType is not None:
+            destination.calibrateSensationType = calibrateSensationType
+        else:
+            destination.calibrateSensationType = Sensation.SensationType.Unknown
+            
+        if capabilities is not None:
+            destination.capabilities = capabilities
+        else:
+            destination.capabilities = None
+            
+        if name is not None:
+            destination.name = name
+        else:
+            destination.name = ''
+            
+        if score is not None:
+            destination.score = score
+        else:
+            destination.score = 0.0
+            
+        if presence is not None:
+            destination.presence = presence
+        else:
+            destination.presence = Sensation.Presence.Unknown
+            
+        if kind is not None:
+            destination.kind = kind
+        else:
+            destination.kind = Sensation.Kind.Normal
+            
+        if firstAssociateSensation is not None:
+            destination.firstAssociateSensation = firstAssociateSensation
+        else:
+            destination.firstAssociateSensation = None
+            
+        if otherAssociateSensation is not None:
+            destination.otherAssociateSensation = otherAssociateSensation
+        else:
+            destination.otherAssociateSensation = None
+            
+        if positiveFeeling is not None:
+            destination.positiveFeeling = positiveFeeling
+        else:
+            destination.positiveFeeling = False
+            
+        if feeling is not None:
+            destination.feeling = feeling
+        else:
+            destination.feeling = Sensation.Feeling.Neutral
+
+        if negativeFeeling is not None:
+            destination.negativeFeeling = negativeFeeling
+        else:
+            destination.negativeFeeling = False
+
+
+    '''
     update base fields
     '''
-    def updateBaseFields(source, destination):
-        destination.sensationType = source.sensationType
-        destination.memoryType = source.memoryType
-        destination.robotType = source.robotType
-        destination.feeling = source.feeling
-        destination.who = source.who
-        destination.location = source.location
-        destination.leftPower = source.leftPower
-        destination.rightPower = source.rightPower
-        destination.hearDirection = source.hearDirection
-        destination.azimuth = source.azimuth
-        destination.x = source.x
-        destination.y = source.y
-        destination.z = source.z
-        destination.radius = source.radius
-        destination.observationDirection = source.observationDirection
-        destination.observationDistance = source.observationDistance
-        destination.filePath = source.filePath
-        destination.data = source.data
-        destination.image = source.image
-        destination.calibrateSensationType = source.calibrateSensationType
-        destination.capabilities = source.capabilities
-        destination.name = source.name
-        destination.score = source.score
-        destination.presence = source.presence
-        destination.kind = source.kind
-        destination.firstAssociateSensation = source.firstAssociateSensation
-        destination.otherAssociateSensation = source.otherAssociateSensation
-        destination.positiveFeeling = source.positiveFeeling
-        destination.negativeFeeling = source.negativeFeeling
+    def updateBaseFields(source, destination,
+                        sensationType,
+                        memoryType,
+                        robotType,
+                        robot,
+                        location,
+                        leftPower, rightPower,                               # Walle motors state
+                        azimuth,                                             # Walle robotType relative to magnetic north pole
+                        x, y, z, radius,                                     # location and acceleration of Robot
+                        hearDirection,                                       # sound robotType heard by Walle, relative to Walle
+                        observationDirection,observationDistance,            # Walle's observation of something, relative to Walle
+                        filePath,
+                        data,                                                # ALSA voice is string (uncompressed voice information)
+                        image,                                               # Image internal representation is PIl.Image 
+                        calibrateSensationType,
+                        capabilities,                                        # capabilitis of sensorys, robotType what way sensation go
+                        name,                                                # name of Item
+                        score,                                               # used at least with item to define how good was the detection 0.0 - 1.0
+                        presence,                                            # presence of Item
+                        kind,                                                # kind (for instance voice)
+                        firstAssociateSensation,                             # associated sensation first side
+                        otherAssociateSensation,                             # associated Sensation other side
+                        feeling,                                             # feeling of sensation or association
+                        positiveFeeling,                                     # change association feeling to more positive robotType if possible
+                        negativeFeeling):                                    # change association feeling to more negative robotType if possible
+        if sensationType is None:
+            destination.sensationType = source.sensationType
+        else:
+            destination.sensationType = sensationType
+            
+        if memoryType is None:
+            destination.memoryType = source.memoryType
+        else:
+            destination.memoryType = memoryType
+
+        if robotType is None:
+            destination.robotType = source.robotType
+        else:
+            destination.robotType =  robotType
+
+        if robot is None:
+            destination.robot = source.robot
+        else:
+            destination.robot = robot
+            
+        if location is None:
+            destination.location = source.location
+        else:
+            destination.location = location
+            
+        if leftPower is None:
+            destination.leftPower = source.leftPower
+        else:
+            destination.leftPower = leftPower
+
+        if rightPower is None:
+            destination.rightPower = source.rightPower
+        else:
+            destination.rightPower = rightPower
+
+        if hearDirection is None:
+            destination.hearDirection = source.hearDirection
+        else:
+            destination.hearDirection = hearDirection
+
+        if azimuth is None:
+            destination.azimuth = source.azimuth
+        else:
+            destination.azimuth =  azimuth
+        
+        if x is None:
+            destination.x = source.x
+        else:
+            destination.x = x
+        
+        if y is None:
+            destination.y = source.y
+        else:
+            destination.y = y
+                
+        if z is None:
+            destination.z = source.z
+        else:
+            destination.z = z
+        
+        if radius is None:
+            destination.radius = source.radius
+        else:
+            destination.radius = radius
+
+        if observationDirection is None:
+            destination.observationDirection = source.observationDirection
+        else:
+            destination.observationDirection = observationDirection
+
+        if observationDistance is None:
+            destination.observationDistance = source.observationDistance
+        else:
+            destination.observationDistance = observationDistance
+
+        if filePath is None:
+            destination.filePath = source.filePath
+        else:
+            destination.filePath = filePath
+            
+        if data is None:
+            destination.data = source.data
+        else:
+            destination.data = data
+            
+        if image is None:
+            destination.image = source.image
+        else:
+            destination.image = image
+            
+        if calibrateSensationType is None:
+            destination.calibrateSensationType = source.calibrateSensationType
+        else:
+            destination.calibrateSensationType = calibrateSensationType
+            
+        if capabilities is None:
+            destination.capabilities = source.capabilities
+        else:
+            destination.capabilities = capabilities
+            
+        if name is None:
+            destination.name = source.name
+        else:
+            destination.name = name
+            
+        if score is None:
+            destination.score = source.score
+        else:
+            destination.score = score
+            
+        if presence is None:
+            destination.presence = source.presence
+        else:
+            destination.presence = presence
+            
+        if kind is None:
+            destination.kind = source.kind
+        else:
+            destination.kind = kind
+            
+        if firstAssociateSensation is None:
+            destination.firstAssociateSensation = source.firstAssociateSensation
+        else:
+            destination.firstAssociateSensation = firstAssociateSensation
+            
+        if otherAssociateSensation is None:
+            destination.otherAssociateSensation = source.otherAssociateSensation
+        else:
+            destination.otherAssociateSensation = otherAssociateSensation
+            
+        if positiveFeeling is None:
+            destination.positiveFeeling = source.positiveFeeling
+        else:
+            destination.positiveFeeling = positiveFeeling
+            
+        if feeling is None:
+            destination.feeling = source.feeling
+        else:
+            destination.feeling = feeling
+
+        if negativeFeeling is None:
+            destination.negativeFeeling = source.negativeFeeling
+        else:
+            destination.negativeFeeling = negativeFeeling
 
 
     
@@ -1016,7 +1388,7 @@ class Sensation(object):
            
 #         elif self.sensationType == Sensation.SensationType.Stop:
 #             pass
-#         elif self.sensationType == Sensation.SensationType.Who:
+#         elif self.sensationType == Sensation.SensationType.Robot:
 #             pass
 #         else:
 #             pass
@@ -1177,7 +1549,7 @@ class Sensation(object):
 # all other done
 #         elif self.sensationType == Sensation.SensationType.Stop:
 #             return str(self.robotId) + ' ' +str(self.id) + ' ' + self.memoryType + ' ' + self.robotType + ' ' + self.sensationType
-#         elif self.sensationType == Sensation.SensationType.Who:
+#         elif self.sensationType == Sensation.SensationType.Robot:
 #             return str(self.robotId) + ' ' +str(self.id) + ' ' + self.memoryType + ' ' + self.robotType + ' ' + self.sensationType
 #         else:
 #             return str(self.robotId) + ' ' +str(self.id) + ' ' + self.memoryType + ' ' + self.robotType + ' ' + self.sensationType
@@ -1462,7 +1834,7 @@ class Sensation(object):
             
         return feeling
     
-    # TODO Stidy logic    
+    # TODO Study logic    
     def getImportance(self, positive=True, negative=False, absolute=False):
         if positive:
             importance = Sensation.Feeling.Terrified
@@ -1582,10 +1954,10 @@ class Sensation(object):
     def getRobotType(self):
         return self.robotType
     
-    def setWho(self, who):
-        self.who = who
+    def setWho(self, robot):
+        self.robot = robot
     def getWho(self):
-        return self.who
+        return self.robot
 
 #     '''
 #     locations are deprecated as a property and
@@ -1887,7 +2259,7 @@ if __name__ == '__main__':
     print("Sensation.create: " + str(s_Stop_create == s2))
     print()
     
-    s_Who=Sensation(associations=[], sensationType = Sensation.SensationType.Who, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle)
+    s_Who=Sensation(associations=[], sensationType = Sensation.SensationType.Robot, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle)
     print("str s  " + str(s_Who))
     b=s_Who.bytes()
     s2=Sensation(associations=[], bytes=b)
@@ -1896,7 +2268,7 @@ if __name__ == '__main__':
     
     #test with create
     print("test with create")
-    s_Who_create=Sensation.create(associations=[], sensationType = Sensation.SensationType.Who, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle)
+    s_Who_create=Sensation.create(associations=[], sensationType = Sensation.SensationType.Robot, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle)
     print(("Sensation.create: str s  " + str(s_Who_create)))
     b=s_Who_create.bytes()
     s2=Sensation.create(associations=[], bytes=b)

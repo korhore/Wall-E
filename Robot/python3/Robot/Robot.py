@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 22.06.2020
+Updated on 25.06.2020
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -120,19 +120,22 @@ class Robot(Thread):
     """
 
     # Robot settings"
-    LogLevel = enum(Critical='a', Error='b', Normal='c', Detailed='d', Verbose='e')
+    LogLevel = enum(No='a', Critical='b', Error='c', Normal='d', Detailed='e', Verbose='f')
+    NO =        'No'
     CRITICAL =  'Critical'
     ERROR =     'Error'
     NORMAL =    'Normal'
     DETAILED =  'Detailed'
     VERBOSE =   'Verbose'
 
-    LogLevels={LogLevel.Critical: CRITICAL,
+    LogLevels={LogLevel.No: NO,
+               LogLevel.Critical: CRITICAL,
                LogLevel.Error: ERROR,
                LogLevel.Normal: NORMAL,
                LogLevel.Detailed: DETAILED,
                LogLevel.Verbose: VERBOSE}
     LogLevelsOrdered=(
+               LogLevel.No,
                LogLevel.Critical,
                LogLevel.Error,
                LogLevel.Normal,
@@ -164,6 +167,8 @@ class Robot(Thread):
                  minAvailMem = Config.MINAVAILMEM_DEFAULT):
         print("Robot 1")
         Thread.__init__(self)
+        self.logLevel= Robot.LogLevel.No    # We can't log yet
+        
         self.daemon = True      # if daemon, all sub Robots are killed, when this one dies.
         
         self.time = time.time()
@@ -194,7 +199,7 @@ class Robot(Thread):
                                  minAvailMem = minAvailMem)
         else:
             self.memory = memory
-        
+                    
         self.subInstances = []  # subInstance contain a outAxon we write muscle sensations
                                 # for subrobot this axon in inAxon
                                 # We ask subInstance to report its Sensations to
@@ -212,15 +217,51 @@ class Robot(Thread):
         self.id = self.config.getRobotId()
         self.capabilities = Capabilities(config=self.config)
         print("Robot 4")
-        self.logLevel=self.config.getLogLevel()
         self.setWho(self.config.getWho())
-        # create empty self.locationSensation
-        self.locationSensation = self.createSensation(
+        
+        if self.level == 1:                        
+            Robot.mainRobotInstance = self
+            self._isMainRobot = True
+            self.feeling = Sensation.Feeling.Neutral
+            self.feelingLevel = float(Sensation.Feeling.Neutral)
+            self.activityLevel = Sensation.ActivityLevel.Normal
+            
+            self.getMemory().setMaxRss(self.config.getMaxRss())
+            self.getMemory().setMinAvailMem (self.config.getMinAvailMem())
+        elif self.getInstanceType() == Sensation.InstanceType.Virtual:#
+            # also virtual instance has feeling and activity
+            self.feeling = Sensation.Feeling.Neutral
+            self.feelingLevel = float(Sensation.Feeling.Neutral)
+            self.activityLevel = Sensation.ActivityLevel.Normal
+            
+            self._isMainRobot = False
+        else:
+            self._isMainRobot = False
+        
+        
+        self.selfSensation=self.createSensation(log=False,
+                                                sensationType=Sensation.SensationType.Robot,
+                                                memoryType=Sensation.MemoryType.LongTerm,
+                                                robotType=Sensation.RobotType.Sense,# We have found this
+#                                                robot = self,
+                                                name = self.getWho(),
+                                                presence = Sensation.Presence.Present,
+                                                kind=self.getKind(),
+                                                feeling=self.getFeeling())
+
+
+        # create locationSensation
+        locationSensation = self.createSensation(log=False,
                                                  memoryType=Sensation.MemoryType.Sensory,
                                                  sensationType=Sensation.SensationType.Location,
                                                  robotType=Sensation.RobotType.Sense,
-                                                 name='')#self.config.getLocation())
+                                                 name=self.config.getLocation())
+        # TODO We ignore self.selfSensation.locationSensation to avoid infinite loop in logging.
+        self.location = self.config.getLocation()
+        self.selfSensation.associate(sensation=locationSensation)
         #self.setLocations(self.config.getLocation())
+        # at this point we can log
+        self.logLevel=self.config.getLogLevel()
 
         self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who: " + self.getWho() + " location: " + self.getLocation() + " kind: " + self.getKind() + " instanceType: " + self.getInstanceType() + " capabilities: " + self.capabilities.toDebugString())
         # global queue for senses and other robots to put sensations to robot
@@ -246,11 +287,11 @@ class Robot(Thread):
                 
         # in main robot, set up Long_tem Memory and set up TCPServer
         if self.level == 1:                        
-            Robot.mainRobotInstance = self
-            self._isMainRobot = True
-            self.feeling = Sensation.Feeling.Neutral
-            self.feelingLevel = float(Sensation.Feeling.Neutral)
-            self.activityLevel = Sensation.ActivityLevel.Normal
+#             Robot.mainRobotInstance = self
+#             self._isMainRobot = True
+#             self.feeling = Sensation.Feeling.Neutral
+#             self.feelingLevel = float(Sensation.Feeling.Neutral)
+#             self.activityLevel = Sensation.ActivityLevel.Normal
             
             
             
@@ -268,8 +309,8 @@ class Robot(Thread):
 #             
 #             Robot.mainRobotInstance = self          # singleton instance
             
-            self.getMemory().setMaxRss(self.config.getMaxRss())
-            self.getMemory().setMinAvailMem (self.config.getMinAvailMem())
+#             self.getMemory().setMaxRss(self.config.getMaxRss())
+#             self.getMemory().setMinAvailMem (self.config.getMinAvailMem())
             
             self.getMemory().loadLongTermMemory()
             self.getMemory().CleanDataDirectory()
@@ -289,9 +330,9 @@ class Robot(Thread):
             
         elif self.getInstanceType() == Sensation.InstanceType.Virtual:#
             # also virtual instance has feeling and activity
-            self.feeling = Sensation.Feeling.Neutral
-            self.feelingLevel = float(Sensation.Feeling.Neutral)
-            self.activityLevel = Sensation.ActivityLevel.Normal
+#             self.feeling = Sensation.Feeling.Neutral
+#             self.feelingLevel = float(Sensation.Feeling.Neutral)
+#             self.activityLevel = Sensation.ActivityLevel.Normal
             
             # also virtual instance has identity as level 1 mainrobot
             self.identity=Identity(parent=self,
@@ -299,9 +340,9 @@ class Robot(Thread):
                                    instanceName='Identity',
                                    instanceType= Sensation.InstanceType.SubInstance,
                                    level=level)
-            self._isMainRobot = False
-        else:
-            self._isMainRobot = False
+            #self._isMainRobot = False
+#         else:
+#             self._isMainRobot = False
 
             
     def getMainRobotInstance():
@@ -363,14 +404,16 @@ class Robot(Thread):
     setLocations, getLocations and getLocationsStr are deprecated
     We support only setLocation and getLocation with locationName parameter
     # TODO physical local Z, Y X
+    
+    TODO It is hard to avoid infinite loop with selfSensation.Location
     ''' 
     
     def setLocation(self, locationName):
-        self.locationSensation.setName(locationName)
+        self.location = locationName
+        #self.getSelfSensation(sensationType=Sensation.SensationType.Location).setName(locationName)
     def getLocation(self):
-        if self.locationSensation is None:
-            return ''
-        return self.locationSensation.getName()
+        return self.location
+        #return self.getSelfSensation(sensationType=Sensation.SensationType.Location).getName()
 #     def getLocationsStr(self):
 #         if self.locationSensation is None:
 #             return ''
@@ -787,11 +830,11 @@ class Robot(Thread):
   
         
     def log(self, logStr, logLevel=LogLevel.Normal):
-         if logLevel <= self.getLogLevel():
+         if self.getLogLevel() != Robot.LogLevel.No and logLevel <= self.getLogLevel():
              print(self.getWho() + ":" + str(self.config.level) + ":" + Sensation.Modes[self.mode] + ":" + self.getLocation() + ": " + logStr)
 
     def stop(self):
-        self.log(logLevel=Robot.LogLevel.Normal, logStr="Stopping robot")      
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="Stopping robot")
 
          # stop virtual instances here, when main instance is not running any more
         for robot in self.subInstances:
@@ -828,16 +871,17 @@ class Robot(Thread):
         self.mode = Sensation.Mode.StudyOwnIdentity
         self.log(logLevel=Robot.LogLevel.Normal, logStr="My name is " + self.getWho())
         # What kind we are
-        self.log(logLevel=Robot.LogLevel.Detailed, logStr="My kind is " + str(self.getKind()))      
-        self.selfSensation=self.createSensation(sensationType=Sensation.SensationType.Item,
-                                                memoryType=Sensation.MemoryType.LongTerm,
-                                                robotType=Sensation.RobotType.Sense,# We have found this
-                                                who = self.getWho(),
-                                                name = self.getWho(),
-                                                presence = Sensation.Presence.Present,
-                                                kind=self.getKind(),
-                                                feeling=self.getFeeling(),
-                                                location='')           # valid everywhere)
+        self.log(logLevel=Robot.LogLevel.Detailed, logStr="My kind is " + str(self.getKind()))   
+# don't need this any more   
+#         self.selfSensation=self.createSensation(sensationType=Sensation.SensationType.Robot,
+#                                                 memoryType=Sensation.MemoryType.LongTerm,
+#                                                 robotType=Sensation.RobotType.Sense,# We have found this
+#                                                 robot = self.getWho(),
+#                                                 name = self.getWho(),
+#                                                 presence = Sensation.Presence.Present,
+#                                                 kind=self.getKind(),
+#                                                 feeling=self.getFeeling(),
+#                                                 location=self.getLocation())
         if self.isMainRobot() or self.getInstanceType() == Sensation.InstanceType.Virtual:
             self.imageSensations, self.voiceSensations = self.getIdentitySensations(who=self.getWho())
             if len(self.imageSensations) > 0:
@@ -1070,40 +1114,44 @@ class Robot(Thread):
     '''
        
     def createSensation(self,
+                 log=True,
                  associations = None,
                  sensation=None,
                  bytes=None,
                  id=None,
                  time=None,
                  receivedFrom=[],
-                 sensationType = Sensation.SensationType.Unknown,
-                 memoryType=None,
-                 robotType=Sensation.RobotType.Muscle,
-                 who=None,
-                 location='',
-                 leftPower = 0.0, rightPower = 0.0,                         # Walle motors state
-                 azimuth = 0.0,                                             # Walle robotType relative to magnetic north pole
-                 x=0.0, y=0.0, z=0.0, radius=0.0,                           # location and acceleration of Robot
-                 hearDirection = 0.0,                                       # sound robotType heard by Walle, relative to Walle
-                 observationDirection= 0.0,observationDistance=-1.0,        # Walle's observation of something, relative to Walle
-                 filePath='',
-                 data=b'',
-                 image=None,
-                 calibrateSensationType = Sensation.SensationType.Unknown,
-                 capabilities = None,                                       # capabilities of sensorys, robotType what way sensation go
-                 name='',                                                   # name of Item
-                 score = 0.0,                                               # used at least with item to define how good was the detection 0.0 - 1.0
-                 presence=Sensation.Presence.Unknown,                       # presence of Item
-                 kind=Sensation.Kind.Normal,                                # Normal kind
-                 firstAssociateSensation=None,                              # associated sensation first side
-                 otherAssociateSensation=None,                              # associated Sensation other side
-                 feeling = Sensation.Feeling.Neutral,              # feeling of association
-                 positiveFeeling=False,                                     # change association feeling to more positive robotType if possible
-                 negativeFeeling=False):                                    # change association feeling to more negative robotType if possible
+                 
+                  # base field are by default None, so we know what fields are given and what not
+                 sensationType = None,
+                 memoryType = None,
+                 robotType = None,
+                 robot = None,
+                 location =  None,
+                 leftPower = None, rightPower = None,                        # Walle motors state
+                 azimuth = None,                                             # Walle robotType relative to magnetic north pole
+                 x=None, y=None, z=None, radius=None,                        # location and acceleration of Robot
+                 hearDirection = None,                                       # sound robotType heard by Walle, relative to Walle
+                 observationDirection = None,observationDistance = None,     # Walle's observation of something, relative to Walle
+                 filePath = None,
+                 data = None,                                                # ALSA voice is string (uncompressed voice information)
+                 image = None,                                               # Image internal representation is PIl.Image 
+                 calibrateSensationType = None,
+                 capabilities = None,                                        # capabilitis of sensorys, robotType what way sensation go
+                 name = None,                                                # name of Item
+                 score = None,                                               # used at least with item to define how good was the detection 0.0 - 1.0
+                 presence = None,                                            # presence of Item
+                 kind = None,                                                # kind (for instance voice)
+                 firstAssociateSensation = None,                             # associated sensation first side
+                 otherAssociateSensation = None,                             # associated Sensation other side
+                 feeling = None,                                             # feeling of sensation or association
+                 positiveFeeling = None,                                     # change association feeling to more positive robotType if possible
+                 negativeFeeling = None):                                    # change association feeling to more negative robotType if possible
 
 
         
         return self.getMemory().create(
+                 log=log,
                  robot=self,
                  associations = associations,
                  sensation=sensation,
@@ -1114,7 +1162,7 @@ class Robot(Thread):
                  sensationType = sensationType,
                  memoryType=memoryType,
                  robotType=robotType,
-                 who=who,
+                 #robot=robot,
                  location=location,
                  leftPower = leftPower, rightPower = rightPower,
                  azimuth = azimuth,
@@ -1137,12 +1185,103 @@ class Robot(Thread):
                  negativeFeeling=negativeFeeling)
 
                         
+    '''
+    Sensation functionality start
+    This is wrapper to Sensation provided sy real Sensation self.selfSensation
+    '''
+
+    '''
+    Helper function to update or create an Association
+    We support only one Sensation by SensationType
+    '''
+    def associate(self,
+                  sensation,                                    # sensation to connect
+                  time=None,                                    # last used
+                  feeling = Sensation.Feeling.Neutral,          # feeling of association two sensations
+                  positiveFeeling = False,                      # change association feeling to more positive robotType if possible
+                  negativeFeeling = False):                     # change association feeling to more negativee robotType if possible
+        selfSensationByType = self.getSelfSensation(sensationType=sensation.getSensationType())
+        
+        selfSensationByType.setTime(sensation.getTime())
+        selfSensationByType.setSensationType(sensation.getSensationType())
+        #selfSensationByType.setMemoryType(sensation.getMemoryType()) # setMemoryType is not implemented
+        selfSensationByType.setRobotType(sensation.getRobotType())
+        selfSensationByType.setFeeling(sensation.getFeeling())
+
+        if sensation.getSensationType() is Sensation.SensationType.Drive:
+            selfSensationByType.setLeftPower(sensation.getLeftPower())
+            selfSensationByType.setRightPower(sensation.getRightPower())
+        elif sensation.getSensationType() is Sensation.SensationType.HearDirection:
+            selfSensationByType.setHearDirection(sensation.getHearDirection())
+        elif sensation.getSensationType() is Sensation.SensationType.Azimuth:
+            selfSensationByType.setAzimuth(sensation.getAzimuth())
+        elif sensation.getSensationType() is Sensation.SensationType.Acceleration:
+            selfSensationByType.setX(sensation.getX())
+            selfSensationByType.setY(sensation.getY())
+            selfSensationByType.setZ(sensation.getZ())
+        elif sensation.getSensationType() is Sensation.SensationType.Location:
+            selfSensationByType.setX(sensation.getX())
+            selfSensationByType.setY(sensation.getY())
+            selfSensationByType.setZ(sensation.getZ())
+            selfSensationByType.setRadius(sensation.getRadius())
+            selfSensationByType.setName(sensation.getName())
+            name_size=len(self.name)
+        elif sensation.getSensationType() is Sensation.SensationType.Observation:
+            selfSensationByType.setObservationDirection(sensation.getObservationDirection())
+            selfSensationByType.setObservationDistance(sensation.getObservationDistance())
+        elif sensation.getSensationType() is Sensation.SensationType.Voice:
+            selfSensationByType.setFilePath(sensation.getFilePath())
+            selfSensationByType.setData(sensation.getData())
+            selfSensationByType.setKind(sensation.getKind())
+        elif sensation.getSensationType() is Sensation.SensationType.Image:
+            selfSensationByType.setFilePath(sensation.getFilePath())
+            selfSensationByType.setImage(sensation.getImage())
+        elif sensation.getSensationType() is Sensation.SensationType.Calibrate:
+            selfSensationByType.setHearDirection(sensation.getHearDirection())
+            if sensation.getCalibrateSensationType() is Sensation.SensationType.HearDirection:
+               selfSensationByType.setHearDirection(sensation.getHearDirection())
+        elif sensation.getSensationType() is Sensation.SensationType.Capability:
+            selfSensationByType.setCapabilities(sensation.getCapabilities())
+        elif sensation.getSensationType() is Sensation.SensationType.Item:
+            selfSensationByType.setName(sensation.getName())
+            selfSensationByType.setScore(sensation.getScore())
+            selfSensationByType.setPresence(sensation.getPresence())
+        elif sensation.getSensationType() is Sensation.SensationType.Feeling:
+            selfSensationByType.setFirstAssociateSensation(sensation.getFirstAssociateSensation())
+            selfSensationByType.setOtherAssociateSensation(sensation.getOtherAssociateSensation())
+            selfSensationByType.setPositiveFeeling(sensation.getPositiveFeeling())
+            selfSensationByType.setNegativeFeeling(sensation.getNegativeFeeling())
+            
+        for assosiation in sensation.getAssociations():
+            selfSensationByType.associate(sensation=assosiation.getSensation())
+            
+        selfSensationByType.receivedFrom = sensation.getReceivedFrom()
+            
+            
+    '''
+    Helper function to get selfSenation by certain SensationType
+    '''
+    def getSelfSensation(self, sensationType=None):
+        if sensationType is None:
+            return self.selfSensation
+        for association in self.selfSensation.getAssociations():
+            if association.getSensation().getSensationType() == sensationType:
+                return association.getSensation()
+        # not found, create one with defaults
+        sensation = self.createSensation(memoryType=Sensation.MemoryType.Sensory, sensationType = sensationType)
+        self.selfSensation.associate(sensation=sensation)
+        return sensation
+        
+        
+       
              
-# Identity Robot 
-# This sends Our Identity Sensations to other
-# Robots connected and to Our Awareness also
-# So they know what kind of eperiences we have.
-# Experiences determine how we react to things (Item.names)
+'''
+Identity Robot 
+This sends Our Identity Sensations to other
+Robots connected and to Our Awareness also
+So they know what kind of eperiences we have.
+Experiences determine how we react to things (Item.names)
+'''
 
 class Identity(Robot):
 
@@ -1662,12 +1801,12 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
         self.log("run: Starting")
                  
         try:
-            # tell who we are, speaking
-            sensation=Robot.getMainRobotInstance().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Who, who=self.getWho())
-            self.log('run: sendSensation(sensation=Sensation(robot=Robot.getMainRobotInstance(),sensationType = Sensation.SensationType.Who), sock=self.sock,'  + str(self.address) + ')')
+            # tell robot we are, speaking
+            sensation=Robot.getMainRobotInstance().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Robot, robot=self.getWho())
+            self.log('run: sendSensation(sensation=Sensation(robot=Robot.getMainRobotInstance(),sensationType = Sensation.SensationType.Robot), sock=self.sock,'  + str(self.address) + ')')
             self.running =  self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
             sensation.detach(robot=Robot.getMainRobotInstance())
-            self.log('run: done sendSensation(sensation=Sensation(robot=Robot.getMainRobotInstance(), sensationType = Sensation.SensationType.Who), sock=self.sock,'  + str(self.address) + ')')
+            self.log('run: done sendSensation(sensation=Sensation(robot=Robot.getMainRobotInstance(), sensationType = Sensation.SensationType.Robot), sock=self.sock,'  + str(self.address) + ')')
             if self.running:
                  # tell our local capabilities
                  # it is important to deliver only local capabilities to the remote,

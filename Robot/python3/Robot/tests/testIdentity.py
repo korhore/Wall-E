@@ -47,6 +47,8 @@ class IdentityTestCase(unittest.TestCase):
     def getWho(self):
         #print('CommunicationTestCase getWho')
         return "Wall-E"
+    def getLocation(self): 
+        return 'testLocation'  
     def getExposures(self):
 #        return ['Eva']
         return ['Eva','father','family']

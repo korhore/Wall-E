@@ -1,6 +1,6 @@
 '''
 Created on 14.02.2020
-Updated on 22.06.2020
+Updated on 25.06.2020
 @author: reijo.korhonen@gmail.com
 
 test Robot class
@@ -34,10 +34,10 @@ class RobotTestCase(unittest.TestCase):
         - location
     '''
     
-    SET_1_1_LOCATIONS_1 = ['testLocation']
-    SET_1_1_LOCATIONS_2 = ['Ubuntu']
-    SET_1_2_LOCATIONS =   ['testLocation', 'Ubuntu']
-    SET_EMPTY_LOCATIONS = []
+    SET_1_1_LOCATIONS_1 = 'testLocation'
+    SET_1_1_LOCATIONS_2 = 'Ubuntu'
+    #SET_1_2_LOCATIONS =   ['testLocation', 'Ubuntu']
+    SET_EMPTY_LOCATIONS = ''
     
     LOCATION_1_NAME =     'testLocation'
     LOCATION_1_X =        1.0
@@ -77,10 +77,10 @@ class RobotTestCase(unittest.TestCase):
 #     def getWho(self):
 #         return "RobotTestCase"
 #     
-#     def setLocation(self, locations):
-#         self.locations = locations
-#     def getLocations(self):
-#         return self.locations
+#     def setLocation(self, location):
+#         self.location = location
+#     def getLocation(self):
+#         return self.location
 #     
 #     def log(self, logStr, logLevel=None):
 #         if logLevel == None:
@@ -106,19 +106,41 @@ class RobotTestCase(unittest.TestCase):
     
     def setUp(self):
         print('\nsetUp')
+        
+        
         # set robots to same location
         
         self.mainRobot = Robot(parent=None,
                            instanceName='TestMainRobot',
                            instanceType= Sensation.InstanceType.Real,
                            level=1)
-        self.mainRobot.setLocation(RobotTestCase.SET_1_2_LOCATIONS)
+        self.mainRobot.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        self.mainRobot.selfSensation=self.mainRobot.createSensation(sensationType=Sensation.SensationType.Robot,
+                                                          memoryType=Sensation.MemoryType.LongTerm,
+                                                          robotType=Sensation.RobotType.Sense,# We have found this
+                                                          robot = self.mainRobot.getWho(),
+                                                          name = self.mainRobot.getWho(),
+                                                          presence = Sensation.Presence.Present,
+                                                          kind=self.mainRobot.getKind(),
+                                                          feeling=self.mainRobot.getFeeling(),
+                                                          location=self.mainRobot.getLocation())
+        
         
         self.sense = RobotTestCase.TestRobot(parent=self.mainRobot,
                            instanceName='Sense',
                            instanceType= Sensation.InstanceType.SubInstance,
                            level=2)
-        self.sense.setLocation(RobotTestCase.SET_1_2_LOCATIONS)
+        self.sense.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+# don't change selfSensation self, it messes logging
+#         self.sense.selfSensation=self.mainRobot.createSensation(sensationType=Sensation.SensationType.Robot,
+#                                                           memoryType=Sensation.MemoryType.LongTerm,
+#                                                           robotType=Sensation.RobotType.Sense,# We have found this
+#                                                           robot = self.sense.getWho(),
+#                                                           name = self.sense.getWho(),
+#                                                           presence = Sensation.Presence.Present,
+#                                                           kind=self.sense.getKind(),
+#                                                           feeling=self.sense.getFeeling(),
+#                                                           location=self.sense.getLocation())
         self.mainRobot.subInstances.append(self.sense)
         
         
@@ -126,15 +148,25 @@ class RobotTestCase(unittest.TestCase):
                            instanceName='Muscle',
                            instanceType= Sensation.InstanceType.SubInstance,
                            level=2)
-        self.muscle.setLocation(RobotTestCase.SET_1_2_LOCATIONS)
+        self.muscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+# don't change selfSensation self, it messes logging
+#         self.muscle.selfSensation=self.mainRobot.createSensation(sensationType=Sensation.SensationType.Robot,
+#                                                           memoryType=Sensation.MemoryType.LongTerm,
+#                                                           robotType=Sensation.RobotType.Sense,# We have found this
+#                                                           robot = self.muscle.getWho(),
+#                                                           name = self.muscle.getWho(),
+#                                                           presence = Sensation.Presence.Present,
+#                                                           kind=self.muscle.getKind(),
+#                                                           feeling=self.muscle.getFeeling(),
+#                                                           location=self.muscle.getLocation())
         self.mainRobot.subInstances.append(self.muscle)
                 
         #set muscle capabilities  Item, Image, Voice
         capabilities  =  self.muscle.getCapabilities()
-        # locations, needed, because Robot delegates subrobot capability checking
+        # location, needed, because Robot delegates subrobot capability checking
         # in routing phase for Capabilities so also capabilities should have same Locations
         # in real application they are, because Robots Locations come from Capabilities
-        capabilities.setLocation(RobotTestCase.SET_1_2_LOCATIONS)
+        # deprecated capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
          #Sensory
         capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Item, is_set=True)   
         capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Image, is_set=True)   
@@ -189,9 +221,9 @@ class RobotTestCase(unittest.TestCase):
         Wall_E_item_sensation.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
         # in muscle we should set also capabilities, look SetUp
         self.muscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_2)
-        capabilities  =  self.muscle.getCapabilities()
-        capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_2)
-        self.muscle.setCapabilities(capabilities)
+        #capabilities  =  self.muscle.getCapabilities()
+        # deprecated capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_2)
+        #self.muscle.setCapabilities(capabilities)
         
         # test
         self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
@@ -205,10 +237,10 @@ class RobotTestCase(unittest.TestCase):
         
         # set sensation contain one Location and muscle to contain many locations and one match, routing should succeed again
         # in muscle we should set also capabilities, look SetUp
-        self.muscle.setLocation(RobotTestCase.SET_1_2_LOCATIONS)
-        capabilities  =  self.muscle.getCapabilities()
-        capabilities.setLocation(RobotTestCase.SET_1_2_LOCATIONS)
-        self.muscle.setCapabilities(capabilities)
+        self.muscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        #capabilities  =  self.muscle.getCapabilities()
+        # deprecated capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        #self.muscle.setCapabilities(capabilities)
         
         # test
         self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
@@ -224,13 +256,13 @@ class RobotTestCase(unittest.TestCase):
         # set sensation contain many Locations and muscle to contain one locations and one match, routing should succeed again
         # in muscle we should set also capabilities, look SetUp
         
-        self.sense.setLocation(RobotTestCase.SET_1_2_LOCATIONS)
-        Wall_E_item_sensation.setLocation(RobotTestCase.SET_1_2_LOCATIONS)
+        self.sense.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        Wall_E_item_sensation.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
        
         self.muscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        capabilities  =  self.muscle.getCapabilities()
-        capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        self.muscle.setCapabilities(capabilities)
+        #capabilities  =  self.muscle.getCapabilities()
+        # deprecated capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        #self.muscle.setCapabilities(capabilities)
         
         # test
         self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
@@ -251,9 +283,9 @@ class RobotTestCase(unittest.TestCase):
         Wall_E_item_sensation.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
        
         self.muscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        capabilities  =  self.muscle.getCapabilities()
-        capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        self.muscle.setCapabilities(capabilities)
+        #capabilities  =  self.muscle.getCapabilities()
+        # deprecated capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        #self.muscle.setCapabilities(capabilities)
         
         # test
         self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
@@ -274,9 +306,9 @@ class RobotTestCase(unittest.TestCase):
         Wall_E_item_sensation.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
        
         self.muscle.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
-        capabilities  =  self.muscle.getCapabilities()
-        capabilities.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
-        self.muscle.setCapabilities(capabilities)
+        #capabilities  =  self.muscle.getCapabilities()
+        # deprecated capabilities.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
+        #self.muscle.setCapabilities(capabilities)
         
         # test
         self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
@@ -296,9 +328,9 @@ class RobotTestCase(unittest.TestCase):
         Wall_E_item_sensation.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
        
         self.muscle.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
-        capabilities  =  self.muscle.getCapabilities()
-        capabilities.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
-        self.muscle.setCapabilities(capabilities)
+        #capabilities  =  self.muscle.getCapabilities()
+        # deprecated capabilities.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
+        #self.muscle.setCapabilities(capabilities)
         
         # test
         self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
@@ -345,21 +377,31 @@ class RobotTestCase(unittest.TestCase):
         self.assertEqual(len(self.sense.getMemory().presentItemSensations), 1, 'len(self.sense.getMemory().presentItemSensations should be 1')
         
         # same routing should fail. if Sensation's and Robot's Locations don't match
-        self.sense.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        #Wall_E_item_sensation.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
         Wall_E_location_sensation = self.sense.createSensation(
                                                  memoryType=Sensation.MemoryType.Sensory,
                                                  sensationType=Sensation.SensationType.Location,
                                                  robotType=Sensation.RobotType.Sense,
                                                  name=RobotTestCase.LOCATION_1_NAME)
         Wall_E_item_sensation.associate(sensation=Wall_E_location_sensation)
+        self.sense.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        #Wall_E_item_sensation.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        self.sense.associate(sensation=Wall_E_location_sensation)
+        # now sense and Item are in RobotTestCase.LOCATION_1_NAME location
         
         
         # in muscle we should set also capabilities, look SetUp
-        self.muscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_2)
-        capabilities  =  self.muscle.getCapabilities()
-        capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_2)
-        self.muscle.setCapabilities(capabilities)
+        #self.muscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_2)
+        muscle_location_sensation = self.sense.createSensation(
+                                                 memoryType=Sensation.MemoryType.Sensory,
+                                                 sensationType=Sensation.SensationType.Location,
+                                                 robotType=Sensation.RobotType.Sense,
+                                                 name=RobotTestCase.SET_1_1_LOCATIONS_2)
+        self.muscle.associate(sensation=muscle_location_sensation)
+        # now muscle is in RobotTestCase.SET_1_1_LOCATIONS_2
+        
+       #capabilities  =  self.muscle.getCapabilities()
+        # deprecated capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_2)
+        #self.muscle.setCapabilities(capabilities)
         
         # test
         self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
@@ -373,10 +415,10 @@ class RobotTestCase(unittest.TestCase):
         
         # set sensation contain  one Location and muscle to contain many locations and one match, routing should succeed again
         # in muscle we should set also capabilities, look SetUp
-        self.muscle.setLocation(RobotTestCase.SET_1_2_LOCATIONS)
-        capabilities  =  self.muscle.getCapabilities()
-        capabilities.setLocation(RobotTestCase.SET_1_2_LOCATIONS)
-        self.muscle.setCapabilities(capabilities)
+        self.muscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        #capabilities  =  self.muscle.getCapabilities()
+        #capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        #self.muscle.setCapabilities(capabilities)
         
         # test
         self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
@@ -394,8 +436,8 @@ class RobotTestCase(unittest.TestCase):
         
         # this as not test with Location sensation, because Robot can be onky in one last Location, but not in mane places
         
-#         self.sense.setLocation(RobotTestCase.SET_1_2_LOCATIONS)
-#         #Wall_E_item_sensation.setLocation(RobotTestCase.SET_1_2_LOCATIONS)
+#         self.sense.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+#         #Wall_E_item_sensation.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
 #         Wall_E_location_sensation = self.sense.createSensation(
 #                                                  memoryType=Sensation.MemoryType.Sensory,
 #                                                  sensationType=Sensation.SensationType.Location,
@@ -437,9 +479,9 @@ class RobotTestCase(unittest.TestCase):
         #Wall_E_item_sensation.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
        
         self.muscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        capabilities  =  self.muscle.getCapabilities()
-        capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        self.muscle.setCapabilities(capabilities)
+        #capabilities  =  self.muscle.getCapabilities()
+        # deprecated capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        #self.muscle.setCapabilities(capabilities)
         
         # test
         self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
@@ -463,9 +505,9 @@ class RobotTestCase(unittest.TestCase):
         Wall_E_item_sensation.associate(sensation=Wall_E_location_sensation)
        
         self.muscle.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
-        capabilities  =  self.muscle.getCapabilities()
-        capabilities.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
-        self.muscle.setCapabilities(capabilities)
+        #capabilities  =  self.muscle.getCapabilities()
+        # deprecated capabilities.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
+        #self.muscle.setCapabilities(capabilities)
         
         # test
         self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
@@ -495,9 +537,9 @@ class RobotTestCase(unittest.TestCase):
         #Wall_E_item_sensation.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
        
         self.muscle.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
-        capabilities  =  self.muscle.getCapabilities()
-        capabilities.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
-        self.muscle.setCapabilities(capabilities)
+        #capabilities  =  self.muscle.getCapabilities()
+        # deprecated capabilities.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
+        #self.muscle.setCapabilities(capabilities)
         
         # test
         self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)

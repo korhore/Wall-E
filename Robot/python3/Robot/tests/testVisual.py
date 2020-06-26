@@ -314,7 +314,7 @@ class VisualTestCase(unittest.TestCase):
         robot.selfSensation=robot.createSensation(sensationType=Sensation.SensationType.Item,
                                                 memoryType=Sensation.MemoryType.LongTerm,
                                                 robotType=Sensation.RobotType.Sense,# We have found this
-                                                who = robot.getWho(),
+                                                robot = robot.getWho(),
                                                 name = robot.getWho(),
                                                 presence = Sensation.Presence.Present,
                                                 kind=robot.getKind())
