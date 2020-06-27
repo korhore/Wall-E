@@ -2214,6 +2214,12 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                                 # We wan't always share our all knowledge with all other robots
                                 if self.getSocketClient() is not None:
                                     self.getSocketClient().shareSensations(self.getCapabilities())
+                            elif sensation.getSensationType() == Sensation.SensationType.Robot:
+                                self.log("run: SocketServer got Robot sensation " + sensation.toDebugStr())
+                                # TODO hat to do with this
+                            elif sensation.getSensationType() == Sensation.SensationType.Location:
+                                self.log("run: SocketServer got Location sensation " + sensation.toDebugStr())
+                                self.setLocation(locationName=semsation.getName())
                             else:
                                 self.log("run: SocketServer got sensation " + sensation.toDebugStr())
                                 self.getParent().getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # write sensation to TCPServers Parent, because TCPServer does not read its Axon

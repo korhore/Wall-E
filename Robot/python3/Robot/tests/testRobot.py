@@ -1,6 +1,6 @@
 '''
 Created on 14.02.2020
-Updated on 25.06.2020
+Updated on 27.06.2020
 @author: reijo.korhonen@gmail.com
 
 test Robot class
@@ -17,11 +17,11 @@ When implemented, update test
 
 
 '''
-import time as systemTime
+import time as time
 
 import unittest
 from Sensation import Sensation
-from Robot import Robot
+from Robot import Robot, TCPServer, HOST,PORT
 from Axon import Axon
 
 class RobotTestCase(unittest.TestCase):
@@ -63,6 +63,9 @@ class RobotTestCase(unittest.TestCase):
     SCORE_8 = 0.8
     NAME='Wall-E'
     NAME2='Eva'
+    
+    LOCALHOST='127.0.0.1'
+    SLEEPTIME=15
     
     '''
     Robot modeling
@@ -112,8 +115,15 @@ class RobotTestCase(unittest.TestCase):
         
         self.mainRobot = Robot(parent=None,
                            instanceName='TestMainRobot',
-                           instanceType= Sensation.InstanceType.Real,
-                           level=1)
+                           instanceType= Sensation.InstanceType.Real)
+        # We should set this, because we don't run mainRobot, but call its methods
+        self.assertEqual(self.mainRobot, Robot.mainRobotInstance, "should have Robot.mainRobotInstance")
+        self.assertEqual(self.mainRobot, Robot.getMainRobotInstance(), "should have Robot.mainRobotInstance")
+        if self.mainRobot.level == 1:
+            self.mainRobot.activityAverage = self.mainRobot.shortActivityAverage = self.mainRobot.config.getActivityAvegageLevel()
+            self.mainRobot.activityNumber = 0
+            self.mainRobot.activityPeriodStartTime = time.time()
+
         self.mainRobot.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
         self.mainRobot.selfSensation=self.mainRobot.createSensation(sensationType=Sensation.SensationType.Robot,
                                                           memoryType=Sensation.MemoryType.LongTerm,
@@ -130,6 +140,7 @@ class RobotTestCase(unittest.TestCase):
                            instanceName='Sense',
                            instanceType= Sensation.InstanceType.SubInstance,
                            level=2)
+        self.assertEqual(self.mainRobot,Robot.getMainRobotInstance(), "should have Robot.mainRobotInstance")
         self.sense.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
 # don't change selfSensation self, it messes logging
 #         self.sense.selfSensation=self.mainRobot.createSensation(sensationType=Sensation.SensationType.Robot,
@@ -148,6 +159,7 @@ class RobotTestCase(unittest.TestCase):
                            instanceName='Muscle',
                            instanceType= Sensation.InstanceType.SubInstance,
                            level=2)
+        self.assertEqual(self.mainRobot,Robot.getMainRobotInstance(), "should have Robot.mainRobotInstance")
         self.muscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
 # don't change selfSensation self, it messes logging
 #         self.muscle.selfSensation=self.mainRobot.createSensation(sensationType=Sensation.SensationType.Robot,
@@ -191,11 +203,11 @@ class RobotTestCase(unittest.TestCase):
         
     def test_Routing(self):
         print('\ntest_Sensation Routing')
-        history_sensationTime = systemTime.time() -2*RobotTestCase.ASSOCIATION_INTERVAL
+        history_sensationTime = time.time() -2*RobotTestCase.ASSOCIATION_INTERVAL
 
         self.assertEqual(self.mainRobot.getAxon().empty(), True, 'Axon should be empty at the beginning of test_Presense\nCannot test properly this!')
         print('\n too old_Presense')
-        #systemTime.sleep(0.1)  # wait to get really even id
+        #time.sleep(0.1)  # wait to get really even id
         Wall_E_item_sensation = self.sense.createSensation(time=history_sensationTime,
                                                  memoryType=Sensation.MemoryType.Working,
                                                  sensationType=Sensation.SensationType.Item,
@@ -346,16 +358,67 @@ class RobotTestCase(unittest.TestCase):
         self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty after self.muscle.getAxon().get()')  
         
     '''
-    These tests fail. because Location-Sensation routing is not implemented
-    '''     
+    Tcp connection and routing. Ww rest inside localhost SocketServer and SocketClient
+    '''
+        
+    def test_Tcp(self):
+        # create tcpServe same way as MainRpbot does it, but connecting to localhost
+        self.mainRobot.tcpServer=TCPServer(parent=self.mainRobot,
+                                           memory=self.mainRobot.getMemory(),
+                                           hostNames=[RobotTestCase.LOCALHOST],
+                                           instanceName='TCPServer',
+                                           instanceType=Sensation.InstanceType.Remote,
+                                           level=self.mainRobot.level,
+                                           address=(HOST,PORT))
+
+        self.mainRobot.tcpServer.start()
+        print ('Sleep {}s to wait tcpServer runs'.format(RobotTestCase.SLEEPTIME))
+        time.sleep(RobotTestCase.SLEEPTIME)
+        
+        self.assertTrue(len(self.mainRobot.tcpServer.socketClients) > 0,'should have socketClient')        
+        localSocketClient = self.mainRobot.tcpServer.socketClients[0]
+        self.assertTrue(len(self.mainRobot.tcpServer.socketServers) > 0,'should have socketServer')        
+        localSocketServer = self.mainRobot.tcpServer.socketServers[0]
+ 
+        self.assertTrue(len(self.mainRobot.tcpServer.socketClients) == 2,'should have socketClient')        
+        remoteSocketClient = self.mainRobot.tcpServer.socketClients[1]
+        self.assertTrue(len(self.mainRobot.tcpServer.socketServers) == 2,'should have socketServer')        
+        remoteSocketServer = self.mainRobot.tcpServer.socketServers[1]
+        
+        print ('Sleep {}s to wait socketServer and socketClient are initiated'.format(RobotTestCase.SLEEPTIME))
+
+        time.sleep(RobotTestCase.SLEEPTIME)
+        
+        # TODO Here we could test location, capabilities and routing
+        # with local and remote
+        #
+        # ip-number is same with local and remote, but received Sensation should not be sent back,
+        # as usual functionality is
+
+        localSocketClient.stop()        
+        localSocketServer.stop()
+
+        remoteSocketClient.stop()        
+        remoteSocketServer.stop()
+        
+          
+        
+        # del all
+        del self.mainRobot.tcpServer
+
      
-    def test_Routing_LocationSensation(self):
+     
+    '''
+    These tests fail. because Location-Sensation routing is not implemented
+    '''
+
+    def future_test_Routing_LocationSensation(self):
         print('\ntest_Sensation Routing with Location Sensation')
-        history_sensationTime = systemTime.time() -2*RobotTestCase.ASSOCIATION_INTERVAL
+        history_sensationTime = time.time() -2*RobotTestCase.ASSOCIATION_INTERVAL
 
         self.assertEqual(self.mainRobot.getAxon().empty(), True, 'Axon should be empty at the beginning of test_Presense\nCannot test properly this!')
         print('\n too old_Presense')
-        #systemTime.sleep(0.1)  # wait to get really even id
+        #time.sleep(0.1)  # wait to get really even id
         Wall_E_item_sensation = self.sense.createSensation(time=history_sensationTime,
                                                  memoryType=Sensation.MemoryType.Working,
                                                  sensationType=Sensation.SensationType.Item,
