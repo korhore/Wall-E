@@ -472,7 +472,7 @@ class Robot(Thread):
             elif self.feelingLevel < (Sensation.Feeling.Disappointed + Sensation.Feeling.Worried)/2.0:
                 return Sensation.Feeling.Disappointed
             elif self.feelingLevel < (Sensation.Feeling.Worried + Sensation.Feeling.Neutral)/2.0:
-                return Sensation.Feeling.Worried
+                return Sensation.FeeSling.Worried
             
         return Sensation.Feeling.Neutral
     
@@ -1018,7 +1018,7 @@ class Robot(Thread):
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.setCapabilities(Capabilities(capabilities=sensation.getCapabilities() ' + sensation.getCapabilities().toDebugString(self.getWho()))      
             self.setCapabilities(Capabilities(deepCopy=sensation.getCapabilities()))#, config=sensation.getCapabilities().config))
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: capabilities: ' + self.getCapabilities().toDebugString('saved capabilities '+ self.getWho()))
-            self.setLocations(location=sensation.getLocation())
+            #self.setLocations(location=sensation.getLocation())
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: location: ' + self.getLocation())
         # sensation going up
         elif transferDirection == Sensation.TransferDirection.Up:
@@ -1826,7 +1826,6 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
                     sensation=Robot.getMainRobotInstance().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Location,
                                                                            name=location)
                     self.log('run: sendSensation(sensationType = Sensation.SensationType.Location, name={}), sock=self.sock, {})'.format(location, str(self.address)))
-
                     self.running = self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
                     sensation.detach(robot=Robot.getMainRobotInstance())
 
@@ -1951,9 +1950,10 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
         
         if sensation.isReceivedFrom(self.getHost()) or \
            sensation.isReceivedFrom(self.getSocketServer().getHost()):
-            pass
-            #self.log('socketClient.sendSensation asked to send sensation back to sensation original host. We Don\'t recycle it!')
+            #pass
+            self.log('socketClient.sendSensation asked to send sensation back to sensation original host. We Don\'t recycle it! receivedFrom:' + str(sensation.receivedFrom) + ': self.getHost(): ' + self.getHost() + ': self.getSocketServer().getHost(): ' + self.getSocketServer().getHost())
         else:
+            self.log('socketClient.sendSensation no back, normal send receivedFrom::' + str(sensation.receivedFrom) + ' self.getHost(): ' + self.getHost() + ': self.getSocketServer().getHost(): ' + self.getSocketServer().getHost())
             sensation.setRobotId(Robot.getMainRobotInstance().getId()) # claim that
                                                                   # all sensation come from Robot
             bytes = sensation.bytes()
@@ -2143,6 +2143,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
             ok = True
             while not synced and self.running:
                 try:
+                    self.log("self.sock.recv SEPARATOR from " + str(self.address))
                     self.data = self.sock.recv(Sensation.SEPARATOR_SIZE).strip().decode('utf-8')  # message separator section
                     if len(self.data) == len(Sensation.SEPARATOR) and self.data[0] is Sensation.SEPARATOR[0]:
                         synced = True
@@ -2160,6 +2161,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                 self.data = None
                 while sensation_length_length > 0 and self.running and ok:
                     try:
+                        self.log("run: self.sock.recv(sensation_length_length) from " + str(self.address))
                         data = self.sock.recv(sensation_length_length)                       # message data section
                         if len(data) == 0:
                             self.running = False
@@ -2221,7 +2223,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                                 # TODO hat to do with this
                             elif sensation.getSensationType() == Sensation.SensationType.Location:
                                 self.log("run: SocketServer got Location sensation " + sensation.toDebugStr())
-                                self.setLocation(locationName=semsation.getName())
+                                self.setLocation(locationName=sensation.getName())
                             else:
                                 self.log("run: SocketServer got sensation " + sensation.toDebugStr())
                                 self.getParent().getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # write sensation to TCPServers Parent, because TCPServer does not read its Axon

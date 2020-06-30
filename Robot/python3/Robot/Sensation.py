@@ -711,7 +711,11 @@ class Sensation(object):
                                time=association.time,
                                feeling=association.feeling)
                 
-            self.receivedFrom=sensation.receivedFrom
+            #self.receivedFrom=sensation.receivedFrom
+            # do deep copy
+            self.receivedFrom=[]
+            self.addReceivedFrom(sensation.receivedFrom)
+            
 #             self.sensationType = sensation.sensationType
 #             if memoryType == None:
 #                 self.memoryType = sensation.memoryType
@@ -802,7 +806,11 @@ class Sensation(object):
 #                 receivedFrom=[]
 #             self.receivedFrom=[]
 #             self.addReceivedFrom(receivedFrom)
-            self.receivedFrom=receivedFrom
+            #self.receivedFrom=receivedFrom
+            # do deep copy
+            self.receivedFrom=[]
+            self.addReceivedFrom(receivedFrom)
+            
 
         if bytes != None:
             try:
