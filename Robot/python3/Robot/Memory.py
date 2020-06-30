@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 26.06.2020
+Edited on 28.06.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -58,7 +58,7 @@ class Memory(object):
     minAvailMem = 50.0                                       # how available momory must be left. MainRobot sets this from its Config
     psutilProcess = psutil.Process(os.getpid())                    # get pid of current process, so we can calculate Process memory usage
     # Robot settings"
-    MemoryLogLevel = enum(No='a', Critical='b', Error='c', Normal='d', Detailed='e', Verbose='f')
+    MemoryLogLevel = enum(No=-1, Critical=0, Error=1, Normal=2, Detailed=3, Verbose=4)
    
     def __init__(self,
                 robot,                          # owner robot

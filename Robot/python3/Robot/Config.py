@@ -1,6 +1,6 @@
 '''
 Created on 25.05.2019
-Edited 24.06.2020
+Edited 28.06.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -540,10 +540,10 @@ class Config(ConfigParser):
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.LOGLEVEL):
                 from Robot import Robot
-                self.set(Config.DEFAULT_SECTION,Config.LOGLEVEL, Robot.LogLevels[Robot.LogLevel.Normal])
+                self.set(Config.DEFAULT_SECTION,Config.LOGLEVEL, Robot.getLogLevelString(Robot.LogLevel.Normal))
                 self.is_changes=True
         except Exception as e:
-            print('self.set(Config.DEFAULT_SECTION,Config.LOGLEVEL, Robot.LogLevels[Robot.LogLevel.Normal]) exception  ' + str(e))
+            print('self.set(Config.DEFAULT_SECTION,Config.LOGLEVEL, Robot.getLogLevelString(Robot.LogLevels[Robot.LogLevel.Normal]) exception  ' + str(e))
             
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.MAXRSS):

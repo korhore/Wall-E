@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 25.06.2020
+Updated on 28.06.2020
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -120,7 +120,7 @@ class Robot(Thread):
     """
 
     # Robot settings"
-    LogLevel = enum(No='a', Critical='b', Error='c', Normal='d', Detailed='e', Verbose='f')
+    LogLevel = enum(No=-1, Critical=0, Error=1, Normal=2, Detailed=3, Verbose=4)
     NO =        'No'
     CRITICAL =  'Critical'
     ERROR =     'Error'
@@ -263,7 +263,7 @@ class Robot(Thread):
         # at this point we can log
         self.logLevel=self.config.getLogLevel()
 
-        self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who: " + self.getWho() + " location: " + self.getLocation() + " kind: " + self.getKind() + " instanceType: " + self.getInstanceType() + " capabilities: " + self.capabilities.toDebugString())
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who: " + self.getWho() + " location: " + self.getLocation() + " kind: " + self.getKind() + " instanceType: " + self.getInstanceType() + " capabilities: " + self.capabilities.toDebugString(self.getWho()))
         # global queue for senses and other robots to put sensations to robot
         self.axon = Axon(robot=self)
         #and create subinstances
@@ -389,11 +389,13 @@ class Robot(Thread):
     
     def getLogLevel(self):
         return self.logLevel
+    def getLogLevelString(logLevel):
+        return Robot.LogLevels.get(logLevel)
+    def getLogLevelStrings():
+        return Robot.LogLevels.values()
 
     def setLogLevel(self, logLevel):
         self.logLevel = logLevel
-#     def getLogLevel(self):
-#         return self.config.getLogLevel()
 
     def setWho(self, name):
         self.name = name
@@ -513,7 +515,7 @@ class Robot(Thread):
             for robot in self.getSubInstances():
                 capabilities.Or(robot._getCapabilities())
                                     
-        self.log(logLevel=Robot.LogLevel.Verbose, logStr='getMasterCapabilities ' +capabilities.toDebugString())
+        self.log(logLevel=Robot.LogLevel.Verbose, logStr='getMasterCapabilities ' +capabilities.toDebugString(self.getWho()))
         return capabilities
     
     def _getCapabilities(self):
@@ -521,7 +523,7 @@ class Robot(Thread):
         for robot in self.getSubInstances():
             capabilities.Or(robot._getLocalCapabilities())
                                    
-        self.log(logLevel=Robot.LogLevel.Verbose, logStr='_getCapabilities ' +capabilities.toDebugString())
+        self.log(logLevel=Robot.LogLevel.Verbose, logStr='_getCapabilities ' +capabilities.toDebugString(self.getWho()))
         return capabilities
     '''
     get capabilities that main robot or all Sub and virtual instances have
@@ -537,7 +539,7 @@ class Robot(Thread):
                 if robot.getInstanceType() != Sensation.InstanceType.Remote:
                     capabilities.Or(robot._getLocalCapabilities())
                                     
-        self.log(logLevel=Robot.LogLevel.Verbose, logStr='getLocalMasterCapabilities ' +capabilities.toDebugString())
+        self.log(logLevel=Robot.LogLevel.Verbose, logStr='getLocalMasterCapabilities ' +capabilities.toDebugString(self.getWho()))
         return capabilities
 
     def _getLocalCapabilities(self):
@@ -546,7 +548,7 @@ class Robot(Thread):
             if robot.getInstanceType() != Sensation.InstanceType.Remote:
                 capabilities.Or(robot._getLocalCapabilities())
                                     
-        self.log(logLevel=Robot.LogLevel.Verbose, logStr='_getLocalCapabilities ' +capabilities.toDebugString())
+        self.log(logLevel=Robot.LogLevel.Verbose, logStr='_getLocalCapabilities ' +capabilities.toDebugString(self.getWho()))
         return capabilities
     
 #############
@@ -600,7 +602,7 @@ class Robot(Thread):
 #                 if robot.getInstanceType() != Sensation.InstanceType.Remote:
 #                     locations.Or(robot._getLocalLocations())
 #                                     
-#         self.log(logLevel=Robot.LogLevel.Verbose, logStr='getLocalMasterLocations ' +locations.toDebugString())
+#         self.log(logLevel=Robot.LogLevel.Verbose, logStr='getLocalMasterLocations ' +locations.toDebugString(self.getWho()))
 #         return locations
 # 
 #     def _getLocalLocations(self):
@@ -609,7 +611,7 @@ class Robot(Thread):
 #             if robot.getInstanceType() != Sensation.InstanceType.Remote:
 #                 locations.Or(robot._getLocalLocations())
 #                                     
-#         self.log(logLevel=Robot.LogLevel.Verbose, logStr='_getLocalLocations ' +locations.toDebugString())
+#         self.log(logLevel=Robot.LogLevel.Verbose, logStr='_getLocalLocations ' +locations.toDebugString(self.getWho()))
 #         return locations
 
 #############
@@ -1013,9 +1015,9 @@ class Robot(Thread):
             self.stop()
         elif sensation.getSensationType() == Sensation.SensationType.Capability:
             self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: sensation.getSensationType() == Sensation.SensationType.Capability')      
-            self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.setCapabilities(Capabilities(capabilities=sensation.getCapabilities() ' + sensation.getCapabilities().toDebugString('capabilities'))      
+            self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.setCapabilities(Capabilities(capabilities=sensation.getCapabilities() ' + sensation.getCapabilities().toDebugString(self.getWho()))      
             self.setCapabilities(Capabilities(deepCopy=sensation.getCapabilities()))#, config=sensation.getCapabilities().config))
-            self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: capabilities: ' + self.getCapabilities().toDebugString('saved capabilities'))
+            self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: capabilities: ' + self.getCapabilities().toDebugString('saved capabilities '+ self.getWho()))
             self.setLocations(location=sensation.getLocation())
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: location: ' + self.getLocation())
         # sensation going up
@@ -1056,6 +1058,7 @@ class Robot(Thread):
         else:
             # which sRobot can process this
             needToDetach=True
+            self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getSubCapabilityInstances')
             robots = self.getSubCapabilityInstances(robotType=sensation.getRobotType(),
                                                     memoryType=sensation.getMemoryType(),
                                                     sensationType=sensation.getSensationType(),
@@ -1636,13 +1639,12 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
             sock, address = self.sock.accept()
             self.log('run: self.sock.accept() '+ str(address))
             if self.running:
-                self.log('run: socketServer = self.createSocketServer'+ str(address))
+                self.log('run: as server socketServer = self.createSocketServer'+ str(address))
                 socketServer = self.createSocketServer(sock=sock, address=address)
-                self.log('run: socketClient = self.createSocketClient'+ str(address))
+                self.log('run: as server socketClient = self.createSocketClient'+ str(address))
                 socketClient = self.createSocketClient(sock=sock, address=address, socketServer=socketServer, tcpServer=self)
                 self.log('run: socketServer.setSocketClient(socketClient)'+ str(address))
                 socketServer.setSocketClient(socketClient)
-                #self.parent.subInstances.append(socketServer)
                 self.parent.subInstances.append(socketClient) # Note to parent subInstances
     
     
@@ -1815,8 +1817,8 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
                  # we would route sensation back to remote, which routes it back to us
                  # in infinite loop
                 capabilities=self.getLocalMasterCapabilities()
-                self.log('run: self.getLocalMasterCapabilities() '  + capabilities.toString())
-                self.log('run: self.getLocalMasterCapabilities() '  + capabilities.toDebugString())
+                self.log('run: self.getLocalMasterCapabilities() toString '  + capabilities.toString())
+                self.log('run: self.getLocalMasterCapabilities() toDebugString '  + capabilities.toDebugString('SocketClient before send'))
                 locations = self.getLocalMasterLocations();
                 self.log('run: self.getLocalMasterLocations() ' + str(locations))
                 # send locations, where Capabilities are valid
@@ -1830,7 +1832,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
 
                 sensation=Robot.getMainRobotInstance().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Capability,
                                                                        capabilities=capabilities)
-                self.log('run: sendSensation(sensationType = Sensation.SensationType.Capability, capabilities=self.getLocalCapabilities()), sock=self.sock,'  + str(self.address) + ')')
+                self.log('run: sendSensation(sensationType = Sensation.SensationType.Capability, capabilities=self.getLocalMasterCapabilities()), sock=self.sock,'  + str(self.address) + ')')
                 self.running = self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
                 sensation.detach(robot=Robot.getMainRobotInstance())
                 self.log('run: sendSensation Sensation.SensationType.Capability done ' + str(self.address) +  ' '  + sensation.getCapabilities().toDebugString('SocketClient'))
@@ -2136,7 +2138,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
 #             self.socketClient.askCapabilities()
  
         while self.running:
-            self.log("run: waiting next Sensation from" + str(self.address))
+            self.log("run: waiting next Sensation from " + str(self.address))
             synced = False
             ok = True
             while not synced and self.running:
