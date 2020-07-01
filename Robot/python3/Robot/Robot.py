@@ -1997,10 +1997,11 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
                         sock.sendall(bytes)                              # message data section
                         #self.log("SocketClient wrote Sensation to " + str(address))
                         self.log("SocketClient.sendSensation wrote sensation " + sensation.toDebugStr() + " to " + str(address))
-                        # try to send same sensation only once
-                        # TODO maybe not a good idea, if sensation is changed by us
-                        sensation.addReceived(self.getHost())
-                        sensation.addReceived(self.getSocketServer().getHost())
+                        # receuvedFrom should be set only, when really receiving someting
+#                         # try to send same sensation only once
+#                         # TODO maybe not a good idea, if sensation is changed by us
+#                         sensation.addReceived(self.getHost())
+#                         sensation.addReceived(self.getSocketServer().getHost())
                     except Exception as err:
                         self.log("SocketClient.sendSensation error writing Sensation to " + str(address) + " error " + str(err))
                         ok = False
