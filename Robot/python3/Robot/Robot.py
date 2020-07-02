@@ -2149,6 +2149,8 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                     if len(self.data) == len(Sensation.SEPARATOR) and self.data[0] is Sensation.SEPARATOR[0]:
                         synced = True
                         ok = True
+                    if len(self.data) == 0: # no hope to get something
+                        self.running = False
                 except Exception as err:
                     self.log("self.sock.recv SEPARATOR " + str(self.address) + " error " + str(err))
                     self.running = False

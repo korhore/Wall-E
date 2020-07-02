@@ -1,6 +1,6 @@
 '''
 Created on 14.02.2020
-Updated on 01.07.2020
+Updated on 03.07.2020
 @author: reijo.korhonen@gmail.com
 
 test Robot class
@@ -521,23 +521,23 @@ class RobotTestCase(unittest.TestCase):
         time.sleep(RobotTestCase.SLEEPTIME)
         
         self.assertTrue(len(self.mainRobot.tcpServer.socketClients) > 0,'should have socketClient')        
-        localSocketClient = self.mainRobot.tcpServer.socketClients[0]
+        self.localSocketClient = self.mainRobot.tcpServer.socketClients[0]
         # set log level Detailed, so we know what is happening
-        localSocketClient.setLogLevel(Robot.LogLevel.Detailed)
+        self.localSocketClient.setLogLevel(Robot.LogLevel.Detailed)
         self.assertTrue(len(self.mainRobot.tcpServer.socketServers) > 0,'should have socketServer')        
-        localSocketServer = self.mainRobot.tcpServer.socketServers[0]
+        self.localSocketServer = self.mainRobot.tcpServer.socketServers[0]
  
         self.assertTrue(len(self.remoteMainRobot.tcpServer.socketClients) == 1,'should have socketClient')        
-        remoteSocketClient = self.remoteMainRobot.tcpServer.socketClients[0]
+        self.remoteSocketClient = self.remoteMainRobot.tcpServer.socketClients[0]
         # set log level Detailed, so we know what is happening
-        remoteSocketClient.setLogLevel(Robot.LogLevel.Detailed)
+        self.remoteSocketClient.setLogLevel(Robot.LogLevel.Detailed)
         self.assertTrue(len(self.remoteMainRobot.tcpServer.socketServers) == 1,'should have socketServer')        
-        remoteSocketServer = self.remoteMainRobot.tcpServer.socketServers[0]
+        self.remoteSocketServer = self.remoteMainRobot.tcpServer.socketServers[0]
         
-        self.assertTrue(localSocketClient in self.mainRobot.subInstances,'mainRobot should know localSocketClient')        
-        self.assertTrue(remoteSocketClient in self.remoteMainRobot.subInstances,'mainRobot should know remoteSocketClient')        
-        self.assertFalse(localSocketServer in self.mainRobot.subInstances,'mainRobot should know localSocketServer')        
-        self.assertFalse(remoteSocketServer in self.remoteMainRobot.subInstances,'mainRobot should know remoteSocketServer')
+        self.assertTrue(self.localSocketClient in self.mainRobot.subInstances,'mainRobot should know localSocketClient')        
+        self.assertTrue(self.remoteSocketClient in self.remoteMainRobot.subInstances,'mainRobot should know remoteSocketClient')        
+        self.assertFalse(self.localSocketServer in self.mainRobot.subInstances,'mainRobot should know localSocketServer')        
+        self.assertFalse(self.remoteSocketServer in self.remoteMainRobot.subInstances,'mainRobot should know self.remoteSocketServer')
         
         print ('Sleep {}s to wait self.remoteMainRobot and SocketServers runs'.format(RobotTestCase.LONG_SLEEPTIME))
         time.sleep(RobotTestCase.LONG_SLEEPTIME)
@@ -555,7 +555,7 @@ class RobotTestCase(unittest.TestCase):
         
         # check Capabilities
         #set muscle capabilities  Item, Image, Voice
-        capabilities  =  localSocketClient.getCapabilities()
+        capabilities  =  self.localSocketClient.getCapabilities()
          #Sensory
         self.assertTrue(capabilities.hasCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Item))  
         self.assertTrue(capabilities.hasCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Image))    
@@ -577,8 +577,8 @@ class RobotTestCase(unittest.TestCase):
         # then both SocketketServers wound send sensations to self.mainRobot which send sensations to muscle.
         # so muscle should get at least 3 copies of Sensation.
        
-        print ('Sleep {}s to wait socketServer and socketClient are initiated'.format(RobotTestCase.SLEEPTIME))
-        time.sleep(RobotTestCase.SLEEPTIME)
+        print ('Sleep {}s to wait socketServer and socketClient are initiated'.format(RobotTestCase.LONG_SLEEPTIME))
+        time.sleep(RobotTestCase.LONG_SLEEPTIME)
         
 #         # fake localSocketClient ip-address, to 127.0.0.2 
 #         localSocketClient.address = (RobotTestCase.FAKE_LOCALHOST, localSocketServer.address[1])
@@ -596,15 +596,15 @@ class RobotTestCase(unittest.TestCase):
         # capabilities should be equal now
         #
         print('\n test tcp Capabilities')
-        self.assertEqual(localSocketClient.getCapabilities(),localSocketServer.getCapabilities(), 'should have equal local capabilities')        
-        self.assertEqual(remoteSocketClient.getCapabilities(),remoteSocketServer.getCapabilities(), 'should have equal remote capabilities')        
-        self.assertEqual(localSocketClient.getCapabilities().toString(),remoteSocketClient.getCapabilities().toString(), 'should have equal local and remote capabilities')        
-        self.assertEqual(localSocketServer.getCapabilities().toString(),remoteSocketServer.getCapabilities().toString(), 'should have equal local and remote capabilities')        
+        self.assertEqual(self.localSocketClient.getCapabilities(),self.localSocketServer.getCapabilities(), 'should have equal local capabilities')        
+        self.assertEqual(self.remoteSocketClient.getCapabilities(),self.remoteSocketServer.getCapabilities(), 'should have equal remote capabilities')        
+        self.assertEqual(self.localSocketClient.getCapabilities().toString(),self.remoteSocketClient.getCapabilities().toString(), 'should have equal local and remote capabilities')        
+        self.assertEqual(self.localSocketServer.getCapabilities().toString(),self.remoteSocketServer.getCapabilities().toString(), 'should have equal local and remote capabilities')        
         # location should be equal now
-        self.assertEqual(localSocketClient.getLocation(),localSocketServer.getLocation(), 'should have equal local location')        
-        self.assertEqual(remoteSocketClient.getLocation(),remoteSocketServer.getLocation(), 'should have equal remote location')        
-        self.assertEqual(localSocketClient.getLocation(),remoteSocketClient.getLocation(), 'should have equal local and remote location')        
-        self.assertEqual(localSocketServer.getLocation(),remoteSocketServer.getLocation(), 'should have equal local and remote location')        
+        self.assertEqual(self.localSocketClient.getLocation(),self.localSocketServer.getLocation(), 'should have equal local location')        
+        self.assertEqual(self.remoteSocketClient.getLocation(),self.remoteSocketServer.getLocation(), 'should have equal remote location')        
+        self.assertEqual(self.localSocketClient.getLocation(),self.remoteSocketClient.getLocation(), 'should have equal local and remote location')        
+        self.assertEqual(self.localSocketServer.getLocation(),self.remoteSocketServer.getLocation(), 'should have equal local and remote location')        
 
         # to routing test and because we have local and remote, we should get sensation in muscle two times
         # get local routed version and version sent to  remote, which is us
@@ -613,311 +613,19 @@ class RobotTestCase(unittest.TestCase):
         # tcp positive case
         # test same location localSocket , remoteSocket, sense, muscle
         #
-        print('\n test tcp positive case')
-        history_sensationTime = time.time() -2*RobotTestCase.ASSOCIATION_INTERVAL
-        
-        self.assertEqual(self.mainRobot.getAxon().empty(), True, 'Axon should be empty at the beginning of test_Presense\nCannot test properly this!')
-        print('\n too old_Presense')
-        #time.sleep(0.1)  # wait to get really even id
-        Wall_E_item_sensation = self.sense.createSensation(time=history_sensationTime,
-                                                 memoryType=Sensation.MemoryType.Working,
-                                                 sensationType=Sensation.SensationType.Item,
-                                                 robotType=Sensation.RobotType.Sense,
-                                                 name=RobotTestCase.NAME,
-                                                 score=RobotTestCase.SCORE_1,
-                                                 presence=Sensation.Presence.Entering)
-        
-        self.assertEqual(Wall_E_item_sensation.getReceivedFrom(), [], 'local sensation should not have receivedFrom information at the beginning of test')
-        ################ test same location localSocket , remoteSocket, sense, muscle ####################
-        self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
-        # should be routed to mainRobot
-        self.assertFalse(self.mainRobot.getAxon().empty(),'mainRobot Axon should not be empty')
-        tranferDirection, sensation = self.mainRobot.getAxon().get()
-        
-        # test routing to muscle
-        self.mainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
-        self.assertFalse(self.muscle.getAxon().empty(),'muscle Axon should not be empty')
-        tranferDirection, sensation = self.muscle.getAxon().get()
-        
-        # test routing to remote muscle from local sense 
-        print ('Sleep {}s to wait Sensation is transferred by tcp'.format(RobotTestCase.SLEEPTIME))
-        time.sleep(RobotTestCase.SLEEPTIME)
+        self.do_tcp_positive_case()
+        self.do_tcp_negative_case()
+        self.do_tcp_positive_case()
 
-        # remote SocketServer should have got it abd when it is living process, it has put it to remoteMainRobot
-        self.assertFalse(self.remoteMainRobot.getAxon().empty(),'remoteMainRobote Axon should not be empty')
-        tranferDirection, sensation = self.remoteMainRobot.getAxon().get()
-
-        # test routing to remoteMuscle
-        self.remoteMainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
-        self.assertFalse(self.remoteMuscle.getAxon().empty(),'remoteMuscle Axon should not be empty')
-        tranferDirection, sensation = self.remoteMuscle.getAxon().get()
-        
-        # test, that sensation is same than transferred
-        self.assertEqual(Wall_E_item_sensation, sensation, 'send and received sensations should be equal')
-        
-        # test, that local sensation to be transferred does not contain  receicedFrom information
-        self.assertEqual(Wall_E_item_sensation.getReceivedFrom(), [], 'local sensation should not have receivedFrom information')
-
-        # test, that remote sensation transferred does contain  rfeceicedFron information
-        self.assertEqual(Wall_E_item_sensation.getReceivedFrom(), [RobotTestCase.LOCALHOST], 'remote sensation should have receivedFrom information')
-
-        # now muscle should not have more sensations
-        self.assertTrue(self.remoteMuscle.getAxon().empty(),'muscle Axon should be empty')
-        
-        
-        self.assertEqual(len(self.sense.getMemory().presentItemSensations), 1, 'len(self.sense.getMemory().presentItemSensations should be 1')
-        
-        
-        
-        ###################################################################################################################################################
-        # tcp negative case
-        # localSocketServer has different location
-        #
-        print('\n test tcp negative case, localSocketServer has different location')
-        
-        ################ test same location localSocket , remoteSocket, sense, muscle ####################
-        
-        ################ test same location sense, muscle ####################
-        ################ test same location localSocket , remoteSocket ####################
-        ################ but location localSocket , remoteSocket differs ####################
-        
-        ################ change local localSocketServer location, so localSocketClient should not capability to handle this message ####################        
-        localSocketServer.setLocation(RobotTestCase.SET_1_1_LOCATIONS_2)
-        
-        self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
-        # should be routed to mainRobot
-        self.assertFalse(self.mainRobot.getAxon().empty(),'mainRobot Axon should not be empty')
-        tranferDirection, sensation = self.mainRobot.getAxon().get()
-        
-        # test routing to muscle
-        self.mainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
-        # should be routed to mainRobot
-        self.assertFalse(self.muscle.getAxon().empty(),'muscle Axon should not be empty')
-        tranferDirection, sensation = self.muscle.getAxon().get()
-        
-      
-        # remote SocketServer should have NOT got it and when it is living process, it has NOT put it to remoteMainRobot
-        print ('Sleep {}s to wait Sensation is transferred by tcp'.format(RobotTestCase.SLEEPTIME))
-        time.sleep(RobotTestCase.SLEEPTIME)
-        self.assertTrue(self.remoteMainRobot.getAxon().empty(),'remoteMainRobote Axon should not be empty')
-        
-        
-        self.assertEqual(len(self.sense.getMemory().presentItemSensations), 1, 'len(self.sense.getMemory().presentItemSensations should be 1')
-        
-        
-        ###################################################################################################################################################
-        # tcp positive case again
-        # localSocketServer has same location again
-        #
-        print('\n tcp positive case again, localSocketServer has same location again')
-        localSocketServer.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        
-        ################ test same location localSocket , remoteSocket, sense, muscle ####################
-        self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
-        # should be routed to mainRobot
-        self.assertFalse(self.mainRobot.getAxon().empty(),'mainRobot Axon should not be empty')
-        tranferDirection, sensation = self.mainRobot.getAxon().get()
-        
-        # test routing to muscle
-        self.mainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
-        self.assertFalse(self.muscle.getAxon().empty(),'muscle Axon should not be empty')
-        tranferDirection, sensation = self.muscle.getAxon().get()
-        
-        # test routing to remote muscle from local sense 
-        print ('Sleep {}s to wait Sensation is transferred by tcp'.format(RobotTestCase.SLEEPTIME))
-        time.sleep(RobotTestCase.SLEEPTIME)
-
-        # TODO this fails OOPS, recycle case, STUDY
-        # remote SocketServer should have got it and when it is living process, it has put it to remoteMainRobot
-        self.assertFalse(self.remoteMainRobot.getAxon().empty(),'remoteMainRobote Axon should not be empty')
-        tranferDirection, sensation = self.remoteMainRobot.getAxon().get()
-
-        # test routing to remoteMuscle
-        self.remoteMainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
-        self.assertFalse(self.remoteMuscle.getAxon().empty(),'remoteMuscle Axon should not be empty')
-        tranferDirection, sensation = self.remoteMuscle.getAxon().get()
-        
-        # now muscle should not have more sensations
-        self.assertTrue(self.remoteMuscle.getAxon().empty(),'muscle Axon should be empty')
-        
-        
-        self.assertEqual(len(self.sense.getMemory().presentItemSensations), 1, 'len(self.sense.getMemory().presentItemSensations should be 1')
-        
-        
-        
-        
-        
-        
-        ################ test same location sense, muscle ####################
-        ################ test same location localSocket , remoteSocket ####################
-        ################ but location localSocket , remoteSocket differs ####################
-        
-        
-        
-        
-        ###################################################################################################################################################
-        # tcp negative case
-        # muscle and remoteMuscle have different location than local sense
-        #
-        
-        
-        # same routing should fail. if Sensation's and Robot's Locations don't match
-        # but SocketClients location is not changed, it still sends sensation to remote
-        self.sense.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        Wall_E_item_sensation.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        localSocketServer.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-
-        # in muscle we should set also capabilities, look SetUp
-        self.muscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_2)
-        self.remoteMuscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_2)
-        #capabilities  =  self.muscle.getCapabilities()
-        # deprecated capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_2)
-        #self.muscle.setCapabilities(capabilities)
-        
-        # test local
-        self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
-        # should be routed to mainRobot
-        self.assertFalse(self.mainRobot.getAxon().empty(),'mainRobot Axon should not be empty')
-        tranferDirection, sensation = self.mainRobot.getAxon().get()
-        # test routing to muscle
-        self.mainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
-        # should not be routed to muscle
-        self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty')
-                
-        # test remote
-        print ('Sleep {}s to wait Sensation is transferred by tcp'.format(RobotTestCase.SLEEPTIME))
-        time.sleep(RobotTestCase.SLEEPTIME)
-        # should be routed to mainRobot
-        self.assertFalse(self.remoteMainRobot.getAxon().empty(),'remoteMainRobot Axon should not be empty')
-        tranferDirection, sensation = self.remoteMainRobot.getAxon().get()
-        # test routing to muscle
-        self.remoteMainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
-        # should not be routed to muscle
-        self.assertTrue(self.remoteMuscle.getAxon().empty(),'remoteMuscle. Axon should be empty')
-        
-        
-        ################
-        # TODO not done
-       
-        # set sensation contain one Location and muscle to contain many locations and one match, routing should succeed again
-        # in muscle we should set also capabilities, look SetUp
-        self.muscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        #capabilities  =  self.muscle.getCapabilities()
-        # deprecated capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        #self.muscle.setCapabilities(capabilities)
-        
-        # test
-        self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
-        # should be routed to mainRobot
-        self.assertFalse(self.mainRobot.getAxon().empty(),'mainRobot Axon should not be empty')
-        tranferDirection, sensation= self.mainRobot.getAxon().get()
-       # TODO test routing to muscle
-        self.mainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
-        # should be routed to mainRobot
-        self.assertFalse(self.muscle.getAxon().empty(),'muscle Axon should not be empty')
-        tranferDirection, sensation = self.muscle.getAxon().get()
-
-        # set sensation contain many Locations and muscle to contain one locations and one match, routing should succeed again
-        # in muscle we should set also capabilities, look SetUp
-        
-        self.sense.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        Wall_E_item_sensation.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-       
-        self.muscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        #capabilities  =  self.muscle.getCapabilities()
-        # deprecated capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        #self.muscle.setCapabilities(capabilities)
-        
-        # test
-        self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
-        # should be routed to mainRobot
-        self.assertFalse(self.mainRobot.getAxon().empty(),'mainRobot Axon should not be empty')
-        tranferDirection, sensation = self.mainRobot.getAxon().get()
-        #  test routing to muscle
-        self.mainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
-        # should be routed to mainRobot
-        self.assertFalse(self.muscle.getAxon().empty(),'muscle Axon should not be empty')
-        tranferDirection, sensation = self.muscle.getAxon().get()
-       
-        # set sensation no Locations and muscle to contain one locations and one match, routing should succeed again
-        # because Sensation does not give location requirement, where to go
-        # in muscle we should set also capabilities, look SetUp
-        
-        self.sense.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
-        Wall_E_item_sensation.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
-       
-        self.muscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        #capabilities  =  self.muscle.getCapabilities()
-        # deprecated capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        #self.muscle.setCapabilities(capabilities)
-        
-        # test
-        self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
-        # should be routed to mainRobot
-        self.assertFalse(self.mainRobot.getAxon().empty(),'mainRobot Axon should not be empty')
-        tranferDirection, sensationn = self.mainRobot.getAxon().get()
-       #  test routing to muscle
-        self.mainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
-        # should be routed to mainRobot
-        self.assertFalse(self.muscle.getAxon().empty(),'muscle Axon should not be empty')
-        tranferDirection, sensation = self.muscle.getAxon().get()
- 
-        # set sensation Locations and muscle not Location , routing should succeed again
-        # because Robot does not give location requirement, what to accept
-        # in muscle we should set also capabilities, look SetUp
-        
-        self.sense.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        Wall_E_item_sensation.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-       
-        self.muscle.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
-        #capabilities  =  self.muscle.getCapabilities()
-        # deprecated capabilities.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
-        #self.muscle.setCapabilities(capabilities)
-        
-        # test
-        self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
-        # should be routed to mainRobot
-        self.assertFalse(self.mainRobot.getAxon().empty(),'mainRobot Axon should not be empty')
-        tranferDirection, sensation = self.mainRobot.getAxon().get()
-       # TODO test routing to muscle
-        self.mainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
-        self.assertFalse(self.muscle.getAxon().empty(),'muscle Axon should not be empty')
-        tranferDirection, sensation = self.muscle.getAxon().get()
-     
-        # set both sensation not  Locations and muscle not Location , routing should succeed again
-        # because Robot does not give location requirement, what to accept
-        # in muscle we should set also capabilities, look SetUp
-        
-        self.sense.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
-        Wall_E_item_sensation.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
-       
-        self.muscle.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
-        #capabilities  =  self.muscle.getCapabilities()
-        # deprecated capabilities.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
-        #self.muscle.setCapabilities(capabilities)
-        
-        # test
-        self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
-        # should be routed to mainRobot
-        self.assertFalse(self.mainRobot.getAxon().empty(),'mainRobot Axon should not be empty')
-        tranferDirection, sensation = self.mainRobot.getAxon().get()
-       #  test routing to muscle
-        self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty before self.mainRobot.process')        
-        self.mainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
-        # should be routed to mainRobot
-        self.assertFalse(self.muscle.getAxon().empty(),'muscle Axon should not be empty')        
-        tranferDirection, sensation = self.muscle.getAxon().get()
-        self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty after self.muscle.getAxon().get()')  
-        
         # done
         self.remoteMainRobot.stop()
         self.mainRobot.tcpServer.stop()
         
-        localSocketClient.stop()        
-        localSocketServer.stop()
+        self.localSocketClient.stop()        
+        self.localSocketServer.stop()
 
-        remoteSocketClient.stop()        
-        remoteSocketServer.stop()
+        self.remoteSocketClient.stop()        
+        self.remoteSocketServer.stop()
        
         print ('Sleep {}s to wait self.remoteMainRobot and self.mainRobot.tcpServer, localSocketServer and localSocketClient to stop'.format(RobotTestCase.SLEEPTIME))
 
@@ -927,8 +635,193 @@ class RobotTestCase(unittest.TestCase):
         
         # del all
         del self.mainRobot.tcpServer
+        
+    '''
+    tcp positive case
+    test same location localSocket , remoteSocket, sense, muscle
+    '''    
+        
+    def do_tcp_positive_case(self):
+        print('\n test tcp positive case')
+        history_sensationTime = time.time() -2*RobotTestCase.ASSOCIATION_INTERVAL
+        
+        self.assertEqual(self.mainRobot.getAxon().empty(), True, 'Axon should be empty at the beginning of test_Presense\nCannot test properly this!')
+        print('\n too old_Presense')
+        #time.sleep(0.1)  # wait to get really even id
+        # normal sensation with location, this should success
+        Wall_E_item_sensation = self.sense.createSensation(time=history_sensationTime,
+                                                 memoryType=Sensation.MemoryType.Working,
+                                                 sensationType=Sensation.SensationType.Item,
+                                                 robotType=Sensation.RobotType.Sense,
+                                                 name=RobotTestCase.NAME,
+                                                 score=RobotTestCase.SCORE_1,
+                                                 presence=Sensation.Presence.Entering,
+                                                 location=self.sense.getLocation())
+        self.do_tcp_positive_case_sensation(sensationToSend = Wall_E_item_sensation)
+        # global sensation, that goes every location, this should success
+        Wall_E_item_sensation_no_location = self.sense.createSensation(time=history_sensationTime,
+                                                 memoryType=Sensation.MemoryType.Working,
+                                                 sensationType=Sensation.SensationType.Item,
+                                                 robotType=Sensation.RobotType.Sense,
+                                                 name=RobotTestCase.NAME,
+                                                 score=RobotTestCase.SCORE_1,
+                                                 presence=Sensation.Presence.Entering)
+        self.do_tcp_positive_case_sensation(sensationToSend = Wall_E_item_sensation_no_location)
+       
 
-     
+    def do_tcp_positive_case_sensation(self, sensationToSend):
+        self.assertEqual(self.mainRobot.getAxon().empty(), True, 'Axon should be empty at the beginning of test_Presense\nCannot test properly this!')
+       
+        self.assertEqual(sensationToSend.getReceivedFrom(), [], 'local sensation should not have receivedFrom information at the beginning of test')
+        ################ test same location localSocket , remoteSocket, sense, muscle ####################
+        self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=sensationToSend)
+        # should be routed to mainRobot
+        self.assertFalse(self.mainRobot.getAxon().empty(),'mainRobot Axon should not be empty')
+        tranferDirection, sensation = self.mainRobot.getAxon().get()
+        
+        # test routing to muscle
+        self.mainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
+        self.assertFalse(self.muscle.getAxon().empty(),'muscle Axon should not be empty')
+        tranferDirection, sensation = self.muscle.getAxon().get()
+        
+        # test routing to remote muscle from local sense 
+        print ('Sleep {}s to wait Sensation is transferred by tcp'.format(RobotTestCase.SLEEPTIME))
+        time.sleep(RobotTestCase.SLEEPTIME)
+
+        # remote SocketServer should have got it and when it is living process, it has put it to remoteMainRobot
+        self.assertFalse(self.remoteMainRobot.getAxon().empty(),'remoteMainRobote Axon should not be empty')
+        tranferDirection, sensation = self.remoteMainRobot.getAxon().get()
+
+        # test routing to remoteMuscle
+        self.remoteMainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
+        self.assertFalse(self.remoteMuscle.getAxon().empty(),'remoteMuscle Axon should not be empty')
+        tranferDirection, sensation = self.remoteMuscle.getAxon().get()
+        
+        # test, that sensation is same than transferred
+        self.assertEqual(sensationToSend, sensation, 'send and received sensations should be equal')
+        
+        # test, that local sensation to be transferred does not contain  receicedFrom information
+        self.assertEqual(sensationToSend.getReceivedFrom(), [], 'local sensation should not have receivedFrom information')
+
+        # test, that remote sensation transferred does contain  receicedFron information
+        self.assertEqual(sensation.getReceivedFrom(), [RobotTestCase.LOCALHOST], 'remote sensation should have receivedFrom information')
+
+        # now muscle should not have more sensations
+        self.assertTrue(self.remoteMuscle.getAxon().empty(),'muscle Axon should be empty')
+        
+        
+        self.assertEqual(len(self.sense.getMemory().presentItemSensations), 1, 'len(self.sense.getMemory().presentItemSensations should be 1')
+
+        # test routing remote got sensation back from remote to local
+    
+        self.remoteSense.process(transferDirection=Sensation.TransferDirection.Up, sensation=sensation)
+        # remote SocketServer should have got it and when it is living process, it has put it to remoteMainRobot
+        self.assertFalse(self.remoteMainRobot.getAxon().empty(),'remoteMainRobote Axon should not be empty')
+        tranferDirection, sensation = self.remoteMainRobot.getAxon().get()
+
+        # test routing to remoteMuscle
+        self.remoteMainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
+        self.assertFalse(self.remoteMuscle.getAxon().empty(),'remoteMuscle Axon should not be empty')
+        tranferDirection, sensation = self.remoteMuscle.getAxon().get()
+        
+        # but routing to local should fail. because we have got this sensation from local and receivedFron contains that information
+        print ('Sleep {}s to wait Sensation is transferred by tcp'.format(RobotTestCase.SLEEPTIME))
+        time.sleep(RobotTestCase.SLEEPTIME)
+
+        # remote SocketServer should have got it and when it is living process, it has put it to remoteMainRobot
+        self.assertTrue(self.mainRobot.getAxon().empty(),'localMainRobote Axon should be empty')
+   
+           
+    '''
+    tcp negative case
+    '''
+    def do_tcp_negative_case(self):
+        ###################################################################################################################################################
+        # tcp negative case
+        # localSocketServer has different location
+        #
+        print('\n test tcp negative case, localSocketServer has different location')
+        history_sensationTime = time.time() -2*RobotTestCase.ASSOCIATION_INTERVAL
+        
+        ################ test same location localSocket , remoteSocket, sense, muscle ####################
+        
+        ################ test same location sense, muscle ####################
+        ################ test same location localSocket , remoteSocket ####################
+        ################ but location localSocket , remoteSocket differs ####################
+        
+        ################ change local localSocketServer location, so localSocketClient should not capability to handle this message ####################        
+        Wall_E_item_sensation = self.sense.createSensation(time=history_sensationTime,
+                                                 memoryType=Sensation.MemoryType.Working,
+                                                 sensationType=Sensation.SensationType.Item,
+                                                 robotType=Sensation.RobotType.Sense,
+                                                 name=RobotTestCase.NAME,
+                                                 score=RobotTestCase.SCORE_1,
+                                                 presence=Sensation.Presence.Entering,
+                                                 location=self.sense.getLocation())
+        # with sensation, that has different location the srcSocker we should fail       
+         
+        # global sensation, that goes every location
+        Wall_E_item_sensation_no_location = self.sense.createSensation(time=history_sensationTime,
+                                                 memoryType=Sensation.MemoryType.Working,
+                                                 sensationType=Sensation.SensationType.Item,
+                                                 robotType=Sensation.RobotType.Sense,
+                                                 name=RobotTestCase.NAME,
+                                                 score=RobotTestCase.SCORE_1,
+                                                 presence=Sensation.Presence.Entering)
+
+        self.assertTrue(self.remoteMainRobot.getAxon().empty(),'remoteMainRobote Axon should be empty BEFORE we test')
+        self.assertEqual(Wall_E_item_sensation.getLocation(), RobotTestCase.SET_1_1_LOCATIONS_1, 'sensation should have location {} BEFORE we test'.format(RobotTestCase.SET_1_1_LOCATIONS_1))
+        # set locations
+        self.localSocketServer.setLocation(RobotTestCase.SET_1_1_LOCATIONS_2)
+        #localSocketClient.setLocation(RobotTestCase.SET_1_1_LOCATIONS_2)
+        
+        
+        # with different location we should fail
+        self.do_tcp_negative_case_sensation(sensationToSend = Wall_E_item_sensation)
+
+        # with global sensation, that goes every location, we should success        
+        self.do_tcp_positive_case_sensation(sensationToSend = Wall_E_item_sensation_no_location)
+        
+        # set receiving robot as global setting its location empty
+        # set locations
+        self.localSocketServer.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
+        self.remoteMuscle.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
+        
+        # with sensation with different location we should success, because receiver accepts all        
+        self.do_tcp_positive_case_sensation(sensationToSend = Wall_E_item_sensation)
+        # with global sensation, that goes every location, we should success        
+        self.do_tcp_positive_case_sensation(sensationToSend = Wall_E_item_sensation_no_location)
+        
+        # set locations back
+        self.localSocketServer.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        #localSocketClient.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        
+        
+        
+    def do_tcp_negative_case_sensation(self, sensationToSend):
+        
+        self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=sensationToSend)
+        # should be routed to mainRobot
+        self.assertFalse(self.mainRobot.getAxon().empty(),'mainRobot Axon should not be empty')
+        tranferDirection, sensation = self.mainRobot.getAxon().get()
+        
+        # test routing to muscle
+        self.mainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
+        # should be routed to mainRobot
+        self.assertFalse(self.muscle.getAxon().empty(),'muscle Axon should not be empty')
+        tranferDirection, sensation = self.muscle.getAxon().get()
+        
+        # remote SocketServer should have NOT got it and when it is living process, it has NOT put it to remoteMainRobot
+        print ('Sleep {}s to wait Sensation is transferred by tcp'.format(RobotTestCase.SLEEPTIME))
+        time.sleep(RobotTestCase.SLEEPTIME)
+        self.assertTrue(self.remoteMainRobot.getAxon().empty(),'remoteMainRobote Axon should be empty')
+        
+        self.assertEqual(len(self.sense.getMemory().presentItemSensations), 1, 'len(self.sense.getMemory().presentItemSensations should be 1')
+                
+        
+        
+        
+ 
      
     '''
     These tests fail. because Location-Sensation routing is not implemented
