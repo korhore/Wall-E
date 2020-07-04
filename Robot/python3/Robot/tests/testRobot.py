@@ -1,6 +1,6 @@
 '''
 Created on 14.02.2020
-Updated on 03.07.2020
+Updated on 04.07.2020
 @author: reijo.korhonen@gmail.com
 
 test Robot class
@@ -34,10 +34,10 @@ class RobotTestCase(unittest.TestCase):
         - location
     '''
     
-    SET_1_1_LOCATIONS_1 = 'testLocation'
-    SET_1_1_LOCATIONS_2 = 'Ubuntu'
+    LOCATION_1 = 'testLocation'
+    LOCATION_2 = 'Ubuntu'
     #SET_1_2_LOCATIONS =   ['testLocation', 'Ubuntu']
-    SET_EMPTY_LOCATIONS = ''
+    EMPTY_LOCATION = ''
     
     LOCATION_1_NAME =     'testLocation'
     LOCATION_1_X =        1.0
@@ -69,9 +69,70 @@ class RobotTestCase(unittest.TestCase):
     FAKE_PORT = 2001
     
     SLEEPTIME=10.0
-    SHORT_SLEEPTIME=15
-    LONG_SLEEPTIME=20
-   
+    SHORT_SLEEPTIME=15-0
+    LONG_SLEEPTIME=20.0
+    WAIT_STEP = 1.0
+    
+    '''
+    assert with wait to test live running processes
+    '''
+    
+    def assertFalseWithWait(self, expr, waitTime, msg=None):
+        """Check that the expression is false."""
+        endTime = time.time() + waitTime
+        while expr and time.time() < endTime:
+            time.sleep(RobotTestCase.WAIT_STEP)
+            
+        self.assertFalset(expr, msg)
+            
+#         if expr:
+#             msg = self._formatMessage(msg, "%s is not false" % safe_repr(expr))
+#             raise self.failureException(msg)
+    # used
+    def assertTrueWithWait(self, expr, waitTime, msg=None):
+        """Check that the expression is true."""
+        endTime = time.time() + waitTime
+        while not expr and time.time() < endTime:
+            time.sleep(RobotTestCase.WAIT_STEP)
+            
+        self.assertTrue(expr, msg)
+# 
+#         if not expr:
+#             msg = self._formatMessage(msg, "%s is not true" % safe_repr(expr))
+#             raise self.failureException(msg)
+    
+    def assertEqualWithWait(self, first, second, waitTime, msg=None):
+        """Fail if the two objects are unequal as determined by the '=='
+           operator.
+        """
+        # TODO original implementation is tricky
+        # We don't clone it with wait. but try simple replacement is wait and
+        # final test is original.
+        # Maybe we don't wait even if we should
+        
+        endTime = time.time() + waitTime
+        while first != second and time.time() < endTime:
+            time.sleep(RobotTestCase.WAIT_STEP)
+            
+        self.assertEqual(first, second, msg)
+        
+#         assertion_func = self._getAssertEqualityFunc(first, second)
+#         assertion_func(first, second, msg=msg)
+
+    def assertNotEqualWithWait(self, first, second, waitTime, msg=None):
+        """Fail if the two objects are equal as determined by the '!='
+           operator.
+        """
+        endTime = time.time() + waitTime
+        while not first != second and time.time() < endTime:
+            time.sleep(RobotTestCase.WAIT_STEP)
+            
+        self.assertNotEqual(first, second, msg)
+            
+#         if not first != second:
+#             msg = self._formatMessage(msg, '%s == %s' % (safe_repr(first),
+#                                                           safe_repr(second)))
+#             raise self.failureException(msg)
     '''
     Robot modeling
     Don't know yet if this is needed
@@ -129,7 +190,7 @@ class RobotTestCase(unittest.TestCase):
             self.mainRobot.activityNumber = 0
             self.mainRobot.activityPeriodStartTime = time.time()
 
-        self.mainRobot.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        self.mainRobot.setLocation(RobotTestCase.LOCATION_1)
         self.mainRobot.selfSensation=self.mainRobot.createSensation(sensationType=Sensation.SensationType.Robot,
                                                           memoryType=Sensation.MemoryType.LongTerm,
                                                           robotType=Sensation.RobotType.Sense,# We have found this
@@ -146,7 +207,7 @@ class RobotTestCase(unittest.TestCase):
                            instanceType= Sensation.InstanceType.SubInstance,
                            level=2)
         self.assertEqual(self.mainRobot,Robot.getMainRobotInstance(), "should have Robot.mainRobotInstance")
-        self.sense.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        self.sense.setLocation(RobotTestCase.LOCATION_1)
         self.mainRobot.subInstances.append(self.sense)
         
         
@@ -155,7 +216,7 @@ class RobotTestCase(unittest.TestCase):
                            instanceType= Sensation.InstanceType.SubInstance,
                            level=2)
         self.assertEqual(self.mainRobot,Robot.getMainRobotInstance(), "should have Robot.mainRobotInstance")
-        self.muscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        self.muscle.setLocation(RobotTestCase.LOCATION_1)
         self.mainRobot.subInstances.append(self.muscle)
                 
         #set muscle capabilities  Item, Image, Voice
@@ -163,7 +224,7 @@ class RobotTestCase(unittest.TestCase):
         # location, needed, because Robot delegates subrobot capability checking
         # in routing phase for Capabilities so also capabilities should have same Locations
         # in real application they are, because Robots Locations come from Capabilities
-        # deprecated capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        # deprecated capabilities.setLocation(RobotTestCase.LOCATION_1)
          #Sensory
         capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Item, is_set=True)   
         capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Image, is_set=True)   
@@ -189,7 +250,7 @@ class RobotTestCase(unittest.TestCase):
         self.remoteMainRobot = Robot(parent=None,
                            instanceName='RemoteMainRobot',
                            instanceType= Sensation.InstanceType.Real)
-        # correct address, to we don't use ame locakpst 127.0.0.1, but we still use ip-nmumbers in this single computer without real networking
+        # correct address, to we don't use same localhost 127.0.0.1, but we still use ip-nmumbers in this single computer without real networking
         self.remoteMainRobot.tcpServer.address = (RobotTestCase.REMOTE_LOCALHOST, self.remoteMainRobot.tcpServer.address[1])
         remoteport = self.remoteMainRobot.tcpServer.address[1]
         print('1: remoteport '+  str(remoteport))
@@ -197,13 +258,13 @@ class RobotTestCase(unittest.TestCase):
         # We should set this, because we don't run mainRobot, but call its methods
         self.assertEqual(self.remoteMainRobot, Robot.mainRobotInstance, "should have Robot.mainRobotInstance")
         self.assertEqual(self.remoteMainRobot, Robot.getMainRobotInstance(), "should have Robot.mainRobotInstance")
-        # this can be ptoblem if tested methods use Robot.mainRobotInstance, because this points to (self.remoteMainRobot
+        # this can be problem if tested methods use Robot.mainRobotInstance, because this points to (self.remoteMainRobot
         if self.remoteMainRobot.level == 1:
             self.remoteMainRobot.activityAverage = self.remoteMainRobot.shortActivityAverage = self.remoteMainRobot.config.getActivityAvegageLevel()
             self.remoteMainRobot.activityNumber = 0
             self.remoteMainRobot.activityPeriodStartTime = time.time()
 
-        self.remoteMainRobot.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        self.remoteMainRobot.setLocation(RobotTestCase.LOCATION_1)
         self.remoteMainRobot.selfSensation=self.remoteMainRobot.createSensation(sensationType=Sensation.SensationType.Robot,
                                                           memoryType=Sensation.MemoryType.LongTerm,
                                                           robotType=Sensation.RobotType.Sense,# We have found this
@@ -220,17 +281,7 @@ class RobotTestCase(unittest.TestCase):
                            instanceType= Sensation.InstanceType.SubInstance,
                            level=2)
         self.assertEqual(self.remoteMainRobot,Robot.getMainRobotInstance(), "should have Robot.mainRobotInstance")
-        self.remoteSense.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-# don't change selfSensation self, it messes logging
-#         self.remoteSense.selfSensation=self.remoteMainRobot.createSensation(sensationType=Sensation.SensationType.Robot,
-#                                                           memoryType=Sensation.MemoryType.LongTerm,
-#                                                           robotType=Sensation.RobotType.Sense,# We have found this
-#                                                           robot = self.remoteSense.getWho(),
-#                                                           name = self.remoteSense.getWho(),
-#                                                           presence = Sensation.Presence.Present,
-#                                                           kind=self.remoteSense.getKind(),
-#                                                           feeling=self.remoteSense.getFeeling(),
-#                                                           location=self.remoteSense.getLocation())
+        self.remoteSense.setLocation(RobotTestCase.LOCATION_1)
         self.remoteMainRobot.subInstances.append(self.remoteSense)
         
         
@@ -239,17 +290,7 @@ class RobotTestCase(unittest.TestCase):
                            instanceType= Sensation.InstanceType.SubInstance,
                            level=2)
         self.assertEqual(self.remoteMainRobot,Robot.getMainRobotInstance(), "should have Robot.mainRobotInstance")
-        self.remoteMuscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-# don't change selfSensation self, it messes logging
-#         self.remoteMuscle.selfSensation=self.remoteMainRobot.createSensation(sensationType=Sensation.SensationType.Robot,
-#                                                           memoryType=Sensation.MemoryType.LongTerm,
-#                                                           robotType=Sensation.RobotType.Sense,# We have found this
-#                                                           robot = self.remoteMuscle.getWho(),
-#                                                           name = self.remoteMuscle.getWho(),
-#                                                           presence = Sensation.Presence.Present,
-#                                                           kind=self.remoteMuscle.getKind(),
-#                                                           feeling=self.remoteMuscle.getFeeling(),
-#                                                           location=self.remoteMuscle.getLocation())
+        self.remoteMuscle.setLocation(RobotTestCase.LOCATION_1)
         self.remoteMainRobot.subInstances.append(self.remoteMuscle)
                 
         #set muscle capabilities  Item, Image, Voice
@@ -257,7 +298,7 @@ class RobotTestCase(unittest.TestCase):
         # location, needed, because Robot delegates subrobot capability checking
         # in routing phase for Capabilities so also capabilities should have same Locations
         # in real application they are, because Robots Locations come from Capabilities
-        # deprecated capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        # deprecated capabilities.setLocation(RobotTestCase.LOCATION_1)
          #Sensory
         capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Item, is_set=True)   
         capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Image, is_set=True)   
@@ -281,7 +322,7 @@ class RobotTestCase(unittest.TestCase):
         del self.mainRobot
         
     def tearDownRemote(self):
-        print('\ntearDownRemore')       
+        print('\ntearDownRemote')       
         del self.remoteMuscle
         del self.remoteSense
         del self.remoteMainRobot
@@ -314,12 +355,12 @@ class RobotTestCase(unittest.TestCase):
         self.assertEqual(len(self.sense.getMemory().presentItemSensations), 1, 'len(self.sense.getMemory().presentItemSensations should be 1')
         
         # same routing should fail. if Sensation's and Robot's Locations don't match
-        self.sense.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        Wall_E_item_sensation.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        self.sense.setLocation(RobotTestCase.LOCATION_1)
+        Wall_E_item_sensation.setLocation(RobotTestCase.LOCATION_1)
         # in muscle we should set also capabilities, look SetUp
-        self.muscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_2)
+        self.muscle.setLocation(RobotTestCase.LOCATION_2)
         #capabilities  =  self.muscle.getCapabilities()
-        # deprecated capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_2)
+        # deprecated capabilities.setLocation(RobotTestCase.LOCATION_2)
         #self.muscle.setCapabilities(capabilities)
         
         # test
@@ -332,11 +373,12 @@ class RobotTestCase(unittest.TestCase):
         # should not be routed to muscle
         self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty')
         
+        # TODO now we use one location, not many
         # set sensation contain one Location and muscle to contain many locations and one match, routing should succeed again
         # in muscle we should set also capabilities, look SetUp
-        self.muscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        self.muscle.setLocation(RobotTestCase.LOCATION_1)
         #capabilities  =  self.muscle.getCapabilities()
-        # deprecated capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        # deprecated capabilities.setLocation(RobotTestCase.LOCATION_1)
         #self.muscle.setCapabilities(capabilities)
         
         # test
@@ -353,12 +395,12 @@ class RobotTestCase(unittest.TestCase):
         # set sensation contain many Locations and muscle to contain one locations and one match, routing should succeed again
         # in muscle we should set also capabilities, look SetUp
         
-        self.sense.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        Wall_E_item_sensation.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        self.sense.setLocation(RobotTestCase.LOCATION_1)
+        Wall_E_item_sensation.setLocation(RobotTestCase.LOCATION_1)
        
-        self.muscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        self.muscle.setLocation(RobotTestCase.LOCATION_1)
         #capabilities  =  self.muscle.getCapabilities()
-        # deprecated capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        # deprecated capabilities.setLocation(RobotTestCase.LOCATION_1)
         #self.muscle.setCapabilities(capabilities)
         
         # test
@@ -376,12 +418,12 @@ class RobotTestCase(unittest.TestCase):
         # because Sensation does not give location requirement, where to go
         # in muscle we should set also capabilities, look SetUp
         
-        self.sense.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
-        Wall_E_item_sensation.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
+        self.sense.setLocation(RobotTestCase.EMPTY_LOCATION)
+        Wall_E_item_sensation.setLocation(RobotTestCase.EMPTY_LOCATION)
        
-        self.muscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        self.muscle.setLocation(RobotTestCase.LOCATION_1)
         #capabilities  =  self.muscle.getCapabilities()
-        # deprecated capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        # deprecated capabilities.setLocation(RobotTestCase.LOCATION_1)
         #self.muscle.setCapabilities(capabilities)
         
         # test
@@ -399,12 +441,12 @@ class RobotTestCase(unittest.TestCase):
         # because Robot does not give location requirement, what to accept
         # in muscle we should set also capabilities, look SetUp
         
-        self.sense.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        Wall_E_item_sensation.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        self.sense.setLocation(RobotTestCase.LOCATION_1)
+        Wall_E_item_sensation.setLocation(RobotTestCase.LOCATION_1)
        
-        self.muscle.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
+        self.muscle.setLocation(RobotTestCase.EMPTY_LOCATION)
         #capabilities  =  self.muscle.getCapabilities()
-        # deprecated capabilities.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
+        # deprecated capabilities.setLocation(RobotTestCase.EMPTY_LOCATION)
         #self.muscle.setCapabilities(capabilities)
         
         # test
@@ -421,12 +463,12 @@ class RobotTestCase(unittest.TestCase):
         # because Robot does not give location requirement, what to accept
         # in muscle we should set also capabilities, look SetUp
         
-        self.sense.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
-        Wall_E_item_sensation.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
+        self.sense.setLocation(RobotTestCase.EMPTY_LOCATION)
+        Wall_E_item_sensation.setLocation(RobotTestCase.EMPTY_LOCATION)
        
-        self.muscle.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
+        self.muscle.setLocation(RobotTestCase.EMPTY_LOCATION)
         #capabilities  =  self.muscle.getCapabilities()
-        # deprecated capabilities.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
+        # deprecated capabilities.setLocation(RobotTestCase.EMPTY_LOCATION)
         #self.muscle.setCapabilities(capabilities)
         
         # test
@@ -458,7 +500,7 @@ class RobotTestCase(unittest.TestCase):
         self.setUpRemote()
         
         self.remoteMainRobot.setLogLevel(Robot.LogLevel.Detailed)
-        # create tcpServe same way as MainRpbot does it, but connecting to localhost
+        # create tcpServer same way as MainRpbot does it, but no hosts to connect, this is server only
         self.remoteMainRobot.tcpServer=TCPServer(parent=self.remoteMainRobot,
                                            memory=self.remoteMainRobot.getMemory(),
                                            hostNames=[], # no hostnames to connect, we are server side
@@ -468,7 +510,8 @@ class RobotTestCase(unittest.TestCase):
                                            address=(HOST,PORT))
         
         # this is hard to test
-        # we could also start self.remoteMainRobot   
+        # we could also start self.remoteMainRobot 
+        # but for test step by steo, it is easier make only  elf.remoteMainRobot.tcpServer as running process 
 
         self.remoteMainRobot.tcpServer.start()
         #self.remoteMainRobot.start()
@@ -498,7 +541,7 @@ class RobotTestCase(unittest.TestCase):
 #         self.assertFalse(localSocketServer in self.remoteMainRobot.subInstances,'mainRobot should know localSocketServer')        
 #         self.assertFalse(remoteSocketServer in self.remoteMainRobot.subInstances,'mainRobot should know remoteSocketServer')
         
-        print ('Sleep {}s to wait remote SocketServers runs'.format(RobotTestCase.SLEEPTIME))        
+        #print ('Sleep {}s to wait remote SocketServers runs'.format(RobotTestCase.SLEEPTIME))        
         
         
         # set then local mainRobot
@@ -517,10 +560,16 @@ class RobotTestCase(unittest.TestCase):
         # We try to connect running self.remoteMainRobot
 
         self.mainRobot.tcpServer.start()
-        print ('Sleep {}s to wait tcpServer runs'.format(RobotTestCase.SLEEPTIME))
-        time.sleep(RobotTestCase.SLEEPTIME)
         
-        self.assertTrue(len(self.mainRobot.tcpServer.socketClients) > 0,'should have socketClient')        
+        # after this we test live processes, to we use WithWait -test6 methods
+        print ('Wait tcpServer runs')
+        #time.sleep(RobotTestCase.SLEEPTIME)
+        # manual conditional wait
+        endTime = time.time() + RobotTestCase.SLEEPTIME
+        while len(self.mainRobot.tcpServer.socketClients) == 0 and time.time() < endTime:
+            time.sleep(RobotTestCase.WAIT_STEP)
+
+        self.assertTrue(len(self.mainRobot.tcpServer.socketClients) > 0, 'should have socketClient')        
         self.localSocketClient = self.mainRobot.tcpServer.socketClients[0]
         # set log level Detailed, so we know what is happening
         self.localSocketClient.setLogLevel(Robot.LogLevel.Detailed)
@@ -539,10 +588,18 @@ class RobotTestCase(unittest.TestCase):
         self.assertFalse(self.localSocketServer in self.mainRobot.subInstances,'mainRobot should know localSocketServer')        
         self.assertFalse(self.remoteSocketServer in self.remoteMainRobot.subInstances,'mainRobot should know self.remoteSocketServer')
         
-        print ('Sleep {}s to wait self.remoteMainRobot and SocketServers runs'.format(RobotTestCase.LONG_SLEEPTIME))
-        time.sleep(RobotTestCase.LONG_SLEEPTIME)
+        # conditional wait for first assert for capabilities
+        print ('Wait self.remoteMainRobot and SocketServers runs')
+#         time.sleep(RobotTestCase.LONG_SLEEPTIME)
         
-        # at this point we should have got back Robot sensation from elf.remoteMainRobot
+        capabilities  =  self.localSocketClient.getCapabilities()
+        endTime = time.time() + RobotTestCase.SLEEPTIME
+        while not capabilities.hasCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Item) and time.time() < endTime:
+            time.sleep(RobotTestCase.WAIT_STEP)
+            capabilities  =  self.localSocketClient.getCapabilities()
+       
+        
+        # at this point we should have got back Robot sensation from self.remoteMainRobot
         # we run self.mainRobot manually, so we emulate hot it react and connects to remote
         
 #         self.assertFalse(self.mainRobot.getAxon().empty(),'self.mainRobot Axon should not be empty')
@@ -577,8 +634,13 @@ class RobotTestCase(unittest.TestCase):
         # then both SocketketServers wound send sensations to self.mainRobot which send sensations to muscle.
         # so muscle should get at least 3 copies of Sensation.
        
-        print ('Sleep {}s to wait socketServer and socketClient are initiated'.format(RobotTestCase.LONG_SLEEPTIME))
-        time.sleep(RobotTestCase.LONG_SLEEPTIME)
+        print ('Wait socketServer and socketClient are initiated')
+        #time.sleep(RobotTestCase.LONG_SLEEPTIME)
+        
+        # conditional wait for first assert for capabilities
+        endTime = time.time() + RobotTestCase.SLEEPTIME
+        while self.localSocketClient.getCapabilities() != self.localSocketServer.getCapabilities() and time.time() < endTime:
+            time.sleep(RobotTestCase.WAIT_STEP)
         
 #         # fake localSocketClient ip-address, to 127.0.0.2 
 #         localSocketClient.address = (RobotTestCase.FAKE_LOCALHOST, localSocketServer.address[1])
@@ -606,26 +668,25 @@ class RobotTestCase(unittest.TestCase):
         self.assertEqual(self.localSocketClient.getLocation(),self.remoteSocketClient.getLocation(), 'should have equal local and remote location')        
         self.assertEqual(self.localSocketServer.getLocation(),self.remoteSocketServer.getLocation(), 'should have equal local and remote location')        
 
-        # to routing test and because we have local and remote, we should get sensation in muscle two times
-        # get local routed version and version sent to  remote, which is us
-        
-        ###################################################################################################################################################
-        # tcp positive case
-        # test same location localSocket , remoteSocket, sense, muscle
-        #
         self.do_tcp_positive_case()
         self.do_tcp_negative_case()
         self.do_tcp_positive_case()
 
         # done
-        self.remoteMainRobot.stop()
+#         self.remoteMainRobot.stop() # stops also
+#                                     # self.remoteMainRobot.tcpServer
+#                                     # self.remoteSocketClient      
+#                                     # self.remoteSocketServer.
+        # local should be stopped manually
         self.mainRobot.tcpServer.stop()
-        
         self.localSocketClient.stop()        
         self.localSocketServer.stop()
-
+        
+        # remote should be stopped manually
+        self.remoteMainRobot.tcpServer.stop()
         self.remoteSocketClient.stop()        
         self.remoteSocketServer.stop()
+        
        
         print ('Sleep {}s to wait self.remoteMainRobot and self.mainRobot.tcpServer, localSocketServer and localSocketClient to stop'.format(RobotTestCase.SLEEPTIME))
 
@@ -635,7 +696,8 @@ class RobotTestCase(unittest.TestCase):
         
         # del all
         del self.mainRobot.tcpServer
-        
+        # remote should be deletes in self.tearDownRemote
+        #del self.remoteMainRobot.tcpServer       
     '''
     tcp positive case
     test same location localSocket , remoteSocket, sense, muscle
@@ -685,8 +747,14 @@ class RobotTestCase(unittest.TestCase):
         tranferDirection, sensation = self.muscle.getAxon().get()
         
         # test routing to remote muscle from local sense 
-        print ('Sleep {}s to wait Sensation is transferred by tcp'.format(RobotTestCase.SLEEPTIME))
-        time.sleep(RobotTestCase.SLEEPTIME)
+        print ('Wait Sensation is transferred by tcp')
+#         time.sleep(RobotTestCase.SLEEPTIME)
+ 
+        # conditional wait
+               
+        endTime = time.time() + RobotTestCase.SLEEPTIME
+        while self.remoteMainRobot.getAxon().empty() and time.time() < endTime:
+            time.sleep(RobotTestCase.WAIT_STEP)
 
         # remote SocketServer should have got it and when it is living process, it has put it to remoteMainRobot
         self.assertFalse(self.remoteMainRobot.getAxon().empty(),'remoteMainRobote Axon should not be empty')
@@ -725,8 +793,13 @@ class RobotTestCase(unittest.TestCase):
         tranferDirection, sensation = self.remoteMuscle.getAxon().get()
         
         # but routing to local should fail. because we have got this sensation from local and receivedFron contains that information
-        print ('Sleep {}s to wait Sensation is transferred by tcp'.format(RobotTestCase.SLEEPTIME))
-        time.sleep(RobotTestCase.SLEEPTIME)
+        print ('Wait Sensation is transferred by tcp')
+#         time.sleep(RobotTestCase.SLEEPTIME)
+        # conditional wait
+               
+        endTime = time.time() + RobotTestCase.SLEEPTIME
+        while not self.mainRobot.getAxon().empty() and time.time() < endTime:
+            time.sleep(RobotTestCase.WAIT_STEP)
 
         # remote SocketServer should have got it and when it is living process, it has put it to remoteMainRobot
         self.assertTrue(self.mainRobot.getAxon().empty(),'localMainRobote Axon should be empty')
@@ -770,10 +843,10 @@ class RobotTestCase(unittest.TestCase):
                                                  presence=Sensation.Presence.Entering)
 
         self.assertTrue(self.remoteMainRobot.getAxon().empty(),'remoteMainRobote Axon should be empty BEFORE we test')
-        self.assertEqual(Wall_E_item_sensation.getLocation(), RobotTestCase.SET_1_1_LOCATIONS_1, 'sensation should have location {} BEFORE we test'.format(RobotTestCase.SET_1_1_LOCATIONS_1))
+        self.assertEqual(Wall_E_item_sensation.getLocation(), RobotTestCase.LOCATION_1, 'sensation should have location {} BEFORE we test'.format(RobotTestCase.LOCATION_1))
         # set locations
-        self.localSocketServer.setLocation(RobotTestCase.SET_1_1_LOCATIONS_2)
-        #localSocketClient.setLocation(RobotTestCase.SET_1_1_LOCATIONS_2)
+        self.localSocketServer.setLocation(RobotTestCase.LOCATION_2)
+        #localSocketClient.setLocation(RobotTestCase.LOCATION_2)
         
         
         # with different location we should fail
@@ -784,8 +857,8 @@ class RobotTestCase(unittest.TestCase):
         
         # set receiving robot as global setting its location empty
         # set locations
-        self.localSocketServer.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
-        self.remoteMuscle.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
+        self.localSocketServer.setLocation(RobotTestCase.EMPTY_LOCATION)
+        self.remoteMuscle.setLocation(RobotTestCase.EMPTY_LOCATION)
         
         # with sensation with different location we should success, because receiver accepts all        
         self.do_tcp_positive_case_sensation(sensationToSend = Wall_E_item_sensation)
@@ -793,8 +866,9 @@ class RobotTestCase(unittest.TestCase):
         self.do_tcp_positive_case_sensation(sensationToSend = Wall_E_item_sensation_no_location)
         
         # set locations back
-        self.localSocketServer.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        #localSocketClient.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        self.localSocketServer.setLocation(RobotTestCase.LOCATION_1)
+        self.remoteMuscle.setLocation(RobotTestCase.LOCATION_1)
+        #localSocketClient.setLocation(RobotTestCase.LOCATION_1)
         
         
         
@@ -812,8 +886,14 @@ class RobotTestCase(unittest.TestCase):
         tranferDirection, sensation = self.muscle.getAxon().get()
         
         # remote SocketServer should have NOT got it and when it is living process, it has NOT put it to remoteMainRobot
-        print ('Sleep {}s to wait Sensation is transferred by tcp'.format(RobotTestCase.SLEEPTIME))
-        time.sleep(RobotTestCase.SLEEPTIME)
+        print ('Wait Sensation is transferred by tcp')
+#         time.sleep(RobotTestCase.SLEEPTIME)
+        # conditional wait
+               
+        endTime = time.time() + RobotTestCase.SLEEPTIME
+        while not self.remoteMainRobot.getAxon().empty() and time.time() < endTime:
+            time.sleep(RobotTestCase.WAIT_STEP)
+        
         self.assertTrue(self.remoteMainRobot.getAxon().empty(),'remoteMainRobote Axon should be empty')
         
         self.assertEqual(len(self.sense.getMemory().presentItemSensations), 1, 'len(self.sense.getMemory().presentItemSensations should be 1')
@@ -861,24 +941,24 @@ class RobotTestCase(unittest.TestCase):
                                                  robotType=Sensation.RobotType.Sense,
                                                  name=RobotTestCase.LOCATION_1_NAME)
         Wall_E_item_sensation.associate(sensation=Wall_E_location_sensation)
-        self.sense.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        #Wall_E_item_sensation.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        self.sense.setLocation(RobotTestCase.LOCATION_1)
+        #Wall_E_item_sensation.setLocation(RobotTestCase.LOCATION_1)
         self.sense.associate(sensation=Wall_E_location_sensation)
         # now sense and Item are in RobotTestCase.LOCATION_1_NAME location
         
         
         # in muscle we should set also capabilities, look SetUp
-        #self.muscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_2)
+        #self.muscle.setLocation(RobotTestCase.LOCATION_2)
         muscle_location_sensation = self.sense.createSensation(
                                                  memoryType=Sensation.MemoryType.Sensory,
                                                  sensationType=Sensation.SensationType.Location,
                                                  robotType=Sensation.RobotType.Sense,
-                                                 name=RobotTestCase.SET_1_1_LOCATIONS_2)
+                                                 name=RobotTestCase.LOCATION_2)
         self.muscle.associate(sensation=muscle_location_sensation)
-        # now muscle is in RobotTestCase.SET_1_1_LOCATIONS_2
+        # now muscle is in RobotTestCase.LOCATION_2
         
        #capabilities  =  self.muscle.getCapabilities()
-        # deprecated capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_2)
+        # deprecated capabilities.setLocation(RobotTestCase.LOCATION_2)
         #self.muscle.setCapabilities(capabilities)
         
         # test
@@ -893,9 +973,9 @@ class RobotTestCase(unittest.TestCase):
         
         # set sensation contain  one Location and muscle to contain many locations and one match, routing should succeed again
         # in muscle we should set also capabilities, look SetUp
-        self.muscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        self.muscle.setLocation(RobotTestCase.LOCATION_1)
         #capabilities  =  self.muscle.getCapabilities()
-        #capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        #capabilities.setLocation(RobotTestCase.LOCATION_1)
         #self.muscle.setCapabilities(capabilities)
         
         # test
@@ -914,8 +994,8 @@ class RobotTestCase(unittest.TestCase):
         
         # this as not test with Location sensation, because Robot can be onky in one last Location, but not in mane places
         
-#         self.sense.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-#         #Wall_E_item_sensation.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+#         self.sense.setLocation(RobotTestCase.LOCATION_1)
+#         #Wall_E_item_sensation.setLocation(RobotTestCase.LOCATION_1)
 #         Wall_E_location_sensation = self.sense.createSensation(
 #                                                  memoryType=Sensation.MemoryType.Sensory,
 #                                                  sensationType=Sensation.SensationType.Location,
@@ -923,9 +1003,9 @@ class RobotTestCase(unittest.TestCase):
 #                                                  name=RobotTestCase.LOCATION_1_NAME)
 #         Wall_E_item_sensation.associate(sensation=Wall_E_location_sensation)
 #        
-#         self.muscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+#         self.muscle.setLocation(RobotTestCase.LOCATION_1)
 #         capabilities  =  self.muscle.getCapabilities()
-#         capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+#         capabilities.setLocation(RobotTestCase.LOCATION_1)
 #         self.muscle.setCapabilities(capabilities)
 #         
 #         # test
@@ -953,12 +1033,12 @@ class RobotTestCase(unittest.TestCase):
                                                  presence=Sensation.Presence.Entering)
        
         
-        self.sense.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
-        #Wall_E_item_sensation.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
+        self.sense.setLocation(RobotTestCase.EMPTY_LOCATION)
+        #Wall_E_item_sensation.setLocation(RobotTestCase.EMPTY_LOCATION)
        
-        self.muscle.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        self.muscle.setLocation(RobotTestCase.LOCATION_1)
         #capabilities  =  self.muscle.getCapabilities()
-        # deprecated capabilities.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        # deprecated capabilities.setLocation(RobotTestCase.LOCATION_1)
         #self.muscle.setCapabilities(capabilities)
         
         # test
@@ -978,13 +1058,13 @@ class RobotTestCase(unittest.TestCase):
         
         # this is valid test, if we now associate Location sensation
         
-        self.sense.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
-        #Wall_E_item_sensation.setLocation(RobotTestCase.SET_1_1_LOCATIONS_1)
+        self.sense.setLocation(RobotTestCase.LOCATION_1)
+        #Wall_E_item_sensation.setLocation(RobotTestCase.LOCATION_1)
         Wall_E_item_sensation.associate(sensation=Wall_E_location_sensation)
        
-        self.muscle.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
+        self.muscle.setLocation(RobotTestCase.EMPTY_LOCATION)
         #capabilities  =  self.muscle.getCapabilities()
-        # deprecated capabilities.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
+        # deprecated capabilities.setLocation(RobotTestCase.EMPTY_LOCATION)
         #self.muscle.setCapabilities(capabilities)
         
         # test
@@ -1011,12 +1091,12 @@ class RobotTestCase(unittest.TestCase):
                                                  score=RobotTestCase.SCORE_1,
                                                  presence=Sensation.Presence.Entering)
         
-        self.sense.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
-        #Wall_E_item_sensation.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
+        self.sense.setLocation(RobotTestCase.EMPTY_LOCATION)
+        #Wall_E_item_sensation.setLocation(RobotTestCase.EMPTY_LOCATION)
        
-        self.muscle.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
+        self.muscle.setLocation(RobotTestCase.EMPTY_LOCATION)
         #capabilities  =  self.muscle.getCapabilities()
-        # deprecated capabilities.setLocation(RobotTestCase.SET_EMPTY_LOCATIONS)
+        # deprecated capabilities.setLocation(RobotTestCase.EMPTY_LOCATION)
         #self.muscle.setCapabilities(capabilities)
         
         # test
