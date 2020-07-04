@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 31.05.2020
+Updated on 05.07.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -163,7 +163,7 @@ class Communication(Robot):
                             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.mostImportantItemSensation)
                     if self.mostImportantVoiceSensation is not None:
                         if self.mostImportantVoiceSensation.getMemoryType() != Sensation.MemoryType.LongTerm:
-                            self.getMemory().setMemoryType(sensation=self.mostImportantItemSensation, memoryType=Sensation.MemoryType.LongTerm)
+                            self.getMemory().setMemoryType(sensation=self.mostImportantVoiceSensation, memoryType=Sensation.MemoryType.LongTerm)
                             # publish update to other sites
                             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.mostImportantVoiceSensation)
                     #  mark also good feeling to original voice we said
