@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 28.06.2020
+Updated on 04.07.2020
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -181,9 +181,6 @@ class Robot(Thread):
         self.instanceType=instanceType
         self.level=level+1
         
-        #indexes used in communication
-        #self.imageind=0
-        #self.voiceind=0
         # Features of Robot identity we can show and speak to
         self.imageSensations=[]
         self.voiceSensations=[]
@@ -243,7 +240,6 @@ class Robot(Thread):
                                                 sensationType=Sensation.SensationType.Robot,
                                                 memoryType=Sensation.MemoryType.LongTerm,
                                                 robotType=Sensation.RobotType.Sense,# We have found this
-#                                                robot = self,
                                                 name = self.getWho(),
                                                 presence = Sensation.Presence.Present,
                                                 kind=self.getKind(),
@@ -285,33 +281,8 @@ class Robot(Thread):
             else:
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr="init robot virtual instanceName " + instanceName + " is None")
                 
-        # in main robot, set up Long_tem Memory and set up TCPServer
-        if self.level == 1:                        
-#             Robot.mainRobotInstance = self
-#             self._isMainRobot = True
-#             self.feeling = Sensation.Feeling.Neutral
-#             self.feelingLevel = float(Sensation.Feeling.Neutral)
-#             self.activityLevel = Sensation.ActivityLevel.Normal
-            
-            
-            
-            # Robot-level variables are instantiated here
-            # (Main) Robots identity. All running Robot treads share these
-            #indexes used in communication
-            #self.getMemory().presentItemSensations={}
-            #self.imageind=0
-            #self.voiceind=0
-            # Features of Robot identity we can show and speak to
-#             Robot.images=[]
-#             Robot.voices=[]
-#              
-#             Robot.sharedSensationHosts = []         # hosts with we have already shared our sensations
-#             
-#             Robot.mainRobotInstance = self          # singleton instance
-            
-#             self.getMemory().setMaxRss(self.config.getMaxRss())
-#             self.getMemory().setMinAvailMem (self.config.getMinAvailMem())
-            
+        # in main robot, set up LongTerm Memory and set up TCPServer
+        if self.level == 1:                                                            
             self.getMemory().loadLongTermMemory()
             self.getMemory().CleanDataDirectory()
             
@@ -329,21 +300,12 @@ class Robot(Thread):
                                    level=level)
             
         elif self.getInstanceType() == Sensation.InstanceType.Virtual:#
-            # also virtual instance has feeling and activity
-#             self.feeling = Sensation.Feeling.Neutral
-#             self.feelingLevel = float(Sensation.Feeling.Neutral)
-#             self.activityLevel = Sensation.ActivityLevel.Normal
-            
             # also virtual instance has identity as level 1 mainrobot
             self.identity=Identity(parent=self,
                                    memory=self.getMemory(),  # use same memory than self
                                    instanceName='Identity',
                                    instanceType= Sensation.InstanceType.SubInstance,
                                    level=level)
-            #self._isMainRobot = False
-#         else:
-#             self._isMainRobot = False
-
             
     def getMainRobotInstance():
         return Robot.mainRobotInstance
@@ -432,17 +394,6 @@ class Robot(Thread):
         if self.getLocation() is None or len(self.getLocation() ) == 0:
             return True
         return location == self.getLocation()
-#         # is no location requirement or Capabilities accepts all, return True
-#         # in other case test if at least one location match
-#             # TODO dirty fix to support only one location in Robot
-#             #len(self.getLocations()) == 0:
-#         if len(location) == 0 or\
-#            len(self.getLocations()[0]) == 0:
-#             return True
-#         for location in location:
-#             if location in self.getLocations():
-#                 return True
-#         return False
    
     def getKind(self):
         return self.config.getKind()
@@ -662,7 +613,7 @@ class Robot(Thread):
         # starting point of robot is always to study what it knows himself
         if self.isMainRobot() or self.getInstanceType() == Sensation.InstanceType.Virtual:# or\
             self.studyOwnIdentity()
-            #self.getOwnIdentity()
+
         # starting other threads/senders/capabilities
         for robot in self.subInstances:
             if robot.getInstanceType() != Sensation.InstanceType.Remote:
@@ -1319,17 +1270,12 @@ class Identity(Robot):
                        instanceType=instanceType,
                        level=level)
         print("We are in Identity, not Robot")
-#         self.itemSensations=[]
-#         self.imageSensations=[]
-#         self.voiceSensations=[]
         
         self.selfItemSensation = None
         self.selfImageSensation = None
         self.selfVoiceSensation = None
 
         self.identitypath = self.config.getIdentityDirPath(self.getParent().getWho()) # parent's location, parent's Identity
-#         self.imageind=0
-#         self.voiceind=0
         self.sleeptime = Identity.SLEEPTIME
         
 
@@ -1897,14 +1843,6 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
             return self.getSocketServer().getCapabilities()
         return None
 
-    '''
-    Create local method with different name
-    We use this to send capabilities to remote
-    Not used, deprecated
-#     '''
-#     def getLocalCapabilities(self):
-#         return self.capabilities
-
  
     '''
     Overwrite local method. This way we can use remote Robot
@@ -1919,13 +1857,6 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
             return self.getSocketServer().getLocation()
         return None
 
-    '''
-    Create local method with different name
-    We use this to send location to remote
-    Not used
-    '''
-#     def getLocalLocations(self):
-#         return self.location
     
     '''
     share out knowledge of sensation memory out client has capabilities
@@ -1953,7 +1884,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
             #pass
             self.log('socketClient.sendSensation asked to send sensation back to sensation original host. We Don\'t recycle it! receivedFrom:' + str(sensation.receivedFrom) + ': self.getHost(): ' + self.getHost() + ': self.getSocketServer().getHost(): ' + self.getSocketServer().getHost())
         else:
-            self.log('socketClient.sendSensation no back, normal send receivedFrom::' + str(sensation.receivedFrom) + ' self.getHost(): ' + self.getHost() + ': self.getSocketServer().getHost(): ' + self.getSocketServer().getHost())
+            self.log(logLevel=Robot.LogLevel.Verbose, logStr='socketClient.sendSensation no back, normal send receivedFrom::' + str(sensation.receivedFrom) + ' self.getHost(): ' + self.getHost() + ': self.getSocketServer().getHost(): ' + self.getSocketServer().getHost())
             sensation.setRobotId(Robot.getMainRobotInstance().getId()) # claim that
                                                                   # all sensation come from Robot
             bytes = sensation.bytes()
@@ -1966,7 +1897,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
                     pass
                     #self.log('SocketClient.sendSensation wrote separator to ' + str(address))
                 else:
-                    self.log("SocketClient.sendSensation length " + str(l) + " != " + str(Sensation.SEPARATOR_SIZE) + " error writing to " + str(address))
+                    self.log(logLevel=Robot.LogLevel.Verbose, logStr="SocketClient.sendSensation length " + str(l) + " != " + str(Sensation.SEPARATOR_SIZE) + " error writing to " + str(address))
                     ok = False
             except Exception as err:
                 self.log("SocketClient.sendSensation error writing Sensation.SEPARATOR to " + str(address)  + " error " + str(err))
@@ -1995,29 +1926,11 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
                 if ok:
                     try:
                         sock.sendall(bytes)                              # message data section
-                        #self.log("SocketClient wrote Sensation to " + str(address))
                         self.log("SocketClient.sendSensation wrote sensation " + sensation.toDebugStr() + " to " + str(address))
-                        # receuvedFrom should be set only, when really receiving someting
-#                         # try to send same sensation only once
-#                         # TODO maybe not a good idea, if sensation is changed by us
-#                         sensation.addReceived(self.getHost())
-#                         sensation.addReceived(self.getSocketServer().getHost())
                     except Exception as err:
                         self.log("SocketClient.sendSensation error writing Sensation to " + str(address) + " error " + str(err))
                         ok = False
                         self.mode = Sensation.Mode.Interrupted
-#             if not ok:
-#                 # TODO This logic does not work, because sock is bad file descriptor at this point
-#                 self.log("send SocketClient error, try to reconnect after sleep ")
-#                 time.sleep(Robot.SOCKET_ERROR_WAIT_TIME)
-#                 self.log("send: sock.connect(" + str(address) +")")
-#                 try:
-#                     sock.connect(address)
-#                     self.log("send: sock.connect(" + str(address) +") succeeded")
-#                     ok = True
-#                 except Exception as err:
-#                     self.log("SocketClient sock.connect(" + str(address) + ") error " + str(err))
-#                     ok = False 
         return ok
 
     '''
@@ -2133,7 +2046,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         # starting other threads/senders/capabilities
         
         # if we don't know our capabilities, we should ask them
-        # Wed can't talk to out  host robotType, but client can,
+        # can't talk to out  host robotType, but client can,
         # so we ask it to do the job
 #         if self.getCapabilities() is None and self.socketClient is not None:
 #             self.socketClient.askCapabilities()
@@ -2243,14 +2156,6 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         self.mode = Sensation.Mode.Stopping
         
 
-
-
-def threaded_server(arg):
-    # Activate the server; this will keep running until you
-    # interrupt the program with Ctrl-C
-    print ("threaded_server: starting server")
-    arg.serve_forever()
-    print ("threaded_server: arg.serve_forever() ended")
 
 def do_server():
     signal.signal(signal.SIGINT, signal_handler)

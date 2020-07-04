@@ -953,7 +953,7 @@ class Sensation(object):
                     i += Sensation.ENUM_SIZE
                     
                 association_id = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
-                print("association_id " + str(association_id))
+                #print("association_id " + str(association_id))
                 i += Sensation.ID_SIZE
                 for j in range(association_id):
                     sensation_id = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
