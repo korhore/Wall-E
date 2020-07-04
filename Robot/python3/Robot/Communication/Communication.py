@@ -156,6 +156,7 @@ class Communication(Robot):
                     # mark original item Sensation to be remembered
                     # and also good feeling to the original voice
                     # to this voice will be found again in new conversations
+                    # TODO study if we can publish these sensations or not, because is RobotType is Muscle, we speak etc.
                     if self.mostImportantItemSensation is not None:
                         if self.mostImportantItemSensation.getMemoryType() != Sensation.MemoryType.LongTerm:
                             self.getMemory().setMemoryType(sensation=self.mostImportantItemSensation, memoryType=Sensation.MemoryType.LongTerm)
@@ -253,7 +254,7 @@ class Communication(Robot):
             # use random own voice instead of self.voiceind
             voiceind = random.randint(0, len(self.getMemory().getRobot().voiceSensations)-1)
             self.spokedVoiceSensation = self.createSensation( associations=[], sensation=self.getMemory().getRobot().voiceSensations[voiceind],
-                                                              memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
+                                                              memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle,
                                                               location=self.getLocation())
             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation) # or self.process
             self.log("speak: Starting with presenting Robot voiceind={} self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation={}".format(str(voiceind), self.spokedVoiceSensation.toDebugStr()))
