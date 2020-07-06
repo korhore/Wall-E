@@ -121,7 +121,7 @@ class Memory(object):
                  sensationType = None,
                  memoryType = None,
                  robotType = None,
-                 location =  None,
+                 locations =  None,
                  leftPower = None, rightPower = None,                        # Walle motors state
                  azimuth = None,                                             # Walle robotType relative to magnetic north pole
                  x=None, y=None, z=None, radius=None,                        # location and acceleration of Robot
@@ -161,7 +161,7 @@ class Memory(object):
                  memoryType=memoryType,
                  robotType=robotType,
                  robot=robot,
-                 location=location,
+                 locations=locations,
                  leftPower = leftPower, rightPower = rightPower,                         # Walle motors state
                  azimuth = azimuth,                                                      # Walle robotType relative to magnetic north pole
                  x=x, y=y, z=z, radius=radius,                                           # location and acceleration of Robot
@@ -197,7 +197,7 @@ class Memory(object):
                                                memoryType=memoryType,
                                                robotType=robotType,
                                                robot=robot,
-                                               location=location,
+                                               locations=locations,
                                                leftPower=leftPower,rightPower=rightPower,                   # Walle motors state
                                                azimuth=azimuth,                                             # Walle robotType relative to magnetic north pole
                                                x=x, y=y, z=z, radius=radius,                                # location and acceleration of Robot

@@ -101,7 +101,7 @@ class SensationTestCase(unittest.TestCase):
         # test Feeling, it is not worth to remember after processed
         feelingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                      firstAssociateSensation=longTermSensation, otherAssociateSensation=workingSensation,
-                                                     negativeFeeling=True, location=self.robot.getLocation())
+                                                     negativeFeeling=True, locations=self.robot.getLocation())
         self.assertTrue(feelingSensation.getMemorability() == 0.0, 'feelingSensation sensation must be zero')
 
         # set sensation more to the past and look again        
@@ -275,7 +275,7 @@ class SensationTestCase(unittest.TestCase):
         # test Feeling, it is not worth to remember aftered processed
         feelingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                      firstAssociateSensation=longTermSensation, otherAssociateSensation=workingSensation,
-                                                     negativeFeeling=True, location=self.robot.getLocation())
+                                                     negativeFeeling=True, locations=self.robot.getLocation())
         self.assertTrue(feelingSensation.getMemorability()  == 0.0, 'feelingSensation sensation must be zero')
         
     '''
@@ -326,10 +326,10 @@ class SensationTestCase(unittest.TestCase):
         # test Feeling, it is not worth to remember after processed
         feelingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                      firstAssociateSensation=longTermSensation, otherAssociateSensation=workingSensation,
-                                                     negativeFeeling=True, location=self.robot.getLocation())
+                                                     negativeFeeling=True, locations=self.robot.getLocation())
         locationSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                      firstAssociateSensation=longTermSensation, otherAssociateSensation=workingSensation,
-                                                     negativeFeeling=True, location=self.robot.getLocation())
+                                                     negativeFeeling=True, locations=self.robot.getLocation())
         self.assertTrue(feelingSensation.getMemorability() == 0.0, 'feelingSensation sensation must be zero')
 
         # set sensation more to the past and look again        
@@ -503,7 +503,7 @@ class SensationTestCase(unittest.TestCase):
         # test Feeling, it is not worth to remember aftered processed
         feelingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                      firstAssociateSensation=longTermSensation, otherAssociateSensation=workingSensation,
-                                                     negativeFeeling=True, location=self.robot.getLocation())
+                                                     negativeFeeling=True, locations=self.robot.getLocation())
         self.assertTrue(feelingSensation.getMemorability()  == 0.0, 'feelingSensation sensation must be zero')
         
 
@@ -658,7 +658,7 @@ class SensationTestCase(unittest.TestCase):
         print("\ntest_Bytes")
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
                                                       name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=[],
-                                                      location = SensationTestCase.SET_1_1_LOCATIONS_2)
+                                                      locations = SensationTestCase.SET_1_1_LOCATIONS_2)
         self.assertTrue(workingSensation != None, "should be created")
 # many location is deprecated as property.
 #         self.assertEqual(workingSensation.getLocation(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
@@ -670,7 +670,7 @@ class SensationTestCase(unittest.TestCase):
 #         self.assertEqual(fromBytesWorkingSensation.getLocation(), workingSensation.getLocation(), "should be equal")
 #         self.assertEqual(fromBytesWorkingSensation.getLocation(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
         
-        workingSensation.setLocation(location = SensationTestCase.SET_1_1_LOCATIONS_1)
+        workingSensation.setLocation(locations = SensationTestCase.SET_1_1_LOCATIONS_1)
         self.assertTrue(workingSensation != None, "should be created")
         self.assertEqual(workingSensation.getLocation(), SensationTestCase.SET_1_1_LOCATIONS_1, "should be equal")
         bytes=workingSensation.bytes()
@@ -694,7 +694,7 @@ class SensationTestCase(unittest.TestCase):
         # Voice
         
         data=b'\x01\x02'
-        voiceSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, location=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva)
+        voiceSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, locations=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva)
 
         self.assertFalse(voiceSensation.isForgettable(), "should be False, until detached")
         voiceSensation.detach(robot=self.robot)
@@ -716,7 +716,7 @@ class SensationTestCase(unittest.TestCase):
 
         # Image
         
-        imageSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.Sensory, data=data, location=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva)
+        imageSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.Sensory, data=data, locations=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva)
 
         self.assertFalse(imageSensation.isForgettable(), "should be False, until detached")
         imageSensation.detach(robot=self.robot)
@@ -800,7 +800,7 @@ class SensationTestCase(unittest.TestCase):
         # Feeling is property of every SensationType
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
                                                       name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=[],
-                                                      location = SensationTestCase.SET_1_1_LOCATIONS_2,
+                                                      locations = SensationTestCase.SET_1_1_LOCATIONS_2,
                                                       feeling=SensationTestCase.NORMAL_FEELING)
         self.assertTrue(workingSensation != None, "should be created")
 # many location is deprecated as property
@@ -817,7 +817,7 @@ class SensationTestCase(unittest.TestCase):
         # Image
         
         imageSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.Sensory,
-                                                    data=data, location=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva,
+                                                    data=data, locations=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva,
                                                     feeling=SensationTestCase.BETTER_FEELING)
         self.assertEqual(imageSensation.getFeeling(), SensationTestCase.BETTER_FEELING, "should be equal")
 
@@ -842,7 +842,7 @@ class SensationTestCase(unittest.TestCase):
         
         data=b'\x01\x02'
         voiceSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data,
-                                                    location=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva,
+                                                    locations=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva,
                                                     feeling=SensationTestCase.TERRIFIED_FEELING)
         self.assertEqual(voiceSensation.getFeeling(), SensationTestCase.TERRIFIED_FEELING, "should be equal")
 

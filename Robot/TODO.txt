@@ -25,6 +25,13 @@ OPPS clear configuration!
 
 Develop
 -------
+Has Robot one or many locations? If many, are capabiolities different in these locations.
+I choose
+- many locations
+- same capabilities in these all to keep yhings simple.
+- still global location is possible, but this tme name is not '' but 'global'
+-- location -> locations
+--- Sensation
 
 Back to basics.
 - Make Sensation immutable

@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 04.07.2020
+Updated on 07.07.2020
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -423,7 +423,7 @@ class Robot(Thread):
             elif self.feelingLevel < (Sensation.Feeling.Disappointed + Sensation.Feeling.Worried)/2.0:
                 return Sensation.Feeling.Disappointed
             elif self.feelingLevel < (Sensation.Feeling.Worried + Sensation.Feeling.Neutral)/2.0:
-                return Sensation.FeeSling.Worried
+                return Sensation.Feeling.Worried
             
         return Sensation.Feeling.Neutral
     
@@ -854,7 +854,7 @@ class Robot(Thread):
             for fname in fileList:
                 self.log('\t%s' % fname)
                 if fname.endswith(".jpg"):# or\
-                    # png dows not work yet
+                    # png do not work yet
                     #fname.endswith(".png"):
                     image_file_names.append(fname)
                 elif fname.endswith(".wav"):
@@ -951,10 +951,10 @@ class Robot(Thread):
                     # TODO Study, do we fins out, that we feel like something (Sense) or do we wan't to tell that feel something  (Muscle) or both
                     # We choose both now
                     feelingSensation = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
-                                                            robotType=Sensation.RobotType.Sense, feeling = self.feeling, location=self.getLocation()) # valid in this location
+                                                            robotType=Sensation.RobotType.Sense, feeling = self.feeling, locations=self.getLocation()) # valid in this location
                     self.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
                     feelingSensation2 = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
-                                                            robotType=Sensation.RobotType.Muscle, feeling = self.feeling, location=self.getLocation()) # valid in this location
+                                                            robotType=Sensation.RobotType.Muscle, feeling = self.feeling, locations=self.getLocation()) # valid in this location
                     self.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation2)
                                                            
                     # send it to us
@@ -1081,7 +1081,7 @@ class Robot(Thread):
                  memoryType = None,
                  robotType = None,
                  robot = None,
-                 location =  None,
+                 locations =  None,
                  leftPower = None, rightPower = None,                        # Walle motors state
                  azimuth = None,                                             # Walle robotType relative to magnetic north pole
                  x=None, y=None, z=None, radius=None,                        # location and acceleration of Robot
@@ -1117,7 +1117,7 @@ class Robot(Thread):
                  memoryType=memoryType,
                  robotType=robotType,
                  #robot=robot,
-                 location=location,
+                 locations=locations,
                  leftPower = leftPower, rightPower = rightPower,
                  azimuth = azimuth,
                  x=x, y = y, z = z, radius=radius,
@@ -1450,14 +1450,14 @@ class Identity(Robot):
     def tellOwnIdentity(self):
         
         selfSensation = self.createSensation( associations=[], sensation=self.getParent().selfSensation, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
-                                              location='') # valid everywhere
+                                              locations='') # valid everywhere
         self.log('tellOwnIdentity: selfSensation self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=' + selfSensation.toDebugStr())      
         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=selfSensation) # or self.process
         selfSensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
        
         imageind = random.randint(0, len(self.getParent().imageSensations)-1)
         imageSensation = self.createSensation( associations=[], sensation=self.getParent().imageSensations[imageind], memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
-                                               location='') # valid everywhere
+                                               locations='') # valid everywhere
         self.log('tellOwnIdentity: imageind  ' + str(imageind) + ' self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=' + imageSensation.toDebugStr())      
         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation) # or self.process
         imageSensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
@@ -1467,7 +1467,7 @@ class Identity(Robot):
             
             voiceind = random.randint(0, len(self.getParent().voiceSensations)-1)
             voiceSensation = self.createSensation(associations=[], sensation=self.getParent().voiceSensations[voiceind], memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
-                                                  location='') # valid everywhere
+                                                  locations='') # valid everywhere
             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation, association=None) # or self.process
             self.log("tellOwnIdentity: " + str(voiceind) + " self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=" + voiceSensation.toDebugStr())      
             voiceSensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes

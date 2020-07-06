@@ -510,8 +510,8 @@ class MemoryTestCase(unittest.TestCase):
         self.assertTrue(fromBytesWorkingSensation.getReceivedFrom() == receivedFrom, "should be equal")
 
         data=b'\x01\x02'
-        location='testLocation'
-        voiceSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, location=location, kind=Sensation.Kind.Eva)
+        locations='testLocation'
+        voiceSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, locations=locations, kind=Sensation.Kind.Eva)
 
         self.assertFalse(voiceSensation.isForgettable(), "should be False, until detached")
         voiceSensation.detach(robot=self.robot)
@@ -534,8 +534,8 @@ class MemoryTestCase(unittest.TestCase):
  
         # Image
         
-        location='testLocation2'
-        imageSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.Sensory, data=data, location=location, kind=Sensation.Kind.Eva)
+        locations='testLocation2'
+        imageSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.Sensory, data=data, locations=locations, kind=Sensation.Kind.Eva)
 
         self.assertFalse(imageSensation.isForgettable(), "should be False, until detached")
         imageSensation.detach(robot=self.robot)
@@ -658,7 +658,7 @@ class MemoryTestCase(unittest.TestCase):
         # make associations to younger one
         
         olderVoiceSensation = self.robot.createSensation(#time = systemTime.time()-5.0,
-                                                         associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, location=location, kind=Sensation.Kind.Eva)
+                                                         associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, locations=locations, kind=Sensation.Kind.Eva)
         olderLongTermSensation = self.robot.createSensation(#time = systemTime.time()-10.0,
                                                             associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.LongTerm, name=self.OLDER_LONGTERM_ITEM_NAME,presence=Sensation.Presence.Present, receivedFrom=receivedFrom)
         self.assertTrue(olderLongTermSensation != None, "should be created")
@@ -672,7 +672,7 @@ class MemoryTestCase(unittest.TestCase):
 
         # create now younger sensation and association
         youngerVoiceSensation = self.robot.createSensation(#time = systemTime.time()-2.0,
-                                                           associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, location=location, kind=Sensation.Kind.Eva)
+                                                           associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, locations=locations, kind=Sensation.Kind.Eva)
         youngerLongTermSensation = self.robot.createSensation(#time = systemTime.time()-1.0,
                                                               associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.LongTerm, name=self.OLDER_LONGTERM_ITEM_NAME,presence=Sensation.Presence.Present, receivedFrom=receivedFrom)
         self.assertTrue(youngerLongTermSensation != None, "should be created")

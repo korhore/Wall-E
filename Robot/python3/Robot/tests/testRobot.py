@@ -138,7 +138,7 @@ class RobotTestCase(unittest.TestCase):
                                                           presence = Sensation.Presence.Present,
                                                           kind=self.mainRobot.getKind(),
                                                           feeling=self.mainRobot.getFeeling(),
-                                                          location=self.mainRobot.getLocation())
+                                                          locations=self.mainRobot.getLocation())
         
         
         self.sense = RobotTestCase.TestRobot(parent=self.mainRobot,
@@ -212,7 +212,7 @@ class RobotTestCase(unittest.TestCase):
                                                           presence = Sensation.Presence.Present,
                                                           kind=self.remoteMainRobot.getKind(),
                                                           feeling=self.remoteMainRobot.getFeeling(),
-                                                          location=self.remoteMainRobot.getLocation())
+                                                          locations=self.remoteMainRobot.getLocation())
         
         
         self.remoteSense = RobotTestCase.TestRobot(parent=self.remoteMainRobot,
@@ -427,7 +427,7 @@ class RobotTestCase(unittest.TestCase):
         # set log level Detailed, so we know what is happening
         self.setUpRemote()
         
-        self.remoteMainRobot.setLogLevel(Robot.LogLevel.Detailed)
+        self.remoteMainRobot.setLogLevel(Robot.LogLevel.Normal) # TODO Normal Detailed
         # create tcpServer same way as MainRpbot does it, but no hosts to connect, this is server only
         self.remoteMainRobot.tcpServer=TCPServer(parent=self.remoteMainRobot,
                                            memory=self.remoteMainRobot.getMemory(),
@@ -446,7 +446,7 @@ class RobotTestCase(unittest.TestCase):
         # set then local mainRobot
         
         # set log level Detailed, so we know what is happening
-        self.mainRobot.setLogLevel(Robot.LogLevel.Detailed)
+        self.mainRobot.setLogLevel(Robot.LogLevel.Normal) # TODO Normal Detailed
         # create tcpServe same way as MainRpbot does it, but connecting to localhost
         # but fake self.mainRobot server port, nobody will connect to it, we are connecting side
         self.mainRobot.tcpServer=TCPServer(parent=self.mainRobot,
@@ -470,14 +470,14 @@ class RobotTestCase(unittest.TestCase):
         self.assertTrue(len(self.mainRobot.tcpServer.socketClients) > 0, 'should have socketClient')        
         self.localSocketClient = self.mainRobot.tcpServer.socketClients[0]
         # set log level Detailed, so we know what is happening
-        self.localSocketClient.setLogLevel(Robot.LogLevel.Detailed)
+        self.localSocketClient.setLogLevel(Robot.LogLevel.Normal) # TODO Normal Detailed
         self.assertTrue(len(self.mainRobot.tcpServer.socketServers) > 0,'should have socketServer')        
         self.localSocketServer = self.mainRobot.tcpServer.socketServers[0]
  
         self.assertTrue(len(self.remoteMainRobot.tcpServer.socketClients) == 1,'should have socketClient')        
         self.remoteSocketClient = self.remoteMainRobot.tcpServer.socketClients[0]
         # set log level Detailed, so we know what is happening
-        self.remoteSocketClient.setLogLevel(Robot.LogLevel.Detailed)
+        self.remoteSocketClient.setLogLevel(Robot.LogLevel.Normal) # TODO Normal Detailed
         self.assertTrue(len(self.remoteMainRobot.tcpServer.socketServers) == 1,'should have socketServer')        
         self.remoteSocketServer = self.remoteMainRobot.tcpServer.socketServers[0]
         
@@ -577,7 +577,7 @@ class RobotTestCase(unittest.TestCase):
                                                  name=RobotTestCase.NAME,
                                                  score=RobotTestCase.SCORE_1,
                                                  presence=Sensation.Presence.Entering,
-                                                 location=self.sense.getLocation())
+                                                 locations=self.sense.getLocation())
         self.do_tcp_positive_case_sensation(sensationToSend = Wall_E_item_sensation)
         # global sensation, that goes every location, this should success
         Wall_E_item_sensation_no_location = self.sense.createSensation(time=history_sensationTime,
@@ -686,7 +686,7 @@ class RobotTestCase(unittest.TestCase):
                                                  name=RobotTestCase.NAME,
                                                  score=RobotTestCase.SCORE_1,
                                                  presence=Sensation.Presence.Entering,
-                                                 location=self.sense.getLocation())
+                                                 locations=self.sense.getLocation())
         # with sensation, that has different location the srcSocker we should fail       
          
         # global sensation, that goes every location

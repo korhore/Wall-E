@@ -171,7 +171,7 @@ class AlsaAudioMicrophone(Robot):
             # put robotType out (heard voice) to the parent Axon going up to main Robot
             # connected to present Item.names
             voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
-                                                   data=self.getVoiceData(data=self.voice_data, dtype=Settings.AUDIO_CONVERSION_FORMAT), location=self.getLocation())
+                                                   data=self.getVoiceData(data=self.voice_data, dtype=Settings.AUDIO_CONVERSION_FORMAT), locations=self.getLocation())
             for name, itemSensation in self.getMemory().presentItemSensations.items():
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: voice from " + name)
                 itemSensation.associate(sensation=voiceSensation)

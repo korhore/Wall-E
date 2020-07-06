@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 26.06.2020
+Edited on 06.07.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -634,7 +634,7 @@ class Sensation(object):
                  memoryType = None,
                  robotType = None,
                  robot = None,
-                 location =  None,
+                 locations =  None,
                  leftPower = None, rightPower = None,                        # Walle motors state
                  azimuth = None,                                             # Walle robotType relative to magnetic north pole
                  x=None, y=None, z=None, radius=None,                        # location and acceleration of Robot
@@ -685,7 +685,7 @@ class Sensation(object):
                                        memoryType=memoryType,
                                        robotType=robotType,
                                        robot=robot,
-                                       location=location,
+                                       locations=locations,
                                        leftPower=leftPower,rightPower=rightPower,                   # Walle motors state
                                        azimuth=azimuth,                                             # Walle robotType relative to magnetic north pole
                                        x=x, y=y, z=z, radius=radius,                                # location and acceleration of Robot
@@ -739,7 +739,7 @@ class Sensation(object):
                                        memoryType=memoryType,
                                        robotType=robotType,
                                        robot=robot,
-                                       location=location,
+                                       locations=locations,
                                        leftPower=leftPower,rightPower=rightPower,                   # Walle motors state
                                        azimuth=azimuth,                                             # Walle robotType relative to magnetic north pole
                                        x=x, y=y, z=z, radius=radius,                                # location and acceleration of Robot
@@ -768,7 +768,7 @@ class Sensation(object):
 #                 self.memoryType = memoryType
 #             self.robotType = robotType
 #             self.robot = robot
-#             self.location = location
+#             self.locations = locations
 #             self.leftPower = leftPower
 #             self.rightPower = rightPower
 #             self.hearDirection = hearDirection
@@ -847,7 +847,7 @@ class Sensation(object):
                 location_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
                 #print("location_size " + str(location_size))
                 i += Sensation.ID_SIZE
-                self.location =Sensation.bytesToStr(bytes[i:i+location_size])
+                self.locations =Sensation.bytesToStr(bytes[i:i+location_size])
                 i += location_size                
                 
                 if self.sensationType is Sensation.SensationType.Drive:
@@ -994,7 +994,7 @@ class Sensation(object):
                       memoryType,
                       robotType,
                       robot,
-                      location,
+                      locations,
                       leftPower, rightPower,                            # Walle motors state
                       azimuth,                                          # Walle robotType relative to magnetic north pole
                       x, y, z, radius,                                  # location and acceleration of Robot
@@ -1034,10 +1034,10 @@ class Sensation(object):
         else:
             destination.robot = None
             
-        if location is not None:
-            destination.location = location
+        if locations is not None:
+            destination.locations = locations
         else:
-            destination.location = ''
+            destination.locations = ''
             
         if leftPower is not None:
             destination.leftPower = leftPower
@@ -1168,7 +1168,7 @@ class Sensation(object):
                         memoryType,
                         robotType,
                         robot,
-                        location,
+                        locations,
                         leftPower, rightPower,                               # Walle motors state
                         azimuth,                                             # Walle robotType relative to magnetic north pole
                         x, y, z, radius,                                     # location and acceleration of Robot
@@ -1208,10 +1208,10 @@ class Sensation(object):
         else:
             destination.robot = robot
             
-        if location is None:
-            destination.location = source.location
+        if locations is None:
+            destination.locations = source.locations
         else:
-            destination.location = location
+            destination.locations = locations
             
         if leftPower is None:
             destination.leftPower = source.leftPower
@@ -1466,9 +1466,9 @@ class Sensation(object):
 #         b +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
 #         b +=  Sensation.strToBytes(self.getLocation())
         # location is deprecated
-        location_size=len(self.location)
+        location_size=len(self.locations)
         b +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
-        b +=  Sensation.strToBytes(self.location)            
+        b +=  Sensation.strToBytes(self.locations)            
 
         if self.sensationType is Sensation.SensationType.Drive:
             b += Sensation.floatToBytes(self.leftPower) + Sensation.floatToBytes(self.rightPower)
@@ -1974,12 +1974,12 @@ class Sensation(object):
 # SensationType.Location
 # TODO Real implementation
 #     '''        
-    def setLocation(self, location):
-        self.location = location
+    def setLocation(self, locations):
+        self.locations = locations
     def getLocation(self):
-        if self.location is None:
+        if self.locations is None:
             return ''
-        return self.location
+        return self.locations
 
 #     def getLocationsStr(self):
 #         #from Config import strArrayToStr
