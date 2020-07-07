@@ -35,8 +35,6 @@ def enum(*sequential, **named):
 
 '''
 Sensation is something Robot senses
-
-TODO locations is deprecated and now it should support only one locations, not many.
 '''
 
 class Sensation(object):
@@ -634,7 +632,7 @@ class Sensation(object):
                  memoryType = None,
                  robotType = None,
                  robot = None,
-                 locations =  None,
+                 locations =  [],
                  leftPower = None, rightPower = None,                        # Walle motors state
                  azimuth = None,                                             # Walle robotType relative to magnetic north pole
                  x=None, y=None, z=None, radius=None,                        # location and acceleration of Robot
@@ -843,13 +841,13 @@ class Sensation(object):
                 self.feeling = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER, signed=True)
                 i += Sensation.ID_SIZE
                 
-                # location is deprecated    
-                location_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
-                #print("location_size " + str(location_size))
+                # locations
+                locations_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
+                #print("locations_size " + str(locations_size))
                 i += Sensation.ID_SIZE
-                self.locations =Sensation.bytesToStr(bytes[i:i+location_size])
-                i += location_size                
-                
+                self.locations=Sensation.bytesToList(bytes[i:i+locations_size])
+                i += locations_size
+                                
                 if self.sensationType is Sensation.SensationType.Drive:
                     self.leftPower = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
@@ -1037,7 +1035,7 @@ class Sensation(object):
         if locations is not None:
             destination.locations = locations
         else:
-            destination.locations = ''
+            destination.locations = []
             
         if leftPower is not None:
             destination.leftPower = leftPower
@@ -1364,7 +1362,7 @@ class Sensation(object):
 
                  
     def __str__(self):
-        s=str(self.robotId) + ' ' + str(self.id) + ' ' + str(self.time) + ' ' + self.memoryType + ' ' + self.robotType + ' ' + self.sensationType+ ' ' + self.getLocation()
+        s=str(self.robotId) + ' ' + str(self.id) + ' ' + str(self.time) + ' ' + self.memoryType + ' ' + self.robotType + ' ' + self.sensationType+ ' ' + self.getLocationsStr()
         if self.sensationType == Sensation.SensationType.Drive:
             s +=  ' ' + str(self.leftPower) +  ' ' + str(self.rightPower)
         elif self.sensationType == Sensation.SensationType.HearDirection:
@@ -1431,7 +1429,7 @@ class Sensation(object):
 #             s=str(self.robotId) + ' ' + str(self.id) + ' ' + str(self.time) + ' ' + str(self.association_time) + ' ' + Sensation.getMemoryTypeString(self.memoryType) + ' ' + Sensation.getRobotTypeString(self.robotType) + ' ' + Sensation.getSensationTypeString(self.sensationType)
 #         else:
 #             s=self.__str__()
-        s = systemTime.ctime(self.time) + ':' + str(self.robotId) + ':' + str(self.id) + ':' + Sensation.getMemoryTypeString(self.memoryType) + ':' + Sensation.getRobotTypeString(self.robotType) + ':' + Sensation.getSensationTypeString(self.sensationType)+ ':' + self.getLocation() + ':'
+        s = systemTime.ctime(self.time) + ':' + str(self.robotId) + ':' + str(self.id) + ':' + Sensation.getMemoryTypeString(self.memoryType) + ':' + Sensation.getRobotTypeString(self.robotType) + ':' + Sensation.getSensationTypeString(self.sensationType)+ ':' + self.getLocationsStr() + ':'
         ## OOPS Can be NoneType
         string = Sensation.getFeelingString(self.getFeeling())
         if string :
@@ -1441,7 +1439,7 @@ class Sensation(object):
         if self.sensationType == Sensation.SensationType.Voice:
             s = s + ':' + Sensation.getKindString(self.kind)
 #         elif self.sensationType == Sensation.SensationType.Image:
-#             s = s + ':' + self.getLocation()
+#             s = s + ':' + self.getLocations()
         elif self.sensationType == Sensation.SensationType.Item:
             s = s + ':' + self.name + ':' + str(self.score) + ':' + Sensation.getPresenceString(self.presence)
         elif self.sensationType == Sensation.SensationType.Feeling:
@@ -1466,9 +1464,17 @@ class Sensation(object):
 #         b +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
 #         b +=  Sensation.strToBytes(self.getLocation())
         # location is deprecated
-        location_size=len(self.locations)
-        b +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
-        b +=  Sensation.strToBytes(self.locations)            
+        #b += Sensation.listToBytes(self.locations)
+       #  at the end receivedFrom (list of words)
+        blist = Sensation.listToBytes(self.locations)
+        #print(' blist ' +str(blist))
+        blist_size=len(blist)
+        b +=  blist_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
+        b += blist
+        
+#         location_size=len(self.locations)
+#         b +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
+#         b +=  Sensation.strToBytes(self.locations)            
 
         if self.sensationType is Sensation.SensationType.Drive:
             b += Sensation.floatToBytes(self.leftPower) + Sensation.floatToBytes(self.rightPower)
@@ -1974,16 +1980,16 @@ class Sensation(object):
 # SensationType.Location
 # TODO Real implementation
 #     '''        
-    def setLocation(self, locations):
+    def setLocations(self, locations):
         self.locations = locations
-    def getLocation(self):
+    def getLocations(self):
         if self.locations is None:
-            return ''
+            return []
         return self.locations
 
-#     def getLocationsStr(self):
-#         #from Config import strArrayToStr
-#         return Sensation.strArrayToStr(self.getLocations())
+    def getLocationsStr(self):
+        #from Config import strArrayToStr
+        return Sensation.strArrayToStr(self.getLocations())
       
     def setLeftPower(self, leftPower):
         self.leftPower = leftPower

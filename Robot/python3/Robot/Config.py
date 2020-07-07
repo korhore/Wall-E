@@ -60,8 +60,8 @@ class Config(ConfigParser):
 #    Microphones =       'MICROPHONES' 
     WHO =               'Who' 
     WALLE =             'Wall-E'
-    LOCATION =          'location' 
-    LOCATION_DEFAULT =   '' 
+    LOCATIONS =          'locations' 
+    LOCATIONS_DEFAULT =  '' 
     KIND =              "Kind"
     INSTANCE =          "Instance"
     VIRTUALINSTANCES =  "Virtualinstances"
@@ -157,9 +157,12 @@ class Config(ConfigParser):
         
         #Read config        
         if os.path.exists(self.config_file_path):
+            print("read config from config_file_path " + self.config_file_path)
             self.read(self.config_file_path)
+        else:
+            print("config_file_path " + self.config_file_path + " does not exist, config is default")
  
-        # If we don't have default section or Capsbilities section make it.
+        # If we don't have default section or Capabilities section make it.
         # It will be a template if some capabilities will be set on
         # TODO should we update config file anway, if there are changes in
         # capabilities etc.                         
@@ -585,11 +588,11 @@ class Config(ConfigParser):
             print('self.set(Config.DEFAULT_SECTION, Config.WHO, Sensation.WALLE) exception ' + str(e))
             
         try:                
-            if not self.has_option(Config.DEFAULT_SECTION, Config.LOCATION):
-                self.set(Config.DEFAULT_SECTION,Config.LOCATION, Config.strArrayToStr(Config.LOCATION_DEFAULT))
+            if not self.has_option(Config.DEFAULT_SECTION, Config.LOCATIONS):
+                self.set(Config.DEFAULT_SECTION,Config.LOCATIONS, Config.strArrayToStr(Config.LOCATIONS_DEFAULT))
                 self.is_changes=True
         except Exception as e:
-            print('self.set(Config.DEFAULT_SECTION, Config.LOCATION, Config.strArrayToStr(Config.LOCATION_DEFAULT) exception ' + str(e))
+            print('self.set(Config.DEFAULT_SECTION, Config.LOCATIONS, Config.strArrayToStr(Config.LOCATIONS_DEFAULT) exception ' + str(e))
 
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.KIND):
@@ -864,10 +867,23 @@ class Config(ConfigParser):
         who = self.get(section=section, option=self.WHO)
         return who
 
-    def getLocation(self, section=LOCALHOST):
-        location = self.get(section=section, option=self.LOCATION)
-        return location
+    def getLocations(self, section=LOCALHOST):
+        self.locations=[]
+        locations = self.get(section=section, option=self.LOCATIONS)
+        if locations != None and len(locations) > 0:
+            self.locations = locations.split()
+        return self.locations
         
+        
+    def setLocations(self, section=LOCALHOST, locations=LOCATIONS_DEFAULT, commit=True):
+        try:
+            self.set(section=section, option=Config.LOCATIONS, value=Config.strArrayToStr(locations))
+            self.is_changes = True
+        except Exception as e:
+            print('self.set(section=section, option=Config.LOCATIONS, value=Config.strArrayToStr(locations)' + str(e))
+        if commit:
+            self.commit()
+
     def getLocationsStr(self, section=LOCALHOST):
         return Config.strArrayToStr(self.getLocations(section=section))
 

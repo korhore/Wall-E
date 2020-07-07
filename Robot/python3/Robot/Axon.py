@@ -28,8 +28,8 @@ class Axon():
         self.robot.log("Axon put from {} to {} with original queue length {} full {}".format(robot.getWho(),self.robot.getWho(), self.queue.qsize(), self.queue.full()))
         sensation.attach(self.robot)                        # take ownership
 # let Robots decide locations
-#         if len(sensation.getLocation()) == 0:              # if sensations does not have locations yet, set it as robots locations.
-#             sensation.setLocations(self.robot.getLocation())   #
+#         if len(sensation.getLocations()) == 0:              # if sensations does not have locations yet, set it as robots locations.
+#             sensation.setLocations(self.robot.getLocations())   #
         if detach:
             sensation.detach(robot)         # release from caller
         self.queue.put((transferDirection, sensation))

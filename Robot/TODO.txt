@@ -1,25 +1,8 @@
 Critical
 --------
-OK Seems Communication may se set into infinite loop
-it gets
-[localhost]
-who = Communication
-sense_working_item = True
-sense_sensory_voice = True
-kind = Wall-E
-robotid = 1593901694.7025573
-location = Ubuntu
-
-and produces
-LongTerm.Item
-LongTerm.Voice, there error found OK
-
-When other host stops to answer, we will get huge number
-father:1:Normal:Ubuntu: Sensations cache Not Forgottable robot SocketClient: ('192.168.117.247', 2000) Sensation Thu Jun  4 10:29:44 2020:1591227466.5333443:1591255771.647056:Working:Sense:Voice:::Neutral:Normal
-Meaning that we can't forget these.
 
 Seems that Sensations make at least one trp back to origin host from other host.
-Is the reason ReceivedFron ''.'real receivedFrom'
+Is the reason ReceivedFrom ''.'real receivedFrom'
 
 OPPS clear configuration!
 
@@ -28,10 +11,23 @@ Develop
 Has Robot one or many locations? If many, are capabiolities different in these locations.
 I choose
 - many locations
-- same capabilities in these all to keep yhings simple.
-- still global location is possible, but this tme name is not '' but 'global'
--- location -> locations
+-- locations in property of
+--- Robot
 --- Sensation
+--- Config
+but NOT
+--- Capabilities
+- Roots has same capabilities in all it's locations to keep things simple.
+- still global location is possible, but this tme name is not '' but 'global'
+- empty location '' is default, but it is always local, but it is global in local
+  but is not sent to Remote/Virtual/Identity Robots.
+
+--- Sensation
+-- parameter/allribute location -> locations
+
+--- Robot
+--- Config
+
 
 Back to basics.
 - Make Sensation immutable
@@ -366,7 +362,7 @@ It is not good idea to change Sensation processing Robot. It should be what it i
 
 Identity is hard to stop. How to awake from sleep.
 
-When communicating, return also bestImuonimpia, kun mieloestäni laitoin kuviot ihan oikein, mutta ingrespä oli toista mieltä.age for Item.
+When communicating, return also bestImage for Item.
 
 Maybe Identiyy should be a Ropot thats runs once and then stops.
 That way we could stop Main Robot
@@ -583,6 +579,25 @@ People log to present <-              !   !
 
 Corrected
 ---------
+
+OK Seems Communication may se set into infinite loop
+it gets
+[localhost]
+who = Communication
+sense_working_item = True
+sense_sensory_voice = True
+kind = Wall-E
+robotid = 1593901694.7025573
+location = Ubuntu
+
+and produces
+LongTerm.Item
+LongTerm.Voice, there error found OK
+
+OK When other host stops to answer, we will get huge number
+father:1:Normal:Ubuntu: Sensations cache Not Forgottable robot SocketClient: ('192.168.117.247', 2000) Sensation Thu Jun  4 10:29:44 2020:1591227466.5333443:1591255771.647056:Working:Sense:Voice:::Neutral:Normal
+Meaning that we can't forget these.
+
 
 OK Introduce Robot with random own Voice, not first one as now.
 Try same with Identification

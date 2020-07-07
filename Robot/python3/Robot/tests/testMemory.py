@@ -1,6 +1,6 @@
 '''
 Created on 12.04.2020
-Updated on 27.04.2020
+Updated on 07.07.2020
 @author: reijo.korhonen@gmail.com
 
 test Memory class
@@ -526,7 +526,7 @@ class MemoryTestCase(unittest.TestCase):
         self.assertEqual(voiceSensation, fromBytesVoiceSensation, "should be equal")
         self.assertEqual(voiceSensation.getKind(), fromBytesVoiceSensation.getKind(), "should be equal")
         self.assertEqual(voiceSensation.getData(), fromBytesVoiceSensation.getData(), "should be equal")
-        self.assertEqual(voiceSensation.getLocation(), fromBytesVoiceSensation.getLocation(), "should be equal")
+        self.assertEqual(voiceSensation.getLocations(), fromBytesVoiceSensation.getLocations(), "should be equal")
        
         self.assertFalse(fromBytesVoiceSensation.isForgettable(), "should be False, until detached")
         fromBytesVoiceSensation.detach(robot=self.robot)
@@ -547,7 +547,7 @@ class MemoryTestCase(unittest.TestCase):
 
         self.assertTrue(imageSensation == fromBytesImageSensation, "should be equal")
         self.assertTrue(imageSensation.getImage() == fromBytesImageSensation.getImage(), "should be equal") # empty image, not given in creation, TODO
-        self.assertTrue(imageSensation.getLocation() == fromBytesImageSensation.getLocation(), "should be equal")
+        self.assertTrue(imageSensation.getLocations() == fromBytesImageSensation.getLocations(), "should be equal")
         
         self.assertFalse(fromBytesImageSensation.isForgettable(), "should be False, until detached")
         fromBytesImageSensation.detach(robot=self.robot)

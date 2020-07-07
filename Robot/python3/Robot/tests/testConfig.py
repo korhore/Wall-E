@@ -1,6 +1,6 @@
 '''
 Created on 12.05.2020
-Updated on 12.05.2020
+Updated on 07.07.2020
 @author: reijo.korhonen@gmail.com
 
 test Config class
@@ -36,9 +36,12 @@ class ConfigTestCase(unittest.TestCase):
         self.config = Config(instanceName=Config.DEFAULT_INSTANCE,
                              instanceType=Sensation.InstanceType.Real,
                              level=0)
+        self.config.setLocations(locations=ConfigTestCase.SET_1_2_LOCATIONS)
+        self.assertEqual(self.config.getLocations(), ConfigTestCase.SET_1_2_LOCATIONS, "should be equal")
+        
         self.capabilities = Capabilities(config=self.config)
-        #self.assertEqual(self.capabilities.toString(), self.config.getCapabilities().toString(), "should be equal")
-        #self.assertEqual(self.capabilities, self.config.getCapabilities(), "should be equal")
+#         self.assertEqual(self.capabilities.toString(), self.config.getCapabilities().toString(), "should be equal")
+#         self.assertEqual(self.capabilities, self.config.getCapabilities(), "should be equal")
 
         
     def tearDown(self):
@@ -139,7 +142,9 @@ class ConfigTestCase(unittest.TestCase):
 #         self.assertEqual(fromStringCabalitiesString, fromStringCabalitiesString2, "should be equal")
 
     '''
-    capabilities don't have locatrion property. Robot has it.
+    capabilities don't have locations property.
+    Config has its
+    Robot has it.
     This test is deprecated
     '''
         
