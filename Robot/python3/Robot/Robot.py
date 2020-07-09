@@ -211,8 +211,8 @@ class Robot(Thread):
                              level=level)   # don't increase level, it has increased yet and Config has its own levels (that are same)
         # TODO at least Sensation.InstanceType.Remote should not be changed by configuration
         # maybe this is not mean to be changed at all by configuration
-        if self.instanceType != Sensation.InstanceType.Remote and self.instanceType != Sensation.InstanceType.Virtual:
-            self.instanceType = self.config.getInstanceType()
+#         if self.instanceType != Sensation.InstanceType.Remote and self.instanceType != Sensation.InstanceType.Virtual:
+#             self.instanceType = self.config.getInstanceType()
         print("Robot 3")
         self.id = self.config.getRobotId()
         self.capabilities = Capabilities(config=self.config)
@@ -2132,7 +2132,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                                     self.getSocketClient().shareSensations(self.getCapabilities())
                             elif sensation.getSensationType() == Sensation.SensationType.Robot:
                                 self.log("run: SocketServer got Robot sensation " + sensation.toDebugStr())
-                                # TODO hat to do with this
+                                # TODO has to do with this
                             elif sensation.getSensationType() == Sensation.SensationType.Location:
                                 self.log("run: SocketServer got Location sensation " + sensation.toDebugStr())
                                 self.setLocations(locations=sensation.getLocations())
