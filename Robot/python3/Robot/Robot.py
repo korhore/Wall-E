@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 07.07.2020
+Updated on 09.07.2020
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -209,7 +209,10 @@ class Robot(Thread):
         self.config = Config(instanceName=self.instanceName,
                              instanceType=self.instanceType,
                              level=level)   # don't increase level, it has increased yet and Config has its own levels (that are same)
-        self.instanceType = self.config.getInstanceType()
+        # TODO at least Sensation.InstanceType.Remote should not be changed by configuration
+        # maybe this is not mean to be changed at all by configuration
+        if self.instanceType != Sensation.InstanceType.Remote and self.instanceType != Sensation.InstanceType.Virtual:
+            self.instanceType = self.config.getInstanceType()
         print("Robot 3")
         self.id = self.config.getRobotId()
         self.capabilities = Capabilities(config=self.config)
@@ -377,8 +380,10 @@ class Robot(Thread):
     def isInLocations(self, locations):
         # is no location requirement or Capabilities accepts all, return True
         # in other case test if at least one location match
-        if len(locations) == 0 or\
-           len(self.getLocations()) == 0:
+        if (len(locations) == 0 and self.getInstanceType() != Sensation.InstanceType.Remote) or\
+           (len(self.getLocations()) == 0 and self.getInstanceType() != Sensation.InstanceType.Remote) or\
+           'global' in self.getLocations() or\
+           'global' in locations:            
             return True
         for location in locations:
             if location in self.getLocations():
@@ -1186,6 +1191,7 @@ class Robot(Thread):
                selfSensationByType.setHearDirection(sensation.getHearDirection())
         elif sensation.getSensationType() is Sensation.SensationType.Capability:
             selfSensationByType.setCapabilities(sensation.getCapabilities())
+            selfSensationByType.setLocations(sensation.getLocations())
         elif sensation.getSensationType() is Sensation.SensationType.Item:
             selfSensationByType.setName(sensation.getName())
             selfSensationByType.setScore(sensation.getScore())
@@ -1765,7 +1771,8 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
                 sensation.detach(robot=Robot.getMainRobotInstance())
 
                 sensation=Robot.getMainRobotInstance().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Capability,
-                                                                       capabilities=capabilities)
+                                                                       capabilities=capabilities,
+                                                                       locations = locations)
                 self.log('run: sendSensation(sensationType = Sensation.SensationType.Capability, capabilities=self.getLocalMasterCapabilities()), sock=self.sock,'  + str(self.address) + ')')
                 self.running = self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
                 sensation.detach(robot=Robot.getMainRobotInstance())
