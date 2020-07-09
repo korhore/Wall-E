@@ -209,10 +209,6 @@ class Robot(Thread):
         self.config = Config(instanceName=self.instanceName,
                              instanceType=self.instanceType,
                              level=level)   # don't increase level, it has increased yet and Config has its own levels (that are same)
-        # TODO at least Sensation.InstanceType.Remote should not be changed by configuration
-        # maybe this is not mean to be changed at all by configuration
-#         if self.instanceType != Sensation.InstanceType.Remote and self.instanceType != Sensation.InstanceType.Virtual:
-#             self.instanceType = self.config.getInstanceType()
         print("Robot 3")
         self.id = self.config.getRobotId()
         self.capabilities = Capabilities(config=self.config)
@@ -259,6 +255,7 @@ class Robot(Thread):
         self.locations = self.config.getLocations()
         self.selfSensation.associate(sensation=locationSensation)
         #self.setLocations(self.config.getLocations())
+
         # at this point we can log
         self.logLevel=self.config.getLogLevel()
 
@@ -534,33 +531,6 @@ class Robot(Thread):
         self.log(logLevel=Robot.LogLevel.Verbose, logStr='_getLocations ' + str(locations))
         return locations
     
-#     '''
-#     get locations that main robot or all Sub and virtual instances have
-#     We traverse to main robot and get orrred locations of all subinstances not remote
-#     '''
-#     
-#     def getLocalMasterLocations(self):
-#         if self.getParent() is not None:
-#             locations =  self.getParent().getLocalMasterLocations()
-#         else:   # we are parent, get our and subcapalities orred
-#             locations = Locations(deepCopy = self.getLocations(), config = self.getLocations().config)
-#             for robot in self.getSubInstances():
-#                 if robot.getInstanceType() != Sensation.InstanceType.Remote:
-#                     locations.Or(robot._getLocalLocations())
-#                                     
-#         self.log(logLevel=Robot.LogLevel.Verbose, logStr='getLocalMasterLocations ' +locations.toDebugString(self.getWho()))
-#         return locations
-# 
-#     def _getLocalLocations(self):
-#         locations = Locations(deepCopy = self.getLocations(), config = self.getLocations().config)
-#         for robot in self.getSubInstances():
-#             if robot.getInstanceType() != Sensation.InstanceType.Remote:
-#                 locations.Or(robot._getLocalLocations())
-#                                     
-#         self.log(logLevel=Robot.LogLevel.Verbose, logStr='_getLocalLocations ' +locations.toDebugString(self.getWho()))
-#         return locations
-
-#############
        
     '''
     Has this instance this capability
@@ -574,6 +544,7 @@ class Robot(Thread):
             if hasCapalility:
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="hasCapability robotType " + str(robotType) + " memoryType " + str(memoryType) + " sensationType " + str(sensationType) + " locations " + str(locations) + ' ' + str(hasCapalility))      
         return hasCapalility
+
     '''
     Has this instance or at least one of its subinstances this capability
     ''' 
@@ -820,16 +791,7 @@ class Robot(Thread):
         self.log(logLevel=Robot.LogLevel.Normal, logStr="My name is " + self.getWho())
         # What kind we are
         self.log(logLevel=Robot.LogLevel.Detailed, logStr="My kind is " + str(self.getKind()))   
-# don't need this any more   
-#         self.selfSensation=self.createSensation(sensationType=Sensation.SensationType.Robot,
-#                                                 memoryType=Sensation.MemoryType.LongTerm,
-#                                                 robotType=Sensation.RobotType.Sense,# We have found this
-#                                                 robot = self.getWho(),
-#                                                 name = self.getWho(),
-#                                                 presence = Sensation.Presence.Present,
-#                                                 kind=self.getKind(),
-#                                                 feeling=self.getFeeling(),
-#                                                 location=self.getLocations())
+
         if self.isMainRobot() or self.getInstanceType() == Sensation.InstanceType.Virtual:
             self.imageSensations, self.voiceSensations = self.getIdentitySensations(who=self.getWho())
             if len(self.imageSensations) > 0:
@@ -1413,8 +1375,6 @@ class Identity(Robot):
     '''        
     def getLocations(self):
         return self.getParent().getLocations(self)
-        
-        
 
     def run(self):
         self.running=True
@@ -2186,7 +2146,10 @@ def signal_handler(signal, frame):
     print ('signal_handler: You pressed Ctrl+C!')
     
     mainRobot.doStop()
-    print ('signal_handler: ended!')
+    print ('signal_handler: ended!')        
+        #                                                 location=self.getLocations())
+
+
 #     exit()
     
 #     print ('signal_handler: Shutting down sensation server ...')
