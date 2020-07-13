@@ -1,6 +1,6 @@
 '''
 Created on 25.05.2019
-Edited 28.06.2020
+Edited 11.07.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -15,7 +15,7 @@ Config
     in_sensory_drive = False
     
     Default configuration is False for all capabilities in all levels
-    In 'LOCALHOST' sections localhost those capabilities can be set True
+    In 'DEFAULT_LOCATION' sections localhost those capabilities can be set True
     that have hardware for those.
     
     Remote hosts can have their own capabilities and
@@ -55,7 +55,6 @@ class Config(ConfigParser):
    
     
     # Configuratioon Section and Option names
-    LOCALHOST =         'localhost' 
     MEMORY =            'memoryType'
 #    Microphones =       'MICROPHONES' 
     WHO =               'Who' 
@@ -103,6 +102,7 @@ class Config(ConfigParser):
     
 
     DEFAULT_SECTION =   'DEFAULT'
+    DEFAULT_LOCATION =  'localhost' 
 
     TRUE=               'True'
     FALSE=              'False'
@@ -167,26 +167,26 @@ class Config(ConfigParser):
         # TODO should we update config file anway, if there are changes in
         # capabilities etc.                         
         if not self.has_section(Config.DEFAULT_SECTION) or \
-           not self.has_section(Config.LOCALHOST):
+           not self.has_section(Config.DEFAULT_LOCATION):
                 self.createDefaultSection()
  
         # if we have microphones, read config for them    
         if self.canHear():   
             try:                
-                left_card = self.get(Config.LOCALHOST, Config.MICROPHONE_LEFT)
+                left_card = self.get(Config.DEFAULT_LOCATION, Config.MICROPHONE_LEFT)
                 if left_card == None:
                     print('left_card == None')
                     self.canRun = False
-                right_card = self.get(Config.LOCALHOST, Config.MICROPHONE_RIGHT)
+                right_card = self.get(Config.DEFAULT_LOCATION, Config.MICROPHONE_RIGHT)
                 if right_card == None:
                     print('right_card == None')
                     self.canRun = False
                 try:
-                    self.calibrating_zero = self.getfloat(Config.LOCALHOST, Config.MICROPHONE_CALIBRATING_ZERO)
+                    self.calibrating_zero = self.getfloat(Config.DEFAULT_LOCATION, Config.MICROPHONE_CALIBRATING_ZERO)
                 except self.NoOptionError:
                     self.calibrating_zero = 0.0
                 try:
-                    self.calibrating_factor = self.getfloat(Config.LOCALHOST, Config.MICROPHONE_CALIBRATING_FACTOR)
+                    self.calibrating_factor = self.getfloat(Config.DEFAULT_LOCATION, Config.MICROPHONE_CALIBRATING_FACTOR)
                 except self.NoOptionError:
                     self.calibrating_factor = 1.0
                     
@@ -314,7 +314,7 @@ class Config(ConfigParser):
     '''
     localhost capabilitys to bytes
     '''
-    def toBytes(self, section=LOCALHOST):
+    def toBytes(self, section=DEFAULT_LOCATION):
         from Sensation import Sensation
         b=b''
 #         # first locations
@@ -337,7 +337,7 @@ class Config(ConfigParser):
     '''
     localhost capalilitys to String
     '''
-    def toString(self, section=LOCALHOST):
+    def toString(self, section=DEFAULT_LOCATION):
         from Sensation import Sensation
         string=''
         for robotType in Sensation.RobotTypesOrdered:
@@ -410,7 +410,7 @@ class Config(ConfigParser):
     section name is normally hosts ip-address as text, if given
     if section is not given, we get local capabilities
     '''
-    def fromBytes(self, b, section=LOCALHOST):
+    def fromBytes(self, b, section=DEFAULT_LOCATION):
         from Sensation import Sensation
 #         print('fromBytes ' + str(len(b)))
         i=0
@@ -469,7 +469,7 @@ class Config(ConfigParser):
     section name is normally hosts ip-address as text, if given
     if section is not given, we get local capabilities
     '''
-    def fromString(self, string, section=LOCALHOST):
+    def fromString(self, string, section=DEFAULT_LOCATION):
         from Sensation import Sensation
 #         print('fromBytes ' + str(len(b)))
         i=0
@@ -730,9 +730,9 @@ class Config(ConfigParser):
                     print('self.set(Config.DEFAULT_SECTION,Config.INSTANCE, Sensation.VIRTUAL) exception ' + str(e))
         
         
-        if not self.has_section(Config.LOCALHOST):
+        if not self.has_section(Config.DEFAULT_LOCATION):
             try:
-                self.add_section(Config.LOCALHOST)
+                self.add_section(Config.DEFAULT_LOCATION)
                 self.is_changes=True
 
             except MissingSectionHeaderError as e:
@@ -769,12 +769,12 @@ class Config(ConfigParser):
         from Sensation import Sensation
         return Sensation.getRobotTypeString(robotType)+'_'+Sensation.getMemoryTypeString(memoryType)+'_'+ Sensation.getSensationTypeString(sensationType)
 
-    def hasCapability(self, robotType,memoryType,sensationType, section=LOCALHOST):
+    def hasCapability(self, robotType,memoryType,sensationType, section=DEFAULT_LOCATION):
         option=self.getOptionName(robotType,memoryType,sensationType)
         return self.getboolean(section, option)
 
              
-    def getSubInstanceNames(self, section=LOCALHOST):
+    def getSubInstanceNames(self, section=DEFAULT_LOCATION):
         self.subInstanceNames=[]
         subInstanceNames = self.get(section=section, option=self.SUBINSTANCES)
         if subInstanceNames != None and len(subInstanceNames) > 0:
@@ -782,7 +782,7 @@ class Config(ConfigParser):
             
         return self.subInstanceNames
 
-    def getRemoteSubInstanceNames(self, section=LOCALHOST):
+    def getRemoteSubInstanceNames(self, section=DEFAULT_LOCATION):
         self.remoteSubInstanceNames=[]
         remoteSubInstanceNames = self.get(section=section, option=self.REMOTESUBINSTANCES)
         if remoteSubInstanceNames != None and len(remoteSubInstanceNames) > 0:
@@ -790,7 +790,7 @@ class Config(ConfigParser):
             
         return self.remoteSubInstanceNames
 
-    def getVirtualInstanceNames(self, section=LOCALHOST):
+    def getVirtualInstanceNames(self, section=DEFAULT_LOCATION):
         self.virtualInstanceNames=[]
         virtualInstanceNames = self.get(section=section, option=self.VIRTUALINSTANCES)
         if virtualInstanceNames != None and len(virtualInstanceNames) > 0:
@@ -798,7 +798,7 @@ class Config(ConfigParser):
             
         return self.virtualInstanceNames
     
-    def getExposures(self, section=LOCALHOST):
+    def getExposures(self, section=DEFAULT_LOCATION):
         self.exposures=[]
         exposures = self.get(section=section, option=self.EXPOSURES)
         if exposures != None and len(exposures) > 0:
@@ -806,7 +806,7 @@ class Config(ConfigParser):
             
         return self.exposures
 
-    def getHostNames(self, section=LOCALHOST):
+    def getHostNames(self, section=DEFAULT_LOCATION):
         self.hostNames=[]
         hostNames = self.get(section=section, option=self.HOSTS)
         if hostNames != None and len(hostNames) > 0:
@@ -814,7 +814,7 @@ class Config(ConfigParser):
             
         return self.hostNames
     
-    def getLogLevel(self, section=LOCALHOST):
+    def getLogLevel(self, section=DEFAULT_LOCATION):
         from Robot import Robot
         retLogLevel = Robot.LogLevel.Normal
         configLogLevelStr = self.get(section=section, option=self.LOGLEVEL)
@@ -824,21 +824,21 @@ class Config(ConfigParser):
                break
         return retLogLevel
 
-    def getMaxRss(self, section=LOCALHOST):
+    def getMaxRss(self, section=DEFAULT_LOCATION):
         try:
             return self.getfloat(section=section, option=self.MAXRSS)
         except Exception as e:
             print('self.getint(section=section, option=self.MAXRSS) ' + str(e))
             return None
 
-    def getMinAvailMem(self, section=LOCALHOST):
+    def getMinAvailMem(self, section=DEFAULT_LOCATION):
         try:
             return self.getfloat(section=section, option=self.MINAVAILMEM)
         except Exception as e:
             print('self.getint(section=section, option=self.MINAVAILMEM) ' + str(e))
             return None
 
-    def getRobotId(self, section=LOCALHOST):
+    def getRobotId(self, section=DEFAULT_LOCATION):
         try:
             robotId = self.getfloat(section=section, option=self.ROBOTID)
             # TODO, should we always create new Robot id,
@@ -854,7 +854,7 @@ class Config(ConfigParser):
             print('self.getint(section=section, option=self.ROBOTID) ' + str(e))
             return None
 
-    def setRobotId(self, section=LOCALHOST, robotId=str(ROBOTID_DEFAULT), commit=True):
+    def setRobotId(self, section=DEFAULT_LOCATION, robotId=str(ROBOTID_DEFAULT), commit=True):
         try:
             self.set(section=section, option=self.ROBOTID, value=str(robotId))
             self.is_changes = True
@@ -863,31 +863,71 @@ class Config(ConfigParser):
         if commit:
             self.commit()
 
-    def getWho(self, section=LOCALHOST):
+    def getWho(self, section=DEFAULT_LOCATION):
         who = self.get(section=section, option=self.WHO)
         return who
 
-    def getLocations(self, section=LOCALHOST):
+    ''' 
+    get locations for this Config
+    locations will be config sections
+    so they are always only is default section
+    '''       
+    def getLocations(self):
         self.locations=[]
-        locations = self.get(section=section, option=self.LOCATIONS)
+        locations = self.get(section=Config.DEFAULT_SECTION, option=self.LOCATIONS)
         if locations != None and len(locations) > 0:
             self.locations = locations.split()
+        self.createLocationSections(locations=self.locations, commit=True)
         return self.locations
         
-        
-    def setLocations(self, section=LOCALHOST, locations=LOCATIONS_DEFAULT, commit=True):
+    ''' 
+    set locations for this Config
+    locations will be config sections
+    so they are always only is default section
+    '''       
+    def setLocations(self, locations=LOCATIONS_DEFAULT, commit=True):
         try:
-            self.set(section=section, option=Config.LOCATIONS, value=Config.strArrayToStr(locations))
+            self.set(section=Config.DEFAULT_SECTION, option=Config.LOCATIONS, value=Config.strArrayToStr(locations))
             self.is_changes = True
         except Exception as e:
-            print('self.set(section=section, option=Config.LOCATIONS, value=Config.strArrayToStr(locations)' + str(e))
+            print('self.set(section=DEFAULT_SECTION, option=Config.LOCATIONS, value=Config.strArrayToStr(locations)' + str(e))
+            
+            
         if commit:
             self.commit()
+        self.createLocationSections(locations=locations, commit=commit)
+            
+    '''
+    check that we have sections for all location
+    '''
+            
+    def createLocationSections(self, locations, commit=True):
+        #check that we have sections for all location
+        is_changes = False
+        
+        for location in locations:
+            if not self.has_section(location):
+                try:
+                    self.add_section(location)
+                    self.is_changes=True
+                    is_changes = True
+    
+                except MissingSectionHeaderError as e:
+                        print('self.add_section configparser.MissingSectionHeaderError ' + str(e))
+                except NoSectionError as e:
+                        print('eslf.add_section configparser.NoSectionError ' + str(e))
+                except NoOptionError as e:
+                        print('self.add_section configparser.NoOptionError ' + str(e))
+                except Exception as e:
+                        print('self.add_section exception ' + str(e))
+        if commit and is_changes:
+            self.commit()
+            
 
-    def getLocationsStr(self, section=LOCALHOST):
+    def getLocationsStr(self, section=DEFAULT_LOCATION):
         return Config.strArrayToStr(self.getLocations(section=section))
 
-    def getKind(self, section=LOCALHOST):
+    def getKind(self, section=DEFAULT_LOCATION):
         from Sensation import Sensation
         self.kind = Sensation.Kind.Normal
         kind = self.get(section=section, option=self.KIND)
@@ -900,7 +940,7 @@ class Config(ConfigParser):
                 self.kind = Sensation.Kind.Normal
         return self.kind
 
-    def getInstanceType(self, section=LOCALHOST):
+    def getInstanceType(self, section=DEFAULT_LOCATION):
         from Sensation import Sensation
         instanceType = Sensation.InstanceType.Real
         instanceName = self.get(section=section, option=self.INSTANCE)
@@ -916,14 +956,14 @@ class Config(ConfigParser):
           
         return instanceType
     
-    def getActivityAvegageLevel(self, section=LOCALHOST):
+    def getActivityAvegageLevel(self, section=DEFAULT_LOCATION):
         try:
             return self.getfloat(section=section, option=self.ACTIVITY_LEVEL_AVERAGE)
         except Exception as e:
             print('self.getfloat(section=section, option=self.ACTIVITY_LEVEL_AVERAGE)' + str(e))
             return None
         
-    def setActivityAvegageLevel(self, section=LOCALHOST, activityLevelAverage=ACTIVITY_LEVEL_AVERAGE_DEFAULT, commit=True):
+    def setActivityAvegageLevel(self, section=DEFAULT_LOCATION, activityLevelAverage=ACTIVITY_LEVEL_AVERAGE_DEFAULT, commit=True):
         try:
             self.set(section=section, option=self.ACTIVITY_LEVEL_AVERAGE, value=str(activityLevelAverage))
             self.is_changes = True
@@ -932,14 +972,14 @@ class Config(ConfigParser):
         if commit:
             self.commit()
 
-    def getMicrophoneVoiceAvegageLevel(self, section=LOCALHOST):
+    def getMicrophoneVoiceAvegageLevel(self, section=DEFAULT_LOCATION):
         try:
             return self.getfloat(section=section, option=self.MICROPHONE_VOICE_LEVEL_AVERAGE)
         except Exception as e:
             print('self.getfloat(section=section, option=self.MICROPHONE_VOICE_LEVEL_AVERAGE)' + str(e))
             return None
         
-    def setMicrophoneVoiceAvegageLevel(self, section=LOCALHOST, voiceLevelAverage=str(MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT), commit=True):
+    def setMicrophoneVoiceAvegageLevel(self, section=DEFAULT_LOCATION, voiceLevelAverage=str(MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT), commit=True):
         try:
             self.set(section=section, option=self.MICROPHONE_VOICE_LEVEL_AVERAGE, value=str(voiceLevelAverage))
             self.is_changes = True
@@ -948,28 +988,28 @@ class Config(ConfigParser):
         if commit:
             self.commit()
 
-    def getMicrophone(self, section=LOCALHOST):
+    def getMicrophone(self, section=DEFAULT_LOCATION):
         try:
             return self.get(section=section, option=self.MICROPHONE)
         except Exception as e:
             print('self.get(section=section, option=self.MICROPHONE) ' + str(e))
             return None
 
-    def getMicrophoneChannels(self, section=LOCALHOST):
+    def getMicrophoneChannels(self, section=DEFAULT_LOCATION):
         try:
             return self.getint(section=section, option=self.MICROPHONE_CHANNELS)
         except Exception as e:
             print('self.getint(section=section, option=self.MICROPHONE_CHANNELS)' + str(e))
             return None
 
-    def getMicrophoneVoiceAvegageLevel(self, section=LOCALHOST):
+    def getMicrophoneVoiceAvegageLevel(self, section=DEFAULT_LOCATION):
         try:
             return self.getfloat(section=section, option=self.MICROPHONE_VOICE_LEVEL_AVERAGE)
         except Exception as e:
             print('self.getfloat(section=section, option=self.MICROPHONE_VOICE_LEVEL_AVERAGE)' + str(e))
             return None
         
-    def setMicrophoneVoiceAvegageLevel(self, section=LOCALHOST, voiceLevelAverage=str(MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT), commit=True):
+    def setMicrophoneVoiceAvegageLevel(self, section=DEFAULT_LOCATION, voiceLevelAverage=str(MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT), commit=True):
         try:
             self.set(section=section, option=self.MICROPHONE_VOICE_LEVEL_AVERAGE, value=str(voiceLevelAverage))
             self.is_changes = True
@@ -978,14 +1018,14 @@ class Config(ConfigParser):
         if commit:
             self.commit()
 
-    def getMicrophone(self, section=LOCALHOST):
+    def getMicrophone(self, section=DEFAULT_LOCATION):
         try:
             return self.get(section=section, option=self.MICROPHONE)
         except Exception as e:
             print('self.get(section=section, option=self.MICROPHONE) ' + str(e))
             return None
 
-    def getPlayback(self, section=LOCALHOST):
+    def getPlayback(self, section=DEFAULT_LOCATION):
         try:
             return self.get(section=section, option=self.PLAYBACK)
         except Exception as e:
@@ -996,26 +1036,26 @@ class Config(ConfigParser):
     # this is cryptic way to create Capabilities and not sure id ever used
     # so commented out
         
-#     def getCapabilities(self, section=LOCALHOST):
+#     def getCapabilities(self, section=DEFAULT_LOCATION):
 #         self.getLocations(section=section)# should get Locations, because Capabilities are dependent on Locations
 #         bytes=self.toBytes(section=section)
 #         return Capabilities(bytes=bytes, config=self)
 
-    def canHear(self, section=LOCALHOST):
+    def canHear(self, section=DEFAULT_LOCATION):
         from Sensation import Sensation
         return self.hasCapability(Sensation.RobotType.Muscle,
                                   Sensation.MemoryType.Sensory,
                                   Sensation.SensationType.HearDirection,
                                   section=section)
     
-    def canMove(self, section=LOCALHOST):
+    def canMove(self, section=DEFAULT_LOCATION):
         from Sensation import Sensation
         return self.hasCapability(Sensation.RobotType.Muscle,
                                  Sensation.MemoryType.Sensory,
                                  Sensation.SensationType.Drive,
                                  section=section)
 
-    def canSee(self, section=LOCALHOST):
+    def canSee(self, section=DEFAULT_LOCATION):
         from Sensation import Sensation
         return self.hasCapability(Sensation.RobotType.Muscle,
                                  Sensation.MemoryType.Sensory,

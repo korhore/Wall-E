@@ -78,12 +78,12 @@ if __name__ == "__main__":
         config = ConfigParser()
         config.read(Config.CONFIG_FILE_PATH)
     
-    #    config.add_section(Config.LOCALHOST)
+    #    config.add_section(Config.DEFAULT_LOCATION)
         if left is not None:
-            config.set(Config.LOCALHOST, Config.MICROPHONE, left)
-            config.set(Config.LOCALHOST, Config.MICROPHONE_LEFT, left)
+            config.set(Config.DEFAULT_LOCATION, Config.MICROPHONE, left)
+            config.set(Config.DEFAULT_LOCATION, Config.MICROPHONE_LEFT, left)
         if right is not None:
-            config.set(Config.LOCALHOST, Config.MICROPHONE_RIGHT, right)
+            config.set(Config.DEFAULT_LOCATION, Config.MICROPHONE_RIGHT, right)
     
         # Writing our configuration file to 'Robot.cfg'
         configfile = open(Config.CONFIG_FILE_PATH, 'w')
@@ -93,10 +93,10 @@ if __name__ == "__main__":
         # Reading our configuration file to 'Walle.cfg'
         config.read(Config.CONFIG_FILE_PATH)
         if left is not None:
-            print ('From config file: microphone: \'' + config.get(Config.LOCALHOST, Config.MICROPHONE) + '\'')
-            print ('From config file: left: \'' + config.get(Config.LOCALHOST, Config.MICROPHONE_LEFT) + '\'')
+            print ('From config file: microphone: \'' + config.get(Config.DEFAULT_LOCATION, Config.MICROPHONE) + '\'')
+            print ('From config file: left: \'' + config.get(Config.DEFAULT_LOCATION, Config.MICROPHONE_LEFT) + '\'')
         if right is not None:
-            print ('From config file: right: \'' + config.get(Config.LOCALHOST, Config.MICROPHONE_RIGHT) + '\'')
+            print ('From config file: right: \'' + config.get(Config.DEFAULT_LOCATION, Config.MICROPHONE_RIGHT) + '\'')
     except Exception as e:
                 print('Got exception, when writing config file ' + str(e))
     print ("Setting is DONE!")

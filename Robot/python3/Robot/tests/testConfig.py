@@ -1,6 +1,6 @@
 '''
 Created on 12.05.2020
-Updated on 07.07.2020
+Updated on 12.07.2020
 @author: reijo.korhonen@gmail.com
 
 test Config class
@@ -16,6 +16,9 @@ from Config import Config, Capabilities
 from Sensation import Sensation
 
 class ConfigTestCase(unittest.TestCase):
+    
+    TEST_INSTANCE = 'TestRobot'
+    
     
     SET_1_1_LOCATIONS_1 = ['testLocation']
     SET_1_1_LOCATIONS_2 = ['Ubuntu']
@@ -33,11 +36,15 @@ class ConfigTestCase(unittest.TestCase):
 
     def setUp(self):
         # create config same way as Robot does it
-        self.config = Config(instanceName=Config.DEFAULT_INSTANCE,
+        self.config = Config(instanceName=ConfigTestCase.TEST_INSTANCE,
                              instanceType=Sensation.InstanceType.Real,
                              level=0)
         self.config.setLocations(locations=ConfigTestCase.SET_1_2_LOCATIONS)
         self.assertEqual(self.config.getLocations(), ConfigTestCase.SET_1_2_LOCATIONS, "should be equal")
+        # check that we reaally have locations as sections
+        for location in self.config.getLocations():
+            self.assertTrue(self.config.has_section(location))
+
         
         self.capabilities = Capabilities(config=self.config)
 #         self.assertEqual(self.capabilities.toString(), self.config.getCapabilities().toString(), "should be equal")
@@ -47,13 +54,24 @@ class ConfigTestCase(unittest.TestCase):
     def tearDown(self):
         del self.capabilities
         del self.config
+        
+    def testConfig(self):
+        # methods that has set
+        self.config.setActivityAvegageLevel(section=ConfigTestCase.SET_1_2_LOCATIONS[0], activityLevelAverage=Config.ACTIVITY_LEVEL_AVERAGE_DEFAULT+1)
+        self.assertEqual(self.config.getActivityAvegageLevel(section=ConfigTestCase.SET_1_2_LOCATIONS[0]), Config.ACTIVITY_LEVEL_AVERAGE_DEFAULT+1)
+        self.assertEqual(self.config.getActivityAvegageLevel(section=ConfigTestCase.SET_1_2_LOCATIONS[1]), Config.ACTIVITY_LEVEL_AVERAGE_DEFAULT)
+
+        self.config.setMicrophoneVoiceAvegageLevel(section=ConfigTestCase.SET_1_2_LOCATIONS[0], voiceLevelAverage=Config.MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT+1)
+        self.assertEqual(self.config.getMicrophoneVoiceAvegageLevel(section=ConfigTestCase.SET_1_2_LOCATIONS[0]), Config.MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT+1)
+        self.assertEqual(self.config.getMicrophoneVoiceAvegageLevel(section=ConfigTestCase.SET_1_2_LOCATIONS[1]), Config.MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT)
+       
        
     def testConfigBytes(self):
         print("testConfigBytes 1: self.config " + self.config.toString())
         b=self.config.toBytes()
         
         # create copy and change it, capabilities differ
-        fromBytesConfig = Config(instanceName=Config.DEFAULT_INSTANCE,
+        fromBytesConfig = Config(instanceName=ConfigTestCase.TEST_INSTANCE,
                                  instanceType=Sensation.InstanceType.Real,
                                  level=0)    # should get another copy
         capabilities = Capabilities(config=fromBytesConfig)

@@ -37,7 +37,7 @@ class See(Thread):
         
         self.name='See'
         self.outAxon = outAxon
-        self.inAxon = Axon(Config.LOCALHOST)
+        self.inAxon = Axon(Config.DEFAULT_LOCATION)
         self.inAxon.setCapabilities(self, capabilities)
         #self.config = config
        

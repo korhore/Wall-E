@@ -19,6 +19,29 @@ Implement 'global' location
 - Config has now "Default" section. In it "locations" defines configuration sections valid in those locations. Default values are still found
   from "Default" section.  location section does not contain "locations" attribute, because information is equal as section name and 
   other setting should not be used.
+-- DEFAULT_SECTION = 'DEFAULT' unchanget
+-- DEFAULT_LOCATION = 'localhost' fot compatibility
+-- all Robot instancesof locations are running same time ans Config-file is open, to those Robot in stances should share same Congig-instance
+--- add thread-safe
+--- add location-parameter to all methods Robot-classes use.
+    if place-section does not exist, we should create one. 
+- Robot
+-- __init__ should have more paremeter
+--- location
+    all running Robot has only one location, but it can be 'global'
+--- config
+    instance of config
+      If this is None
+      - Robot creates its config in old way
+      - Robot reads locations by config and creates subinstances by location of
+        itself. this way it will be only one level more in Robot hierachly. This hierachly is not needed,
+        so we could also create subrobots directly into MainRobot, This willl be more tricky.
+        If we will create 'global' location, then this Robot will create on demand new subrobots, when
+        it finds nedw location is nas not yer found, so one level more is acceptable solution.
+        If there is only one location, the no subinstances are needed
+      - If 
+    Robot find its setting, whe it uses its 'location' in all config-methods        
+
 
 
 Has Robot one or many locations? If many, are capabiolities different in these locations.
