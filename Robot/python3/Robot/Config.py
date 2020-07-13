@@ -1073,13 +1073,14 @@ class Capabilities():
     
     def __init__(self,
                  config=None,
-#                  locations=[],
+                 location=Config.DEFAULT_LOCATION,
                  string=None,
                  bytes=None,
                  Or =None,
                  And=None,
                  deepCopy=None):
         self.config = config
+        self.location = location
 #         # self.locations can be overwritten by bytes (or string, not tested)
 #         self.locations = locations
 #         if (self.locations is None or len(self.locations) == 0) and self.config is not None:
@@ -1099,7 +1100,7 @@ class Capabilities():
                     self.config = Config()
                 else:
                     self.config= config
-                bytes=self.config.toBytes()
+                bytes=self.config.toBytes(section = location)
     
             self.fromBytes(bytes=bytes)
 #         # TODO is finally overwritten or not

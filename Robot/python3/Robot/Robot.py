@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 09.07.2020
+Updated on 13.07.2020
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -164,7 +164,9 @@ class Robot(Thread):
                  level=0,
                  memory = None,
                  maxRss = Config.MAXRSS_DEFAULT,
-                 minAvailMem = Config.MINAVAILMEM_DEFAULT):
+                 minAvailMem = Config.MINAVAILMEM_DEFAULT,
+                 location=None,
+                 config=None):
         print("Robot 1")
         Thread.__init__(self)
         self.logLevel= Robot.LogLevel.No    # We can't log yet
@@ -180,7 +182,8 @@ class Robot(Thread):
             self.instanceName = Config.DEFAULT_INSTANCE
         self.instanceType=instanceType
         self.level=level+1
-        
+        self.location=location
+        self.config=config
         # Features of Robot identity we can show and speak to
         self.imageSensations=[]
         self.voiceSensations=[]
@@ -206,14 +209,16 @@ class Robot(Thread):
         self.running=False
 
         print("Robot 2")
-        self.config = Config(instanceName=self.instanceName,
-                             instanceType=self.instanceType,
-                             level=level)   # don't increase level, it has increased yet and Config has its own levels (that are same)
+        if self.config == None:
+            self.config = Config(instanceName=self.instanceName,
+                                 instanceType=self.instanceType,
+                                 level=level)   # don't increase level, it has increased yet and Config has its own levels (that are same)
+            self.location = Config.DEFAULT_LOCATION
         print("Robot 3")
-        self.id = self.config.getRobotId()
-        self.capabilities = Capabilities(config=self.config)
+        self.id = self.config.getRobotId(section=self.location)
+        self.capabilities = Capabilities(config=self.config, location=self.location)
         print("Robot 4")
-        self.setWho(self.config.getWho())
+        self.setWho(self.config.getWho(section=self.location))
         
         if self.level == 1:                        
             Robot.mainRobotInstance = self
@@ -257,14 +262,14 @@ class Robot(Thread):
         #self.setLocations(self.config.getLocations())
 
         # at this point we can log
-        self.logLevel=self.config.getLogLevel()
+        self.logLevel=self.config.getLogLevel(section=self.location)
 
         self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who: " + self.getWho() + " location: " + self.getLocationsStr() + " kind: " + self.getKind() + " instanceType: " + self.getInstanceType() + " capabilities: " + self.capabilities.toDebugString(self.getWho()))
         # global queue for senses and other robots to put sensations to robot
         self.axon = Axon(robot=self)
         #and create subinstances
         for subInstanceName in self.config.getSubInstanceNames():
-            self.log(logLevel=Robot.LogLevel.Verbose, logStr="init robot sub instanceName " + subInstanceName)
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot sub instanceName " + subInstanceName)
             robot = self.loadSubRobot(subInstanceName=subInstanceName, level=self.level)
             if robot is not None:
                 self.subInstances.append(robot)
@@ -280,7 +285,19 @@ class Robot(Thread):
                 self.subInstances.append(robot)
             else:
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr="init robot virtual instanceName " + instanceName + " is None")
-                
+ 
+        # create subinstance per location if this is subiunstabce wich has read its condif from file
+        # is it has got ins config as parameter, then this is started subinstance, so son't load anything
+        # to avoid infinite loop
+        if location == None and config == None and self.level > 1 and len(self.locations) > 1:
+            for location  in self.locations:
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot sub instanceName " + instanceName + ' location ' + location)
+                robot = self.loadSubRobot(subInstanceName=instanceName, level=self.level+1, config=self.config, location=location)
+                if robot is not None:
+                    self.subInstances.append(robot)
+                else:
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot sub instanceName " + instanceName + ' location ' + location + " is None")
+                       
         # in main robot, set up LongTerm Memory and set up TCPServer
         if self.level == 1:                                                            
             self.getMemory().loadLongTermMemory()
@@ -324,7 +341,9 @@ class Robot(Thread):
     def isRunning(self):
         return self.running
         
-    def loadSubRobot(self, subInstanceName, level):
+    def loadSubRobot(self, subInstanceName, level,
+                     location=None,
+                     config=None):
         robot = None
         try:
             module = subInstanceName+ '.' + subInstanceName
@@ -334,7 +353,9 @@ class Robot(Thread):
                                                               memory=self.getMemory(),  # use same memory than self
                                                               instanceName=subInstanceName,
                                                               instanceType= Sensation.InstanceType.SubInstance,
-                                                              level=level)
+                                                              level=level,
+                                                              location=location,
+                                                              config=config)
         except ImportError as e:
              self.log(logLevel=Robot.LogLevel.Critical, logStr="Import error, implement " + module + ' to fix this ' + str(e) + ' ' + str(traceback.format_exc()))
              self.log(logLevel=Robot.LogLevel.Critical, logStr="Import error, implement " + module + ' ignored, not initiated or not will be started until corrected!')
@@ -365,7 +386,9 @@ class Robot(Thread):
         return self.name
     
     def setLocations(self, locations):
-        self.locations = locations
+        if self.getInstanceType() == Sensation.InstanceType.SubInstance:
+            self.locations = locations
+            self.config.setLocations(locations = locations)
     def getLocations(self):
         return self.locations
     def getLocationsStr(self):
@@ -388,10 +411,10 @@ class Robot(Thread):
         return False
    
     def getKind(self):
-        return self.config.getKind()
+        return self.config.getKind(section=self.location)
     
     def getExposures(self):
-        return self.config.getExposures()
+        return self.config.getExposures(section=self.location)
 
     
     '''
@@ -554,8 +577,8 @@ class Robot(Thread):
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability self has robotType ' + str(robotType) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType) + ' True')      
             return True    
         for robot in self.getSubInstances():
-            if robot.isInLocations(location) and robot.getCapabilities().hasCapability(robotType, memoryType, sensationType) or \
-               robot.hasSubCapability(robotType, memoryType, sensationType, location):
+            if robot.isInLocations(locations) and robot.getCapabilities().hasCapability(robotType, memoryType, sensationType) or \
+               robot.hasSubCapability(robotType, memoryType, sensationType, locations):
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability subInstance ' + robot.getWho() + ' at ' + robot.getLocationsStr() + ' has robotType ' + str(robotType) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType) + ' True')      
                 return True
         #self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability robotType ' + str(robotType) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType) + ' False')      
@@ -1219,7 +1242,9 @@ class Identity(Robot):
                  memory,
                  instanceType = Sensation.InstanceType.SubInstance,
                  maxRss = Config.MAXRSS_DEFAULT,
-                 minAvailMem = Config.MINAVAILMEM_DEFAULT):
+                 minAvailMem = Config.MINAVAILMEM_DEFAULT,
+                 location=None,
+                 config=None):
         level=level+1   # don' loop Identitys
         Robot.__init__(self,
                        memory=memory,

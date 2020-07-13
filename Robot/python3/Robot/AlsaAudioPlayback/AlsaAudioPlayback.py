@@ -41,7 +41,9 @@ class AlsaAudioPlayback(Robot):
                  level=0,
                  memory = None,
                  maxRss = Config.MAXRSS_DEFAULT,
-                 minAvailMem = Config.MINAVAILMEM_DEFAULT):
+                 minAvailMem = Config.MINAVAILMEM_DEFAULT,
+                 location=None,
+                 config=None):
         Robot.__init__(self,
                        parent=parent,
                        instanceName=instanceName,
@@ -49,7 +51,9 @@ class AlsaAudioPlayback(Robot):
                        level=level,
                        memory = memory,
                        maxRss = maxRss,
-                       minAvailMem = minAvailMem)
+                       minAvailMem = minAvailMem,
+                       location = location,
+                       config = config)
         print("We are in AlsaAudioPlayback, not Robot")
 
         # from settings        

@@ -45,7 +45,9 @@ class AlsaAudioMicrophone(Robot):
                  level=0,
                  memory = None,
                  maxRss = Config.MAXRSS_DEFAULT,
-                 minAvailMem = Config.MINAVAILMEM_DEFAULT):
+                 minAvailMem = Config.MINAVAILMEM_DEFAULT,
+                 location=None,
+                 config=None):
         print("We are in AlsaAudioMicrophone, not Robot")
         Robot.__init__(self,
                        parent=parent,
@@ -54,7 +56,9 @@ class AlsaAudioMicrophone(Robot):
                        level=level,
                        memory = memory,
                        maxRss = maxRss,
-                       minAvailMem = minAvailMem)
+                       minAvailMem = minAvailMem,
+                       location = location,
+                       config = config)
 
         # from settings        
         self.device= self.config.getMicrophone()

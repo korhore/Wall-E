@@ -198,7 +198,9 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                  level=0,
                  memory = None,
                  maxRss = Config.MAXRSS_DEFAULT,
-                 minAvailMem = Config.MINAVAILMEM_DEFAULT):
+                 minAvailMem = Config.MINAVAILMEM_DEFAULT,
+                 location=None,
+                 config=None):
         print("We are in TensorFlowClassification, not Robot")
         Robot.__init__(self,
                        parent=parent,
@@ -207,7 +209,9 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                        level=level,
                        memory = memory,
                        maxRss =  maxRss,
-                       minAvailMem = minAvailMem)
+                       minAvailMem = minAvailMem,
+                       location = location,
+                       config = config)
         self.lastImageTime=None
         self.tflite_model=None
         self.detection_graph = None

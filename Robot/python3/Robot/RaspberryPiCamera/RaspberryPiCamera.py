@@ -52,7 +52,9 @@ class RaspberryPiCamera(Robot):
                  level=0,
                  memory = None,
                  maxRss = Config.MAXRSS_DEFAULT,
-                 minAvailMem = Config.MINAVAILMEM_DEFAULT):
+                 minAvailMem = Config.MINAVAILMEM_DEFAULT,
+                 location=None,
+                 config=None):
         print("We are in RaspberryPiCamera, not Robot")
         Robot.__init__(self,
                        parent=parent,
@@ -61,7 +63,9 @@ class RaspberryPiCamera(Robot):
                        level=level,
                        memory = memory,
                        maxRss =  maxRss,
-                       minAvailMem = minAvailMem)
+                       minAvailMem = minAvailMem,
+                       location = location,
+                       config = config)
         
 
           

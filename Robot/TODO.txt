@@ -39,8 +39,15 @@ Implement 'global' location
         If we will create 'global' location, then this Robot will create on demand new subrobots, when
         it finds nedw location is nas not yer found, so one level more is acceptable solution.
         If there is only one location, the no subinstances are needed
-      - If 
-    Robot find its setting, whe it uses its 'location' in all config-methods        
+      - If
+-- Has MainRobot location(s)?
+--- MainRobot gets its locations from subRobots, so no
+    setLocation should do nothing.
+    Robot finds its settings, when it uses its 'location' in all config-methods
+createSensation
+- parameter locations -> location
+  because Robot worls in one single location and don't know other
+Robot self.mainRobot.setLocations HOW?
 
 
 

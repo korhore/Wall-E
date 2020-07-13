@@ -1,6 +1,6 @@
 '''
-Created on 14.02.2020
-Updated on 09.07.2020
+Created on 13.02.2020
+Updated on 13.07.2020
 @author: reijo.korhonen@gmail.com
 
 test Robot class
@@ -117,7 +117,7 @@ class RobotTestCase(unittest.TestCase):
     Testing    
     '''
     
-    def setUp(self):
+    def resume_setUp(self):
         print('\nsetUp')
         
         
@@ -260,7 +260,7 @@ class RobotTestCase(unittest.TestCase):
         
 
 
-    def tearDown(self):
+    def resume_tearDown(self):
         print('\ntearDown')       
         del self.muscle
         del self.sense
@@ -271,8 +271,84 @@ class RobotTestCase(unittest.TestCase):
         del self.remoteMuscle
         del self.remoteSense
         del self.remoteMainRobot
+        
+    def testLocations(self):
+        print('\ntestLocations')
+        
+        
+        # set robots to same location
+        
+        mainRobot = Robot(parent=None,
+                           instanceName='TestLocationMainRobot',
+                           instanceType= Sensation.InstanceType.Real)
+        # We should set this, because we don't run mainRobot, but call its methods
+        self.assertEqual(mainRobot, Robot.mainRobotInstance, "should have Robot.mainRobotInstance")
+        self.assertEqual(mainRobot, Robot.getMainRobotInstance(), "should have Robot.mainRobotInstance")
+        if mainRobot.level == 1:
+            mainRobot.activityAverage = mainRobot.shortActivityAverage = mainRobot.config.getActivityAvegageLevel()
+            mainRobot.activityNumber = 0
+            mainRobot.activityPeriodStartTime = time.time()
 
-    def test_Routing(self):
+        mainRobot.setLocations(RobotTestCase.LOCATIONS_1)
+        mainRobot.selfSensation=mainRobot.createSensation(sensationType=Sensation.SensationType.Robot,
+                                                          memoryType=Sensation.MemoryType.LongTerm,
+                                                          robotType=Sensation.RobotType.Sense,# We have found this
+                                                          robot = mainRobot.getWho(),
+                                                          name = mainRobot.getWho(),
+                                                          presence = Sensation.Presence.Present,
+                                                          kind=mainRobot.getKind(),
+                                                          feeling=mainRobot.getFeeling(),
+                                                          locations=mainRobot.getLocations())
+        
+        
+        sense = RobotTestCase.TestRobot(parent=mainRobot,
+                           instanceName='Sense',
+                           instanceType= Sensation.InstanceType.SubInstance,
+                           level=2)
+        self.assertEqual(mainRobot,Robot.getMainRobotInstance(), "should have Robot.mainRobotInstance")
+        sense.setLocations(RobotTestCase.LOCATIONS_1_2)
+        mainRobot.subInstances.append(sense)
+        
+        
+        muscle = RobotTestCase.TestRobot(parent=mainRobot,
+                           instanceName='Muscle',
+                           instanceType= Sensation.InstanceType.SubInstance,
+                           level=2)
+        self.assertEqual(mainRobot,Robot.getMainRobotInstance(), "should have Robot.mainRobotInstance")
+        muscle.setLocations(RobotTestCase.LOCATIONS_1_2)
+        mainRobot.subInstances.append(muscle)
+                
+        #set muscle capabilities  Item, Image, Voice
+        capabilities  =  muscle.getCapabilities()
+        # location, needed, because Robot delegates subrobot capability checking
+        # in routing phase for Capabilities so also capabilities should have same Locations
+        # in real application they are, because Robots Locations come from Capabilities
+        # deprecated capabilities.setLocations(RobotTestCase.LOCATIONS_1)
+         #Sensory
+        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Item, is_set=True)   
+        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Image, is_set=True)   
+        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Voice, is_set=True)   
+        #Working
+        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Working, sensationType=Sensation.SensationType.Item, is_set=True)   
+        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Working, sensationType=Sensation.SensationType.Image, is_set=True)   
+        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Working, sensationType=Sensation.SensationType.Voice, is_set=True)   
+        #LongTerm
+        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.LongTerm, sensationType=Sensation.SensationType.Item, is_set=True)   
+        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.LongTerm, sensationType=Sensation.SensationType.Image, is_set=True)   
+        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.LongTerm, sensationType=Sensation.SensationType.Voice, is_set=True)   
+
+        muscle.setCapabilities(capabilities)
+        
+        # tearDown
+        
+        print('\ntearDown')       
+        del muscle
+        del sense
+        del mainRobot
+        
+        
+
+    def resume_test_Routing(self):
         print('\ntest_Sensation Routing')
         #history_sensationTime = time.time() -2*RobotTestCase.ASSOCIATION_INTERVAL
 
@@ -532,7 +608,7 @@ class RobotTestCase(unittest.TestCase):
     running to get its tested properly
     '''
         
-    def test_Tcp(self):
+    def resume_test_Tcp(self):
         print('\ntest_Sensation Routing with TCP SocketServer and SocketClient')
         
         # set first remote mainRobot
