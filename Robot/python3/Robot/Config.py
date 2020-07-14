@@ -903,39 +903,39 @@ class Config(ConfigParser):
     sublocations will be config sections
     '''       
     def getSubLocations(self, section=DEFAULT_LOCATION):
-        self.locations=[]
-        locations = self.get(section=section, option=self.SUBLOCATIONS)
-        if locations != None and len(locations) > 0:
-            self.locations = locations.split()
-        self.createLocationSections(locations=self.locations, commit=True)
-        return self.locations
+        self.sublocations=[]
+        sublocations = self.get(section=section, option=self.SUBLOCATIONS)
+        if sublocations != None and len(sublocations) > 0:
+            self.sublocations = sublocations.split()
+        self.createLocationSections(sublocations=self.sublocations, commit=True)
+        return self.sublocations
         
     ''' 
     set sublocations for this Config
     locations will be config sections
     so they are always only is default section
     '''       
-    def setSubLocations(self, section=DEFAULT_LOCATION, locations=LOCATIONS_DEFAULT, commit=True):
+    def setSubLocations(self, section=DEFAULT_LOCATION, sublocations=LOCATIONS_DEFAULT, commit=True):
         try:
-            self.set(section=section, option=Config.SUBLOCATIONS, value=Config.strArrayToStr(locations))
+            self.set(section=section, option=Config.SUBLOCATIONS, value=Config.strArrayToStr(sublocations))
             self.is_changes = True
         except Exception as e:
-            print('self.set(section=section, option=Config.SUBLOCATIONS, value=Config.strArrayToStr(locations)' + str(e))
+            print('self.set(section=section, option=Config.SUBLOCATIONS, value=Config.strArrayToStr(sublocations)' + str(e))
             
             
         if commit:
             self.commit()
-        self.createLocationSections(locations=locations, commit=commit)
+        self.createLocationSections(sublocations=sublocations, commit=commit)
             
     '''
     check that we have sections for all location
     '''
             
-    def createLocationSections(self, locations, commit=True):
+    def createLocationSections(self, sublocations, commit=True):
         #check that we have sections for all location
         is_changes = False
         
-        for location in locations:
+        for location in sublocations:
             if not self.has_section(location):
                 try:
                     self.add_section(location)

@@ -117,7 +117,7 @@ class RobotTestCase(unittest.TestCase):
     Testing    
     '''
     
-    def resume_setUp(self):
+    def setUp(self):
         print('\nsetUp')
         
         
@@ -260,7 +260,7 @@ class RobotTestCase(unittest.TestCase):
         
 
 
-    def resume_tearDown(self):
+    def tearDown(self):
         print('\ntearDown')       
         del self.muscle
         del self.sense
@@ -348,7 +348,7 @@ class RobotTestCase(unittest.TestCase):
         
         
 
-    def resume_test_Routing(self):
+    def test_Routing(self):
         print('\ntest_Sensation Routing')
         #history_sensationTime = time.time() -2*RobotTestCase.ASSOCIATION_INTERVAL
 
@@ -608,7 +608,7 @@ class RobotTestCase(unittest.TestCase):
     running to get its tested properly
     '''
         
-    def resume_test_Tcp(self):
+    def test_Tcp(self):
         print('\ntest_Sensation Routing with TCP SocketServer and SocketClient')
         
         # set first remote mainRobot

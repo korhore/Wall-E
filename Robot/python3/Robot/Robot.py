@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 13.07.2020
+Updated on 14.07.2020
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -260,6 +260,7 @@ class Robot(Thread):
         self.locations = self.config.getLocations()
         self.selfSensation.associate(sensation=locationSensation)
         #self.setLocations(self.config.getLocations())
+        self.sublocations = self.config.getSubLocations()
 
         # at this point we can log
         self.logLevel=self.config.getLogLevel(section=self.location)
@@ -286,11 +287,11 @@ class Robot(Thread):
             else:
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr="init robot virtual instanceName " + instanceName + " is None")
  
-        # create subinstance per location if this is subiunstabce wich has read its condif from file
+        # create subinstance per location if this is subiinstabce wich has read its condif from file
         # is it has got ins config as parameter, then this is started subinstance, so son't load anything
         # to avoid infinite loop
-        if location == None and config == None and self.level > 1 and len(self.locations) > 1:
-            for location  in self.locations:
+        if location == None and config == None and self.level > 1 and len(self.sublocations) > 1:
+            for location  in self.sublocations:
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot sub instanceName " + instanceName + ' location ' + location)
                 robot = self.loadSubRobot(subInstanceName=instanceName, level=self.level+1, config=self.config, location=location)
                 if robot is not None:
@@ -386,14 +387,23 @@ class Robot(Thread):
         return self.name
     
     def setLocations(self, locations):
-        if self.getInstanceType() == Sensation.InstanceType.SubInstance:
-            self.locations = locations
-            self.config.setLocations(locations = locations)
+#         if self.getInstanceType() == Sensation.InstanceType.SubInstance:
+        self.locations = locations
+        self.config.setLocations(locations = locations)
     def getLocations(self):
         return self.locations
     def getLocationsStr(self):
         return Sensation.strArrayToStr(self.locations)
  
+    def setSubLocations(self, sublocations):
+        if self.getInstanceType() == Sensation.InstanceType.SubInstance:
+            self.sublocations = sublocations
+            self.config.setSubLocations(sublocations = sublocations)
+    def getSubLocations(self):
+        return self.sublocations
+    def getSubLocationsStr(self):
+        return Sensation.strArrayToStr(self.sublocations)
+    
     '''
     Is one or more location in one of this Robots set location
     '''
