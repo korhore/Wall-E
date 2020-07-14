@@ -30,6 +30,16 @@ Implement 'global' location
 --- location
     all running Robot has only one location, but it can be 'global'
 --- config
+    use 2 locations settings in localhost section
+    - locations
+    -- used as it has been now implemented, Robot can have many locations.
+    - sublocations
+    -- now Robot creates subRobots under it
+    ---- subRobots has only one location, one of itsd parents sublocations
+    -- its config comes from this order
+       - locations[0] section
+       - localhost section
+       - default section
     instance of config
       If this is None
       - Robot creates its config in old way

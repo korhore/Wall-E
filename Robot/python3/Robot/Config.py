@@ -1,6 +1,6 @@
 '''
 Created on 25.05.2019
-Edited 11.07.2020
+Edited 14.07.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -55,33 +55,34 @@ class Config(ConfigParser):
    
     
     # Configuratioon Section and Option names
-    MEMORY =            'memoryType'
+    MEMORY =             'memoryType'
 #    Microphones =       'MICROPHONES' 
-    WHO =               'Who' 
-    WALLE =             'Wall-E'
-    LOCATIONS =          'locations' 
+    WHO =                'Who' 
+    WALLE =              'Wall-E'
+    LOCATIONS =          'sublocations' 
+    SUBLOCATIONS =       'locations' 
     LOCATIONS_DEFAULT =  '' 
-    KIND =              "Kind"
-    INSTANCE =          "Instance"
-    VIRTUALINSTANCES =  "Virtualinstances"
-    SUBINSTANCES =      "Subinstances"
-    REMOTESUBINSTANCES = "RemoteSubinstances"
-    HOSTS =             "Hosts"
-    IDENTITYS =         "Identitys"
-    EXPOSURES =         "Exposures"
-    LOGLEVEL =          "LogLevel"
-    MAXRSS =            "maxrss"    # maximum resident set size
+    KIND =               'Kind'
+    INSTANCE =           'Instance'
+    VIRTUALINSTANCES =   'Virtualinstances'
+    SUBINSTANCES =       'Subinstances'
+    REMOTESUBINSTANCES = 'RemoteSubinstances'
+    HOSTS =              'Hosts'
+    IDENTITYS =          'Identitys'
+    EXPOSURES =          'Exposures'
+    LOGLEVEL =           'LogLevel'
+    MAXRSS =             'maxrss'   # maximum resident set size
                                     # limit is set in MB, but in Linux documentation KB
                                     # This limit will be used fist in big momory ststems that
                                     # may also have other duties to do, 2GB for Robot for default
-    MAXRSS_DEFAULT =    2048        # 0.5 BG
+    MAXRSS_DEFAULT =      2048      # 0.5 BG
                                     # raspberry has often 1GB of memoryType
-    MINAVAILMEM =       "minavailmem"    # minimum available mem size in MB
+    MINAVAILMEM =        'minavailmem'    # minimum available mem size in MB
     MINAVAILMEM_DEFAULT = 50        # This limit will be used first in small memoryType systems
                                     # like raspberry having often 1GB of Memory
                                     # 50 NB works on little system dedicated for Robot
-    ROBOTID =       "robotid"       # Robot id
-    ROBOTID_DEFAULT = 0             # default Robot id is 0, but it should never be 0
+    ROBOTID =             'robotid' # Robot id
+    ROBOTID_DEFAULT =     0         # default Robot id is 0, but it should never be 0
                                     # this means that system set by default every Robot unique is, when started first time
                                     # like raspberry having often 1GB of Memory
                                     # 50 NB works on little system dedicated for Robot
@@ -130,8 +131,8 @@ class Config(ConfigParser):
         self.level=level+1
         self.is_changes=False # do we gave chanhes to save
 
-        print("Config level " + str(self.level) + 
-              " instanceType " + str(self.instanceType) )
+        print('Config level ' + str(self.level) + 
+              ' instanceType ' + str(self.instanceType) )
        
         if  self.instanceName is None:
             self.instanceName = Config.DEFAULT_INSTANCE
@@ -149,18 +150,18 @@ class Config(ConfigParser):
             
         self.config_file_path = directory + '/' + Config.CONFIG_FILE_PATH
         
-        print("Config instanceName " + self.instanceName +
-              " level " + str(self.level) + ' ' + self.config_file_path + 
-              " instanceType " + str(self.instanceType) +
-              " config_file_path " + self.config_file_path)
+        print('Config instanceName ' + self.instanceName +
+              ' level ' + str(self.level) + ' ' + self.config_file_path + 
+              ' instanceType ' + str(self.instanceType) +
+              ' config_file_path ' + self.config_file_path)
 
         
         #Read config        
         if os.path.exists(self.config_file_path):
-            print("read config from config_file_path " + self.config_file_path)
+            print('read config from config_file_path ' + self.config_file_path)
             self.read(self.config_file_path)
         else:
-            print("config_file_path " + self.config_file_path + " does not exist, config is default")
+            print('config_file_path ' + self.config_file_path + ' does not exist, config is default')
  
         # If we don't have default section or Capabilities section make it.
         # It will be a template if some capabilities will be set on
@@ -595,6 +596,13 @@ class Config(ConfigParser):
             print('self.set(Config.DEFAULT_SECTION, Config.LOCATIONS, Config.strArrayToStr(Config.LOCATIONS_DEFAULT) exception ' + str(e))
 
         try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.SUBLOCATIONS):
+                self.set(Config.DEFAULT_SECTION,Config.SUBLOCATIONS, Config.strArrayToStr(Config.LOCATIONS_DEFAULT))
+                self.is_changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION, Config.SUBLOCATIONS, Config.strArrayToStr(Config.LOCATIONS_DEFAULT) exception ' + str(e))
+
+        try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.KIND):
                 self.set(Config.DEFAULT_SECTION,Config.KIND, Sensation.getKindString(Sensation.Kind.Normal))
                 self.is_changes=True
@@ -869,28 +877,50 @@ class Config(ConfigParser):
 
     ''' 
     get locations for this Config
-    locations will be config sections
-    so they are always only is default section
     '''       
-    def getLocations(self):
+    def getLocations(self, section=DEFAULT_LOCATION):
         self.locations=[]
-        locations = self.get(section=Config.DEFAULT_SECTION, option=self.LOCATIONS)
+        locations = self.get(section=section, option=self.LOCATIONS)
+        if locations != None and len(locations) > 0:
+            self.locations = locations.split()
+        return self.locations
+        
+    ''' 
+    set locations for this Config
+    '''       
+    def setLocations(self, section=DEFAULT_LOCATION, locations=LOCATIONS_DEFAULT, commit=True):
+        try:
+            self.set(section=section, option=Config.LOCATIONS, value=Config.strArrayToStr(locations))
+            self.is_changes = True
+        except Exception as e:
+            print('self.set(section=DEFAULT_SECTION, option=Config.LOCATIONS, value=Config.strArrayToStr(locations)' + str(e))
+            
+        if commit:
+            self.commit()
+            
+    ''' 
+    get sublocations for this Config
+    sublocations will be config sections
+    '''       
+    def getSubLocations(self, section=DEFAULT_LOCATION):
+        self.locations=[]
+        locations = self.get(section=section, option=self.SUBLOCATIONS)
         if locations != None and len(locations) > 0:
             self.locations = locations.split()
         self.createLocationSections(locations=self.locations, commit=True)
         return self.locations
         
     ''' 
-    set locations for this Config
+    set sublocations for this Config
     locations will be config sections
     so they are always only is default section
     '''       
-    def setLocations(self, locations=LOCATIONS_DEFAULT, commit=True):
+    def setSubLocations(self, section=DEFAULT_LOCATION, locations=LOCATIONS_DEFAULT, commit=True):
         try:
-            self.set(section=Config.DEFAULT_SECTION, option=Config.LOCATIONS, value=Config.strArrayToStr(locations))
+            self.set(section=section, option=Config.SUBLOCATIONS, value=Config.strArrayToStr(locations))
             self.is_changes = True
         except Exception as e:
-            print('self.set(section=DEFAULT_SECTION, option=Config.LOCATIONS, value=Config.strArrayToStr(locations)' + str(e))
+            print('self.set(section=section, option=Config.SUBLOCATIONS, value=Config.strArrayToStr(locations)' + str(e))
             
             
         if commit:
@@ -1121,7 +1151,7 @@ class Capabilities():
         
 #         #first location
 #         location_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
-#         #print("location_size " + str(location_size))
+#         #print('location_size ' + str(location_size))
 #         i += Sensation.ID_SIZE
 #         self.locations = Sensation.strToStrArray(Sensation.bytesToStr(bytes[i:i+location_size]))
 #         i += location_size
@@ -1215,7 +1245,7 @@ class Capabilities():
     '''
     def toDebugString(self, name=''):
         from Sensation import Sensation
-        string= "\n" + name + ":\n"
+        string= '\n' + name + ':\n'
         for robotType in Sensation.RobotTypesOrdered:
             for memoryType in Sensation.MemoryTypesOrdered:
                 for sensationType in Sensation.SensationTypesOrdered:
@@ -1271,7 +1301,7 @@ class Capabilities():
     return capabilities that are true, is this one has a capability or other has it
     '''
     def Or(self, other):
-        #self.test("Or before", other)
+        #self.test('Or before', other)
         from Sensation import Sensation
         # create three level dictionary about capabilitys by robotType, by memoryType, by sensation type
         for robotType in Sensation.RobotTypesOrdered:
@@ -1280,13 +1310,13 @@ class Capabilities():
                     self.directions[robotType][memoryType][sensationType] = \
                         self.directions[robotType][memoryType][sensationType] or \
                         other.directions[robotType][memoryType][sensationType]
-        #self.test("Or after", other)
+        #self.test('Or after', other)
         
     '''
     return capabilities that are true, is this one has a capability and other has it
     '''
     def And(self, other):
-        #self.test("And before", other)
+        #self.test('And before', other)
         from Sensation import Sensation
         # create three level dictionary about capabilitys by robotType, by memoryType, by sensation type
         for robotType in Sensation.RobotTypesOrdered:
@@ -1295,7 +1325,7 @@ class Capabilities():
                     self.directions[robotType][memoryType][sensationType] = \
                         self.directions[robotType][memoryType][sensationType] and \
                         other.directions[robotType][memoryType][sensationType]
-        #self.test("And after", other)
+        #self.test('And after', other)
                     
     '''
     return deep copy of capabilities
@@ -1313,7 +1343,7 @@ class Capabilities():
                 for sensationType in Sensation.SensationTypesOrdered:
 #                     #capabilitys[sensationType] = \
 #                         #capabilities.directions[robotType][memoryType][sensationType]
-#                         print("deepCopy robotType " + str(robotType) + " memoryType " + str(memoryType) + " sensationType " + str(sensationType))
+#                         print('deepCopy robotType ' + str(robotType) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType))
 #                         directionDict=capabilities.directions[robotType]
 #                         mem=directionDict[memoryType]
 #                         sens=mem[sensationType]
@@ -1329,7 +1359,7 @@ class Capabilities():
 #                 for sensationType in list(Sensation.SensationType):
 #                     #capabilitys[sensationType] = \
 #                         #capabilities.directions[robotType][memoryType][sensationType]
-#                         print("deepCopy robotType " + str(robotType) + " memoryType " + str(memoryType) + " sensationType " + str(sensationType))
+#                         print('deepCopy robotType ' + str(robotType) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType))
 #                         robotType=capabilities.directions[robotType]
 #                         mem=robotType[memoryType]
 #                         sens=mem[sensationType]
@@ -1346,13 +1376,13 @@ class Capabilities():
                     for sensationType in Sensation.SensationTypesOrdered:
                         is_set = capabilities.hasCapability(robotType, memoryType, sensationType)
                         if is_set:
-                            print (name + " capabilities : " + Sensation.getRobotTypeString(robotType) + ' ' + Sensation.getMemoryTypeString(memoryType) + ' ' + Sensation.getSensationTypeString(sensationType) + ': True')
+                            print (name + ' capabilities : ' + Sensation.getRobotTypeString(robotType) + ' ' + Sensation.getMemoryTypeString(memoryType) + ' ' + Sensation.getSensationTypeString(sensationType) + ': True')
         for robotType in Sensation.RobotTypesOrdered:
             for memoryType in Sensation.MemoryTypesOrdered:
                 for sensationType in Sensation.SensationTypesOrdered:
                     is_set = self.hasCapability(robotType, memoryType, sensationType)
                     if is_set:
-                        print (name + " self : " + Sensation.getRobotTypeString(robotType) + ' ' + Sensation.getMemoryTypeString(memoryType) + ' ' + Sensation.getSensationTypeString(sensationType) + ': True')
+                        print (name + ' self : ' + Sensation.getRobotTypeString(robotType) + ' ' + Sensation.getMemoryTypeString(memoryType) + ' ' + Sensation.getSensationTypeString(sensationType) + ': True')
 
 '''
 test
@@ -1365,12 +1395,12 @@ def test(name, capabilities):
         for memoryType in Sensation.MemoryTypesOrdered:
             for sensationType in Sensation.SensationTypesOrdered:
                 is_set = capabilities.hasCapability(robotType=robotType, memoryType=memoryType, sensationType=sensationType, locations=capabilities.getLocations())
-                print (name + ": " + Sensation.getRobotTypeString(robotType) + ' ' + Sensation.getMemoryTypeString(memoryType) + ' ' + Sensation.getSensationTypeString(sensationType) + ': ' + str(is_set))
+                print (name + ': ' + Sensation.getRobotTypeString(robotType) + ' ' + Sensation.getMemoryTypeString(memoryType) + ' ' + Sensation.getSensationTypeString(sensationType) + ': ' + str(is_set))
                 if is_set:
-                    #print (name + ": " + Sensation.getRobotTypeString(robotType) + ' ' + Sensation.getMemoryTypeString(memoryType) + ' ' + Sensation.getSensationTypeString(sensationType) + ': True')
+                    #print (name + ': ' + Sensation.getRobotTypeString(robotType) + ' ' + Sensation.getMemoryTypeString(memoryType) + ' ' + Sensation.getSensationTypeString(sensationType) + ': True')
                     some_set=True
     if not some_set:
-        print (name + ": ALL FALSE")
+        print (name + ': ALL FALSE')
 
 
 
@@ -1410,31 +1440,31 @@ if __name__ == '__main__':
     print('Locations ' + str(locations))
 
     print(config.getCapabilities().toDebugString('Capabilities from config'))
-    test(name="Capabilities from config", capabilities=config.getCapabilities())
+    test(name='Capabilities from config', capabilities=config.getCapabilities())
    
     #capabilities
     print('')
     locations=['testLocation']
     capabilities = Capabilities(config=config)
-    test(name="Capabilities(config=config)", capabilities=capabilities)
+    test(name='Capabilities(config=config)', capabilities=capabilities)
     capabilities.setCapability(robotType = Sensation.RobotType.Muscle,
                                memoryType = Sensation.MemoryType.Sensory,
                                sensationType = Sensation.SensationType.Voice,
                                is_set = True)
-    test(name="Voice set", capabilities=capabilities)
+    test(name='Voice set', capabilities=capabilities)
    
     b = capabilities.toBytes()
     print('capabilities.toBytes  ' + str(b))
-    test(name="before toBytes(fromBytes)", capabilities=capabilities)
+    test(name='before toBytes(fromBytes)', capabilities=capabilities)
     capabilities.fromBytes(bytes=b)
-    test(name="after toBytes(fromBytes)", capabilities=capabilities)
+    test(name='after toBytes(fromBytes)', capabilities=capabilities)
     b2 = capabilities.toBytes()
     print('capabilities.toBytes2 ' + str(b))
     print ('should be b == b2 True ', str(b==b2))
     
     capabilities2 = Capabilities(bytes=b, config=config)
-    test(name="capabilities original", capabilities=capabilities)
-    test(name="capabilities2 from bytes", capabilities=capabilities2)
+    test(name='capabilities original', capabilities=capabilities)
+    test(name='capabilities2 from bytes', capabilities=capabilities2)
     b2 = capabilities2.toBytes()
     print('b2 ' + str(b))
     print ('should be b == b2 True ', str(b==b2))
@@ -1450,56 +1480,56 @@ if __name__ == '__main__':
     print('string2 ' + string2)
     print ('should be string == string2 True ', str(string == string2))
     
-    test(name="original", capabilities=capabilities)
+    test(name='original', capabilities=capabilities)
     capabilities2 = Capabilities(deepCopy=capabilities, config=config)
-    test(name="deepCopy", capabilities=capabilities2)
+    test(name='deepCopy', capabilities=capabilities2)
     print ('should be deepCopy capabilities  == capabilities2 True ', str(capabilities == capabilities2))
     capabilities.toDebugString('capabilities')
     capabilities2.toDebugString('capabilities2')
 
     
     #test
-    test(name="capabilities", capabilities=capabilities)
-    test(name="capabilities2", capabilities=capabilities2)
+    test(name='capabilities', capabilities=capabilities)
+    test(name='capabilities2', capabilities=capabilities2)
  
     # set all True 
-    print ("Set all True")
+    print ('Set all True')
     for robotType, directionStr in Sensation.Directions.items():
         for memoryType, memoryStr in Sensation.MemoryTypes.items():
             for sensationType, capabilityStr in Sensation.SensationTypes.items():
                 capabilities.setCapability(robotType, memoryType, sensationType, True)
-    test(name="Set all True", capabilities=capabilities)
+    test(name='Set all True', capabilities=capabilities)
     capabilities.And(other=capabilities2)
-    test(name="Set all True capabilities And capabilities2", capabilities=capabilities)
+    test(name='Set all True capabilities And capabilities2', capabilities=capabilities)
 
     for robotType, directionStr in Sensation.Directions.items():
         for memoryType, memoryStr in Sensation.MemoryTypes.items():
             for sensationType, capabilityStr in Sensation.SensationTypes.items():
                 capabilities.setCapability(robotType, memoryType, sensationType, True)
     capabilities.Or(other=capabilities2)
-    test(name="Set all True capabilities Or capabilities2", capabilities=capabilities)
+    test(name='Set all True capabilities Or capabilities2', capabilities=capabilities)
 
      # set all False 
-    print ("Set all False")
+    print ('Set all False')
     for robotType, directionStr in Sensation.Directions.items():
         for memoryType, memoryStr in Sensation.MemoryTypes.items():
             for sensationType, capabilityStr in Sensation.SensationTypes.items():
                 capabilities.setCapability(robotType, memoryType, sensationType, False)
-    test(name="Set all False", capabilities=capabilities)
+    test(name='Set all False', capabilities=capabilities)
     capabilities.Or(other=capabilities2)
-    test(name="Set all False Or capabilities2", capabilities=capabilities)
+    test(name='Set all False Or capabilities2', capabilities=capabilities)
 
     #config=Config()
     capabilities=Capabilities(config=config)
-    test("default config", capabilities)
+    test('default config', capabilities)
     
-    bytes=config.toBytes(section="bytes")                
+    bytes=config.toBytes(section='bytes')                
     capabilities=Capabilities(bytes=bytes, config=config)
-    test("bytes", capabilities)
+    test('bytes', capabilities)
 
     string=config.toString()                
     capabilities = Capabilities(string=string, config=config)
-    test("string", capabilities)
+    test('string', capabilities)
 
 
 
