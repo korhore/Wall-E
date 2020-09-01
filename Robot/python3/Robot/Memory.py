@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 28.06.2020
+Edited on 01.09.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -10,7 +10,7 @@ To remember you must also be able to forget.
 
 import sys
 import os
-import resource
+#import resource
 import time as systemTime
 from enum import Enum
 import struct
@@ -841,4 +841,3 @@ class Memory(object):
            self.getRobot().logLevel != Memory.MemoryLogLevel.No:
             self.getRobot().log(logStr=logStr, logLevel=logLevel)
     
-   

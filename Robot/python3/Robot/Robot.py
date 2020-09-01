@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 14.07.2020
+Updated on 01.09.2020
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -19,6 +19,7 @@ from PIL import Image as PIL_Image
 import importlib
 import traceback
 import random
+import tempfile
 
 from PIL import Image as PIL_Image
 
@@ -852,7 +853,7 @@ class Robot(Thread):
             # images
             for fname in image_file_names:
                 image_path=os.path.join(dirName,fname)
-                sensation_filepath = os.path.join('/tmp/',fname)
+                sensation_filepath = os.path.join(tempfile.gettempdir(),fname)
                 shutil.copyfile(image_path, sensation_filepath)
                 image = PIL_Image.open(sensation_filepath)
                 image.load()
@@ -862,14 +863,14 @@ class Robot(Thread):
             # voices
             for fname in voice_file_names:
                 voice_path=os.path.join(dirName,fname)
-                sensation_filepath = os.path.join('/tmp/',fname)
+                sensation_filepath = os.path.join(tempfile.gettempdir(),fname)
                 shutil.copyfile(voice_path, sensation_filepath)
                 with open(sensation_filepath, 'rb') as f:
                     data = f.read()
                             
                     # length must be AudioSettings.AUDIO_PERIOD_SIZE
                     remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
-                    if remainder is not 0:
+                    if remainder != 0:
                         self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) + " correcting " )
                         len_zerobytes = AudioSettings.AUDIO_PERIOD_SIZE - remainder
                         ba = bytearray(data)
@@ -877,7 +878,7 @@ class Robot(Thread):
                             ba.append(0)
                         data = bytes(ba)
                         remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
-                        if remainder is not 0:
+                        if remainder != 0:
                             self.log("Did not succeed to fix!")
                             self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) )
                     voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.LongTerm, robotType = Sensation.RobotType.Sense, data=data)
@@ -1312,7 +1313,7 @@ class Identity(Robot):
                         #fname.endswith(".png"):
                         #image_file_names.append(fname)
                         file_path=os.path.join(dirName,fname)
-                        sensation_filepath = os.path.join('/tmp/',fname)
+                        sensation_filepath = os.path.join(tempfile.gettempdir(),fname)
                         shutil.copyfile(file_path, sensation_filepath)
                         image = PIL_Image.open(sensation_filepath)
                         image.load()
@@ -1326,14 +1327,14 @@ class Identity(Robot):
                     elif fname.endswith(Identity.VOICE_FILENAME_TYPE):
  #                       voice_file_names.append(fname)
                         file_path=os.path.join(dirName,fname)
-                        sensation_filepath = os.path.join('/tmp/',fname)
+                        sensation_filepath = os.path.join(tempfile.gettempdir(),fname)
                         shutil.copyfile(file_path, sensation_filepath)
                         with open(sensation_filepath, 'rb') as f:
                             data = f.read()
                                     
                             # length must be AudioSettings.AUDIO_PERIOD_SIZE
                             remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
-                            if remainder is not 0:
+                            if remainder != 0:
                                 self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) + " correcting " )
                                 len_zerobytes = AudioSettings.AUDIO_PERIOD_SIZE - remainder
                                 ba = bytearray(data)
@@ -1341,7 +1342,7 @@ class Identity(Robot):
                                     ba.append(0)
                                 data = bytes(ba)
                                 remainder = len(data) % AudioSettings.AUDIO_PERIOD_SIZE
-                                if remainder is not 0:
+                                if remainder != 0:
                                     self.log("Did not succeed to fix!")
                                     self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) )
                             voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.LongTerm, robotType = Sensation.RobotType.Sense, data=data)
@@ -2150,8 +2151,10 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
 
 def do_server():
     signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGHUP, signal_handler)
-    signal.signal(signal.SIGQUIT, signal_handler)
+    # commented only linux only signals
+    # rest can be found in Windows also
+    #signal.signal(signal.SIGHUP, signal_handler)
+    #signal.signal(signal.SIGQUIT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
     print ("do_server: create Robot")
@@ -2295,4 +2298,3 @@ if __name__ == "__main__":
     print ("__main__ exit")
     exit()
     print ("__main__ exit has been done so this should not be printed")
-                

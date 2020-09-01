@@ -1,4 +1,4 @@
-Intsllatation
+Installatation
 --------------
 
 TODO Take care of name changes, Wall-E is now Robot, that has configurable identity, Wall-E, Eva or Other.
@@ -6,9 +6,9 @@ TODO Take care of name changes, Wall-E is now Robot, that has configurable ident
 Install dependencies first
 --------------------------
 
-sudo pip install pyserial
-sudo pip install pyFirmata
-sudo pip install python-daemon
+sudo pip3 install pyserial
+sudo pip3 install pyFirmata
+sudo pip3 install python-daemon
 
 Clone this project's source code
 --------------------------------

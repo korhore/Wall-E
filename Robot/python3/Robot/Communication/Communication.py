@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 06.07.2020
+Updated on 01.09.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -52,6 +52,7 @@ else
 import time as systemTime
 import threading 
 import random
+import traceback
 
 from Robot import Robot
 from Sensation import Sensation
@@ -329,7 +330,7 @@ class Communication(Robot):
                                                                  searchLength=Communication.SEARCH_LENGTH)
                     succeeded=True  # no exception,  self.getMemory().presentItemSensations did not changed   
                 except Exception as e:
-                     self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: ignored exception ' + str(e))
+                     self.log(logLevel=Robot.LogLevel.Critical, logStr='Communication.process speak: ignored exception ' + str(e) + ' ' + str(traceback.format_exc()))
                 
             if (self.mostImportantItemSensation is not None) and (self.mostImportantVoiceSensation is not None):
                 self.mostImportantItemSensation.attach(robot=self)         #attach Sensation until speaking is ended based on these voices

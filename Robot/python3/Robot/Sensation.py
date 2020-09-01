@@ -7,7 +7,7 @@ Edited on 06.07.2020
 
 import sys
 import os
-import resource
+#import resource
 import time as systemTime
 from enum import Enum
 import struct
@@ -2484,4 +2484,3 @@ if __name__ == '__main__':
 #     print("Sensation.create: str s2 " + str(s2))
 #     print("Sensation.create: " + str(s_Item_create == s2))
     
-   

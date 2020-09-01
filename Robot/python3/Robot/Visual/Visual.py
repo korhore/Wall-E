@@ -154,10 +154,10 @@ class Visual(Robot):
         # live until stopped
         self.mode = Sensation.Mode.Normal
         
-        self.app = Visual.MainApp(robot=self)
+        #self.app = Visual.MainApp(robot=self)
         #self.app.setRobot(self)
         
-        self.wxWorker = Visual.wxWorker(robot=self, app=self.app)
+        self.wxWorker = Visual.wxWorker(robot=self)#, app=self.app)
         self.wxWorker.start()       # start ui on its own thread
        
        # default
@@ -194,7 +194,10 @@ class Visual(Robot):
                 self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)
         else:
             # just pass Sensation to wx-process
-            wx.PostEvent(self.app.frame, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
+            # if we already got self.app and self.app.frame running
+            # otherwise we just forget this sensation and wait new ones to come and to be shown
+            if self.app and self.app: 
+                wx.PostEvent(self.app.frame, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
         # TOSO should we release sensation, when we delete it from UI
         # that way we should attach also all sensations we get from associations
         # maybe for readonly logic this is not a problem
@@ -281,12 +284,13 @@ class Visual(Robot):
     # Thread class that executes wxPython gui on its own thread
     class wxWorker(Thread):
         """Worker Thread Class."""
-        def __init__(self, app, robot):
+        def __init__(self, robot): #app, 
             """Init wxWorker Thread Class."""
             Thread.__init__(self) #called
             self.setDaemon(1)   # Fool wxPython to think, that we are in a main thread
-            self.app = app
+            #self.app = app
             self.robot = robot
+            #self.app = robot.app = Visual.MainApp(robot=self)
      
         def setRobot(self, robot):
             self.robot=robot
@@ -295,6 +299,10 @@ class Visual(Robot):
         
         def run(self):
             """Run wxWorker Thread."""
+            # We should create all wx.variables and ui here, in this thread
+            # It is de simplt
+            self.app = self.robot.app = Visual.MainApp(robot=self.robot)
+
             self.app.MainLoop() #called
     
     class Event(wx.PyEvent):
@@ -342,7 +350,7 @@ class Visual(Robot):
                     if j is Visual.LOG_PANEL_COLUMN_DATA:
                         data_gs = wx.GridSizer(cols=Visual.LOG_PANEL_COLUMN_DATA_TYPE_COLUMNS, vgap=5, hgap=5)
                         data_gs.AddMany([(wx.StaticText(self, label=''), 0, wx.EXPAND),
-                                         (wx.StaticBitmap(parent=self, id=-1, pos=(0, -Visual.IMAGE_SIZE/2), size=(Visual.IMAGE_SIZE,Visual.IMAGE_SIZE)), 0, wx.EXPAND)
+                                         (wx.StaticBitmap(parent=self, id=-1, pos=(0, int(-Visual.IMAGE_SIZE/2)), size=(int(Visual.IMAGE_SIZE),int(Visual.IMAGE_SIZE))), 0, wx.EXPAND)
                                          ])
 #                         data_gs.Hide(Visual.COLUMN_DATA_TYPE_ITEM)
 #                         data_gs.Hide(Visual.COLUMN_DATA_TYPE_IMAGE)
@@ -512,6 +520,8 @@ class Visual(Robot):
             vbox.Add(self.status, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
             
             self.SetSizer(vbox)
+            #vbox.Fit() # Try to expand
+            vbox.SetMinSize (width=10*Visual.IMAGE_SIZE, height=50*Visual.IMAGE_SIZE)
             self.Fit()
     
         def setRobot(self, robot):
@@ -704,7 +714,7 @@ class Visual(Robot):
                     if j == Visual.COMMUNICATION_COLUMN_FIRST or j is Visual.COMMUNICATION_COLUMN_OTHER:
                         data_gs = wx.GridSizer(cols=Visual.LOG_PANEL_COLUMN_DATA_TYPE_COLUMNS, vgap=5, hgap=5)
                         data_gs.AddMany([(wx.StaticText(self, label=''), 0, wx.EXPAND),
-                                         (wx.StaticBitmap(parent=self, id=-1, pos=(0, -Visual.IMAGE_SIZE/2), size=(Visual.IMAGE_SIZE,Visual.IMAGE_SIZE)), 0, wx.EXPAND)
+                                         (wx.StaticBitmap(parent=self, id=-1, pos=(0, int(-Visual.IMAGE_SIZE/2)), size=(int(Visual.IMAGE_SIZE),int(Visual.IMAGE_SIZE))), 0, wx.EXPAND)
                                          ])                       
                         self.gs.Add(data_gs, 0, wx.EXPAND)
                         #self.gs.Add(wx.StaticBitmap(parent=self, id=-1, bitmap=None, pos=(10, 5), size=(0, 0)), 0, wx.EXPAND)
@@ -987,9 +997,11 @@ class Visual(Robot):
         def OnStop(self, event):
             """Stop Robot."""
             #Tell our Robot that we wan't to stop
-            self.getRobot().stop()
-            time.sleep(1)    # wait MainRobot stops also TCP-connected hosts
+            #self.getRobot().stop()
+            #time.sleep(1)    # wait MainRobot stops also TCP-connected hosts
             self.Close()
+            #Tell our Robot that we wan't to stop
+            self.getRobot().stop()
             
         def OnSensation(self, event):
             """OnSensation."""
