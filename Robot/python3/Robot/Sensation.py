@@ -475,9 +475,16 @@ class Sensation(object):
             # other part
             association = self.sensation.getAssociation(self.self_sensation)
             association.time = time
-            
+ 
+        '''
+        get age in seconds
+        Should not return zero, so 0.1 is minumum
+        '''            
         def getAge(self):
-            return systemTime.time() - self.getTime()
+            age = systemTime.time() - self.getTime()
+            if age < 0.1:
+                return 0.1
+            return age
      
         def getSelfSensation(self):
             return self.self_sensation
