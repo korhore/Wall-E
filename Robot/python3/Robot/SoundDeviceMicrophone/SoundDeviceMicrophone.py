@@ -1,6 +1,6 @@
 '''
 Created on 03.09.2020
-Updated on 03.09.2020
+Updated on 04.09.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -17,7 +17,6 @@ from Robot import Robot
 from Config import Config, Capabilities
 from Sensation import Sensation
 from AlsaAudio import Settings
-from AlsaAudio import AlsaAudioNeededSettings
 
 
 
@@ -36,7 +35,7 @@ class SoundDeviceMicrophone(Robot):
     
     DEBUG_INTERVAL=60.0
     SLEEP_TIME=3.0                     # if nothing to do, sleep  
-    DURATION = 0.1                     # record 0.11 sec                   
+    DURATION = 0.1                     # record 0.1 sec                   
 
 
     def __init__(self,
@@ -61,18 +60,22 @@ class SoundDeviceMicrophone(Robot):
                        location = location,
                        config = config)
 
-        # from settings        
+        # from settings 
+        # if device is set in settings, use it
+        #otherwise use SourDevice default device that often work       
         self.device= self.config.getMicrophone()
-        #self.channels=Settings.AUDIO_CHANNELS
+        if len(self.device) > 0:
+            sd.default.device = self.device
+        else:
+            self.device = sd.default.device
         sd.default.samplerate = Settings.AUDIO_RATE
         sd.default.channels = self.config.getMicrophoneChannels()
-        sd.default.device = self.device
         sd.default.dtype = Settings.AUDIO_CONVERSION_FORMAT
         
         self.channels=self.config.getMicrophoneChannels()
         self.sensitivity=SoundDeviceMicrophone.SENSITIVITY
         self.rate = Settings.AUDIO_RATE
-        self.format = AlsaAudioNeededSettings.AUDIO_FORMAT
+
         self.average=self.config.getMicrophoneVoiceAvegageLevel()
         self.average_devider = float(self.rate) * SoundDeviceMicrophone.AVERAGE_PERIOD
         self.short_average=self.average
@@ -81,15 +84,8 @@ class SoundDeviceMicrophone(Robot):
         self.voice = False
         self.start_time=0.0
         self.logged = False
-
-#         self.inp = alsaaudio.PCM(type=alsaaudio.PCM_CAPTURE, mode=alsaaudio.PCM_NORMAL, device=self.device)
-#         # Set attributes: Stereo, 44100 Hz, 16 bit little endian samples
-#         self.inp.setchannels(self.channels)
-#         self.inp.setrate(self.rate)
-#         self.inp.setformat(self.format)
-#         self.inp.setperiodsize(Settings.AUDIO_PERIOD_SIZE)
  
-        self.log('device ' + self.device)
+        self.log('device ' + str(self.device))
 
         self.running=False
         self.on=False
@@ -116,31 +112,25 @@ class SoundDeviceMicrophone(Robot):
             # as a leaf sensor robot default processing for sensation we have got
             # in practice we can get stop sensation
             if not self.getAxon().empty():
-                # interrupt voice and put it to parent for processing
+                # interrupt possible voice and put it to parent for processing
                 self.putVoiceToParent()
 
                 transferDirection, sensation = self.getAxon().get()
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr="got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
-#                 if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemoryType() == Sensation.MemoryType.Working and\
-#                    sensation.getRobotType() == Sensation.RobotType.Sense: 
-#                     self.tracePresents(sensation)
-#                 else:
                 self.process(transferDirection=transferDirection, sensation=sensation)
                 sensation.detach(robot=self)
             else:
-                #if len(self.getMemory().presentItemSensations) > 0: # listen is we have items that can speak
-                if True: # test
+                if len(self.getMemory().presentItemSensations) > 0: # listen is we have items that can speak
                     if not self.logged:
                         self.log(logLevel=Robot.LogLevel.Normal, logStr=self.getMemory().presenceToStr() + " items speaking, sense")
                         self.logged = True
                     self.sense()
                 else:
                     self.logged = False
-#                     # TODO as a test we sense
-                    #self.log(logLevel=Robot.LogLevel.Verbose, logStr=str(len(self.getMemory().presentItemSensations)) + " items NOT speaking, sense anyway")
-                    #self.sense()
-                    #self.log(logLevel=Robot.LogLevel.Normal, logStr="no items speaking, sleeping " + str(SoundDeviceMicrophone.SLEEP_TIME))
-                    #time.sleep(SoundDeviceMicrophone.SLEEP_TIME)
+                    # interrupt possible voice and put it to parent for processing
+                    self.putVoiceToParent()
+                    # nothing to do until we get itemp presems tp talk, so sleep for a while
+                    time.sleep(SoundDeviceMicrophone.SLEEP_TIME)
                     
 
         self.log("Stopping SoundDeviceMicrophone")
@@ -163,12 +153,11 @@ class SoundDeviceMicrophone(Robot):
     '''        
     def sense(self):
         # blocking read data from device
-        #print "reading " + self.name
-        # myrecording is numpy array of floats
+        # data is numpy array per period per array by channel of items set by sd.default.dtype
+        # so we get intergers
         data = sd.rec(int(self.DURATION * sd.default.samplerate))
 
-        #if myrecording. > 0:
-        if True:
+        if len(data) > 0:
             # collect voice data as long we hear a voice and send it then
             if self.analyzeData(data):
                 if self.voice_data is None:
@@ -216,12 +205,6 @@ class SoundDeviceMicrophone(Robot):
         minim=9999.0
         maxim=-9999.0
        
-#         try:
-#             aaa = numpy.fromstring(data, dtype=dtype)
-#         except (ValueError):
-#             self.log("analyzeData numpy.fromstring(data, dtype=dtype: ValueError")      
-#             return False
- 
         # we don't care about channels
         # because we are calculating averages
         # and channels are decided to be even each other      
@@ -269,6 +252,9 @@ class SoundDeviceMicrophone(Robot):
     but we can have mono-mictophones that produce 1-channels data,
     which is ser in config file to be known,
     so only conversion supported now i 1-channel to 2-channels
+    
+    TODO This does not work
+    We should check if get get array of array by chaannel if mono-mictophones
     '''
     
     

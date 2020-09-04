@@ -6,6 +6,10 @@ Is the reason ReceivedFrom ''.'real receivedFrom'
 
 OPPS clear configuration!
 
+Check location/sublocarion in configurations.
+If in RaspBerryPiCamera confiig there are location localhost ans under lit 'location Ubuntu raspberry', the
+twow instances will be created. Ment to test 'sublocations'
+
 Develop
 -------
 Implement 'global' location
