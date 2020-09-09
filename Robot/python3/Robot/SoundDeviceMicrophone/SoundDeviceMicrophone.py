@@ -95,6 +95,13 @@ class SoundDeviceMicrophone(Robot):
         # buffer variables for voice        
         self.voice_data=None
         self.voice_l=0
+        
+        # TODO remove test
+        self.i=0
+        
+        #self.rawInputStream = sd.RawInputStream(samplerate=Settings.AUDIO_RATE, blocksize=None, device=None, channels=self.channels, dtype='int16', latency=None, extra_settings=None, callback=None, finished_callback=None, clip_off=None, dither_off=None, never_drop_input=None, prime_output_buffers_using_stream_callback=None)
+        self.rawInputStream = sd.RawInputStream(samplerate=Settings.AUDIO_RATE, channels=self.channels, dtype=Settings.AUDIO_CONVERSION_FORMAT)#'int16')
+
 
         
     def run(self):
@@ -108,6 +115,7 @@ class SoundDeviceMicrophone(Robot):
         self.mode = Sensation.Mode.Normal
 #         voice_data=None
 #         voice_l=0
+        self.rawInputStream.start()
         while self.running:
             # as a leaf sensor robot default processing for sensation we have got
             # in practice we can get stop sensation
@@ -135,6 +143,8 @@ class SoundDeviceMicrophone(Robot):
 
         self.log("Stopping SoundDeviceMicrophone")
         self.mode = Sensation.Mode.Stopping
+        self.rawInputStream.stop()
+        
         self.log(logLevel=Robot.LogLevel.Normal, logStr="self.config.setMicrophoneVoiceAvegageLevel(voiceLevelAverage=self.average)")
         self.config.setMicrophoneVoiceAvegageLevel(voiceLevelAverage=self.average)
        
@@ -155,11 +165,16 @@ class SoundDeviceMicrophone(Robot):
         # blocking read data from device
         # data is numpy array per period per array by channel of items set by sd.default.dtype
         # so we get intergers
-        data = sd.rec(int(self.DURATION * sd.default.samplerate))
+        #data = sd.rec(int(self.DURATION * sd.default.samplerate))
+        buf, overflowed  = self.rawInputStream.read(int(self.DURATION * sd.default.samplerate))
+        data = bytes(buf)
 
+        #if succeeded and len(data) > 0:
         if len(data) > 0:
             # collect voice data as long we hear a voice and send it then
-            if self.analyzeData(data):
+            #if self.analyzeData(data):
+            if self.i < 10:
+                self.i = self.i+1
                 if self.voice_data is None:
                     self.voice_data = data
                     self.voice_l = len(data)
@@ -167,15 +182,19 @@ class SoundDeviceMicrophone(Robot):
                     self.voice_data += data
                     self.voice_l += len(data)
             else:
+                self.i=0
                 self.putVoiceToParent()
 
     def putVoiceToParent(self):
         if self.voice_data is not None:
             # put robotType out (heard voice) to the parent Axon going up to main Robot
             # connected to present Item.names
-            data=self.getVoiceData(data=self.voice_data, dtype=Settings.AUDIO_CONVERSION_FORMAT)
+#            data=self.getVoiceData(data=self.voice_data, dtype=Settings.AUDIO_CONVERSION_FORMAT)
+            # TODO TRye to check, if conversion will be done OK
+#            aaa = numpy.fromstring(data, dtype=Settings.AUDIO_CONVERSION_FORMAT)
+            
             voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
-                                                   data=data, locations=self.getLocations())
+                                                   data=self.voice_data, locations=self.getLocations())
             for name, itemSensation in self.getMemory().presentItemSensations.items():
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: voice from " + name)
                 itemSensation.associate(sensation=voiceSensation)
@@ -273,7 +292,7 @@ class SoundDeviceMicrophone(Robot):
             data = ret_data
             
         try:
-            return(numpy.array(data,Settings.AUDIO_CONVERSION_FORMAT).tobytes())
+            return(numpy.array(object=data, dtype=Settings.AUDIO_CONVERSION_FORMAT, subok=True).tobytes())
         except (ValueError):
             self.log("getVoiceData numpy.array(ret_data,Settings.AUDIO_CONVERSION_FORMAT).tobytes(): ValueError") 
                  
