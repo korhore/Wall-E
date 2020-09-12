@@ -1,6 +1,6 @@
 '''
 Created on 03.09.2020
-Updated on 04.09.2020
+Updated on 09.09.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -95,11 +95,7 @@ class SoundDeviceMicrophone(Robot):
         # buffer variables for voice        
         self.voice_data=None
         self.voice_l=0
-        
-        # TODO remove test
-        self.i=0
-        
-        #self.rawInputStream = sd.RawInputStream(samplerate=Settings.AUDIO_RATE, blocksize=None, device=None, channels=self.channels, dtype='int16', latency=None, extra_settings=None, callback=None, finished_callback=None, clip_off=None, dither_off=None, never_drop_input=None, prime_output_buffers_using_stream_callback=None)
+                #self.rawInputStream = sd.RawInputStream(samplerate=Settings.AUDIO_RATE, blocksize=None, device=None, channels=self.channels, dtype='int16', latency=None, extra_settings=None, callback=None, finished_callback=None, clip_off=None, dither_off=None, never_drop_input=None, prime_output_buffers_using_stream_callback=None)
         self.rawInputStream = sd.RawInputStream(samplerate=Settings.AUDIO_RATE, channels=self.channels, dtype=Settings.AUDIO_CONVERSION_FORMAT)#'int16')
 
 
@@ -169,12 +165,9 @@ class SoundDeviceMicrophone(Robot):
         buf, overflowed  = self.rawInputStream.read(int(self.DURATION * sd.default.samplerate))
         data = bytes(buf)
 
-        #if succeeded and len(data) > 0:
-        if len(data) > 0:
-            # collect voice data as long we hear a voice and send it then
-            #if self.analyzeData(data):
-            if self.i < 10:
-                self.i = self.i+1
+        if not overflowed and len(data) > 0:
+             # collect voice data as long we hear a voice and send it then
+            if self.analyzeDataRaw(data):
                 if self.voice_data is None:
                     self.voice_data = data
                     self.voice_l = len(data)
@@ -182,16 +175,10 @@ class SoundDeviceMicrophone(Robot):
                     self.voice_data += data
                     self.voice_l += len(data)
             else:
-                self.i=0
                 self.putVoiceToParent()
 
     def putVoiceToParent(self):
         if self.voice_data is not None:
-            # put robotType out (heard voice) to the parent Axon going up to main Robot
-            # connected to present Item.names
-#            data=self.getVoiceData(data=self.voice_data, dtype=Settings.AUDIO_CONVERSION_FORMAT)
-            # TODO TRye to check, if conversion will be done OK
-#            aaa = numpy.fromstring(data, dtype=Settings.AUDIO_CONVERSION_FORMAT)
             
             voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
                                                    data=self.voice_data, locations=self.getLocations())
@@ -215,8 +202,65 @@ class SoundDeviceMicrophone(Robot):
         and we return True, otherwise False
         
         We could also analyse sound volume and sound rate, but yet implemented
+
+        raw data version
         '''
-        
+    def analyzeDataRaw(self, data):
+
+        # converti to int array        
+        try:
+            aaa = numpy.fromstring(data, dtype=Settings.AUDIO_CONVERSION_FORMAT)
+        except (ValueError):
+            self.log("analyzeData numpy.fromstring(data, dtype=dtype: ValueError")      
+            return False
+         
+        minim=9999.0
+        maxim=-9999.0
+       
+        # we don't care about channels
+        # because we are calculating averages
+        # and channels are decided to be even each other      
+        voice_items=0
+        i=0
+        for a in aaa:
+            square_a = float(a) * float(a)
+            self.average = math.sqrt(( (self.average * self.average * (self.average_devider - 1.0))  + square_a)/self.average_devider)
+            self.short_average = math.sqrt(( (self.short_average * self.short_average * (self.short_average_devider - 1.0))  + square_a)/self.short_average_devider)
+            if time.time() > self.debug_time + SoundDeviceMicrophone.DEBUG_INTERVAL:
+                self.log(logLevel=Robot.LogLevel.Detailed, logStr="average " + str(self.average) + ' short_average ' + str(self.short_average))
+                self.debug_time = time.time()
+                    
+            # TODO this can be much simpler
+                
+            if a > maxim:
+                maxim = a
+            if a < minim:
+                minim = a
+            if self.voice:
+                if self.short_average <= self.sensitivity * self.average:
+                    self.log(logLevel=Robot.LogLevel.Detailed, logStr="voice stopped at " + time.ctime() + ' ' + str(self.sum/self.n/self.average) + ' ' + str(self.short_average) + ' ' + str(self.average))
+                    self.voice = False
+                else:
+                    self.sum += self.short_average
+                    self.square_sum += square_a
+                    self.n+=1.0
+                    voice_items +=1
+            else:
+                if self.short_average > self.sensitivity * self.average:
+                    self.start_time = time.time() - (float(len(aaa)-i)/self.rate)# arrays of arrays, so /self.channels # sound's start time is when we got sound data minus slots that are not in the sound
+                    self.log(logLevel=Robot.LogLevel.Detailed, logStr="voice started at " + time.ctime() + ' ' + str(self.start_time) + ' ' + str(self.short_average) + ' ' + str(self.average))
+                    self.voice = True
+                    self.sum=self.short_average
+                    self.n=1.0
+                    self.square_sum = square_a
+            i += 1
+       
+        return  float(voice_items)/float(len(aaa)) >= 0.5
+            
+            
+        '''
+        numpy array version
+        '''   
     def analyzeData(self, aaa):
 #        self.log("analyzeData")
         # try that aa is floats

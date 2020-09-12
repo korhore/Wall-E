@@ -1,6 +1,6 @@
 '''
-Created on 12.03.2020
-Updated on 26.04.2020
+Created on 09.01.2020
+Updated on 09.12.2020
 @author: reijo.korhonen@gmail.com
 
 test SoundDeviceMicrophone and SoundDeviceOlaypack classes
@@ -29,7 +29,7 @@ class SoundDeviceTestCase(unittest.TestCase):
         - voice
     '''
     
-    TEST_RUNS=5
+    TEST_RUNS=3
     #TEST_TIME=300 # 5 min, when debugging
     SLEEP_TIME=3     # ?s when normal test
     SCORE= 0.1
@@ -106,7 +106,6 @@ class SoundDeviceTestCase(unittest.TestCase):
         
         print("--- test sleeping " + str(SoundDeviceTestCase.SLEEP_TIME) + " second until stop should be done")
         systemTime.sleep(SoundDeviceTestCase.SLEEP_TIME) # let result UI be shown until cleared           
-        print("--- SoundDeviceMicrophone should be disappear when you press Stop now")
 
         #self.soundDeviceMicrophone.stop()
         #self.assertEqual(self.soundDeviceMicrophone.getAxon().empty(), False, 'Axon should not be empty after self.soundDeviceMicrophone.stop()')
@@ -131,8 +130,8 @@ class SoundDeviceTestCase(unittest.TestCase):
         return float(datalen)/(float(Settings.AUDIO_RATE*Settings.AUDIO_CHANNELS))
     
     def re_test_1_SoundDevicePlayback(self):
-        print("--- test_1_SoundDevicePlayback start")
-        self.soundDevicePlayback.start()
+#         print("--- test_1_SoundDevicePlayback start")
+#         self.soundDevicePlayback.start()
 
         self.assertEqual(self.soundDevicePlayback.getAxon().empty(), True, 'self.soundDevicePlayback Axon should be empty at the beginning of test_Visual\nCannot test properly this!')
 
@@ -198,10 +197,10 @@ class SoundDeviceTestCase(unittest.TestCase):
         while i < SoundDeviceTestCase.TEST_RUNS:
             tries=0
             # enable hearing, we claim that this one speaks
-            print("--- test {} enable hearing".format(i))
+            print("\n--- test {} enable hearing\n".format(i))
             self.soundDeviceMicrophone.getMemory().presentItemSensations[self.Wall_E_item_sensation.getName()] = self.Wall_E_item_sensation          
             while self.getAxon().empty() and tries < 10:
-                print("--- test sleeping {}seconds until we have got voice sensations, try {}".format(SoundDeviceTestCase.SLEEP_TIME, tries))
+                print("--- test sleeping {} seconds until we have got voice sensations, try {}".format(SoundDeviceTestCase.SLEEP_TIME, tries))
                 systemTime.sleep(SoundDeviceTestCase.SLEEP_TIME) # let SoundDeviceMicrophone start before waiting it to stops
                 tries = tries+1
                 

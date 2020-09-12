@@ -160,6 +160,34 @@ class SoundDevicePlayback(Robot):
                             aa.append(a)
                             result_aaa.append(aa)
                             is_odd = True
+                            
+#                     # add missing 0 bytes for 
+#                     # length must be Settings.AUDIO_PERIOD_SIZE
+#                     remainder = len(result_aaa) % Settings.AUDIO_PERIOD_SIZE #(Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNELS)
+#                     if remainder is not 0:
+#                         #self.log(str(remainder) + " over periodic size " + str(Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNELS) + " correcting " )
+#                         self.log(str(remainder) + " over periodic size " + str(Settings.AUDIO_PERIOD_SIZE) + " correcting " )
+#                         #len_zerobytes = (Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNELS - remainder)
+#                         len_zerobytes = Settings.AUDIO_PERIOD_SIZE - remainder
+#                         #ba = bytearray(result_data)
+#                         a = numpy.int16(0)
+#                         for i in range(len_zerobytes):
+#                             #ba.append(0)
+#                             aa = []
+#                             aa.append(a)
+#                             aa.append(a)
+#                             result_aaa.append(aa)
+#                     remainder = len(result_aaa) % Settings.AUDIO_PERIOD_SIZE #(Settings.AUDIO_PERIOD_SIZE*Settings.AUDIO_CHANNELS)
+#                     if remainder is not 0:
+#                         self.log("Did not succeed to fix!")
+#                         self.log(str(remainder) + " over periodic size " + str(Settings.AUDIO_PERIOD_SIZE)) # *Settings.AUDIO_CHANNELS
+#                         
+#   
+#                     # for debug reasons play original and changed voice                           
+#                     #data = result_data + data
+#                     #normal                        
+#                     data = result_data
+                            
                                                                            
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: Sensation.SensationType.VoiceData sd.play(data=result_aaa, blocking=True)')
                     sd.play(data=result_aaa, blocking=True) # We block, because we can't do anything else than wait until sound is played
