@@ -198,7 +198,7 @@ class SoundDeviceMicrophone(Robot):
         long term average, we have a sound that has voice level higher
         than noise heard.
         
-        If we have voice on longer than half of this samplöe, then whole samle is voice
+        If we have voice on longer than half of this sample, then whole sample is voice
         and we return True, otherwise False
         
         We could also analyse sound volume and sound rate, but yet implemented
