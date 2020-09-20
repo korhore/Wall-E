@@ -70,7 +70,7 @@ class Memory(object):
         self.sensationMemory=[]                 # Sensation cache
         
         self.presentItemSensations={}           # present item.name sensations
-        self.sharedSensationHosts = []          # hosts with we have already shared our sensations
+        #self.sharedSensationHosts = []          # hosts with we have already shared our sensations NOTE not used, logic removed or idea is not yet implemented?
 
 
 
@@ -482,7 +482,7 @@ class Memory(object):
     '''
     Get best specified sensation from sensation memory by score
     
-    Time window can be set seperatly min, max or both,
+    Time window can be set separately min, max or both,
     from time min to time max, to get sensations that are happened at same moment.
     
     sensationType:  SensationType

@@ -12,6 +12,19 @@ twow instances will be created. Ment to test 'sublocations'
 
 Develop
 -------
+
+Combine Voice Robots, Alsa* and SoundDevice* so, that Robot uses either library it finds first. Technique is same thhan with Tensorflow.
+
+After that add voice changing algorith, so voices Robot speks will not be so clearly recognised same as  original ones, even if spek speed is changed.
+Try theas ideas
+- Changing a little bit the amplitude of each spectral component.
+-- We could add ramdon +- value for all values
+- Multiply each frequency component not by k, but k+v(f), where v(f) shows variation dependent on frequency f.
+  Such variation must be of much smaller value than k. I mean k >> v(f).
+-- We could all random +- value to iterator we use, when vhanging voice speed
+
+Also add sice wave to voice, meabing that Robot is speaking.  
+
 Implement 'global' location
 - Robot has property locations, but normal case is that is has only one location
 -- If Robot has in its config many locatiuons, MainRobot (in proctice, but also lower level Robots can have this configuration)
