@@ -14,6 +14,8 @@ Develop
 -------
 
 Combine Voice Robots, Alsa* and SoundDevice* so, that Robot uses either library it finds first. Technique is same thhan with Tensorflow.
+SoundDevice Microphone and Playback don't seem to be independent. Check at least device settings.
+Anyway, it can be impossible to use AlsaAudio for microphone and SoundDevicede as playback. And this is not use case.
 
 After that add voice changing algorith, so voices Robot speks will not be so clearly recognised same as  original ones, even if spek speed is changed.
 Try theas ideas

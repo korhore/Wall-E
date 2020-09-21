@@ -18,24 +18,24 @@ from Sensation import Sensation
 from AlsaAudio import Settings
 from AlsaAudio import AlsaAudioNeededSettings
 
-# prefer AlsaAidio beforet SoundDevic3
-#AlsaAudio=True
-AlsaAudio=False
+# prefer AlsaAidio before SoundDevice
+#IsAlsaAudio=True
+IsAlsaAudio=False
 
-if AlsaAudio:
+if IsAlsaAudio:
     try:
-        print("AlsaAudio import alsaaudio")
-        import alsaaudio
+        print("Microphone import alsaaudio")
+        import alsaaudio as alsaaudio
     except ImportError as e:
-        print("AlsaAudio import import alsaaudio error " + str(e))
-        AlsaAudio=False
+        print("Microphone import alsaaudio error " + str(e))
+        IsAlsaAudio=False
 
-if not AlsaAudio:
+if not IsAlsaAudio:
     try:
-        print("AlsaAudio import import sounddevice as sd")
+        print("Microphone import sounddevice as sd")
         import sounddevice as sd
     except ImportError as e:
-        print("AlsaAudio import import sounddevice as sd error " + str(e))
+        print("Microphone import sounddevice as sd error " + str(e))
 
 
 
@@ -55,7 +55,7 @@ class Microphone(Robot):
     
     DEBUG_INTERVAL=60.0
     SLEEP_TIME=3.0                     # if nothing to do, sleep
-    DURATION = 1.5                     # record 1.5 sec                   
+    DURATION = 1.0                     # record 1.5 sec                   
         
 
 
@@ -83,7 +83,7 @@ class Microphone(Robot):
 
         # from settings        
         self.device= self.config.getMicrophone()
-        if not AlsaAudio:
+        if not IsAlsaAudio:
             if len(self.device) > 0:
                 sd.default.device = self.device
             else:
@@ -109,7 +109,7 @@ class Microphone(Robot):
         
 
 
-        if AlsaAudio:
+        if IsAlsaAudio:
             self.inp = alsaaudio.PCM(type=alsaaudio.PCM_CAPTURE, mode=alsaaudio.PCM_NORMAL, device=self.device)
             # Set attributes: Stereo, 44100 Hz, 16 bit little endian samples
             self.inp.setchannels(self.channels)
@@ -144,7 +144,7 @@ class Microphone(Robot):
         self.mode = Sensation.Mode.Normal
 #         voice_data=None
 #         voice_l=0
-        if not AlsaAudio:
+        if not IsAlsaAudio:
             self.rawInputStream.start()
 
         while self.running:
@@ -182,7 +182,7 @@ class Microphone(Robot):
         self.log(logLevel=Robot.LogLevel.Normal, logStr="self.config.setMicrophoneVoiceAvegageLevel(voiceLevelAverage=self.average)")
         self.config.setMicrophoneVoiceAvegageLevel(voiceLevelAverage=self.average)
         
-        if not AlsaAudio:
+        if not IsAlsaAudio:
             self.rawInputStream.stop()
         
        
@@ -202,7 +202,7 @@ class Microphone(Robot):
     def sense(self):
         # blocking read data from device
         #print "reading " + self.name
-        if AlsaAudio:
+        if IsAlsaAudio:
             l, data = self.inp.read() # l int, data bytes
             if l > 0:
                 # collect voice data as long we hear a voice and send it then
@@ -216,7 +216,7 @@ class Microphone(Robot):
                 else:
                     self.putVoiceToParent()
         else:
-            buf, overflowed  = self.rawInputStream.read(int(self.DURATION * sd.default.samplerate))
+            buf, overflowed  = self.rawInputStream.read(int(self.DURATION * sd.default.samplerate * self.channels))
             data = bytes(buf)
     
             if not overflowed and len(data) > 0:
@@ -380,7 +380,7 @@ class Microphone(Robot):
     
     
     def getVoiceData(self, data, dtype):
-        if AlsaAudio and self.channels == 1 and Settings.AUDIO_CHANNELS == 2:
+        if IsAlsaAudio and self.channels == 1 and Settings.AUDIO_CHANNELS == 2:
             try:
                 aaa = numpy.fromstring(data, dtype=dtype)
             except (ValueError):
