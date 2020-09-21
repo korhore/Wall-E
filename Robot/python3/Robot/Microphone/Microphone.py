@@ -18,8 +18,9 @@ from Sensation import Sensation
 from AlsaAudio import Settings
 from AlsaAudio import AlsaAudioNeededSettings
 
-AlsaAudio=True
-TensorFlow_MODEL_VERSION=1
+# prefer AlsaAidio beforet SoundDevic3
+#AlsaAudio=True
+AlsaAudio=False
 
 if AlsaAudio:
     try:
@@ -53,7 +54,9 @@ class Microphone(Robot):
     SHORT_AVERAGE_PERIOD=1.0            # used as period in seconds
     
     DEBUG_INTERVAL=60.0
-    SLEEP_TIME=3.0                     # if nothing to do, sleep                     
+    SLEEP_TIME=3.0                     # if nothing to do, sleep
+    DURATION = 1.5                     # record 1.5 sec                   
+        
 
 
     def __init__(self,
@@ -141,6 +144,9 @@ class Microphone(Robot):
         self.mode = Sensation.Mode.Normal
 #         voice_data=None
 #         voice_l=0
+        if not AlsaAudio:
+            self.rawInputStream.start()
+
         while self.running:
             # as a leaf sensor robot default processing for sensation we have got
             # in practice we can get stop sensation
@@ -332,7 +338,7 @@ class Microphone(Robot):
             square_a = float(a) * float(a)
             self.average = math.sqrt(( (self.average * self.average * (self.average_devider - 1.0))  + square_a)/self.average_devider)
             self.short_average = math.sqrt(( (self.short_average * self.short_average * (self.short_average_devider - 1.0))  + square_a)/self.short_average_devider)
-            if time.time() > self.debug_time + SoundDeviceMicrophone.DEBUG_INTERVAL:
+            if time.time() > self.debug_time + Microphone.DEBUG_INTERVAL:
                 self.log(logLevel=Robot.LogLevel.Detailed, logStr="average " + str(self.average) + ' short_average ' + str(self.short_average))
                 self.debug_time = time.time()
                     
