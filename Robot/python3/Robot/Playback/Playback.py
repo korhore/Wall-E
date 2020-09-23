@@ -19,26 +19,26 @@ from Robot import Robot
 from Config import Config, Capabilities
 from Sensation import Sensation
 from AlsaAudio import Settings
-from AlsaAudio import AlsaAudioNeededSettings
 
 # prefer AlsaAidio before SoundDevice
-AlsaAudio=True
-#AlsaAudio=False
+#IsAlsaAudio=True
+IsAlsaAudio=False
 
-if AlsaAudio:
+if IsAlsaAudio:
     try:
-        print("AlsaAudio import alsaaudio")
+        print("Playback import alsaaudio")
         import alsaaudio
+        from AlsaAudio import AlsaAudioNeededSettings
     except ImportError as e:
-        print("AlsaAudio import import alsaaudio error " + str(e))
-        AlsaAudio=False
+        print("Playback import import alsaaudio error " + str(e))
+        IsAlsaAudio=False
 
-if not AlsaAudio:
+if not IsAlsaAudio:
     try:
-        print("AlsaAudio import import sounddevice as sd")
+        print("Playback import sounddevice as sd")
         import sounddevice as sd
     except ImportError as e:
-        print("AlsaAudio import import sounddevice as sd error " + str(e))
+        print("Playback import sounddevice as sd error " + str(e))
 
 
 class Playback(Robot):
@@ -49,6 +49,7 @@ class Playback(Robot):
     
     COMMUNICATION_INTERVAL=15.0     # time window to history 
                                     # for sensations we communicate
+    NORMAL_SPEAK_SPEED=1.0                                   
     WALLE_SPEAK_SPEED=1.25
     EVA_SPEAK_SPEED=1.5
     NORMALIZED_VOICE_LEVEL=300.0
@@ -79,24 +80,40 @@ class Playback(Robot):
         self.device= self.config.getPlayback()
         self.channels=Settings.AUDIO_CHANNELS
         self.rate = Settings.AUDIO_RATE
-        self.format = AlsaAudioNeededSettings.AUDIO_FORMAT
+        if IsAlsaAudio:
+            self.format = AlsaAudioNeededSettings.AUDIO_FORMAT
         
         self.last_datalen=0
         self.last_write_time = systemTime.time()
-        try:
-            self.log("alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK, mode=alsaaudio.PCM_NORMAL, device=" + self.device + ')')
-            self.outp = alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK, mode=alsaaudio.PCM_NORMAL, device=self.device)
-            # Set attributes: Mono, 44100 Hz, 16 bit little endian samples
-            self.log("self.outp.setchannels(self.channels")
-            self.outp.setchannels(self.channels)
-            self.outp.setrate(self.rate)
-            self.outp.setformat(self.format)
-            self.outp.setperiodsize(Settings.AUDIO_PERIOD_SIZE)
+        
+        if IsAlsaAudio:
+            try:
+                self.log("alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK, mode=alsaaudio.PCM_NORMAL, device=" + self.device + ')')
+                self.outp = alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK, mode=alsaaudio.PCM_NORMAL, device=self.device)
+                # Set attributes: Mono, 44100 Hz, 16 bit little endian samples
+                self.log("self.outp.setchannels(self.channels")
+                self.outp.setchannels(self.channels)
+                self.outp.setrate(self.rate)
+                self.outp.setformat(self.format)
+                self.outp.setperiodsize(Settings.AUDIO_PERIOD_SIZE)
+                self.ok=True
+                self.log('cardname ' + self.outp.cardname())
+            except Exception as e:
+                print ("Playback exception " + str(e))
+                self.ok=False
+        else:
+            self.device= self.config.getPlayback()
+            if len(self.device) > 0:
+                sd.default.device = self.device
+            else:
+                self.device = sd.default.device
+            sd.default.samplerate = Settings.AUDIO_RATE
+            #sd.default.channels = self.config.getMicrophoneChannels()
+            sd.default.dtype = Settings.AUDIO_CONVERSION_FORMAT
             self.ok=True
-            self.log('cardname ' + self.outp.cardname())
-        except Exception as e:
-            print ("Playback exception " + str(e))
-            self.ok=False
+            self.log('device ' + str(self.device))
+            self.rawOutputStream = sd.RawOutputStream(samplerate=Settings.AUDIO_RATE, channels=self.channels, dtype=Settings.AUDIO_CONVERSION_FORMAT)#'int16')
+        
 
         # not yet running
         self.running=False
@@ -124,42 +141,6 @@ class Playback(Robot):
                         return
                     # convert voice as kind if needed
                     aaa = self.changeVoiceByKind(kind=sensation.getKind(), aaa=aaa)
-# commented old implementation for Wall-E only
-#                     if sensation.getKind() == Sensation.Kind.WallE:
-#                         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: Sensation.SensationType.Voice play as Wall-E')
-#                         step_length=self.WALLE_SPEAK_SPEED
-#                         step_point = 0.0    # where we are in source as float
-#                         ind_step_point = 0  # in which table index we are
-#                         result_aaa=[]
-#                         # while not and of source
-#                         a={}
-#                         while ind_step_point < len(aaa)/Settings.AUDIO_CHANNELS:
-#                             for i in range(Settings.AUDIO_CHANNELS):
-#                                 a[i] = 0.0     # fill next a for destination
-#                             dest_step=0.0
-#                             while ind_step_point < len(aaa)/Settings.AUDIO_CHANNELS and\
-#                                   dest_step <  step_length:
-#                                 # how much we we get on this source ind
-#                                 source_boundary = math.floor(step_point + 1.0)
-#                                 can_get = source_boundary - step_point
-#                                 if dest_step + can_get <= step_length:
-#                                     for i in range(Settings.AUDIO_CHANNELS):
-#                                         a[i] = a[i]+can_get*aaa[Settings.AUDIO_CHANNELS*ind_step_point+i]
-#                                     step_point = float(source_boundary)
-#                                     ind_step_point = ind_step_point+1   # source to next boundary
-#                                 else:
-#                                     can_get = min(source_boundary - step_point, step_length- dest_step)
-#                                     for i in range(Settings.AUDIO_CHANNELS):
-#                                         a[i] =  a[i]+can_get*aaa[Settings.AUDIO_CHANNELS*ind_step_point+i]
-#                                     step_point = step_point + can_get  # forward in this source ind
-#                                     if abs(step_point-source_boundary) < 0.001:
-#                                         ind_step_point = ind_step_point+1 # source to next boundary
-#                                     
-#                                 dest_step = dest_step + can_get
-#                                 if dest_step >=  step_length:   # destination a is ready
-#                                     for i in range(Settings.AUDIO_CHANNELS):
-#                                         result_aaa.append(a[i]/step_length)    # normalize, so voice loudness don't change
-#                         aaa = result_aaa
                     # normalize voice                 
                     # calculate average   
                     # no need to take care of  Settings.AUDIO_CHANNELS 
@@ -206,8 +187,15 @@ class Playback(Robot):
                     #normal                        
                     data = result_data
                                                         
-                    self.log(logLevel=Robot.LogLevel.Normal, logStr='process: Sensation.SensationType.VoiceData self.outp.write(data)')
-                    self.outp.write(data)
+                    if IsAlsaAudio:
+                        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: Sensation.SensationType.VoiceData self.outp.write(data)')
+                        self.outp.write(data)
+                    else:
+                        self.rawOutputStream.start()
+                        self.rawOutputStream.write(data)
+                        self.rawOutputStream.stop()
+                        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: Sensation.SensationType.VoiceData self.rawOutputStream.write(data')
+                        
                     self.last_write_time = systemTime.time()                    
                     sensation.save()    #remember what we played
                 else:
@@ -224,10 +212,15 @@ class Playback(Robot):
             aaa = self.changeVoiceSpeed(speed=self.WALLE_SPEAK_SPEED,aaa = aaa)
         elif kind == Sensation.Kind.Eva:
             aaa = self.changeVoiceSpeed(speed=self.EVA_SPEAK_SPEED,aaa = aaa)
+        else:
+            aaa = self.changeVoiceSpeed(speed=self.NORMAL_SPEAK_SPEED,aaa = aaa)
         return aaa
 
     def changeVoiceSpeed(self, speed, aaa):
-        step_length=speed
+        #step_length=speed
+        #randowm
+        step_length = Sensation.getRandom(base=speed, randomMin=-(self.NORMAL_SPEAK_SPEED/7.0), randomMax=+(self.NORMAL_SPEAK_SPEED/7))
+        frequency_random_multiplier = Sensation.getRandom(base=speed, randomMin=-(self.NORMAL_SPEAK_SPEED/7.0), randomMax=+(self.NORMAL_SPEAK_SPEED/7))
         step_point = 0.0    # where we are in source as float
         ind_step_point = 0  # in which table index we are
         result_aaa=[]
@@ -237,6 +230,9 @@ class Playback(Robot):
             for i in range(Settings.AUDIO_CHANNELS):
                 a[i] = 0.0     # fill next a for destination
             dest_step=0.0
+            ## TODO test variance in speed
+            #step_length = Sensation.getRandom(base=speed, randomMin=-(self.NORMAL_SPEAK_SPEED/7.0), randomMax=+(self.NORMAL_SPEAK_SPEED/7))
+            ## TODO test varance in speed
             while ind_step_point < len(aaa)/Settings.AUDIO_CHANNELS and\
                   dest_step <  step_length:
                 # how much we we get on this source ind
@@ -245,12 +241,17 @@ class Playback(Robot):
                 if dest_step + can_get <= step_length:
                     for i in range(Settings.AUDIO_CHANNELS):
                         a[i] = a[i]+can_get*aaa[Settings.AUDIO_CHANNELS*ind_step_point+i]
+                        # TODO Random
+                        a[i] = a[i]*frequency_random_multiplier
                     step_point = float(source_boundary)
                     ind_step_point = ind_step_point+1   # source to next boundary
                 else:
                     can_get = min(source_boundary - step_point, step_length- dest_step)
                     for i in range(Settings.AUDIO_CHANNELS):
                         a[i] =  a[i]+can_get*aaa[Settings.AUDIO_CHANNELS*ind_step_point+i]
+                        # TODO Random
+                        # TODO Random
+                        a[i] = a[i]*frequency_random_multiplier
                     step_point = step_point + can_get  # forward in this source ind
                     if abs(step_point-source_boundary) < 0.001:
                         ind_step_point = ind_step_point+1 # source to next boundary
@@ -266,6 +267,10 @@ class Playback(Robot):
             datalen = self.last_datalen
             
         return float(datalen)/(float(Settings.AUDIO_RATE*Settings.AUDIO_CHANNELS))
+    
+    def getRandom(base, randomMin, randomMax):
+        return base + random.uniform(randomMin, randomMax)
+
 
 if __name__ == "__main__":
     playback = Playback()

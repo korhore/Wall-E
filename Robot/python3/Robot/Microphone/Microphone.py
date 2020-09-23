@@ -16,16 +16,16 @@ from Robot import Robot
 from Config import Config, Capabilities
 from Sensation import Sensation
 from AlsaAudio import Settings
-from AlsaAudio import AlsaAudioNeededSettings
 
 # prefer AlsaAidio before SoundDevice
-#IsAlsaAudio=True
-IsAlsaAudio=False
+IsAlsaAudio=True
+#IsAlsaAudio=False
 
 if IsAlsaAudio:
     try:
         print("Microphone import alsaaudio")
-        import alsaaudio as alsaaudio
+        import alsaaudio
+        from AlsaAudio import AlsaAudioNeededSettings
     except ImportError as e:
         print("Microphone import alsaaudio error " + str(e))
         IsAlsaAudio=False

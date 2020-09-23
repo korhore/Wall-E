@@ -13,19 +13,37 @@ twow instances will be created. Ment to test 'sublocations'
 Develop
 -------
 
-Combine Voice Robots, Alsa* and SoundDevice* so, that Robot uses either library it finds first. Technique is same thhan with Tensorflow.
+Combine RaspberrPiCamera ans OpenCVCamera
+
+Add voice changing algorith, so voices Robot speks will not be so clearly recognised same as  original ones, even if spek speed is changed.
+Try these ideas
+- NOK Changing a little bit the amplitude of each spectral component.
+-- NOK We could add ramdon +- value for all values
+  This adds only noise, but does not change voice
+
+- NOK Multiply each frequency component not by k, but k+v(f), where v(f) shows variation dependent on frequency f.
+  Such variation must be of much smaller value than k. I mean k >> v(f).
+-- NOK We could all random +- value to iterator we use, when changing voice speed
+ This adds only noise, but does not change voice
+ 
+- Use vocoder idea
+-- calculate frequency by time
+-- regenetate voice randomly frequency indide these bands and voice should souns robot-like speech
+-- we could also switch bands, fron highest to loowest and visda verse and chank, how it sounds
+-- problem in frequency. It is easy to process amplitude, because it is sample item, bit frquency is high or loq maximun distance.
+   Algorithm will be more chanllenging. WE need components like.
+--- Calculate frequency of sample of some tine, 0.1 for instance
+--- Regenerate voice of some frquency.
+--- The voiced speech of a typical adult male will have a fundamental frequency from 85 to 180 Hz,
+    and that of a typical adult female from 165 to 255 Hz.   
+
+OK Combine Voice Robots, Alsa* and SoundDevice* so, that Robot uses either library it finds first. Technique is same thhan with Tensorflow.
 SoundDevice Microphone and Playback don't seem to be independent. Check at least device settings.
 Anyway, it can be impossible to use AlsaAudio for microphone and SoundDevicede as playback. And this is not use case.
 
-After that add voice changing algorith, so voices Robot speks will not be so clearly recognised same as  original ones, even if spek speed is changed.
-Try theas ideas
-- Changing a little bit the amplitude of each spectral component.
--- We could add ramdon +- value for all values
-- Multiply each frequency component not by k, but k+v(f), where v(f) shows variation dependent on frequency f.
-  Such variation must be of much smaller value than k. I mean k >> v(f).
--- We could all random +- value to iterator we use, when vhanging voice speed
 
-Also add sice wave to voice, meabing that Robot is speaking.  
+
+Also add sine wave to voice, meaning that Robot is speaking.  
 
 Implement 'global' location
 - Robot has property locations, but normal case is that is has only one location
@@ -324,13 +342,11 @@ all kind of Sebsory type Sensations we have. We can coversate also of Fealings.
 This means that we should repomd to all kind RobotType.Sensory with RobotType.Muscle Sensation.
 Study if we could use palette in SensationType.
 
-Robot Feeling
-- in progress
+OK Robot Feeling
 - implement Sensation.SensationType.Feeling with no associated sensation. Conversion to/from bytes don't work
   Make also feeling as a property of all SensationTypes
 
-Robot Activity
-- In progres
+OK Robot Activity
 - implement SensationType
 - What we will do, when we Dream or Sleep?
   We should save our memory to ne ready for restart.
@@ -355,11 +371,11 @@ but finally we get not forgettables and Memory will end.
 
 Study TensorFlowClassification and do cleanup.
 
-Should correct Communication to check input Sensation type and
+OK Should correct Communication to check input Sensation type and
 not trust that configuration os OK.
 Check Communication test.
 
-Implement prevalence, meaning that we calculate number of connection and ages or
+OK Implement prevalence, meaning that we calculate number of connection and ages or
 then for Item.name. That way we can guess, which Item.name is speaking.
 Formula is += 1/Age() per every connection of Sensation.SensationType
 self.prevalence={}                      # item.name prevalence, not variable, but function
@@ -382,7 +398,7 @@ Alertness:
    pic longTerm SEnsations, dream (meaning what if somethong happenes or granice memory to more clear)
 
 Allow non-verbal expression sense by keyboard
-Implenebt non-verba- expression to Visual
+Implement non-verbal expression to Visual
 
 Study swarm intelligense. Should we delegate communication as a best response to our swarm
 and can we just choose best response. Can we define swarm intually? Or should we deny swarm

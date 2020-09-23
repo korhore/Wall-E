@@ -70,12 +70,12 @@ class Memory(object):
         self.sensationMemory=[]                 # Sensation cache
         
         self.presentItemSensations={}           # present item.name sensations
-        #self.sharedSensationHosts = []          # hosts with we have already shared our sensations NOTE not used, logic removed or idea is not yet implemented?
-
+        self.sharedSensationHosts = []          # hosts with we have already shared our sensations NOTE not used, logic removed or idea is not yet implemented?
+                                                # NOTE sharedSensationHosts is used in Robot do don't remove this variable
 
 
                                        
-        self.memoryLock = ReadWriteLock() # for thread_dafe Sensation cache
+        self.memoryLock = ReadWriteLock()       # for thread_safe Sensation cache
         
     '''
     getters, setters
