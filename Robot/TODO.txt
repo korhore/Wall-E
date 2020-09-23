@@ -48,16 +48,22 @@ Also add sine wave to voice, meaning that Robot is speaking.
 Implement 'global' location
 - Robot has property locations, but normal case is that is has only one location
 -- If Robot has in its config many locatiuons, MainRobot (in proctice, but also lower level Robots can have this configuration)
-  created Robotinstance per location. So RObots has one location or in other waords, Robot works in one location
-- If Robot has 'global' ib its locations, it will accept Sensations of all locations. This 'global' Robot creates subinstance of itself
+  created Robotinstance per location. So Robot has one location or in other words, Robot works in one location
+- If Robot has 'global' in its locations, it will accept Sensations of all locations. This 'global' Robot creates subinstance of itself
   for all locations it will receive. Again, Robot works in one location.
--- With this feature we can inplement 'centar kwnowlegde', familiar of many scifi films: dedicated Commuication Robot in its special site
-  that handles Commumnication in all locations in the world,  handle and know what all perseon say in the world and learn how to communicate.
+-- With this feature we can implement 'centar kwnowlegde', familiar from many scifi films: dedicated Commnuication Robot in its special site
+   handles Commumnication in all locations in the world,  handle and know what all perseon say in the world and learn how to communicate.
 - Config has now "Default" section. In it "locations" defines configuration sections valid in those locations. Default values are still found
   from "Default" section.  location section does not contain "locations" attribute, because information is equal as section name and 
   other setting should not be used.
--- DEFAULT_SECTION = 'DEFAULT' unchanget
--- DEFAULT_LOCATION = 'localhost' fot compatibility
+-- Configuration:
+--- Now these ideas are implemented in Config.py and in all configutation files *.cfg so that
+    Normal Robot location is found in Robot.config
+    --- Section 'localhost'
+    --- parameter 'sublocatiobs'
+    This is error in implementation and we shoul switch it. 
+-- DEFAULT_SECTION = 'DEFAULT' unchanged
+-- DEFAULT_LOCATION = 'localhost' for compatibility
 -- all Robot instancesof locations are running same time ans Config-file is open, to those Robot in stances should share same Congig-instance
 --- add thread-safe
 --- add location-parameter to all methods Robot-classes use.

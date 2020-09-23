@@ -21,8 +21,8 @@ from Sensation import Sensation
 from AlsaAudio import Settings
 
 # prefer AlsaAidio before SoundDevice
-#IsAlsaAudio=True
-IsAlsaAudio=False
+IsAlsaAudio=True
+#IsAlsaAudio=False
 
 if IsAlsaAudio:
     try:
