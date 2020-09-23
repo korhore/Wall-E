@@ -60,8 +60,8 @@ Implement 'global' location
 --- Now these ideas are implemented in Config.py and in all configutation files *.cfg so that
     Normal Robot location is found in Robot.config
     --- Section 'localhost'
-    --- parameter 'sublocatiobs'
-    This is error in implementation and we shoul switch it. 
+    --- parameter 'sublocations'
+    This is error in implementation and we shoul switch it 'locations'. 
 -- DEFAULT_SECTION = 'DEFAULT' unchanged
 -- DEFAULT_LOCATION = 'localhost' for compatibility
 -- all Robot instancesof locations are running same time ans Config-file is open, to those Robot in stances should share same Congig-instance

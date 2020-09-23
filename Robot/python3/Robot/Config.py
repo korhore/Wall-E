@@ -1,6 +1,6 @@
 '''
 Created on 25.05.2019
-Edited 14.07.2020
+Edited 23.09.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -59,8 +59,8 @@ class Config(ConfigParser):
 #    Microphones =       'MICROPHONES' 
     WHO =                'Who' 
     WALLE =              'Wall-E'
-    LOCATIONS =          'sublocations' 
-    SUBLOCATIONS =       'locations' 
+    LOCATIONS =          'locations' 
+    SUBLOCATIONS =       'sublocations' 
     LOCATIONS_DEFAULT =  '' 
     KIND =               'Kind'
     INSTANCE =           'Instance'
