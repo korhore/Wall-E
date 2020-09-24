@@ -61,6 +61,8 @@ class Config(ConfigParser):
     WALLE =              'Wall-E'
     LOCATIONS =          'locations' 
     SUBLOCATIONS =       'sublocations' 
+    UPLOCATIONS =        'uplocations' 
+    DOWNLOCATIONS =      'downlocations' 
     LOCATIONS_DEFAULT =  '' 
     KIND =               'Kind'
     INSTANCE =           'Instance'
@@ -603,6 +605,20 @@ class Config(ConfigParser):
             print('self.set(Config.DEFAULT_SECTION, Config.SUBLOCATIONS, Config.strArrayToStr(Config.LOCATIONS_DEFAULT) exception ' + str(e))
 
         try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.UPLOCATIONS):
+                self.set(Config.DEFAULT_SECTION,Config.UPLOCATIONS, Config.strArrayToStr(Config.LOCATIONS_DEFAULT))
+                self.is_changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION, Config.UPLOCATIONS, Config.strArrayToStr(Config.LOCATIONS_DEFAULT) exception ' + str(e))
+
+        try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.DOWNLOCATIONS):
+                self.set(Config.DEFAULT_SECTION,Config.DOWNLOCATIONS, Config.strArrayToStr(Config.LOCATIONS_DEFAULT))
+                self.is_changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION, Config.DOWNLOCATIONS, Config.strArrayToStr(Config.LOCATIONS_DEFAULT) exception ' + str(e))
+
+        try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.KIND):
                 self.set(Config.DEFAULT_SECTION,Config.KIND, Sensation.getKindString(Sensation.Kind.Normal))
                 self.is_changes=True
@@ -907,7 +923,7 @@ class Config(ConfigParser):
         sublocations = self.get(section=section, option=self.SUBLOCATIONS)
         if sublocations != None and len(sublocations) > 0:
             self.sublocations = sublocations.split()
-        self.createLocationSections(sublocations=self.sublocations, commit=True)
+        self.createLocationSections(locations=self.sublocations, commit=True)
         return self.sublocations
         
     ''' 
@@ -922,20 +938,84 @@ class Config(ConfigParser):
         except Exception as e:
             print('self.set(section=section, option=Config.SUBLOCATIONS, value=Config.strArrayToStr(sublocations)' + str(e))
             
+        if commit:
+            self.commit()
+        self.createLocationSections(locations=sublocations, commit=commit)
+
+    ''' 
+    get uplocations for this Config
+    uplocations will be config sections
+    Default for uplocations is locations,
+    so if this is not given, we will return location
+    '''       
+    def getUpLocations(self, section=DEFAULT_LOCATION):
+        self.uplocations=[]
+        uplocations = self.get(section=section, option=self.UPLOCATIONS)
+        if uplocations != None and len(uplocations) > 0:
+            self.uplocations = uplocations.split()
+            self.createLocationSections(locations=self.uplocations, commit=True)
+            return self.uplocations
+
+        return self.getLocations(section=section)
+        
+    ''' 
+    set uplocations for this Config
+    locations will be config sections
+    so they are always only is default section
+    '''       
+    def setUpLocations(self, section=DEFAULT_LOCATION, uplocations=LOCATIONS_DEFAULT, commit=True):
+        try:
+            self.set(section=section, option=Config.UPLOCATIONS, value=Config.strArrayToStr(uplocations))
+            self.is_changes = True
+        except Exception as e:
+            print('self.set(section=section, option=Config.UPLOCATIONS, value=Config.strArrayToStr(uplocations)' + str(e))
             
         if commit:
             self.commit()
-        self.createLocationSections(sublocations=sublocations, commit=commit)
+        self.createLocationSections(locations=uplocations, commit=commit)
             
+    ''' 
+    get downlocations for this Config
+    downlocations will be config sections
+    Default for uplocations is locations,
+    so if this is not given, we will return location
+   '''       
+    def getDownLocations(self, section=DEFAULT_LOCATION):
+        self.downlocations=[]
+        downlocations = self.get(section=section, option=self.DOWNLOCATIONS)
+        if downlocations != None and len(downlocations) > 0:
+            self.downlocations = downlocations.split()
+            self.createLocationSections(locations=self.downlocations, commit=True)
+            return self.downlocations
+        
+        return self.getLocations(section=section)
+       
+    ''' 
+    set downlocations for this Config
+    locations will be config sections
+    so they are always only is default section
+    '''       
+    def setDownLocations(self, section=DEFAULT_LOCATION, downlocations=LOCATIONS_DEFAULT, commit=True):
+        try:
+            self.set(section=section, option=Config.DOWNLOCATIONS, value=Config.strArrayToStr(downlocations))
+            self.is_changes = True
+        except Exception as e:
+            print('self.set(section=section, option=Config.DOWNLOCATIONS, value=Config.strArrayToStr(downlocations)' + str(e))
+            
+        if commit:
+            self.commit()
+        self.createLocationSections(locations=downlocations, commit=commit)
+            
+
     '''
-    check that we have sections for all location
+    check that we have sections for all locations
     '''
             
-    def createLocationSections(self, sublocations, commit=True):
+    def createLocationSections(self, locations, commit=True):
         #check that we have sections for all location
         is_changes = False
         
-        for location in sublocations:
+        for location in locations:
             if not self.has_section(location):
                 try:
                     self.add_section(location)

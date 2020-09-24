@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 01.09.2020
+Updated on 24.09.2020
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -262,6 +262,8 @@ class Robot(Thread):
         self.selfSensation.associate(sensation=locationSensation)
         #self.setLocations(self.config.getLocations())
         self.sublocations = self.config.getSubLocations()
+        self.uplocations = self.config.getUpLocations()
+        self.downlocations = self.config.getDownLocations()
 
         # at this point we can log
         self.logLevel=self.config.getLogLevel(section=self.location)
@@ -405,6 +407,24 @@ class Robot(Thread):
     def getSubLocationsStr(self):
         return Sensation.strArrayToStr(self.sublocations)
     
+    def setUpLocations(self, uplocations):
+        if self.getInstanceType() == Sensation.InstanceType.SubInstance:
+            self.uplocations = uplocations
+            self.config.setUpLocations(uplocations = uplocations)
+    def getUpLocations(self):
+        return self.uplocations
+    def getUpLocationsStr(self):
+        return Sensation.strArrayToStr(self.uplocations)
+    
+    def setDownLocations(self, downlocations):
+        if self.getInstanceType() == Sensation.InstanceType.SubInstance:
+            self.downlocations = downlocations
+            self.config.setDownLocations(downlocations = downlocations)
+    def getDownLocations(self):
+        return self.downlocations
+    def getDownLocationsStr(self):
+        return Sensation.strArrayToStr(self.downlocations)
+    
     '''
     Is one or more location in one of this Robots set location
     '''
@@ -412,12 +432,12 @@ class Robot(Thread):
         # is no location requirement or Capabilities accepts all, return True
         # in other case test if at least one location match
         if (len(locations) == 0 and self.getInstanceType() != Sensation.InstanceType.Remote) or\
-           (len(self.getLocations()) == 0 and self.getInstanceType() != Sensation.InstanceType.Remote) or\
-           'global' in self.getLocations() or\
+           (len(self.getDownLocations()) == 0 and self.getInstanceType() != Sensation.InstanceType.Remote) or\
+           'global' in self.getDownLocations() or\
            'global' in locations:            
             return True
         for location in locations:
-            if location in self.getLocations():
+            if location in self.getDownLocations():
                 return True
         return False
    
@@ -544,7 +564,7 @@ class Robot(Thread):
         if self.getParent() is not None:
             locations =  self.getParent().getLocalMasterLocations()
         else:   # we are parent, get our and sublocations orred
-            locations = self.getLocations()
+            locations = self.getDownLocations()
             for robot in self.getSubInstances():
                 if robot.getInstanceType() != Sensation.InstanceType.Remote:
                     for location in robot._getLocations():
@@ -555,7 +575,7 @@ class Robot(Thread):
         return locations
     
     def _getLocations(self):
-        locations = self.getLocations()
+        locations = self.getDownLocations()
         for robot in self.getSubInstances():
             if robot.getInstanceType() != Sensation.InstanceType.Remote:
                 for location in robot._getLocations():
@@ -573,7 +593,7 @@ class Robot(Thread):
         hasCapalility = False
         if self.is_alive() and self.getCapabilities() is not None and\
            self.isInLocations(locations) :
-            self.log(logLevel=Robot.LogLevel.Normal, logStr="hasCapability isInLocations locations " + str(locations) + " self.getLocations " + str(self.getLocations()))      
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="hasCapability isInLocations locations " + str(locations) + " self.getDownLocations " + str(self.getDownLocations()))      
             hasCapalility = self.getCapabilities().hasCapability(robotType, memoryType, sensationType)
             if hasCapalility:
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="hasCapability robotType " + str(robotType) + " memoryType " + str(memoryType) + " sensationType " + str(sensationType) + " locations " + str(locations) + ' ' + str(hasCapalility))      
@@ -942,10 +962,10 @@ class Robot(Thread):
                     # TODO Study, do we fins out, that we feel like something (Sense) or do we wan't to tell that feel something  (Muscle) or both
                     # We choose both now
                     feelingSensation = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
-                                                            robotType=Sensation.RobotType.Sense, feeling = self.feeling, locations=self.getLocations()) # valid in this location
+                                                            robotType=Sensation.RobotType.Sense, feeling = self.feeling, locations=self.getUpLocations()) # valid in this location
                     self.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
                     feelingSensation2 = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
-                                                            robotType=Sensation.RobotType.Muscle, feeling = self.feeling, locations=self.getLocations()) # valid in this location
+                                                            robotType=Sensation.RobotType.Muscle, feeling = self.feeling, locations=self.getUpLocations()) # valid in this location
                     self.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation2)
                                                            
                     # send it to us
@@ -1412,6 +1432,18 @@ class Identity(Robot):
     def getLocations(self):
         return self.getParent().getLocations(self)
 
+    '''
+    Always get  from parent
+    '''        
+    def getUpLocations(self):
+        return self.getParent().getUpLocations(self)
+
+    '''
+    Always get  from parent
+    '''        
+    def getDownLocations(self):
+        return self.getParent().getDownLocations(self)
+
     def run(self):
         self.running=True
         self.mode = Sensation.Mode.Starting
@@ -1849,6 +1881,17 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
             return self.getSocketServer().getLocations()
         return None
 
+    def getUpLocations(self):
+        if self.getSocketServer() is not None:
+            self.log(logLevel=Robot.LogLevel.Verbose, logStr='getLocations: self.getSocketServer().getUpLocations() ' + self.getSocketServer().getUpLocationsStr())
+            return self.getSocketServer().getUpLocations()
+        return None
+   
+    def getDownLocations(self):
+        if self.getSocketServer() is not None:
+            self.log(logLevel=Robot.LogLevel.Verbose, logStr='getLocations: self.getSocketServer().getDownLocations() ' + self.getSocketServer().getDownLocationsStr())
+            return self.getSocketServer().getDownLocations()
+        return None
     
     '''
     share out knowledge of sensation memory out client has capabilities
