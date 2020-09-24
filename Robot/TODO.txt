@@ -13,7 +13,19 @@ twow instances will be created. Ment to test 'sublocations'
 Develop
 -------
 
-Combine RaspberrPiCamera ans OpenCVCamera
+Study how to route item.presense. We should process image.sense in Tensorfolwclassification in 'in' location, where our own Camera is,
+but we should produce item.presense to 'out' location, but we have not only one location direction. Robot.Sense produces something in int location, it is clear.
+And Robot.muscle take in someting in its location, this is also clear. But Robos that handle or produce Sensation.Memorytype.Work, that is not clear.
+Should they have own location consept, ay least out location. Or to be clear, should we extens location -> in_locations + out_locations.
+I choose locations + in_location + out_locations. I in configutation there is onlo locations, we use it  in both way,
+but if there are in_locations and out_location, then we we use that configuration. That way we take in onlu local camera input, but can produce
+item.presence information to other hosts orking nea each other.
+
+Maybe we should also use prence information handled by location, not global one. There is still study how to conversate. Only one Robot should coversate in one location
+or atleast now many Robots should talk same time and if that has solution, than we should have solution how we let other Robot to know,
+what other Robot said to person and not to listen. Something to study!
+
+OK Combine RaspberrPiCamera and OpenCVCamera
 
 Add voice changing algorith, so voices Robot speks will not be so clearly recognised same as  original ones, even if spek speed is changed.
 Try these ideas
