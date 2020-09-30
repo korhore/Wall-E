@@ -1,6 +1,6 @@
 '''
-Created on 09.21.2020
-Updated on 09.21.2020
+Created on 21.09.2020
+Updated on 21.09.2020
 @author: reijo.korhonen@gmail.com
 
 test Microphone and SoundDevicePlaypack classes
@@ -31,7 +31,6 @@ class VoiceTestCase(unittest.TestCase):
     
     TEST_RUNS=4
     TEST_TRIES=20
-    #TEST_TIME=300 # 5 min, when debugging
     SLEEP_TIME=3     # ?s when normal test
     SCORE= 0.1
     NAME='Wall-E'   # This should be real Robot name with real identity
@@ -130,7 +129,7 @@ class VoiceTestCase(unittest.TestCase):
             
         return float(datalen)/(float(Settings.AUDIO_RATE*Settings.AUDIO_CHANNELS))
     
-    def re_test_1_SoundDevicePlayback(self):
+    def test_1_SoundDevicePlayback(self):
 #         print("--- test_1_SoundDevicePlayback start")
 #         self.playback.start()
 
@@ -191,7 +190,7 @@ class VoiceTestCase(unittest.TestCase):
         print("--- test sleeping {} seconds until playback is done".format(playbackTime))
         systemTime.sleep(playbackTime)   
 
-    def test_2_SoundDevices(self):
+    def re_test_2_SoundDevices(self):
         self.assertEqual(self.getAxon().empty(), True, 'Axon should be empty at the beginning of test_2_SoundDevices\nCannot test properly this!')
         
         test_runs = 0

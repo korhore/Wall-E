@@ -29,6 +29,7 @@ class VisualTestCase(unittest.TestCase):
     '''
     
     TEST_RUNS=5
+    #TEST_RUNS=1
     ASSOCIATION_INTERVAL=3.0
     #TEST_TIME=300 # 5 min, when debugging
     TEST_TIME=60 # 30s when normal test

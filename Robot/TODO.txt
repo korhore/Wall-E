@@ -13,6 +13,14 @@ twow instances will be created. Ment to test 'sublocations'
 Develop
 -------
 
+To make a relase with installation package we need
+- To make some soluion with Windows Visual implementation with wx
+  -- There is throughput problem. It consimes a of resources and is really slow to update tabs.
+  -- last wxPython-package does not work, so we must use some earlier one and now we try
+  -- write installation pages like Tensorflow
+  -- support Windows, Linux and raspberry with Camera. 
+  -- single Robot configiration with Wall-E as main Robot and Eva with virtual Robot is fine
+  
 Study how to route item.presense. We should process image.sense in Tensorfolwclassification in 'in' location, where our own Camera is,
 but we should produce item.presense to 'out' location, but we have not only one location direction. Robot.Sense produces something in int location, it is clear.
 And Robot.muscle take in someting in its location, this is also clear. But Robos that handle or produce Sensation.Memorytype.Work, that is not clear.
