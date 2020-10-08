@@ -133,7 +133,7 @@ class VoiceTestCase(unittest.TestCase):
             
         return float(datalen)/(float(Settings.AUDIO_RATE*Settings.AUDIO_CHANNELS))
     
-    def re_test_1_SoundDevicePlayback(self):
+    def test_1_SoundDevicePlayback(self):
 #         print("--- test_1_SoundDevicePlayback start")
 #         self.playback.start()
 

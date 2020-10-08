@@ -1,6 +1,6 @@
 '''
 Created on 09.01.2020
-Updated on 09.12.2020
+Updated on 09.10.2020
 @author: reijo.korhonen@gmail.com
 
 test SoundDeviceMicrophone and SoundDeviceOlaypack classes
@@ -31,10 +31,11 @@ class SoundDeviceTestCase(unittest.TestCase):
     
     TEST_RUNS=3
     #TEST_TIME=300 # 5 min, when debugging
-    SLEEP_TIME=3     # ?s when normal test
+    SLEEP_TIME=3             # ?s when normal test
     SCORE= 0.1
-    NAME='Wall-E'   # This should be real Robot name with real identity
-                    # Voice sensations to play as test inout
+    NAME='Wall-E'           # This should be real Robot name with real identity
+                            # Voice sensations to play as test inout
+    LOCATION='localhost'    # used to mic presense by location
     
     '''
     Robot modeling
@@ -90,6 +91,9 @@ class SoundDeviceTestCase(unittest.TestCase):
                                                       name=SoundDeviceTestCase.NAME,
                                                       score=SoundDeviceTestCase.SCORE,
                                                       presence = Sensation.Presence.Present)
+         # presence
+        self.soundDeviceMicrophone.getMemory()._presentItemSensations[SoundDeviceTestCase.LOCATION] = {}        
+
         # get identity for self.visual as MainRobot does it (for images only)        
         self.studyOwnIdentity(robot=self.soundDevicePlayback)
         
@@ -198,7 +202,7 @@ class SoundDeviceTestCase(unittest.TestCase):
             tries=0
             # enable hearing, we claim that this one speaks
             print("\n--- test {} enable hearing\n".format(i))
-            self.soundDeviceMicrophone.getMemory().presentItemSensations[self.Wall_E_item_sensation.getName()] = self.Wall_E_item_sensation          
+            self.soundDeviceMicrophone.getMemory()._presentItemSensations[SoundDeviceTestCase.LOCATION][self.Wall_E_item_sensation.getName()] = self.Wall_E_item_sensation          
             while self.getAxon().empty() and tries < 10:
                 print("--- test sleeping {} seconds until we have got voice sensations, try {}".format(SoundDeviceTestCase.SLEEP_TIME, tries))
                 systemTime.sleep(SoundDeviceTestCase.SLEEP_TIME) # let SoundDeviceMicrophone start before waiting it to stops
@@ -216,7 +220,7 @@ class SoundDeviceTestCase(unittest.TestCase):
                             # TODO here we test speaking so we must disable hearing
                             if not hearingDisabled:                           
                                 print("--- test {} disable hearing".format(i))
-                                del self.soundDeviceMicrophone.getMemory().presentItemSensations[self.Wall_E_item_sensation.getName()]
+                                del self.soundDeviceMicrophone.getMemory()._presentItemSensations[SoundDeviceTestCase.LOCATION][self.Wall_E_item_sensation.getName()]
                                 hearingDisabled = True
                                 #sleep as long as sound playing will take
                             print("--- Playback heard voice")

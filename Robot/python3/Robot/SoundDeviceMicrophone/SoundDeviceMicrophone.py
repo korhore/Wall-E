@@ -124,7 +124,7 @@ class SoundDeviceMicrophone(Robot):
                 self.process(transferDirection=transferDirection, sensation=sensation)
                 sensation.detach(robot=self)
             else:
-                if len(self.getMemory().presentItemSensations) > 0: # listen is we have items that can speak
+                if self.getMemory().hasPresence(): # listen is we have items that can speak
                     if not self.logged:
                         self.log(logLevel=Robot.LogLevel.Normal, logStr=self.getMemory().presenceToStr() + " items speaking, sense")
                         self.logged = True
