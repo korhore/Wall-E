@@ -103,13 +103,13 @@ class Visual(Robot):
  
     # Button definitions
     # Stop
-    ID_STOP = wx.NewId()
+    ID_STOP = wx.ID_ANY
     # Feeling changes
-    ID_POSITIVE = wx.NewId()
-    ID_NEGATIVE = wx.NewId()
+    ID_POSITIVE = wx.ID_ANY
+    ID_NEGATIVE = wx.ID_ANY
     
     # Sensation visualisation
-    ID_SENSATION = wx.NewId()
+    ID_SENSATION = wx.ID_ANY
         
     def __init__(self,
                  parent=None,
@@ -372,8 +372,6 @@ class Visual(Robot):
             vbox.Add(self.status, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
             self.Fit()
             
-            self.sensationdHansled = 0
-    
         def setRobot(self, robot):
             self.robot=robot #called
         def getRobot(self):
@@ -410,7 +408,8 @@ class Visual(Robot):
                     if image is not None:
                         bitmap = Visual.PILTowx(image=image, size=Visual.IMAGE_SIZE)
                         self.gs.Insert(index=Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_DATA,
-                                       window=wx.StaticBitmap(parent=self, id=-1, pos=(0, int(-Visual.IMAGE_SIZE/2)), size=(int(Visual.IMAGE_SIZE),int(Visual.IMAGE_SIZE)), bitmap=bitmap), proportion=0, flag=wx.EXPAND)
+                                       window=wx.StaticBitmap(parent=self, id=-1, size=(int(Visual.IMAGE_SIZE),int(Visual.IMAGE_SIZE)), bitmap=bitmap), proportion=0, flag=wx.EXPAND | wx.LEFT)
+#                                       window=wx.StaticBitmap(parent=self, id=-1, pos=(0, int(-Visual.IMAGE_SIZE/2)), size=(int(Visual.IMAGE_SIZE),int(Visual.IMAGE_SIZE)), bitmap=bitmap), proportion=0, flag=wx.EXPAND)
                     else: # add something
                         self.gs.Insert(index=Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_DATA,
                                        window=wx.StaticText(self, label=''), proportion=0, flag=wx.EXPAND)
@@ -441,21 +440,21 @@ class Visual(Robot):
                 self.gs.Insert(index=Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_TIME,
                                window=wx.StaticText(self, label=time.ctime(sensation.getTime())), proportion=0, flag=wx.EXPAND)
 
-                # Without this lines are not updated right, nut all
+                # Without this lines are not updated right, at all
                 # will be done in first line                   
                 (x,y) = self.GetSize()
                 self.SetSize((x-1,y-1))
                 self.SetSize((x,y))
 
-                # elso refrersh is commented out
-                #self.Refresh()
+#                 # also refrersh is commented out
+#                 self.Refresh()
+#                 self.Update()
                 
                 self.status.SetLabel('Processed Sensation Event')
 
             else:
                 self.status.SetLabel('Sensation is None in Sensation Event')
                 
-            self.sensationdHansled = self.sensationdHansled+1
                                 
 
     # GUI TreeLogPanel

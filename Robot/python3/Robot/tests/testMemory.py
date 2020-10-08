@@ -666,7 +666,7 @@ class MemoryTestCase(unittest.TestCase):
         
         olderLongTermSensation.associate(sensation=olderVoiceSensation,
                                          feeling=MemoryTestCase.NORMAL_FEELING)
-        self.assertEqual(len(olderLongTermSensation.getAssociations()), 2)#
+        self.assertEqual(len(olderLongTermSensation.getAssociations()), 2)
         olderAssociation = olderLongTermSensation.getAssociation(sensation=olderVoiceSensation)
         self.assertTrue(olderAssociation.getTime() <  systemTime.time(), "should be older than present")
 
@@ -680,7 +680,7 @@ class MemoryTestCase(unittest.TestCase):
         
         youngerLongTermSensation.associate(sensation=youngerVoiceSensation,
                                           feeling=MemoryTestCase.NORMAL_FEELING)
-        self.assertEqual(len(youngerLongTermSensation.getAssociations()), 2)# 1
+        self.assertEqual(len(youngerLongTermSensation.getAssociations()), 2)
         youngerAssociation = youngerLongTermSensation.getAssociation(sensation=youngerVoiceSensation)
         self.assertTrue(youngerAssociation.getTime() <  systemTime.time(), "should be older than present")
         
@@ -704,7 +704,7 @@ class MemoryTestCase(unittest.TestCase):
         #but item name should come from newer one
         self.assertEqual(fromByteslongTermSensation.getName(),  youngerLongTermSensation.getName(), "name should be from younger")
         
-        self.assertEqual(len(fromByteslongTermSensation.getAssociations()), 3) #2 # now old one + new one TODO is this OK
+        self.assertEqual(len(fromByteslongTermSensation.getAssociations()), 3) # 3#2 # now old one + new one TODO is this OK
         fromBytesAssociation = fromByteslongTermSensation.getAssociation(sensation=youngerVoiceSensation)
         self.assertEqual(youngerAssociation.getSensation(),fromBytesAssociation.getSensation(), "should be equal")
 
@@ -720,7 +720,7 @@ class MemoryTestCase(unittest.TestCase):
         #but item name should come from newer one
         self.assertEqual(fromByteslongTermSensation.getName(),  youngerLongTermSensation.getName(), "name should be from younger")
         
-        self.assertEqual(len(fromByteslongTermSensation.getAssociations()), 3) # 2# now old one + new one TODO is this OK
+        self.assertEqual(len(fromByteslongTermSensation.getAssociations()), 3)# 3  # 2# now old one + new one TODO is this OK
         fromBytesAssociation = fromByteslongTermSensation.getAssociation(sensation=youngerVoiceSensation)
         self.assertEqual(youngerAssociation.getSensation(),fromBytesAssociation.getSensation(), "should be equal")
                

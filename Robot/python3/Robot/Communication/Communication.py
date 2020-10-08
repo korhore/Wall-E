@@ -60,10 +60,10 @@ from Config import Config
 
 class Communication(Robot):
 
-    COMMUNICATION_INTERVAL=30.0     # time window to history 
+    #COMMUNICATION_INTERVAL=30.0     # time window to history 
                                     # for sensations we communicate
     #COMMUNICATION_INTERVAL=15.0     # time window to history for test to be run quicker
-    #COMMUNICATION_INTERVAL=2.5     # time window to history for test to be run quicker
+    COMMUNICATION_INTERVAL=5.0     # time window to history for test to be run quicker
     CONVERSATION_INTERVAL=300.0     # if no change in present item.names and
                                     # last conversation is ended, how long
                                     # we wait until we will respond if
@@ -138,7 +138,7 @@ class Communication(Robot):
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: got item starting new ={} communication with {}'.format(not self.isConversationOn(), sensation.getName()))
                     self.speak(onStart=not self.isConversationOn()) #itemSensation=sensation)
                elif sensation.getPresence() == Sensation.Presence.Absent and\
-                    len(self.getMemory().presentItemSensations) == 0 and\
+                    not self.getMemory().hasPresence() and\
                     self.isConversationOn():
                     # conversation is on and they have left us without responding
                     # We are disappointed
@@ -195,7 +195,7 @@ class Communication(Robot):
                     else:
                         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: good feeling but conversation protocol or implementation error ')
                     
-                    if len(self.getMemory().presentItemSensations) > 0:          
+                    if self.getMemory().hasPresence():          
                         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' got voice and tries to speak with presents ones' + self.getMemory().presenceToStr())
                         self.speak(onStart=False)
                     else:
@@ -203,7 +203,7 @@ class Communication(Robot):
                 # we have someone to talk with
                 # time is elapsed, so we can start communicating again with present item.names
                 elif not self.isConversationOn() and\
-                    len(self.getMemory().presentItemSensations) > 0 and\
+                    self.getMemory().hasPresence() and\
                      (not self.isConversationDelay() or\
                       sensation.getTime() - self.lastConversationEndTime > self.CONVERSATION_INTERVAL):
                     self._isConversationDelay = False
@@ -293,44 +293,46 @@ class Communication(Robot):
             succeeded=False
             while not succeeded:
                 try:
-                    for name, sensation in self.getMemory().presentItemSensations.items():
-                        candidate_for_communication_item, candidate_for_association, candidate_for_voice = \
-                            self.getMemory().getMostImportantSensation( sensationType = Sensation.SensationType.Item,
-                                                                 robotType = Sensation.RobotType.Sense,
-                                                                 name = name,
-                                                                 notName = None,
-                                                                 timemin = None,
-                                                                 timemax = None,
-                                                                 associationSensationType=Sensation.SensationType.Voice,
-                                                                 associationDirection = Sensation.RobotType.Sense,
-                                                                 #ignoredSensations = []) # TESTING
-                                                                 ignoredSensations = self.usedVoices,
-                                                                 ignoredVoiceLens = self.usedVoiceLens,
-                                                                 searchLength=Communication.SEARCH_LENGTH)
-                        if self.mostImportantItemSensation is None or\
-                           (candidate_for_communication_item is not None and\
-                           candidate_for_communication_item.getImportance() > self.mostImportantItemSensation.getImportance()):
-                            self.mostImportantItemSensation = candidate_for_communication_item
-                            self.mostImportantVoiceAssociation = candidate_for_association
-                            self.mostImportantVoiceSensation  = candidate_for_voice
-    
-                    if self.mostImportantItemSensation is None:     # if no voices assosiated to present item.names, then any voice will do
-                        self.mostImportantItemSensation, self.mostImportantVoiceAssociation, self.mostImportantVoiceSensation = \
-                            self.getMemory().getMostImportantSensation( sensationType = Sensation.SensationType.Item,
-                                                                 robotType = Sensation.RobotType.Sense,
-                                                                 name = None,
-                                                                 notName = None,
-                                                                 timemin = None,
-                                                                 timemax = None,
-                                                                 associationSensationType=Sensation.SensationType.Voice,
-                                                                 associationDirection = Sensation.RobotType.Sense,
-                                                                 #ignoredSensations = []) # TESTING
-                                                                 ignoredSensations = self.usedVoices,
-                                                                 ignoredVoiceLens = self.usedVoiceLens,
-                                                                 searchLength=Communication.SEARCH_LENGTH)
-                    succeeded=True  # no exception,  self.getMemory().presentItemSensations did not changed   
+                    for location in self.getMemory()._presentItemSensations.keys():
+                        for name, sensation in self.getMemory()._presentItemSensations[location].items():
+                    #for name, sensation in self.getMemory().presentItemSensations.items():
+                            candidate_for_communication_item, candidate_for_association, candidate_for_voice = \
+                                self.getMemory().getMostImportantSensation( sensationType = Sensation.SensationType.Item,
+                                                                     robotType = Sensation.RobotType.Sense,
+                                                                     name = name,
+                                                                     notName = None,
+                                                                     timemin = None,
+                                                                     timemax = None,
+                                                                     associationSensationType=Sensation.SensationType.Voice,
+                                                                     associationDirection = Sensation.RobotType.Sense,
+                                                                     #ignoredSensations = []) # TESTING
+                                                                     ignoredSensations = self.usedVoices,
+                                                                     ignoredVoiceLens = self.usedVoiceLens,
+                                                                     searchLength=Communication.SEARCH_LENGTH)
+                            if self.mostImportantItemSensation is None or\
+                               (candidate_for_communication_item is not None and\
+                               candidate_for_communication_item.getImportance() > self.mostImportantItemSensation.getImportance()):
+                                self.mostImportantItemSensation = candidate_for_communication_item
+                                self.mostImportantVoiceAssociation = candidate_for_association
+                                self.mostImportantVoiceSensation  = candidate_for_voice
+        
+                        if self.mostImportantItemSensation is None:     # if no voices assosiated to present item.names, then any voice will do
+                            self.mostImportantItemSensation, self.mostImportantVoiceAssociation, self.mostImportantVoiceSensation = \
+                                self.getMemory().getMostImportantSensation( sensationType = Sensation.SensationType.Item,
+                                                                     robotType = Sensation.RobotType.Sense,
+                                                                     name = None,
+                                                                     notName = None,
+                                                                     timemin = None,
+                                                                     timemax = None,
+                                                                     associationSensationType=Sensation.SensationType.Voice,
+                                                                     associationDirection = Sensation.RobotType.Sense,
+                                                                     #ignoredSensations = []) # TESTING
+                                                                     ignoredSensations = self.usedVoices,
+                                                                     ignoredVoiceLens = self.usedVoiceLens,
+                                                                     searchLength=Communication.SEARCH_LENGTH)
+                        succeeded=True  # no exception,  self.getMemory().presentItemSensations did not changed   
                 except Exception as e:
-                     self.log(logLevel=Robot.LogLevel.Critical, logStr='Communication.process speak: ignored exception ' + str(e) + ' ' + str(traceback.format_exc()))
+                    self.log(logLevel=Robot.LogLevel.Critical, logStr='Communication.process speak: ignored exception ' + str(e) + ' ' + str(traceback.format_exc()))
                 
             if (self.mostImportantItemSensation is not None) and (self.mostImportantVoiceSensation is not None):
                 self.mostImportantItemSensation.attach(robot=self)         #attach Sensation until speaking is ended based on these voices
@@ -381,7 +383,7 @@ class Communication(Robot):
             feelingSensation = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                     firstAssociateSensation=self.mostImportantItemSensation, otherAssociateSensation=self.mostImportantVoiceSensation,
                                                     negativeFeeling=True, locations=self.getLocations())#self.getLocations()) # valid in this location, can be chosen also other way
-            self.log(logLevel=Robot.LogLevel.Normal, logStr="stopWaitingResponse: self.getParent().getAxon().put do")
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="stopWaitingResponse: self.getParent().getAxon().put do feelingSensation negativeFeeling")
             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
             self.log(logLevel=Robot.LogLevel.Normal, logStr="stopWaitingResponse: self.getParent().getAxon().put done")
         

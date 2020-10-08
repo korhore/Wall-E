@@ -421,6 +421,8 @@ class Robot(Thread):
             self.downlocations = downlocations
             self.config.setDownLocations(downlocations = downlocations)
     def getDownLocations(self):
+        if self.getInstanceType() == Sensation.InstanceType.Remote:
+            return self.locations
         return self.downlocations
     def getDownLocationsStr(self):
         return Sensation.strArrayToStr(self.downlocations)
@@ -571,7 +573,8 @@ class Robot(Thread):
                         if location not in locations:
                             locations.append(location)
                                     
-        self.log(logLevel=Robot.LogLevel.Verbose, logStr='getMasterLocations ' + str(locations))
+#         self.log(logLevel=Robot.LogLevel.Verbose, logStr='getMasterLocations ' + str(locations))
+        self.log(logLevel=Robot.LogLevel.Normal, logStr='getMasterLocations ' + str(locations))
         return locations
     
     def _getLocations(self):
@@ -582,7 +585,8 @@ class Robot(Thread):
                     if location not in locations:
                         locations.append(location)
                                   
-        self.log(logLevel=Robot.LogLevel.Verbose, logStr='_getLocations ' + str(locations))
+#         self.log(logLevel=Robot.LogLevel.Verbose, logStr='_getLocations ' + str(locations))
+        self.log(logLevel=Robot.LogLevel.Normal, logStr='_getLocations ' + str(locations))
         return locations
     
        

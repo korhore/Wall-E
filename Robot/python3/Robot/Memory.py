@@ -69,7 +69,7 @@ class Memory(object):
         self.minAvailMem =  minAvailMem
         self.sensationMemory=[]                 # Sensation cache
         
-        self.presentItemSensations={}           # present item.name sensations
+        self._presentItemSensations={}           # present item.name sensations
         self.sharedSensationHosts = []          # hosts with we have already shared our sensations NOTE not used, logic removed or idea is not yet implemented?
                                                 # NOTE sharedSensationHosts is used in Robot do don't remove this variable
 
@@ -290,15 +290,16 @@ class Memory(object):
         succeeded = False
         while not succeeded:
             try:
-                for itemSensation in self.presentItemSensations.values():
-                    if sensation is not itemSensation and\
-                       sensation.getTime() >=  itemSensation.getTime():
-                        # and len(itemSensation.getAssociations()) < Sensation.ASSOCIATIONS_MAX_ASSOCIATIONS: #removed limitation
-                        if log:
-                            self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='assign: itemSensation= ' +  itemSensation.toDebugStr() + ' sensation= ' + sensation.toDebugStr())
-                        itemSensation.associate(sensation=sensation)
-                    else:
-                        self.log(logLevel=Memory.MemoryLogLevel.Detailed, logStr='assign: sensation ignored not newer than present itemSensation or sensation is present itemSensation= ' + itemSensation.toDebugStr() + ' sensation= ' + sensation.toDebugStr())
+                for location in self._presentItemSensations.keys():
+                    for itemSensation in self._presentItemSensations[location].values():
+                        if sensation is not itemSensation and\
+                           sensation.getTime() >=  itemSensation.getTime():
+                            # and len(itemSensation.getAssociations()) < Sensation.ASSOCIATIONS_MAX_ASSOCIATIONS: #removed limitation
+                            if log:
+                                self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='assign: location:' + location + ' itemSensation= ' +  itemSensation.toDebugStr() + ' sensation= ' + sensation.toDebugStr())
+                            itemSensation.associate(sensation=sensation)
+                        else:
+                            self.log(logLevel=Memory.MemoryLogLevel.Detailed, logStr='assign: location:' + location + ' sensation ignored not newer than present itemSensation or sensation is present itemSensation= ' + itemSensation.toDebugStr() + ' sensation= ' + sensation.toDebugStr())
                 succeeded = True
             except Exception as e:
                 if log:
@@ -799,37 +800,114 @@ class Memory(object):
                     return True
             return False
 
+#     '''
+#     Presence
+#     '''
+#     def tracePresents(self, sensation):
+#         # present means pure Present, all other if handled not present
+#         # if present sensations must come in order
+#         if sensation.getName() in self.presentItemSensations and\
+#            sensation.getTime() > self.presentItemSensations[sensation.getName()].getTime(): 
+# 
+#             if sensation.getPresence() == Sensation.Presence.Entering or\
+#                sensation.getPresence() == Sensation.Presence.Present or\
+#                sensation.getPresence() == Sensation.Presence.Exiting:
+#                 self.presentItemSensations[sensation.getName()] = sensation
+#                 self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="Entering, Present or Exiting " + sensation.getName())
+#             else:
+#                 del self.presentItemSensations[sensation.getName()]
+#                 self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="Absent " + sensation.getName())
+#         # accept only sensation items that are not present, but not not in order ones
+#         # absent sensations don't have any mean at this case
+#         elif (sensation.getName() not in self.presentItemSensations) and\
+#              (sensation.getPresence() == Sensation.Presence.Entering or\
+#                sensation.getPresence() == Sensation.Presence.Present or\
+#                sensation.getPresence() == Sensation.Presence.Exiting):
+#                 self.presentItemSensations[sensation.getName()] = sensation
+#                 self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="Entering, Present or Exiting " + sensation.getName())
     '''
     Presence
     '''
     def tracePresents(self, sensation):
         # present means pure Present, all other if handled not present
         # if present sensations must come in order
-        if sensation.getName() in self.presentItemSensations and\
-           sensation.getTime() > self.presentItemSensations[sensation.getName()].getTime(): 
+        locations = sensation.getLocations()
+        if locations == None or len(locations) == 0:
+            locations = [''] 
+        for location in locations:
+            self.tracePresentsByLocation(sensation, location)
+
+    '''
+    Presence by location
+    '''
+    def tracePresentsByLocation(self, sensation, location):
+        # present means pure Present, all other if handled not present
+        # if present sensations must come in order
+        if not location in self._presentItemSensations:
+            self._presentItemSensations[location] = {}
+        if sensation.getName() in self._presentItemSensations[location] and\
+           sensation.getTime() > self._presentItemSensations[location][sensation.getName()].getTime(): 
 
             if sensation.getPresence() == Sensation.Presence.Entering or\
                sensation.getPresence() == Sensation.Presence.Present or\
                sensation.getPresence() == Sensation.Presence.Exiting:
-                self.presentItemSensations[sensation.getName()] = sensation
+                self._presentItemSensations[location][sensation.getName()] = sensation
                 self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="Entering, Present or Exiting " + sensation.getName())
             else:
-                del self.presentItemSensations[sensation.getName()]
+                del self._presentItemSensations[location][sensation.getName()]
                 self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="Absent " + sensation.getName())
         # accept only sensation items that are not present, but not not in order ones
         # absent sensations don't have any mean at this case
-        elif (sensation.getName() not in self.presentItemSensations) and\
+        elif (sensation.getName() not in self._presentItemSensations[location]) and\
              (sensation.getPresence() == Sensation.Presence.Entering or\
                sensation.getPresence() == Sensation.Presence.Present or\
                sensation.getPresence() == Sensation.Presence.Exiting):
-                self.presentItemSensations[sensation.getName()] = sensation
+                self._presentItemSensations[location][sensation.getName()] = sensation
                 self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="Entering, Present or Exiting " + sensation.getName())
+                
+    '''
+    have we presence in some locations
+    '''
 
+    def hasPresence(self):
+        return len(self._presentItemSensations) > 0
+
+    '''
+    return human readable string of presence items in all locations
+    '''
     def presenceToStr(self):
-        namesStr=''
-        for name, sensation in self.presentItemSensations.items():
-            namesStr = namesStr + ' ' + name
-        return namesStr
+        allLocationnamesStr=''
+        for location in self._presentItemSensations.keys():
+            namesStr='['+location + ':'
+            for name, sensation in self._presentItemSensations[location].items():
+#             for presentItemSensations in self._presentItemSensations[location].items():
+#                 for name, sensation in presentItemSensations:
+                namesStr = namesStr + ' ' + name
+            allLocationnamesStr += namesStr + ']'
+        
+        return allLocationnamesStr
+    
+    '''
+    get presence sensations in a location
+    '''
+    def getPresentItemSensations(self, location):
+        if location == None :
+            location = ''
+        if not location in self._presentItemSensations:
+            self._presentItemSensations[location] = {}
+        return self._presentItemSensations[location].items()
+
+    '''
+    get presence sensations in all location
+    This is helper function to ne compatible with old implementation when we don't care about locations.
+    This method can be removed
+    '''
+    def getAllPresentItemSensations(self):
+        itemSensations = []
+        for location in self._presentItemSensations.keys():
+            for name, itemSensation in self._presentItemSensations[location].items():
+                itemSensations.append(itemSensation)
+        return itemSensations
     
     '''
     log

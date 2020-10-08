@@ -182,8 +182,8 @@ class SoundDeviceMicrophone(Robot):
             
             voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
                                                    data=self.voice_data, locations=self.getLocations())
-            for name, itemSensation in self.getMemory().presentItemSensations.items():
-                self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: voice from " + name)
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: voice from " + self.getMemory().presenceToStr())
+            for itemSensation in self.getMemory().getAllPresentItemSensations():
                 itemSensation.associate(sensation=voiceSensation)
             self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: self.getParent().getAxon().put(robot=self, sensation)")
             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)
