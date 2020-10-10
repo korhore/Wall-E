@@ -1,6 +1,6 @@
 '''
 Created on 10.06.2019
-Updated on 29.05.2020
+Updated on 10.10.2020
 @author: reijo.korhonen@gmail.com
 
 test Sensation class
@@ -668,6 +668,9 @@ class SensationTestCase(unittest.TestCase):
         self.assertEqual(fromBytesWorkingSensation, workingSensation, "should be equal")
         self.assertEqual(fromBytesWorkingSensation.getLocations(), workingSensation.getLocations(), "should be equal")
         self.assertEqual(fromBytesWorkingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
+        self.assertEqual(fromBytesWorkingSensation.getDataId(), workingSensation.getDataId(), "should be equal")
+        self.assertTrue(workingSensation.isOriginal(), "workingSensation should be original")
+        self.assertTrue(fromBytesWorkingSensation.isOriginal(), "fromBytesWorkingSensation should be original")
         
         workingSensation.setLocations(locations = SensationTestCase.SET_1_1_LOCATIONS_1)
         self.assertTrue(workingSensation != None, "should be created")
@@ -679,6 +682,9 @@ class SensationTestCase(unittest.TestCase):
         self.assertEqual(fromBytesWorkingSensation, workingSensation, "should be equal")
         self.assertEqual(fromBytesWorkingSensation.getLocations(), workingSensation.getLocations(), "should be equal")
         self.assertEqual(fromBytesWorkingSensation.getLocations(), SensationTestCase.SET_1_1_LOCATIONS_1, "should be equal")
+        self.assertEqual(fromBytesWorkingSensation.getDataId(), workingSensation.getDataId(), "should be equal")
+        self.assertTrue(workingSensation.isOriginal(), "workingSensation should be original")
+        self.assertTrue(fromBytesWorkingSensation.isOriginal(), "fromBytesWorkingSensation should be original")
        
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
                                                       name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=SensationTestCase.RECEIVEDFROM)
@@ -689,6 +695,9 @@ class SensationTestCase(unittest.TestCase):
         self.assertTrue(fromBytesWorkingSensation != None, "should be created")
         self.assertTrue(fromBytesWorkingSensation == workingSensation, "should be equal")
         self.assertTrue(fromBytesWorkingSensation.getReceivedFrom() == SensationTestCase.RECEIVEDFROM, "should be equal")
+        self.assertEqual(fromBytesWorkingSensation.getDataId(), workingSensation.getDataId(), "should be equal")
+        self.assertTrue(workingSensation.isOriginal(), "workingSensation should be original")
+        self.assertTrue(fromBytesWorkingSensation.isOriginal(), "fromBytesWorkingSensation should be original")
 
         # Voice
         
@@ -708,6 +717,9 @@ class SensationTestCase(unittest.TestCase):
         self.assertEqual(voiceSensation.getKind(), fromBytesVoiceSensation.getKind(), "should be equal")
         self.assertEqual(voiceSensation.getData(), fromBytesVoiceSensation.getData(), "should be equal")
         self.assertEqual(voiceSensation.getLocations(), fromBytesVoiceSensation.getLocations(), "should be equal")
+        self.assertEqual(fromBytesVoiceSensation.getDataId(), voiceSensation.getDataId(), "should be equal")
+        self.assertTrue(voiceSensation.isOriginal(), "voiceSensation should be original")
+        self.assertTrue(fromBytesVoiceSensation.isOriginal(), "fromBytesVoiceSensation should be original")
         
         self.assertFalse(fromBytesVoiceSensation.isForgettable(), "should be False, until detached")
         fromBytesVoiceSensation.detach(robot=self.robot)
@@ -728,6 +740,9 @@ class SensationTestCase(unittest.TestCase):
         self.assertTrue(imageSensation == fromBytesImageSensation, "should be equal")
         self.assertTrue(imageSensation.getImage() == fromBytesImageSensation.getImage(), "should be equal") # empty image, not given in creation, TODO
         self.assertTrue(imageSensation.getLocations() == fromBytesImageSensation.getLocations(), "should be equal")
+        self.assertEqual(fromBytesImageSensation.getDataId(), imageSensation.getDataId(), "should be equal")
+        self.assertTrue(imageSensation.isOriginal(), "imageSensation should be original")
+        self.assertTrue(fromBytesImageSensation.isOriginal(), "fromBytesImageSensation should be original")
         
         self.assertFalse(fromBytesImageSensation.isForgettable(), "should be False, until detached")
         fromBytesImageSensation.detach(robot=self.robot)
@@ -743,10 +758,15 @@ class SensationTestCase(unittest.TestCase):
         fromBytesFeelingSensation = self.robot.createSensation(bytes=bytes)
                 
         self.assertTrue(feelingSensation == fromBytesFeelingSensation, "should be equal")
+        self.assertEqual(fromBytesWorkingSensation.getDataId(), workingSensation.getDataId(), "should be equal")
+        
         self.assertTrue(feelingSensation.getFirstAssociateSensation() == fromBytesFeelingSensation.getFirstAssociateSensation(), "should be equal")
         self.assertTrue(feelingSensation.getOtherAssociateSensation() == fromBytesFeelingSensation.getOtherAssociateSensation(), "should be equal")
         self.assertTrue(feelingSensation.getFeeling() == fromBytesFeelingSensation.getFeeling(), "should be equal")        
         self.assertEqual(fromBytesFeelingSensation.getFeeling(), SensationTestCase.NORMAL_FEELING, "should be equal")        
+        self.assertEqual(fromBytesFeelingSensation.getDataId(), feelingSensation.getDataId(), "should be equal")
+        self.assertTrue(feelingSensation.isOriginal(), "feelingSensation should be original")
+        self.assertTrue(fromBytesFeelingSensation.isOriginal(), "fromBytesFeelingSensation should be original")
         
         self.assertFalse(fromBytesFeelingSensation.isForgettable(), "should be False, until detached")
         fromBytesFeelingSensation.detach(robot=self.robot)
@@ -762,6 +782,10 @@ class SensationTestCase(unittest.TestCase):
         fromBytesFeelingSensation = self.robot.createSensation(bytes=bytes)
                 
         self.assertTrue(feelingSensation == fromBytesFeelingSensation, "should be equal")
+        self.assertEqual(fromBytesFeelingSensation.getDataId(), feelingSensation.getDataId(), "should be equal")
+        self.assertTrue(feelingSensation.isOriginal(), "feelingSensation should be original")
+        self.assertTrue(fromBytesFeelingSensation.isOriginal(), "fromBytesFeelingSensation should be original")
+        
         self.assertTrue(feelingSensation.getFirstAssociateSensation() == fromBytesFeelingSensation.getFirstAssociateSensation(), "should be equal")
         self.assertTrue(feelingSensation.getOtherAssociateSensation() == fromBytesFeelingSensation.getOtherAssociateSensation(), "should be equal")
         self.assertTrue(feelingSensation.getPositiveFeeling(), "should be True")        
@@ -782,6 +806,10 @@ class SensationTestCase(unittest.TestCase):
         fromBytesFeelingSensation = self.robot.createSensation(bytes=bytes)
                 
         self.assertTrue(feelingSensation == fromBytesFeelingSensation, "should be equal")
+        self.assertEqual(fromBytesFeelingSensation.getDataId(), feelingSensation.getDataId(), "should be equal")
+        self.assertTrue(feelingSensation.isOriginal(), "feelingSensation should be original")
+        self.assertTrue(fromBytesFeelingSensation.isOriginal(), "fromBytesFeelingSensation should be original")
+        
         self.assertTrue(feelingSensation.getFirstAssociateSensation() == fromBytesFeelingSensation.getFirstAssociateSensation(), "should be equal")
         self.assertTrue(feelingSensation.getOtherAssociateSensation() == fromBytesFeelingSensation.getOtherAssociateSensation(), "should be equal")
         self.assertFalse(feelingSensation.getPositiveFeeling(), "should be False")        
@@ -829,6 +857,10 @@ class SensationTestCase(unittest.TestCase):
         fromBytesImageSensation = self.robot.createSensation(bytes=bytes)
 
         self.assertTrue(imageSensation == fromBytesImageSensation, "should be equal")
+        self.assertEqual(fromBytesImageSensation.getDataId(), imageSensation.getDataId(), "should be equal")
+        self.assertTrue(imageSensation.isOriginal(), "imageSensation should be original")
+        self.assertTrue(fromBytesImageSensation.isOriginal(), "fromBytesImageSensation should be original")
+        
         self.assertTrue(imageSensation.getImage() == fromBytesImageSensation.getImage(), "should be equal") # empty image, not given in creation, TODO
         self.assertTrue(imageSensation.getLocations() == fromBytesImageSensation.getLocations(), "should be equal")
         self.assertEqual(fromBytesImageSensation.getFeeling(), SensationTestCase.BETTER_FEELING, "should be equal")
@@ -855,6 +887,10 @@ class SensationTestCase(unittest.TestCase):
         fromBytesVoiceSensation = self.robot.createSensation(bytes=bytes)
         
         self.assertEqual(voiceSensation, fromBytesVoiceSensation, "should be equal")
+        self.assertEqual(fromBytesVoiceSensation.getDataId(), voiceSensation.getDataId(), "should be equal")
+        self.assertTrue(voiceSensation.isOriginal(), "voiceSensation should be original")
+        self.assertTrue(fromBytesVoiceSensation.isOriginal(), "fromBytesVoiceSensation should be original")
+        
         self.assertEqual(voiceSensation.getKind(), fromBytesVoiceSensation.getKind(), "should be equal")
         self.assertEqual(voiceSensation.getData(), fromBytesVoiceSensation.getData(), "should be equal")
         self.assertEqual(voiceSensation.getLocations(), fromBytesVoiceSensation.getLocations(), "should be equal")
@@ -894,6 +930,9 @@ class SensationTestCase(unittest.TestCase):
         self.assertEqual(locationSensation.getZ(), fromByteslocationSensation.getZ(), "should be equal")
         self.assertEqual(locationSensation.getRadius(), fromByteslocationSensation.getRadius(), "should be equal")
         self.assertEqual(locationSensation.getName(), fromByteslocationSensation.getName(), "should be equal")
+        self.assertEqual(fromByteslocationSensation.getDataId(), locationSensation.getDataId(), "should be equal")
+        self.assertTrue(locationSensation.isOriginal(), "locationSensation should be original")
+        self.assertTrue(fromByteslocationSensation.isOriginal(), "fromByteslocationSensation should be original")
         
         self.assertFalse(fromByteslocationSensation.isForgettable(), "should be False, until detached")
         fromByteslocationSensation.detach(robot=self.robot)
@@ -922,11 +961,16 @@ class SensationTestCase(unittest.TestCase):
         fromByteslocationSensation = self.robot.createSensation(bytes=bytes)
         
         self.assertEqual(locationSensation, fromByteslocationSensation, "should be equal")
+        self.assertEqual(locationSensation.getDataId(), fromByteslocationSensation.getDataId(), "should be equal")
+
         self.assertEqual(locationSensation.getX(), fromByteslocationSensation.getX(), "should be equal")
         self.assertEqual(locationSensation.getY(), fromByteslocationSensation.getY(), "should be equal")
         self.assertEqual(locationSensation.getZ(), fromByteslocationSensation.getZ(), "should be equal")
         self.assertEqual(locationSensation.getRadius(), fromByteslocationSensation.getRadius(), "should be equal")
         self.assertEqual(locationSensation.getName(), fromByteslocationSensation.getName(), "should be equal")
+        self.assertEqual(fromByteslocationSensation.getDataId(), locationSensation.getDataId(), "should be equal")
+        self.assertTrue(locationSensation.isOriginal(), "locationSensation should be original")
+        self.assertTrue(fromByteslocationSensation.isOriginal(), "fromByteslocationSensation should be original")
         
         self.assertFalse(fromByteslocationSensation.isForgettable(), "should be False, until detached")
         fromByteslocationSensation.detach(robot=self.robot)
@@ -934,6 +978,303 @@ class SensationTestCase(unittest.TestCase):
 
         print("\ntest_Bytes DONE")
         
+    def test_Copy(self):        
+        print("\ntest_Copy")
+        workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
+                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=[],
+                                                      locations = SensationTestCase.SET_1_2_LOCATIONS)
+        self.assertTrue(workingSensation != None, "should be created")
+        self.assertEqual(workingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
+        fromWorkingSensation = self.robot.createSensation(sensation=workingSensation)
+        self.assertTrue(fromWorkingSensation != None, "should be created")
+        self.assertNotEqual(fromWorkingSensation, workingSensation, "should not be equal")
+        self.assertEqual(fromWorkingSensation.getLocations(), workingSensation.getLocations(), "should be equal")
+        self.assertEqual(fromWorkingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
+        self.assertEqual(fromWorkingSensation.getDataId(), workingSensation.getDataId(), "should be equal")
+        self.assertTrue(workingSensation.isOriginal(), "workingSensation should be original")
+        self.assertFalse(fromWorkingSensation.isOriginal(), "fromWorkingSensation should be copy")
+        
+        workingSensation.setLocations(locations = SensationTestCase.SET_1_1_LOCATIONS_1)
+        self.assertTrue(workingSensation != None, "should be created")
+        self.assertEqual(workingSensation.getLocations(), SensationTestCase.SET_1_1_LOCATIONS_1, "should be equal")
+        fromWorkingSensation = self.robot.createSensation(sensation=workingSensation)
+        self.assertTrue(fromWorkingSensation != None, "should be created")
+        self.assertNotEqual(fromWorkingSensation, workingSensation, "should not be equal")
+        self.assertEqual(fromWorkingSensation.getLocations(), workingSensation.getLocations(), "should be equal")
+        self.assertEqual(fromWorkingSensation.getLocations(), SensationTestCase.SET_1_1_LOCATIONS_1, "should be equal")
+        self.assertEqual(fromWorkingSensation.getDataId(), workingSensation.getDataId(), "should be equal")
+        self.assertTrue(workingSensation.isOriginal(), "workingSensation should be original")
+        self.assertFalse(fromWorkingSensation.isOriginal(), "fromWorkingSensation should be copy")
+       
+        workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
+                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=SensationTestCase.RECEIVEDFROM)
+        self.assertTrue(workingSensation != None, "should be created")
+        fromWorkingSensation = self.robot.createSensation(sensation=workingSensation)
+        self.assertTrue(fromWorkingSensation != None, "should be created")
+        self.assertNotEqual(fromWorkingSensation, workingSensation, "should not be equal")
+        self.assertTrue(fromWorkingSensation.getReceivedFrom() == SensationTestCase.RECEIVEDFROM, "should be equal")
+        self.assertEqual(fromWorkingSensation.getDataId(), workingSensation.getDataId(), "should be equal")
+        self.assertTrue(workingSensation.isOriginal(), "workingSensation should be original")
+        self.assertFalse(fromWorkingSensation.isOriginal(), "fromWorkingSensation should be copy")
+
+        # Voice
+        
+        data=b'\x01\x02'
+        voiceSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, locations=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva)
+
+        self.assertFalse(voiceSensation.isForgettable(), "should be False, until detached")
+        voiceSensation.detach(robot=self.robot)
+        self.assertTrue(voiceSensation.isForgettable(), "should be True after detach")
+
+        self.assertTrue(voiceSensation.getKind() == Sensation.Kind.Eva, "should be equal")
+        fromVoiceSensation = self.robot.createSensation(sensation=voiceSensation)
+        
+        self.assertNotEqual(voiceSensation, fromVoiceSensation, "should not be equal")
+        self.assertEqual(voiceSensation.getKind(), fromVoiceSensation.getKind(), "should be equal")
+        self.assertEqual(voiceSensation.getData(), fromVoiceSensation.getData(), "should be equal")
+        self.assertEqual(voiceSensation.getLocations(), fromVoiceSensation.getLocations(), "should be equal")
+        self.assertEqual(fromVoiceSensation.getDataId(), voiceSensation.getDataId(), "should be equal")
+        self.assertTrue(voiceSensation.isOriginal(), "voiceSensation should be original")
+        self.assertFalse(fromVoiceSensation.isOriginal(), "fromVoiceSensation should be copy")
+       
+        self.assertFalse(fromVoiceSensation.isForgettable(), "should be False, until detached")
+        fromVoiceSensation.detach(robot=self.robot)
+        self.assertTrue(fromVoiceSensation.isForgettable(), "should be True after detach")
+
+        # Image
+        
+        imageSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.Sensory, data=data, locations=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva)
+
+        self.assertFalse(imageSensation.isForgettable(), "should be False, until detached")
+        imageSensation.detach(robot=self.robot)
+        self.assertTrue(imageSensation.isForgettable(), "should be True after detach")
+
+        fromImageSensation = self.robot.createSensation(sensation=imageSensation)
+
+        self.assertTrue(imageSensation == imageSensation, "should be equal")
+        self.assertTrue(imageSensation.getImage() == imageSensation.getImage(), "should be equal") # empty image, not given in creation, TODO
+        self.assertTrue(imageSensation.getLocations() == imageSensation.getLocations(), "should be equal")
+        self.assertEqual(fromImageSensation.getDataId(), imageSensation.getDataId(), "should be equal")
+        self.assertTrue(imageSensation.isOriginal(), "imageSensation should be original")
+        self.assertFalse(fromImageSensation.isOriginal(), "fromImageSensation should be copy")
+        
+        self.assertFalse(fromImageSensation.isForgettable(), "should be False, until detached")
+        fromImageSensation.detach(robot=self.robot)
+        self.assertTrue(fromImageSensation.isForgettable(), "should be True after detach")
+
+        # Normal Feeling
+        
+        feelingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
+                                                      firstAssociateSensation=workingSensation, otherAssociateSensation=voiceSensation,
+                                                      feeling=SensationTestCase.NORMAL_FEELING)
+        fromFeelingSensation = self.robot.createSensation(sensation=feelingSensation)
+                
+        self.assertFalse(feelingSensation == fromFeelingSensation, "should not be equal")
+        self.assertEqual(fromFeelingSensation.getDataId(), feelingSensation.getDataId(), "should be equal")
+        self.assertTrue(feelingSensation.isOriginal(), "imageSensation should be original")
+        self.assertFalse(fromFeelingSensation.isOriginal(), "fromImageSensation should be copy")
+        
+        self.assertTrue(feelingSensation.getFirstAssociateSensation() == fromFeelingSensation.getFirstAssociateSensation(), "should be equal")
+        self.assertTrue(feelingSensation.getOtherAssociateSensation() == fromFeelingSensation.getOtherAssociateSensation(), "should be equal")
+        self.assertTrue(feelingSensation.getFeeling() == fromFeelingSensation.getFeeling(), "should be equal")        
+        self.assertEqual(fromFeelingSensation.getFeeling(), SensationTestCase.NORMAL_FEELING, "should be equal")        
+        
+        self.assertFalse(fromFeelingSensation.isForgettable(), "should be False, until detached")
+        fromFeelingSensation.detach(robot=self.robot)
+        self.assertTrue(fromFeelingSensation.isForgettable(), "should be True after detach")
+ 
+        # Better Feeling
+        
+        feelingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
+                                                      firstAssociateSensation=workingSensation, otherAssociateSensation=voiceSensation,
+                                                      positiveFeeling=True)
+        fromFeelingSensation = self.robot.createSensation(sensation=feelingSensation)
+                
+        self.assertFalse(feelingSensation == fromFeelingSensation, "should not be equal")
+        self.assertEqual(fromFeelingSensation.getDataId(), feelingSensation.getDataId(), "should be equal")
+        self.assertTrue(feelingSensation.isOriginal(), "imageSensation should be original")
+        self.assertFalse(fromFeelingSensation.isOriginal(), "fromImageSensation should be copy")
+        
+        self.assertTrue(feelingSensation.getFirstAssociateSensation() == fromFeelingSensation.getFirstAssociateSensation(), "should be equal")
+        self.assertTrue(feelingSensation.getOtherAssociateSensation() == fromFeelingSensation.getOtherAssociateSensation(), "should be equal")
+        self.assertTrue(feelingSensation.getPositiveFeeling(), "should be True")        
+        self.assertFalse(feelingSensation.getNegativeFeeling(), "should be False")        
+        #self.assertTrue(feelingSensation.getFeeling() == SensationTestCase.NORMAL_FEELING, "should be equal")        
+        self.assertTrue(fromFeelingSensation.getPositiveFeeling(), "should be True")        
+        self.assertFalse(fromFeelingSensation.getNegativeFeeling(), "should be False")        
+        
+        # Worse Feeling
+        
+        feelingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
+                                                      firstAssociateSensation=workingSensation, otherAssociateSensation=voiceSensation,
+                                                      negativeFeeling=True)
+        self.assertFalse(feelingSensation.isForgettable(), "should be False, until detached")
+
+        fromFeelingSensation = self.robot.createSensation(sensation=feelingSensation)
+                
+        self.assertFalse(feelingSensation == fromFeelingSensation, "should not be equal")
+        self.assertEqual(fromFeelingSensation.getDataId(), feelingSensation.getDataId(), "should be equal")
+        self.assertTrue(feelingSensation.isOriginal(), "imageSensation should be original")
+        self.assertFalse(fromFeelingSensation.isOriginal(), "fromImageSensation should be copy")
+        
+        self.assertTrue(feelingSensation.getFirstAssociateSensation() == fromFeelingSensation.getFirstAssociateSensation(), "should be equal")
+        self.assertTrue(feelingSensation.getOtherAssociateSensation() == fromFeelingSensation.getOtherAssociateSensation(), "should be equal")
+        self.assertFalse(feelingSensation.getPositiveFeeling(), "should be False")        
+        self.assertTrue(feelingSensation.getNegativeFeeling(), "should be True") 
+        
+        self.assertFalse(fromFeelingSensation.getPositiveFeeling(), "should be False")        
+        self.assertTrue(fromFeelingSensation.getNegativeFeeling(), "should be True")        
+               
+        #self.assertTrue(feelingSensation.getFeeling() == SensationTestCase.NORMAL_FEELING, "should be equal")        
+
+        self.assertFalse(fromFeelingSensation.isForgettable(), "should be False, until detached")
+        fromFeelingSensation.detach(robot=self.robot)
+        self.assertTrue(fromFeelingSensation.isForgettable(), "should be True after detach")
+        
+        # Feeling is property of every SensationType
+        workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
+                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=[],
+                                                      locations = SensationTestCase.SET_1_1_LOCATIONS_2,
+                                                      feeling=SensationTestCase.NORMAL_FEELING)
+        self.assertTrue(workingSensation != None, "should be created")
+# many location is deprecated as property
+#         self.assertEqual(workingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
+#         bytes=workingSensation.bytes()
+#         self.assertTrue(bytes != None, "should be get bytes")
+#         fromWorkingSensation = self.robot.createSensation(bytes=bytes)
+#         self.assertTrue(fromWorkingSensation != None, "should be created")
+#         self.assertEqual(fromWorkingSensation, workingSensation, "should be equal")
+#         self.assertEqual(fromWorkingSensation.getLocations(), workingSensation.getLocations(), "should be equal")
+#         self.assertEqual(fromWorkingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
+#         self.assertEqual(fromWorkingSensation.getFeeling(), SensationTestCase.NORMAL_FEELING, "should be equal")
+       
+        # Image
+        
+        imageSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.Sensory,
+                                                    data=data, locations=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva,
+                                                    feeling=SensationTestCase.BETTER_FEELING)
+        self.assertEqual(imageSensation.getFeeling(), SensationTestCase.BETTER_FEELING, "should be equal")
+
+        self.assertFalse(imageSensation.isForgettable(), "should be False, until detached")
+        imageSensation.detach(robot=self.robot)
+        self.assertTrue(imageSensation.isForgettable(), "should be True after detach")
+
+        fromImageSensation = self.robot.createSensation(sensation=imageSensation)
+
+        self.assertFalse(imageSensation == fromImageSensation, "should not be equal")
+        self.assertEqual(fromImageSensation.getDataId(), imageSensation.getDataId(), "should be equal")
+        
+        self.assertTrue(imageSensation.getImage() == fromImageSensation.getImage(), "should be equal") # empty image, not given in creation, TODO
+        self.assertTrue(imageSensation.getLocations() == fromImageSensation.getLocations(), "should be equal")
+        self.assertEqual(fromImageSensation.getFeeling(), SensationTestCase.BETTER_FEELING, "should be equal")
+        
+        self.assertFalse(fromImageSensation.isForgettable(), "should be False, until detached")
+        fromImageSensation.detach(robot=self.robot)
+        self.assertTrue(fromImageSensation.isForgettable(), "should be True after detach")
+
+        # Voice
+        
+        data=b'\x01\x02'
+        voiceSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data,
+                                                    locations=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva,
+                                                    feeling=SensationTestCase.TERRIFIED_FEELING)
+        self.assertEqual(voiceSensation.getFeeling(), SensationTestCase.TERRIFIED_FEELING, "should be equal")
+
+        self.assertFalse(voiceSensation.isForgettable(), "should be False, until detached")
+        voiceSensation.detach(robot=self.robot)
+        self.assertTrue(voiceSensation.isForgettable(), "should be True after detach")
+
+        self.assertTrue(voiceSensation.getKind() == Sensation.Kind.Eva, "should be equal")
+        fromVoiceSensation = self.robot.createSensation(sensation=voiceSensation)
+        
+        self.assertNotEqual(voiceSensation, fromVoiceSensation, "should be equal")
+        self.assertEqual(fromVoiceSensation.getDataId(), voiceSensation.getDataId(), "should be equal")
+        self.assertTrue(voiceSensation.isOriginal(), "voiceSensation should be original")
+        self.assertFalse(fromVoiceSensation.isOriginal(), "fromVoiceSensation should be copy")
+        
+        self.assertEqual(voiceSensation.getKind(), fromVoiceSensation.getKind(), "should be equal")
+        self.assertEqual(voiceSensation.getData(), fromVoiceSensation.getData(), "should be equal")
+        self.assertEqual(voiceSensation.getLocations(), fromVoiceSensation.getLocations(), "should be equal")
+        self.assertEqual(fromVoiceSensation.getFeeling(), SensationTestCase.TERRIFIED_FEELING, "should be equal")
+        
+        self.assertFalse(fromVoiceSensation.isForgettable(), "should be False, until detached")
+        fromVoiceSensation.detach(robot=self.robot)
+        self.assertTrue(fromVoiceSensation.isForgettable(), "should be True after detach")
+        
+        # Location
+        
+        # Location 1
+        
+        locationSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Location, memoryType=Sensation.MemoryType.Sensory,
+                                                    x = SensationTestCase.LOCATION_1_X,
+                                                    y = SensationTestCase.LOCATION_1_Y,
+                                                    z = SensationTestCase.LOCATION_1_Z,
+                                                    radius = SensationTestCase.LOCATION_1_RADIUS,
+                                                    name = SensationTestCase.LOCATION_1_NAME)
+        self.assertEqual(locationSensation.getX(), SensationTestCase.LOCATION_1_X, "should be equal")
+        self.assertEqual(locationSensation.getY(), SensationTestCase.LOCATION_1_Y, "should be equal")
+        self.assertEqual(locationSensation.getZ(), SensationTestCase.LOCATION_1_Z, "should be equal")
+        self.assertEqual(locationSensation.getRadius(), SensationTestCase.LOCATION_1_RADIUS, "should be equal")
+        self.assertEqual(locationSensation.getName(), SensationTestCase.LOCATION_1_NAME, "should be equal")
+
+        self.assertFalse(locationSensation.isForgettable(), "should be False, until detached")
+        locationSensation.detach(robot=self.robot)
+        self.assertTrue(locationSensation.isForgettable(), "should be True after detach")
+
+        fromLocationSensation  = self.robot.createSensation(sensation=locationSensation )
+        
+        self.assertNotEqual(locationSensation, fromLocationSensation, "should not be equal")
+        self.assertEqual(locationSensation.getX(), fromLocationSensation.getX(), "should be equal")
+        self.assertEqual(locationSensation.getY(), fromLocationSensation.getY(), "should be equal")
+        self.assertEqual(locationSensation.getZ(), fromLocationSensation.getZ(), "should be equal")
+        self.assertEqual(locationSensation.getRadius(), fromLocationSensation.getRadius(), "should be equal")
+        self.assertEqual(locationSensation.getName(), fromLocationSensation.getName(), "should be equal")
+        self.assertEqual(fromLocationSensation.getDataId(), locationSensation.getDataId(), "should be equal")
+        self.assertTrue(locationSensation.isOriginal(), "locationSensation should be original")
+        self.assertFalse(fromLocationSensation.isOriginal(), "fromLocationSensation should be copy")
+        
+        self.assertFalse(fromLocationSensation.isForgettable(), "should be False, until detached")
+        fromLocationSensation.detach(robot=self.robot)
+        self.assertTrue(fromLocationSensation.isForgettable(), "should be True after detach")
+        
+        # Location 2
+        
+        locationSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Location, memoryType=Sensation.MemoryType.Sensory,
+                                                    x = SensationTestCase.LOCATION_2_X,
+                                                    y = SensationTestCase.LOCATION_2_Y,
+                                                    z = SensationTestCase.LOCATION_2_Z,
+                                                    radius = SensationTestCase.LOCATION_2_RADIUS,
+                                                    name = SensationTestCase.LOCATION_2_NAME)
+        self.assertEqual(locationSensation.getX(), SensationTestCase.LOCATION_2_X, "should be equal")
+        self.assertEqual(locationSensation.getY(), SensationTestCase.LOCATION_2_Y, "should be equal")
+        self.assertEqual(locationSensation.getZ(), SensationTestCase.LOCATION_2_Z, "should be equal")
+        self.assertEqual(locationSensation.getRadius(), SensationTestCase.LOCATION_2_RADIUS, "should be equal")
+        self.assertEqual(locationSensation.getName(), SensationTestCase.LOCATION_2_NAME, "should be equal")
+
+        self.assertFalse(locationSensation.isForgettable(), "should be False, until detached")
+        locationSensation.detach(robot=self.robot)
+        self.assertTrue(locationSensation.isForgettable(), "should be True after detach")
+
+        fromLocationSensation  = self.robot.createSensation(sensation=locationSensation )
+        
+        self.assertNotEqual(locationSensation, fromLocationSensation, "should not be equal")
+        self.assertEqual(locationSensation.getDataId(), fromLocationSensation.getDataId(), "should be equal")
+
+        self.assertEqual(locationSensation.getX(), fromLocationSensation.getX(), "should be equal")
+        self.assertEqual(locationSensation.getY(), fromLocationSensation.getY(), "should be equal")
+        self.assertEqual(locationSensation.getZ(), fromLocationSensation.getZ(), "should be equal")
+        self.assertEqual(locationSensation.getRadius(), fromLocationSensation.getRadius(), "should be equal")
+        self.assertEqual(locationSensation.getName(), fromLocationSensation.getName(), "should be equal")
+        self.assertEqual(fromLocationSensation.getDataId(), locationSensation.getDataId(), "should be equal")
+        self.assertTrue(locationSensation.isOriginal(), "locationSensation should be original")
+        self.assertFalse(fromLocationSensation.isOriginal(), "fromLocationSensation should be copy")
+        
+        self.assertFalse(fromLocationSensation.isForgettable(), "should be False, until detached")
+        fromLocationSensation.detach(robot=self.robot)
+        self.assertTrue(fromLocationSensation.isForgettable(), "should be True after detach")
+
+        print("\ntest_Copy DONE")
+
     def test_Boolean(self):        
         print("\ntest_Bytes")
         t = True

@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 06.07.2020
+Edited on 10.10.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -38,7 +38,7 @@ Sensation is something Robot senses
 '''
 
 class Sensation(object):
-    VERSION=21          # version number to check, if we picle same version
+    VERSION=22          # version number to check, if we picle same version
                         # instances. Otherwise we get odd errors, with old
                         # version code instances
 
@@ -632,6 +632,7 @@ class Sensation(object):
                  sensation=None,
                  bytes=None,
                  id=None,
+                 dataId=None,
                  time=None,
                  receivedFrom=[],
                  # base field are by default None, so we know what fields are given and what not
@@ -669,6 +670,9 @@ class Sensation(object):
         self.id = id
         if self.id == None:
             self.id = Sensation.getNextId()
+        self.dataId = dataId
+        if self.dataId == None:
+            self.dataId = self.id
             
         self.attachedBy = []
         self.associations =[]
@@ -686,6 +690,7 @@ class Sensation(object):
         if sensation is not None:   # copy constructor
             # associate makes both sides
             Sensation.updateBaseFields(destination=self, source=sensation,
+                                       dataId = dataId,
                                        sensationType=sensationType,
                                        memoryType=memoryType,
                                        robotType=robotType,
@@ -827,6 +832,9 @@ class Sensation(object):
                 i += Sensation.FLOAT_PACK_SIZE
                 
                 self.id = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                i += Sensation.FLOAT_PACK_SIZE
+                
+                self.dataId = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                 i += Sensation.FLOAT_PACK_SIZE
                 
                 self.time = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
@@ -1169,6 +1177,7 @@ class Sensation(object):
     update base fields
     '''
     def updateBaseFields(source, destination,
+                        dataId,
                         sensationType,
                         memoryType,
                         robotType,
@@ -1193,6 +1202,11 @@ class Sensation(object):
                         feeling,                                             # feeling of sensation or association
                         positiveFeeling,                                     # change association feeling to more positive robotType if possible
                         negativeFeeling):                                    # change association feeling to more negative robotType if possible
+        if dataId is None:
+            destination.dataId = source.dataId
+        else:
+            destination.dataId = dataId
+
         if sensationType is None:
             destination.sensationType = source.sensationType
         else:
@@ -1461,6 +1475,7 @@ class Sensation(object):
 #        b = self.id.to_bytes(Sensation.ID_SIZE, byteorder=Sensation.BYTEORDER)
         b = Sensation.floatToBytes(self.robotId)
         b += Sensation.floatToBytes(self.id)
+        b += Sensation.floatToBytes(self.dataId)
         b += Sensation.floatToBytes(self.time)
         b += Sensation.strToBytes(self.memoryType)
         b += Sensation.strToBytes(self.sensationType)
@@ -1651,6 +1666,13 @@ class Sensation(object):
     def getId(self):
         return self.id
     
+    def setDataId(self, dataId):
+        self.dataId = dataId
+    def getDataId(self):
+        return self.dataId
+    def isOriginal(self):
+        return self.dataId == self.id
+
     def setRobotId(self, robotId):
         self.robotId = robotId
             
@@ -1901,7 +1923,8 @@ class Sensation(object):
     def hasAssociationSensationType(self, associationSensationType,
                                     associationDirection = RobotType.Sense,
                                     ignoredSensations=[],
-                                    ignoredVoiceLens=[]):
+                                    ignoredVoiceLens=[],
+                                    ignoredImageLens=[]):
         has=False
         for association in self.associations:
             if association.getSensation().getSensationType() == associationSensationType and\

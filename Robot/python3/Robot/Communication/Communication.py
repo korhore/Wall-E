@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 01.09.2020
+Updated on 08.09.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -296,16 +296,24 @@ class Communication(Robot):
                     for location in self.getMemory()._presentItemSensations.keys():
                         for name, sensation in self.getMemory()._presentItemSensations[location].items():
                     #for name, sensation in self.getMemory().presentItemSensations.items():
+#                                 self.getMemory().getMostImportantSensation( sensationType = Sensation.SensationType.Item,
+#                                                                      robotType = Sensation.RobotType.Sense,
+#                                                                      name = name,
+#                                                                      notName = None,
+#                                                                      timemin = None,
+#                                                                      timemax = None,
+#                                                                      associationSensationType=Sensation.SensationType.Voice,
+#                                                                      associationDirection = Sensation.RobotType.Sense,
+#                                                                      #ignoredSensations = []) # TESTING
+#                                                                      ignoredSensations = self.usedVoices,
+#                                                                      ignoredVoiceLens = self.usedVoiceLens,
+#                                                                      searchLength=Communication.SEARCH_LENGTH)
                             candidate_for_communication_item, candidate_for_association, candidate_for_voice = \
-                                self.getMemory().getMostImportantSensation( sensationType = Sensation.SensationType.Item,
+                                self.getMemory().getMostImportantCommunicationSensations( 
                                                                      robotType = Sensation.RobotType.Sense,
                                                                      name = name,
-                                                                     notName = None,
                                                                      timemin = None,
                                                                      timemax = None,
-                                                                     associationSensationType=Sensation.SensationType.Voice,
-                                                                     associationDirection = Sensation.RobotType.Sense,
-                                                                     #ignoredSensations = []) # TESTING
                                                                      ignoredSensations = self.usedVoices,
                                                                      ignoredVoiceLens = self.usedVoiceLens,
                                                                      searchLength=Communication.SEARCH_LENGTH)
@@ -317,16 +325,25 @@ class Communication(Robot):
                                 self.mostImportantVoiceSensation  = candidate_for_voice
         
                         if self.mostImportantItemSensation is None:     # if no voices assosiated to present item.names, then any voice will do
+#                             self.mostImportantItemSensation, self.mostImportantVoiceAssociation, self.mostImportantVoiceSensation = \
+#                                 self.getMemory().getMostImportantSensation( sensationType = Sensation.SensationType.Item,
+#                                                                      robotType = Sensation.RobotType.Sense,
+#                                                                      name = None,
+#                                                                      notName = None,
+#                                                                      timemin = None,
+#                                                                      timemax = None,
+#                                                                      associationSensationType=Sensation.SensationType.Voice,
+#                                                                      associationDirection = Sensation.RobotType.Sense,
+#                                                                      #ignoredSensations = []) # TESTING
+#                                                                      ignoredSensations = self.usedVoices,
+#                                                                      ignoredVoiceLens = self.usedVoiceLens,
+#                                                                      searchLength=Communication.SEARCH_LENGTH)
                             self.mostImportantItemSensation, self.mostImportantVoiceAssociation, self.mostImportantVoiceSensation = \
-                                self.getMemory().getMostImportantSensation( sensationType = Sensation.SensationType.Item,
+                                self.getMemory().getMostImportantCommunicationSensations( 
                                                                      robotType = Sensation.RobotType.Sense,
                                                                      name = None,
-                                                                     notName = None,
                                                                      timemin = None,
                                                                      timemax = None,
-                                                                     associationSensationType=Sensation.SensationType.Voice,
-                                                                     associationDirection = Sensation.RobotType.Sense,
-                                                                     #ignoredSensations = []) # TESTING
                                                                      ignoredSensations = self.usedVoices,
                                                                      ignoredVoiceLens = self.usedVoiceLens,
                                                                      searchLength=Communication.SEARCH_LENGTH)

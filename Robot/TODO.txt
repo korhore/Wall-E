@@ -14,9 +14,6 @@ Develop
 -------
 
 ToDo Order
-- It seems that Robot tcp routing is hard to test
--- For reason or another it seems that in same code is not possible test local and tcp Robot sensations routing.
-   This should be possible and we have error in test code in SetUp and tearDown routiness.
 - remove
 -- Robot.getLocations()
 - enabble
@@ -41,11 +38,12 @@ This means, that with Item.Name we connect a Communication way ro it.
    because the at bond net
 ---- adds VirtualRobot
 --- TCPServer adds network Robot
-So what is mising to configure, is presence local, meaning that we use local muscles to deliver Voice to Item.name or
+So what is missing to configure, is presence local, meaning that we use local muscles to deliver Voice to Item.name or
 should we just deliver Voice to the Ribot. But we  basically always deliver to some Root. Basic questio still is, that
 when presence is detected, we should configure how to deliver Muscle sensations to those Muscle Robots. So routing is missing one
 parameter, targetRobot. It has now locations. TARGET can be sent by association. This as solution for communicarting with (Main)Robots
 and with Item.names in other site.
+-- add dataId to resolve that Sensation unique of Sensation (Voice, Image) data can be tectected, so same sata is not used in one conversation
 
 
 - Create new Robot Projector
@@ -759,6 +757,12 @@ People log to present <-              !   !
 
 Corrected
 ---------
+
+OK It seems that Robot tcp routing is hard to test
+OK -- For reason or another it seems that in same code is not possible test local and tcp Robot sensations routing.
+   This should be possible and we have error in test code in SetUp and tearDown routiness.
+   Had to set location back after test
+
 
 OK Seems Communication may se set into infinite loop
 it gets
