@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 08.09.2020
+Updated on 10.10.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -106,9 +106,7 @@ class Communication(Robot):
         self.spokedVoiceSensation = None            # last voice we have said
 
         self.timer=None
-        self.usedVoices = []    # Voices we have used in this conversation 
-                                # always say something, that we have not yet said
-        self.usedVoiceLens = [] # Voices we have used in this conversation 
+        self.ignoredSensations = []    # Voices we have used in this conversation 
  
     def process(self, transferDirection, sensation):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
@@ -166,8 +164,7 @@ class Communication(Robot):
                     #sensation.setMemory(memoryType=Sensation.MemoryType.Working)
                     self.getMemory().setMemoryType(sensation=sensation, memoryType=Sensation.MemoryType.Working)
                     # don't use this voice in this same conversation
-                    self.usedVoices.append(sensation)
-                    self.usedVoiceLens.append(len(sensation.getData()))
+                    self.ignoredSensations.append(sensation.getDataId())
                     
                     # mark original item Sensation to be remembered
                     # and also good feeling to the original voice
@@ -215,8 +212,7 @@ class Communication(Robot):
                     # We want to remember this voice
                     self.getMemory().setMemoryType(sensation=sensation, memoryType=Sensation.MemoryType.Working)
                     # don't use this voice in this same conversation
-                    self.usedVoices.append(sensation)
-                    self.usedVoiceLens.append(len(sensation.getData()))
+                    self.ignoredSensations.append(sensation.getDateId())
                 
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: got voice as restarted conversation ' + sensation.getName() + ' got voice and tries to speak with presents ones ' + self.getMemory().presenceToStr())
                     self.speak(onStart=True)
@@ -278,8 +274,7 @@ class Communication(Robot):
                                                               locations=self.getLocations())
             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation) # or self.process
             self.log("speak: Starting with presenting Robot voiceind={} self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation={}".format(str(voiceind), self.spokedVoiceSensation.toDebugStr()))
-            self.usedVoices.append(self.spokedVoiceSensation)
-            self.usedVoiceLens.append(len(self.spokedVoiceSensation.getData()))
+            self.ignoredSensations.append(self.spokedVoiceSensation.getDataId())
             
             # wait response
             if self.timer is not None:
@@ -305,7 +300,7 @@ class Communication(Robot):
 #                                                                      associationSensationType=Sensation.SensationType.Voice,
 #                                                                      associationDirection = Sensation.RobotType.Sense,
 #                                                                      #ignoredSensations = []) # TESTING
-#                                                                      ignoredSensations = self.usedVoices,
+#                                                                      ignoredSensations = self.ignoredSensations,
 #                                                                      ignoredVoiceLens = self.usedVoiceLens,
 #                                                                      searchLength=Communication.SEARCH_LENGTH)
                             candidate_for_communication_item, candidate_for_association, candidate_for_voice = \
@@ -314,8 +309,7 @@ class Communication(Robot):
                                                                      name = name,
                                                                      timemin = None,
                                                                      timemax = None,
-                                                                     ignoredSensations = self.usedVoices,
-                                                                     ignoredVoiceLens = self.usedVoiceLens,
+                                                                     ignoredSensations = self.ignoredSensations,
                                                                      searchLength=Communication.SEARCH_LENGTH)
                             if self.mostImportantItemSensation is None or\
                                (candidate_for_communication_item is not None and\
@@ -335,7 +329,7 @@ class Communication(Robot):
 #                                                                      associationSensationType=Sensation.SensationType.Voice,
 #                                                                      associationDirection = Sensation.RobotType.Sense,
 #                                                                      #ignoredSensations = []) # TESTING
-#                                                                      ignoredSensations = self.usedVoices,
+#                                                                      ignoredSensations = self.ignoredSensations,
 #                                                                      ignoredVoiceLens = self.usedVoiceLens,
 #                                                                      searchLength=Communication.SEARCH_LENGTH)
                             self.mostImportantItemSensation, self.mostImportantVoiceAssociation, self.mostImportantVoiceSensation = \
@@ -344,8 +338,7 @@ class Communication(Robot):
                                                                      name = None,
                                                                      timemin = None,
                                                                      timemax = None,
-                                                                     ignoredSensations = self.usedVoices,
-                                                                     ignoredVoiceLens = self.usedVoiceLens,
+                                                                     ignoredSensations = self.ignoredSensations,
                                                                      searchLength=Communication.SEARCH_LENGTH)
                         succeeded=True  # no exception,  self.getMemory().presentItemSensations did not changed   
                 except Exception as e:
@@ -365,10 +358,8 @@ class Communication(Robot):
                 association = self.mostImportantItemSensation.getAssociation(sensation = self.mostImportantVoiceSensation)
                 self.getMemory().setMemoryType(sensation=self.spokedVoiceSensation, memoryType=Sensation.MemoryType.Sensory)
     
-                self.usedVoices.append(self.spokedVoiceSensation)
-                self.usedVoiceLens.append(len(self.spokedVoiceSensation.getData()))      # TODO self.spokedVoiceSensation can be None          
-                self.usedVoices.append(self.mostImportantVoiceSensation)   
-                self.usedVoiceLens.append(len(self.mostImportantVoiceSensation.getData()))               
+                self.ignoredSensations.append(self.spokedVoiceSensation.getDataId())
+                self.ignoredSensations.append(self.mostImportantVoiceSensation.getDataId())   
                 # speak                 
                 self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.spokedVoiceSensation)
                 # wait response
@@ -423,8 +414,7 @@ class Communication(Robot):
             self.spokedVoiceSensation.detach(robot=self)
         self.spokedVoiceSensation = None
 
-        del self.usedVoices[:]                          # clear used voices, communication is ended, so used voices are free to be used in next conversation.
-        del self.usedVoiceLens[:]                       # clear used voices, communication is ended, so used voices are free to be used in next conversation.
+        del self.ignoredSensations[:]                          # clear used voices, communication is ended, so used voices are free to be used in next conversation.
         
     def endConversation(self):
         self.clearConversation()

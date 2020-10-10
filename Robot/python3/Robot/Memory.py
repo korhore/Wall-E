@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 01.09.2020
+Edited on 10.10.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -787,8 +787,7 @@ class Memory(object):
                sensation.getRobotType() == robotType and\
                sensation.hasAssociationSensationType(associationSensationType=Sensation.SensationType.Voice,
                                                      associationDirection = robotType,
-                                                     ignoredSensations=ignoredSensations,
-                                                     ignoredVoiceLens=ignoredVoiceLens) and\
+                                                     ignoredSensations=ignoredSensations) and\
                (timemin is None or sensation.getTime() > timemin) and\
                (timemax is None or sensation.getTime() < timemax):
 # Enable this, when test is corrected
@@ -799,8 +798,7 @@ class Memory(object):
                 bestAssociationSensationImportance = None 
                 for association in sensation.getAssociationsbBySensationType(associationSensationType=Sensation.SensationType.Voice,
                                                                              associationDirection = robotType,
-                                                                             ignoredSensations=ignoredSensations,
-                                                                             ignoredVoiceLens=ignoredVoiceLens):
+                                                                             ignoredSensations=ignoredSensations):
                     importance = prevalence * association.getSensation().getImportance() # use prevalence and importance to get prevalence based importance
                     if bestAssociationSensationImportance is None or\
                        bestAssociationSensationImportance < importance:

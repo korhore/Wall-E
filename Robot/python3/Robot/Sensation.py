@@ -1922,15 +1922,12 @@ class Sensation(object):
     '''
     def hasAssociationSensationType(self, associationSensationType,
                                     associationDirection = RobotType.Sense,
-                                    ignoredSensations=[],
-                                    ignoredVoiceLens=[],
-                                    ignoredImageLens=[]):
+                                    ignoredSensations=[]):
         has=False
         for association in self.associations:
             if association.getSensation().getSensationType() == associationSensationType and\
                association.getSensation().getRobotType() == associationDirection and\
-               association.getSensation() not in ignoredSensations and\
-               len(association.getSensation().getData()) not in ignoredVoiceLens:
+               association.getSensation().getDataId() not in ignoredSensations:
                 has=True
                 break       
         return has
