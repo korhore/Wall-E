@@ -85,6 +85,7 @@ class Playback(Robot):
         
         self.last_datalen=0
         self.last_write_time = systemTime.time()
+        self.last_dataid=None
         
         if IsAlsaAudio:
             try:
@@ -129,8 +130,9 @@ class Playback(Robot):
         # Test
         #elif self.ok and self.running and sensation.getSensationType() == Sensation.SensationType.Voice:
             if systemTime.time() - sensation.getTime() < Playback.COMMUNICATION_INTERVAL:
-                if self.last_datalen != len(sensation.getData()) or systemTime.time() - self.last_write_time > Playback.COMMUNICATION_INTERVAL:
-                    self.last_datalen = len(sensation.getData())
+                if self.last_dataid != sensation.getDataId() or systemTime.time() - self.last_write_time > Playback.COMMUNICATION_INTERVAL:
+                    self.last_dataid = sensation.getDataId()
+                    #self.last_datalen = len(sensation.getData())
                     data = sensation.getData()
                     
                     # process voice
@@ -186,6 +188,7 @@ class Playback(Robot):
                     #data = result_data + data
                     #normal                        
                     data = result_data
+                    self.last_datalen = len(data) # this is real datalen
                                                         
                     if IsAlsaAudio:
                         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: Sensation.SensationType.VoiceData self.outp.write(data)')

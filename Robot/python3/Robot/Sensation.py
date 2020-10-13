@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 10.10.2020
+Edited on 13.10.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -1944,8 +1944,7 @@ class Sensation(object):
         for association in self.associations:
             if association.getSensation().getSensationType() == associationSensationType and\
                association.getSensation().getRobotType() == associationDirection and\
-               association.getSensation() not in ignoredSensations and\
-               len(association.getSensation().getData()) not in ignoredVoiceLens:
+               association.getSensation().getDataId() not in ignoredSensations:
                 associations.append(association)
         return associations
 #     def setReceivedFrom(self, receivedFrom):

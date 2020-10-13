@@ -763,8 +763,6 @@ class Memory(object):
                                    associationSensationType = None,
                                    associationDirection = Sensation.RobotType.Sense,
                                    ignoredSensations = [],
-                                   ignoredVoiceLens = [],
-                                   ignoredImageLens = [],
                                    searchLength = 10):
 #                                   searchLength = Sensation.SEARCH_LENGTH):
         self.memoryLock.acquireRead()                  # read thread_safe
@@ -781,7 +779,7 @@ class Memory(object):
         # good voices
         found_candidates=0
         for sensation in self.sensationMemory:
-            if sensation not in ignoredSensations and\
+            if sensation.getDataId() not in ignoredSensations and\
                sensation.getSensationType() == Sensation.SensationType.Item and\
                sensation.getName() == name and\
                sensation.getRobotType() == robotType and\
@@ -818,6 +816,11 @@ class Memory(object):
             self.log(logStr="getMostImportantSensation found bestAssociationSensation {} {}".format(bestAssociationSensation.toDebugStr(),str(bestAssociationSensationImportance)), logLevel=Memory.MemoryLogLevel.Normal)            
                                     
         self.memoryLock.releaseRead()                  # read thread_safe
+        if bestSensation is not None:
+            assert bestSensation.getDataId() not in ignoredSensations
+        if bestAssociationSensation is not None:
+            assert bestAssociationSensation.getDataId() not in ignoredSensations
+
         return bestSensation, bestAssociation, bestAssociationSensation
 
     '''

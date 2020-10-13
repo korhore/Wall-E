@@ -1,6 +1,6 @@
 '''
 Created on 30.04.2019
-Updated on 24.05.2020
+Updated on 11.10.2020
 
 @author: reijo.korhonen@gmail.com
 '''
@@ -604,7 +604,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                             current_present[name] = precence
                             subimage = sensation.getImage().crop(size)
                             subsensation = self.createSensation( sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense,\
-                                                            image=subimage)
+                                                            image=subimage, locations=self.getUpLocations())
                             self.log("process created subimage sensation " + subsensation.toDebugStr())
                             # don't associate to original image sensation
                             # we wan't to save memory and subimage is important, not whore image
@@ -612,7 +612,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                             subsensation.save()
                             
                             itemsensation = self.createSensation( sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense,
-                                                                  name = name, score = score, presence = precence)
+                                                                  name = name, score = score, presence = precence, locations=self.getUpLocations())
                             itemsensation.associate(sensation=subsensation)
                             self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
                             # TODO Here we used association. Study if this has some effect and use Feeling sensation if needed. Seems that no effect-
@@ -761,7 +761,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                    presence = Sensation.Presence.Exiting  
                    TensorFlowClassification.present[name] = presence
                 itemsensation = self.createSensation( sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense, name=name,\
-                                                 presence = presence)
+                                                 presence = presence, locations=self.getUpLocations())
                 self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
                 self.log("process created exiting/absent itemsensation " + itemsensation.toDebugStr())
         # can't del in loop, do it here
