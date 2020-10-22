@@ -13,10 +13,21 @@ two instances will be created. Ment to test 'sublocations'
 Develop
 -------
 
+- when we run out of bestSensations in speaking, what we will do?
+-- stop answering ans wait conversation will end?
+-- technically end conversation and start we one,
+   meaning stat innredSensations can be ignored?
+-- I will choose keeping conversation on. If we dond find anything to say
+   ignoring what we hjave said before in this conversation, then we will say same things again or say again
+   what opposite has said in this conversation. Maybe most interesting is say first what other side has said
+   and after that say again what we save said, so we cound first add some parameters more into
+   Memory.getMostImportantCommunicationSensations
+   
+
 ToDo Order
 - remove
 -- Robot.getLocations()
-- enabble
+- enable
 -- Robot.getDownLocation
 -- Robot.getUpLocations
 
