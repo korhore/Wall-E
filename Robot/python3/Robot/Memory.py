@@ -766,9 +766,12 @@ class Memory(object):
                                    searchLength = 10):
 #                                   searchLength = Sensation.SEARCH_LENGTH):
         self.memoryLock.acquireRead()                  # read thread_safe
-        bestSensation = None
-        bestAssociation = None
-        bestAssociationSensation = None
+        Memory.Memory = None
+        itemSensation = None
+        voiceSensation = None
+        voiceAssociation = None
+        imageSensation = None
+        imageAssociation = None
         if name == None:
             prevalence = 0.1
         else:
@@ -777,7 +780,7 @@ class Memory(object):
         # TODO starting with best score is not a good idea
         # if best scored item.name has only bad voices, we newer can get
         # good voices
-        found_candidates=0
+        found_voice_candidates=0
         for sensation in self.sensationMemory:
             if sensation.getDataId() not in ignoredSensations and\
                sensation.getSensationType() == Sensation.SensationType.Item and\
@@ -801,27 +804,60 @@ class Memory(object):
                     if bestAssociationSensationImportance is None or\
                        bestAssociationSensationImportance < importance:
                         bestAssociationSensationImportance = importance
-                        bestSensation = sensation
-                        bestAssociation = association
-                        bestAssociationSensation = association.getSensation()
-                        found_candidates +=1
-                        if found_candidates >= searchLength:
+                        itemSensation = sensation
+                        voiceAssociation = association
+                        voiceSensation = association.getSensation()
+                        found_voice_candidates +=1
+                        if found_voice_candidates >= searchLength:
                             break
-            if found_candidates >= searchLength:
+            if found_voice_candidates >= searchLength:
                 break
-        if bestSensation == None:
+
+        # TODO find independently nest image until we will find a way how to find best image assosiated both item and voice
+        found_image_candidates=0
+        for sensation in self.sensationMemory:
+            if sensation.getDataId() not in ignoredSensations and\
+               sensation.getSensationType() == Sensation.SensationType.Item and\
+               sensation.getName() == name and\
+               sensation.getRobotType() == robotType and\
+               sensation.hasAssociationSensationType(associationSensationType=Sensation.SensationType.Image,
+                                                     associationDirection = robotType,
+                                                     ignoredSensations=ignoredSensations) and\
+               (timemin is None or sensation.getTime() > timemin) and\
+               (timemax is None or sensation.getTime() < timemax):
+
+                bestAssociationSensationImportance = None 
+                for association in sensation.getAssociationsbBySensationType(associationSensationType=Sensation.SensationType.Image,
+                                                                             associationDirection = robotType,
+                                                                             ignoredSensations=ignoredSensations):
+                    importance = prevalence * association.getSensation().getImportance() # use prevalence and importance to get prevalence based importance
+                    if bestAssociationSensationImportance is None or\
+                       bestAssociationSensationImportance < importance:
+                        bestAssociationSensationImportance = importance
+                        #itemSensation = sensation
+                        imageAssociation = association
+                        imageSensation = association.getSensation()
+                        found_image_candidates +=1
+                        if found_image_candidates >= searchLength:
+                            break
+            if found_image_candidates >= searchLength:
+                break
+        
+        
+        
+        if itemSensation == None:
             self.log(logStr="getMostImportantSensation did not find any", logLevel=Memory.MemoryLogLevel.Normal)
         else:
-            self.log(logStr="getMostImportantSensation bestSensation {} {}".format(bestSensation.toDebugStr(),str(bestSensation.getImportance())), logLevel=Memory.MemoryLogLevel.Normal)
-            self.log(logStr="getMostImportantSensation found bestAssociationSensation {} {}".format(bestAssociationSensation.toDebugStr(),str(bestAssociationSensationImportance)), logLevel=Memory.MemoryLogLevel.Normal)            
+            self.log(logStr="getMostImportantSensation itemSensation {} {}".format(itemSensation.toDebugStr(),str(itemSensation.getImportance())), logLevel=Memory.MemoryLogLevel.Normal)
+            self.log(logStr="getMostImportantSensation found voiceSensation {} {}".format(voiceSensation.toDebugStr(),str(bestAssociationSensationImportance)), logLevel=Memory.MemoryLogLevel.Normal)            
                                     
         self.memoryLock.releaseRead()                  # read thread_safe
-        if bestSensation is not None:
-            assert bestSensation.getDataId() not in ignoredSensations
-        if bestAssociationSensation is not None:
-            assert bestAssociationSensation.getDataId() not in ignoredSensations
+        if itemSensation is not None:
+            assert itemSensation.getDataId() not in ignoredSensations
+        if voiceSensation is not None:
+            assert voiceSensation.getDataId() not in ignoredSensations
 
-        return bestSensation, bestAssociation, bestAssociationSensation
+        return itemSensation, voiceSensation, voiceAssociation, imageSensation, imageAssociation
 
     '''
     Get most important connected sensation by feeling and score from this specified Sensation

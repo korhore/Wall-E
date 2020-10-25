@@ -1,6 +1,6 @@
 '''
 Created on 21.06.2019
-Updated on 22.10.2020
+Updated on 26.10.2020
 @author: reijo.korhonen@gmail.com
 
 test Association class
@@ -205,7 +205,7 @@ class CommunicationTestCase(unittest.TestCase):
     TensorfloClöassafication produces
     Item.name Working Out
     '''    
-    def test_Presense(self):
+    def re_test_Presense(self):
         print('\ntest_Presense')
                 
         history_sensationTime = systemTime.time() -2*max(CommunicationTestCase.ASSOCIATION_INTERVAL, Communication.COMMUNICATION_INTERVAL)
@@ -222,7 +222,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  presence=Sensation.Presence.Entering)
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
         # We get Voice, if Communication can respond but it cant
-        self.expect(name='Entering, Too old response', isEmpty=True, isSpokenVoice=False, isHeardVoice=False, isFeeling=False)        # Not sure do we always get a voice
+        self.expect(name='Entering, Too old response', isEmpty=True, isSpoken=False, isHeard=False, isVoiceFeeling=False)        # Not sure do we always get a voice
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 1, 'len(self.communication.getMemory()..getAllPresentItemSensations() should be 1')
       
         print('\n current Entering {}'.format(CommunicationTestCase.NAME))
@@ -257,7 +257,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
         # now we should get Voice, Robot is presenting itself
         # TODO, but we get 2 voices, Communication is too voice, because iy introduces itself and starts to speak.
-        self.expect(name='Entering, response', isEmpty=False, isSpokenVoice=True, isHeardVoice=False, isFeeling=False)
+        self.expect(name='Entering, response', isEmpty=False, isSpoken=True, isHeard=False, isVoiceFeeling=False)
         
         print('\n current Present {}'.format(CommunicationTestCase.NAME))
         #systemTime.sleep(0.1)  # wait to get really even id
@@ -275,7 +275,7 @@ class CommunicationTestCase(unittest.TestCase):
         # process       
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 1, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 1')
-        self.expect(name='Present, response', isEmpty=False, isSpokenVoice=True, isHeardVoice=False, isFeeling=False)
+        self.expect(name='Present, response', isEmpty=False, isSpoken=True, isHeard=False, isVoiceFeeling=False)
 
         # this situation should not happen
 #         print('\n current Present again {}'.format(CommunicationTestCase.NAME))
@@ -295,7 +295,7 @@ class CommunicationTestCase(unittest.TestCase):
 #         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
 #         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 1, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 1')
 #         # TODO is this so?
-#         self.expect(name='Present again, used response', isEmpty=False, isSpokenVoice=True, isHeardVoice=False, isFeeling=False)
+#         self.expect(name='Present again, used response', isEmpty=False, isSpoken=True, isHeard=False, isVoiceFeeling=False)
         
         print('\n current Absent {}'.format(CommunicationTestCase.NAME))
         #systemTime.sleep(0.1)  # wait to get really even id
@@ -320,7 +320,7 @@ class CommunicationTestCase(unittest.TestCase):
         # if absent, Communication does not anyone to speak with
         # at this point Communication should cancel timer, because there no one to speak with.
         # We had said something else than presenting ourselves, so we would get a negative feeling
-        self.expect(name='Absent', isEmpty=False, isSpokenVoice=False, isHeardVoice=False, isFeeling=True, isNegativeFeeling=True)
+        self.expect(name='Absent', isEmpty=False, isSpoken=False, isHeard=False, isVoiceFeeling=True, isNegativeFeeling=True)
         
  
         # NAME with NAME2
@@ -357,7 +357,7 @@ class CommunicationTestCase(unittest.TestCase):
         #process                      
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
         #self.assertEqual((self.getAxon().empty()), False,  'Axon should not be empty, when entering')
-        self.expect(name='Present Name 2, Conversation continues', isEmpty=False, isSpokenVoice=True, isHeardVoice=False, isFeeling=False)
+        self.expect(name='Present Name 2, Conversation continues', isEmpty=False, isSpoken=True, isHeard=False, isVoiceFeeling=False)
         
         print('\n NAME2 current Entering {}'.format(CommunicationTestCase.NAME2))
         # make potential response
@@ -392,7 +392,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 2, 'len(self.communication.getMemory().getAllPresentItemSensations() after Entering Item NAME2 Sensation should NAME2 be 2')
 
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
-        self.expect(name='Entering Name 2, change in presentation',  isEmpty=False, isSpokenVoice=True, isHeardVoice=False, isFeeling=False)
+        self.expect(name='Entering Name 2, change in presentation',  isEmpty=False, isSpoken=True, isHeard=False, isVoiceFeeling=False)
         
         print('\n NAME2 current Present {}'.format(CommunicationTestCase.NAME2))
         #systemTime.sleep(0.1)  # wait to get really even id
@@ -411,7 +411,7 @@ class CommunicationTestCase(unittest.TestCase):
        
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 2, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 2')
-        self.expect(name='Present Name 2, change in presentation',  isEmpty=False, isSpokenVoice=True, isHeardVoice=False, isFeeling=False)
+        self.expect(name='Present Name 2, change in presentation',  isEmpty=False, isSpoken=True, isHeard=False, isVoiceFeeling=False)
 
         print('\n NAME2 current Present again {}'.format(CommunicationTestCase.NAME2))
         #systemTime.sleep(0.1)  # wait to get really even id
@@ -429,8 +429,8 @@ class CommunicationTestCase(unittest.TestCase):
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 2, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 2')
         # TODO Next commented test should be valid Why this?
-        #self.expect(name='Present NAME2 again basic change in presentation', isEmpty=True, isSpokenVoice=False, isHeardVoice=False, isFeeling=False)
-        self.expect(name='Present NAME2 again basic change in presentation', isEmpty=False, isSpokenVoice=True, isHeardVoice=False, isFeeling=False)
+        #self.expect(name='Present NAME2 again basic change in presentation', isEmpty=True, isSpoken=False, isHeard=False, isVoiceFeeling=False)
+        self.expect(name='Present NAME2 again basic change in presentation', isEmpty=False, isSpoken=True, isHeard=False, isVoiceFeeling=False)
         
         print('\n NAME2 current Absent {}'.format(CommunicationTestCase.NAME2))
         #systemTime.sleep(0.1)  # wait to get really even id
@@ -450,7 +450,7 @@ class CommunicationTestCase(unittest.TestCase):
         systemTime.sleep(sleepTime)
 
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 1, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 1')
-        self.expect(name='Absent NAME2', isEmpty=False, isSpokenVoice=False, isHeardVoice=False, isFeeling=True, isNegativeFeeling=True)
+        self.expect(name='Absent NAME2', isEmpty=False, isSpoken=False, isHeard=False, isVoiceFeeling=True, isNegativeFeeling=True)
     
 
 # This was test Absent again
@@ -468,7 +468,7 @@ class CommunicationTestCase(unittest.TestCase):
 #        
 #         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
 #         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 0, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 0')
-#         self.expect(name='Absent NAME', isEmpty=True, isSpokenVoice=False, isHeardVoice=False, isFeeling=False)
+#         self.expect(name='Absent NAME', isEmpty=True, isSpoken=False, isHeard=False, isVoiceFeeling=False)
         
         # we don't response any more, so Communication.stopWaitingResponse
         # should be run and self.communication.communicationItems) should be empty
@@ -485,8 +485,8 @@ class CommunicationTestCase(unittest.TestCase):
 #         # should get Voice Feeling between Voice and Item
 #         # BUT is hard to test, just log
 #         # TODO Why commented does not work
-#         self.expect(name='NO response', isEmpty=False, isSpokenVoice=False, isHeardVoice=False,  isFeeling=True, isNegativeFeeling=True)
-#         #self.expect(name='NO response', isEmpty=True, isSpokenVoice=False, isHeardVoice=False,  isFeeling=False, isNegativeFeeling=False)
+#         self.expect(name='NO response', isEmpty=False, isSpoken=False, isHeard=False,  isVoiceFeeling=True, isNegativeFeeling=True)
+#         #self.expect(name='NO response', isEmpty=True, isSpoken=False, isHeard=False,  isVoiceFeeling=False, isNegativeFeeling=False)
 #         # no communicationItems should be left in 
 #         #self.assertEqual(len(self.communication.communicationItems),0, 'no communicationItems should be left in Communication ')
 #         #print("test continues, should have got Feeling from stopWaitingResponse")
@@ -508,7 +508,7 @@ class CommunicationTestCase(unittest.TestCase):
         systemTime.sleep(sleepTime)
 
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 0, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 0')
-        self.expect(name='Absent NAME', isEmpty=True, isSpokenVoice=False, isHeardVoice=False, isFeeling=False)
+        self.expect(name='Absent NAME', isEmpty=True, isSpoken=False, isHeard=False, isVoiceFeeling=False)
        
 
     '''
@@ -735,10 +735,10 @@ class CommunicationTestCase(unittest.TestCase):
         self.simulateCommunicationProcess(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
 # introducing self is commented out from test, because it is commented out from implementation
 #         # should get just Voice as introducing Robot
-#         self.expect(name='introducing self', isEmpty=False, isSpokenVoice=True, isHeardVoice=False, isFeeling=False)
+#         self.expect(name='introducing self', isEmpty=False, isSpoken=True, isHeard=False, isVoiceFeeling=False)
 
-#        self.expect(name='introducing self', isEmpty=False, isSpokenVoice=True, voice=Wall_E_voice_sensation_2, isHeardVoice=False, isFeeling=True, isPositiveFeeling=True)
-        self.expect(name='Starting conversation, get best voice', isEmpty=False, isSpokenVoice=True, voice=Wall_E_voice_sensation_2, isHeardVoice=False, isFeeling=False)
+#        self.expect(name='introducing self', isEmpty=False, isSpoken=True, voice=Wall_E_voice_sensation_2, isHeard=False, isVoiceFeeling=True, isPositiveFeeling=True)
+        self.expect(name='Starting conversation, get best voice', isEmpty=False, isSpoken=True, voice=Wall_E_voice_sensation_2, isHeard=False, isVoiceFeeling=False)
 
 # OOPS What was meaning of next deletieons.
 #         Wall_E_voice_sensation_1.delete()
@@ -772,11 +772,11 @@ class CommunicationTestCase(unittest.TestCase):
         self.simulateCommunicationProcess(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_voice_response_sensation)
 
         # should get Voice but no Feeling because Robot is kust introducing itself
-        #self.expect(name='response', isEmpty=False, isSpokenVoice=True, isHeardVoice=False,  isFeeling=False, isPositiveFeeling=False)
+        #self.expect(name='response', isEmpty=False, isSpoken=True, isHeard=False,  isVoiceFeeling=False, isPositiveFeeling=False)
         # should get 2. best voice and positive feeling for 1. best voice
         # But voice is still 1. best voice, why
-        self.expect(name='response, second best voice', isEmpty=False, isSpokenVoice=True, voice=Wall_E_voice_sensation_1, isHeardVoice=False,  isFeeling=True, isPositiveFeeling=True)
-        #self.expect(name='response, second best voice', isEmpty=False, isSpokenVoice=True, voice=None, isHeardVoice=False,  isFeeling=True, isPositiveFeeling=True)
+        self.expect(name='response, second best voice', isEmpty=False, isSpoken=True, voice=Wall_E_voice_sensation_1, isHeard=False,  isVoiceFeeling=True, isPositiveFeeling=True)
+        #self.expect(name='response, second best voice', isEmpty=False, isSpoken=True, voice=None, isHeard=False,  isVoiceFeeling=True, isPositiveFeeling=True)
         
 
  
@@ -805,9 +805,9 @@ class CommunicationTestCase(unittest.TestCase):
         self.simulateCommunicationProcess(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_voice_response_sensation)
 
         # should get Voice and a Feeling between Voice and Item
-       #self.expect(name='response', isEmpty=False, isSpokenVoice=True, isHeardVoice=False,  isFeeling=True, isPositiveFeeling=True)
+       #self.expect(name='response', isEmpty=False, isSpoken=True, isHeard=False,  isVoiceFeeling=True, isPositiveFeeling=True)
         # But voice is still 1. best voice, why
-        self.expect(name='response, second best voice', isEmpty=False, isSpokenVoice=True, voice=Wall_E_voice_sensation_3, isHeardVoice=False,  isFeeling=True, isPositiveFeeling=True)
+        self.expect(name='response, second best voice', isEmpty=False, isSpoken=True, voice=Wall_E_voice_sensation_3, isHeard=False,  isVoiceFeeling=True, isPositiveFeeling=True)
         
 
         # we don't response any more, so Communication.stopWaitingResponse
@@ -819,7 +819,7 @@ class CommunicationTestCase(unittest.TestCase):
         print("Now stopWaitingResponse should be happened and we test it")       
         # should get Voice Feeling between Voice and Item
         # BUT is hard t0 test, just log
-        self.expect(name='NO response', isEmpty=False, isSpokenVoice=False, isHeardVoice=False,  isFeeling=True, isNegativeFeeling=True)
+        self.expect(name='NO response', isEmpty=False, isSpoken=False, isHeard=False,  isVoiceFeeling=True, isNegativeFeeling=True)
         # no communicationItems should be left in 
         #self.assertEqual(len(self.communication.communicationItems),0, 'no communicationItems should be left in Communication ')
         print("test continues, should have got Feeling from stopWaitingResponse")
@@ -836,7 +836,7 @@ class CommunicationTestCase(unittest.TestCase):
     '''
 
     def test_2_ProcessItemPresent(self):
-        print('\nttest_2_ProcessItemPresent')
+        print('\ntest_2_ProcessItemPresent')
         self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), self.Wall_E_item_sensation_association_len)
         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), self.Wall_E_image_sensation_association_len)
         
@@ -1014,29 +1014,29 @@ class CommunicationTestCase(unittest.TestCase):
                                                  associations=[],
                                                  presence=Sensation.Presence.Entering)
         #systemTime.sleep(0.1)  # wait to get really even id
-        Wall_E_image_sensation = self.communication.createSensation(memoryType=Sensation.MemoryType.Working,
+        Wall_E_image_sensation_1 = self.communication.createSensation(memoryType=Sensation.MemoryType.Working,
                                                   sensationType=Sensation.SensationType.Image,
                                                   robotType=Sensation.RobotType.Sense)
         
-        Wall_E_image_sensation.associate(sensation=Wall_E_item_sensation)
+        Wall_E_image_sensation_1.associate(sensation=Wall_E_item_sensation)
         # these connected each other
         self.assertEqual(len(Wall_E_item_sensation.getAssociations()), 1)
-        self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 1)
+        self.assertEqual(len(Wall_E_image_sensation_1.getAssociations()), 1)
         # TODO this verifies test, but not implementation
         '''
         Commented out, so we can correct implementation
         # simulate Association has connected an voice to Item and Image 
         Wall_E_voice_sensation_1 = self.communication.createSensation(sensationType=Sensation.SensationType.Voice, 
-                                                       associations=[Sensation.Association(sensation=Wall_E_image_sensation,
+                                                       associations=[Sensation.Association(sensation=Wall_E_image_sensation_1,
                                                                                          score=CommunicationTestCase.SCORE_1),
                                                                     Sensation.Association(sensation=Wall_E_item_sensation,
                                                                                          score=CommunicationTestCase.SCORE_1)])
          # test that all is OK for tests
         self.assertEqual(len(Wall_E_voice_sensation_1.getAssociations()), 2)
         # add missing associations test that all is OK for tests
-        Wall_E_image_sensation.addAssociation(Sensation.Association(sensation=Wall_E_voice_sensation_1,
+        Wall_E_image_sensation_1.addAssociation(Sensation.Association(sensation=Wall_E_voice_sensation_1,
                                                                        score=CommunicationTestCase.SCORE_1))
-        self.assertEqual(len(Wall_E_image_sensation.getAssociations()), 2)
+        self.assertEqual(len(Wall_E_image_sensation_1.getAssociations()), 2)
         # add missing associations test that all is OK for tests
         Wall_E_item_sensation.addAssociation(Sensation.Association(sensation=Wall_E_voice_sensation_1,
                                                                       score=CommunicationTestCase.SCORE_1))
@@ -1053,14 +1053,19 @@ class CommunicationTestCase(unittest.TestCase):
         #Item is entering, process
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
         
-        self.assertEqual(len(self.communication.saidSensations), 1, 'self.communication.saidSensations should have 1 item')
-        self.assertEqual(self.communication.saidSensations[0], Wall_E_voice_sensation_2.getDataId(), 'self.communication.saidSensations[0] should have Wall_E_voice_sensation_2.getDataId()')
+        self.assertEqual(len(self.communication.saidSensations), 2, 'self.communication.saidSensations should have 2 items')
+        self.assertEqual(self.communication.saidSensations[0], Wall_E_image_sensation_1.getDataId(), 'self.communication.saidSensations[0] should have Wall_E_image_sensation_1.getDataId()')
+        self.assertEqual(self.communication.saidSensations[1], Wall_E_voice_sensation_2.getDataId(), 'self.communication.saidSensations[1] should have Wall_E_voice_sensation_2.getDataId()')
 # introducing self is commented out from test, because it is commented out from implementation
 #         # should get just Voice as introducing Robot
-#         self.expect(name='introducing self', isEmpty=False, isSpokenVoice=True, isHeardVoice=False, isFeeling=False)
+#         self.expect(name='introducing self', isEmpty=False, isSpoken=True, isHeard=False, isVoiceFeeling=False)
 
-#        self.expect(name='introducing self', isEmpty=False, isSpokenVoice=True, voice=Wall_E_voice_sensation_2, isHeardVoice=False, isFeeling=True, isPositiveFeeling=True)
-        self.expect(name='Starting conversation, get best voice', isEmpty=False, isSpokenVoice=True, voice=Wall_E_voice_sensation_2, isHeardVoice=False, isFeeling=False)
+#        self.expect(name='introducing self', isEmpty=False, isSpoken=True, voice=Wall_E_voice_sensation_2, isHeard=False, isVoiceFeeling=True, isPositiveFeeling=True)
+        self.expect(name='Starting conversation, get best voice', isEmpty=False, isSpoken=True, isHeard=False,
+                    voice=Wall_E_voice_sensation_2,
+                    image=Wall_E_image_sensation_1,
+                    isVoiceFeeling=False,
+                    isImageFeeling=False)
 
 # OOPS What was meaning of next deletieons.
 #         Wall_E_voice_sensation_1.delete()
@@ -1094,7 +1099,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_voice_response_sensation)
         
         #self.assertEqual(len(self.communication.saidSensations), 3, 'self.communication.saidSensations should have 3 items')
-        self.assertEqual(len(self.communication.saidSensations), 2, 'self.communication.saidSensations should have 2 items')
+        self.assertEqual(len(self.communication.saidSensations), 4, 'self.communication.saidSensations should have 4 items')
         self.assertEqual(len(self.communication.heardSensations), 1, 'self.communication.heardSensations should have 1 items')
         print("Wall_E_voice_sensation_1.getDataId()    {}".format(Wall_E_voice_sensation_1.getDataId()))
         print("Wall_E_voice_sensation_2.getDataId()    {}".format(Wall_E_voice_sensation_2.getDataId()))
@@ -1102,20 +1107,34 @@ class CommunicationTestCase(unittest.TestCase):
         print("Wall_E_voice_response_sensation.getDataId()    {}".format(Wall_E_voice_response_sensation.getDataId()))
         print("self.communication.saidSensations[0] {}".format(self.communication.saidSensations[0]))
         print("self.communication.saidSensations[1] {}".format(self.communication.saidSensations[1]))
+        print("self.communication.saidSensations[2] {}".format(self.communication.saidSensations[2]))
+        print("self.communication.saidSensations[3] {}".format(self.communication.saidSensations[3]))
         #print("self.communication.saidSensations[2] {}".format(self.communication.saidSensations[2]))
         print("self.communication.heardSensations[0] {}".format(self.communication.heardSensations[0]))
        
-        self.assertEqual(self.communication.saidSensations[0], Wall_E_voice_sensation_2.getDataId(), 'self.communication.saidSensations[0] should have Wall_E_voice_sensation_2.getDataId()')
-        #self.assertEqual(self.communication.saidSensations[2], Wall_E_voice_sensation_1.getDataId(), 'self.communication.saidSensations[2] should have Wall_E_voice_sensation_1.getDataId()')
-        self.assertEqual(self.communication.saidSensations[1], Wall_E_voice_sensation_1.getDataId(), 'self.communication.saidSensations[1] should have Wall_E_voice_sensation_1.getDataId()')
+        self.assertEqual(self.communication.saidSensations[0], Wall_E_image_sensation_1.getDataId(), 'self.communication.saidSensations[0] should have Wall_E_image_sensation_1.getDataId()')
+        self.assertEqual(self.communication.saidSensations[1], Wall_E_voice_sensation_2.getDataId(), 'self.communication.saidSensations[1] should have Wall_E_voice_sensation_2.getDataId()')
+        self.assertEqual(self.communication.saidSensations[2], self.Wall_E_image_sensation.getDataId(), 'self.communication.saidSensations[2] should have Wall_E_image_sensation_1.getDataId()')
+        self.assertEqual(self.communication.saidSensations[3], Wall_E_voice_sensation_1.getDataId(), 'self.communication.saidSensations[3] should have Wall_E_voice_sensation_1.getDataId()')
         self.assertEqual(self.communication.heardSensations[0], Wall_E_voice_response_sensation.getDataId(), 'self.communication.heardSensations[0] should have Wall_E_voice_response_sensation.getDataId()')
 
         # should get Voice but no Feeling because Robot is is introducing itself
-        #self.expect(name='response', isEmpty=False, isSpokenVoice=True, isHeardVoice=False,  isFeeling=False, isPositiveFeeling=False)
+        #self.expect(name='response', isEmpty=False, isSpoken=True, isHeard=False,  isVoiceFeeling=False, isPositiveFeeling=False)
         # should get 2. best voice and positive feeling for 1. best voice
         # But voice is still 1. best voice, why
-        self.expect(name='response, second best voice', isEmpty=False, isSpokenVoice=True, voice=Wall_E_voice_sensation_1, isHeardVoice=False,  isFeeling=True, isPositiveFeeling=True)
-        #self.expect(name='response, second best voice', isEmpty=False, isSpokenVoice=True, voice=None, isHeardVoice=False,  isFeeling=True, isPositiveFeeling=True)
+        # TODO expect. Ww should get 2 feeling sensation, 1 Voice and 1 Image sensation
+        # expect does not support this yet
+#         self.expect(name='response, second best voice', isEmpty=False, isSpoken=True, isHeard=False,
+#                     voice=Wall_E_voice_sensation_1, isVoiceFeeling=True, isPositiveFeeling=True)
+        
+        self.expect(name='response, second best voice', isEmpty=False, isSpoken=True, isHeard=False,
+                    voice=Wall_E_voice_sensation_1,
+                    image=self.Wall_E_image_sensation,
+                    isVoiceFeeling=True,
+                    isImageFeeling=True,
+                    isPositiveFeeling=True)
+        
+        #self.expect(name='response, second best voice', isEmpty=False, isSpoken=True, voice=None, isHeard=False,  isVoiceFeeling=True, isPositiveFeeling=True)
         
 
  
@@ -1136,14 +1155,14 @@ class CommunicationTestCase(unittest.TestCase):
         
         Wall_E_voice_response_sensation_2.associate(sensation=self.Wall_E_item_sensation)
         #self.assertEqual(len(Wall_E_voice_response_sensation_2.getAssociations()), 3)#2
-        self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), self.Wall_E_item_sensation_association_len+2)
+        self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), self.Wall_E_item_sensation_association_len+3)
         self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
         
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 1, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 1')
         # process
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_voice_response_sensation_2)
 
-        self.assertEqual(len(self.communication.saidSensations), 3, 'self.communication.saidSensations should have 3 items')
+        self.assertEqual(len(self.communication.saidSensations), 5, 'self.communication.saidSensations should have 5 items')
         self.assertEqual(len(self.communication.heardSensations), 2, 'self.communication.heardSensations should have 2 items')
         print("Wall_E_voice_sensation_1.getDataId()    {}".format(Wall_E_voice_sensation_1.getDataId()))
         print("Wall_E_voice_sensation_2.getDataId()    {}".format(Wall_E_voice_sensation_2.getDataId()))
@@ -1151,33 +1170,38 @@ class CommunicationTestCase(unittest.TestCase):
         print("self.communication.saidSensations[0] {}".format(self.communication.saidSensations[0]))
         print("self.communication.saidSensations[1] {}".format(self.communication.saidSensations[1]))
         print("self.communication.saidSensations[2] {}".format(self.communication.saidSensations[2]))
-#         print("self.communication.saidSensations[3] {}".format(self.communication.saidSensations[3]))
-#         print("self.communication.saidSensations[4] {}".format(self.communication.saidSensations[4]))
+        print("self.communication.saidSensations[3] {}".format(self.communication.saidSensations[3]))
+        print("self.communication.saidSensations[4] {}".format(self.communication.saidSensations[4]))
         print("self.communication.heardSensations[0] {}".format(self.communication.heardSensations[0]))
         print("self.communication.heardSensations[1] {}".format(self.communication.heardSensations[1]))
         
-        self.assertEqual(self.communication.saidSensations[0], Wall_E_voice_sensation_2.getDataId(), 'self.communication.saidSensations[0] should have Wall_E_voice_sensation_2.getDataId()')
-        self.assertEqual(self.communication.saidSensations[1], Wall_E_voice_sensation_1.getDataId(), 'self.communication.saidSensations[1] should have Wall_E_voice_sensation_1.getDataId()')
-        self.assertEqual(self.communication.saidSensations[2], Wall_E_voice_sensation_3.getDataId(), 'self.communication.saidSensations[2] should have Wall_E_voice_sensation_3.getDataId()')
+        # We don't have other unused images any more
+        
+        self.assertEqual(self.communication.saidSensations[0], Wall_E_image_sensation_1.getDataId(), 'self.communication.saidSensations[0] should have Wall_E_image_sensation_1.getDataId()')
+        self.assertEqual(self.communication.saidSensations[1], Wall_E_voice_sensation_2.getDataId(), 'self.communication.saidSensations[1] should have Wall_E_voice_sensation_2.getDataId()')
+        self.assertEqual(self.communication.saidSensations[2], self.Wall_E_image_sensation.getDataId(), 'self.communication.saidSensations[2] should have Wall_E_image_sensation_1.getDataId()')
+        self.assertEqual(self.communication.saidSensations[3], Wall_E_voice_sensation_1.getDataId(), 'self.communication.saidSensations[3] should have Wall_E_voice_sensation_1.getDataId()')
+        self.assertEqual(self.communication.saidSensations[4], Wall_E_voice_sensation_3.getDataId(), 'self.communication.saidSensations[4] should have Wall_E_voice_sensation_3.getDataId()')
         self.assertEqual(self.communication.heardSensations[0], Wall_E_voice_response_sensation.getDataId(), 'self.communication.heardSensations[0] should have Wall_E_voice_response_sensation.getDataId()')
         self.assertEqual(self.communication.heardSensations[1], Wall_E_voice_response_sensation_2.getDataId(), 'self.communication.heardSensations[1] should have Wall_E_voice_response_sensation_2.getDataId()')
       # should get Voice and a Feeling between Voice and Item
-       #self.expect(name='response', isEmpty=False, isSpokenVoice=True, isHeardVoice=False,  isFeeling=True, isPositiveFeeling=True)
+       #self.expect(name='response', isEmpty=False, isSpoken=True, isHeard=False,  isVoiceFeeling=True, isPositiveFeeling=True)
         # But voice is still 1. best voice, why
-        self.expect(name='response, second best voice', isEmpty=False, isSpokenVoice=True, voice=Wall_E_voice_sensation_3, isHeardVoice=False,  isFeeling=True, isPositiveFeeling=True)
+        #self.expect(name='response, second best voice', isEmpty=False, isSpoken=True, voice=Wall_E_voice_sensation_3, isHeard=False,  isVoiceFeeling=True, isPositiveFeeling=True)
+        self.expect(name='response, third best voice', isEmpty=False, isSpoken=True, isHeard=False,
+                    voice=Wall_E_voice_sensation_3,
+                    image=None,
+                    isVoiceFeeling=True,
+                    isImageFeeling=True,
+                    isPositiveFeeling=True)
         
 
-        # TODO We should test to get 2 respose voices also, because all memory voices are used, but we can use voices, that are said in this conversation also, but as last thing to do
-        # so this is last thing to test
-         # now we respond again 
-        #systemTime.sleep(0.1)  # wait to get really even id
+        # response 3
         Wall_E_voice_response_sensation_3 = self.communication.createSensation(#Stime=history_sensationTime,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     sensationType=Sensation.SensationType.Voice,
                                                     robotType=Sensation.RobotType.Sense,
                                                     data=CommunicationTestCase.VOICEDATA9)
-        # To be sure to get a new response, no this will be too new
-        #Wall_E_voice_response_sensation_3.setTime(systemTime.time())
        
         Wall_E_voice_response_sensation_3.associate(sensation=self.Wall_E_image_sensation)
         #self.assertEqual(len(Wall_E_voice_response_sensation_3.getAssociations()), 2)#1
@@ -1193,7 +1217,7 @@ class CommunicationTestCase(unittest.TestCase):
         # process
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_voice_response_sensation_3)
 
-        self.assertEqual(len(self.communication.saidSensations), 4, 'self.communication.saidSensations should have 4 items')
+        self.assertEqual(len(self.communication.saidSensations), 6, 'self.communication.saidSensations should have 6 items')
         self.assertEqual(len(self.communication.heardSensations), Communication.IGNORE_LAST_HEARD_SENSATIONS_LENGTH, 'self.communication.heardSensations should have {} items'.format(Communication.IGNORE_LAST_HEARD_SENSATIONS_LENGTH))
         print("Wall_E_voice_sensation_1.getDataId()    {}".format(Wall_E_voice_sensation_1.getDataId()))
         print("Wall_E_voice_sensation_2.getDataId()    {}".format(Wall_E_voice_sensation_2.getDataId()))
@@ -1201,32 +1225,38 @@ class CommunicationTestCase(unittest.TestCase):
         print("self.communication.saidSensations[0] {}".format(self.communication.saidSensations[0]))
         print("self.communication.saidSensations[1] {}".format(self.communication.saidSensations[1]))
         print("self.communication.saidSensations[2] {}".format(self.communication.saidSensations[2]))
-#         print("self.communication.saidSensations[3] {}".format(self.communication.saidSensations[3]))
-#         print("self.communication.saidSensations[4] {}".format(self.communication.saidSensations[4]))
+        print("self.communication.saidSensations[3] {}".format(self.communication.saidSensations[3]))
+        print("self.communication.saidSensations[4] {}".format(self.communication.saidSensations[4]))
+        print("self.communication.saidSensations[5] {}".format(self.communication.saidSensations[5]))
         print("self.communication.heardSensations[0] {}".format(self.communication.heardSensations[0]))
         print("self.communication.heardSensations[1] {}".format(self.communication.heardSensations[1]))
         for i in range(2,Communication.IGNORE_LAST_HEARD_SENSATIONS_LENGTH):
             print("self.communication.heardSensations[{}] {}".format(i, self.communication.heardSensations[i]))
         
-        self.assertEqual(self.communication.saidSensations[0], Wall_E_voice_sensation_2.getDataId(), 'self.communication.saidSensations[0] should have Wall_E_voice_sensation_2.getDataId()')
-        self.assertEqual(self.communication.saidSensations[1], Wall_E_voice_sensation_1.getDataId(), 'self.communication.saidSensations[1] should have Wall_E_voice_sensation_1.getDataId()')
-        self.assertEqual(self.communication.saidSensations[2], Wall_E_voice_sensation_3.getDataId(), 'self.communication.saidSensations[2] should have Wall_E_voice_sensation_3.getDataId()')
+        # We don't have other unused images any more
+        
+        self.assertEqual(self.communication.saidSensations[0], Wall_E_image_sensation_1.getDataId(), 'self.communication.saidSensations[0] should have Wall_E_image_sensation_1.getDataId()')
+        self.assertEqual(self.communication.saidSensations[1], Wall_E_voice_sensation_2.getDataId(), 'self.communication.saidSensations[1] should have Wall_E_voice_sensation_2.getDataId()')
+        self.assertEqual(self.communication.saidSensations[2], self.Wall_E_image_sensation.getDataId(), 'self.communication.saidSensations[2] should have Wall_E_image_sensation_1.getDataId()')
+        self.assertEqual(self.communication.saidSensations[3], Wall_E_voice_sensation_1.getDataId(), 'self.communication.saidSensations[3] should have Wall_E_voice_sensation_1.getDataId()')
+        self.assertEqual(self.communication.saidSensations[4], Wall_E_voice_sensation_3.getDataId(), 'self.communication.saidSensations[4] should have Wall_E_voice_sensation_3.getDataId()')
+        self.assertEqual(self.communication.saidSensations[5], Wall_E_voice_response_sensation.getDataId(), 'self.communication.saidSensations[5] should have Wall_E_voice_response_sensation.getDataId()')
+        self.assertEqual(self.communication.heardSensations[0], Wall_E_voice_response_sensation_2.getDataId(), 'self.communication.heardSensations[0] should have Wall_E_voice_response_sensation_2.getDataId()')
+        self.assertEqual(self.communication.heardSensations[1], Wall_E_voice_response_sensation_3.getDataId(), 'self.communication.heardSensations[1] should have Wall_E_voice_response_sensation_3.getDataId()')
         # TODO make this test more common about Communication.IGNORE_LAST_HEARD_SENSATIONS_LENGTH
         if Communication.IGNORE_LAST_HEARD_SENSATIONS_LENGTH == 2:
-            # dirst hweard is now dropped
+            # first hweard is now dropped
             #self.assertEqual(self.communication.heardSensations[0], Wall_E_voice_response_sensation.getDataId(), 'self.communication.heardSensations[0] should have Wall_E_voice_response_sensation.getDataId()')
-            self.assertEqual(self.communication.heardSensations[0], Wall_E_voice_response_sensation_2.getDataId(), 'self.communication.heardSensations[1] should have Wall_E_voice_response_sensation_2.getDataId()')
-            self.assertEqual(self.communication.heardSensations[1], Wall_E_voice_response_sensation_3.getDataId(), 'self.communication.heardSensations[2] should have Wall_E_voice_response_sensation_3.getDataId()')
+            self.assertEqual(self.communication.heardSensations[0], Wall_E_voice_response_sensation_2.getDataId(), 'self.communication.heardSensations[0] should have Wall_E_voice_response_sensation_2.getDataId()')
+            self.assertEqual(self.communication.heardSensations[1], Wall_E_voice_response_sensation_3.getDataId(), 'self.communication.heardSensations[1] should have Wall_E_voice_response_sensation_3.getDataId()')
         # should get Voice and a Feeling between Voice and Item
         # Voice should be already spoken Voice, but not last one, so it would be Wall_E_voice_response_sensation, which is dropped fron feard voices
         # But voice is still 1. best voice, why
-        self.expect(name='response, second best voice', isEmpty=False, isSpokenVoice=True, voice=Wall_E_voice_response_sensation, isHeardVoice=False,  isFeeling=True, isPositiveFeeling=True)
+        self.expect(name='response, Wall_E_voice_response_sensation', isEmpty=False, isSpoken=True, isHeard=False,  
+                    voice=Wall_E_voice_response_sensation, isVoiceFeeling=True, isPositiveFeeling=True)
         
 
-        # TODO We should test to get 2 respose voices also, because all memory voices are used, but we can use voices, that are said in this conversation also, but as last thing to do
-        # so this is last thing to test
-         # now we respond again 
-        #systemTime.sleep(0.1)  # wait to get really even id
+        # response 4
         Wall_E_voice_response_sensation_4 = self.communication.createSensation(#Stime=history_sensationTime,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     sensationType=Sensation.SensationType.Voice,
@@ -1249,37 +1279,44 @@ class CommunicationTestCase(unittest.TestCase):
         # process
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_voice_response_sensation_4)
 
-        self.assertEqual(len(self.communication.saidSensations), 5, 'self.communication.saidSensations should have 5 items')
+        self.assertEqual(len(self.communication.saidSensations), 7, 'self.communication.saidSensations should have 7 items')
         self.assertEqual(len(self.communication.heardSensations), Communication.IGNORE_LAST_HEARD_SENSATIONS_LENGTH, 'self.communication.heardSensations should have {} items'.format(Communication.IGNORE_LAST_HEARD_SENSATIONS_LENGTH))
         print("Wall_E_voice_sensation_1.getDataId()    {}".format(Wall_E_voice_sensation_1.getDataId()))
         print("Wall_E_voice_sensation_2.getDataId()    {}".format(Wall_E_voice_sensation_2.getDataId()))
         print("Wall_E_voice_sensation_3.getDataId()    {}".format(Wall_E_voice_sensation_3.getDataId()))
-        print("Wall_E_voice_response_sensation.getDataId()    {}".format(Wall_E_voice_response_sensation.getDataId()))
         print("self.communication.saidSensations[0] {}".format(self.communication.saidSensations[0]))
         print("self.communication.saidSensations[1] {}".format(self.communication.saidSensations[1]))
         print("self.communication.saidSensations[2] {}".format(self.communication.saidSensations[2]))
         print("self.communication.saidSensations[3] {}".format(self.communication.saidSensations[3]))
-#         print("self.communication.saidSensations[3] {}".format(self.communication.saidSensations[3]))
-#         print("self.communication.saidSensations[4] {}".format(self.communication.saidSensations[4]))
+        print("self.communication.saidSensations[4] {}".format(self.communication.saidSensations[4]))
+        print("self.communication.saidSensations[5] {}".format(self.communication.saidSensations[5]))
+        print("self.communication.saidSensations[6] {}".format(self.communication.saidSensations[6]))
         print("self.communication.heardSensations[0] {}".format(self.communication.heardSensations[0]))
         print("self.communication.heardSensations[1] {}".format(self.communication.heardSensations[1]))
         for i in range(2,Communication.IGNORE_LAST_HEARD_SENSATIONS_LENGTH):
             print("self.communication.heardSensations[{}] {}".format(i, self.communication.heardSensations[i]))
         
-        self.assertEqual(self.communication.saidSensations[0], Wall_E_voice_sensation_2.getDataId(), 'self.communication.saidSensations[0] should have Wall_E_voice_sensation_2.getDataId()')
-        self.assertEqual(self.communication.saidSensations[1], Wall_E_voice_sensation_1.getDataId(), 'self.communication.saidSensations[1] should have Wall_E_voice_sensation_1.getDataId()')
-        self.assertEqual(self.communication.saidSensations[2], Wall_E_voice_sensation_3.getDataId(), 'self.communication.saidSensations[2] should have Wall_E_voice_sensation_3.getDataId()')
-        self.assertEqual(self.communication.saidSensations[3], Wall_E_voice_response_sensation.getDataId(), 'self.communication.saidSensations[3] should have Wall_E_voice_response_sensation.getDataId()')
+        # We don't have other unused images any more
+        
+        self.assertEqual(self.communication.saidSensations[0], Wall_E_image_sensation_1.getDataId(), 'self.communication.saidSensations[0] should have Wall_E_image_sensation_1.getDataId()')
+        self.assertEqual(self.communication.saidSensations[1], Wall_E_voice_sensation_2.getDataId(), 'self.communication.saidSensations[1] should have Wall_E_voice_sensation_2.getDataId()')
+        self.assertEqual(self.communication.saidSensations[2], self.Wall_E_image_sensation.getDataId(), 'self.communication.saidSensations[2] should have Wall_E_image_sensation_1.getDataId()')
+        self.assertEqual(self.communication.saidSensations[3], Wall_E_voice_sensation_1.getDataId(), 'self.communication.saidSensations[3] should have Wall_E_voice_sensation_1.getDataId()')
+        self.assertEqual(self.communication.saidSensations[4], Wall_E_voice_sensation_3.getDataId(), 'self.communication.saidSensations[4] should have Wall_E_voice_sensation_3.getDataId()')
+        self.assertEqual(self.communication.saidSensations[5], Wall_E_voice_response_sensation.getDataId(), 'self.communication.saidSensations[5] should have Wall_E_voice_response_sensation.getDataId()')
+        self.assertEqual(self.communication.saidSensations[6], Wall_E_voice_response_sensation_2.getDataId(), 'self.communication.saidSensations[5] should have Wall_E_voice_response_sensation.getDataId()')
+        #self.assertEqual(self.communication.heardSensations[0], Wall_E_voice_response_sensation_2.getDataId(), 'self.communication.heardSensations[0] should have Wall_E_voice_response_sensation_2.getDataId()')
+        self.assertEqual(self.communication.heardSensations[0], Wall_E_voice_response_sensation_3.getDataId(), 'self.communication.heardSensations[0] should have Wall_E_voice_response_sensation_3.getDataId()')
+        self.assertEqual(self.communication.heardSensations[1], Wall_E_voice_response_sensation_4.getDataId(), 'self.communication.heardSensations[1] should have Wall_E_voice_response_sensation.getDataId()')
         # TODO make this test more common about Communication.IGNORE_LAST_HEARD_SENSATIONS_LENGTH
         if Communication.IGNORE_LAST_HEARD_SENSATIONS_LENGTH == 2:
-            # firstabd second  hweard are now dropped
-            #self.assertEqual(self.communication.heardSensations[0], Wall_E_voice_response_sensation.getDataId(), 'self.communication.heardSensations[0] should have Wall_E_voice_response_sensation.getDataId()')
-            self.assertEqual(self.communication.heardSensations[0], Wall_E_voice_response_sensation_3.getDataId(), 'self.communication.heardSensations[1] should have Wall_E_voice_response_sensation_3.getDataId()')
-            self.assertEqual(self.communication.heardSensations[1], Wall_E_voice_response_sensation_4.getDataId(), 'self.communication.heardSensations[2] should have Wall_E_voice_response_sensation_4.getDataId()')
+            # first heard is now dropped
+            self.assertEqual(self.communication.heardSensations[0], Wall_E_voice_response_sensation_3.getDataId(), 'self.communication.heardSensations[0] should have Wall_E_voice_response_sensation_3.getDataId()')
+            self.assertEqual(self.communication.heardSensations[1], Wall_E_voice_response_sensation_4.getDataId(), 'self.communication.heardSensations[1] should have Wall_E_voice_response_sensation_4.getDataId()')
         # should get Voice and a Feeling between Voice and Item
-        # Voice should be already spoken Voice, but not last one, so it would be Wall_E_voice_response_sensation, which is dropped fron feard voices
-        # But voice is still 1. best voice, why
-        self.expect(name='response, second best voice', isEmpty=False, isSpokenVoice=True, voice=Wall_E_voice_response_sensation_2, isHeardVoice=False,  isFeeling=True, isPositiveFeeling=True)
+        # Voice should be already spoken Voice, but not last one, so it would be Wall_E_voice_response_sensation_2, which is dropped fron heard voices
+        self.expect(name='response, Wall_E_voice_response_sensation_2', isEmpty=False, isSpoken=True, isHeard=False,  
+                    voice=Wall_E_voice_response_sensation_2, isVoiceFeeling=True, isPositiveFeeling=True)
 
         # TODO end
  
@@ -1293,7 +1330,7 @@ class CommunicationTestCase(unittest.TestCase):
         print("Now stopWaitingResponse should be happened and we test it")       
         # should get Voice Feeling between Voice and Item
         # BUT is hard t0 test, just log
-        self.expect(name='NO response', isEmpty=False, isSpokenVoice=False, isHeardVoice=False,  isFeeling=True, isNegativeFeeling=True)
+        self.expect(name='NO response', isEmpty=False, isSpoken=False, isHeard=False,  isVoiceFeeling=True, isNegativeFeeling=True)
         # no communicationItems should be left in 
         #self.assertEqual(len(self.communication.communicationItems),0, 'no communicationItems should be left in Communication ')
         print("test continues, should have got Feeling from stopWaitingResponse")
@@ -1304,12 +1341,15 @@ class CommunicationTestCase(unittest.TestCase):
     parameters
     name           name of the tested case
     isEmpty        do we expect a response at all
-    isSpokenVoice  do we expect to get Voice to be spoken
-    isHeardVoice   do we expect to get Voice heard
-    isFeeling      do we expect to get Feeling
+    isSpoken  do we expect to get Voice to be spoken
+    isHeard   do we expect to get Voice heard
+    isVoiceFeeling      do we expect to get Feeling
     '''
         
-    def expect(self, name, isEmpty, isSpokenVoice, isHeardVoice, isFeeling, voice=None, isPositiveFeeling=False, isNegativeFeeling=False):
+    def expect(self, name, isEmpty, isSpoken, isHeard,
+               isVoiceFeeling, voice=None,
+               isImageFeeling=False, image=None, 
+               isPositiveFeeling=False, isNegativeFeeling=False):
         print("Now expect")
         errortext = '{}: Axon empty should not be {}'.format(name, str(self.getAxon().empty()))
         if not isEmpty: 
@@ -1320,14 +1360,25 @@ class CommunicationTestCase(unittest.TestCase):
                 print('slept {}s to get something to Axon'.format(i))
         self.assertEqual(self.getAxon().empty(), isEmpty, errortext)
         if not isEmpty:   
-        #Voice and possible Feeling
-            isSpokenVoiceStillExpected = isSpokenVoice
-            isHeardVoiceStillExpected = isHeardVoice
+        #Voice. Image and possible Feeling
+            isSpokenVoiceStillExpected = isSpoken
+            isHeardVoiceStillExpected = isHeard
+            isSpokenImageStillExpected = isSpoken
+            isHeardImageStillExpected = isHeard
             if voice is not None:
                 isVoiceStillExpected = True
             else:
                 isVoiceStillExpected = False
-            isFeelingStillExpected = isFeeling
+                isSpokenVoiceStillExpected = False
+                isHeardVoiceStillExpected = False
+            if image is not None:
+                isImageStillExpected = True
+            else:
+                isImageStillExpected = False
+                isSpokenImageStillExpected = False
+                isHeardImageStillExpected = False
+            isVoiceFeelingStillExpected = isVoiceFeeling
+            isImageFeelingStillExpected = isImageFeeling
             while(not self.getAxon().empty()):
                 tranferDirection, sensation = self.getAxon().get()
                 if sensation.getSensationType() == Sensation.SensationType.Voice:
@@ -1340,12 +1391,31 @@ class CommunicationTestCase(unittest.TestCase):
                         if sensation.getRobotType() == Sensation.RobotType.Sense:
                             isHeardVoiceStillExpected = False # got it
                     else: # got something unexpected Voice
-                        errortext = '{}: Got unexpected Voice, duplicate {}'.format(name, isSpokenVoice or isHeardVoice)
+                        errortext = '{}: Got unexpected Voice, duplicate {}'.format(name, isSpoken or isHeard)
                         self.assertTrue(False, errortext)
-                if sensation.getSensationType() == Sensation.SensationType.Feeling:
-                    errortext =  '{}: got unexpected Feeling Another Feeling {}'.format(name, str(not isFeelingStillExpected))
-                    self.assertTrue(isFeelingStillExpected, errortext)
-                    isFeelingStillExpected = False
+                elif sensation.getSensationType() == Sensation.SensationType.Image:
+                    if isImageStillExpected:
+                        isImageStillExpected = (sensation.getDataId() != image.getDataId())
+                    if isSpokenImageStillExpected:
+                        if sensation.getRobotType() == Sensation.RobotType.Muscle:
+                            isSpokenImageStillExpected = False # got it
+                    elif isHeardImageStillExpected:
+                        if sensation.getRobotType() == Sensation.RobotType.Sense:
+                            isHeardImageStillExpected = False # got it
+                    else: # got something unexpected Image
+                        errortext = '{}: Got unexpected Image, duplicate {}'.format(name, isSpoken or isHeard)
+                        self.assertTrue(False, errortext)
+                elif sensation.getSensationType() == Sensation.SensationType.Feeling:
+                    errortext =  '{}: got unexpected Feeling Another Feeling {}'.format(name, str(not (isVoiceFeelingStillExpected or isImageFeelingStillExpected)))
+                    self.assertTrue(isVoiceFeelingStillExpected or isImageFeelingStillExpected, errortext)
+#                     self.assertEqual(len(sensation.getAssociations()), 1)
+                    if sensation.getOtherAssociateSensation().getSensationType() == Sensation.SensationType.Voice:
+                        isVoiceFeelingStillExpected = False
+                    elif sensation.getOtherAssociateSensation().getSensationType() == Sensation.SensationType.Image:
+                        isImageFeelingStillExpected = False
+                    else:
+                        self.assertTrue(False, "Unsupported associate type {} with feeling".format( sensation.getOtherAssociateSensation().getSensationType()))
+
                     self.assertEqual(sensation.getPositiveFeeling(), isPositiveFeeling)
                     self.assertEqual(sensation.getNegativeFeeling(), isNegativeFeeling)
                   
@@ -1353,7 +1423,11 @@ class CommunicationTestCase(unittest.TestCase):
             self.assertFalse(isSpokenVoiceStillExpected, 'Did not get expected voice to be Spoken')                   
             self.assertFalse(isHeardVoiceStillExpected,  'Did not get expected voice to be Heard')                   
             self.assertFalse(isVoiceStillExpected,  'Did not get expected voice')                   
-            self.assertFalse(isFeelingStillExpected, 'Did not get feeling')                   
+            self.assertFalse(isSpokenImageStillExpected, 'Did not get expected image to be Spoken')                   
+            self.assertFalse(isHeardImageStillExpected,  'Did not get expected image to be Heard')                   
+            self.assertFalse(isImageStillExpected,  'Did not get expected image')                   
+            self.assertFalse(isVoiceFeelingStillExpected, 'Did not get voice feeling')                   
+            self.assertFalse(isImageFeelingStillExpected, 'Did not get image feeling')                   
                 
     '''
     Log how it would have happened, if we had expected this
@@ -1361,12 +1435,12 @@ class CommunicationTestCase(unittest.TestCase):
     parameters
     name           name of the tested case
     isEmpty        do we expect a response at all
-    isSpokenVoice  do we expect to get Voice to be spoken
-    isHeardVoice   do we expect to get Voice heard
-    isFeeling      do we expect to get Feeling
+    isSpoken  do we expect to get Voice to be spoken
+    isHeard   do we expect to get Voice heard
+    isVoiceFeeling      do we expect to get Feeling
     '''
         
-    def logExpect(self, name, isEmpty, isSpokenVoice, isHeardVoice, isFeeling):
+    def logExpect(self, name, isEmpty, isSpoken, isHeard, isVoiceFeeling):
         print("Now logExpect")       
         errortext = 'Log {}: Axon empty should not be {}'.format(name, str(self.getAxon().empty()))
         if self.getAxon().empty() != isEmpty:
@@ -1374,34 +1448,34 @@ class CommunicationTestCase(unittest.TestCase):
             return
         if not isEmpty:   
         #Voice and possible Feeling
-            isSpokenVoiceStillExpected = isSpokenVoice
-            isHeardVoiceStillExpected = isHeardVoice
-            isFeelingStillExpected = isFeeling
+            isSpokenStillExpected = isSpoken
+            isHeardStillExpected = isHeard
+            isVoiceFeelingStillExpected = isVoiceFeeling
             while(not self.getAxon().empty()):
                 tranferDirection, sensation = self.getAxon().get()
                 if sensation.getSensationType() == Sensation.SensationType.Voice:
-                    if isSpokenVoiceStillExpected:
+                    if isSpokenStillExpected:
                         if sensation.getRobotType() == Sensation.RobotType.Muscle:
-                            isSpokenVoiceStillExpected = False # got it
-                    elif isHeardVoiceStillExpected:
+                            isSpokenStillExpected = False # got it
+                    elif isHeardStillExpected:
                         if sensation.getRobotType() == Sensation.RobotType.Sense:
-                            isHeardVoiceStillExpected = False # got it
+                            isHeardStillExpected = False # got it
                     else: # got something unexpected Voice
                         errortext = '{}: Got unexpected Voice'.format(name)
                         print(errortext)
                         return
                 if sensation.getSensationType() == Sensation.SensationType.Feeling:
-                    errortext =  '{}: got unexpected Feeling Another Feeling {}'.format(name, str(not isFeelingStillExpected))
-                    if not isFeelingStillExpected:
+                    errortext =  '{}: got unexpected Feeling Another Feeling {}'.format(name, str(not isVoiceFeelingStillExpected))
+                    if not isVoiceFeelingStillExpected:
                         print(errortext)
                         return
-                    isFeelingStillExpected = False
+                    isVoiceFeelingStillExpected = False
             # check that we got all
-            if isSpokenVoiceStillExpected:
+            if isSpokenStillExpected:
                 print('Did not get expected voice to be Spoken')                   
-            if isHeardVoiceStillExpected:
+            if isHeardStillExpected:
                 print('Did not get expected  voice to be Heard')
-            if isFeelingStillExpected:
+            if isVoiceFeelingStillExpected:
                 print('Did not get feeling')                   
 
         
