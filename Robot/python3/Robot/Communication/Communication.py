@@ -403,7 +403,8 @@ class Communication(Robot):
                     raise e
                 except Exception as e:
                     self.log(logLevel=Robot.LogLevel.Critical, logStr='Communication.process speak: ignored exception ' + str(e) + ' ' + str(traceback.format_exc()))
-                
+
+            # TODO self.mostImportantItemSensation is not None             
             if (self.mostImportantItemSensation is not None) and (self.mostImportantVoiceSensation is not None):
                 self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: self.getMemory().getMostImportantSensation did find self.mostImportantItemSensation OK')
                 self.mostImportantItemSensation.attach(robot=self)         #attach Sensation until speaking is ended based on these voices
@@ -416,6 +417,7 @@ class Communication(Robot):
                     # NOTE This is needed now, because Sensation.create parameters robotType and memoryType parameters are  overwritten by sensation parameters
                     self.spokedImageSensation.setKind(self.getKind())
                     self.spokedImageSensation.setRobotType(Sensation.RobotType.Muscle)  # speak        
+                    # TODO self.mostImportantItemSensation is now None, but it should not be possible             
                     association = self.mostImportantItemSensation.getAssociation(sensation = self.mostImportantImageSensation)
                     self.getMemory().setMemoryType(sensation=self.spokedImageSensation, memoryType=Sensation.MemoryType.Sensory)
                     assert self.mostImportantImageSensation.getDataId() not in self.saidSensations

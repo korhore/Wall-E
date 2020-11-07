@@ -13,6 +13,65 @@ two instances will be created. Ment to test 'sublocations'
 Develop
 -------
 
+Memory.assign
+- when we copy a sensation, assign it always to original one by default.
+
+Communication
+New new ideas
+- Item.name is still special: we trye to get infornation about Item.names, how to communicate with them.
+-- If there is no conversation going on, we start a new conversation if any Sensation like these comes
+--- Item.name comes present
+--- if conversation delay is not going on
+---- there is some item.names present ans we get any type Sensation
+This means that we start a conversation always, whenthere is no consation going on and we have present Item.name
+
+-- If there is conversation going on, we stop it if
+--- last Item.name comes absent
+--- we don't get any responses
+---- we set conversation delay on if we have present Item.names. Thay don't a don't want to conversate
+
+- when we start conversation we introduce ourserves
+-- our item.name
+-- Other current Sensationtypes like Image, Voice, Feeling. TODO What this means.
+
+- When in conversation we get any type Sesation, we think it is ans answer to us
+-- we associate answer to
+--- all present Intem.names
+--- to out replys if there was some
+-- we answer with
+--- our Item.name This is for Robots
+--- All type Sensation that we get as BestSensation associated tu one presenr Utem.name
+    We will send Item.name as well
+--- searching is done in order heanrd SensationType and best other Sensattypes assigned to it    
+
+New ideas
+- put incoming Sensationon in a queue or keep them in Axon
+- Conversation keeps on, while we have incomins Senations
+- For each Sensation, seach first best associated Sensation of any type,
+for Item.Name we have present and then other type Sensations for that Sensation
+associated for that one. Or also that type also.
+- We don't stop conversation if we don't find any resposes for one Sensation, if we have
+  other incoming Sensations, but keep on conversation
+- Maybe this is common chaotic way to conversate for human beings.
+  
+Old ideas
+- communication per item.name per location
+- item.name can be got by Tensorflofclasification or by network
+  representing present item.name speaking
+- we can speak with voices, imageses or other types like other item.names and
+- these all are assigned to this original item.name which represents this conversation
+- conversation starts at all times with opposite item.name which is present and dont have any assignatuion yet
+  and is Muscle-type, send to opposite (Visual)
+- We try to respond with any type sensations once? But if we get answer we will interrupt this and answer to the last one?
+  This makes conversation chaotic, but is it so in real life?
+  -  There can be many conversation going on at same time, so response is prosessed in all conversations
+     but still used voices/inages/items should be common.
+- With Robots, we can communicate with any type Sensation, replly and answer one per one,
+  but with Ronot - person, only voices are expected unti we give Vosual some tools to answer also with Images ans Items Robot knows.
+  Item.names can be from Tensorflow-model, because Robot does not understand others, except if Robot names are also Iten.names.
+  Images can be seen images, but only associated to Item.name, which is a problem or best scored images. Maybe last ones.   
+  
+
 - when we run out of bestSensations in speaking, what we will do?
 -- stop answering ans wait conversation will end?
 -- technically end conversation and start we one,
