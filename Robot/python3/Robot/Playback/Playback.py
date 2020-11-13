@@ -1,11 +1,23 @@
 '''
 Created on 21.09.2020
-Updated on 21.09.2020
+Updated on 13.33.2020
 
 @author: reijo.korhonen@gmail.com
 
 This class is low level sensory (muscle) for speaking
 implemented by alsaaudio or SoundDevice and need usb-speaker hardware
+
+Started to implement VoCoder voice  analyzing and synthesizing,
+meaning that voice is first divided to frequency band components
+which are played back. Original VoCoder voice sounded very robot like
+and goal is to make same with this project.
+
+The voiced speech of a typical adult male will have a fundamental frequency from 85 to 180 Hz,
+and that of a typical adult female from 165 to 255 Hz. We start with theoretic
+256 bands from 85 to 255 Hz and get band width (255-85)/255 Hz
+
+Amplitude bands are also 255.
+
 
 '''
 import time as systemTime
@@ -54,6 +66,12 @@ class Playback(Robot):
     EVA_SPEAK_SPEED=1.5
     NORMALIZED_VOICE_LEVEL=300.0
 
+    NUMBER_OF_BANDS = 256.0   
+    FREQUENCY_BAND_WIDTH = (256.0-85.0)/NUMBER_OF_BANDS
+    AMPLITUDE_BAND_WIDTH = 2.0*NORMALIZED_VOICE_LEVEL/NUMBER_OF_BANDS
+    AVERAGE_PERIOD=0.01               # used as period in seconds
+
+
     def __init__(self,
                  parent=None,
                  instanceName=None,
@@ -87,6 +105,9 @@ class Playback(Robot):
         self.last_write_time = systemTime.time()
         self.last_dataid=None
         
+        self.average_devider = float(self.rate * self.channels) * Playback.AVERAGE_PERIOD
+       
+        
         if IsAlsaAudio:
             try:
                 self.log("alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK, mode=alsaaudio.PCM_NORMAL, device=" + self.device + ')')
@@ -119,7 +140,37 @@ class Playback(Robot):
         # not yet running
         self.running=False
         
-                    
+    '''
+    SoundComponent
+    '''
+        
+    class SoundComponent():
+        def __init__(self,
+                     duration,
+                     frequency,
+                     amplitude):
+            self.duration = duration
+            self.frequency = frequency
+            self.amplitude = amplitude
+            
+        def setDuration(self,
+                        duration):
+            self.duration = duration
+        def getDuration(self):
+            return self.duration
+        
+        def setFrequency(self,
+                        frequency):
+            self.frequency = frequency
+        def getFrequency(self):
+            return self.frequency
+
+        def setAmplitude(self,
+                        amplitude):
+            self.amplitude = amplitude
+        def getAmplitude(self):
+            return self.amplitude
+                   
     def process(self, transferDirection, sensation):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         if sensation.getSensationType() == Sensation.SensationType.Stop:
@@ -159,6 +210,8 @@ class Playback(Robot):
                         aaa[i]=multiplier*aaa[i]
                         i += 1
                     
+                    aaa = self.voCode(kind=sensation.getKind(), data=aaa)
+                    
 
                     #convert to bytes again                         
                     try:
@@ -188,6 +241,9 @@ class Playback(Robot):
                     #data = result_data + data
                     #normal                        
                     data = result_data
+                    
+#                     data = self.voCode(kind=sensation.getKind(), data=data)
+#                     
                     self.last_datalen = len(data) # this is real datalen
                                                         
                     if IsAlsaAudio:
@@ -227,7 +283,7 @@ class Playback(Robot):
         step_point = 0.0    # where we are in source as float
         ind_step_point = 0  # in which table index we are
         result_aaa=[]
-        # while not and of source
+        # while not end of source
         a={}
         while ind_step_point < len(aaa)/Settings.AUDIO_CHANNELS:
             for i in range(Settings.AUDIO_CHANNELS):
@@ -264,6 +320,65 @@ class Playback(Robot):
                     for i in range(Settings.AUDIO_CHANNELS):
                         result_aaa.append(a[i]/step_length)    # normalize, so voice loudness don't change
         return result_aaa
+    
+    def voCode(self, kind, data):
+        
+        # OOPSA data is bytes, not array
+        
+        duration = 0.0
+        frequency = 0.0
+        amplitude = 0.0
+        
+        last_duration = 0.0
+        last_frequency = 0.0
+        last_amplitude = 0.0
+        last_a = 0.0
+        wave_going_up = True
+        wave_going = True
+        
+        #random
+#         step_length = Sensation.getRandom(base=speed, randomMin=-(self.NORMAL_SPEAK_SPEED/7.0), randomMax=+(self.NORMAL_SPEAK_SPEED/7))
+#         frequency_random_multiplier = Sensation.getRandom(base=speed, randomMin=-(self.NORMAL_SPEAK_SPEED/7.0), randomMax=+(self.NORMAL_SPEAK_SPEED/7))
+#         step_point = 0.0    # where we are in source as float
+#         ind_step_point = 0  # in which table index we are
+        result_data=[]
+        component_period_length = 0
+        wave_period_length = 0
+        
+        for a in data:
+            square_a = float(a) * float(a)
+            amplitude = math.sqrt(( (amplitude * amplitude * (self.average_devider - 1.0))  + square_a)/self.average_devider)
+            wave_period_length = wave_period_length+1
+            if wave_going_up:
+                if a < last_a:
+                    wave_going_up = False
+                    wave_going = False
+            else:
+                 if a > last_a:
+                    wave_going_up = True
+                    wave_going = False
+            last_a = a
+                   
+            if not wave_going:
+                f = (float(self.rate) * float(self.channels))/(float(wave_period_length) * 2.0)
+                frequency = (frequency * (self.average_devider - 1.0)  + f)/self.average_devider
+                wave_going = True
+                wave_period_length = 0
+
+            component_period_length = component_period_length +1
+            if abs(amplitude-last_amplitude) > self.AMPLITUDE_BAND_WIDTH or\
+               abs(frequency-last_frequency) > self.FREQUENCY_BAND_WIDTH:
+                
+               # TODO generate synthetized voice
+
+                duration = float(component_period_length) / (float(self.rate) * float(self.channels)) # seconds
+                last_frequency = frequency
+                last_amplitude = amplitude
+                self.log(logLevel=Robot.LogLevel.Normal, logStr='voCode: component_period_length {} duration {} frequency {} amplitude {}'.format(component_period_length, duration, frequency, amplitude))
+                component_period_length = 0
+                            
+        return data
+    
         
     def getPlaybackTime(self, datalen=None):
         if datalen == None:
