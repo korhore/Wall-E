@@ -1,6 +1,6 @@
 '''
 Created on 21.09.2020
-Updated on 17.11.2020
+Updated on 01.12.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -72,8 +72,12 @@ class Playback(Robot):
     MAX_SPEACH_FREQUENCY=2550.0
     NUMBER_OF_BANDS = 128.0   
     FREQUENCY_BAND_WIDTH = (MAX_SPEACH_FREQUENCY-MIN_SPEACH_FREQUENCY)/NUMBER_OF_BANDS
-    AMPLITUDE_BAND_WIDTH = 2.0*NORMALIZED_VOICE_LEVEL/NUMBER_OF_BANDS
+    #AMPLITUDE_BAND_WIDTH = 2.0*NORMALIZED_VOICE_LEVEL/NUMBER_OF_BANDS
+    #AMPLITUDE_BAND_WIDTH = 200.0*NORMALIZED_VOICE_LEVEL/NUMBER_OF_BANDS
+    AMPLITUDE_BAND_WIDTH = 500.0
     AVERAGE_PERIOD=0.01               # used as period in seconds
+    
+    test_filenumber=0
 
 
     def __init__(self,
@@ -240,7 +244,8 @@ class Playback(Robot):
                         aaa[i]=multiplier*aaa[i]
                         i += 1
                     
-                    aaa = self.saw(kind=sensation.getKind(), data=aaa)
+                    #aaa = self.saw(kind=sensation.getKind(), data=aaa)
+                    aaa = self.voCode2(kind=sensation.getKind(), data=aaa)
                     
 
                     #convert to bytes again                         
@@ -567,14 +572,23 @@ class Playback(Robot):
 #             for si in range(self.channels):
 #                 result_data.append(int(s*600))
         return data + result_data
-    
-#----------------------------------------------------------------------------
+
     '''
+    Started to implement VoCoder voice  analyzing and synthesizing,
+    meaning that voice is first divided to frequency band components
+    which are played back. Original VoCoder voice sounded very robot like
+    and goal is to make same with this project.
     
-    saw
-    Converst sound to saw-sawes,
-    meaning that we find of hifh and kow points of waves ans simlify sound to stright lines
-    betwiib those up and down points to make sound Robot-like.
+    https://en.wikipedia.org/wiki/Vocoder
+    
+    The voiced speech of a typical adult male will have a fundamental frequency from 85 to 180 Hz,
+    and that of a typical adult female from 165 to 255 Hz. We start with theoretic
+    256 bands from 85 to 255 Hz and get band width (255-85)/255 Hz
+    
+    Amplitude bands are also 255.
+    
+    This version simply changes amplitudes to middle of band widths,
+    removing details of voice, hoping that voice come more robot-like.
     
     Parameters
     kind    kind of output voice
@@ -583,15 +597,37 @@ class Playback(Robot):
     
     
     '''
-    def saw(self, kind, data):
+    def voCode2(self, kind, data):
         
-        duration = 0.0
-        frequency = (self.MIN_SPEACH_FREQUENCY + self.MAX_SPEACH_FREQUENCY)/2.0
-        amplitude = self.NORMALIZED_VOICE_LEVEL
+        result_data=[]
         
-        last_duration = 0.0
-        last_frequency = frequency
-        last_amplitude = amplitude 
+        for a in data:
+            if a > 0.0:
+                a_channnel_number = math.floor((a-(self.AMPLITUDE_BAND_WIDTH/2))/self.AMPLITUDE_BAND_WIDTH)
+                new_a = ((a_channnel_number)*self.AMPLITUDE_BAND_WIDTH)
+            else:
+                a_channnel_number = math.floor((a+(self.AMPLITUDE_BAND_WIDTH/2))/self.AMPLITUDE_BAND_WIDTH)
+                new_a = ((a_channnel_number)*self.AMPLITUDE_BAND_WIDTH)
+            result_data.append(new_a)
+#                 result_data.append(int(s*600))
+        return data + result_data
+    
+#----------------------------------------------------------------------------
+
+    '''    
+    getAmplitudes gives us high and low points of waves of the voice
+    
+    Parameters
+    data    array of integers PCM voice
+    Return  array of class AmplitudeValue instances
+    
+    
+    '''
+    def getAmplitudeValues(self, data):
+        
+        self.test_filenumber = self.test_filenumber+1
+        f_original = open('/tmp/original_{}.csv'.format(self.test_filenumber),'w')
+        f_amplitude = open('/tmp/amplitude_{}.csv'.format(self.test_filenumber),'w')
         
         last_a = 0.0
 
@@ -599,7 +635,6 @@ class Playback(Robot):
         wave_going = True
         
         amplitudeValues=[]
-        result_data=[]
         
         # handle as 1 channel voice
         # meaning that if 2-channels in use, then we converts left and rigth channels as average
@@ -627,6 +662,7 @@ class Playback(Robot):
                     sum = sum + data[i]
                     i = i+1
                 a = sum/self.channels
+                f_original.write('{}\t{}\n'.format(i/2,a))
             else:
                 a=data[i]
                 i = i+1
@@ -664,6 +700,27 @@ class Playback(Robot):
                         up_a = 0
                         set_previous_up_a = False
             last_a = a
+                        
+        return amplitudeValues
+
+    '''    
+    saw
+    Converts sound to saw-waves,
+    meaning that we find of high and low points of waves and simplify sound to stright lines
+    between those up and down points to make sound Robot-like.
+    
+    Parameters
+    kind    kind of output voice
+    data    array of integers PCM voice
+    Return  array of integers PCM voice
+    
+    
+    '''
+    def saw(self, kind, data):
+        
+        amplitudeValues=self.getAmplitudeValues(data=data)
+        result_data=[]
+        
                         
         # now we know all high and low points, Let us to make saw curve from it
         previousAmplitudeValue = None
