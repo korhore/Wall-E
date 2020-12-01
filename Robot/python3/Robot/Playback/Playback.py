@@ -72,10 +72,10 @@ class Playback(Robot):
     MAX_SPEACH_FREQUENCY=2550.0
     NUMBER_OF_BANDS = 128.0   
     FREQUENCY_BAND_WIDTH = (MAX_SPEACH_FREQUENCY-MIN_SPEACH_FREQUENCY)/NUMBER_OF_BANDS
-    #AMPLITUDE_BAND_WIDTH = 2.0*NORMALIZED_VOICE_LEVEL/NUMBER_OF_BANDS
+    AMPLITUDE_BAND_WIDTH = NORMALIZED_VOICE_LEVEL*NORMALIZED_VOICE_LEVEL/NUMBER_OF_BANDS
     #AMPLITUDE_BAND_WIDTH = 200.0*NORMALIZED_VOICE_LEVEL/NUMBER_OF_BANDS
-    AMPLITUDE_BAND_WIDTH = 500.0
-    AVERAGE_PERIOD=0.01               # used as period in seconds
+    #AMPLITUDE_BAND_WIDTH = 750.0
+    AVERAGE_PERIOD=0.0001               # used as period in seconds
     
     test_filenumber=0
 
@@ -243,9 +243,10 @@ class Playback(Robot):
                     while i < len(aaa):
                         aaa[i]=multiplier*aaa[i]
                         i += 1
-                    
-                    #aaa = self.saw(kind=sensation.getKind(), data=aaa)
-                    aaa = self.voCode2(kind=sensation.getKind(), data=aaa)
+                    #           Usable
+                    aaa = aaa + self.saw(kind=sensation.getKind(), data=aaa) + self.voCode2(kind=sensation.getKind(), data=aaa) +\
+                          self.sineWave(kind=sensation.getKind(), data=aaa) # self.voCode(kind=sensation.getKind(), data=aaa) 
+                    #aaa = self.voCode2(kind=sensation.getKind(), data=aaa)
                     
 
                     #convert to bytes again                         
@@ -571,7 +572,8 @@ class Playback(Robot):
 #         for s in sinewave_data:
 #             for si in range(self.channels):
 #                 result_data.append(int(s*600))
-        return data + result_data
+#        return data + result_data
+        return result_data
 
     '''
     Started to implement VoCoder voice  analyzing and synthesizing,
@@ -610,7 +612,8 @@ class Playback(Robot):
                 new_a = ((a_channnel_number)*self.AMPLITUDE_BAND_WIDTH)
             result_data.append(new_a)
 #                 result_data.append(int(s*600))
-        return data + result_data
+#        return data + result_data
+        return result_data
     
 #----------------------------------------------------------------------------
 
@@ -733,6 +736,69 @@ class Playback(Robot):
                     step_i = step_i+1
                     for si in range(self.channels):
                         result_data.append(int(result_a))
+            previousAmplitudeValue = amplitudeValue
+        #return data + result_data
+        return result_data
+
+    '''    
+    sineWave
+    Converts sound to sine-waves,
+    meaning that we find of high and low points of waves and simplify sound to sine waves
+    between those up and down points to make sound Robot-like.
+    
+    Parameters
+    kind    kind of output voice
+    data    array of integers PCM voice
+    Return  array of integers PCM voice
+    
+    
+    '''
+    def sineWave(self, kind, data):
+        
+        amplitudeValues=self.getAmplitudeValues(data=data)
+        result_data=[]
+        
+                        
+        # now we know all high and low points, Let us to make sine curve from it
+        previousAmplitudeValue = None
+        previousPositiveAmplitudeValue = None
+        previousNegativeAmplitudeValue = None
+        for amplitudeValue in amplitudeValues:
+            #check
+            if previousAmplitudeValue is not None:
+#                 if previousAmplitudeValue.getAmplitude() >= 0.0:
+#                     assert(amplitudeValue.getAmplitude() < 0.0)
+#                     assert(amplitudeValue.getIndex() > previousAmplitudeValue.getIndex())
+#                 else:
+#                     assert(amplitudeValue.getAmplitude() >= 0.0)
+                #if we have two positive amplitude values
+                # and between then negative amplitude value
+                if amplitudeValue.getAmplitude() >= 0.0 and previousPositiveAmplitudeValue is not None and\
+                   previousNegativeAmplitudeValue is not None:
+                    # we can calculate mean of these amplitudes
+                    meanAmplitude = (amplitudeValue.getAmplitude() + previousPositiveAmplitudeValue.getAmplitude() - previousNegativeAmplitudeValue.getAmplitude())/3.0
+                    # and length of this sine wave
+                    length = amplitudeValue.getIndex() - previousPositiveAmplitudeValue.getIndex()
+#                 length = 2.5  # in seconds
+#                 samplerate = 44100  # in Hz
+#                 frequency = 440 #440  # an A4
+                 
+                    # pure voice
+                    x = numpy.linspace(0, 2 * numpy.pi, length)
+                    sinewave_data = numpy.sin(x)#.reshape((1, -1))
+                    # get nd-array 0-1
+                    # get intergers
+                    for s in sinewave_data:
+                        for si in range(self.channels):
+                            result_data.append(s*meanAmplitude)
+                            
+                if amplitudeValue.getAmplitude() >= 0.0:
+                    previousPositiveAmplitudeValue = amplitudeValue
+                else:
+                    previousNegativeAmplitudeValue = amplitudeValue
+                
+                    
+                    # 
             previousAmplitudeValue = amplitudeValue
         #return data + result_data
         return result_data
