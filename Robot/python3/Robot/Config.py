@@ -1,6 +1,6 @@
 '''
 Created on 25.05.2019
-Edited 23.09.2020
+Edited 08.12.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -98,7 +98,10 @@ class Config(ConfigParser):
     MICROPHONE_CHANNELS =          'microphone_channels'
     MICROPHONE_CHANNELS_DEFAULT =  2
     
-    PLAYBACK =          'playback'
+    PLAYBACK =                     'playback'
+    PLAYBACK_FILTER_VOCODE =       'playback_filter_vocode'
+    PLAYBACK_FILTER_SAW =          'playback_filter_saw'
+    PLAYBACK_FILTER_SINEWAVE =     'playback_filter_sinewave'
     
     ACTIVITY_LEVEL_AVERAGE = 'activity_average_level'
     ACTIVITY_LEVEL_AVERAGE_DEFAULT = 1.0
@@ -387,7 +390,11 @@ class Config(ConfigParser):
             return Config.TRUE
         
         return Config.FALSE
-    
+
+    def stringToBool(string):
+        return string == Config.TRUE
+        #return string.toLower() == Config.TRUE.toLower()
+   
     '''
     Helper function to convert boolean to one char
     '''
@@ -736,6 +743,27 @@ class Config(ConfigParser):
         except Exception as e:
             print('self.set(Config.DEFAULT_SECTION, Config.PLAYBACK, Config.EMPTY) exception ' + str(e))
             
+        try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.PLAYBACK_FILTER_VOCODE):
+                self.set(Config.DEFAULT_SECTION, Config.PLAYBACK_FILTER_VOCODE, Config.FALSE)
+                self.is_changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION, Config.PLAYBACK_FILTER_VOCODE, Config.FALSE) exception ' + str(e))
+
+        try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.PLAYBACK_FILTER_SAW):
+                self.set(Config.DEFAULT_SECTION, Config.PLAYBACK_FILTER_SAW, Config.FALSE)
+                self.is_changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION, Config.PLAYBACK_FILTER_SAW, Config.FALSE) exception ' + str(e))
+
+        try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.PLAYBACK_FILTER_SINEWAVE):
+                self.set(Config.DEFAULT_SECTION, Config.PLAYBACK_FILTER_SINEWAVE, Config.FALSE)
+                self.is_changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION, Config.PLAYBACK_FILTER_SINEWAVE, Config.FALSE) exception ' + str(e))
+
         if self.instanceType == Sensation.InstanceType.Virtual:                
             try:
                 instanceName = self.get(Config.DEFAULT_SECTION, Config.INSTANCE)
@@ -1141,7 +1169,29 @@ class Config(ConfigParser):
         except Exception as e:
             print('self.get(section=section, option=self.PLAYBACK) ' + str(e))
             return None
-        
+ 
+    def isPlaybackFilterVoCode(self, section=DEFAULT_LOCATION):
+        try:
+            return Config.stringToBool(self.get(section=section, option=self.PLAYBACK_FILTER_VOCODE))
+        except Exception as e:
+            print('Config.stringToBool(self.get(section=section, option=self.PLAYBACK_FILTER_VOCODE)) ' + str(e))
+            return None
+
+    def isPlaybackFilterSaw(self, section=DEFAULT_LOCATION):
+        try:
+            return Config.stringToBool(self.get(section=section, option=self.PLAYBACK_FILTER_SAW))
+        except Exception as e:
+            print('Config.stringToBool(self.get(section=section, option=self.PLAYBACK_FILTER_SAW)) ' + str(e))
+            return None
+
+    def isPlaybackFilterSineWave(self, section=DEFAULT_LOCATION):
+        try:
+            return Config.stringToBool(self.get(section=section, option=self.PLAYBACK_FILTER_SINEWAVE))
+        except Exception as e:
+            print('Config.stringToBool(self.get(section=section, option=self.PLAYBACK_FILTER_SINEWAVE) ' + str(e))
+            return None
+
+       
     # TODO
     # this is cryptic way to create Capabilities and not sure id ever used
     # so commented out

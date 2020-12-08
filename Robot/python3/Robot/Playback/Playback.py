@@ -1,6 +1,6 @@
 '''
 Created on 21.09.2020
-Updated on 01.12.2020
+Updated on 08.12.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -103,8 +103,12 @@ class Playback(Robot):
         print("We are in Playback, not Robot")
 
         # from settings        
-        self.device= self.config.getPlayback()
-        self.channels=Settings.AUDIO_CHANNELS
+        self.device = self.config.getPlayback()
+        self.isVoCode = self.config.isPlaybackFilterVoCode()
+        self.isSaw = self.config.isPlaybackFilterSaw()
+        self.isSineWave = self.config.isPlaybackFilterSineWave()
+        
+        self.channels = Settings.AUDIO_CHANNELS
         self.rate = Settings.AUDIO_RATE
         self.minWaweLength = Settings.AUDIO_RATE/self.MAX_SPEACH_FREQUENCY*2
         if IsAlsaAudio:
@@ -243,10 +247,17 @@ class Playback(Robot):
                     while i < len(aaa):
                         aaa[i]=multiplier*aaa[i]
                         i += 1
+                        
+                    if self.isVoCode:
+                        aaa = self.voCode2(kind=sensation.getKind(), data=aaa)
+                    if self.isSineWave:
+                        aaa = self.sineWave(kind=sensation.getKind(), data=aaa)
+                    if self.isSaw:
+                        aaa = self.saw(kind=sensation.getKind(), data=aaa)
                     #           Usable
-                    aaa = aaa + self.saw(kind=sensation.getKind(), data=aaa) + self.voCode2(kind=sensation.getKind(), data=aaa) +\
-                          self.sineWave(kind=sensation.getKind(), data=aaa) # self.voCode(kind=sensation.getKind(), data=aaa) 
-                    #aaa = self.voCode2(kind=sensation.getKind(), data=aaa)
+#                     aaa = aaa + self.saw(kind=sensation.getKind(), data=aaa) + self.voCode2(kind=sensation.getKind(), data=aaa) +\
+#                           self.sineWave(kind=sensation.getKind(), data=aaa) # self.voCode(kind=sensation.getKind(), data=aaa) 
+#                     #aaa = self.voCode2(kind=sensation.getKind(), data=aaa)
                     
 
                     #convert to bytes again                         

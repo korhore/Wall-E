@@ -133,7 +133,7 @@ class VoiceTestCase(unittest.TestCase):
             
         return float(datalen)/(float(Settings.AUDIO_RATE*Settings.AUDIO_CHANNELS))
     
-    def test_1_SoundDevicePlayback(self):
+    def test_2_SoundDevicePlayback(self):
 #         print("--- test_1_SoundDevicePlayback start")
 #         self.playback.start()
 
@@ -194,7 +194,7 @@ class VoiceTestCase(unittest.TestCase):
         print("--- test sleeping {} seconds until playback is done".format(playbackTime))
         systemTime.sleep(playbackTime)   
 
-    def test_2_SoundDevices(self):
+    def test_1_SoundDevices(self):
         self.assertEqual(self.getAxon().empty(), True, 'Axon should be empty at the beginning of test_2_SoundDevices\nCannot test properly this!')
         
         test_runs = 0
@@ -236,7 +236,8 @@ class VoiceTestCase(unittest.TestCase):
                                                                 memoryType=Sensation.MemoryType.Sensory,
                                                                 sensationType=Sensation.SensationType.Voice,
                                                                 robotType=Sensation.RobotType.Muscle,
-                                                                data=sensation.getData())
+                                                                data=sensation.getData(),
+                                                                kind = Sensation.Kind.Normal)
 
 
                         self.playback.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=playBackSensation)
