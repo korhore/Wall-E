@@ -66,15 +66,11 @@ class Playback(Robot):
     EVA_SPEAK_SPEED=1.5
     NORMALIZED_VOICE_LEVEL=300.0
 
-#     MIN_SPEACH_FREQUENCY=85.0
-#     MAX_SPEACH_FREQUENCY=255.0
-    MIN_SPEACH_FREQUENCY=850.0
-    MAX_SPEACH_FREQUENCY=2550.0
+    MIN_SPEACH_FREQUENCY=85.0
+    MAX_SPEACH_FREQUENCY=255.0
     NUMBER_OF_BANDS = 128.0   
     FREQUENCY_BAND_WIDTH = (MAX_SPEACH_FREQUENCY-MIN_SPEACH_FREQUENCY)/NUMBER_OF_BANDS
     AMPLITUDE_BAND_WIDTH = NORMALIZED_VOICE_LEVEL*NORMALIZED_VOICE_LEVEL/NUMBER_OF_BANDS
-    #AMPLITUDE_BAND_WIDTH = 200.0*NORMALIZED_VOICE_LEVEL/NUMBER_OF_BANDS
-    #AMPLITUDE_BAND_WIDTH = 750.0
     AVERAGE_PERIOD=0.0001               # used as period in seconds
     
     test_filenumber=0
@@ -249,15 +245,15 @@ class Playback(Robot):
                         i += 1
                         
                     if self.isVoCode:
-                        aaa = self.voCode2(kind=sensation.getKind(), data=aaa)
+                        aaa = self.voCode(kind=sensation.getKind(), data=aaa)
                     if self.isSineWave:
                         aaa = self.sineWave(kind=sensation.getKind(), data=aaa)
                     if self.isSaw:
                         aaa = self.saw(kind=sensation.getKind(), data=aaa)
                     #           Usable
-#                     aaa = aaa + self.saw(kind=sensation.getKind(), data=aaa) + self.voCode2(kind=sensation.getKind(), data=aaa) +\
+#                     aaa = aaa + self.saw(kind=sensation.getKind(), data=aaa) + self.voCode(kind=sensation.getKind(), data=aaa) +\
 #                           self.sineWave(kind=sensation.getKind(), data=aaa) # self.voCode(kind=sensation.getKind(), data=aaa) 
-#                     #aaa = self.voCode2(kind=sensation.getKind(), data=aaa)
+#                     #aaa = self.voCode(kind=sensation.getKind(), data=aaa)
                     
 
                     #convert to bytes again                         
@@ -369,6 +365,8 @@ class Playback(Robot):
         return result_aaa
     
     '''
+    deprecated logic
+    
     Started to implement VoCoder voice  analyzing and synthesizing,
     meaning that voice is first divided to frequency band components
     which are played back. Original VoCoder voice sounded very robot like
@@ -389,205 +387,204 @@ class Playback(Robot):
     Parameters
     kind    kind of output voice
     data    array of integers PCM voice
-    Return  array of integers PCM voice
-    
-    
+    Return  array of integers PCM voice    
     '''
-    def voCode(self, kind, data):
-        
-        duration = 0.0
-        frequency = (self.MIN_SPEACH_FREQUENCY + self.MAX_SPEACH_FREQUENCY)/2.0
-        amplitude = self.NORMALIZED_VOICE_LEVEL
-        
-        last_duration = 0.0
-        last_frequency = frequency
-        last_amplitude = amplitude 
-        
-        last_a = 0.0
-
-        wave_going_up = True
-        wave_going = True
-        
-        #random
-#         step_length = Sensation.getRandom(base=speed, randomMin=-(self.NORMAL_SPEAK_SPEED/7.0), randomMax=+(self.NORMAL_SPEAK_SPEED/7))
-#         frequency_random_multiplier = Sensation.getRandom(base=speed, randomMin=-(self.NORMAL_SPEAK_SPEED/7.0), randomMax=+(self.NORMAL_SPEAK_SPEED/7))
-#         step_point = 0.0    # where we are in source as float
-#         ind_step_point = 0  # in which table index we are
-        result_data=[]
-        component_period_length = 0
-        wave_period_length = 0
-        
-        # handle as 1 channel voice
-        # meaning that if 2-channels in use, then we converts left and rigth channels as average
-        # because Robots will speak as mono until we have reason to speak as stereo
-        
-        i=0
-        up_a = 0
-        down_a = 0
-        up_i = 0
-        down_i = 0
-        
-        set_previous_up_a=False
-        previous_up_a = 0
-        set_previous_down_a=False
-        previous_down_a = 0
-        previous_up_i = 0
-        previous_down_i = 0
-        
-        #for a in data:
-        while i < len(data):
-            if self.channels > 1:
-                sum=0
-                for j in range(0,self.channels):
-                    sum = sum + data[i]
-                    i = i+1
-                a = sum/self.channels
-            else:
-                a=data[i]
-                i = i+1
-            #square_a = float(a) * float(a)
-            #amplitude = math.sqrt(( (amplitude * amplitude * (self.average_devider - 1.0))  + square_a)/self.average_devider)
-            amplitude = ( (amplitude * (self.average_devider - 1.0)  + abs(a))/self.average_devider)
-            wave_period_length = wave_period_length+1
-            # todo we should look wider
-            if wave_going_up:
-                # highest point
-                if a > 0 and a > up_a:
-                    set_previous_up_a = True
-                    up_a = a
-                    up_i = i
-                # if we are in candidate high point, then we know last half wave
-                # from previous_up_i to previous_down_i
-#                 if a > 0 and a < last_a:
-                if a < last_a:
-                    wave_going_up = False
-                    wave_going = False
-                    # if we are in the candidate high point, then we know last half wave
-                    # we know now previous lowest point if not yet marked
-                    if a > 0 and set_previous_down_a:
-                        previous_down_a = down_a
-                        previous_down_i = down_i
-                        down_a = 0
-                        set_previous_down_a = False
-                        # from previous_up_i to previous_down_i
-                        if previous_up_a >= 0 and previous_down_a < 0:
-                            #we know now half wave period length
-                            #we know now half wave as line
-                            step = float(previous_up_a-previous_down_a)/float(previous_down_i-previous_up_i)
-                            step_i=0
-                            for j in range(previous_up_i, previous_down_i):
-                                result_a = previous_up_a - (float(step_i) * step)
-                                step_i = step_i+1
-                                for si in range(self.channels):
-                                    result_data.append(int(result_a))
-#                             wave_period_length = (previous_down_i - previous_up_i) * 2
-#                             # we can calculate sliding average
-#                             f = (float(self.rate))/(float(wave_period_length))
-#                             frequency = (frequency * (self.average_devider - 1.0)  + f)/self.average_devider
-                            previous_up_a = 0 # we should mark that we have raported lat hald wave, down
-                                                # when we go up but is this the way?
-                            set_previous_down_a = False
-            else:
-                # lowest point
-                if a < 0 and a < down_a:
-                    set_previous_down_a=True
-                    down_a = a
-                    down_i = i
-                if a > last_a:
-                    wave_going_up = True
-                    wave_going = False
-                    # if we are in the candidate low point, then we know last half wave
-                    # we know now previous lowest point if not yet marked
-                    if a < 0 and set_previous_up_a:
-                        previous_up_a = up_a
-                        previous_up_i = up_i
-                        up_a = 0
-                        set_previous_up_a = False
-                        # from previous_up_i to previous_down_i
-                        if previous_down_a <= 0 and previous_up_a > 0:
-                            #we know now half wave period length
-                            #we know now half wave as line
-                            step = float(previous_down_a-previous_up_a)/float(previous_up_i-previous_down_i)
-                            step_i=0
-                            for j in range(previous_down_i, previous_up_i):
-                                result_a = previous_down_a - (float(step_i) * step)
-                                step_i = step_i+1
-                                for si in range(self.channels):
-                                    result_data.append(int(result_a))
-                                    #pass
-#                             wave_period_length = (previous_down_i - previous_up_i) * 2
-#                             # we can calculate sliding average
-#                             f = (float(self.rate))/(float(wave_period_length))
-#                             frequency = (frequency * (self.average_devider - 1.0)  + f)/self.average_devider
-                            previous_down_a = 0 # we should mark that we have reported lat hald wave, down
-                                                # when we go up but is this the way?
-                            set_previous_up_a = False
-
-#                 
-#                 
-#                 else:
-#                     if a < 0 and a < down_a:
-#                         down_a = a
-#                         down_i = i
-#                 if a < 0 and a > last_a:
-#                     wave_going_up = True
-# #                    wave_going = False
-            last_a = a
-#                    
-#             if not wave_going:
-# #                f = (float(self.rate) * float(self.channels))/(float(wave_period_length) * 2.0)
-#                 f = (float(self.rate))/(float(wave_period_length))
-#                 frequency = (frequency * (self.average_devider - 1.0)  + f)/self.average_devider
-#                 wave_going = True
-#                 wave_period_length = 0
-
-#             component_period_length = component_period_length +1
-#             last_a = a
-# #            if wave_period_length >= self.minWaweLength and\
-#             if abs(amplitude-last_amplitude) > self.AMPLITUDE_BAND_WIDTH or\
-#                abs(frequency-last_frequency) > self.FREQUENCY_BAND_WIDTH:
-#                 
-#                # TODO generate synthetized voice
-#                 if abs(amplitude -last_amplitude) > self.AMPLITUDE_BAND_WIDTH:
-#                    self.log(logLevel=Robot.LogLevel.Normal, logStr='voCode: amplitude: component_period_length {} abs((amplitude {} - last_amplitude {}) > self.AMPLITUDE_BAND_WIDTH {}'.format(component_period_length, amplitude, last_amplitude, self.AMPLITUDE_BAND_WIDTH))
-#                 if abs(frequency - last_frequency) > self.FREQUENCY_BAND_WIDTH:
-#                    self.log(logLevel=Robot.LogLevel.Normal, logStr='voCode: frequency: component_period_length {} abs(frequency {} - last_frequency {}) > self.FREQUENCY_BAND_WIDTH {}'.format(component_period_length, frequency, last_frequency, self.FREQUENCY_BAND_WIDTH))
+#     def voCode(self, kind, data):
+#         
+#         duration = 0.0
+#         frequency = (self.MIN_SPEACH_FREQUENCY + self.MAX_SPEACH_FREQUENCY)/2.0
+#         amplitude = self.NORMALIZED_VOICE_LEVEL
+#         
+#         last_duration = 0.0
+#         last_frequency = frequency
+#         last_amplitude = amplitude 
+#         
+#         last_a = 0.0
 # 
-#                 #duration = float(component_period_length) / (float(self.rate) * float(self.channels)) # seconds
-#                 duration = float(component_period_length) / (float(self.rate)) # seconds
-#                 
-# #                 length = 2.5  # in seconds
-# #                 samplerate = 44100  # in Hz
-# #                 frequency = 440 #440  # an A4
-#                 
-#                 # pure voice
-#                 x = numpy.linspace(0, duration * 2 * numpy.pi, int(component_period_length))
-#                 sinewave_data = numpy.sin(frequency * x)#.reshape((1, -1))
-#                 # get nd-array 0-1
-#                 # get intergers
-#                 for s in sinewave_data:
-#                     for si in range(self.channels):
-#                         result_data.append(int(s*amplitude))
-#                 
-#                 
-#                 last_frequency = frequency
-#                 last_amplitude = amplitude
-#                 self.log(logLevel=Robot.LogLevel.Normal, logStr='voCode: component_period_length {} duration {} frequency {} amplitude {}'.format(component_period_length, duration, frequency, amplitude))
-#                 component_period_length = 0
-                            
-        #return data + result_data
-        # pure voice
-#         duration = float(len(data))/(self.channels*self.rate)
-#         x = numpy.linspace(0, duration * 2 * numpy.pi, int(len(data)/self.channels))
-#         sinewave_data = numpy.sin(frequency * x)#.reshape((1, -1))
-#         for s in sinewave_data:
-#             for si in range(self.channels):
-#                 result_data.append(int(s*600))
-#        return data + result_data
-        return result_data
+#         wave_going_up = True
+#         wave_going = True
+#         
+#         #random
+# #         step_length = Sensation.getRandom(base=speed, randomMin=-(self.NORMAL_SPEAK_SPEED/7.0), randomMax=+(self.NORMAL_SPEAK_SPEED/7))
+# #         frequency_random_multiplier = Sensation.getRandom(base=speed, randomMin=-(self.NORMAL_SPEAK_SPEED/7.0), randomMax=+(self.NORMAL_SPEAK_SPEED/7))
+# #         step_point = 0.0    # where we are in source as float
+# #         ind_step_point = 0  # in which table index we are
+#         result_data=[]
+#         component_period_length = 0
+#         wave_period_length = 0
+#         
+#         # handle as 1 channel voice
+#         # meaning that if 2-channels in use, then we converts left and rigth channels as average
+#         # because Robots will speak as mono until we have reason to speak as stereo
+#         
+#         i=0
+#         up_a = 0
+#         down_a = 0
+#         up_i = 0
+#         down_i = 0
+#         
+#         set_previous_up_a=False
+#         previous_up_a = 0
+#         set_previous_down_a=False
+#         previous_down_a = 0
+#         previous_up_i = 0
+#         previous_down_i = 0
+#         
+#         #for a in data:
+#         while i < len(data):
+#             if self.channels > 1:
+#                 sum=0
+#                 for j in range(0,self.channels):
+#                     sum = sum + data[i]
+#                     i = i+1
+#                 a = sum/self.channels
+#             else:
+#                 a=data[i]
+#                 i = i+1
+#             #square_a = float(a) * float(a)
+#             #amplitude = math.sqrt(( (amplitude * amplitude * (self.average_devider - 1.0))  + square_a)/self.average_devider)
+#             amplitude = ( (amplitude * (self.average_devider - 1.0)  + abs(a))/self.average_devider)
+#             wave_period_length = wave_period_length+1
+#             # todo we should look wider
+#             if wave_going_up:
+#                 # highest point
+#                 if a > 0 and a > up_a:
+#                     set_previous_up_a = True
+#                     up_a = a
+#                     up_i = i
+#                 # if we are in candidate high point, then we know last half wave
+#                 # from previous_up_i to previous_down_i
+# #                 if a > 0 and a < last_a:
+#                 if a < last_a:
+#                     wave_going_up = False
+#                     wave_going = False
+#                     # if we are in the candidate high point, then we know last half wave
+#                     # we know now previous lowest point if not yet marked
+#                     if a > 0 and set_previous_down_a:
+#                         previous_down_a = down_a
+#                         previous_down_i = down_i
+#                         down_a = 0
+#                         set_previous_down_a = False
+#                         # from previous_up_i to previous_down_i
+#                         if previous_up_a >= 0 and previous_down_a < 0:
+#                             #we know now half wave period length
+#                             #we know now half wave as line
+#                             step = float(previous_up_a-previous_down_a)/float(previous_down_i-previous_up_i)
+#                             step_i=0
+#                             for j in range(previous_up_i, previous_down_i):
+#                                 result_a = previous_up_a - (float(step_i) * step)
+#                                 step_i = step_i+1
+#                                 for si in range(self.channels):
+#                                     result_data.append(int(result_a))
+# #                             wave_period_length = (previous_down_i - previous_up_i) * 2
+# #                             # we can calculate sliding average
+# #                             f = (float(self.rate))/(float(wave_period_length))
+# #                             frequency = (frequency * (self.average_devider - 1.0)  + f)/self.average_devider
+#                             previous_up_a = 0 # we should mark that we have raported lat hald wave, down
+#                                                 # when we go up but is this the way?
+#                             set_previous_down_a = False
+#             else:
+#                 # lowest point
+#                 if a < 0 and a < down_a:
+#                     set_previous_down_a=True
+#                     down_a = a
+#                     down_i = i
+#                 if a > last_a:
+#                     wave_going_up = True
+#                     wave_going = False
+#                     # if we are in the candidate low point, then we know last half wave
+#                     # we know now previous lowest point if not yet marked
+#                     if a < 0 and set_previous_up_a:
+#                         previous_up_a = up_a
+#                         previous_up_i = up_i
+#                         up_a = 0
+#                         set_previous_up_a = False
+#                         # from previous_up_i to previous_down_i
+#                         if previous_down_a <= 0 and previous_up_a > 0:
+#                             #we know now half wave period length
+#                             #we know now half wave as line
+#                             step = float(previous_down_a-previous_up_a)/float(previous_up_i-previous_down_i)
+#                             step_i=0
+#                             for j in range(previous_down_i, previous_up_i):
+#                                 result_a = previous_down_a - (float(step_i) * step)
+#                                 step_i = step_i+1
+#                                 for si in range(self.channels):
+#                                     result_data.append(int(result_a))
+#                                     #pass
+# #                             wave_period_length = (previous_down_i - previous_up_i) * 2
+# #                             # we can calculate sliding average
+# #                             f = (float(self.rate))/(float(wave_period_length))
+# #                             frequency = (frequency * (self.average_devider - 1.0)  + f)/self.average_devider
+#                             previous_down_a = 0 # we should mark that we have reported lat hald wave, down
+#                                                 # when we go up but is this the way?
+#                             set_previous_up_a = False
+# 
+# #                 
+# #                 
+# #                 else:
+# #                     if a < 0 and a < down_a:
+# #                         down_a = a
+# #                         down_i = i
+# #                 if a < 0 and a > last_a:
+# #                     wave_going_up = True
+# # #                    wave_going = False
+#             last_a = a
+# #                    
+# #             if not wave_going:
+# # #                f = (float(self.rate) * float(self.channels))/(float(wave_period_length) * 2.0)
+# #                 f = (float(self.rate))/(float(wave_period_length))
+# #                 frequency = (frequency * (self.average_devider - 1.0)  + f)/self.average_devider
+# #                 wave_going = True
+# #                 wave_period_length = 0
+# 
+# #             component_period_length = component_period_length +1
+# #             last_a = a
+# # #            if wave_period_length >= self.minWaweLength and\
+# #             if abs(amplitude-last_amplitude) > self.AMPLITUDE_BAND_WIDTH or\
+# #                abs(frequency-last_frequency) > self.FREQUENCY_BAND_WIDTH:
+# #                 
+# #                # TODO generate synthetized voice
+# #                 if abs(amplitude -last_amplitude) > self.AMPLITUDE_BAND_WIDTH:
+# #                    self.log(logLevel=Robot.LogLevel.Normal, logStr='voCode: amplitude: component_period_length {} abs((amplitude {} - last_amplitude {}) > self.AMPLITUDE_BAND_WIDTH {}'.format(component_period_length, amplitude, last_amplitude, self.AMPLITUDE_BAND_WIDTH))
+# #                 if abs(frequency - last_frequency) > self.FREQUENCY_BAND_WIDTH:
+# #                    self.log(logLevel=Robot.LogLevel.Normal, logStr='voCode: frequency: component_period_length {} abs(frequency {} - last_frequency {}) > self.FREQUENCY_BAND_WIDTH {}'.format(component_period_length, frequency, last_frequency, self.FREQUENCY_BAND_WIDTH))
+# # 
+# #                 #duration = float(component_period_length) / (float(self.rate) * float(self.channels)) # seconds
+# #                 duration = float(component_period_length) / (float(self.rate)) # seconds
+# #                 
+# # #                 length = 2.5  # in seconds
+# # #                 samplerate = 44100  # in Hz
+# # #                 frequency = 440 #440  # an A4
+# #                 
+# #                 # pure voice
+# #                 x = numpy.linspace(0, duration * 2 * numpy.pi, int(component_period_length))
+# #                 sinewave_data = numpy.sin(frequency * x)#.reshape((1, -1))
+# #                 # get nd-array 0-1
+# #                 # get intergers
+# #                 for s in sinewave_data:
+# #                     for si in range(self.channels):
+# #                         result_data.append(int(s*amplitude))
+# #                 
+# #                 
+# #                 last_frequency = frequency
+# #                 last_amplitude = amplitude
+# #                 self.log(logLevel=Robot.LogLevel.Normal, logStr='voCode: component_period_length {} duration {} frequency {} amplitude {}'.format(component_period_length, duration, frequency, amplitude))
+# #                 component_period_length = 0
+#                             
+#         #return data + result_data
+#         # pure voice
+# #         duration = float(len(data))/(self.channels*self.rate)
+# #         x = numpy.linspace(0, duration * 2 * numpy.pi, int(len(data)/self.channels))
+# #         sinewave_data = numpy.sin(frequency * x)#.reshape((1, -1))
+# #         for s in sinewave_data:
+# #             for si in range(self.channels):
+# #                 result_data.append(int(s*600))
+# #        return data + result_data
+#         return result_data
 
     '''
-    Started to implement VoCoder voice  analyzing and synthesizing,
+    VoCoder voice  analyzing and synthesizing,
+    
     meaning that voice is first divided to frequency band components
     which are played back. Original VoCoder voice sounded very robot like
     and goal is to make same with this project.
@@ -610,7 +607,7 @@ class Playback(Robot):
     
     
     '''
-    def voCode2(self, kind, data):
+    def voCode(self, kind, data):
         
         result_data=[]
         
