@@ -34,7 +34,7 @@ This means that we start a conversation always, whenthere is no consation going 
 -- our item.name
 -- Other current Sensationtypes like Image, Voice, Feeling. TODO What this means.
 
-- When in conversation we get any type Sesation, we think it is ans answer to us
+- When in conversation we get any type Sensation, we think it is an answer to us
 -- we associate answer to
 --- all present Intem.names
 --- to out replys if there was some
@@ -42,8 +42,46 @@ This means that we start a conversation always, whenthere is no consation going 
 --- our Item.name This is for Robots
 --- All type Sensation that we get as BestSensation associated tu one presenr Utem.name
     We will send Item.name as well
---- searching is done in order heanrd SensationType and best other Sensattypes assigned to it    
+--- searching is done in order heanrd SensationType and best other Sensattypes assigned to it
 
+Robot              Sense/Muscle                Human
+             <-    Voice Sense Sensory
+                   Voice Muscle Sensory ->
+                   Image Muscle Sensory ->
+                   
+Seems that also rwo Robots can conversate each other
+But then we need transforming Robot, that changes Sensations Muscle/Sense to opposite one.
+Is?
+- location: network
+- SubRobot: Network
+-- Is interested of all sensations.
+-- Is this new Sensation.RobotType or Robot.RobotType?
+                   
+Robot              Sense/Muscle      Network   Sense/Muscle             Robot
+             <-    Voice Sense Sensory  <-     Voice Muscle Sensory <-
+             ->    Voice Muscle Sensory ->     Voice Sense Sensory  ->
+             ->    Image Muscle Sensory ->     Image Sense Sensory  ->
+             
+Logical way to solve is to separate local and global (network) Robot functionality and/or
+tranform. Where we mark local/network? Basi9cally Robot implementation should be local
+to make things easy, so Sensation is not right place. Receiving Robot can be, but we must remeber
+that transfer has now two fubctioalitis, share a sensation and conversate with sensations so
+it seems that trnafer should have now one parameters mor share/conversate. Communication-Robot
+should not know witj whom its is conversating, it implements local implementation only. We know
+Sensations origin Robot site. And it is empty if local Sensation. If transferred from other site, it is not empty.
+But Sensation can be shared/conversation. If we add Sensation.Function or Sensation.MenoryType.RobotCommunicate, we
+can solve this.
+
+Solution found. Location is border. Robot belongs to some Location(s) and if
+Sensation is routes to other location, then Muscle/Sensory is changed each other!
+In pactice thios is done in SocketServer, which accepts Sensation.
+Still there is problem to solve: What happens if Sensation is transferred to third Robot?
+Hmm.., should we use arrays of locations? And what is role of Locations and  site addresseses?
+Another is logical and another is technical, buy are that same thing? Well no. We can't share memory
+between sites even if we try our best.
+                   
+                   
+                            
 New ideas
 - put incoming Sensationon in a queue or keep them in Axon
 - Conversation keeps on, while we have incomins Senations
