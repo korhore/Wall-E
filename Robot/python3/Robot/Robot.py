@@ -268,7 +268,7 @@ class Robot(Thread):
         # at this point we can log
         self.logLevel=self.config.getLogLevel(section=self.location)
 
-        self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who: " + self.getName() + " location: " + self.getLocationsStr() + " kind: " + self.getKind() + " instanceType: " + self.getInstanceType() + " capabilities: " + self.capabilities.toDebugString(self.getName()))
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot name: " + self.getName() + " location: " + self.getLocationsStr() + " kind: " + self.getKind() + " instanceType: " + self.getInstanceType() + " capabilities: " + self.capabilities.toDebugString(self.getName()))
         # global queue for senses and other robots to put sensations to robot
         self.axon = Axon(robot=self)
         #and create subinstances
@@ -631,7 +631,7 @@ class Robot(Thread):
 
     def run(self):
         self.running=True
-        self.log(logLevel=Robot.LogLevel.Normal, logStr="run: Starting robot who " + self.getName() + " kind " + self.getKind() + " instanceType " + self.getInstanceType())      
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="run: Starting robot name " + self.getName() + " kind " + self.getKind() + " instanceType " + self.getInstanceType())      
         
         # study own identity
         # starting point of robot is always to study what it knows himself
@@ -851,17 +851,17 @@ class Robot(Thread):
         self.log(logLevel=Robot.LogLevel.Detailed, logStr="My kind is " + str(self.getKind()))   
 
         if self.isMainRobot() or self.getInstanceType() == Sensation.InstanceType.Virtual:
-            self.imageSensations, self.voiceSensations = self.getIdentitySensations(who=self.getName())
+            self.imageSensations, self.voiceSensations = self.getIdentitySensations(name=self.getName())
             if len(self.imageSensations) > 0:
                 self.selfImage = self.imageSensations[0].getImage()
             else:
                 self.selfImage = None
 
-    def getIdentitySensations(self, who):
+    def getIdentitySensations(self, name):
         imageSensations=[]
         voiceSensations=[]
-        identitypath = self.config.getIdentityDirPath(who)
-        self.log('Identitypath for {} is {}'.format(who, identitypath))
+        identitypath = self.config.getIdentityDirPath(name)
+        self.log('Identitypath for {} is {}'.format(name, identitypath))
         for dirName, subdirList, fileList in os.walk(identitypath):
             self.log('Found directory: %s' % dirName)      
             image_file_names=[]
@@ -1301,7 +1301,7 @@ class Identity(Robot):
     get identity sensations 
     '''
 
-    def getIdentitySensations(self, who, exposures, feeling):
+    def getIdentitySensations(self, name, exposures, feeling):
         from TensorFlowClassification.TensorFlowClassification import TensorFlowClassification
         
         tensorFlowClassification = TensorFlowClassification(parent=self,
@@ -1311,7 +1311,7 @@ class Identity(Robot):
         tensorFlowClassification.start()
         
         names = exposures
-        names.append(who)
+        names.append(name)
         
         for name in names:
             imageSensations=[]
@@ -1344,7 +1344,7 @@ class Identity(Robot):
                         imageSensation = self.createSensation( sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,\
                                                                image=image)
                         imageSensations.append(imageSensation)
-                        if fname == who + Identity.IMAGE_FILENAME_TYPE:
+                        if fname == name + Identity.IMAGE_FILENAME_TYPE:
                            self.selfImageSensation = imageSensation
                         
                         
@@ -1372,7 +1372,7 @@ class Identity(Robot):
                             voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.LongTerm, robotType = Sensation.RobotType.Sense, data=data)
                             identityVoiceSensations.append(voiceSensation)
                             
-                            if fname == who + Identity.VOICE_FILENAME_TYPE:
+                            if fname == name + Identity.VOICE_FILENAME_TYPE:
                                self.selfVoiceSensation = voiceSensation
                            
             # now we need help of TensrlFlowClassification to get subImages and Item.names it can detect
@@ -1451,12 +1451,12 @@ class Identity(Robot):
     def run(self):
         self.running=True
         self.mode = Sensation.Mode.Starting
-        self.log("run: Starting Identity Robot for who " + self.getParent().getName() + " kind " + self.getKind() + " instanceType " + self.getInstanceType())      
+        self.log("run: Starting Identity Robot for name " + self.getParent().getName() + " kind " + self.getKind() + " instanceType " + self.getInstanceType())      
                    
         # wait until started so all others can start first        
         time.sleep(self.sleeptime)
         # prepare Memory ance
-        self.getIdentitySensations(who=self.getParent().getName(), exposures=self.getParent().getExposures(), feeling = Sensation.Feeling.InLove)
+        self.getIdentitySensations(name=self.getParent().getName(), exposures=self.getParent().getExposures(), feeling = Sensation.Feeling.InLove)
         
         self.mode = Sensation.Mode.Normal
         

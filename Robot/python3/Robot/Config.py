@@ -57,7 +57,7 @@ class Config(ConfigParser):
     # Configuratioon Section and Option names
     MEMORY =             'memoryType'
 #    Microphones =       'MICROPHONES' 
-    WHO =                'Who' 
+    NAME =               'Name' 
     WALLE =              'Wall-E'
     LOCATIONS =          'locations' 
     SUBLOCATIONS =       'sublocations' 
@@ -591,11 +591,11 @@ class Config(ConfigParser):
 #             print('self.set(Config.DEFAULT_SECTION,Config.MAX_SENSATION_RSS, str(Config.MAX_SENSATION_RSS_DEFAULT)) exception  ' + str(e))
 
         try:                
-            if not self.has_option(Config.DEFAULT_SECTION, Config.WHO):
-                self.set(Config.DEFAULT_SECTION,Config.WHO, Sensation.WALLE)
+            if not self.has_option(Config.DEFAULT_SECTION, Config.NAME):
+                self.set(Config.DEFAULT_SECTION,Config.NAME, Sensation.WALLE)
                 self.is_changes=True
         except Exception as e:
-            print('self.set(Config.DEFAULT_SECTION, Config.WHO, Sensation.WALLE) exception ' + str(e))
+            print('self.set(Config.DEFAULT_SECTION, Config.NAME, Sensation.WALLE) exception ' + str(e))
             
         try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.LOCATIONS):
@@ -916,8 +916,8 @@ class Config(ConfigParser):
             self.commit()
 
     def getName(self, section=DEFAULT_LOCATION):
-        who = self.get(section=section, option=self.WHO)
-        return who
+        name = self.get(section=section, option=self.NAME)
+        return name
 
     ''' 
     get locations for this Config

@@ -141,7 +141,7 @@ class Visual(Robot):
     def run(self):
         # default
         self.running=True
-        self.log(logLevel=Robot.LogLevel.Normal, logStr="run: Starting robot who " + self.getName() + " kind " + self.getKind() + " instanceType " + self.config.getInstanceType())      
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="run: Starting robot name " + self.getName() + " kind " + self.getKind() + " instanceType " + self.config.getInstanceType())      
         # wait until started so all others can start first        
         time.sleep(Sensation.getRandom(base = Visual.SLEEPTIME,
                                        randomMin = -Visual.SLEEPTIMERANDOM,

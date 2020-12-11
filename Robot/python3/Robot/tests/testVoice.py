@@ -267,7 +267,7 @@ class VoiceTestCase(unittest.TestCase):
         #if robot.isMainRobot() or robot.getInstanceType() == Sensation.InstanceType.Virtual:
         if True:
             # Fake we are Wall-E
-            robot.imageSensations, robot.voiceSensations = robot.getIdentitySensations(who=VoiceTestCase.NAME)
+            robot.imageSensations, robot.voiceSensations = robot.getIdentitySensations(name=VoiceTestCase.NAME)
             self.assertTrue(len(robot.voiceSensations) > 0,
                             'should get Robot identity voices as test material')
             

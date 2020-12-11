@@ -119,7 +119,7 @@ class MainRobot(Robot):
 
     def run(self):
         self.running=True
-        self.log("run: Starting Main Robot who " + self.getName() + " kind " + self.config.getKind() + " instanceType " + self.config.getInstanceType())      
+        self.log("run: Starting Main Robot name " + self.getName() + " kind " + self.config.getKind() + " instanceType " + self.config.getInstanceType())      
         
         # Main Robot should study own identity
         # starting point of robot is always to study what it knows himself
@@ -512,7 +512,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         self.log("run: Starting")
                  
         try:
-            # tell who we are, speaking
+            # tell name we are, speaking
             sensation=MainRobot.getInstance().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Robot, robot=self.getName())
             self.log('run: sendSensation(sensation=Sensation(robot=MainRobot.getInstance(),sensationType = Sensation.SensationType.Robot), sock=self.sock,'  + str(self.address) + ')')
             self.running =  self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)

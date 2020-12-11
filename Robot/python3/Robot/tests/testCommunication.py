@@ -90,7 +90,7 @@ class CommunicationTestCase(unittest.TestCase):
                                            level=2)
         # should get Identity for proper functionality. Use Wall-E Identity in test
         self.communication.imageSensations, self.communication.voiceSensations = \
-            self.communication.getIdentitySensations(who=CommunicationTestCase.NAME)
+            self.communication.getIdentitySensations(name=CommunicationTestCase.NAME)
         self.assertTrue(len(self.communication.getMemory().getRobot().voiceSensations) > 0, "should have identity for testing")
         # test setup   
         # define time in history, that is different than in all tests

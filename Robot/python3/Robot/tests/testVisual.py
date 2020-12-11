@@ -321,7 +321,7 @@ class VisualTestCase(unittest.TestCase):
                                                 kind=robot.getKind())
         #if robot.isMainRobot() or robot.getInstanceType() == Sensation.InstanceType.Virtual:
         if True:
-            robot.imageSensations, robot.voiceSensations = robot.getIdentitySensations(who=robot.getName())
+            robot.imageSensations, robot.voiceSensations = robot.getIdentitySensations(name=robot.getName())
             if len(robot.imageSensations) > 0:
                 robot.selfImage = robot.imageSensations[0].getImage()
             else:
