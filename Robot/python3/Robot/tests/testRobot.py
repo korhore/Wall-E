@@ -88,7 +88,7 @@ class RobotTestCase(unittest.TestCase):
 #         return self.axon
 #     def getId(self):
 #         return 1.1
-#     def getWho(self):
+#     def getName(self):
 #         return "RobotTestCase"
 #     
 #     def setLocation(self, location):
@@ -100,7 +100,7 @@ class RobotTestCase(unittest.TestCase):
 #         if logLevel == None:
 #             logLevel = Robot.LogLevel.Normal
 #         if logLevel <= self.sense.getLogLevel():
-#             print(self.sense.getWho() + ":" + str( self.sense.config.level) + ":" + Sensation.Modes[self.sense.mode] + ": " + logStr)
+#             print(self.sense.getName() + ":" + str( self.sense.config.level) + ":" + Sensation.Modes[self.sense.mode] + ": " + logStr)
     '''
     Test Robot 
     '''
@@ -138,8 +138,8 @@ class RobotTestCase(unittest.TestCase):
         self.mainRobot.selfSensation=self.mainRobot.createSensation(sensationType=Sensation.SensationType.Robot,
                                                           memoryType=Sensation.MemoryType.LongTerm,
                                                           robotType=Sensation.RobotType.Sense,# We have found this
-                                                          robot = self.mainRobot.getWho(),
-                                                          name = self.mainRobot.getWho(),
+                                                          robot = self.mainRobot.getName(),
+                                                          name = self.mainRobot.getName(),
                                                           presence = Sensation.Presence.Present,
                                                           kind=self.mainRobot.getKind(),
                                                           feeling=self.mainRobot.getFeeling(),
@@ -214,7 +214,7 @@ class RobotTestCase(unittest.TestCase):
                                                           memoryType=Sensation.MemoryType.LongTerm,
                                                           robotType=Sensation.RobotType.Sense,# We have found this
                                                           robot = self.remoteMainRobot,
-                                                          name = self.remoteMainRobot.getWho(),
+                                                          name = self.remoteMainRobot.getName(),
                                                           presence = Sensation.Presence.Present,
                                                           kind=self.remoteMainRobot.getKind(),
                                                           feeling=self.remoteMainRobot.getFeeling(),
@@ -299,8 +299,8 @@ class RobotTestCase(unittest.TestCase):
         mainRobot.selfSensation=mainRobot.createSensation(sensationType=Sensation.SensationType.Robot,
                                                           memoryType=Sensation.MemoryType.LongTerm,
                                                           robotType=Sensation.RobotType.Sense,# We have found this
-                                                          robot = mainRobot.getWho(),
-                                                          name = mainRobot.getWho(),
+                                                          robot = mainRobot.getName(),
+                                                          name = mainRobot.getName(),
                                                           presence = Sensation.Presence.Present,
                                                           kind=mainRobot.getKind(),
                                                           feeling=mainRobot.getFeeling(),

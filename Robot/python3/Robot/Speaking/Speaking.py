@@ -57,7 +57,7 @@ class Speaking(Robot):
 #             self.log('process: self.getLevel() == 2 and Sensation.SensationType.VoiceData')
 #             # for testing purposes write this back to all out subInstances playback gets it
 #             for robot in self.subInstances:
-#                 if robot.getWho() == "AlsaAudioPlayback":
+#                 if robot.getName() == "AlsaAudioPlayback":
 #                     # TODO should we make a copy, because we should not change original sensation
 #                     sensation.setRobotType(Sensation.RobotType.Muscle)
 #                     self.log('process: Sensation.SensationType.VoiceData AlsaAudioPlayback robot.getInAxon().put(sensation)')

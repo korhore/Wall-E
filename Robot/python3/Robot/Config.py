@@ -915,7 +915,7 @@ class Config(ConfigParser):
         if commit:
             self.commit()
 
-    def getWho(self, section=DEFAULT_LOCATION):
+    def getName(self, section=DEFAULT_LOCATION):
         who = self.get(section=section, option=self.WHO)
         return who
 

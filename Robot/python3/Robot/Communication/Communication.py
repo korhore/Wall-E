@@ -208,22 +208,22 @@ class Communication(Robot):
 #                     if self.mostImportantVoiceAssociation is not None:
 #                         self.mostImportantVoiceAssociation.changeFeeling(positive=True) #last voice was a good one because we got a response
                     if self.mostImportantItemSensation is not None and self.mostImportantVoiceSensation is not None:
-                        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: good feeling with ' + self.mostImportantItemSensation.getName())
+                        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: good voice feeling with ' + self.mostImportantItemSensation.getName())
                         feelingSensation = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                           firstAssociateSensation=self.mostImportantItemSensation, otherAssociateSensation=self.mostImportantVoiceSensation,
                                                           positiveFeeling=True, locations=self.getLocations())#self.getLocations()) # valid in this location, can be chosen other way
                         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
                     else:
-                        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: good feeling but conversation protocol or implementation error ')
+                        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: good image feeling but conversation protocol or implementation error ')
                         
                     if self.mostImportantItemSensation is not None and self.mostImportantImageSensation is not None:
-                        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: good feeling with ' + self.mostImportantItemSensation.getName())
+                        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: good image feeling with ' + self.mostImportantItemSensation.getName())
                         feelingSensation = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                           firstAssociateSensation=self.mostImportantItemSensation, otherAssociateSensation=self.mostImportantImageSensation,
                                                           positiveFeeling=True, locations=self.getLocations())#self.getLocations()) # valid in this location, can be chosen other way
                         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
                     else:
-                        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: good feeling but conversation implementation did not get image this time error ')
+                        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: good image feeling but conversation implementation did not get image this time error ')
                     
                     if self.getMemory().hasPresence():          
                         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + sensation.getName() + ' got voice and tries to speak with presents ones' + self.getMemory().presenceToStr())

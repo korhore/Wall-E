@@ -25,7 +25,7 @@ class Axon():
         self.queue = Queue()
        
     def put(self, robot, transferDirection, sensation, detach=True):
-        self.robot.log("Axon put from {} to {} with original queue length {} full {}".format(robot.getWho(),self.robot.getWho(), self.queue.qsize(), self.queue.full()))
+        self.robot.log("Axon put from {} to {} with original queue length {} full {}".format(robot.getName(),self.robot.getName(), self.queue.qsize(), self.queue.full()))
         sensation.attach(self.robot)                        # take ownership
 # let Robots decide locations
 #         if len(sensation.getLocations()) == 0:              # if sensations does not have locations yet, set it as robots locations.
@@ -33,7 +33,7 @@ class Axon():
         if detach:
             sensation.detach(robot)         # release from caller
         self.queue.put((transferDirection, sensation))
-        self.robot.log("Axon put from {} to {} with final queue length {} full {}".format(robot.getWho(),self.robot.getWho(), self.queue.qsize(), self.queue.full()))
+        self.robot.log("Axon put from {} to {} with final queue length {} full {}".format(robot.getName(),self.robot.getName(), self.queue.qsize(), self.queue.full()))
  
     '''
     Robot calls this to get its sensations
@@ -41,9 +41,9 @@ class Axon():
     so robot is not mentioned as parameter 
     '''       
     def get(self):
-        self.robot.log("Axon get from {} original queue length {} empty {} full {}".format(self.robot.getWho(), self.queue.qsize(), self.queue.empty(), self.queue.full()))
+        self.robot.log("Axon get from {} original queue length {} empty {} full {}".format(self.robot.getName(), self.queue.qsize(), self.queue.empty(), self.queue.full()))
         (transferDirection, sensation) = self.queue.get()
-        self.robot.log("Axon done get from {} final queue length {} empty {} full {}".format(self.robot.getWho(), self.queue.qsize(), self.queue.empty(), self.queue.full()))
+        self.robot.log("Axon done get from {} final queue length {} empty {} full {}".format(self.robot.getName(), self.queue.qsize(), self.queue.empty(), self.queue.full()))
         return transferDirection, sensation
         
     def empty(self):

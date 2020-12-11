@@ -219,7 +219,7 @@ class Robot(Thread):
         self.id = self.config.getRobotId(section=self.location)
         self.capabilities = Capabilities(config=self.config, location=self.location)
         print("Robot 4")
-        self.setWho(self.config.getWho(section=self.location))
+        self.setName(self.config.getName(section=self.location))
         
         if self.level == 1:                        
             Robot.mainRobotInstance = self
@@ -245,7 +245,7 @@ class Robot(Thread):
                                                 sensationType=Sensation.SensationType.Robot,
                                                 memoryType=Sensation.MemoryType.LongTerm,
                                                 robotType=Sensation.RobotType.Sense,# We have found this
-                                                name = self.getWho(),
+                                                name = self.getName(),
                                                 presence = Sensation.Presence.Present,
                                                 kind=self.getKind(),
                                                 feeling=self.getFeeling())
@@ -268,7 +268,7 @@ class Robot(Thread):
         # at this point we can log
         self.logLevel=self.config.getLogLevel(section=self.location)
 
-        self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who: " + self.getWho() + " location: " + self.getLocationsStr() + " kind: " + self.getKind() + " instanceType: " + self.getInstanceType() + " capabilities: " + self.capabilities.toDebugString(self.getWho()))
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="init robot who: " + self.getName() + " location: " + self.getLocationsStr() + " kind: " + self.getKind() + " instanceType: " + self.getInstanceType() + " capabilities: " + self.capabilities.toDebugString(self.getName()))
         # global queue for senses and other robots to put sensations to robot
         self.axon = Axon(robot=self)
         #and create subinstances
@@ -384,9 +384,9 @@ class Robot(Thread):
     def setLogLevel(self, logLevel):
         self.logLevel = logLevel
 
-    def setWho(self, name):
+    def setName(self, name):
         self.name = name
-    def getWho(self):
+    def getName(self):
         return self.name
     
     def setLocations(self, locations):
@@ -514,7 +514,7 @@ class Robot(Thread):
             for robot in self.getSubInstances():
                 capabilities.Or(robot._getCapabilities())
                                     
-        self.log(logLevel=Robot.LogLevel.Verbose, logStr='getMasterCapabilities ' +capabilities.toDebugString(self.getWho()))
+        self.log(logLevel=Robot.LogLevel.Verbose, logStr='getMasterCapabilities ' +capabilities.toDebugString(self.getName()))
         return capabilities
     
     def _getCapabilities(self):
@@ -522,7 +522,7 @@ class Robot(Thread):
         for robot in self.getSubInstances():
             capabilities.Or(robot._getLocalCapabilities())
                                    
-        self.log(logLevel=Robot.LogLevel.Verbose, logStr='_getCapabilities ' +capabilities.toDebugString(self.getWho()))
+        self.log(logLevel=Robot.LogLevel.Verbose, logStr='_getCapabilities ' +capabilities.toDebugString(self.getName()))
         return capabilities
     '''
     get capabilities that main robot or all Sub and virtual instances have
@@ -538,7 +538,7 @@ class Robot(Thread):
                 if robot.getInstanceType() != Sensation.InstanceType.Remote:
                     capabilities.Or(robot._getLocalCapabilities())
                                     
-        self.log(logLevel=Robot.LogLevel.Verbose, logStr='getLocalMasterCapabilities ' +capabilities.toDebugString(self.getWho()))
+        self.log(logLevel=Robot.LogLevel.Verbose, logStr='getLocalMasterCapabilities ' +capabilities.toDebugString(self.getName()))
         return capabilities
 
     def _getLocalCapabilities(self):
@@ -547,7 +547,7 @@ class Robot(Thread):
             if robot.getInstanceType() != Sensation.InstanceType.Remote:
                 capabilities.Or(robot._getLocalCapabilities())
                                     
-        self.log(logLevel=Robot.LogLevel.Verbose, logStr='_getLocalCapabilities ' +capabilities.toDebugString(self.getWho()))
+        self.log(logLevel=Robot.LogLevel.Verbose, logStr='_getLocalCapabilities ' +capabilities.toDebugString(self.getName()))
         return capabilities
     
 #############
@@ -614,7 +614,7 @@ class Robot(Thread):
         for robot in self.getSubInstances():
             if robot.isInLocations(locations) and robot.getCapabilities().hasCapability(robotType, memoryType, sensationType) or \
                robot.hasSubCapability(robotType, memoryType, sensationType, locations):
-                self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability subInstance ' + robot.getWho() + ' at ' + robot.getLocationsStr() + ' has robotType ' + str(robotType) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType) + ' True')      
+                self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability subInstance ' + robot.getName() + ' at ' + robot.getLocationsStr() + ' has robotType ' + str(robotType) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType) + ' True')      
                 return True
         #self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability robotType ' + str(robotType) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType) + ' False')      
         return False
@@ -631,7 +631,7 @@ class Robot(Thread):
 
     def run(self):
         self.running=True
-        self.log(logLevel=Robot.LogLevel.Normal, logStr="run: Starting robot who " + self.getWho() + " kind " + self.getKind() + " instanceType " + self.getInstanceType())      
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="run: Starting robot who " + self.getName() + " kind " + self.getKind() + " instanceType " + self.getInstanceType())      
         
         # study own identity
         # starting point of robot is always to study what it knows himself
@@ -687,18 +687,18 @@ class Robot(Thread):
        
         # main robot starts tcpServer first so clients gets association
         if self.isMainRobot():
-            self.log("MainRobot Stopping self.tcpServer " + self.tcpServer.getWho())      
+            self.log("MainRobot Stopping self.tcpServer " + self.tcpServer.getName())      
             self.tcpServer.stop()
-            self.log("MainRobot Stopping self.identity " + self.identity.getWho())      
+            self.log("MainRobot Stopping self.identity " + self.identity.getName())      
             self.identity.stop()
         elif self.getInstanceType() == Sensation.InstanceType.Virtual:
-            self.log("VirtualRobot Stopping self.identity " + self.identity.getWho())      
+            self.log("VirtualRobot Stopping self.identity " + self.identity.getName())      
             self.identity.stop()
 
         someRunning = False
         for robot in self.subInstances:
             if robot.isAlive():
-                self.log("Robot waits " + robot.getWho() + " stopping")      
+                self.log("Robot waits " + robot.getName() + " stopping")      
                 someRunning = True
                 break 
         i=0
@@ -707,7 +707,7 @@ class Robot(Thread):
             someRunning = False
             for robot in self.subInstances:
                 if robot.isAlive():
-                    self.log("Robot waits " + robot.getWho() + " stopping")      
+                    self.log("Robot waits " + robot.getName() + " stopping")      
                     someRunning = True
                     break 
             i = i+1    
@@ -715,11 +715,11 @@ class Robot(Thread):
         if self.isMainRobot():
             i=0
             while i < Robot.STOPWAIT and self.identity.isAlive():
-                self.log("MainRobot waiting self.identity Stopping " + self.identity.getWho())
+                self.log("MainRobot waiting self.identity Stopping " + self.identity.getName())
                 time.sleep(Robot.STOPWAIT)
                 i = i+1    
             while i < Robot.STOPWAIT and self.tcpServer.isAlive():
-                self.log("MainRobot waiting self.tcpServer Stopping " + self.tcpServer.getWho())
+                self.log("MainRobot waiting self.tcpServer Stopping " + self.tcpServer.getName())
                 time.sleep(Robot.STOPWAIT)
                 i = i+1    
             # finally save memories
@@ -727,7 +727,7 @@ class Robot(Thread):
         elif self.getInstanceType() == Sensation.InstanceType.Virtual:
             i=0
             while i < Robot.STOPWAIT and self.identity.isAlive():
-                self.log("VirtualRobot waiting self.identity Stopping " + self.identity.getWho())
+                self.log("VirtualRobot waiting self.identity Stopping " + self.identity.getName())
                 time.sleep(Robot.STOPWAIT)
                 i = i+1
             # TODO we have common data directory, but we should have one per Memory
@@ -808,7 +808,7 @@ class Robot(Thread):
         
     def log(self, logStr, logLevel=LogLevel.Normal):
          if logLevel <= self.getLogLevel():
-             print(self.getWho() + ":" + str(self.config.level) + ":" + Sensation.Modes[self.mode] + ":" + self.getLocationsStr() + ": " + logStr)
+             print(self.getName() + ":" + str(self.config.level) + ":" + Sensation.Modes[self.mode] + ":" + self.getLocationsStr() + ": " + logStr)
 
     def stop(self):
         self.log(logLevel=Robot.LogLevel.Normal, logStr="Stopping robot")
@@ -846,12 +846,12 @@ class Robot(Thread):
         
     def studyOwnIdentity(self):
         self.mode = Sensation.Mode.StudyOwnIdentity
-        self.log(logLevel=Robot.LogLevel.Normal, logStr="My name is " + self.getWho())
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="My name is " + self.getName())
         # What kind we are
         self.log(logLevel=Robot.LogLevel.Detailed, logStr="My kind is " + str(self.getKind()))   
 
         if self.isMainRobot() or self.getInstanceType() == Sensation.InstanceType.Virtual:
-            self.imageSensations, self.voiceSensations = self.getIdentitySensations(who=self.getWho())
+            self.imageSensations, self.voiceSensations = self.getIdentitySensations(who=self.getName())
             if len(self.imageSensations) > 0:
                 self.selfImage = self.imageSensations[0].getImage()
             else:
@@ -981,7 +981,7 @@ class Robot(Thread):
             self.stop()
         elif sensation.getSensationType() == Sensation.SensationType.Capability:
             self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: sensation.getSensationType() == Sensation.SensationType.Capability')      
-            self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.setCapabilities(Capabilities(capabilities=sensation.getCapabilities() ' + sensation.getCapabilities().toDebugString(self.getWho()))      
+            self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.setCapabilities(Capabilities(capabilities=sensation.getCapabilities() ' + sensation.getCapabilities().toDebugString(self.getName()))      
             self.setCapabilities(Capabilities(deepCopy=sensation.getCapabilities()))#, config=sensation.getCapabilities().config))
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: capabilities: ' + self.getCapabilities().toDebugString('saved capabilities'))
             self.setLocations(locations=sensation.getLocations())
@@ -1005,13 +1005,13 @@ class Robot(Thread):
                         # if this sensation comes from sockrServers host
                         if sensation.isReceivedFrom(robot.getHost()) or \
                             sensation.isReceivedFrom(robot.getSocketServer().getHost()):
-                            self.log(logLevel=Robot.LogLevel.Normal, logStr='Remote robot ' + robot.getWho() + 'has capability for this, but sensation comes from it self. Don\'t recycle it {}'.format(sensation.toDebugStr()))
+                            self.log(logLevel=Robot.LogLevel.Normal, logStr='Remote robot ' + robot.getName() + 'has capability for this, but sensation comes from it self. Don\'t recycle it {}'.format(sensation.toDebugStr()))
                         else:
-                            self.log(logLevel=Robot.LogLevel.Normal, logStr='Remote robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation= {})'.format(sensation.toDebugStr()))
+                            self.log(logLevel=Robot.LogLevel.Normal, logStr='Remote robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation= {})'.format(sensation.toDebugStr()))
                             robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation, detach=False) # keep ownerdhip untill sent to all sub Robots
                             needToDetach=False
                     else:
-                        self.log(logLevel=Robot.LogLevel.Normal, logStr='Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation= {})'.format(sensation.toDebugStr()))
+                        self.log(logLevel=Robot.LogLevel.Normal, logStr='Local robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation= {})'.format(sensation.toDebugStr()))
                         # new instance or sensation for process
                         robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation, detach=False) # keep ownerdhip untill sent to all sub Robots
                         needToDetach=False
@@ -1037,13 +1037,13 @@ class Robot(Thread):
                     # if this sensation comes from sockrServers host
                     if sensation.isReceivedFrom(robot.getHost()) or \
                        sensation.isReceivedFrom(robot.getSocketServer().getHost()):
-                        self.log(logLevel=Robot.LogLevel.Verbose, logStr='Remote robot ' + robot.getWho() + 'has capability for this, but sensation comes from it self. Don\'t recycle sensation {})'.format(sensation.toDebugStr()))
+                        self.log(logLevel=Robot.LogLevel.Verbose, logStr='Remote robot ' + robot.getName() + 'has capability for this, but sensation comes from it self. Don\'t recycle sensation {})'.format(sensation.toDebugStr()))
                     else:
-                        self.log(logLevel=Robot.LogLevel.Detailed, logStr='Remote robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(robot=self, {})'.format(sensation.toDebugStr()))
+                        self.log(logLevel=Robot.LogLevel.Detailed, logStr='Remote robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, {})'.format(sensation.toDebugStr()))
                         robot.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation, detach=False) # keep ownerdhip untill sent to all sub Robots
                         needToDetach=False
                 else:
-                    self.log(logLevel=Robot.LogLevel.Verbose, logStr='Local robot ' + robot.getWho() + ' has capability for this, robot.getAxon().put(robot=self, {})'.format(sensation.toDebugStr()))
+                    self.log(logLevel=Robot.LogLevel.Verbose, logStr='Local robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, {})'.format(sensation.toDebugStr()))
                     robot.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation, detach=False) # keep ownerdhip untill sent to all sub Robots
                     needToDetach=False
             if needToDetach:
@@ -1293,7 +1293,7 @@ class Identity(Robot):
         self.selfImageSensation = None
         self.selfVoiceSensation = None
 
-        self.identitypath = self.config.getIdentityDirPath(self.getParent().getWho()) # parent's location, parent's Identity
+        self.identitypath = self.config.getIdentityDirPath(self.getParent().getName()) # parent's location, parent's Identity
         self.sleeptime = Identity.SLEEPTIME
         
 
@@ -1451,12 +1451,12 @@ class Identity(Robot):
     def run(self):
         self.running=True
         self.mode = Sensation.Mode.Starting
-        self.log("run: Starting Identity Robot for who " + self.getParent().getWho() + " kind " + self.getKind() + " instanceType " + self.getInstanceType())      
+        self.log("run: Starting Identity Robot for who " + self.getParent().getName() + " kind " + self.getKind() + " instanceType " + self.getInstanceType())      
                    
         # wait until started so all others can start first        
         time.sleep(self.sleeptime)
         # prepare Memory ance
-        self.getIdentitySensations(who=self.getParent().getWho(), exposures=self.getParent().getExposures(), feeling = Sensation.Feeling.InLove)
+        self.getIdentitySensations(who=self.getParent().getName(), exposures=self.getParent().getExposures(), feeling = Sensation.Feeling.InLove)
         
         self.mode = Sensation.Mode.Normal
         
@@ -1552,7 +1552,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         
         print("We are in TCPServer, not Robot")
         self.address=address
-        self.setWho('TCPServer: ' + str(address))
+        self.setName('TCPServer: ' + str(address))
         # convert hostnames to IP addresses so same thing has always same name
         self.hostNames = []
         for hostname in hostNames:
@@ -1578,6 +1578,8 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
             self.sock.bind(self.address)
             self.server_address = self.sock.getsockname()
             self.sock.listen(self.request_queue_size)
+            
+            # TODO WE should cobbect to hostsnames that respond
             
             self.log("TCPServer for hostName in self.hostNames")
             for hostName in self.hostNames:
@@ -1759,7 +1761,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
 
             
             
-        self.setWho('SocketClient: '+str(address))
+        self.setName('SocketClient: '+str(address))
         self.running=False
         self.log("__init__ done")
         
@@ -1778,7 +1780,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
                  
         try:
             # tell robot we are, speaking
-            sensation=Robot.getMainRobotInstance().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Robot, robot=self.getWho())
+            sensation=Robot.getMainRobotInstance().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Robot, robot=self.getName())
             self.log('run: sendSensation(sensation=Sensation(robot=Robot.getMainRobotInstance(),sensationType = Sensation.SensationType.Robot), sock=self.sock,'  + str(self.address) + ')')
             self.running =  self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
             sensation.detach(robot=Robot.getMainRobotInstance())
@@ -2062,7 +2064,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         self.sock=sock
         self.address=address
         self.socketClient = socketClient
-        self.setWho('SocketServer: ' + str(address))
+        self.setName('SocketServer: ' + str(address))
     
     def getSocket(self):
         return self.sock

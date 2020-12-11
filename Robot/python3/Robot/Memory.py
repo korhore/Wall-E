@@ -145,9 +145,9 @@ class Memory(object):
 # commented out, we can get unfinite loop with log with getLocation, which uses Sensation.        
 #         if log:
 #             if sensation == None:             # not an update, create new one
-#                 self.log(logStr="Create new sensation by pure parameters for {}".format(robot.getWho()), logLevel=Memory.MemoryLogLevel.Normal)
+#                 self.log(logStr="Create new sensation by pure parameters for {}".format(robot.getName()), logLevel=Memory.MemoryLogLevel.Normal)
 #             else:
-#                 self.log(logStr="Create new sensation by parameter sensation and parameters for {}".format(robot.getWho()), logLevel=Memory.MemoryLogLevel.Normal)
+#                 self.log(logStr="Create new sensation by parameter sensation and parameters for {}".format(robot.getName()), logLevel=Memory.MemoryLogLevel.Normal)
             
         sensation = Sensation(
                  memory=self,
@@ -399,9 +399,9 @@ class Memory(object):
                 else:
                     numNotForgettables += 1
                     for robot in self.sensationMemory[i].getAttachedBy():
-                        if robot.getWho() not in notForgettablesByRobot:
-                            notForgettablesByRobot[robot.getWho()] = []
-                        notForgettablesByRobot[robot.getWho()].append(self.sensationMemory[i])
+                        if robot.getName() not in notForgettablesByRobot:
+                            notForgettablesByRobot[robot.getName()] = []
+                        notForgettablesByRobot[robot.getName()].append(self.sensationMemory[i])
                     i=i+1
        
         self.log(logStr='Sensations cache for {} Total self.sensationMemory  usage {} MB available {} MB with Sensation.min_cache_memorability {}'.\

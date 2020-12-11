@@ -49,13 +49,13 @@ class VoiceTestCase(unittest.TestCase):
         return self.axon
     def getId(self):
         return 1.1
-    def getWho(self):
+    def getName(self):
         return VoiceTestCase.NAME
     def log(self, logStr, logLevel=None):
         if logLevel == None:
             logLevel = self.microphone.LogLevel.Normal
         if logLevel <= self.microphone.getLogLevel():
-             print(self.microphone.getWho() + ":" + str( self.microphone.config.level) + ":" + Sensation.Modes[self.microphone.mode] + ": " + logStr)
+             print(self.microphone.getName() + ":" + str( self.microphone.config.level) + ":" + Sensation.Modes[self.microphone.mode] + ": " + logStr)
 
     '''
     Testing    
@@ -254,14 +254,14 @@ class VoiceTestCase(unittest.TestCase):
     '''
     def studyOwnIdentity(self, robot):
 
-        print("My name is " + robot.getWho())
+        print("My name is " + robot.getName())
         # What kind we are
         print("My kind is " + str(robot.getKind()))      
         robot.selfSensation=robot.createSensation(sensationType=Sensation.SensationType.Item,
                                                 memoryType=Sensation.MemoryType.LongTerm,
                                                 robotType=Sensation.RobotType.Sense,# We have found this
-                                                robot = robot.getWho(),
-                                                name = robot.getWho(),
+                                                robot = robot.getName(),
+                                                name = robot.getName(),
                                                 presence = Sensation.Presence.Present,
                                                 kind=robot.getKind())
         #if robot.isMainRobot() or robot.getInstanceType() == Sensation.InstanceType.Virtual:

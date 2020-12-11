@@ -69,7 +69,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
         return self.axon
     def getId(self):
         return 1.1
-    def getWho(self):
+    def getName(self):
         return "TensorFlowClassificationTestCase"
     def log(self, logStr, logLevel=None):
         #print('CommunicationTestCase log')
@@ -78,7 +78,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
                 if logLevel == None:
                     logLevel = self.tensorFlowClassification.LogLevel.Normal
                 if logLevel <= self.tensorFlowClassification.getLogLevel():
-                     print(self.tensorFlowClassification.getWho() + ":" + str( self.tensorFlowClassification.config.level) + ":" + Sensation.Modes[self.tensorFlowClassification.mode] + ": " + logStr)
+                     print(self.tensorFlowClassification.getName() + ":" + str( self.tensorFlowClassification.config.level) + ":" + Sensation.Modes[self.tensorFlowClassification.mode] + ": " + logStr)
     
     '''
     Testing    

@@ -59,8 +59,8 @@ class CommunicationTestCase(unittest.TestCase):
     def getId(self):
         #print('CommunicationTestCase getId')
         return 1.1
-    def getWho(self):
-        #print('CommunicationTestCase getWho')
+    def getName(self):
+        #print('CommunicationTestCase getName')
         return "CommunicationTestCase"
     def log(self, logStr, logLevel=None):
         #print('CommunicationTestCase log')
@@ -69,10 +69,10 @@ class CommunicationTestCase(unittest.TestCase):
                 if logLevel == None:
                     logLevel = self.communication.LogLevel.Normal
                 if logLevel <= self.communication.getLogLevel():
-                     print(self.communication.getWho() + ":" + str( self.communication.config.level) + ":" + Sensation.Modes[self.communication.mode] + ": " + logStr)
+                     print(self.communication.getName() + ":" + str( self.communication.config.level) + ":" + Sensation.Modes[self.communication.mode] + ": " + logStr)
     
     def logAxon(self):
-        self.log("{} Axon with queue length {} full {}".format(self.getWho(), self.getAxon().queue.qsize(), self.getAxon().queue.full()))
+        self.log("{} Axon with queue length {} full {}".format(self.getName(), self.getAxon().queue.qsize(), self.getAxon().queue.full()))
 
     '''
     Testing    

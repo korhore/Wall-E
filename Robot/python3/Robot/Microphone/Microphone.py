@@ -134,7 +134,7 @@ class Microphone(Robot):
 
         
     def run(self):
-        self.log(" run robot robot " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))      
+        self.log(" run robot robot " + self.getName() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))      
         
         # starting other threads/senders/capabilities
         

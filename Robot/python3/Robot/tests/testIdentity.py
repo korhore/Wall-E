@@ -42,10 +42,10 @@ class IdentityTestCase(unittest.TestCase):
         return self.axon
     def getId(self):
         return 1.1
-    def getWho(self):
+    def getName(self):
         return "IdentityTestCase"
-    def getWho(self):
-        #print('CommunicationTestCase getWho')
+    def getName(self):
+        #print('CommunicationTestCase getName')
         return "Wall-E"
     def getLocation(self): 
         return 'testLocation'  
@@ -59,7 +59,7 @@ class IdentityTestCase(unittest.TestCase):
                 if logLevel == None:
                     logLevel = self.identity.LogLevel.Normal
                 if logLevel <= self.identity.getLogLevel():
-                     print(self.identity.getWho() + ":" + str( self.identity.config.level) + ":" + Sensation.Modes[self.identity.mode] + ": " + logStr)
+                     print(self.identity.getName() + ":" + str( self.identity.config.level) + ":" + Sensation.Modes[self.identity.mode] + ": " + logStr)
     
     '''
     Testing    

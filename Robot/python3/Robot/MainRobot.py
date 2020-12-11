@@ -119,7 +119,7 @@ class MainRobot(Robot):
 
     def run(self):
         self.running=True
-        self.log("run: Starting Main Robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + self.config.getInstanceType())      
+        self.log("run: Starting Main Robot who " + self.getName() + " kind " + self.config.getKind() + " instanceType " + self.config.getInstanceType())      
         
         # Main Robot should study own identity
         # starting point of robot is always to study what it knows himself
@@ -162,18 +162,18 @@ class MainRobot(Robot):
 
          # stop virtual instances here, when main instance is not running any more
         for robot in self.subInstances:
-            self.log("MainRobot Stopping " + robot.getWho())      
+            self.log("MainRobot Stopping " + robot.getName())      
             robot.stop()
             
         # main robot starts tcpServer first so clients gets association
         if self.level == 1:
-            self.log("MainRobot Stopping self.tcpServer " + self.tcpServer.getWho())      
+            self.log("MainRobot Stopping self.tcpServer " + self.tcpServer.getName())      
             self.tcpServer.stop()
             
             someRunning = False
             for robot in self.subInstances:
                 if robot.isAlive():
-                    self.log("MainRobot waits " + robot.getWho() + " stopping")      
+                    self.log("MainRobot waits " + robot.getName() + " stopping")      
                     someRunning = True
                     break 
             i=0
@@ -182,14 +182,14 @@ class MainRobot(Robot):
                 someRunning = False
                 for robot in self.subInstances:
                     if robot.isAlive():
-                        self.log("MainRobot waits " + robot.getWho() + " stopping")      
+                        self.log("MainRobot waits " + robot.getName() + " stopping")      
                         someRunning = True
                         break 
                 i = i+1    
 
             i=0
             while i < 20 and self.tcpServer.isAlive():
-                self.log("MainRobot waiting self.tcpServer Stopping " + self.tcpServer.getWho())
+                self.log("MainRobot waiting self.tcpServer Stopping " + self.tcpServer.getName())
                 time.sleep(10)
                 i = i+1    
             # finally save memories
@@ -200,7 +200,7 @@ class MainRobot(Robot):
         
     def studyOwnIdentity(self):
         self.mode = Sensation.Mode.StudyOwnIdentity
-        self.log("My name is " + self.getWho())      
+        self.log("My name is " + self.getName())      
         self.kind = self.config.getKind()
         self.log("My kind is " + str(self.getKind()))      
         self.identitypath = self.config.getIdentityDirPath(self.getKind())
@@ -299,7 +299,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         
         print("We are in TCPServer, not Robot")
         self.address=address
-        self.setWho('TCPServer: ' + str(address))
+        self.setName('TCPServer: ' + str(address))
         # convert hostnames to IP addresses so same thing has always same name
         self.hostNames = []
         for hostname in hostNames:
@@ -494,7 +494,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         self.socketServer = socketServer
         if self.sock is None or self.address is None:       
             self.address=(self.remoteHost, PORT)
-        self.setWho('SocketClient: '+str(address))
+        self.setName('SocketClient: '+str(address))
         self.running=False
         self.log("__init__ done")
         
@@ -513,7 +513,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                  
         try:
             # tell who we are, speaking
-            sensation=MainRobot.getInstance().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Robot, robot=self.getWho())
+            sensation=MainRobot.getInstance().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Robot, robot=self.getName())
             self.log('run: sendSensation(sensation=Sensation(robot=MainRobot.getInstance(),sensationType = Sensation.SensationType.Robot), sock=self.sock,'  + str(self.address) + ')')
             self.running =  self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
             sensation.detach(robot=MainRobot.getInstance())
@@ -774,7 +774,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         self.sock=sock
         self.address=address
         self.socketClient = socketClient
-        self.setWho('SocketServer: ' + str(address))
+        self.setName('SocketServer: ' + str(address))
     
     def getSocket(self):
         return self.sock

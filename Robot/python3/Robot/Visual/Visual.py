@@ -141,7 +141,7 @@ class Visual(Robot):
     def run(self):
         # default
         self.running=True
-        self.log(logLevel=Robot.LogLevel.Normal, logStr="run: Starting robot who " + self.getWho() + " kind " + self.getKind() + " instanceType " + self.config.getInstanceType())      
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="run: Starting robot who " + self.getName() + " kind " + self.getKind() + " instanceType " + self.config.getInstanceType())      
         # wait until started so all others can start first        
         time.sleep(Sensation.getRandom(base = Visual.SLEEPTIME,
                                        randomMin = -Visual.SLEEPTIMERANDOM,
@@ -891,7 +891,7 @@ class Visual(Robot):
         """Class MainFrame."""
         def __init__(self, parent, id, robot):
             """Create the MainFrame."""
-            wx.Frame.__init__(self, parent, id, robot.getMemory().getRobot().getWho())
+            wx.Frame.__init__(self, parent, id, robot.getMemory().getRobot().getName())
             self.robot = robot
             self.presentItemNames=[]
      
@@ -907,7 +907,7 @@ class Visual(Robot):
             self.SetSizer(vbox)
             hbox = wx.BoxSizer(wx.HORIZONTAL)
             
-            self.identityText = wx.StaticText(self, label=self.robot.getMemory().getRobot().getWho())
+            self.identityText = wx.StaticText(self, label=self.robot.getMemory().getRobot().getName())
             self.feelingText = wx.StaticText(self, label=Sensation.getFeelingString(self.robot.getMemory().getRobot().getFeeling()))
             self.activityLevelText = wx.StaticText(self, label=Sensation.getActivityLevelString(self.robot.getMemory().getRobot().getActivityLevel()))
             

@@ -1994,9 +1994,9 @@ class Sensation(object):
     def getRobotType(self):
         return self.robotType
     
-    def setWho(self, robot):
+    def setName(self, robot):
         self.robot = robot
-    def getWho(self):
+    def getName(self):
         return self.robot
 
 #     '''

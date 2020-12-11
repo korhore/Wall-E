@@ -57,13 +57,13 @@ class VisualTestCase(unittest.TestCase):
         return self.axon
     def getId(self):
         return 1.1
-    def getWho(self):
+    def getName(self):
         return VisualTestCase.NAME
     def log(self, logStr, logLevel=None):
         if logLevel == None:
             logLevel = self.visual.LogLevel.Normal
         if logLevel <= self.visual.getLogLevel():
-             print(self.visual.getWho() + ":" + str( self.visual.config.level) + ":" + Sensation.Modes[self.visual.mode] + ": " + logStr)
+             print(self.visual.getName() + ":" + str( self.visual.config.level) + ":" + Sensation.Modes[self.visual.mode] + ": " + logStr)
 
     '''
     Testing    
@@ -309,19 +309,19 @@ class VisualTestCase(unittest.TestCase):
 #                 image.load()
 #                 robot.images.append(image)
 
-        print("My name is " + robot.getWho())
+        print("My name is " + robot.getName())
         # What kind we are
         print("My kind is " + str(robot.getKind()))      
         robot.selfSensation=robot.createSensation(sensationType=Sensation.SensationType.Item,
                                                 memoryType=Sensation.MemoryType.LongTerm,
                                                 robotType=Sensation.RobotType.Sense,# We have found this
-                                                robot = robot.getWho(),
-                                                name = robot.getWho(),
+                                                robot = robot.getName(),
+                                                name = robot.getName(),
                                                 presence = Sensation.Presence.Present,
                                                 kind=robot.getKind())
         #if robot.isMainRobot() or robot.getInstanceType() == Sensation.InstanceType.Virtual:
         if True:
-            robot.imageSensations, robot.voiceSensations = robot.getIdentitySensations(who=robot.getWho())
+            robot.imageSensations, robot.voiceSensations = robot.getIdentitySensations(who=robot.getName())
             if len(robot.imageSensations) > 0:
                 robot.selfImage = robot.imageSensations[0].getImage()
             else:

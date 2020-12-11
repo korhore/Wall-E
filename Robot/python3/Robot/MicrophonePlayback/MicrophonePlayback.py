@@ -72,7 +72,7 @@ class MicrophonePlayback(Robot):
         self.microphone.running=False
         
     def run(self):
-        self.log("Starting robot robot " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))      
+        self.log("Starting robot robot " + self.getName() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))      
         
         # starting other threads/senders/capabilities
         

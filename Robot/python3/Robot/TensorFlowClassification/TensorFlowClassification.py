@@ -359,7 +359,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
 
 
     def run(self):
-        self.log("Starting robot who " + self.getWho() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))      
+        self.log("Starting robot who " + self.getName() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))      
 
         if TensorFlow_LITE:
             if TensorFlow_MODEL_VERSION == 1:
