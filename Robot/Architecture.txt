@@ -1,0 +1,102 @@
+Architecture of Robot-project
+-----------------------------
+
+Goal is to implement world of most human-king Robots. We use structure of human.
+Huhan is basec on cells that will be born undedicated but will be dedicated to
+their special duties. This project does not implement cells, but higher structure,
+organs.
+
+We use python in our projects, because it is language of science and has
+most capabilities of modelling things.
+
+Robot
+-----
+
+Robot implements method 
+
+    def process(self, transferDirection, sensation):
+
+meaning that Robot can process Sensation. Robot runs rorever
+
+        while self.running:
+            if not self.getAxon().empty() or not self.canSense():
+                transferDirection, sensation = self.getAxon().get()
+                self.process(transferDirection=transferDirection, sensation=sensation)
+            else:
+                self.sense()
+
+
+Sensation
+---------
+
+Sensation is only data that Robot can have from the real world. There are two
+types Robot Muscle and Sense. We must also implement transferDirection to guide
+Robot to what Axon-direction to transfser Sensations.
+
+Sense-type Robots produce Sensation(s) same way as humans senses do.
+They tranfer Sensation up, so transferDirection is Sensation.TransferDirection.Up.
+
+Muscle-type robots implement Robots functionaly to real worls likea speking or moving.
+In pactioce some Robot.instance will wan't some functionality to happen -
+decicion is make bases on sensed thing, just like humans do - it will create
+a Sensation where transferDirection is Sensation.TransferDirection.Down and
+Muscle type Robot will get that Sensation and perform functionality wanted.
+
+Most meaningfull parameters of Sensation are
+  - SensationType
+    What Kind od Sensation this is, for instance Image, Voice, Item etc.
+  - MemoryType
+    MemoryType is either Sensory, Work of LongTerm. Sensory-type Robots
+    produce Sensory-type Sensations. If Sensory-type SEnsation should be processed
+    like for instance Images are to Work-type Robot does the job and produces
+    Work-type Sensations, for instance Item. Seeing is so process,
+    there Robot uses its 'brains' as humans do. Our Robot concept mimics humans
+    there it can. We have also Robos thast are interested of Sensory-type Sensations
+    and produce actions. When Robot find out for instance that human beeing is neaby
+    it starts to communicate.
+    if MemoryType is LongTerm, this means that Robo wants to remeber this Sensation
+    for a long time. Sensory-sensation live only short time, because Sensory
+    Sensations processing should be very fast. Work Sensations longer, so they
+    can be processed and this processing can take some time.
+  - RobotType 
+    RobotType is either Sense or Muscle. for instance If Sensation SensationType
+    if Voice and RobotType is Sense, this means that Robot has heard a Voice.
+    If RobotType is Muscle, this means that Robot wants to speak this Voice.
+
+To transfer Sensation(s) we need Axon(s).
+
+Axon
+----
+
+Axon can tranfer Sensation between Robots. Each Robots has Axon. Robot is connected
+to its technical owner with Axon. This forms 1:n technical relationship.
+If Robot don't have owner, is is called MainRobot. Even thouugh all Robot-instances
+have MainRobot capabilities - if needed, every Robot can behave as MainRobot
+in our Robot-network - all Robotrs know their role and MainRobot will own Memory.
+
+Memory
+------
+
+Memory is collection of Sensation connected with each other with Association(s).
+Memory implements remebering. Robot can rfemenber what has been happned. As
+human, also with Robot capability to remember will need capability to forget
+things, because as human memory, memory can not be unlimited.
+
+Asociation
+----------
+
+Association connects two Sensations with some parameters ans one is Feeling.
+
+Feeling makes our Robot human like. Our Robot can fall io9n love, ve afraid etc.
+Our Robot seaches love so feeling guides behaviour of the Robot. If hates to be
+afraid, so it does to wan't to do things that mekes it to feel afraid.
+
+Config
+------
+
+Robot-instances are in practice derived class instances of Robot-class
+with different kind duties and copabilities. Each Robot has
+<robot-name>/etc/Robot.cfg -file that defines its capabilities. This file defines
+exacly what kind of Sensation(s) Robot-instance is interested of.
+
+We must also implement transferDirection to guide Robot where to
