@@ -72,7 +72,7 @@ Axon can tranfer Sensation between Robots. Each Robots has Axon. Robot is connec
 to its technical owner with Axon. This forms 1:n technical relationship.
 If Robot don't have owner, is is called MainRobot. Even thouugh all Robot-instances
 have MainRobot capabilities - if needed, every Robot can behave as MainRobot
-in our Robot-network - all Robotrs know their role and MainRobot will own Memory.
+in our Robot-network - all Robots know their role and MainRobot will own Memory.
 
 Memory
 ------
@@ -82,8 +82,8 @@ Memory implements remebering. Robot can rfemenber what has been happned. As
 human, also with Robot capability to remember will need capability to forget
 things, because as human memory, memory can not be unlimited.
 
-Asociation
-----------
+Association
+-----------
 
 Association connects two Sensations with some parameters ans one is Feeling.
 
@@ -95,8 +95,271 @@ Config
 ------
 
 Robot-instances are in practice derived class instances of Robot-class
-with different kind duties and copabilities. Each Robot has
+with different kind duties and capabilities. Each Robot has
 <robot-name>/etc/Robot.cfg -file that defines its capabilities. This file defines
 exacly what kind of Sensation(s) Robot-instance is interested of.
 
-We must also implement transferDirection to guide Robot where to
+We must also implement transferDirection to guide Robot is Sensation going Up
+toward toward to MainRobot fron Sense-type Robot or Down to some Muscle-type Robot.
+
+Robots capabilitis are defined with collection three things bundles,
+SensationType, MemoryType, and RobotType, is this True or False. Routing down
+Sensations is defined by this collection of bundles and can be done also in
+network so Sensation can be routed also to other site. Rouiting uses also
+Location and MainRobotName.
+
+Congig includes also information of sub Robots and Locations. In normal case
+in MainRobots confif, there are mentioned its sub Robots to be started. There
+can also be configurastion witj virtual Robot, meaning nested MainRobots.
+
+Each Robot can also have configurable parameters and some Robots set values
+of their own parameters to be remembered into config. Sites can have different
+kind harware so information of this hardware and how to use it, is set to Config.
+Robots are not allowed use other type settings-method than config, so when
+we add new Robot types to our project, whole system keeps always fully configurable
+and is  compatible to other build in Robots.
+
+Logical Robot
+-------------
+As described above, one logical Robot-instance is build of instances of Robot-intances
+that have same MainRobotName. These Robot-instances can be running in one site or multi sites.
+Also logical robot can be running inside logical Robot, so logical Robots can be nested.
+
+Running Robot-appilcation
+-------------------------
+Robot can be started on command line or by service configuration. Simply give a
+command "python3 Robot.py" in a directory you have installed Robot.
+This starts MainRobot-role robot-that reads ins configuration from etc/Robot.cfg
+and finds a line subinstances there are all subrobots to to started, for instance
+when we  use default location "localhost", in its section
+
+[localhost]
+name = Wall-E
+subinstances = MicrophonePlayback Visual Communication TensorflowClassification
+virtualinstances = 
+exposures = Eva
+kind = Wall-E
+hosts = 192.168.1.2
+maxrss = 256
+minavailmem = 4000
+robotid = 1607682488.244183
+activity_average_level = 0.1237234409564471
+locations = Ubuntu
+
+Logical Robot name will be default "Wall-E".
+
+Build in SubRobots
+------------------
+Code od subrobot and its configuration is alcated in run direction in subdirecti,
+which name is same than in its father-robots subinstance name, for instance
+
+   MicrophonePlayback
+   ------------------
+   This is for configurations, where we cond have build in echo-disabling.
+   We have also Robot Microphone, which is Sense type Robot that produces
+   Voice-type Sensations what it heard and also Robot Playback, which plays
+   Voice-type Sensathostsions. If you use headphones, you can use those Robots.
+   But if you use real microphone and loudspeskers, microphone will hear what
+   your loadspeaker syays and propduces echo-Voices, so you must run
+   MicrophonePlayback, which runs procrammally Microphone hearing anly when
+   loudspeaker is nor running.
+   
+   Camera
+   ------
+   This is Sense-type Robot, that produces images your Robot sees. Implementation
+   supportrs now build in Microsoft Windows laptop -cameras which are tested to work
+   and mabe also pluggable web-camertas, but these are not tested. Implemenation
+   supports also Raspberry pi, so its official Camera is supported.
+   
+   TensorflowClassification
+   ------------------------
+   This is Work-type Robot. It takes Sense,Image-type sensations as input and produces
+   Sense,Item-type Sensations. These are Item names what TensoFlow machine learning platform
+   gives as. It also produces Work,Image-type Sensations as sub-images where are
+   identified items, not the whole picture.
+   
+    Communication
+    -------------
+    This is Work-type Robot that takes Sense,Voice, Sense,Item and Sense,Image
+    Sensations from other Robots as input and it produces Mucle.Voice and Muscle.Image
+    Sensations as output. Communications tries to find out which Iten.names are
+    present and comminicate with them. Most important Item-name is 'person', meaning
+    that our Robot has identified a human beaing to be present. WSe humans can resond
+    to the Robots and if we do so, Robot will mark posivite feeling to Voice
+    it said and that Voice is set higher in Robots Memory assigned to this Item.name.
+    So in next time, in next conversation this Voice is used before other Voices.
+    This is process how Robot leans how to behave so, that it gets positive feelings.
+    If Robot does not hear a response, it set negative feeling to last Voice it said
+    assigned to Item.name to be present.
+    
+    We are studying also Robot-Robot -conversation, so MainRobots can conversate
+    can conversate with each other. Robots can also conversate with Images, opposite
+    to 'person'. This as global information sharing same way, than human kind
+    tries to share its experiences with each other to behave more reasonably,
+    but here we allow to study sceince fiction dream or nightmare of leaning
+    machine network.
+    
+    Visual
+    ------
+    This has two purposes. We humans can't comunicate with images directly, so
+    it is a tool to do so, sommunicate witjh Images also, just choosing images
+    that are available in this system. Other meaning is logging what is happening
+    in Robot, what it sees and hears. This Robot logs every Sensation that are
+    transferre uo or diwn in this system.
+    
+Explonation of most important confifuration settigs
+---------------------------------------------------
+
+  name
+  ----
+  For instance 'name = Wall-E'. Name of Robot. If Robots name is MainRobot
+  it reads subdirectory Identification/<name>, there are imges as jpg-files and
+  voices as uncompressed cd-quality files that are typical to this Robot.
+  
+  exposures
+  ---------
+  When we humans born, we will hear and see thing that will be very meaningfull
+  to us. exposures are  subdirectorys to Identification/<exposure name>
+  where meaningfull Images and Voices are. Robot is set see those Images and
+  hear those Voices and use Communication to react and set assignations with those
+  and set positive feelings. This is a way to set default bahaviour of Robot based
+  on what it has experinced as as baby or chilld.
+  
+  subinstances
+  ------------
+  List of subinstaces for this Robot. Alhough Robots is all levels can have
+  SubRobots, most common case is that only MainRobot or Virtual Robot has them.
+  Most common case with virtual Robot is that it has Communication as subinstance
+  but it uses it MainRobot Sense-, Mucle-R and Work-Robots.
+  
+  virtualinstances
+  ----------------
+  This starts SubRobot with MainRobot role inside this MainRobot. This virtual
+  Robots can use its own.
+  
+  kind
+  ----
+  Kind defines style how we behave or speak. Now only use is in Playback-Robot.
+  Kind can be 'Wall-E', 'Eve' or 'Normal'. 'Normal' means that Voices are not changed.
+  'Wall-E' means that This Robot speks faster, because Robots are fast. 'Eve'
+  means that this Root speks even faster than 'Wall-E', because female Robots
+  speks even faster and with higher frequence than male-Robot.
+  
+  hosts
+  -----
+  This is list of IP-addresses to what MainRobots this MainRobot will try to
+  connect. Ypu should double-link Robots but only mension other host in one side,
+  because it is not yet resolved how to prevent situations, when both sides are
+  trying to connect each other and either will fail or get get double connection
+  doubling all trafic. So please confugure you system that  first are started
+  sites, that don't connect with other and after that sites that try to connect
+  other sites.
+  
+  locations
+  ---------
+  This is list of location names, where this Robot is. Name is one word.
+  Most common case is that MainRobot and its subinstances reside in one location,
+  but it can be convenient especially in test situations to set for instance
+  many locations.
+  
+  minavailmem
+  -----------
+  Robot with MainRobot-role has its own memory, there its knowledge os world is
+  stored. This will need a lot of memory in our site. We have stested Robots also
+  with Raspberry PI cardcomputer with 1 MB memory. This kind configuration works
+  fine, but it can't remember Sensations, what happened long time ago, but
+  forgets things sooner than MainRobots is sites with larger memory.
+  Parameter is number of KBs that should be free after creating new Sensation.
+  Reasonable value depend on sites role. With systems that are dedicated to run
+  only Robot, value can be lower that systems that will do other things too.
+  For dedicated cardcomputers with little memory we have tested value 50, but
+  with larger memory universal computers we do other things also, we have set
+  4000.
+  
+  maxrss
+  ------
+  This limits also memory usage, but value is maxinun usage of memory this
+  MainRobot can use and behaviour does not care of number of real memory. With
+  this you can limit maximun number of memory Robot will use. Robots memory uses
+  sites memory so that it will free Sensations fron memory, if free memory or
+  under or Robot used memory in over maxrss. So if you want to use only one
+  limitation, set other limitation high or low enough, so only one limitiation
+  is meaningful.
+  
+  Receivedved Sensation configuration
+  -----------------------------------
+  
+  Each subRobot has different capability of process different kind Sensations.
+  In other words Robots are interested of diffrent kind Sensation. To keep
+  system responsible, MainRobot thranfers to down-direction only that kind
+  Senations that have capability to process them Also all Robots work same way,
+  so also MainRobots iin network will only receice that kind Sensations that
+  they have capability to process. Single capability in defined by Robot type
+  Muscle/Sense, Sensations Memoty type Sensory/Work/LongTerm and Sensations type,
+  now Drive/Stop/Robot/Azimuth/Acceleration/Location/Observation/HearDirection/
+  Voice/Image/Calibrate/Capability/Item/Feeling. You can see, that there has
+  been plan of moving Robots, Robots that find out things in directions, havinng
+  capabiliets to turn etc. You are free to implement those traditional Robot
+  behaviour and mayde we also do it one day, but now we have in active use
+  Sensation types Stop/Robot/Location/Voice/Image/Capability/Item/Feeling.
+  Sensation types Stop/Robot/Location/Capability are used internally in system
+  so subRobots don't implement direct functionality for them.
+
+  Python configuration system does not support array like configuration so
+  single cpability looks like this
+  
+  muscle_sensory_voice = True
+  
+  This means that this Robot is interested Sensation where Robot type is Muscle,
+  memory type is Sensory ans Sensation is Voice. Because Robot type is Muscle
+  this configuration is used with Playback-subrobots, meaning that it can speak
+  out Voices. In Configution file in [Default] section all settimgs are mentioned
+  with default values and default value of capability is always false.
+  With 'locations' parameter you define location of this Robot and those location
+  have their own section in config file. Put there parameters that have other
+  value than default one. Common case is set at least capabilities of this
+  suRrobot there as value True.
+  
+Sensation routing
+-----------------
+
+Sensations created in Sense-type subRobots are routed to Up-diredtion until
+they fing out MainRobot-role Robot. MainRobot-type Robot does not have father
+Robot so it can't tranfer Sensation to Up-direction any more. But Muscle or
+Work-type subRobot are interested of these Sensation. Al level Robots know
+capabilities of its subRobots so MainRobot know capabilities for all subRobot
+are they it own subinstances, virtualRobots or their subinstances or Robots
+connected with network. So MainRobot-role Robot tranfer Sensation to
+Down-direction to all tyhose subRobots, that have capabilities to process them.
+Capability is one routing parameter, but Location is other. Sensations are
+tranferred to those subrobots that are in Locations mentioned in Sensation.
+Sense-type Robot has put its own location(s) to Sensations it created. Location can
+be also empty and this means that all Sensations with empty location are tranferred
+locally to all subRobots with capability to process it. If subRobots location is
+empty, then it will receyve all local Sensation with any location. If location
+is 'global' then this Sensation is tranferred in network to all subRobots that
+have cability to process it even if theis location is what ever. If subRFobots
+location is 'global' it, will receive all Sensations in network with capailityity
+it can process even id Sensations locatis in what ever.
+
+Sensations is logical-Robot border
+---------------------------------
+Communication is planned to happen so, that 'person's produre Sense.Voice type
+response-Sensations fron Micrphone-SubRobot and Robot responseses with Muscle.Voice
+Sensation using Playback-subRobot.
+
+But when two logical Robots communite with each other, eSensations are kept between
+logical Robots. That Logical Robot that will get response is not Muscle-type, but
+its Communication-subRobot wll expect Sense-type response. For this reason, when
+Sensation comes to logicalRobot border, meaning that in that Robot, where
+LogicalRobots name changes, it reverses Sense/muscle. This mimics
+Microhone/playback behaviour without those ans Communication wll work right
+whihout knowing if Communication is going on with 'person's or Robots.
+logical Robot.
+
+OK, architecture is explained now and we can test different kind configurations.
+Asw you see, architecture is most flexible to try what ever you can define and
+what you can define you can configure and subRobots implemented don't need changes
+if running one site locally, many sites with network or even inside other Robots.
+
+
