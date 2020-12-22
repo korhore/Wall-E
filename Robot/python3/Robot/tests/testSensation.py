@@ -1,6 +1,6 @@
 '''
 Created on 10.06.2019
-Updated on 10.10.2020
+Updated on 21.12.2020
 @author: reijo.korhonen@gmail.com
 
 test Sensation class
@@ -21,6 +21,9 @@ class SensationTestCase(unittest.TestCase):
     NORMAL_FEELING = Sensation.Feeling.Good
     BETTER_FEELING = Sensation.Feeling.Happy
     TERRIFIED_FEELING = Sensation.Feeling.Terrified
+
+    MAINNAMES_1 =          ['Wall-E_MainName']
+    MAINNAMES_2 =          ['Eva_MainName']
 
     SET_1_1_LOCATIONS_1 = ['testLocation']
     SET_1_1_LOCATIONS_2 = ['Ubuntu']
@@ -656,9 +659,11 @@ class SensationTestCase(unittest.TestCase):
 
     def test_Bytes(self):        
         print("\ntest_Bytes")
+        self.robot.setMainNames(SensationTestCase.MAINNAMES_1)
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
                                                       name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=[],
                                                       locations = SensationTestCase.SET_1_2_LOCATIONS)
+        self.assertEqual(SensationTestCase.MAINNAMES_1, workingSensation.getMainNames(), "should be equal")
         self.assertTrue(workingSensation != None, "should be created")
         self.assertEqual(workingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
         bytes=workingSensation.bytes()
@@ -666,6 +671,7 @@ class SensationTestCase(unittest.TestCase):
         fromBytesWorkingSensation = self.robot.createSensation(bytes=bytes)
         self.assertTrue(fromBytesWorkingSensation != None, "should be created")
         self.assertEqual(fromBytesWorkingSensation, workingSensation, "should be equal")
+        self.assertEqual(fromBytesWorkingSensation.getMainNames(), workingSensation.getMainNames(), "should be equal")
         self.assertEqual(fromBytesWorkingSensation.getLocations(), workingSensation.getLocations(), "should be equal")
         self.assertEqual(fromBytesWorkingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
         self.assertEqual(fromBytesWorkingSensation.getDataId(), workingSensation.getDataId(), "should be equal")
@@ -680,6 +686,8 @@ class SensationTestCase(unittest.TestCase):
         fromBytesWorkingSensation = self.robot.createSensation(bytes=bytes)
         self.assertTrue(fromBytesWorkingSensation != None, "should be created")
         self.assertEqual(fromBytesWorkingSensation, workingSensation, "should be equal")
+        self.assertEqual(SensationTestCase.MAINNAMES_1, fromBytesWorkingSensation.getMainNames(), "should be equal")
+        self.assertEqual(fromBytesWorkingSensation.getMainNames(), workingSensation.getMainNames(), "should be equal")
         self.assertEqual(fromBytesWorkingSensation.getLocations(), workingSensation.getLocations(), "should be equal")
         self.assertEqual(fromBytesWorkingSensation.getLocations(), SensationTestCase.SET_1_1_LOCATIONS_1, "should be equal")
         self.assertEqual(fromBytesWorkingSensation.getDataId(), workingSensation.getDataId(), "should be equal")

@@ -239,6 +239,7 @@ class Robot(Thread):
             self._isMainRobot = False
         else:
             self._isMainRobot = False
+        self.mainNames = self.config.getMainNames()
         
         
         self.selfSensation=self.createSensation(log=False,
@@ -257,7 +258,14 @@ class Robot(Thread):
                                                  sensationType=Sensation.SensationType.Location,
                                                  robotType=Sensation.RobotType.Sense,
                                                  locations=self.config.getLocations())
-        # TODO We ignore self.selfSensation.locationSensation to avoid infinite loop in logging.
+        if not self._isMainRobot:
+            parent = self.parent
+            # if we don't have mainNames, try to get  one not next of our oarent up
+            while (self.mainNames == None or len(self.mainNames) == 0) and\
+                  parent != None:
+                self.mainNames = parent.getMainNames()
+                parent = parent.getParent()
+            # TODO We ignore self.selfSensation.locationSensation to avoid infinite loop in logging.
         self.locations = self.config.getLocations()
         self.selfSensation.associate(sensation=locationSensation)
         #self.setLocations(self.config.getLocations())
@@ -388,6 +396,13 @@ class Robot(Thread):
         self.name = name
     def getName(self):
         return self.name
+    
+    def setMainNames(self, mainNames):
+#         if self.getInstanceType() == Sensation.InstanceType.SubInstance:
+        self.mainNames = mainNames
+        self.config.setMainNames(mainNames = mainNames)
+    def getMainNames(self):
+        return self.mainNames
     
     def setLocations(self, locations):
 #         if self.getInstanceType() == Sensation.InstanceType.SubInstance:
@@ -1133,6 +1148,7 @@ class Robot(Thread):
                  robotType=robotType,
                  #robot=robot,
                  locations=locations,
+                 mainNames=self.getMainNames(),
                  leftPower = leftPower, rightPower = rightPower,
                  azimuth = azimuth,
                  x=x, y = y, z = z, radius=radius,

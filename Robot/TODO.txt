@@ -79,6 +79,14 @@ Still there is problem to solve: What happens if Sensation is transferred to thi
 Hmm.., should we use arrays of locations? And what is role of Locations and  site addresseses?
 Another is logical and another is technical, buy are that same thing? Well no. We can't share memory
 between sites even if we try our best.
+
+To finalize this idea. we must
+- terminology change who -> name
+- check role of locations, name
+- implement
+-- nainName, mainRobots name
+--- Config.py
+--- Robot.py
                    
                    
                             

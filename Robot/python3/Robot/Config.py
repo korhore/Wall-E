@@ -59,6 +59,9 @@ class Config(ConfigParser):
 #    Microphones =       'MICROPHONES' 
     NAME =               'Name' 
     WALLE =              'Wall-E'
+    MAINNAMES =          'MainNames' 
+    MAINNAMES_DEFAULT =  ''
+    DEFAULT_MAINNAME =   ''
     LOCATIONS =          'locations' 
     SUBLOCATIONS =       'sublocations' 
     UPLOCATIONS =        'uplocations' 
@@ -598,6 +601,13 @@ class Config(ConfigParser):
             print('self.set(Config.DEFAULT_SECTION, Config.NAME, Sensation.WALLE) exception ' + str(e))
             
         try:                
+            if not self.has_option(Config.DEFAULT_SECTION, Config.MAINNAMES):
+                self.set(Config.DEFAULT_SECTION,Config.MAINNAMES, Config.strArrayToStr(Config.MAINNAMES_DEFAULT))
+                self.is_changes=True
+        except Exception as e:
+            print('self.set(Config.DEFAULT_SECTION, Config.MAINNAMES, Config.strArrayToStr(Config.MAINNAMES_DEFAULT) exception ' + str(e))
+
+        try:                
             if not self.has_option(Config.DEFAULT_SECTION, Config.LOCATIONS):
                 self.set(Config.DEFAULT_SECTION,Config.LOCATIONS, Config.strArrayToStr(Config.LOCATIONS_DEFAULT))
                 self.is_changes=True
@@ -920,6 +930,29 @@ class Config(ConfigParser):
         return name
 
     ''' 
+    get MainNames for this Config
+    '''       
+    def getMainNames(self, section=DEFAULT_LOCATION):
+        self.mainNames=[]
+        mainNames = self.get(section=section, option=self.MAINNAMES)
+        if mainNames != None and len(mainNames) > 0:
+            self.mainNames = mainNames.split()
+        return self.mainNames
+        
+    ''' 
+    set mainNames for this Config
+    '''       
+    def setMainNames(self, section=DEFAULT_LOCATION, mainNames=MAINNAMES_DEFAULT, commit=True):
+        try:
+            self.set(section=section, option=Config.MAINNAMES, value=Config.strArrayToStr(mainNames))
+            self.is_changes = True
+        except Exception as e:
+            print('self.set(section=DEFAULT_SECTION, option=Config.MAINNAMES, value=Config.strArrayToStr(mainNames)' + str(e))
+            
+        if commit:
+            self.commit()
+            
+    ''' 
     get locations for this Config
     '''       
     def getLocations(self, section=DEFAULT_LOCATION):
@@ -1234,6 +1267,7 @@ class Capabilities():
     def __init__(self,
                  config=None,
                  location=Config.DEFAULT_LOCATION,
+                 mainName=Config.DEFAULT_MAINNAME,
                  string=None,
                  bytes=None,
                  Or =None,
@@ -1241,6 +1275,7 @@ class Capabilities():
                  deepCopy=None):
         self.config = config
         self.location = location
+        self.mainName = mainName
 #         # self.locations can be overwritten by bytes (or string, not tested)
 #         self.locations = locations
 #         if (self.locations is None or len(self.locations) == 0) and self.config is not None:

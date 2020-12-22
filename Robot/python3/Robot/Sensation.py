@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 13.10.2020
+Edited on 21.12.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -641,6 +641,7 @@ class Sensation(object):
                  robotType = None,
                  robot = None,
                  locations =  [],
+                 mainNames =  [],
                  leftPower = None, rightPower = None,                        # Walle motors state
                  azimuth = None,                                             # Walle robotType relative to magnetic north pole
                  x=None, y=None, z=None, radius=None,                        # location and acceleration of Robot
@@ -696,6 +697,7 @@ class Sensation(object):
                                        robotType=robotType,
                                        robot=robot,
                                        locations=locations,
+                                       mainNames=mainNames,
                                        leftPower=leftPower,rightPower=rightPower,                   # Walle motors state
                                        azimuth=azimuth,                                             # Walle robotType relative to magnetic north pole
                                        x=x, y=y, z=z, radius=radius,                                # location and acceleration of Robot
@@ -750,6 +752,7 @@ class Sensation(object):
                                        robotType=robotType,
                                        robot=robot,
                                        locations=locations,
+                                       mainNames=mainNames,
                                        leftPower=leftPower,rightPower=rightPower,                   # Walle motors state
                                        azimuth=azimuth,                                             # Walle robotType relative to magnetic north pole
                                        x=x, y=y, z=z, radius=radius,                                # location and acceleration of Robot
@@ -779,6 +782,7 @@ class Sensation(object):
 #             self.robotType = robotType
 #             self.robot = robot
 #             self.locations = locations
+#             self.mainNames = mainNames
 #             self.leftPower = leftPower
 #             self.rightPower = rightPower
 #             self.hearDirection = hearDirection
@@ -862,6 +866,14 @@ class Sensation(object):
                 i += Sensation.ID_SIZE
                 self.locations=Sensation.bytesToList(bytes[i:i+locations_size])
                 i += locations_size
+                                
+                
+                # mainNames
+                mainNames_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
+                #print("mainNames_size " + str(mainNames_size))
+                i += Sensation.ID_SIZE
+                self.mainNames=Sensation.bytesToList(bytes[i:i+mainNames_size])
+                i += mainNames_size
                                 
                 if self.sensationType is Sensation.SensationType.Drive:
                     self.leftPower = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
@@ -1008,6 +1020,7 @@ class Sensation(object):
                       robotType,
                       robot,
                       locations,
+                      mainNames,
                       leftPower, rightPower,                            # Walle motors state
                       azimuth,                                          # Walle robotType relative to magnetic north pole
                       x, y, z, radius,                                  # location and acceleration of Robot
@@ -1052,6 +1065,11 @@ class Sensation(object):
         else:
             destination.locations = []
             
+        if mainNames is not None:
+            destination.mainNames = mainNames
+        else:
+            destination.mainNames = []
+
         if leftPower is not None:
             destination.leftPower = leftPower
         else:
@@ -1183,6 +1201,7 @@ class Sensation(object):
                         robotType,
                         robot,
                         locations,
+                        mainNames,
                         leftPower, rightPower,                               # Walle motors state
                         azimuth,                                             # Walle robotType relative to magnetic north pole
                         x, y, z, radius,                                     # location and acceleration of Robot
@@ -1231,6 +1250,11 @@ class Sensation(object):
             destination.locations = source.locations
         else:
             destination.locations = locations
+            
+        if mainNames is None:
+            destination.mainNames = source.mainNames
+        else:
+            destination.mainNames = mainNames
             
         if leftPower is None:
             destination.leftPower = source.leftPower
@@ -1498,6 +1522,12 @@ class Sensation(object):
 #         b +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
 #         b +=  Sensation.strToBytes(self.locations)            
 
+        blist = Sensation.listToBytes(self.mainNames)
+        #print(' blist ' +str(blist))
+        blist_size=len(blist)
+        b +=  blist_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
+        b += blist
+        
         if self.sensationType is Sensation.SensationType.Drive:
             b += Sensation.floatToBytes(self.leftPower) + Sensation.floatToBytes(self.rightPower)
         elif self.sensationType is Sensation.SensationType.HearDirection:
@@ -2016,6 +2046,17 @@ class Sensation(object):
     def getLocationsStr(self):
         #from Config import strArrayToStr
         return Sensation.strArrayToStr(self.getLocations())
+      
+    def setMainNames(self, mainNames):
+        self.mainNames = mainNames
+    def getMainNames(self):
+        if self.mainNames is None:
+            return []
+        return self.mainNames
+
+    def getMainNamesStr(self):
+        #from Config import strArrayToStr
+        return Sensation.strArrayToStr(self.getMainNames())
       
     def setLeftPower(self, leftPower):
         self.leftPower = leftPower

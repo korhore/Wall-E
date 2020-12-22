@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 22.10.2020
+Edited on 21.12.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -123,6 +123,7 @@ class Memory(object):
                  memoryType = None,
                  robotType = None,
                  locations =  None,
+                 mainNames =  None,
                  leftPower = None, rightPower = None,                        # Walle motors state
                  azimuth = None,                                             # Walle robotType relative to magnetic north pole
                  x=None, y=None, z=None, radius=None,                        # location and acceleration of Robot
@@ -164,6 +165,7 @@ class Memory(object):
                  robotType=robotType,
                  robot=robot,
                  locations=locations,
+                 mainNames=mainNames,
                  leftPower = leftPower, rightPower = rightPower,                         # Walle motors state
                  azimuth = azimuth,                                                      # Walle robotType relative to magnetic north pole
                  x=x, y=y, z=z, radius=radius,                                           # location and acceleration of Robot
@@ -201,6 +203,7 @@ class Memory(object):
                                                robotType=robotType,
                                                robot=robot,
                                                locations=locations,
+                                               mainNames=mainNames,
                                                leftPower=leftPower,rightPower=rightPower,                   # Walle motors state
                                                azimuth=azimuth,                                             # Walle robotType relative to magnetic north pole
                                                x=x, y=y, z=z, radius=radius,                                # location and acceleration of Robot

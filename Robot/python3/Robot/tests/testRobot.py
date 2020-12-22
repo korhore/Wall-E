@@ -1,6 +1,6 @@
 '''
 Created on 13.02.2020
-Updated on 08.09.2020
+Updated on 21.21.2020
 @author: reijo.korhonen@gmail.com
 
 test Robot class
@@ -34,6 +34,9 @@ class RobotTestCase(unittest.TestCase):
         - location
     '''
     
+    MAINNAMES_1 =          ['Wall-E_MainName']
+    MAINNAMES_2 =          ['Eva_MainName']
+
     LOCATIONS_1 =          ['testLocation']
     LOCATIONS_2 =          [                'Ubuntu']
     LOCATIONS_1_2 =        ['testLocation', 'Ubuntu']
@@ -73,9 +76,7 @@ class RobotTestCase(unittest.TestCase):
     REMOTE_LOCALHOST='127.0.0.2'
     FAKE_PORT = 2001
     
-    SLEEPTIME=20.0
-    SHORT_SLEEPTIME=15-0
-    LONG_SLEEPTIME=20.0
+    SLEEPTIME=10.0
     WAIT_STEP = 1.0
     
     '''
@@ -134,6 +135,9 @@ class RobotTestCase(unittest.TestCase):
             self.mainRobot.activityNumber = 0
             self.mainRobot.activityPeriodStartTime = time.time()
 
+        self.mainRobot.setMainNames(RobotTestCase.MAINNAMES_1)
+        self.assertEqual(RobotTestCase.MAINNAMES_1, self.mainRobot.getMainNames())
+
         self.mainRobot.setLocations(RobotTestCase.LOCATIONS_1)
         self.mainRobot.selfSensation=self.mainRobot.createSensation(sensationType=Sensation.SensationType.Robot,
                                                           memoryType=Sensation.MemoryType.LongTerm,
@@ -153,6 +157,7 @@ class RobotTestCase(unittest.TestCase):
         self.assertEqual(self.mainRobot,Robot.getMainRobotInstance(), "should have Robot.mainRobotInstance")
         self.sense.setLocations(RobotTestCase.LOCATIONS_1)
         self.mainRobot.subInstances.append(self.sense)
+#        self.assertEqual(RobotTestCase.MAINNAMES_1, self.sense.getMainNames())
         
         
         self.muscle = RobotTestCase.TestRobot(parent=self.mainRobot,
@@ -163,27 +168,11 @@ class RobotTestCase(unittest.TestCase):
         self.muscle.setLocations(RobotTestCase.LOCATIONS_1)
         self.muscle.setDownLocations(RobotTestCase.LOCATIONS_1)
         self.mainRobot.subInstances.append(self.muscle)
+ #       self.assertEqual(RobotTestCase.MAINNAMES_1, self.muscle.getMainNames())
                 
         #set muscle capabilities  Item, Image, Voice
-        capabilities  =  self.muscle.getCapabilities()
-        # location, needed, because Robot delegates subrobot capability checking
-        # in routing phase for Capabilities so also capabilities should have same Locations
-        # in real application they are, because Robots Locations come from Capabilities
-        # deprecated capabilities.setLocations(RobotTestCase.LOCATIONS_1)
-         #Sensory
-        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Item, is_set=True)   
-        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Image, is_set=True)   
-        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Voice, is_set=True)   
-        #Working
-        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Working, sensationType=Sensation.SensationType.Item, is_set=True)   
-        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Working, sensationType=Sensation.SensationType.Image, is_set=True)   
-        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Working, sensationType=Sensation.SensationType.Voice, is_set=True)   
-        #LongTerm
-        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.LongTerm, sensationType=Sensation.SensationType.Item, is_set=True)   
-        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.LongTerm, sensationType=Sensation.SensationType.Image, is_set=True)   
-        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.LongTerm, sensationType=Sensation.SensationType.Voice, is_set=True)   
-
-        self.muscle.setCapabilities(capabilities)      
+        self.setCapabilities(robot=self.muscle, robotType=Sensation.RobotType.Sense, is_set=True)
+        self.setCapabilities(robot=self.muscle, robotType=Sensation.RobotType.Muscle, is_set=False)
 
 
     def setUpRemote(self):
@@ -209,6 +198,9 @@ class RobotTestCase(unittest.TestCase):
             self.remoteMainRobot.activityNumber = 0
             self.remoteMainRobot.activityPeriodStartTime = time.time()
 
+        self.remoteMainRobot.setMainNames(RobotTestCase.MAINNAMES_1)
+        self.assertEqual(RobotTestCase.MAINNAMES_1, self.remoteMainRobot.getMainNames())
+
         self.remoteMainRobot.setLocations(RobotTestCase.LOCATIONS_1)
         self.remoteMainRobot.selfSensation=self.remoteMainRobot.createSensation(sensationType=Sensation.SensationType.Robot,
                                                           memoryType=Sensation.MemoryType.LongTerm,
@@ -228,6 +220,7 @@ class RobotTestCase(unittest.TestCase):
         self.assertEqual(self.remoteMainRobot,Robot.getMainRobotInstance(), "should have Robot.mainRobotInstance")
         self.remoteSense.setLocations(RobotTestCase.LOCATIONS_1)
         self.remoteMainRobot.subInstances.append(self.remoteSense)
+        self.assertEqual(RobotTestCase.MAINNAMES_1, self.remoteSense.getMainNames())
         
         
         self.remoteMuscle = RobotTestCase.TestRobot(parent=self.remoteMainRobot,
@@ -238,27 +231,32 @@ class RobotTestCase(unittest.TestCase):
         self.remoteMuscle.setLocations(RobotTestCase.LOCATIONS_1)
         self.remoteMuscle.setDownLocations(RobotTestCase.LOCATIONS_1)
         self.remoteMainRobot.subInstances.append(self.remoteMuscle)
+        self.assertEqual(RobotTestCase.MAINNAMES_1, self.remoteMuscle.getMainNames())
                 
         #set muscle capabilities  Item, Image, Voice
-        capabilities  =  self.remoteMuscle.getCapabilities()
-        # location, needed, because Robot delegates subrobot capability checking
-        # in routing phase for Capabilities so also capabilities should have same Locations
-        # in real application they are, because Robots Locations come from Capabilities
-        # deprecated capabilities.setLocations(RobotTestCase.LOCATIONS_1)
-         #Sensory
-        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Item, is_set=True)   
-        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Image, is_set=True)   
-        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Voice, is_set=True)   
+        self.setCapabilities(robot=self.remoteMuscle, robotType=Sensation.RobotType.Sense, is_set=True)
+        self.setCapabilities(robot=self.remoteMuscle, robotType=Sensation.RobotType.Muscle, is_set=False)
+        
+    '''
+    set capabilities  Item, Image, Voice
+    '''
+    def setCapabilities(self, robot, robotType, is_set):
+        capabilities  =  robot.getCapabilities()
+        
+        #sensory
+        capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Item, is_set=is_set)   
+        capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Image, is_set=is_set)   
+        capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Voice, is_set=is_set)   
         #Working
-        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Working, sensationType=Sensation.SensationType.Item, is_set=True)   
-        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Working, sensationType=Sensation.SensationType.Image, is_set=True)   
-        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.Working, sensationType=Sensation.SensationType.Voice, is_set=True)   
+        capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Working, sensationType=Sensation.SensationType.Item, is_set=is_set)   
+        capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Working, sensationType=Sensation.SensationType.Image, is_set=is_set)   
+        capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Working, sensationType=Sensation.SensationType.Voice, is_set=is_set)   
         #LongTerm
-        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.LongTerm, sensationType=Sensation.SensationType.Item, is_set=True)   
-        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.LongTerm, sensationType=Sensation.SensationType.Image, is_set=True)   
-        capabilities.setCapability(robotType=Sensation.RobotType.Sense, memoryType=Sensation.MemoryType.LongTerm, sensationType=Sensation.SensationType.Voice, is_set=True)   
+        capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.LongTerm, sensationType=Sensation.SensationType.Item, is_set=is_set)   
+        capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.LongTerm, sensationType=Sensation.SensationType.Image, is_set=is_set)   
+        capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.LongTerm, sensationType=Sensation.SensationType.Voice, is_set=is_set)   
 
-        self.remoteMuscle.setCapabilities(capabilities)
+        robot.setCapabilities(capabilities)
         
 
 
@@ -278,7 +276,7 @@ class RobotTestCase(unittest.TestCase):
     
     '''
         
-    def testLocations(self):
+    def re_testLocations(self):
         print('\ntestLocations')
         
         
@@ -360,7 +358,7 @@ class RobotTestCase(unittest.TestCase):
         
         
 
-    def test_Routing(self):
+    def re_test_Routing(self):
         print('\ntest_Sensation Routing')
         #history_sensationTime = time.time() -2*RobotTestCase.ASSOCIATION_INTERVAL
 
@@ -572,7 +570,7 @@ class RobotTestCase(unittest.TestCase):
         # muscle      have LOCATIONS_1_GLOBAL  set
         # sensation   have LOCATIONS_3_4  set
         # when senses locations does not match destination's locations, it is  not routed
-        print('\n-sensation LOCATIONS_3_4 locations set, sense LOCATIONS_3_4 locations and muscleLOCATIONS_1_GLOBAL1 locations match')
+        print('\n-sensation LOCATIONS_3_4 locations set, sense LOCATIONS_3_4 locations and muscle LOCATIONS_1_GLOBAL1 locations match')
         # same routing should fail. if Sensation's and Robot's Locations don't match
         self.sense.setLocations(RobotTestCase.LOCATIONS_3_4)
         #Wall_E_item_sensation.setLocations(RobotTestCase.LOCATIONS_1)
@@ -596,6 +594,13 @@ class RobotTestCase(unittest.TestCase):
         # re-enable
         self.do_TestRouting(locations=RobotTestCase.LOCATIONS_1_GLOBAL, shouldBeRouted=True)
         self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty after self.muscle.getAxon().get()')
+        
+        # finally teardown
+        # set locations as they were or other tests fail
+        self.sense.setLocations(RobotTestCase.LOCATIONS_1)
+        self.muscle.setLocations(RobotTestCase.LOCATIONS_1)
+        self.muscle.setDownLocations(RobotTestCase.LOCATIONS_1)
+        
         
     '''
     helper for testing local routing     
@@ -635,12 +640,295 @@ class RobotTestCase(unittest.TestCase):
         else:
             self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty')
 
-        # same logic then in Memory
+        # same logic than in Memory
         if locations == None or len(locations) == 0:
             locations = [''] 
         for location in locations:        
             self.assertEqual(len(self.sense.getMemory().getPresentItemSensations(location)), 1, 'len(self.sense.getMemory().presentItemSensations should be 1')
+
+    '''
+    Same location test. but test cases where Robots, mainNames match and Not match
+    If not match, the Different Robottype Sensation is routed, but not same
+    Robottype sensation not
+    '''            
+    def test_MainNamesRouting(self):
+        print('\ntest_Sensation Routing')
+        #history_sensationTime = time.time() -2*RobotTestCase.ASSOCIATION_INTERVAL
+
+        self.assertEqual(self.mainRobot.getAxon().empty(), True, 'Axon should be empty at the beginning of test_Presense\nCannot test properly this!')
         
+        ###########################################################################################################
+        # sense       have LOCATIONS_EMPTY set
+        # muscle      have LOCATIONS_EMPTY set
+        # sensation   have None location set 
+        # when we don't set locations in the Sensation, it gets local default location, which should be routed everywhere
+        print('\n-sensation, none locations set, sense and muscle empty locations set match')
+        self.sense.setLocations(RobotTestCase.LOCATIONS_EMPTY)
+        self.muscle.setLocations(RobotTestCase.LOCATIONS_EMPTY)
+        self.muscle.setDownLocations(RobotTestCase.LOCATIONS_EMPTY)
+        # when MAINNAMES_1,Sensation.RobotType.Sense; MAINNAMES_1,Sensation.RobotType.Sense should be routed
+        self.do_MainNamesRouting(locations=None,
+                                 senseMainNames=RobotTestCase.MAINNAMES_1,
+                                 sensaRobotType=Sensation.RobotType.Sense,
+                                 muscleMainNames=RobotTestCase.MAINNAMES_1,
+                                 muscleRobotType=Sensation.RobotType.Sense,
+                                 shouldBeRouted=True)
+        # when MAINNAMES_1,Sensation.RobotType.Sense; MAINNAMES_2,Sensation.RobotType.Sense  NOT should be routed
+        self.do_MainNamesRouting(locations=None,
+                                 senseMainNames=RobotTestCase.MAINNAMES_1,
+                                 sensaRobotType=Sensation.RobotType.Sense,
+                                 muscleMainNames=RobotTestCase.MAINNAMES_2,
+                                 muscleRobotType=Sensation.RobotType.Sense,
+                                 shouldBeRouted=False)
+        # when MAINNAMES_1,Sensation.RobotType.Sense; MAINNAMES_2,Muscle should be routed
+        self.do_MainNamesRouting(locations=None,
+                                 senseMainNames=RobotTestCase.MAINNAMES_1,
+                                 sensaRobotType=Sensation.RobotType.Sense,
+                                 muscleMainNames=RobotTestCase.MAINNAMES_2,
+                                 muscleRobotType=Sensation.RobotType.Muscle,
+                                 shouldBeRouted=True)
+
+        
+#         ###########################################################################################################
+#         # sense       have LOCATIONS_1 set
+#         # muscle      have LOCATIONS_2 set
+#         # sensation   does not set location
+#         # when we don't set locations in the Sensation, it gets local default location, which should be routed everywhere
+#         print('\n-sensation, none locations set, sense LOCATIONS_1 and muscle LOCATIONS_2 locations set match because Sensation location matters, but this is not realistic test')
+#         print('\n-sensation no locations set, sense don\'t match to muscle')
+#         # same routing should fail. if Sensation's and Robot's Locations don't match
+#         self.sense.setLocations(RobotTestCase.LOCATIONS_1)
+#         self.muscle.setLocations(RobotTestCase.LOCATIONS_2)
+#         self.muscle.setDownLocations(RobotTestCase.LOCATIONS_2)
+#         self.do_TestRouting(locations=None, shouldBeRouted=True)
+#                 
+#         ###########################################################################################################
+#         # sense       have LOCATIONS_1 set
+#         # muscle      have LOCATIONS_1 set
+#         # sensation   have LOCATIONS_1 set
+#         # when senses locations does not match destination's locations, it is  routed
+#         print('\n-sensation LOCATIONS_1 locations set, sense and muscle LOCATIONS_1 locations set match')
+#         # same routing should fail. if Sensation's and Robot's Locations don't match
+#         self.sense.setLocations(RobotTestCase.LOCATIONS_1)
+#         #Wall_E_item_sensation.setLocations(RobotTestCase.LOCATIONS_1)
+#         self.muscle.setLocations(RobotTestCase.LOCATIONS_1)
+#         self.muscle.setDownLocations(RobotTestCase.LOCATIONS_1)
+#         self.do_TestRouting(locations=RobotTestCase.LOCATIONS_1, shouldBeRouted=True)
+#         
+#         ###########################################################################################################
+#         # sense       have LOCATIONS_GLOBAL set
+#         # muscle      have LOCATIONS_GLOBAL set
+#         # sensation   have LOCATIONS_GLOBAL set
+#         # when senses locations and sensation location match as global, it is  routed
+#         print('\n-sensation LOCATIONS_GLOBAL locations set, sense and muscle LOCATIONS_GLOBAL match')
+#         self.sense.setLocations(RobotTestCase.LOCATIONS_GLOBAL)
+#         #Wall_E_item_sensation.setLocations(RobotTestCase.LOCATIONS_1)
+#         self.muscle.setLocations(RobotTestCase.LOCATIONS_GLOBAL)
+#         self.muscle.setDownLocations(RobotTestCase.LOCATIONS_GLOBAL)
+#         self.do_TestRouting(locations=RobotTestCase.LOCATIONS_GLOBAL, shouldBeRouted=True)
+#         
+#         ###########################################################################################################
+#         # sense       have LOCATIONS_GLOBAL set
+#         # muscle      have LOCATIONS_EMPTY set
+#         # sensation   have LOCATIONS_EMPTY set
+#         # when senses locations and sensation location match as global, it is  routed
+#         print('\n-sensation LOCATIONS_GLOBAL locations set, sense and muscle LOCATIONS_EMPTY locations match')
+#         self.sense.setLocations(RobotTestCase.LOCATIONS_GLOBAL)
+#         #Wall_E_item_sensation.setLocations(RobotTestCase.LOCATIONS_1)
+#         self.muscle.setLocations(RobotTestCase.LOCATIONS_EMPTY)
+#         self.muscle.setDownLocations(RobotTestCase.LOCATIONS_EMPTY)
+#         self.do_TestRouting(locations=RobotTestCase.LOCATIONS_GLOBAL, shouldBeRouted=True)
+# 
+#         ###########################################################################################################
+#         # sense       have LOCATIONS_EMPTY set
+#         # muscle      have LOCATIONS_GLOBAL set
+#         # sensation   have LOCATIONS_EMPTY set
+#         # when senses locations and sensation location match as global, it is  routed
+#         print('\n-sensation locations LOCATIONS_EMPTY set, sense LOCATIONS_EMPTY and muscle LOCATIONS_GLOBAL locations match')
+#         self.sense.setLocations(RobotTestCase.LOCATIONS_EMPTY)
+#         #Wall_E_item_sensation.setLocations(RobotTestCase.LOCATIONS_1)
+#         self.muscle.setLocations(RobotTestCase.LOCATIONS_GLOBAL)
+#         self.muscle.setDownLocations(RobotTestCase.LOCATIONS_GLOBAL)
+#         self.do_TestRouting(locations=RobotTestCase.LOCATIONS_EMPTY, shouldBeRouted=True)
+#        
+#         ###########################################################################################################
+#         # sense       have LOCATIONS_1 set
+#         # muscle      have LOCATIONS_GLOBAL set
+#         # sensation   have LOCATIONS_1 set
+#         # when senses locations and sensation location match as global, it is  routed
+#         print('\n-sensation LOCATIONS_1 locations set, sense LOCATIONS_1 and muscle LOCATIONS_GLOBAL locations match')
+#         self.sense.setLocations(RobotTestCase.LOCATIONS_1)
+#         #Wall_E_item_sensation.setLocations(RobotTestCase.LOCATIONS_1)
+#         self.muscle.setLocations(RobotTestCase.LOCATIONS_GLOBAL)
+#         self.muscle.setDownLocations(RobotTestCase.LOCATIONS_GLOBAL)
+#         self.do_TestRouting(locations=RobotTestCase.LOCATIONS_1, shouldBeRouted=True)
+#        
+#        
+#         ###########################################################################################################
+#         # sense       have LOCATIONS_GLOBAL set
+#         # muscle      have LOCATIONS_1 set
+#         # sensation   have LOCATIONS_GLOBAL set
+#         # when senses locations and sensation location match as global, it is  routed
+#         print('\n-Sensation LOCATIONS_GLOBAL locations set, sense LOCATIONS_GLOBAL and muscle LOCATIONS_1 match')
+#         self.sense.setLocations(RobotTestCase.LOCATIONS_GLOBAL)
+#         #Wall_E_item_sensation.setLocations(RobotTestCase.LOCATIONS_1)
+#         self.muscle.setLocations(RobotTestCase.LOCATIONS_1)
+#         self.muscle.setDownLocations(RobotTestCase.LOCATIONS_1)
+#         self.do_TestRouting(locations=RobotTestCase.LOCATIONS_GLOBAL, shouldBeRouted=True)
+#        
+#        
+#       # Many locations tests
+#         ###########################################################################################################
+#         # sense       have LOCATIONS_1_2 set
+#         # muscle      have LOCATIONS_1_2  set
+#         # sensation   have no locations set
+#         # when senses locations does not match destination's locations, it is  routed
+#         print('\n-sensation None locations set, sense LOCATIONS_1_2 and muscle LOCATIONS_1_2 locations set match')
+#         # same routing should fail. if Sensation's and Robot's Locations don't match
+#         self.sense.setLocations(RobotTestCase.LOCATIONS_1_2)
+#         #Wall_E_item_sensation.setLocations(RobotTestCase.LOCATIONS_1)
+#         self.muscle.setLocations(RobotTestCase.LOCATIONS_1_2)
+#         self.muscle.setDownLocations(RobotTestCase.LOCATIONS_1_2)
+#         self.do_TestRouting(locations=None, shouldBeRouted=True)
+# 
+#         # Many locations tests
+#         ###########################################################################################################
+#         # sense       have LOCATIONS_1_2 set
+#         # muscle      have LOCATIONS_1_2  set
+#         # sensation   have LOCATIONS_1_2  set
+#         # when senses locations does not match destination's locations, it is  routed
+#         print('\n-sensation LOCATIONS_1_2 locations set, sense LOCATIONS_1_2 and LOCATIONS_1_2 muscle locations set match')
+#         # same routing should fail. if Sensation's and Robot's Locations don't match
+#         self.sense.setLocations(RobotTestCase.LOCATIONS_1_2)
+#         #Wall_E_item_sensation.setLocations(RobotTestCase.LOCATIONS_1)
+#         self.muscle.setLocations(RobotTestCase.LOCATIONS_1_2)
+#         self.muscle.setDownLocations(RobotTestCase.LOCATIONS_1_2)
+#         self.do_TestRouting(locations=RobotTestCase.LOCATIONS_1_2, shouldBeRouted=True)
+# 
+#         # Many locations tests
+#         ###########################################################################################################
+#         # sense       have LOCATIONS_2_3 set
+#         # muscle      have LOCATIONS_2_3  set
+#         # sensation   have LOCATIONS_1_2  set
+#         # when senses locations does not match destination's locations, it is  routed
+#         print('\n-sensation LOCATIONS_1_2 locations set, sense LOCATIONS_2_3 and muscle .LOCATIONS_2_3y locations partial match, not realistic test')
+#         # if Sensation's and Robot's Locations partially match, sensation is routed
+#         self.sense.setLocations(RobotTestCase.LOCATIONS_2_3)
+#         #Wall_E_item_sensation.setLocations(RobotTestCase.LOCATIONS_1)
+#         self.muscle.setLocations(RobotTestCase.LOCATIONS_2_3)
+#         self.muscle.setDownLocations(RobotTestCase.LOCATIONS_2_3)
+#         self.do_TestRouting(locations=RobotTestCase.LOCATIONS_1_2, shouldBeRouted=True)
+# 
+# 
+#         # Many locations tests
+#         ###########################################################################################################
+#         # sense       have GLOBAL set
+#         # muscle      have LOCATIONS_3_4  set
+#         # sensation   have LOCATIONS_1_2  set
+#         # when senses GLOVAL locationst match all destination's locations, it is  routed
+#         print('\n-sensation LOCATIONS_GLOBAL locations set, sense LOCATIONS_GLOBAL and muscle LOCATIONS_3_4 locations set match')
+#         # same routing should fail. if Sensation's and Robot's Locations don't match
+#         self.sense.setLocations(RobotTestCase.LOCATIONS_GLOBAL)
+#         #Wall_E_item_sensation.setLocations(RobotTestCase.LOCATIONS_1)
+#         self.muscle.setLocations(RobotTestCase.LOCATIONS_3_4)
+#         self.muscle.setDownLocations(RobotTestCase.LOCATIONS_3_4)
+#         self.do_TestRouting(locations=RobotTestCase.LOCATIONS_GLOBAL, shouldBeRouted=True)
+#         
+#         # Many locations tests
+#         ###########################################################################################################
+#         # sense       have LOCATIONS_3_4 set
+#         # muscle      have LOCATIONS_3_4  set
+#         # sensation   have LOCATIONS_3_4  set
+#         # when senses locations does not match destination's locations, it is  not routed
+#         print('\n-sensation LOCATIONS_3_4 locations set, senseLOCATIONS_3_4 locations and muscle LOCATIONS_GLOBAL locations match')
+#         # same routing should fail. if Sensation's and Robot's Locations don't match
+#         self.sense.setLocations(RobotTestCase.LOCATIONS_3_4)
+#         #Wall_E_item_sensation.setLocations(RobotTestCase.LOCATIONS_1)
+#         self.muscle.setLocations(RobotTestCase.LOCATIONS_GLOBAL)
+#         self.muscle.setDownLocations(RobotTestCase.LOCATIONS_GLOBAL)
+#         # re-enable
+#         self.do_TestRouting(locations=RobotTestCase.LOCATIONS_3_4, shouldBeRouted=True)
+#         
+#         # Many locations tests
+#         ###########################################################################################################
+#         # sense       have LOCATIONS_3_4 set
+#         # muscle      have LOCATIONS_1_GLOBAL  set
+#         # sensation   have LOCATIONS_3_4  set
+#         # when senses locations does not match destination's locations, it is  not routed
+#         print('\n-sensation LOCATIONS_3_4 locations set, sense LOCATIONS_3_4 locations and muscle LOCATIONS_1_GLOBAL1 locations match')
+#         # same routing should fail. if Sensation's and Robot's Locations don't match
+#         self.sense.setLocations(RobotTestCase.LOCATIONS_3_4)
+#         #Wall_E_item_sensation.setLocations(RobotTestCase.LOCATIONS_1)
+#         self.muscle.setLocations(RobotTestCase.LOCATIONS_1_GLOBAL)
+#         self.muscle.setDownLocations(RobotTestCase.LOCATIONS_1_GLOBAL)
+#         # re-enable
+#         self.do_TestRouting(locations=RobotTestCase.LOCATIONS_3_4, shouldBeRouted=True)
+#         
+#         # Many locations tests
+#         ###########################################################################################################
+#         # sense       have LOCATIONS_1_GLOBAL set
+#         # muscle      have LOCATIONS_3_4  set
+#         # sensation   have LOCATIONS_1_GLOBAL  set
+#         # when senses locations does not match destination's locations, it is  not routed
+#         print('\n-sensation GLOBAL+1 locations set, sense GLOBAL+1 and muscle many locations match')
+#         # same routing should fail. if Sensation's and Robot's Locations don't match
+#         self.sense.setLocations(RobotTestCase.LOCATIONS_1_GLOBAL)
+#         #Wall_E_item_sensation.setLocations(RobotTestCase.LOCATIONS_1)
+#         self.muscle.setLocations(RobotTestCase.LOCATIONS_3_4)
+#         self.muscle.setLocations(RobotTestCase.LOCATIONS_3_4)
+#         # re-enable
+#         self.do_TestRouting(locations=RobotTestCase.LOCATIONS_1_GLOBAL, shouldBeRouted=True)
+#         self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty after self.muscle.getAxon().get()')
+#         
+        # finally teardown
+        # set locations as they were or other tests fail
+        self.sense.setLocations(RobotTestCase.LOCATIONS_1)
+        self.muscle.setLocations(RobotTestCase.LOCATIONS_1)
+        self.muscle.setDownLocations(RobotTestCase.LOCATIONS_1)
+
+    '''
+    helper for testing local routing with MainName   
+    '''
+    def do_MainNamesRouting(self,
+                            locations,
+                            senseMainNames,
+                            sensaRobotType,
+                            muscleMainNames,
+                            muscleRobotType,
+                            shouldBeRouted):
+        self.assertEqual(self.mainRobot.getAxon().empty(), True, 'Axon should be empty at the beginning of test_Presense\nCannot test properly this!')
+
+        self.sense.setMainNames(senseMainNames)
+        self.muscle.setMainNames(muscleMainNames)
+        
+        if locations == None:     
+            sense_sensation = self.sense.createSensation(
+                                                     memoryType=Sensation.MemoryType.Sensory,
+                                                     sensationType=Sensation.SensationType.Voice,
+                                                     robotType=sensaRobotType
+                                                     )
+        else:
+            sense_sensation = self.sense.createSensation(
+                                                     memoryType=Sensation.MemoryType.Sensory,
+                                                     sensationType=Sensation.SensationType.Voice,
+                                                     robotType=sensaRobotType,
+                                                     locations=locations)
+        self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty before we test')
+        # test
+        self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=sense_sensation)
+        # should be routed to mainRobot
+        self.assertFalse(self.mainRobot.getAxon().empty(),'mainRobot Axon should not be empty')
+        tranferDirection, sensation = self.mainRobot.getAxon().get()
+        # test routing to muscle
+        self.mainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
+        # should be routed to mainRobot
+        if shouldBeRouted:
+            self.assertFalse(self.muscle.getAxon().empty(),'muscle Axon should not be empty')
+            tranferDirection, sensation = self.muscle.getAxon().get()
+        else:
+            self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty')
+
+       
     '''
     Tcp connection and routing. We test inside localhost SocketServer and SocketClient
     TODO This test is impossible to do with one MainRobot, because one MainRobot is not
@@ -649,7 +937,8 @@ class RobotTestCase(unittest.TestCase):
     '''
 
     # re-enable this, when all other works
-    # TODO if we run this test alone, it works, nut if we enable other test, we fail      
+    # TODO if we run this test alone, it works, nut if we enable other test, we fail
+    # other test ler local mainrebot keep running
     def re_test_Tcp(self):
         print('\n--test_Sensation Routing with TCP SocketServer and SocketClient')
         
@@ -728,15 +1017,21 @@ class RobotTestCase(unittest.TestCase):
         
         # conditional wait for locations set
         endTime = time.time() + RobotTestCase.SLEEPTIME
+#         print ("before while self.localSocketClient.getLocations() {} self.remoteSocketServer.getLocations() {}".format(self.localSocketClient.getLocations(), self.remoteSocketServer.getLocations()))
+#         print ("before while self.remoteSocketClient.getLocations() {} self.localSocketServer.getLocations() {}".format(self.remoteSocketClient.getLocations(), self.localSocketServer.getLocations()))
         while (self.localSocketClient.getLocations() != RobotTestCase.LOCATIONS_1 or\
                self.remoteSocketClient.getLocations() != RobotTestCase.LOCATIONS_1 or\
                self.localSocketServer.getLocations() != RobotTestCase.LOCATIONS_1 or\
                self.remoteSocketServer.getLocations() != RobotTestCase.LOCATIONS_1) and\
               time.time() < endTime:
+#             print ("while self.localSocketClient.getLocations() {} self.remoteSocketServer.getLocations() {}".format(self.localSocketClient.getLocations(), self.remoteSocketServer.getLocations()))
+#             print ("while self.remoteSocketClient.getLocations() {} self.localSocketServer.getLocations() {}".format(self.remoteSocketClient.getLocations(), self.localSocketServer.getLocations()))
             time.sleep(RobotTestCase.WAIT_STEP)
+#         print ("self.localSocketClient.getLocations() {} self.remoteSocketServer.getLocations() {}".format(self.localSocketClient.getLocations(), self.remoteSocketServer.getLocations()))
+#         print ("self.remoteSocketClient.getLocations() {} self.localSocketServer.getLocations() {}".format(self.remoteSocketClient.getLocations(), self.localSocketServer.getLocations()))
             
         # check    
-        self.assertTrue(time.time() < endTime, 'check 1 should have got location '+ str(RobotTestCase.LOCATIONS_1) + 'but it is missing')
+        self.assertTrue(time.time() < endTime, 'check 1 should have got location '+ str(RobotTestCase.LOCATIONS_1) + ' but it is missing')
         self.assertEqual(self.localSocketClient.getLocations(),self.remoteSocketClient.getLocations(), 'check 1 should have equal local and remote location')  # will get ['testLocation'] != ['testLocation', 'Ubuntu']
         # why (self.localSocketClient.getLocations() ['testLocation'] !=  self.remoteSocketClient.getLocations() ['testLocation', 'global']
         # this is first place when rhis check fails, but it variates

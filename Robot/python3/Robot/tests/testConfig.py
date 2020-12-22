@@ -17,7 +17,8 @@ from Sensation import Sensation
 
 class ConfigTestCase(unittest.TestCase):
     
-    TEST_INSTANCE = 'TestRobot'
+    TEST_INSTANCE =       'TestRobot'
+    TEST_MAINNAMES =      ['TestRobot', 'OtherRobot']
     
     
     SET_1_1_LOCATIONS_1 = ['testLocation']
@@ -39,6 +40,10 @@ class ConfigTestCase(unittest.TestCase):
         self.config = Config(instanceName=ConfigTestCase.TEST_INSTANCE,
                              instanceType=Sensation.InstanceType.Real,
                              level=0)
+        self.config.setMainNames(mainNames=ConfigTestCase.TEST_MAINNAMES)
+        self.assertEqual(self.config.getMainNames(), ConfigTestCase.TEST_MAINNAMES, "should be equal")
+
+        # check that we reaally have locations as sections
         self.config.setLocations(locations=ConfigTestCase.SET_1_2_LOCATIONS)
         self.assertEqual(self.config.getLocations(), ConfigTestCase.SET_1_2_LOCATIONS, "should be equal")
         # check that we reaally have locations as sections
