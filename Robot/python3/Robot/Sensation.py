@@ -2046,7 +2046,8 @@ class Sensation(object):
     def getLocationsStr(self):
         #from Config import strArrayToStr
         return Sensation.strArrayToStr(self.getLocations())
-      
+ 
+     
     def setMainNames(self, mainNames):
         self.mainNames = mainNames
     def getMainNames(self):
@@ -2054,10 +2055,19 @@ class Sensation(object):
             return []
         return self.mainNames
 
+    def isInMainNames(self, mainNames):
+        if mainNames is None:
+            return True
+        for mainName in mainNames:
+            if mainName in self.getMainNames():
+                return True            
+        return False
+
     def getMainNamesStr(self):
         #from Config import strArrayToStr
         return Sensation.strArrayToStr(self.getMainNames())
       
+
     def setLeftPower(self, leftPower):
         self.leftPower = leftPower
     def getLeftPower(self):
