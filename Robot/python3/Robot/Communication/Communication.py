@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 22.10.2020
+Updated on 22.12.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -125,9 +125,10 @@ class Communication(Robot):
         #self.log(logLevel=Robot.LogLevel.Normal, logStr="process: systemTime.time() " + str(systemTime.time()) + ' -  sensation.getTime() ' + str(sensation.getTime()) + ' < Communication.COMMUNICATION_INTERVAL ' + str(Communication.COMMUNICATION_INTERVAL))
         self.log(logLevel=Robot.LogLevel.Normal, logStr="process: " + str(systemTime.time() - sensation.getTime()) + ' < ' + str(Communication.COMMUNICATION_INTERVAL))
         # accept heard voices and Item.name presentation Item.name changes
-        #sensation.getMemoryType() == Sensation.MemoryType.Working and# No item is Working, voice is Ssensory
-        if systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL and\
-           sensation.getRobotType() == Sensation.RobotType.Sense:
+        #sensation.getMemoryType() == Sensation.MemoryType.Working and# No item is Working, voice is Sensory
+#         if systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL and\
+#            self.getMainNamesRobotType(sensation.getRobotType()) == Sensation.RobotType.Sense:
+        if self.getMainNamesRobotType(robotType=sensation.getRobotType(), mainNames=sensation.getMainNames()) == Sensation.RobotType.Sense:
             # all kind Items found
             if sensation.getSensationType() == Sensation.SensationType.Item:
                if sensation.getPresence() == Sensation.Presence.Entering or\

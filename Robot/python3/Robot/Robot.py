@@ -612,7 +612,7 @@ class Robot(Thread):
         hasCapalility = False
         if self.is_alive() and self.getCapabilities() is not None and\
            self.isInLocations(locations):
-            testRobotType = self.getMainNamesRobotType(robotType, mainNames)
+            testRobotType = self.getMainNamesRobotType(robotType=robotType, mainNames=mainNames)
             self.log(logLevel=Robot.LogLevel.Normal, logStr="hasCapability isInLocations locations " + str(locations) + " self.getDownLocations " + str(self.getDownLocations()))      
             hasCapalility = self.getCapabilities().hasCapability(testRobotType, memoryType, sensationType)
             if hasCapalility:
@@ -622,7 +622,9 @@ class Robot(Thread):
     '''
     Reverse robotType in foreign mainName
     '''
-    def getMainNamesRobotType(self, robotType, mainNames):
+    def getMainNamesRobotType(self, robotType, mainNames=None):
+        if mainNames == None:
+            mainNames = self.getMainNames()
         if self.isInMainNames(mainNames):
             self.log(logLevel=Robot.LogLevel.Normal, logStr="getMainNamesRobotType {} -> {}".format(robotType,robotType))      
             return robotType
