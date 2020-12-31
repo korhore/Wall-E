@@ -487,6 +487,8 @@ class Memory(object):
         
     
     '''
+    deprecated
+    
     Get best specified sensation from sensation memory by score
     
     Time window can be set separately min, max or both,
@@ -499,60 +501,62 @@ class Memory(object):
     notName:        optional, if SensationTypeis Item, name must not be 'notName'    
     '''
     
-    def getBestSensation( self,
-                          sensationType,
-                          timemin,
-                          timemax,
-                          robotType = Sensation.RobotType.Sense,
-                          name = None,
-                          notName = None,
-                          associationSensationType = None,
-                          associationDirection = Sensation.RobotType.Sense,
-                          ignoredVoiceLens=[]):
-        self.memoryLock.acquireRead()                  # read thread_safe
-        bestSensation = None
-            
-        for sensation in self.sensationMemory:
-            if sensation.getSensationType() == sensationType and\
-               sensation.getRobotType() == robotType and\
-               sensation.hasAssociationSensationType(associationSensationType=associationSensationType,
-                                                     associationDirection = associationDirection,
-                                                     ignoredVoiceLens=ignoredVoiceLens) and\
-               (timemin is None or sensation.getTime() > timemin) and\
-               (timemax is None or sensation.getTime() < timemax):
-                if sensationType != Sensation.SensationType.Item or\
-                   notName is None and sensation.getName() == name or\
-                   name is None and sensation.getName() != notName or\
-                   name is None and notName is None:
-                    if bestSensation is None or\
-                       sensation.getScore() > bestSensation.getScore():
-                        bestSensation = sensation
-                        self.log(logStr="getBestSensation " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getScore()), logLevel=Memory.MemoryLogLevel.Normal)
-        self.memoryLock.releaseRead()                  # read thread_safe
-        return bestSensation
+#     def getBestSensation( self,
+#                           sensationType,
+#                           timemin,
+#                           timemax,
+#                           robotType = Sensation.RobotType.Sense,
+#                           name = None,
+#                           notName = None,
+#                           associationSensationType = None,
+#                           associationDirection = Sensation.RobotType.Sense,
+#                           ignoredVoiceLens=[]):
+#         self.memoryLock.acquireRead()                  # read thread_safe
+#         bestSensation = None
+#             
+#         for sensation in self.sensationMemory:
+#             if sensation.getSensationType() == sensationType and\
+#                sensation.getRobotType() == robotType and\
+#                sensation.hasAssociationSensationType(associationSensationType=associationSensationType,
+#                                                      associationDirection = associationDirection,
+#                                                      ignoredVoiceLens=ignoredVoiceLens) and\
+#                (timemin is None or sensation.getTime() > timemin) and\
+#                (timemax is None or sensation.getTime() < timemax):
+#                 if sensationType != Sensation.SensationType.Item or\
+#                    notName is None and sensation.getName() == name or\
+#                    name is None and sensation.getName() != notName or\
+#                    name is None and notName is None:
+#                     if bestSensation is None or\
+#                        sensation.getScore() > bestSensation.getScore():
+#                         bestSensation = sensation
+#                         self.log(logStr="getBestSensation " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getScore()), logLevel=Memory.MemoryLogLevel.Normal)
+#         self.memoryLock.releaseRead()                  # read thread_safe
+#         return bestSensation
     
     '''
+    deprecated
+    
     Get best connected sensation by score from this specified Sensation
    
     sensationType:  SensationType
     name:           optional, if SensationTypeis Item, name must be 'name'
     '''
-    def getBestConnectedSensation( self,
-                                   sensation,
-                                   sensationType,
-                                   name = None):
-        self.memoryLock.acquireRead()                  # read thread_safe
-        bestSensation = None
-        for association in self.getAssociations():
-            associatedSensation= association.getSensation()
-            if associatedSensation.getSensationType() == sensationType:
-                if sensationType != Sensation.SensationType.Item or\
-                   associatedSensation.getName() == name:
-                    if bestSensation is None or\
-                       associatedSensation.getScore() > bestSensation.getScore():
-                        bestSensation = associatedSensation
-        self.memoryLock.releaseRead()                  # read thread_safe
-        return bestSensation
+#     def getBestConnectedSensation( self,
+#                                    sensation,
+#                                    sensationType,
+#                                    name = None):
+#         self.memoryLock.acquireRead()                  # read thread_safe
+#         bestSensation = None
+#         for association in self.getAssociations():
+#             associatedSensation= association.getSensation()
+#             if associatedSensation.getSensationType() == sensationType:
+#                 if sensationType != Sensation.SensationType.Item or\
+#                    associatedSensation.getName() == name:
+#                     if bestSensation is None or\
+#                        associatedSensation.getScore() > bestSensation.getScore():
+#                         bestSensation = associatedSensation
+#         self.memoryLock.releaseRead()                  # read thread_safe
+#         return bestSensation
     
     
     '''
@@ -657,6 +661,8 @@ class Memory(object):
         return bestSensation, bestAssociation, bestAssociationSensation
 
     '''
+    deprecated
+    
     Get best specified sensation from sensation memory by score
     
     Time window can be set separately min, max or both,
@@ -669,60 +675,62 @@ class Memory(object):
     notName:        optional, if SensationTypeis Item, name must not be 'notName'    
     '''
     
-    def getBestSensation( self,
-                          sensationType,
-                          timemin,
-                          timemax,
-                          robotType = Sensation.RobotType.Sense,
-                          name = None,
-                          notName = None,
-                          associationSensationType = None,
-                          associationDirection = Sensation.RobotType.Sense,
-                          ignoredVoiceLens=[]):
-        self.memoryLock.acquireRead()                  # read thread_safe
-        bestSensation = None
-            
-        for sensation in self.sensationMemory:
-            if sensation.getSensationType() == sensationType and\
-               sensation.getRobotType() == robotType and\
-               sensation.hasAssociationSensationType(associationSensationType=associationSensationType,
-                                                     associationDirection = associationDirection,
-                                                     ignoredVoiceLens=ignoredVoiceLens) and\
-               (timemin is None or sensation.getTime() > timemin) and\
-               (timemax is None or sensation.getTime() < timemax):
-                if sensationType != Sensation.SensationType.Item or\
-                   notName is None and sensation.getName() == name or\
-                   name is None and sensation.getName() != notName or\
-                   name is None and notName is None:
-                    if bestSensation is None or\
-                       sensation.getScore() > bestSensation.getScore():
-                        bestSensation = sensation
-                        self.log(logStr="getBestSensation " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getScore()), logLevel=Memory.MemoryLogLevel.Normal)
-        self.memoryLock.releaseRead()                  # read thread_safe
-        return bestSensation
+#     def getBestSensation( self,
+#                           sensationType,
+#                           timemin,
+#                           timemax,
+#                           robotType = Sensation.RobotType.Sense,
+#                           name = None,
+#                           notName = None,
+#                           associationSensationType = None,
+#                           associationDirection = Sensation.RobotType.Sense,
+#                           ignoredVoiceLens=[]):
+#         self.memoryLock.acquireRead()                  # read thread_safe
+#         bestSensation = None
+#             
+#         for sensation in self.sensationMemory:
+#             if sensation.getSensationType() == sensationType and\
+#                sensation.getRobotType() == robotType and\
+#                sensation.hasAssociationSensationType(associationSensationType=associationSensationType,
+#                                                      associationDirection = associationDirection,
+#                                                      ignoredVoiceLens=ignoredVoiceLens) and\
+#                (timemin is None or sensation.getTime() > timemin) and\
+#                (timemax is None or sensation.getTime() < timemax):
+#                 if sensationType != Sensation.SensationType.Item or\
+#                    notName is None and sensation.getName() == name or\
+#                    name is None and sensation.getName() != notName or\
+#                    name is None and notName is None:
+#                     if bestSensation is None or\
+#                        sensation.getScore() > bestSensation.getScore():
+#                         bestSensation = sensation
+#                         self.log(logStr="getBestSensation " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getScore()), logLevel=Memory.MemoryLogLevel.Normal)
+#         self.memoryLock.releaseRead()                  # read thread_safe
+#         return bestSensation
     
     '''
+    deprecated
+    
     Get best connected sensation by score from this specified Sensation
    
     sensationType:  SensationType
     name:           optional, if SensationTypeis Item, name must be 'name'
     '''
-    def getBestConnectedSensation( self,
-                                   sensation,
-                                   sensationType,
-                                   name = None):
-        self.memoryLock.acquireRead()                  # read thread_safe
-        bestSensation = None
-        for association in self.getAssociations():
-            associatedSensation= association.getSensation()
-            if associatedSensation.getSensationType() == sensationType:
-                if sensationType != Sensation.SensationType.Item or\
-                   associatedSensation.getName() == name:
-                    if bestSensation is None or\
-                       associatedSensation.getScore() > bestSensation.getScore():
-                        bestSensation = associatedSensation
-        self.memoryLock.releaseRead()                  # read thread_safe
-        return bestSensation
+#     def getBestConnectedSensation( self,
+#                                    sensation,
+#                                    sensationType,
+#                                    name = None):
+#         self.memoryLock.acquireRead()                  # read thread_safe
+#         bestSensation = None
+#         for association in self.getAssociations():
+#             associatedSensation= association.getSensation()
+#             if associatedSensation.getSensationType() == sensationType:
+#                 if sensationType != Sensation.SensationType.Item or\
+#                    associatedSensation.getName() == name:
+#                     if bestSensation is None or\
+#                        associatedSensation.getScore() > bestSensation.getScore():
+#                         bestSensation = associatedSensation
+#         self.memoryLock.releaseRead()                  # read thread_safe
+#         return bestSensation
     
     
     '''
@@ -760,6 +768,7 @@ class Memory(object):
     def getMostImportantCommunicationSensations( self,
                                    timemin,
                                    timemax,
+                                   robotMainNames,
                                    robotType = Sensation.RobotType.Sense,
                                    name = None,
                                    notName = None,
@@ -784,14 +793,16 @@ class Memory(object):
         # if best scored item.name has only bad voices, we newer can get
         # good voices
         found_voice_candidates=0
+               #self.getMainNamesRobotType(robotType=sensation.getRobotType(), robotMainNames=mainNames, sensationMainNames=sensation.getMainNames()) == robotType and\
         for sensation in self.sensationMemory:
             if sensation.getDataId() not in ignoredSensations and\
                sensation.getSensationType() == Sensation.SensationType.Item and\
                sensation.getName() == name and\
-               sensation.getRobotType() == robotType and\
-               sensation.hasAssociationSensationType(associationSensationType=Sensation.SensationType.Voice,
+               sensation.getRobotType(robotMainNames=robotMainNames) == robotType and\
+               sensation.hasAssociationSensationType(associationSensationType = Sensation.SensationType.Voice,
                                                      associationDirection = robotType,
-                                                     ignoredSensations=ignoredSensations) and\
+                                                     ignoredSensations = ignoredSensations,
+                                                     robotMainNames = robotMainNames) and\
                (timemin is None or sensation.getTime() > timemin) and\
                (timemax is None or sensation.getTime() < timemax):
 # Enable this, when test is corrected
@@ -799,14 +810,15 @@ class Memory(object):
 #                                                      associationDirection = robotType,
 #                                                      ignoredSensations=ignoredSensations,
 #                                                      ignoredImageLens=ignoredImageLens) and\
-                bestAssociationSensationImportance = None 
+                bestVoiceAssociationSensationImportance = None 
                 for association in sensation.getAssociationsbBySensationType(associationSensationType=Sensation.SensationType.Voice,
                                                                              associationDirection = robotType,
-                                                                             ignoredSensations=ignoredSensations):
+                                                                             ignoredSensations = ignoredSensations,
+                                                                             robotMainNames = robotMainNames):
                     importance = prevalence * association.getSensation().getImportance() # use prevalence and importance to get prevalence based importance
-                    if bestAssociationSensationImportance is None or\
-                       bestAssociationSensationImportance < importance:
-                        bestAssociationSensationImportance = importance
+                    if bestVoiceAssociationSensationImportance is None or\
+                       bestVoiceAssociationSensationImportance < importance:
+                        bestVoiceAssociationSensationImportance = importance
                         itemSensation = sensation
                         voiceAssociation = association
                         voiceSensation = association.getSensation()
@@ -822,21 +834,23 @@ class Memory(object):
             if sensation.getDataId() not in ignoredSensations and\
                sensation.getSensationType() == Sensation.SensationType.Item and\
                sensation.getName() == name and\
-               sensation.getRobotType() == robotType and\
-               sensation.hasAssociationSensationType(associationSensationType=Sensation.SensationType.Image,
+               sensation.getRobotType(robotMainNames = robotMainNames) == robotType and\
+               sensation.hasAssociationSensationType(associationSensationType = Sensation.SensationType.Image,
                                                      associationDirection = robotType,
-                                                     ignoredSensations=ignoredSensations) and\
+                                                     ignoredSensations = ignoredSensations,
+                                                     robotMainNames = robotMainNames) and\
                (timemin is None or sensation.getTime() > timemin) and\
                (timemax is None or sensation.getTime() < timemax):
 
-                bestAssociationSensationImportance = None 
+                bestImageAssociationSensationImportance = None 
                 for association in sensation.getAssociationsbBySensationType(associationSensationType=Sensation.SensationType.Image,
                                                                              associationDirection = robotType,
-                                                                             ignoredSensations=ignoredSensations):
+                                                                             ignoredSensations = ignoredSensations,
+                                                                             robotMainNames = robotMainNames):
                     importance = prevalence * association.getSensation().getImportance() # use prevalence and importance to get prevalence based importance
-                    if bestAssociationSensationImportance is None or\
-                       bestAssociationSensationImportance < importance:
-                        bestAssociationSensationImportance = importance
+                    if bestImageAssociationSensationImportance is None or\
+                       bestImageAssociationSensationImportance < importance:
+                        bestImageAssociationSensationImportance = importance
                         #itemSensation = sensation
                         imageAssociation = association
                         imageSensation = association.getSensation()
@@ -852,7 +866,10 @@ class Memory(object):
             self.log(logStr="getMostImportantSensation did not find any", logLevel=Memory.MemoryLogLevel.Normal)
         else:
             self.log(logStr="getMostImportantSensation itemSensation {} {}".format(itemSensation.toDebugStr(),str(itemSensation.getImportance())), logLevel=Memory.MemoryLogLevel.Normal)
-            self.log(logStr="getMostImportantSensation found voiceSensation {} {}".format(voiceSensation.toDebugStr(),str(bestAssociationSensationImportance)), logLevel=Memory.MemoryLogLevel.Normal)            
+        if voiceSensation != None:
+            self.log(logStr="getMostImportantSensation found voiceSensation {} {}".format(voiceSensation.toDebugStr(),bestVoiceAssociationSensationImportance), logLevel=Memory.MemoryLogLevel.Normal)            
+        if imageSensation != None:
+            self.log(logStr="getMostImportantSensation found imageSensation {} {}".format(imageSensation.toDebugStr(),bestImageAssociationSensationImportance), logLevel=Memory.MemoryLogLevel.Normal)            
                                     
         self.memoryLock.releaseRead()                  # read thread_safe
         if itemSensation is not None:
@@ -861,6 +878,30 @@ class Memory(object):
             assert voiceSensation.getDataId() not in ignoredSensations
 
         return itemSensation, voiceSensation, voiceAssociation, imageSensation, imageAssociation
+
+# deprecated   
+#     '''
+#     Reverse robotType in foreign mainNames
+#     '''
+#     def getMainNamesRobotType(self, robotType, robotMainNames, sensationMainNames):
+#         if self.isInMainNames(robotMainNames=robotMainNames, sensationMainNames=sensationMainNames):
+#             return robotType
+#         if robotType == Sensation.RobotType.Muscle:
+#             return Sensation.RobotType.Sense
+#         return Sensation.RobotType.Muscle
+#     
+#     '''
+#     Is this Robot at least in one of mainNames
+#     '''
+#     def isInMainNames(self, robotMainNames, sensationMainNames):
+#         if sensationMainNames is None or len(sensationMainNames) == 0 or\
+#            robotMainNames is None or len(robotMainNames) == 0:
+#             return True
+#         
+#         for mainName in robotMainNames:
+#             if mainName in sensationMainNames:
+#                  return True            
+#         return False
 
     '''
     Get most important connected sensation by feeling and score from this specified Sensation

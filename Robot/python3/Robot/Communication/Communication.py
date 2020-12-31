@@ -126,9 +126,9 @@ class Communication(Robot):
         self.log(logLevel=Robot.LogLevel.Normal, logStr="process: " + str(systemTime.time() - sensation.getTime()) + ' < ' + str(Communication.COMMUNICATION_INTERVAL))
         # accept heard voices and Item.name presentation Item.name changes
         #sensation.getMemoryType() == Sensation.MemoryType.Working and# No item is Working, voice is Sensory
-#         if systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL and\
-#            self.getMainNamesRobotType(sensation.getRobotType()) == Sensation.RobotType.Sense:
-        if self.getMainNamesRobotType(robotType=sensation.getRobotType(), mainNames=sensation.getMainNames()) == Sensation.RobotType.Sense:
+        if systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL and\
+            sensation.getRobotType(robotMainNames=self.getMainNames()) == Sensation.RobotType.Sense:
+#        if self.getMainNamesRobotType(robotType=sensation.getRobotType(), mainNames=sensation.getMainNames()) == Sensation.RobotType.Sense:
             # all kind Items found
             if sensation.getSensationType() == Sensation.SensationType.Item:
                if sensation.getPresence() == Sensation.Presence.Entering or\
@@ -159,9 +159,10 @@ class Communication(Robot):
                     self.stopWaitingResponse()                    
                     
             # if a Spoken Voice voice or image
+            #     self.getMainNamesRobotType(robotType=sensation.getRobotType(), mainNames=sensation.getMainNames()) == Sensation.RobotType.Sense:
             elif (sensation.getSensationType() == Sensation.SensationType.Voice or sensation.getSensationType() == Sensation.SensationType.Image) and\
                  sensation.getMemoryType() == Sensation.MemoryType.Sensory and\
-                 self.getMainNamesRobotType(robotType=sensation.getRobotType(), mainNames=sensation.getMainNames()) == Sensation.RobotType.Sense:
+                 sensation.getRobotType(robotMainNames=self.getMainNames()) == Sensation.RobotType.Sense:
                 # don't echo same voice in this conversation
                 #self.heardSensations.append(sensation.getDataId())
 
@@ -358,6 +359,7 @@ class Communication(Robot):
                                                               candidate_for_image, candidate_for_image_association = \
                                 self.getMemory().getMostImportantCommunicationSensations( 
                                                                      robotType = Sensation.RobotType.Sense,
+                                                                     robotMainNames=self.getMainNames(),
                                                                      name = name,
                                                                      timemin = None,
                                                                      timemax = None,
@@ -393,6 +395,7 @@ class Communication(Robot):
                                                              self.mostImportantImageSensation, self.mostImportantImageAssociation =\
                                 self.getMemory().getMostImportantCommunicationSensations( 
                                                                      robotType = Sensation.RobotType.Sense,
+                                                                     robotMainNames=self.getMainNames(),
                                                                      name = None,
                                                                      timemin = None,
                                                                      timemax = None,

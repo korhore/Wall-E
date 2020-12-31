@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 21.12.2020
+Edited on 30.12.2020
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -1773,6 +1773,8 @@ class Sensation(object):
 #                                                        sensation = self,
 #                                                        time = time,
 #                                                        feeling = feeling))
+        if feeling == None:         # be sure that feeling is never None
+            feeling = Sensation.Feeling.Neutral
         self.upsertAssociation(self_sensation = self,
                                sensation = sensation,
                                time=time,
@@ -1952,11 +1954,12 @@ class Sensation(object):
     '''
     def hasAssociationSensationType(self, associationSensationType,
                                     associationDirection = RobotType.Sense,
-                                    ignoredSensations=[]):
+                                    ignoredSensations=[],
+                                    robotMainNames=None):
         has=False
         for association in self.associations:
             if association.getSensation().getSensationType() == associationSensationType and\
-               association.getSensation().getRobotType() == associationDirection and\
+               association.getSensation().getRobotType(robotMainNames=robotMainNames) == associationDirection and\
                association.getSensation().getDataId() not in ignoredSensations:
                 has=True
                 break       
@@ -1969,11 +1972,12 @@ class Sensation(object):
     def getAssociationsbBySensationType(self, associationSensationType,
                                         associationDirection = RobotType.Sense,
                                         ignoredSensations=[],
-                                        ignoredVoiceLens=[]):
+                                        ignoredVoiceLens=[],
+                                        robotMainNames=None):
         associations=[]
         for association in self.associations:
             if association.getSensation().getSensationType() == associationSensationType and\
-               association.getSensation().getRobotType() == associationDirection and\
+               association.getSensation().getRobotType(robotMainNames=robotMainNames) == associationDirection and\
                association.getSensation().getDataId() not in ignoredSensations:
                 associations.append(association)
         return associations
@@ -2021,8 +2025,35 @@ class Sensation(object):
        
     def setRobotType(self, robotType):
         self.robotType = robotType
-    def getRobotType(self):
-        return self.robotType
+#     def getRobotType(self):
+#         return self.robotType
+    
+    '''
+    Reverse robotType in foreign mainNames
+    '''
+    def getRobotType(self, robotMainNames=None):
+        # compability to old implementation
+        if robotMainNames == None:
+            return self.robotType
+        #if robotMainNames is given as parameters, reverse robotType in foreign mainNames
+        if self.isInMainNames(robotMainNames=robotMainNames):
+            return self.robotType
+        if self.robotType == Sensation.RobotType.Muscle:
+            return Sensation.RobotType.Sense
+        return Sensation.RobotType.Muscle
+    
+    '''
+#     Is this Robot at least in one of mainNames
+#     '''
+#     def isInMainNames(self, robotMainNames):
+#         if self.mainNames is None or len(self.mainNames) == 0 or\
+#            robotMainNames is None or len(robotMainNames) == 0:
+#             return True
+#         for mainName in robotMainNames:
+#             if mainName in self.mainNames:
+#                  return True            
+#         return False
+    
     
     def setName(self, robot):
         self.robot = robot
@@ -2055,10 +2086,10 @@ class Sensation(object):
             return []
         return self.mainNames
 
-    def isInMainNames(self, mainNames):
-        if mainNames is None:
+    def isInMainNames(self, robotMainNames):
+        if robotMainNames is None:
             return True
-        for mainName in mainNames:
+        for mainName in robotMainNames:
             if mainName in self.getMainNames():
                 return True            
         return False
