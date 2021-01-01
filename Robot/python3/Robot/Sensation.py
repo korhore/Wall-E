@@ -2029,15 +2029,37 @@ class Sensation(object):
 #         return self.robotType
     
     '''
+    If parameters robotMainNames is set, it is mainNames od robot
+    asking sensations RobotType and robot want to know if this is
+    Sense or Muscle sensation. If SensationType is Voice or Image, then
+    it is used in Communication and with person Communication robot uses
+    Muscles-type Robots and person can sense with is senses and answer with
+    person muscles (speach).
+    
+    With Robot to Rpbot comunication sensation are transferred directly without
+    Muscke-Sense transferring so with Robot Communication this Muscle-Sense tranferring
+    is dropped out.
+    
+    We know that when Sensesation's MainNames and asker robor maionnanes don't match,
+    then this is Robot-Robot communication and we reverser Muscle/Sensation RobotType
+    we return.
+    
+    In all other cases (no naoinNames ios set in either Sensation or by ascing Robot
+    or no Voice or Image, we return plain RobotType fron Sensation.
     Reverse robotType in foreign mainNames
     '''
     def getRobotType(self, robotMainNames=None):
         # compability to old implementation
-        if robotMainNames == None:
+        if (self.getSensationType() != Sensation.SensationType.Voice and\
+           self.getSensationType() != Sensation.SensationType.Image) or\
+           robotMainNames == None or\
+           len(robotMainNames) == 0 or\
+           self.getMainNames() == None or\
+           len(self.getMainNames()) == 0 or\
+           self.isInMainNames(robotMainNames=robotMainNames):
             return self.robotType
+
         #if robotMainNames is given as parameters, reverse robotType in foreign mainNames
-        if self.isInMainNames(robotMainNames=robotMainNames):
-            return self.robotType
         if self.robotType == Sensation.RobotType.Muscle:
             return Sensation.RobotType.Sense
         return Sensation.RobotType.Muscle

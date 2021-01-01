@@ -45,9 +45,8 @@ class VisualTestCase(unittest.TestCase):
     NAME='Wall-E'
     NAME2='Eva'
     
-    '''
-    Robot modeling
-    '''
+    MAINNAMES = ["VisualTestCaseMainName"]
+    OTHERMAINNAMES = ["OTHER_VisualTestCaseMainName"]
     
     '''
     Robot modeling
@@ -59,6 +58,14 @@ class VisualTestCase(unittest.TestCase):
         return 1.1
     def getName(self):
         return VisualTestCase.NAME
+    def setMainNames(self, mainNames):
+        self.mainNames = mainNames
+    def getMainNames(self):
+        return self.mainNames
+    def setRobotMainNames(self, robot, mainNames):
+        robot.mainNames = mainNames
+    def getParent(self):
+        return None
     def log(self, logStr, logLevel=None):
         if logLevel == None:
             logLevel = self.visual.LogLevel.Normal
@@ -75,6 +82,7 @@ class VisualTestCase(unittest.TestCase):
     '''
     
     def setUp(self):
+        self.mainNames = self.MAINNAMES
         self.axon = Axon(robot=self) # parent axon
         self.visual = Visual(parent=self,
                             instanceName='Visual',
@@ -99,7 +107,7 @@ class VisualTestCase(unittest.TestCase):
                                                       name=VisualTestCase.NAME,
                                                       score=VisualTestCase.SCORE_1,
                                                       presence = Sensation.Presence.Present)
-        # Image is in LongTerm memoryType, it comes from TensorflowClassification and is crop of original big image
+        # Image is in LongTerm memoryType, it comes from TensorFlowClassification and is crop of original big image
         #systemTime.sleep(0.1)  # wait to get really even id
         self.Wall_E_image_sensation = self.visual.createSensation(time=self.history_sensationTime,
                                                        memoryType=Sensation.MemoryType.Working,

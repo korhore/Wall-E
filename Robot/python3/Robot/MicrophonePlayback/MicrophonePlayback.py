@@ -109,7 +109,7 @@ class MicrophonePlayback(Robot):
                         self.running=False
                    # Item.name.presence to microphone
 #                     elif sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemoryType() == Sensation.MemoryType.Working and\
-#                          sensation.getRobotType() == Sensation.RobotType.Sense:
+#                          sensation.getRobotType(robotMainNames=self.getMainNames()) == Sensation.RobotType.Sense:
 #                         #self.microphone.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)
 #                         self.microphone.process(transferDirection=transferDirection, sensation=sensation)
                     # Voice to playback

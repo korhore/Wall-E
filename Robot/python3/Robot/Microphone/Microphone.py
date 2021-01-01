@@ -157,7 +157,7 @@ class Microphone(Robot):
                 transferDirection, sensation = self.getAxon().get()
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr="got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
 #                 if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemoryType() == Sensation.MemoryType.Working and\
-#                    sensation.getRobotType() == Sensation.RobotType.Sense: 
+#                    sensation.getRobotType(robotMainNames=self.getMainNames()) == Sensation.RobotType.Sense: 
 #                     self.tracePresents(sensation)
 #                 else:
                 self.process(transferDirection=transferDirection, sensation=sensation)

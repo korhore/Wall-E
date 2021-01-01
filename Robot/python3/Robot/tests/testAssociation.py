@@ -204,7 +204,7 @@ class AssociationTestCase(unittest.TestCase):
         print('5 len(Wall_E_image_sub_sensation.getAssociations()) ' + str(len(Wall_E_image_sub_sensation.getAssociations())))
         print('6 len(Wall_E_item_sensation.getAssociations()) ' + str(len(Wall_E_item_sensation.getAssociations())))
         # this connection should be connected to a Voice now, when we process new Item created
-        #simulate TensorflowClassification send presence item to MainBobot
+        #simulate TensorFlowClassification send presence item to MainBobot
         #self.association.tracePresents(Wall_E_item_sensation) # presence in Memory now
         # Now we should have 1 item in self.getMemory().presentItemSensations (can be assigned as self.association) with with  name and associations count
         # Nope, mowed to Memory

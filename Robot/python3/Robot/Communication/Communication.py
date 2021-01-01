@@ -128,7 +128,6 @@ class Communication(Robot):
         #sensation.getMemoryType() == Sensation.MemoryType.Working and# No item is Working, voice is Sensory
         if systemTime.time() - sensation.getTime() < Communication.COMMUNICATION_INTERVAL and\
             sensation.getRobotType(robotMainNames=self.getMainNames()) == Sensation.RobotType.Sense:
-#        if self.getMainNamesRobotType(robotType=sensation.getRobotType(), mainNames=sensation.getMainNames()) == Sensation.RobotType.Sense:
             # all kind Items found
             if sensation.getSensationType() == Sensation.SensationType.Item:
                if sensation.getPresence() == Sensation.Presence.Entering or\

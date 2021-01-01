@@ -75,7 +75,6 @@ class CommunicationTestCase(unittest.TestCase):
         self.mainNames = mainNames
     def getMainNames(self):
         return self.mainNames
-        return ["CommunicationTestCaseMainName"]
     def setRobotMainNames(self, robot, mainNames):
         robot.mainNames = mainNames
 
@@ -272,7 +271,7 @@ class CommunicationTestCase(unittest.TestCase):
         #self.SensationDirectory.append((self.Wall_E_item_sensation.getDataId(),'self.Wall_E_item_sensation'))
         self.addToSensationDirectory(name='self.Wall_E_item_sensation', dataId=self.Wall_E_item_sensation.getDataId(), id=self.Wall_E_item_sensation.getId())
         self.printSensationNameById(note='self.Wall_E_item_sensation test', dataId=self.Wall_E_item_sensation.getDataId())
-        # Image is in LongTerm memoryType, it comes from TensorflowClassification and is crop of original big image
+        # Image is in LongTerm memoryType, it comes from TensorFlowClassification and is crop of original big image
         #systemTime.sleep(0.1)  # wait to get really even id
 # commented out, so test will use their own sensations
 #         self.Wall_E_image_sensation = self.communication.createSensation(time=self.history_sensationTime,
@@ -329,7 +328,7 @@ class CommunicationTestCase(unittest.TestCase):
         #self.SensationDirectory.append((self.Eva_item_sensation.getDataId(),'self.Eva_item_sensation'))
         self.addToSensationDirectory(name='self.Eva_item_sensation', dataId=self.Eva_item_sensation.getDataId(), id=self.Eva_item_sensation.getId())
         self.printSensationNameById(note='self.Eva_item_sensation test', dataId=self.Eva_item_sensation.getDataId())
-        # Image is in LongTerm memoryType, it comes from TensorflowClassification and is crop of original big image
+        # Image is in LongTerm memoryType, it comes from TensorFlowClassification and is crop of original big image
         #systemTime.sleep(0.1)  # wait to get really even id
         self.Eva_image_sensation = self.communication.createSensation(time=self.history_sensationTime,
                                                        memoryType=Sensation.MemoryType.Working,
@@ -450,7 +449,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
          
-        #simulate TensorflowClassification send presence item to MainRobot
+        #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
         # Now we should have 1 item in self.getMemory().getAllPresentItemSensations() (can be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 1, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 1')
@@ -505,7 +504,7 @@ class CommunicationTestCase(unittest.TestCase):
         item_sensation.associate(sensation=image_sensation)
         voice_sensation.associate(sensation=image_sensation)
 
-        #simulate TensorflowClassification send presence item to MainRobot
+        #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
         # Now we should have 1 item in self.getMemory().getAllPresentItemSensations() (and be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 1, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 1')
@@ -528,7 +527,7 @@ class CommunicationTestCase(unittest.TestCase):
         #self.SensationDirectory.append((Wall_E_item_sensation.getDataId(),'Wall_E_item_sensation'))
         self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
-        #simulate TensorflowClassification send presence item to MainRobot
+        #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
         # Now we should have 1 item in self.getMemory().getAllPresentItemSensations() (can be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 0, 'len(self.communication.getMemory().getAllPresentItemSensations() after Absent Item Sensation should be 0')
@@ -590,7 +589,7 @@ class CommunicationTestCase(unittest.TestCase):
         #self.SensationDirectory.append((Wall_E_item_sensation.getDataId(),'Wall_E_item_sensation'))
         self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
-        #simulate TensorflowClassification send presence item to MainRobot
+        #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
         # Now we should have 1 item in self.getMemory().getAllPresentItemSensations() (can be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 1, 'len(self.communication.getMemory().getAllPresentItemSensations() after Entering Item Sensation should be 1')
@@ -631,7 +630,7 @@ class CommunicationTestCase(unittest.TestCase):
         item_sensation.associate(sensation=voice_sensation)
         item_sensation.associate(sensation=image_sensation)
         voice_sensation.associate(sensation=image_sensation)
-        #simulate TensorflowClassification send presence item to MainRobot
+        #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(item_sensation) # presence
         # Now we should have 1 item in self.getMemory().getAllPresentItemSensations() (can be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 2, 'len(self.communication.getMemory().getAllPresentItemSensations() after Entering Item Sensation should NAME2 be 2')
@@ -646,7 +645,7 @@ class CommunicationTestCase(unittest.TestCase):
         #self.SensationDirectory.append((Wall_E_item_sensation.getDataId(),'Wall_E_item_sensation'))
         self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
-       #simulate TensorflowClassification send presence item to MainRobot
+       #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
         # Now we should have 1 item in self.getMemory().getAllPresentItemSensations() (can be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 2, 'len(self.communication.getMemory().getAllPresentItemSensations() after Entering Item NAME2 Sensation should NAME2 be 2')
@@ -696,7 +695,7 @@ class CommunicationTestCase(unittest.TestCase):
         #self.SensationDirectory.append((Wall_E_item_sensation.getDataId(),'Wall_E_item_sensation'))
         self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
-        #simulate TensorflowClassification send presence item to MainRobot
+        #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
         # TODO We find response
         # TODO if we find voice we speak, but now all voices are used. at this point
@@ -749,7 +748,7 @@ class CommunicationTestCase(unittest.TestCase):
         #self.SensationDirectory.append((Wall_E_item_sensation.getDataId(),'Wall_E_item_sensation'))
         self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
-        #simulate TensorflowClassification send presence item to MainRobot
+        #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
         # There has not been changes of present items and we have conversation on, but we have not send response
         # so we don't get response at this point
@@ -773,7 +772,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
        
-        #simulate TensorflowClassification send presence item to MainRobot
+        #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
 
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
@@ -796,7 +795,7 @@ class CommunicationTestCase(unittest.TestCase):
         #self.SensationDirectory.append((Wall_E_item_sensation.getDataId(),'Wall_E_item_sensation'))
         self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
-        #simulate TensorflowClassification send presence item to MainRobot
+        #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
        
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
@@ -898,7 +897,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
         
-        #simulate TensorflowClassification send presence item to MainRobot
+        #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
         # Now we should have 1 item in self.getMemory().getAllPresentItemSensations() (can be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 1, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 1')
@@ -950,7 +949,7 @@ class CommunicationTestCase(unittest.TestCase):
         item_sensation.associate(sensation=image_sensation)
         voice_sensation.associate(sensation=image_sensation)
 
-        #simulate TensorflowClassification send presence item to MainRobot
+        #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
         # Now we should have 1 item in self.getMemory().getAllPresentItemSensations() (and be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 1, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 1')
@@ -973,7 +972,7 @@ class CommunicationTestCase(unittest.TestCase):
         #self.SensationDirectory.append((Wall_E_item_sensation.getDataId(),'Wall_E_item_sensation'))
         self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
-        #simulate TensorflowClassification send presence item to MainRobot
+        #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
         # Now we should have 1 item in self.getMemory().getAllPresentItemSensations() (can be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 0, 'len(self.communication.getMemory().getAllPresentItemSensations() after Absent Item Sensation should be 0')
@@ -1035,7 +1034,7 @@ class CommunicationTestCase(unittest.TestCase):
         #self.SensationDirectory.append((Wall_E_item_sensation.getDataId(),'Wall_E_item_sensation'))
         self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
-        #simulate TensorflowClassification send presence item to MainRobot
+        #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
         # Now we should have 1 item in self.getMemory().getAllPresentItemSensations() (can be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 1, 'len(self.communication.getMemory().getAllPresentItemSensations() after Entering Item Sensation should be 1')
@@ -1076,7 +1075,7 @@ class CommunicationTestCase(unittest.TestCase):
         item_sensation.associate(sensation=voice_sensation)
         item_sensation.associate(sensation=image_sensation)
         voice_sensation.associate(sensation=image_sensation)
-        #simulate TensorflowClassification send presence item to MainRobot
+        #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(item_sensation) # presence
         # Now we should have 1 item in self.getMemory().getAllPresentItemSensations() (can be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 2, 'len(self.communication.getMemory().getAllPresentItemSensations() after Entering Item Sensation should NAME2 be 2')
@@ -1091,7 +1090,7 @@ class CommunicationTestCase(unittest.TestCase):
         #self.SensationDirectory.append((Wall_E_item_sensation.getDataId(),'Wall_E_item_sensation'))
         self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
-        #simulate TensorflowClassification send presence item to MainRobot
+        #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
         # Now we should have 1 item in self.getMemory().getAllPresentItemSensations() (can be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 2, 'len(self.communication.getMemory().getAllPresentItemSensations() after Entering Item NAME2 Sensation should NAME2 be 2')
@@ -1141,7 +1140,7 @@ class CommunicationTestCase(unittest.TestCase):
         #self.SensationDirectory.append((Wall_E_item_sensation.getDataId(),'Wall_E_item_sensation'))
         self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
-        #simulate TensorflowClassification send presence item to MainRobot
+        #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
         # TODO We find response
         # TODO if we find voice we speak, but now all voices are used. at this point
@@ -1194,7 +1193,7 @@ class CommunicationTestCase(unittest.TestCase):
         #self.SensationDirectory.append((Wall_E_item_sensation.getDataId(),'Wall_E_item_sensation'))
         self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
-       #simulate TensorflowClassification send presence item to MainRobot
+       #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
         # There has not been changes of present items and we have conversation on, but we have not send response
         # so we don't get response at this point
@@ -1218,7 +1217,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
        
-        #simulate TensorflowClassification send presence item to MainRobot
+        #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
 
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
@@ -1241,7 +1240,7 @@ class CommunicationTestCase(unittest.TestCase):
         #self.SensationDirectory.append((Wall_E_item_sensation.getDataId(),'Wall_E_item_sensation'))
         self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
-       #simulate TensorflowClassification send presence item to MainRobot
+       #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
        
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
@@ -1487,7 +1486,7 @@ class CommunicationTestCase(unittest.TestCase):
         #######################
         '''
 
-         #simulate TensorflowClassification send presence item to MainRobot
+         #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 1, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 1')
 
@@ -1615,7 +1614,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  presence=Sensation.Presence.Present)
         #self.SensationDirectory.append((self.Wall_E_item_sensation.getDataId(), 'Wall_E_item_sensation'))
         self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
-        #simulate TensorflowClassification send presence item to MainRobot
+        #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
         # Now we should have 1 item in self.getMemory().getAllPresentItemSensations() (can be assigned as self.association) with with  name and associations count
         allPresentItemSensations = self.communication.getMemory().getAllPresentItemSensations()
@@ -1838,7 +1837,7 @@ class CommunicationTestCase(unittest.TestCase):
         #######################
         '''
 
-         #simulate TensorflowClassification send presence item to MainRobot
+         #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 1, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 1')
 
@@ -2207,7 +2206,7 @@ class CommunicationTestCase(unittest.TestCase):
 #                                                  presence=Sensation.Presence.Present)
 #         #self.SensationDirectory.append((self.Wall_E_item_sensation.getDataId(), 'Wall_E_item_sensation'))
 #         self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
-        #simulate TensorflowClassification send presence item to MainRobot
+        #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
         # Now we should have 1 item in self.getMemory().getAllPresentItemSensations() (can be assigned as self.association) with with  name and associations count
         Wall_E_item_sensation = self.createSensation(robot=self.communication,
@@ -2413,7 +2412,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                  robot=self.communication,
                                                  memoryType=Sensation.MemoryType.Working,
                                                  sensationType=Sensation.SensationType.Item,
-                                                 robotType=Sensation.RobotType.Muscle,
+                                                 robotType=Sensation.RobotType.Sense,
                                                  name=CommunicationTestCase.NAME,
                                                  score=CommunicationTestCase.SCORE_1,
                                                  associations=[],

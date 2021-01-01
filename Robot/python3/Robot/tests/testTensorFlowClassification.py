@@ -1,6 +1,6 @@
 '''
 Created on 23.06.2019
-Updated on 09.04.2020
+Updated on 31.12.2020
 @author: reijo.korhonen@gmail.com
 
 test TensorFlowClassification class
@@ -44,7 +44,6 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
                                         # try 40 for Raspberry 3 normal model, when first wait i 2* longer then nest ones
                                         # tested in raspberry running also Robot service, to we have some tolerance
                                         # raspberry would need more time
-    TEST_TIME = 60.0                    # how long we wait tearDown until delete test variables
     TEST_STOP_TIME = 5.0                # how long to wait Robot read stop from its Axon
     TESTSETUPMODEL=False                # Set this True only if problems to load model
                                         # models are big and this takes a log, log time and can fail
@@ -60,6 +59,8 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
         TEST_ITEM_NAMES_2=['person',
                            'kite']
     
+    MAINNAMES = ["TensorFlowClassificationTestCaseMainName"]
+    OTHERMAINNAMES = ["OTHER_TensorFlowClassificationTestCaseMainName"]
     
     '''
     Robot modeling
@@ -69,8 +70,16 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
         return self.axon
     def getId(self):
         return 1.1
+    def setMainNames(self, mainNames):
+        self.mainNames = mainNames
+    def getMainNames(self):
+        return self.mainNames
+    def setRobotMainNames(self, robot, mainNames):
+        robot.mainNames = mainNames
     def getName(self):
         return "TensorFlowClassificationTestCase"
+    def getParent(self):
+        return None
     def log(self, logStr, logLevel=None):
         #print('CommunicationTestCase log')
         if hasattr(self, 'tensorFlowClassification'):
@@ -85,6 +94,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
     '''
     
     def setUp(self):
+        self.mainNames = self.MAINNAMES
         self.isFirstSleep=True
         self.processTimeSum = 0.0
         self.processNumber = 0
@@ -106,8 +116,8 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
 
 
     def tearDown(self):
-        print('sleep ' + str(TensorFlowClassificationTestCase.TEST_TIME) + ' to Stop Robot and test finishes')
-        systemTime.sleep(TensorFlowClassificationTestCase.TEST_TIME)       # give Robot some time to stop
+        print('sleep ' + str(TensorFlowClassificationTestCase.TEST_STOP_TIME) + ' to Stop Robot and test finishes')
+        systemTime.sleep(TensorFlowClassificationTestCase.TEST_STOP_TIME)       # give Robot some time to stop
         self.tensorFlowClassification.getAxon().put(robot=self,
                                                     transferDirection=Sensation.TransferDirection.Up,
                                                     sensation=self.tensorFlowClassification.createSensation(associations=[], sensationType = Sensation.SensationType.Stop))

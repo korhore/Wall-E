@@ -37,10 +37,9 @@ class VoiceTestCase(unittest.TestCase):
                             # Voice sensations to play as test inout
     LOCATION='localhost'    # used to mic presense by location
     
-    '''
-    Robot modeling
-    '''
-    
+    MAINNAMES = ["VoiceTestCaseMainName"]
+    OTHERMAINNAMES = ["OTHER_VoiceTestCaseMainName"]
+        
     '''
     Robot modeling
     '''
@@ -51,6 +50,12 @@ class VoiceTestCase(unittest.TestCase):
         return 1.1
     def getName(self):
         return VoiceTestCase.NAME
+    def getMainNames(self):
+        return self.mainNames
+    def setRobotMainNames(self, robot, mainNames):
+        robot.mainNames = mainNames
+    def getParent(self):
+        return None
     def log(self, logStr, logLevel=None):
         if logLevel == None:
             logLevel = self.microphone.LogLevel.Normal
@@ -67,6 +72,7 @@ class VoiceTestCase(unittest.TestCase):
     '''
     
     def setUp(self):
+        self.mainNames = self.MAINNAMES
         self.axon = Axon(robot=self) # parent axon
         self.microphone = Microphone(parent=self,
                             instanceName='Microphone',

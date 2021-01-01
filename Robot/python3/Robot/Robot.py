@@ -403,6 +403,8 @@ class Robot(Thread):
         self.config.setMainNames(mainNames = mainNames)
     def getMainNames(self):
         return self.mainNames
+    def getMainNamesStr(self):
+        return Sensation.strArrayToStr(self.mainNames)
     
     def setLocations(self, locations):
 #         if self.getInstanceType() == Sensation.InstanceType.SubInstance:
@@ -645,7 +647,7 @@ class Robot(Thread):
             if mainName in self.getMainNames():
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="isInMainNames {} in {}: True".format(mainName, self.getMainNames()))      
                 return True            
-        self.log(logLevel=Robot.LogLevel.Normal, logStr="isInMainNames {} not in {}: False".format(mainName, self.getMainNames()))      
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="isInMainNames {} not in {}: False".format(mainNames, self.getMainNames()))      
         return False
     
     '''
@@ -853,7 +855,7 @@ class Robot(Thread):
         
     def log(self, logStr, logLevel=LogLevel.Normal):
          if logLevel <= self.getLogLevel():
-             print(self.getName() + ":" + str(self.config.level) + ":" + Sensation.Modes[self.mode] + ":" + self.getLocationsStr() + ": " + logStr)
+             print("{}:{}:{}:{}:{}:{}".format(self.getMainNamesStr(),self.getName(),self.config.level,Sensation.Modes[self.mode],self.getLocationsStr(),logStr))
 
     def stop(self):
         self.log(logLevel=Robot.LogLevel.Normal, logStr="Stopping robot")

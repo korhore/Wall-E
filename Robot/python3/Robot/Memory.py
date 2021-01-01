@@ -954,9 +954,9 @@ class Memory(object):
             os.makedirs(Sensation.DATADIR)
             
         try:
-            with open(Sensation.PATH_TO_PICLE_FILE, "wb") as f:
+            with open(Sensation.PATH_TO_PICLE_FILE, "wb") as file:
                 try:
-                    pickler = pickle.Pickler(f, -1)
+                    pickler = pickle.Pickler(file, -1)
                     pickler.dump(Sensation.VERSION)
                     pickler.dump(self.sensationMemory)
                     #print ('saveLongTermMemory dumped ' + str(len(Sensation.sensationMemorys[Sensation.MemoryType.LongTerm])))
@@ -969,9 +969,9 @@ class Memory(object):
                     self.log(logStr='pickler.dump(Sensation.sensationMemorys[MemoryType.LongTerm]) PicklingError ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
 
                 finally:
-                    f.close()
+                    file.close()
         except Exception as e:
-                self.log(logStr="saveLongTermMemory open(fileName, wb) as f error " + str(e), logLevel=Memory.MemoryLogLevel.Error)
+                self.log(logStr="saveLongTermMemory open(fileName, wb) as file error " + str(e), logLevel=Memory.MemoryLogLevel.Error)
         self.memoryLock.releaseRead()                  # read thread_safe
 
     '''
@@ -982,14 +982,14 @@ class Memory(object):
         if os.path.exists(Sensation.DATADIR):
             self.memoryLock.acquireWrite()                  # write thread_safe
             try:
-                with open(Sensation.PATH_TO_PICLE_FILE, "rb") as f:
+                with open(Sensation.PATH_TO_PICLE_FILE, "rb") as file:
                     try:
                         # TODO correct later
                         # whole Memory
                         #Sensation.sensationMemorys[Sensation.MemoryType.LongTerm] = \
-                        version = pickle.load(f)
+                        version = pickle.load(file)
                         if version == Sensation.VERSION:
-                            self.sensationMemory = pickle.load(f)
+                            self.sensationMemory = pickle.load(file)
                             self.log(logStr='loaded {} sensations'.format(str(len(self.sensationMemory))), logLevel=Memory.MemoryLogLevel.Normal)
                             i=0
                             while i < len(self.sensationMemory):
@@ -1004,17 +1004,17 @@ class Memory(object):
                         else:
                             self.log(logStr="Sensation could not be loaded. because Sensation cache version {} does not match current sensation version {}".format(version,Sensation.VERSION), logLevel=Memory.MemoryLogLevel.Normal)
                     except IOError as e:
-                        self.log(logStr="pickle.load(f) error " + str(e), logLevel=Memory.MemoryLogLevel.Error)
+                        self.log(logStr="pickle.load(file) error " + str(e), logLevel=Memory.MemoryLogLevel.Error)
                     except pickle.PickleError as e:
-                        self.log(logStr='pickle.load(f) PickleError ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
+                        self.log(logStr='pickle.load(file) PickleError ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
                     except pickle.PicklingError as e:
-                        self.log(logStr='pickle.load(f) PicklingError ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
+                        self.log(logStr='pickle.load(file) PicklingError ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
                     except Exception as e:
-                        self.log(logStr='pickle.load(f) Exception ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
+                        self.log(logStr='pickle.load(file) Exception ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
                     finally:
-                        f.close()
+                        file.close()
             except Exception as e:
-                    self.log(logStr='with open(' + Sensation.PATH_TO_PICLE_FILE + ',"rb") as f error ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
+                    self.log(logStr='with open(' + Sensation.PATH_TO_PICLE_FILE + ',"rb") as file error ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
             self.memoryLock.releaseWrite()                  # write thread_safe
  
     '''
