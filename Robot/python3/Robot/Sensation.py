@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 30.12.2020
+Edited on 02.01.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -420,11 +420,12 @@ class Sensation(object):
         
     def strArrayToStr(sArray):
         retS = ''
-        for s in sArray:
-            if len(retS) == 0:
-                retS=s
-            else:
-                retS += ' ' + s
+        if sArray != None:
+            for s in sArray:
+                if len(retS) == 0:
+                    retS=s
+                else:
+                    retS += ' ' + s
         return retS
     
     def strToStrArray(s):
@@ -641,7 +642,8 @@ class Sensation(object):
                  robotType = None,
                  robot = None,
                  locations =  [],
-                 mainNames =  [],
+                 isCommunication = False,
+                 mainNames =  None,
                  leftPower = None, rightPower = None,                        # Walle motors state
                  azimuth = None,                                             # Walle robotType relative to magnetic north pole
                  x=None, y=None, z=None, radius=None,                        # location and acceleration of Robot
@@ -697,6 +699,7 @@ class Sensation(object):
                                        robotType=robotType,
                                        robot=robot,
                                        locations=locations,
+                                       isCommunication=isCommunication,
                                        mainNames=mainNames,
                                        leftPower=leftPower,rightPower=rightPower,                   # Walle motors state
                                        azimuth=azimuth,                                             # Walle robotType relative to magnetic north pole
@@ -752,6 +755,7 @@ class Sensation(object):
                                        robotType=robotType,
                                        robot=robot,
                                        locations=locations,
+                                       isCommunication=isCommunication,
                                        mainNames=mainNames,
                                        leftPower=leftPower,rightPower=rightPower,                   # Walle motors state
                                        azimuth=azimuth,                                             # Walle robotType relative to magnetic north pole
@@ -782,6 +786,7 @@ class Sensation(object):
 #             self.robotType = robotType
 #             self.robot = robot
 #             self.locations = locations
+#             self.isCommunication = isCommunication,
 #             self.mainNames = mainNames
 #             self.leftPower = leftPower
 #             self.rightPower = rightPower
@@ -867,7 +872,10 @@ class Sensation(object):
                 self.locations=Sensation.bytesToList(bytes[i:i+locations_size])
                 i += locations_size
                                 
-                
+                # isCommunication
+                self.isCommunication =  Sensation.intToBoolean(bytes[i])
+                i += Sensation.ENUM_SIZE
+                                
                 # mainNames
                 mainNames_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
                 #print("mainNames_size " + str(mainNames_size))
@@ -1020,6 +1028,7 @@ class Sensation(object):
                       robotType,
                       robot,
                       locations,
+                      isCommunication,
                       mainNames,
                       leftPower, rightPower,                            # Walle motors state
                       azimuth,                                          # Walle robotType relative to magnetic north pole
@@ -1065,8 +1074,15 @@ class Sensation(object):
         else:
             destination.locations = []
             
+        if isCommunication is not None:
+            destination.isCommunication = isCommunication
+        else:
+            destination.isCommunication = False
+
         if mainNames is not None:
             destination.mainNames = mainNames
+        elif robot != None:
+            destination.mainNames = robot.getMainNames()
         else:
             destination.mainNames = []
 
@@ -1201,6 +1217,7 @@ class Sensation(object):
                         robotType,
                         robot,
                         locations,
+                        isCommunication,
                         mainNames,
                         leftPower, rightPower,                               # Walle motors state
                         azimuth,                                             # Walle robotType relative to magnetic north pole
@@ -1250,6 +1267,11 @@ class Sensation(object):
             destination.locations = source.locations
         else:
             destination.locations = locations
+            
+        if isCommunication is None:
+            destination.isCommunication = source.isCommunication
+        else:
+            destination.isCommunication = isCommunication
             
         if mainNames is None:
             destination.mainNames = source.mainNames
@@ -1520,7 +1542,9 @@ class Sensation(object):
         
 #         location_size=len(self.locations)
 #         b +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
-#         b +=  Sensation.strToBytes(self.locations)            
+#         b +=  Sensation.strToBytes(self.locations)
+
+        b +=  Sensation.booleanToBytes(self.isCommunication)
 
         blist = Sensation.listToBytes(self.mainNames)
         #print(' blist ' +str(blist))
@@ -2050,16 +2074,21 @@ class Sensation(object):
     '''
     def getRobotType(self, robotMainNames=None):
         # compability to old implementation
-        if (self.getSensationType() != Sensation.SensationType.Voice and\
-           self.getSensationType() != Sensation.SensationType.Image) or\
-           robotMainNames == None or\
-           len(robotMainNames) == 0 or\
-           self.getMainNames() == None or\
-           len(self.getMainNames()) == 0 or\
+# deprecated
+#         if (self.getSensationType() != Sensation.SensationType.Voice and\
+#            self.getSensationType() != Sensation.SensationType.Image) or\
+#            robotMainNames == None or\
+#            len(robotMainNames) == 0 or\
+#            self.getMainNames() == None or\
+#            len(self.getMainNames()) == 0 or\
+#            self.isInMainNames(robotMainNames=robotMainNames):
+#             return self.robotType
+        
+        if not self.isCommunication or\
            self.isInMainNames(robotMainNames=robotMainNames):
             return self.robotType
 
-        #if robotMainNames is given as parameters, reverse robotType in foreign mainNames
+        #if robotMainNames is given as parameters and self.isInMainNames(robotMainNames=robotMainNames) reverse robotType in foreign mainNames
         if self.robotType == Sensation.RobotType.Muscle:
             return Sensation.RobotType.Sense
         return Sensation.RobotType.Muscle
@@ -2101,6 +2130,11 @@ class Sensation(object):
         return Sensation.strArrayToStr(self.getLocations())
  
      
+    def setIsCommunication(self, isCommunication):
+        self.isCommunication = isCommunication
+    def getIsCommunication(self):
+        return self.isCommunication
+
     def setMainNames(self, mainNames):
         self.mainNames = mainNames
     def getMainNames(self):
@@ -2116,7 +2150,7 @@ class Sensation(object):
                 return True            
         return False
 
-    def getMainNamesStr(self):
+    def getMainNamesString(self):
         #from Config import strArrayToStr
         return Sensation.strArrayToStr(self.getMainNames())
       
@@ -2289,7 +2323,8 @@ class Sensation(object):
         if not os.path.exists(Sensation.DATADIR):
             os.makedirs(Sensation.DATADIR)
             
-        if self.getSensationType() == Sensation.SensationType.Image:       
+        if self.getSensationType() == Sensation.SensationType.Image and\
+           self.getImage() != None:       
             fileName = '{}/{}.{}'.format(Sensation.DATADIR, self.getId(),\
                                          Sensation.IMAGE_FORMAT)
             self.setFilePath(fileName)

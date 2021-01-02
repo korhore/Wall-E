@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 22.12.2020
+Updated on 02.01.2021
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -403,7 +403,7 @@ class Robot(Thread):
         self.config.setMainNames(mainNames = mainNames)
     def getMainNames(self):
         return self.mainNames
-    def getMainNamesStr(self):
+    def getMainNamesString(self):
         return Sensation.strArrayToStr(self.mainNames)
     
     def setLocations(self, locations):
@@ -855,7 +855,7 @@ class Robot(Thread):
         
     def log(self, logStr, logLevel=LogLevel.Normal):
          if logLevel <= self.getLogLevel():
-             print("{}:{}:{}:{}:{}:{}".format(self.getMainNamesStr(),self.getName(),self.config.level,Sensation.Modes[self.mode],self.getLocationsStr(),logStr))
+             print("{}:{}:{}:{}:{}:{}".format(self.getMainNamesString(),self.getName(),self.config.level,Sensation.Modes[self.mode],self.getLocationsStr(),logStr))
 
     def stop(self):
         self.log(logLevel=Robot.LogLevel.Normal, logStr="Stopping robot")
@@ -1145,6 +1145,8 @@ class Robot(Thread):
                  memoryType = None,
                  robotType = None,
                  robot = None,
+                 isCommunication=False,
+                 mainNames = None,                 
                  locations =  None,
                  leftPower = None, rightPower = None,                        # Walle motors state
                  azimuth = None,                                             # Walle robotType relative to magnetic north pole
@@ -1181,8 +1183,9 @@ class Robot(Thread):
                  memoryType=memoryType,
                  robotType=robotType,
                  #robot=robot,
+                 isCommunication=isCommunication,
+                 mainNames=mainNames,
                  locations=locations,
-                 mainNames=self.getMainNames(),
                  leftPower = leftPower, rightPower = rightPower,
                  azimuth = azimuth,
                  x=x, y = y, z = z, radius=radius,

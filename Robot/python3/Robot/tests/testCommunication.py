@@ -1,6 +1,6 @@
 '''
 Created on 21.06.2019
-Updated on 31.12.2020
+Updated on 02.01.2021
 @author: reijo.korhonen@gmail.com
 
 test Association class
@@ -124,7 +124,8 @@ class CommunicationTestCase(unittest.TestCase):
                  memoryType = None,
                  robotType = None,
                  locations =  None,
-                 mainNames =  [],
+                 isCommunication = None,                 
+                 mainNames = None,
                  leftPower = None, rightPower = None,                        # Walle motors state
                  azimuth = None,                                             # Walle robotType relative to magnetic north pole
                  x=None, y=None, z=None, radius=None,                        # location and acceleration of Robot
@@ -159,7 +160,8 @@ class CommunicationTestCase(unittest.TestCase):
                  robotType=robotType,
                  #robot=robot,
                  locations=locations,
-                 #mainNames=self.getMainNames(),
+                 isCommunication=isCommunication,
+                 mainNames = mainNames, #self.getMainNames(),
                  leftPower = leftPower, rightPower = rightPower,
                  azimuth = azimuth,
                  x=x, y = y, z = z, radius=radius,
@@ -181,7 +183,7 @@ class CommunicationTestCase(unittest.TestCase):
                  negativeFeeling=negativeFeeling)
             
         # if we get mainNames. overwrite Robots given mainNames
-        if len(mainNames) > 0:
+        if mainNames != None and len(mainNames) > 0:
             sensation.setMainNames(mainNames)
         # associate to self sensations
         sensation.associate(sensation=self.Wall_E_item_sensation, feeling=feeling)
@@ -2469,6 +2471,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                     sensationType=Sensation.SensationType.Voice,
                                                     robotType=Sensation.RobotType.Muscle,
                                                     data=CommunicationTestCase.VOICEDATA8,
+                                                    isCommunication=True,
                                                     mainNames=self.OTHERMAINNAMES)
         #self.SensationDirectory.append((Wall_E_sense_voice_response_sensation.getDataId(),'Wall_E_sense_voice_response_sensation'))
 #         self.addToSensationDirectory(name='Wall_E_sense_voice_response_sensation', dataId=Wall_E_sense_voice_response_sensation.getDataId(), id=Wall_E_sense_voice_response_sensation.getId())
@@ -2537,6 +2540,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                     sensationType=Sensation.SensationType.Voice,
                                                     robotType=Sensation.RobotType.Muscle,
                                                     data=CommunicationTestCase.VOICEDATA9,
+                                                    isCommunication=True,
                                                     mainNames=self.OTHERMAINNAMES)
         #self.SensationDirectory.append((Wall_E_sense_voice_response_sensation_2.getDataId(),'Wall_E_sense_voice_response_sensation_2'))
 #         self.addToSensationDirectory(name='Wall_E_sense_voice_response_sensation_2', dataId=Wall_E_sense_voice_response_sensation_2.getDataId(), id=Wall_E_sense_voice_response_sensation_2.getId())
@@ -2601,6 +2605,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                     sensationType=Sensation.SensationType.Voice,
                                                     robotType=Sensation.RobotType.Muscle,
                                                     data=CommunicationTestCase.VOICEDATA9,
+                                                    isCommunication=True,
                                                     mainNames=self.OTHERMAINNAMES)
         #self.SensationDirectory.append((Wall_E_sense_voice_response_sensation_3.getDataId(),'Wall_E_sense_voice_response_sensation_3'))
 #         self.addToSensationDirectory(name='Wall_E_sense_voice_response_sensation_3', dataId=Wall_E_sense_voice_response_sensation_3.getDataId(), id=Wall_E_sense_voice_response_sensation_3.getId())
@@ -2676,6 +2681,7 @@ class CommunicationTestCase(unittest.TestCase):
                                                     sensationType=Sensation.SensationType.Voice,
                                                     robotType=Sensation.RobotType.Muscle,
                                                     data=CommunicationTestCase.VOICEDATA9,
+                                                    isCommunication=True,
                                                     mainNames=self.OTHERMAINNAMES)
         #self.SensationDirectory.append((Wall_E_sense_voice_response_sensation_4.getDataId(),'Wall_E_sense_voice_response_sensation_4'))
 #         self.addToSensationDirectory(name='Wall_E_sense_voice_response_sensation_4', dataId=Wall_E_sense_voice_response_sensation_4.getDataId(), id=Wall_E_sense_voice_response_sensation_4.getId())

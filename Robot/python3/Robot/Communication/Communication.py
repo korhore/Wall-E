@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 28.12.2020
+Updated on 02.01.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -120,7 +120,7 @@ class Communication(Robot):
         self.heardSensations = []   # Voices we have heard in this conversation 
  
     def process(self, transferDirection, sensation):
-        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
+        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: {} {} {} isCommunication {}'.format(systemTime.ctime(sensation.getTime()),transferDirection,sensation.toDebugStr(), sensation.getIsCommunication()))
         # don't communicate with history Sensation Items, we are communicating Item.name just seen.
         #self.log(logLevel=Robot.LogLevel.Normal, logStr="process: systemTime.time() " + str(systemTime.time()) + ' -  sensation.getTime() ' + str(sensation.getTime()) + ' < Communication.COMMUNICATION_INTERVAL ' + str(Communication.COMMUNICATION_INTERVAL))
         self.log(logLevel=Robot.LogLevel.Normal, logStr="process: " + str(systemTime.time() - sensation.getTime()) + ' < ' + str(Communication.COMMUNICATION_INTERVAL))
@@ -416,12 +416,12 @@ class Communication(Robot):
                     self.mostImportantImageSensation.save()     # for debug reasons save voices we have spoken as heard voices
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: self.getMemory().getMostImportantSensation did find self.mostImportantImageSensation OK')
                     self.spokedImageSensation = self.createSensation( sensation = self.mostImportantImageSensation, kind=self.getKind(),
-                                                                      locations=self.getLocations() )
+                                                                      locations=self.getLocations(), isCommunication=True)
                     # NOTE This is needed now, because Sensation.create parameters robotType and memoryType parameters are  overwritten by sensation parameters
                     self.spokedImageSensation.setKind(self.getKind())
                     self.spokedImageSensation.setRobotType(Sensation.RobotType.Muscle)  # speak        
                     # TODO self.mostImportantItemSensation is now None, but it should not be possible             
-                    association = self.mostImportantItemSensation.getAssociation(sensation = self.mostImportantImageSensation)
+                    #association = self.mostImportantItemSensation.getAssociation(sensation = self.mostImportantImageSensation)
                     self.getMemory().setMemoryType(sensation=self.spokedImageSensation, memoryType=Sensation.MemoryType.Sensory)
                     assert self.mostImportantImageSensation.getDataId() not in self.saidSensations
                     self.saidSensations.append(self.mostImportantImageSensation.getDataId())   
@@ -433,11 +433,11 @@ class Communication(Robot):
                     self.mostImportantVoiceSensation.save()     # for debug reasons save voices we have spoken as heard voices
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: self.getMemory().getMostImportantSensation did find self.mostImportantVoiceSensation OK')
                     self.spokedVoiceSensation = self.createSensation( sensation = self.mostImportantVoiceSensation, kind=self.getKind(),
-                                                                      locations=self.getLocations() )
+                                                                      locations=self.getLocations(), isCommunication=True)
                     # NOTE This is needed now, because Sensation.create parameters robotType and memoryType parameters are  overwritten by sensation parameters
                     self.spokedVoiceSensation.setKind(self.getKind())
                     self.spokedVoiceSensation.setRobotType(Sensation.RobotType.Muscle)  # speak        
-                    association = self.mostImportantItemSensation.getAssociation(sensation = self.mostImportantVoiceSensation)
+                    #association = self.mostImportantItemSensation.getAssociation(sensation = self.mostImportantVoiceSensation)
                     self.getMemory().setMemoryType(sensation=self.spokedVoiceSensation, memoryType=Sensation.MemoryType.Sensory)
                     #self.saidSensations.append(self.spokedVoiceSensation.getDataId())
                     assert self.mostImportantVoiceSensation.getDataId() not in self.saidSensations

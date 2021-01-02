@@ -72,13 +72,16 @@ Sensations origin Robot site. And it is empty if local Sensation. If transferred
 But Sensation can be shared/conversation. If we add Sensation.Function or Sensation.MenoryType.RobotCommunicate, we
 can solve this.
 
-Solution found. (Location) MainRobot.Name() is border. Robot belongs to some Location(s) and if
-Sensation is routes to other location, then Muscle/Sensory is changed each other!
+Solution found. (MainNames) MainRobot.Name() is border. Robot belongs to some MainNames and if
+Sensation is routes to other MainNames, then Muscle/Sensory is changed each other!
 In pactice thios is done in SocketServer, which accepts Sensation.
 Still there is problem to solve: What happens if Sensation is transferred to third Robot?
 Hmm.., should we use arrays of locations? And what is role of Locations and  site addresseses?
 Another is logical and another is technical, buy are that same thing? Well no. We can't share memory
 between sites even if we try our best.
+
+Seems we need also 'RobotCommunication' flag in sensation to mark, when Communication
+has created this Sensation for communication.
 
 To finalize this idea. we must
 - terminology change who -> name

@@ -1,6 +1,6 @@
 '''
 Created on 12.03.2020
-Updated on 30.09.2020
+Updated on 01.01.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -47,23 +47,25 @@ class Visual(Robot):
     
     # log panel
     LOG_PANEL_SENSATION_LINES =          16
-    LOG_PANEL_SENSATION_COLUMNS =        7
+    LOG_PANEL_SENSATION_COLUMNS =        8
     LOG_PANEL_COLUMN_DATA_TYPE_COLUMNS = 2
     
-    LOG_PANEL_COLUMN_TYPE =              0
-    LOG_PANEL_COLUMN_DATA =              1
-    LOG_PANEL_COLUMN_MEMORY =            2
-    LOG_PANEL_COLUMN_DIRECTION =         3
-    LOG_PANEL_COLUMN_LOCATIONS =         4
-    LOG_PANEL_COLUMN_RECEIVEDFROM =      5
-    LOG_PANEL_COLUMN_TIME =              6
+    LOG_PANEL_COLUMN_MAINNAMES =         0
+    LOG_PANEL_COLUMN_TYPE =              1
+    LOG_PANEL_COLUMN_DATA =              2
+    LOG_PANEL_COLUMN_MEMORY =            3
+    LOG_PANEL_COLUMN_DIRECTION =         4
+    LOG_PANEL_COLUMN_LOCATIONS =         5
+    LOG_PANEL_COLUMN_RECEIVEDFROM =      6
+    LOG_PANEL_COLUMN_TIME =              7
     
     # Common panel column names
     PANEL_COLUMN_TIME_NAME =             'Time'
     PANEL_COLUMN_LOCATIONS_NAME =        'Locations'
     PANEL_COLUMN_RECEIVEDFROM_NAME =     'ReceivedFrom'
 
-    # log penel
+    # log panel
+    LOG_PANEL_COLUMN_SENSATION_MAINNAMES_NAME ='Main Names'
     LOG_PANEL_COLUMN_SENSATION_TYPE_NAME ='Sens. Type'
     LOG_PANEL_COLUMN_DATA_NAME =         'Data'
     LOG_PANEL_COLUMN_MEMORY_NAME =       'Memory'
@@ -338,13 +340,15 @@ class Visual(Robot):
                                    5, 5)
             headerFont = wx.Font(18, wx.DECORATIVE, wx.ITALIC, wx.BOLD)
              
-            self.gs.AddMany( [(wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_SENSATION_TYPE_NAME), 0, wx.EXPAND), # 0
-                (wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_DATA_NAME), 0, wx.EXPAND),                       # 1
-                (wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_MEMORY_NAME), 0, wx.EXPAND),                     # 2
-                (wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_ROBOT_TYPE_NAME), 0, wx.EXPAND|wx.ALIGN_CENTER), # 3
-                (wx.StaticText(self, label=Visual.PANEL_COLUMN_LOCATIONS_NAME), 0, wx.EXPAND),                      # 4
-                (wx.StaticText(self, label=Visual.PANEL_COLUMN_RECEIVEDFROM_NAME), 0, wx.EXPAND),                   # 5
-                (wx.StaticText(self, label=Visual.PANEL_COLUMN_TIME_NAME), 0, wx.EXPAND)])                          # 6
+            self.gs.AddMany( [
+                (wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_SENSATION_MAINNAMES_NAME), 0, wx.EXPAND),        # 0
+                (wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_SENSATION_TYPE_NAME), 0, wx.EXPAND),             # 1
+                (wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_DATA_NAME), 0, wx.EXPAND),                       # 2
+                (wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_MEMORY_NAME), 0, wx.EXPAND),                     # 3
+                (wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_ROBOT_TYPE_NAME), 0, wx.EXPAND|wx.ALIGN_CENTER), # 4
+                (wx.StaticText(self, label=Visual.PANEL_COLUMN_LOCATIONS_NAME), 0, wx.EXPAND),                      # 5
+                (wx.StaticText(self, label=Visual.PANEL_COLUMN_RECEIVEDFROM_NAME), 0, wx.EXPAND),                   # 6
+                (wx.StaticText(self, label=Visual.PANEL_COLUMN_TIME_NAME), 0, wx.EXPAND)])                          # 7
             for j in range(Visual.LOG_PANEL_SENSATION_COLUMNS):
                 item = self.gs.GetItem(j)               
                 item.GetWindow().SetFont(headerFont) 
@@ -398,6 +402,10 @@ class Visual(Robot):
                 # by line. Indexes of cells are calculated right if insertation in done in natural order, from left to right
                 # because index increases
                 
+                # Main Names
+                self.gs.Insert(index=Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_MAINNAMES,
+                               window=wx.StaticText(self, label=sensation.getMainNamesString()),  proportion=0, flag=wx.EXPAND)
+                
                 # type of Sensation
                 self.gs.Insert(index=Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_TYPE,
                                window=wx.StaticText(self, label=Sensation.getSensationTypeString(sensationType=sensation.getSensationType())),  proportion=0, flag=wx.EXPAND)
@@ -420,7 +428,10 @@ class Visual(Robot):
                     self.gs.Insert(index=Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_DATA,
                                    window=wx.StaticText(self, label=''), proportion=0, flag=wx.EXPAND)
 
-                # Memory type                    
+#                  # Main Names                  
+#                 self.gs.Insert(index=Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_MAINNAMES,
+#                                window=wx.StaticText(self, label=sensation.getMainNamesString()), proportion=0, flag=wx.EXPAND)
+               # Memory type                    
                 self.gs.Insert(index=Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_MEMORY,
                                window=wx.StaticText(self, label=Sensation.getMemoryTypeString(memoryType=sensation.getMemoryType())), proportion=0, flag=wx.EXPAND)
 
