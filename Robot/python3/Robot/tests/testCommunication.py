@@ -2190,8 +2190,20 @@ class CommunicationTestCase(unittest.TestCase):
     
 
     '''
-
-    def test_ProcessItemVoiceFromOtherRobot(self):#, memoryType):
+        
+    def test_ProcessItemImageVoiceFromOtherRobot(self):
+        #resposes
+        # - come from mainNames=self.OTHERMAINNAMES
+        # - are send to Playback robotType=Sensation.RobotType.Muscle
+        # - are marked as robotType=Sensation.RobotType.Muscle
+        #
+        # but Communucation should handle these renposes as person said,
+        # Mictophone detects as Sense type Voices in same mainNames
+        self.do_test_ProcessItemImageVoice(mainNames=self.OTHERMAINNAMES,
+                                           robotType=Sensation.RobotType.Muscle,
+                                           isCommunication=True)
+        
+    def do_test_ProcessItemImageVoice(self, mainNames, robotType, isCommunication):#, memoryType):
         print('\ndo_test_ProcessItemVoiceFromOtherRobot 1')
         memoryType=Sensation.MemoryType.Working
         
@@ -2414,12 +2426,13 @@ class CommunicationTestCase(unittest.TestCase):
                                                  robot=self.communication,
                                                  memoryType=Sensation.MemoryType.Working,
                                                  sensationType=Sensation.SensationType.Item,
-                                                 robotType=Sensation.RobotType.Sense,
+                                                 robotType=robotType,#Sensation.RobotType.Sense,
                                                  name=CommunicationTestCase.NAME,
                                                  score=CommunicationTestCase.SCORE_1,
                                                  associations=[],
                                                  presence=Sensation.Presence.Entering,
-                                                 mainNames=self.OTHERMAINNAMES)
+                                                 isCommunication=isCommunication,
+                                                 mainNames=mainNames)
         #self.SensationDirectory.append((Wall_E_item_sense_sensation.getDataId(),'Wall_E_item_sense_sensation'))
 #         self.addToSensationDirectory(name='Wall_E_item_sense_sensation', dataId=Wall_E_item_sense_sensation.getDataId(), id=Wall_E_item_sense_sensation.getId())
 #         self.printSensationNameById(note='Wall_E_item_sense_sensation test', dataId=Wall_E_item_sense_sensation.getDataId())
@@ -2469,10 +2482,10 @@ class CommunicationTestCase(unittest.TestCase):
                                                     robot=self.communication,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     sensationType=Sensation.SensationType.Voice,
-                                                    robotType=Sensation.RobotType.Muscle,
+                                                    robotType=robotType,
                                                     data=CommunicationTestCase.VOICEDATA8,
-                                                    isCommunication=True,
-                                                    mainNames=self.OTHERMAINNAMES)
+                                                    isCommunication=isCommunication,
+                                                    mainNames=mainNames)
         #self.SensationDirectory.append((Wall_E_sense_voice_response_sensation.getDataId(),'Wall_E_sense_voice_response_sensation'))
 #         self.addToSensationDirectory(name='Wall_E_sense_voice_response_sensation', dataId=Wall_E_sense_voice_response_sensation.getDataId(), id=Wall_E_sense_voice_response_sensation.getId())
 #         self.printSensationNameById(note='Wall_E_sense_voice_response_sensation test', dataId=Wall_E_sense_voice_response_sensation.getDataId())
@@ -2538,10 +2551,10 @@ class CommunicationTestCase(unittest.TestCase):
                                                     robot=self.communication,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     sensationType=Sensation.SensationType.Voice,
-                                                    robotType=Sensation.RobotType.Muscle,
+                                                    robotType=robotType,
                                                     data=CommunicationTestCase.VOICEDATA9,
-                                                    isCommunication=True,
-                                                    mainNames=self.OTHERMAINNAMES)
+                                                    isCommunication=isCommunication,
+                                                    mainNames=mainNames)
         #self.SensationDirectory.append((Wall_E_sense_voice_response_sensation_2.getDataId(),'Wall_E_sense_voice_response_sensation_2'))
 #         self.addToSensationDirectory(name='Wall_E_sense_voice_response_sensation_2', dataId=Wall_E_sense_voice_response_sensation_2.getDataId(), id=Wall_E_sense_voice_response_sensation_2.getId())
 #         self.printSensationNameById(note='Wall_E_sense_voice_response_sensation_2 test', dataId=Wall_E_sense_voice_response_sensation_2.getDataId())
@@ -2603,10 +2616,10 @@ class CommunicationTestCase(unittest.TestCase):
                                                     robot=self.communication,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     sensationType=Sensation.SensationType.Voice,
-                                                    robotType=Sensation.RobotType.Muscle,
+                                                    robotType=robotType,
                                                     data=CommunicationTestCase.VOICEDATA9,
-                                                    isCommunication=True,
-                                                    mainNames=self.OTHERMAINNAMES)
+                                                    isCommunication=isCommunication,
+                                                    mainNames=mainNames)
         #self.SensationDirectory.append((Wall_E_sense_voice_response_sensation_3.getDataId(),'Wall_E_sense_voice_response_sensation_3'))
 #         self.addToSensationDirectory(name='Wall_E_sense_voice_response_sensation_3', dataId=Wall_E_sense_voice_response_sensation_3.getDataId(), id=Wall_E_sense_voice_response_sensation_3.getId())
 #         self.printSensationNameById(note='Wall_E_sense_voice_response_sensation_3 test', dataId=Wall_E_sense_voice_response_sensation_3.getDataId())
@@ -2679,10 +2692,10 @@ class CommunicationTestCase(unittest.TestCase):
                                                     robot=self.communication,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     sensationType=Sensation.SensationType.Voice,
-                                                    robotType=Sensation.RobotType.Muscle,
+                                                    robotType=robotType,
                                                     data=CommunicationTestCase.VOICEDATA9,
-                                                    isCommunication=True,
-                                                    mainNames=self.OTHERMAINNAMES)
+                                                    isCommunication=isCommunication,
+                                                    mainNames=mainNames)
         #self.SensationDirectory.append((Wall_E_sense_voice_response_sensation_4.getDataId(),'Wall_E_sense_voice_response_sensation_4'))
 #         self.addToSensationDirectory(name='Wall_E_sense_voice_response_sensation_4', dataId=Wall_E_sense_voice_response_sensation_4.getDataId(), id=Wall_E_sense_voice_response_sensation_4.getId())
 #         self.printSensationNameById(note='Wall_E_sense_voice_response_sensation_4 test', dataId=Wall_E_sense_voice_response_sensation_4.getDataId())
