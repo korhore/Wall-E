@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 02.01.2021
+Updated on 03.01.2021
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -705,6 +705,8 @@ class Robot(Thread):
             
         # live until stopped
         self.mode = Sensation.Mode.Normal
+        
+        self.initRobot()
         while self.running:
             # if we can't sense, the we wait until we get something into Axon
             # or if we can sense, but there is something in our xon, process it
@@ -724,6 +726,7 @@ class Robot(Thread):
                 self.log("done sensation.detach(robot=self)")
             else:
                 self.sense()
+        self.deInitRobot()
  
         self.mode = Sensation.Mode.Stopping
         self.log(logLevel=Robot.LogLevel.Normal, logStr="Stopping robot")      
@@ -782,6 +785,24 @@ class Robot(Thread):
 
         self.log("run ALL SHUT DOWN")      
         self.log(logLevel=Robot.LogLevel.Normal, logStr="run ALL SHUT DOWN")
+        
+    '''
+    Overridable method to be run just before
+    while self.running:
+    loop
+    '''
+        
+    def initRobot(self):
+        pass
+
+    '''
+    Overridable method to be run just after
+    while self.running:
+    loop
+    '''
+        
+    def deInitRobot(self):
+        pass
         
     '''
     logging activity

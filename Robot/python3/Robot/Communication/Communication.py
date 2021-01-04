@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 02.01.2021
+Updated on 03.01.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -117,7 +117,47 @@ class Communication(Robot):
 
         self.timer=None
         self.saidSensations = []    # Voices we have said in this conversation 
-        self.heardSensations = []   # Voices we have heard in this conversation 
+        self.heardSensations = []   # Voices we have heard in this conversation
+        
+    '''
+    Overridable method to be run just before
+    while self.running:
+    loop
+    
+    Say as isCommunication that This MainRobot is present and ready to Communicate
+    with other Robots
+    '''
+        
+    def initRobot(self):
+        item__sensation = self.createSensation(memoryType=Sensation.MemoryType.Sensory,
+                                               sensationType=Sensation.SensationType.Item,
+                                               robotType=Sensation.RobotType.Muscle,
+                                               name=Robot.getMainRobotInstance().getName(),
+                                               presence=Sensation.Presence.Present,
+                                               locations=self.getLocations(),
+                                               isCommunication=True)
+        # speak                 
+        self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=item__sensation)
+
+    '''
+    Overridable method to be run just after
+    while self.running:
+    loop
+    
+    Say as isCommunication that This MainRobot is absent and stops to Communicate
+    with other Robots
+    '''
+        
+    def deInitRobot(self):
+        item__sensation = self.createSensation(memoryType=Sensation.MemoryType.Sensory,
+                                               sensationType=Sensation.SensationType.Item,
+                                               robotType=Sensation.RobotType.Muscle,
+                                               name=Robot.getMainRobotInstance().getName(),
+                                               presence=Sensation.Presence.Absent,
+                                               locations=self.getLocations(),
+                                               isCommunication=True)
+        # speak                 
+        self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=item__sensation)
  
     def process(self, transferDirection, sensation):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: {} {} {} isCommunication {}'.format(systemTime.ctime(sensation.getTime()),transferDirection,sensation.toDebugStr(), sensation.getIsCommunication()))

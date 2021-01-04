@@ -254,7 +254,7 @@ class Memory(object):
             self.addToSensationMemory(sensation) # pure new sensation must be added to memory
 
         if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemoryType() == Sensation.MemoryType.Working and\
-               sensation.getRobotType() == Sensation.RobotType.Sense:
+               sensation.getRobotType(robotMainNames=self.getRobot().getMainNames()) == Sensation.RobotType.Sense:
                self.tracePresents(sensation)
         # assign other than Feeling sensations
         if sensation.getSensationType() != Sensation.SensationType.Feeling:
