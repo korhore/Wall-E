@@ -1,6 +1,6 @@
 '''
 Created on 21.06.2019
-Updated on 04.01.2021
+Updated on 06.01.2021
 @author: reijo.korhonen@gmail.com
 
 test Association class
@@ -92,7 +92,6 @@ class CommunicationTestCase(unittest.TestCase):
         return None
     
     def log(self, logStr, logLevel=None):
-        #print('CommunicationTestCase log')
         if hasattr(self, 'communication'):
             if self.communication:
                 if logLevel == None:
@@ -207,12 +206,12 @@ class CommunicationTestCase(unittest.TestCase):
 
 
         
-    def addToSensationDirectory(self,  name, dataId, id=None):
+    def addToSensationDirectory(self, name, dataId, id=None):
         if id != None:
             self.SensationDirectory.append((id, name))
         self.SensationDataDirectory.append((dataId, name))
        
-    def getSensationNameByDataId(self, note, dataId=None,id=None):
+    def getSensationNameById(self, note, dataId=None,id=None):
         assert(dataId is not None or id is not None)
         if dataId is not None:
             for did, name in self.SensationDataDirectory:
@@ -227,14 +226,14 @@ class CommunicationTestCase(unittest.TestCase):
         return'{} | id {} | was not found'.format(note, id)
         
     def printSensationNameById(self, note, dataId=None,id=None):
-        print('\n{}\n'.format(self.getSensationNameByDataId(note=note, dataId=dataId,id=id)))
+        print('\n{}\n'.format(self.getSensationNameById(note=note, dataId=dataId, id=id)))
         
     def logCommunicationState(self, note=''):
         print('logCommunicationState ' + note)
         for i in range(len(self.communication.heardSensations)):
-            print("self.communication.heardSensations[{}] {}".format(i, self.getSensationNameByDataId(id=self.communication.heardSensations[i], note='')))
+            print("self.communication.heardSensations[{}] {}".format(i, self.getSensationNameById(id=self.communication.heardSensations[i], note='')))
         for i in range(len(self.communication.saidSensations)):
-            print("self.communication.saidSensations[{}] {}".format(i, self.getSensationNameByDataId(id=self.communication.saidSensations[i], note='')))
+            print("self.communication.saidSensations[{}] {}".format(i, self.getSensationNameById(id=self.communication.saidSensations[i], note='')))
 
 
     '''
@@ -247,7 +246,7 @@ class CommunicationTestCase(unittest.TestCase):
         self.mainNames = self.MAINNAMES
         self.axon = Axon(robot=self)
         # Communication gets its own Memory
-        # this is not same situation thab in normal run, where MainRobot level own Memory
+        # this is not same situation than in normal run, where MainRobot level own Memory
         # this should be handled in test
         self.sense = Robot(parent=self,
                                            instanceName='Sense',
@@ -275,7 +274,7 @@ class CommunicationTestCase(unittest.TestCase):
         
         
         #name=CommunicationTestCase.NAME
-        # simulate item and image are connected each other with TensorflowClassifivation
+        # simulate item and image are connected each other with TensorflowClassification
         # Item is in LongTerm memoryType
         #systemTime.sleep(0.1)  # wait to get really even id
         self.Wall_E_item_sensation = self.communication.createSensation(time=self.history_sensationTime,
@@ -841,7 +840,7 @@ class CommunicationTestCase(unittest.TestCase):
     
     TODO study this
     '''    
-    def re_test_3_Presense(self):
+    def test_3_Presense(self):
         self.do_test_Presense(mainNames=self.OTHERMAINNAMES, robotType=Sensation.RobotType.Muscle, isCommunication=True)
 
     '''
@@ -861,16 +860,19 @@ class CommunicationTestCase(unittest.TestCase):
         self.assertEqual(self.getAxon().empty(), True, 'Axon should be empty at the beginning of test_Presense\nCannot test properly this!')
         print('\n too old_Entering {}'.format(CommunicationTestCase.NAME))
         #systemTime.sleep(0.1)  # wait to get really even id
-        Wall_E_item_sensation = self.communication.createSensation(time=history_sensationTime,
-                                                 memoryType=Sensation.MemoryType.Working,
-                                                 sensationType=Sensation.SensationType.Item,
-                                                 robotType=Sensation.RobotType.Sense,
-                                                 name=CommunicationTestCase.NAME,
-                                                 score=CommunicationTestCase.SCORE_1,
-                                                 presence=Sensation.Presence.Entering,
-                                                 locations=self.getLocations())
-        #self.SensationDirectory.append((Wall_E_item_sensation.getDataId(),'Wall_E_item_sensation'))
-        self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
+        Wall_E_item_sensation = self.createSensation(
+                                                sensationName='Wall_E_item_sensation',
+                                                robot=self.communication,
+                                                time=history_sensationTime,
+                                                memoryType=Sensation.MemoryType.Working,
+                                                sensationType=Sensation.SensationType.Item,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication,
+                                                name=CommunicationTestCase.NAME,
+                                                score=CommunicationTestCase.SCORE_1,
+                                                presence=Sensation.Presence.Entering,
+                                                locations=self.getLocations())
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation)
         # We get Voice, if Communication can respond but it cant
@@ -879,45 +881,57 @@ class CommunicationTestCase(unittest.TestCase):
       
         print('\n current Entering {}'.format(CommunicationTestCase.NAME))
         # make potential response
-        voice_sensation = self.communication.createSensation(time=self.history_sensationTime,
-                                                  memoryType=Sensation.MemoryType.Sensory,
-                                                  sensationType=Sensation.SensationType.Voice,
-                                                  robotType=robotType,
-                                                  isCommunication=isCommunication,
-                                                  data=CommunicationTestCase.VOICEDATA2)
+        voice_sensation = self.createSensation(
+                                                sensationName='voice_sensation',
+                                                robot=self.communication,
+                                                time=self.history_sensationTime,
+                                                memoryType=Sensation.MemoryType.Sensory,
+                                                sensationType=Sensation.SensationType.Voice,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication,
+                                                data=CommunicationTestCase.VOICEDATA2)
         #self.SensationDirectory.append((voice_sensation.getDataId(),'voice_sensation'))
         self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
         self.printSensationNameById(note='voice_sensation test', dataId=voice_sensation.getDataId())
-        image_sensation = self.communication.createSensation(time=self.history_sensationTime,
-                                                  memoryType=Sensation.MemoryType.Sensory,
-                                                  sensationType=Sensation.SensationType.Image,
-                                                  robotType=robotType,
-                                                  isCommunication=isCommunication)
-        #self.SensationDirectory.append((image_sensation.getDataId(),'image_sensation'))
-        self.addToSensationDirectory(name='image_sensation', dataId=image_sensation.getDataId(), id=image_sensation.getId())
+        image_sensation = self.createSensation(
+                                                sensationName='image_sensation',
+                                                robot=self.communication,
+                                                time=self.history_sensationTime,
+                                                memoryType=Sensation.MemoryType.Sensory,
+                                                sensationType=Sensation.SensationType.Image,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication)
         self.printSensationNameById(note='image_sensation test', dataId=image_sensation.getDataId())
-        item_sensation = self.communication.createSensation(time=self.history_sensationTime,
-                                          memoryType=Sensation.MemoryType.Working,
-                                                 sensationType=Sensation.SensationType.Item,
-                                                 robotType=Sensation.RobotType.Sense,
-                                                 name=CommunicationTestCase.NAME,
-                                                 score=CommunicationTestCase.SCORE_1,
-                                                 presence=Sensation.Presence.Entering)
-        #self.SensationDirectory.append((item_sensation.getDataId(),'item_sensation'))
-        self.addToSensationDirectory(name='item_sensation', dataId=item_sensation.getDataId(), id=item_sensation.getId())
+        item_sensation = self.createSensation(
+                                                sensationName='item_sensation',
+                                                robot=self.communication,
+                                                time=self.history_sensationTime,
+                                                memoryType=Sensation.MemoryType.Working,
+                                                sensationType=Sensation.SensationType.Item,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication,
+                                                name=CommunicationTestCase.NAME,
+                                                score=CommunicationTestCase.SCORE_1,
+                                                presence=Sensation.Presence.Entering)
         self.printSensationNameById(note='item_sensation test', dataId=item_sensation.getDataId())
         item_sensation.associate(sensation=voice_sensation)
         item_sensation.associate(sensation=image_sensation)
         voice_sensation.associate(sensation=image_sensation)
 
-        Wall_E_item_sensation = self.communication.createSensation(memoryType=Sensation.MemoryType.Working,
-                                                 sensationType=Sensation.SensationType.Item,
-                                                 robotType=Sensation.RobotType.Sense,
-                                                 name=CommunicationTestCase.NAME,
-                                                 score=CommunicationTestCase.SCORE_1,
-                                                 presence=Sensation.Presence.Entering)
-        #self.SensationDirectory.append((Wall_E_item_sensation.getDataId(),'Wall_E_item_sensation'))
-        self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
+        Wall_E_item_sensation = self.createSensation(
+                                                sensationName='Wall_E_item_sensation',
+                                                robot=self.communication,
+                                                memoryType=Sensation.MemoryType.Working,
+                                                sensationType=Sensation.SensationType.Item,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication,
+                                                name=CommunicationTestCase.NAME,
+                                                score=CommunicationTestCase.SCORE_1,
+                                                presence=Sensation.Presence.Entering)
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
         
         #simulate TensorFlowClassification send presence item to MainRobot
@@ -935,39 +949,54 @@ class CommunicationTestCase(unittest.TestCase):
         
         print('\n current Present {}'.format(CommunicationTestCase.NAME))
         #systemTime.sleep(0.1)  # wait to get really even id
-        Wall_E_item_sensation = self.communication.createSensation(memoryType=Sensation.MemoryType.Working,
-                                                 sensationType=Sensation.SensationType.Item,
-                                                 robotType=Sensation.RobotType.Sense,
-                                                 name=CommunicationTestCase.NAME,
-                                                 score=CommunicationTestCase.SCORE_1,
-                                                 presence=Sensation.Presence.Present)
-        #self.SensationDirectory.append((Wall_E_item_sensation.getDataId(),'Wall_E_item_sensation'))
-        self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
+        Wall_E_item_sensation = self.createSensation(
+                                                sensationName='Wall_E_item_sensation',
+                                                robot=self.communication,
+                                                memoryType=Sensation.MemoryType.Working,
+                                                sensationType=Sensation.SensationType.Item,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication,
+                                                name=CommunicationTestCase.NAME,
+                                                score=CommunicationTestCase.SCORE_1,
+                                                presence=Sensation.Presence.Present)
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
         # added
         # make potential response
-        voice_sensation = self.communication.createSensation(time=self.history_sensationTime,
-                                                  memoryType=Sensation.MemoryType.Sensory,
-                                                  sensationType=Sensation.SensationType.Voice,
-                                                  robotType=robotType,
-                                                  data=CommunicationTestCase.VOICEDATA2)
-        #self.SensationDirectory.append((voice_sensation.getDataId(),'voice_sensation'))
-        self.addToSensationDirectory(name='voice_sensation', dataId=voice_sensation.getDataId(), id=voice_sensation.getId())
+        voice_sensation = self.createSensation(
+                                                sensationName='voice_sensation',
+                                                robot=self.communication,
+                                                time=self.history_sensationTime,
+                                                memoryType=Sensation.MemoryType.Sensory,
+                                                sensationType=Sensation.SensationType.Voice,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication,
+                                                data=CommunicationTestCase.VOICEDATA2)
         self.printSensationNameById(note='voice_sensation test', dataId=voice_sensation.getDataId())
-        image_sensation = self.communication.createSensation(time=self.history_sensationTime,
-                                                  memoryType=Sensation.MemoryType.Sensory,
-                                                  sensationType=Sensation.SensationType.Image,
-                                                  robotType=robotType)
-        #self.SensationDirectory.append((image_sensation.getDataId(),'image_sensation'))
-        self.addToSensationDirectory(name='image_sensation', dataId=image_sensation.getDataId(), id=image_sensation.getId())
+        image_sensation = self.createSensation(
+                                                sensationName='image_sensation',
+                                                robot=self.communication,
+                                                time=self.history_sensationTime,
+                                                memoryType=Sensation.MemoryType.Sensory,
+                                                sensationType=Sensation.SensationType.Image,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication)
         self.printSensationNameById(note='image_sensation test', dataId=image_sensation.getDataId())
-        item_sensation = self.communication.createSensation(time=self.history_sensationTime,
-                                          memoryType=Sensation.MemoryType.Working,
-                                                 sensationType=Sensation.SensationType.Item,
-                                                 robotType=Sensation.RobotType.Sense,
-                                                 name=CommunicationTestCase.NAME,
-                                                 score=CommunicationTestCase.SCORE_1,
-                                                 presence=Sensation.Presence.Entering)
+        item_sensation = self.createSensation(
+                                                sensationName='item_sensation',
+                                                robot=self.communication,
+                                                time=self.history_sensationTime,
+                                                memoryType=Sensation.MemoryType.Working,
+                                                sensationType=Sensation.SensationType.Item,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication,
+                                                name=CommunicationTestCase.NAME,
+                                                score=CommunicationTestCase.SCORE_1,
+                                                presence=Sensation.Presence.Entering)
+        self.printSensationNameById(note='item_sensation test', dataId=image_sensation.getDataId())
         item_sensation.associate(sensation=voice_sensation)
         item_sensation.associate(sensation=image_sensation)
         voice_sensation.associate(sensation=image_sensation)
@@ -986,14 +1015,17 @@ class CommunicationTestCase(unittest.TestCase):
         
         print('\n current Absent {}'.format(CommunicationTestCase.NAME))
         #systemTime.sleep(0.1)  # wait to get really even id
-        Wall_E_item_sensation = self.communication.createSensation(memoryType=Sensation.MemoryType.Working,
-                                                 sensationType=Sensation.SensationType.Item,
-                                                 robotType=Sensation.RobotType.Sense,
-                                                 name=CommunicationTestCase.NAME,
-                                                 score=CommunicationTestCase.SCORE_1,
-                                                 presence=Sensation.Presence.Absent)
-        #self.SensationDirectory.append((Wall_E_item_sensation.getDataId(),'Wall_E_item_sensation'))
-        self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
+        Wall_E_item_sensation = self.createSensation(
+                                                sensationName='Wall_E_item_sensation',
+                                                robot=self.communication,
+                                                memoryType=Sensation.MemoryType.Working,
+                                                sensationType=Sensation.SensationType.Item,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication,
+                                                name=CommunicationTestCase.NAME,
+                                                score=CommunicationTestCase.SCORE_1,
+                                                presence=Sensation.Presence.Absent)
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
         #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
@@ -1017,30 +1049,39 @@ class CommunicationTestCase(unittest.TestCase):
         
         print('\n NAME current Entering {}',format(CommunicationTestCase.NAME))
         # make potential response
-        voice_sensation = self.communication.createSensation(time=self.history_sensationTime,
-                                                  memoryType=Sensation.MemoryType.Sensory,
-                                                  sensationType=Sensation.SensationType.Voice,
-                                                  robotType=robotType,
-                                                  data=CommunicationTestCase.VOICEDATA3)
-        #self.SensationDirectory.append((voice_sensation.getDataId(),'voice_sensation'))
-        self.addToSensationDirectory(name='voice_sensation', dataId=voice_sensation.getDataId(), id=voice_sensation.getId())
+        voice_sensation = self.createSensation(
+                                                sensationName='voice_sensation',
+                                                robot=self.communication,
+                                                time=self.history_sensationTime,
+                                                memoryType=Sensation.MemoryType.Sensory,
+                                                sensationType=Sensation.SensationType.Voice,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication,
+                                                data=CommunicationTestCase.VOICEDATA3)
         self.printSensationNameById(note='voice_sensation test', dataId=voice_sensation.getDataId())
-        image_sensation = self.communication.createSensation(time=self.history_sensationTime,
-                                                  memoryType=Sensation.MemoryType.Sensory,
-                                                  sensationType=Sensation.SensationType.Image,
-                                                  robotType=robotType)
-        #self.SensationDirectory.append((image_sensation.getDataId(),'image_sensation'))
-        self.addToSensationDirectory(name='image_sensation', dataId=image_sensation.getDataId(), id=image_sensation.getId())
+        image_sensation = self.createSensation(
+                                                sensationName='image_sensation',
+                                                robot=self.communication,
+                                                time=self.history_sensationTime,
+                                                memoryType=Sensation.MemoryType.Sensory,
+                                                sensationType=Sensation.SensationType.Image,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication)
         self.printSensationNameById(note='image_sensation test', dataId=image_sensation.getDataId())
-        item_sensation = self.communication.createSensation(time=self.history_sensationTime,
-                                                  memoryType=Sensation.MemoryType.Working,
-                                                  sensationType=Sensation.SensationType.Item,
-                                                  robotType=Sensation.RobotType.Sense,
-                                                  name=CommunicationTestCase.NAME,
-                                                  score=CommunicationTestCase.SCORE_1,
-                                                  presence=Sensation.Presence.Entering)
-        #self.SensationDirectory.append((item_sensation.getDataId(),'item_sensation'))
-        self.addToSensationDirectory(name='item_sensation', dataId=item_sensation.getDataId(), id=item_sensation.getId())
+        item_sensation = self.createSensation(
+                                                sensationName='item_sensation',
+                                                robot=self.communication,
+                                                time=self.history_sensationTime,
+                                                memoryType=Sensation.MemoryType.Working,
+                                                sensationType=Sensation.SensationType.Item,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication,                                                
+                                                name=CommunicationTestCase.NAME,
+                                                score=CommunicationTestCase.SCORE_1,
+                                                presence=Sensation.Presence.Entering)
         self.printSensationNameById(note='item_sensation test', dataId=item_sensation.getDataId())
         item_sensation.associate(sensation=voice_sensation)
         item_sensation.associate(sensation=image_sensation)
@@ -1048,14 +1089,17 @@ class CommunicationTestCase(unittest.TestCase):
         
         # make entering item and process
         #systemTime.sleep(0.1)  # wait to get really even id
-        Wall_E_item_sensation = self.communication.createSensation(memoryType=Sensation.MemoryType.Working,
-                                                  sensationType=Sensation.SensationType.Item,
-                                                  robotType=Sensation.RobotType.Sense,
-                                                  name=CommunicationTestCase.NAME,
-                                                  score=CommunicationTestCase.SCORE_1,
-                                                  presence=Sensation.Presence.Entering)
-        #self.SensationDirectory.append((Wall_E_item_sensation.getDataId(),'Wall_E_item_sensation'))
-        self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
+        Wall_E_item_sensation = self.createSensation(
+                                                sensationName='Wall_E_item_sensation',
+                                                robot=self.communication,
+                                                memoryType=Sensation.MemoryType.Working,
+                                                sensationType=Sensation.SensationType.Item,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication,
+                                                name=CommunicationTestCase.NAME,
+                                                score=CommunicationTestCase.SCORE_1,
+                                                presence=Sensation.Presence.Entering)
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
         #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
@@ -1070,30 +1114,39 @@ class CommunicationTestCase(unittest.TestCase):
         
         print('\n NAME2 current Entering {}'.format(CommunicationTestCase.NAME2))
         # make potential response
-        voice_sensation = self.communication.createSensation(time=self.history_sensationTime,
-                                                  memoryType=Sensation.MemoryType.Sensory,
-                                                  sensationType=Sensation.SensationType.Voice,
-                                                  robotType=robotType,
-                                                  data=CommunicationTestCase.VOICEDATA4)
-        #self.SensationDirectory.append((voice_sensation.getDataId(),'voice_sensation'))
-        self.addToSensationDirectory(name='voice_sensation', dataId=voice_sensation.getDataId(), id=voice_sensation.getId())
+        voice_sensation = self.createSensation(
+                                                sensationName='voice_sensation',
+                                                robot=self.communication,
+                                                time=self.history_sensationTime,
+                                                memoryType=Sensation.MemoryType.Sensory,
+                                                sensationType=Sensation.SensationType.Voice,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication,
+                                                data=CommunicationTestCase.VOICEDATA4)
         self.printSensationNameById(note='voice_sensation test', dataId=voice_sensation.getDataId())
-        image_sensation = self.communication.createSensation(time=self.history_sensationTime,
-                                                  memoryType=Sensation.MemoryType.Sensory,
-                                                  sensationType=Sensation.SensationType.Image,
-                                                  robotType=robotType)
-        #self.SensationDirectory.append((image_sensation.getDataId(),'image_sensation'))
-        self.addToSensationDirectory(name='image_sensation', dataId=image_sensation.getDataId(), id=image_sensation.getId())
+        image_sensation = self.createSensation(
+                                                sensationName='image_sensation',
+                                                robot=self.communication,
+                                                time=self.history_sensationTime,
+                                                memoryType=Sensation.MemoryType.Sensory,
+                                                sensationType=Sensation.SensationType.Image,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication)
         self.printSensationNameById(note='image_sensation test', dataId=image_sensation.getDataId())
-        item_sensation = self.communication.createSensation(time=self.history_sensationTime,
-                                                  memoryType=Sensation.MemoryType.Working,
-                                                  sensationType=Sensation.SensationType.Item,
-                                                  robotType=Sensation.RobotType.Sense,
-                                                  name=CommunicationTestCase.NAME2,
-                                                  score=CommunicationTestCase.SCORE_2,
-                                                  presence=Sensation.Presence.Entering)
-        #self.SensationDirectory.append((item_sensation.getDataId(),'item_sensation'))
-        self.addToSensationDirectory(name='item_sensation', dataId=item_sensation.getDataId(), id=item_sensation.getId())
+        item_sensation = self.createSensation(
+                                                sensationName='item_sensation',
+                                                robot=self.communication,
+                                                time=self.history_sensationTime,
+                                                memoryType=Sensation.MemoryType.Working,
+                                                sensationType=Sensation.SensationType.Item,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication,
+                                                name=CommunicationTestCase.NAME2,
+                                                score=CommunicationTestCase.SCORE_2,
+                                                presence=Sensation.Presence.Entering)
         self.printSensationNameById(note='item_sensation test', dataId=item_sensation.getDataId())
         item_sensation.associate(sensation=voice_sensation)
         item_sensation.associate(sensation=image_sensation)
@@ -1104,14 +1157,17 @@ class CommunicationTestCase(unittest.TestCase):
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 3, 'len(self.communication.getMemory().getAllPresentItemSensations() after Entering Item Sensation should NAME2 be 3')
 
         # make entering and process
-        Wall_E_item_sensation = self.communication.createSensation(memoryType=Sensation.MemoryType.Working,
-                                                 sensationType=Sensation.SensationType.Item,
-                                                 robotType=Sensation.RobotType.Sense,
-                                                 name=CommunicationTestCase.NAME2,
-                                                 score=CommunicationTestCase.SCORE_2,
-                                                 presence=Sensation.Presence.Entering)
-        #self.SensationDirectory.append((Wall_E_item_sensation.getDataId(),'Wall_E_item_sensation'))
-        self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
+        Wall_E_item_sensation = self.createSensation(
+                                                sensationName='Wall_E_item_sensation',
+                                                robot=self.communication,
+                                                memoryType=Sensation.MemoryType.Working,
+                                                sensationType=Sensation.SensationType.Item,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication,
+                                                name=CommunicationTestCase.NAME2,
+                                                score=CommunicationTestCase.SCORE_2,
+                                                presence=Sensation.Presence.Entering)
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
         #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
@@ -1124,44 +1180,57 @@ class CommunicationTestCase(unittest.TestCase):
         
         print('\n NAME2 current Present {}'.format(CommunicationTestCase.NAME2))
         # added make potential response
-        voice_sensation = self.communication.createSensation(time=self.history_sensationTime,
-                                                  memoryType=Sensation.MemoryType.Sensory,
-                                                  sensationType=Sensation.SensationType.Voice,
-                                                  robotType=robotType,
-                                                  data=CommunicationTestCase.VOICEDATA4)
-        #self.SensationDirectory.append((voice_sensation.getDataId(),'voice_sensation'))
-        self.addToSensationDirectory(name='voice_sensation', dataId=voice_sensation.getDataId(), id=voice_sensation.getId())
+        voice_sensation = self.createSensation(
+                                                sensationName='voice_sensation',
+                                                robot=self.communication,
+                                                time=self.history_sensationTime,
+                                                memoryType=Sensation.MemoryType.Sensory,
+                                                sensationType=Sensation.SensationType.Voice,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication,
+                                                data=CommunicationTestCase.VOICEDATA4)
         self.printSensationNameById(note='voice_sensation test', dataId=voice_sensation.getDataId())
-        image_sensation = self.communication.createSensation(time=self.history_sensationTime,
-                                                  memoryType=Sensation.MemoryType.Sensory,
-                                                  sensationType=Sensation.SensationType.Image,
-                                                  robotType=robotType)
-        #self.SensationDirectory.append((image_sensation.getDataId(),'image_sensation'))
-        self.addToSensationDirectory(name='image_sensation', dataId=image_sensation.getDataId(), id=image_sensation.getId())
+        image_sensation = self.createSensation(
+                                                sensationName='image_sensation',
+                                                robot=self.communication,
+                                                time=self.history_sensationTime,
+                                                memoryType=Sensation.MemoryType.Sensory,
+                                                sensationType=Sensation.SensationType.Image,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication,
+)
         self.printSensationNameById(note='image_sensation test', dataId=image_sensation.getDataId())
-        item_sensation = self.communication.createSensation(time=self.history_sensationTime,
-                                                  memoryType=Sensation.MemoryType.Working,
-                                                  sensationType=Sensation.SensationType.Item,
-                                                  robotType=Sensation.RobotType.Sense,
-                                                  name=CommunicationTestCase.NAME2,
-                                                  score=CommunicationTestCase.SCORE_2,
-                                                  presence=Sensation.Presence.Entering)
-        #self.SensationDirectory.append((item_sensation.getDataId(),'item_sensation'))
-        self.addToSensationDirectory(name='item_sensation', dataId=item_sensation.getDataId(), id=item_sensation.getId())
+        item_sensation = self.createSensation(
+                                                sensationName='item_sensation',
+                                                robot=self.communication,
+                                                time=self.history_sensationTime,
+                                                memoryType=Sensation.MemoryType.Working,
+                                                sensationType=Sensation.SensationType.Item,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication,                                                
+                                                name=CommunicationTestCase.NAME2,
+                                                score=CommunicationTestCase.SCORE_2,
+                                                presence=Sensation.Presence.Entering)
         self.printSensationNameById(note='item_sensation test', dataId=item_sensation.getDataId())
         item_sensation.associate(sensation=voice_sensation)
         item_sensation.associate(sensation=image_sensation)
         voice_sensation.associate(sensation=image_sensation)
 
         #systemTime.sleep(0.1)  # wait to get really even id
-        Wall_E_item_sensation = self.communication.createSensation(memoryType=Sensation.MemoryType.Working,
-                                                 sensationType=Sensation.SensationType.Item,
-                                                 robotType=Sensation.RobotType.Sense,
-                                                 name=CommunicationTestCase.NAME2,
-                                                 score=CommunicationTestCase.SCORE_1,
-                                                 presence=Sensation.Presence.Present)
-        #self.SensationDirectory.append((Wall_E_item_sensation.getDataId(),'Wall_E_item_sensation'))
-        self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
+        Wall_E_item_sensation = self.createSensation(
+                                                sensationName='Wall_E_item_sensation',
+                                                robot=self.communication,
+                                                memoryType=Sensation.MemoryType.Working,
+                                                sensationType=Sensation.SensationType.Item,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication,                                                
+                                                name=CommunicationTestCase.NAME2,
+                                                score=CommunicationTestCase.SCORE_1,
+                                                presence=Sensation.Presence.Present)
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
         #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
@@ -1177,44 +1246,54 @@ class CommunicationTestCase(unittest.TestCase):
 
         print('\n NAME2 current Present again {}'.format(CommunicationTestCase.NAME2))
         # make potential response
-        voice_sensation = self.communication.createSensation(time=self.history_sensationTime,
-                                                  memoryType=Sensation.MemoryType.Sensory,
-                                                  sensationType=Sensation.SensationType.Voice,
-                                                  robotType=robotType,
-                                                  data=CommunicationTestCase.VOICEDATA4)
-        #self.SensationDirectory.append((voice_sensation.getDataId(),'voice_sensation'))
-        self.addToSensationDirectory(name='voice_sensation', dataId=voice_sensation.getDataId(), id=voice_sensation.getId())
+        voice_sensation = self.createSensation(
+                                                sensationName='voice_sensation',
+                                                robot=self.communication,
+                                                time=self.history_sensationTime,
+                                                memoryType=Sensation.MemoryType.Sensory,
+                                                sensationType=Sensation.SensationType.Voice,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication,
+                                                data=CommunicationTestCase.VOICEDATA4)
         self.printSensationNameById(note='voice_sensation test', dataId=voice_sensation.getDataId())
-        image_sensation = self.communication.createSensation(time=self.history_sensationTime,
-                                                  memoryType=Sensation.MemoryType.Sensory,
-                                                  sensationType=Sensation.SensationType.Image,
-                                                  robotType=robotType)
-        #self.SensationDirectory.append((image_sensation.getDataId(),'image_sensation'))
-        self.addToSensationDirectory(name='image_sensation', dataId=image_sensation.getDataId(), id=image_sensation.getId())
+        image_sensation = self.createSensation(
+                                                sensationName='image_sensation',
+                                                robot=self.communication,
+                                                time=self.history_sensationTime,
+                                                memoryType=Sensation.MemoryType.Sensory,
+                                                sensationType=Sensation.SensationType.Image,
+                                                robotType=robotType)
         self.printSensationNameById(note='image_sensation test', dataId=image_sensation.getDataId())
-        item_sensation = self.communication.createSensation(time=self.history_sensationTime,
-                                                  memoryType=Sensation.MemoryType.Working,
-                                                  sensationType=Sensation.SensationType.Item,
-                                                  robotType=Sensation.RobotType.Sense,
-                                                  name=CommunicationTestCase.NAME2,
-                                                  score=CommunicationTestCase.SCORE_2,
-                                                  presence=Sensation.Presence.Entering)
-        #self.SensationDirectory.append((item_sensation.getDataId(),'item_sensation'))
-        self.addToSensationDirectory(name='item_sensation', dataId=item_sensation.getDataId(), id=item_sensation.getId())
+        item_sensation = self.createSensation(
+                                                sensationName='item_sensation',
+                                                robot=self.communication,
+                                                time=self.history_sensationTime,
+                                                memoryType=Sensation.MemoryType.Working,
+                                                sensationType=Sensation.SensationType.Item,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication,
+                                                name=CommunicationTestCase.NAME2,
+                                                score=CommunicationTestCase.SCORE_2,
+                                                presence=Sensation.Presence.Entering)
         self.printSensationNameById(note='item_sensation test', dataId=item_sensation.getDataId())
         item_sensation.associate(sensation=voice_sensation)
         item_sensation.associate(sensation=image_sensation)
         voice_sensation.associate(sensation=image_sensation)
 
         #systemTime.sleep(0.1)  # wait to get really even id
-        Wall_E_item_sensation = self.communication.createSensation(memoryType=Sensation.MemoryType.Working,
-                                                 sensationType=Sensation.SensationType.Item,
-                                                 robotType=Sensation.RobotType.Sense,
-                                                 name=CommunicationTestCase.NAME2,
-                                                 score=CommunicationTestCase.SCORE_1,
-                                                 presence=Sensation.Presence.Present)
-        #self.SensationDirectory.append((Wall_E_item_sensation.getDataId(),'Wall_E_item_sensation'))
-        self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
+        Wall_E_item_sensation = self.createSensation(
+                                                sensationName='Wall_E_item_sensation',
+                                                robot=self.communication,
+                                                memoryType=Sensation.MemoryType.Working,
+                                                sensationType=Sensation.SensationType.Item,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication,
+                                                name=CommunicationTestCase.NAME2,
+                                                score=CommunicationTestCase.SCORE_1,
+                                                presence=Sensation.Presence.Present)
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
        #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
@@ -1230,14 +1309,17 @@ class CommunicationTestCase(unittest.TestCase):
         
         print('\n NAME2 current Absent {}'.format(CommunicationTestCase.NAME2))
         #systemTime.sleep(0.1)  # wait to get really even id
-        Wall_E_item_sensation = self.communication.createSensation(memoryType=Sensation.MemoryType.Working,
-                                                 sensationType=Sensation.SensationType.Item,
-                                                 robotType=Sensation.RobotType.Sense,
-                                                 name=CommunicationTestCase.NAME2,
-                                                 score=CommunicationTestCase.SCORE_1,
-                                                 presence=Sensation.Presence.Absent)
-        #self.SensationDirectory.append((Wall_E_item_sensation.getDataId(),'Wall_E_item_sensation'))
-        self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
+        Wall_E_item_sensation = self.createSensation(
+                                                sensationName='Wall_E_item_sensation',
+                                                robot=self.communication,
+                                                memoryType=Sensation.MemoryType.Working,
+                                                sensationType=Sensation.SensationType.Item,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication,
+                                                name=CommunicationTestCase.NAME2,
+                                                score=CommunicationTestCase.SCORE_1,
+                                                presence=Sensation.Presence.Absent)
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
        
         #simulate TensorFlowClassification send presence item to MainRobot
@@ -1254,14 +1336,17 @@ class CommunicationTestCase(unittest.TestCase):
 
         # last item.name will we be absent
         print('\n NAME current Absent {}'.format(CommunicationTestCase.NAME))
-        Wall_E_item_sensation = self.communication.createSensation(memoryType=Sensation.MemoryType.Working,
-                                                 sensationType=Sensation.SensationType.Item,
-                                                 robotType=Sensation.RobotType.Sense,
-                                                 name=CommunicationTestCase.NAME,
-                                                 score=CommunicationTestCase.SCORE_1,
-                                                 presence=Sensation.Presence.Absent)
-        #self.SensationDirectory.append((Wall_E_item_sensation.getDataId(),'Wall_E_item_sensation'))
-        self.addToSensationDirectory(name='Wall_E_item_sensation', dataId=Wall_E_item_sensation.getDataId(), id=Wall_E_item_sensation.getId())
+        Wall_E_item_sensation = self.createSensation(
+                                                sensationName='Wall_E_item_sensation',
+                                                robot=self.communication,
+                                                memoryType=Sensation.MemoryType.Working,
+                                                sensationType=Sensation.SensationType.Item,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                isCommunication=isCommunication,
+                                                name=CommunicationTestCase.NAME,
+                                                score=CommunicationTestCase.SCORE_1,
+                                                presence=Sensation.Presence.Absent)
         self.printSensationNameById(note='Wall_E_item_sensation test', dataId=Wall_E_item_sensation.getDataId())
        #simulate TensorFlowClassification send presence item to MainRobot
         #self.communication.tracePresents(Wall_E_item_sensation) # presence
@@ -2641,7 +2726,7 @@ class CommunicationTestCase(unittest.TestCase):
             isImageFeelingStillExpected = isImageFeeling
             while(not self.getAxon().empty()):
                 tranferDirection, sensation = self.getAxon().get()
-                self.getSensationNameByDataId(dataId=sensation.getDataId(), note="expect {} got".format(name))
+                self.getSensationNameById(dataId=sensation.getDataId(), note="expect {} got".format(name))
                 if sensation.getSensationType() == Sensation.SensationType.Voice:
                     gotVoice=sensation
                     isVoiceStillExpected = False
@@ -2651,7 +2736,7 @@ class CommunicationTestCase(unittest.TestCase):
                         if sensation.getDataId() == voice.getDataId():
                             print("isExactVoice was not expected, but got it!")
                         else:
-                            self.getSensationNameByDataId(sensation, "isExactVoice was not expected, and did got it, but")
+                            self.getSensationNameById(sensation, note="isExactVoice was not expected, but got it")
                     if isSpokenVoiceStillExpected:
                         if sensation.getRobotType() == Sensation.RobotType.Muscle:
                             isSpokenVoiceStillExpected = False # got it
@@ -2706,12 +2791,12 @@ class CommunicationTestCase(unittest.TestCase):
             self.assertFalse(isHeardVoiceStillExpected,  'Did not get expected voice to be Heard')                   
             self.assertFalse(isVoiceStillExpected,  'Did not get voice')
             if gotVoice != None and voice != None:                   
-                self.assertFalse(isExactVoiceStillExpected,  'Did not get expected voice {} but {}'.format(self.getSensationNameByDataId(note='', id=voice.getId()), self.getSensationNameByDataId(note='', dataId=gotVoice.getDataId())))                   
+                self.assertFalse(isExactVoiceStillExpected,  'Did not get expected voice {} but {}'.format(self.getSensationNameById(note='', id=voice.getId()), self.getSensationNameById(note='', dataId=gotVoice.getDataId())))                   
             self.assertFalse(isSpokenImageStillExpected, 'Did not get expected image to be Spoken')                   
             self.assertFalse(isHeardImageStillExpected,  'Did not get expected image to be Heard')                   
             self.assertFalse(isImageStillExpected,  'Did not get image')
             if gotImage != None and image != None:
-                self.assertFalse(isExactImageStillExpected,  'Did not get expected image {} but {}'.format(self.getSensationNameByDataId(note='', id=image.getId()), self.getSensationNameByDataId(note='', dataId=gotImage.getDataId())))                  
+                self.assertFalse(isExactImageStillExpected,  'Did not get expected image {} but {}'.format(self.getSensationNameById(note='', id=image.getId()), self.getSensationNameById(note='', dataId=gotImage.getDataId())))                  
             self.assertFalse(isVoiceFeelingStillExpected, 'Did not get voice feeling')                   
             self.assertFalse(isImageFeelingStillExpected, 'Did not get image feeling')                   
             self.assertFalse(isSpokenItemStillExpected, 'Did not get expected item to be Spoken')                   
