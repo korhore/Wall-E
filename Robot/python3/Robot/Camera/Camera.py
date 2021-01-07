@@ -75,6 +75,7 @@ class Camera(Robot):
     SLEEP_TIME=5
   
     def __init__(self,
+                 mainRobot,
                  parent=None,
                  instanceName=None,
                  instanceType = Sensation.InstanceType.SubInstance,
@@ -86,6 +87,7 @@ class Camera(Robot):
                  config=None):
         print("We are in Camera, not Robot")
         Robot.__init__(self,
+                       mainRobot=mainRobot,
                        parent=parent,
                        instanceName=instanceName,
                        instanceType=instanceType,

@@ -33,6 +33,7 @@ from PIL import Image as PIL_Image
 class IdentityTestCase(unittest.TestCase):
     TEST_TIME = 10
     TEST_STOP_TIME = 10  
+    MAINNAMES = ["IdentityTestCaseMainName"]
     
     '''
     Robot modeling
@@ -42,11 +43,15 @@ class IdentityTestCase(unittest.TestCase):
         return self.axon
     def getId(self):
         return 1.1
+    def getParent(self):
+        return None
     def getName(self):
         return "IdentityTestCase"
     def getName(self):
         #print('CommunicationTestCase getName')
         return "Wall-E"
+    def getMainNames(self):
+        return self.MAINNAMES
     def getLocation(self): 
         return 'testLocation'  
     def getExposures(self):
@@ -76,7 +81,8 @@ class IdentityTestCase(unittest.TestCase):
                              maxRss = Config.MAXRSS_DEFAULT,
                              minAvailMem = Config.MINAVAILMEM_DEFAULT)
 
-        self.identity = Identity(parent=self,
+        self.identity = Identity(      mainRobot=self,
+                                       parent=self,
                                        instanceName='identity',
                                        instanceType= Sensation.InstanceType.SubInstance,
                                        memory = self.memory,

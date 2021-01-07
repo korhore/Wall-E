@@ -84,10 +84,11 @@ class VisualTestCase(unittest.TestCase):
     def setUp(self):
         self.mainNames = self.MAINNAMES
         self.axon = Axon(robot=self) # parent axon
-        self.visual = Visual(parent=self,
-                            instanceName='Visual',
-                            instanceType= Sensation.InstanceType.SubInstance,
-                            level=2)
+        self.visual = Visual(mainRobot=self,
+                             parent=self,
+                             instanceName='Visual',
+                             instanceType= Sensation.InstanceType.SubInstance,
+                             level=2)
 
         # define time in history, that is different than in all tests
         # not too far away in history, so sensation will not be deleted

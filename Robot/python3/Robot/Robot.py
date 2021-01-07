@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 03.01.2021
+Updated on 07.01.2021
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -159,6 +159,7 @@ class Robot(Thread):
     
    
     def __init__(self,
+                 mainRobot,
                  parent=None,
                  instanceName=None,
                  instanceType = Sensation.InstanceType.Real,
@@ -177,6 +178,7 @@ class Robot(Thread):
         self.time = time.time()
         
         self.mode = Sensation.Mode.Starting
+        self.mainRobot = mainRobot
         self.parent = parent
         self.instanceName=instanceName
         if  self.instanceName is None:
@@ -222,7 +224,7 @@ class Robot(Thread):
         self.setName(self.config.getName(section=self.location))
         
         if self.level == 1:                        
-            Robot.mainRobotInstance = self
+            self.mainRobot = self
             self._isMainRobot = True
             self.feeling = Sensation.Feeling.Neutral
             self.feelingLevel = float(Sensation.Feeling.Neutral)
@@ -315,14 +317,16 @@ class Robot(Thread):
             self.getMemory().loadLongTermMemory()
             self.getMemory().CleanDataDirectory()
             
-            self.tcpServer=TCPServer(parent=self,
+            self.tcpServer=TCPServer(mainRobot=self.getMainRobot(),
+                                     parent=self,
                                      memory=self.getMemory(),
                                      hostNames=self.config.getHostNames(),
                                      instanceName='TCPServer',
                                      instanceType=Sensation.InstanceType.Remote,
                                      level=self.level,
                                      address=(HOST,PORT))
-            self.identity=Identity(parent=self,
+            self.identity=Identity(mainRobot=self.getMainRobot(),
+                                   parent=self,
                                    memory=self.getMemory(),  # use same memory than self
                                    instanceName='Identity',
                                    instanceType= Sensation.InstanceType.SubInstance,
@@ -330,14 +334,15 @@ class Robot(Thread):
             
         elif self.getInstanceType() == Sensation.InstanceType.Virtual:#
             # also virtual instance has identity as level 1 mainrobot
-            self.identity=Identity(parent=self,
+            self.identity=Identity(mainRobot=self.getMainRobot(),
+                                   parent=self,
                                    memory=self.getMemory(),  # use same memory than self
                                    instanceName='Identity',
                                    instanceType= Sensation.InstanceType.SubInstance,
                                    level=level)
             
-    def getMainRobotInstance():
-        return Robot.mainRobotInstance
+    def getMainRobot(self):
+        return self.mainRobot
  
     def isMainRobot (self):
         return self._isMainRobot
@@ -361,7 +366,9 @@ class Robot(Thread):
             module = subInstanceName+ '.' + subInstanceName
             imported_module = importlib.import_module(module)
             self.log(logLevel=Robot.LogLevel.Detailed, logStr='init ' + subInstanceName)
-            robot = getattr(imported_module, subInstanceName)(parent=self,
+            robot = getattr(imported_module, subInstanceName)(
+                                                              mainRobot=self.getMainRobot(),
+                                                              parent=self,
                                                               memory=self.getMemory(),  # use same memory than self
                                                               instanceName=subInstanceName,
                                                               instanceType= Sensation.InstanceType.SubInstance,
@@ -1345,6 +1352,7 @@ class Identity(Robot):
     VOICE_FILENAME_TYPE = ".wav"
   
     def __init__(self,
+                 mainRobot,
                  parent,
                  instanceName,
                  level,
@@ -1356,6 +1364,7 @@ class Identity(Robot):
                  config=None):
         level=level+1   # don' loop Identitys
         Robot.__init__(self,
+                       mainRobot=mainRobot,
                        memory=memory,
                        parent=parent,
                        instanceName=instanceName,
@@ -1378,7 +1387,8 @@ class Identity(Robot):
     def getIdentitySensations(self, name, exposures, feeling):
         from TensorFlowClassification.TensorFlowClassification import TensorFlowClassification
         
-        tensorFlowClassification = TensorFlowClassification(parent=self,
+        tensorFlowClassification = TensorFlowClassification(mainRobot=self.getMainRobot(),
+                                                            parent=self,
                                                             instanceName='TensorFlowClassification',
                                                             instanceType= Sensation.InstanceType.SubInstance,
                                                             level=self.level)
@@ -1609,6 +1619,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     #allow_reuse_address = False
 
     def __init__(self,
+                 mainRobot,
                  memory,
                  address,
                  hostNames,
@@ -1618,6 +1629,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                  level=0):
 
         Robot.__init__(self,
+                       mainRobot=mainRobot,
                        memory=memory,
                        parent=parent,
                        instanceName=instanceName,
@@ -1774,7 +1786,8 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                    
     def createSocketServer(self, sock, address, socketClient=None):
         self.log('createSocketServer: creating new SocketServer')
-        socketServer = SocketServer(parent=self,
+        socketServer = SocketServer(mainRobot=self,
+                                    parent=self,
                                     memory=self.getMemory(),    # use same memory
                                     instanceName='SocketServer',
                                     instanceType=Sensation.InstanceType.Remote,
@@ -1788,7 +1801,8 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
     def createSocketClient(self, sock, address, tcpServer, socketServer=None):
         self.log('createSocketClient: creating new SocketClient')
-        socketClient = SocketClient(parent=self.parent,
+        socketClient = SocketClient(mainRobot=self.parent,
+                                    parent=self.parent,
                                     memory=self.getMemory(),    # use same memory
                                     instanceName='SocketClient',
                                     instanceType=Sensation.InstanceType.Remote,
@@ -1803,6 +1817,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
 
     def __init__(self,
+                 mainRobot,
                  memory,
                  tcpServer,
                  address = None,
@@ -1827,6 +1842,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
         
         #now we can init Robot class
         Robot.__init__(self,
+                       mainRobot=mainRobot,
                        parent=parent,
                        memory=memory,
                        instanceName=instanceName,
@@ -1854,11 +1870,11 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
                  
         try:
             # tell robot we are, speaking
-            sensation=Robot.getMainRobotInstance().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Robot, robot=self.getName())
-            self.log('run: sendSensation(sensation=Sensation(robot=Robot.getMainRobotInstance(),sensationType = Sensation.SensationType.Robot), sock=self.sock,'  + str(self.address) + ')')
+            sensation=self.getMainRobot().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Robot, robot=self.getName())
+            self.log('run: sendSensation(sensation=Sensation(robot=self.getMainRobot(),sensationType = Sensation.SensationType.Robot), sock=self.sock,'  + str(self.address) + ')')
             self.running =  self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
-            sensation.detach(robot=Robot.getMainRobotInstance())
-            self.log('run: done sendSensation(sensation=Sensation(robot=Robot.getMainRobotInstance(), sensationType = Sensation.SensationType.Robot), sock=self.sock,'  + str(self.address) + ')')
+            sensation.detach(robot=self.getMainRobot())
+            self.log('run: done sendSensation(sensation=Sensation(robot=self.getMainRobot(), sensationType = Sensation.SensationType.Robot), sock=self.sock,'  + str(self.address) + ')')
             if self.running:
                  # tell our local capabilities
                  # it is important to deliver only local capabilities to the remote,
@@ -1872,18 +1888,19 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
                 locations = self.getLocalMasterLocations();
                 self.log('run: self.getLocalMasterLocations() ' + str(locations))
                 # send locations, where Capabilities are valid
-                sensation=Robot.getMainRobotInstance().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Location,
+                sensation=self.getMainRobot().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Location,
                                                                        locations=locations)
                 self.log('run: sendSensation(sensationType = Sensation.SensationType.Location, locations={}), sock=self.sock, {})'.format(locations, str(self.address)))
                 self.running = self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
-                sensation.detach(robot=Robot.getMainRobotInstance())
+                sensation.detach(robot=self.getMainRobot())
 
-                sensation=Robot.getMainRobotInstance().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Capability,
+                sensation=self.getMainRobot().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Capability,
                                                                        capabilities=capabilities,
-                                                                       locations = locations)
-                self.log('run: sendSensation(sensationType = Sensation.SensationType.Capability, capabilities=self.getLocalMasterCapabilities()), sock=self.sock,'  + str(self.address) + ')')
+                                                                       locations = locations,
+                                                                       mainNames = self.getMainRobot().getMainNames()) # main Robots mainNames
+                self.log('run: sendSensation(sensationType = Sensation.SensationType.Capability, capabilities=self.getLocalMasterCapabilities()), sock=self.sock {} mainNames {}'.format(self.address, self.getMainRobot().getMainNames()))
                 self.running = self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
-                sensation.detach(robot=Robot.getMainRobotInstance())
+                sensation.detach(robot=self.getMainRobot())
                 self.log('run: sendSensation Sensation.SensationType.Capability done ' + str(self.address) +  ' '  + sensation.getCapabilities().toDebugString('SocketClient'))
         except Exception as e:
             self.log("run: SocketClient.sendSensation exception {}".format(str(e)))
@@ -1974,6 +1991,18 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
         return None
     
     '''
+    Overwrite local method. This way we can use remote Robot
+    same way than local ones.
+    
+    our server has got mainNames from remote host
+    our own mainNames are meaningless
+    '''
+    def getMainNames(self):
+        if self.getSocketServer() is not None:
+            self.log(logLevel=Robot.LogLevel.Normal, logStr='getMainNames: self.getSocketServer().getMainNames {}'.format(self.getSocketServer().getMainNames()))
+            return self.getSocketServer().getMainNames()
+        return None
+    '''
     share out knowledge of sensation memory out client has capabilities
        
     This is happening when SocketServer is calling it and we don't know if
@@ -2000,7 +2029,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
             self.log('socketClient.sendSensation asked to send sensation back to sensation original host. We Don\'t recycle it! receivedFrom:' + str(sensation.receivedFrom) + ': self.getHost(): ' + self.getHost() + ': self.getSocketServer().getHost(): ' + self.getSocketServer().getHost())
         else:
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='socketClient.sendSensation no back, normal send receivedFrom::' + str(sensation.receivedFrom) + ' self.getHost(): ' + self.getHost() + ': self.getSocketServer().getHost(): ' + self.getSocketServer().getHost())
-            sensation.setRobotId(Robot.getMainRobotInstance().getId()) # claim that
+            sensation.setRobotId(self.getMainRobot().getId()) # claim that
                                                                   # all sensation come from Robot
             bytes = sensation.bytes()
             length =len(bytes)
@@ -2121,6 +2150,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                  memory,
                  sock, 
                  address,
+                 mainRobot,
                  parent=None,
                  instanceName=None,
                  instanceType=Sensation.InstanceType.Remote,
@@ -2128,6 +2158,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                  socketClient = None):
 
         Robot.__init__(self,
+                       mainRobot=mainRobot,
                        memory=memory,
                        parent=parent,
                        instanceName=instanceName,
@@ -2243,7 +2274,8 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                             sensation=self.createSensation(associations=[], bytes=self.data)
                             sensation.addReceived(self.getHost())  # remember route
                             if sensation.getSensationType() == Sensation.SensationType.Capability:
-                                self.log("run: SocketServer got Capability sensation " + sensation.getCapabilities().toDebugString('SocketServer'))
+                                self.log('run: SocketServer got Capability sensation {} mainNames {}'.format(sensation.getCapabilities().toDebugString('SocketServer'), sensation.getMainNames()))
+                                self.setMainNames(mainNames=sensation.getMainNames())
                                 self.process(transferDirection=Sensation.TransferDirection.Up, sensation=sensation)
                                 # share here sensations from our memory that this host has capabilities
                                 # We wan't always share our all knowledge with all other robots
@@ -2255,6 +2287,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                             elif sensation.getSensationType() == Sensation.SensationType.Location:
                                 self.log("run: SocketServer got Location sensation " + sensation.toDebugStr())
                                 self.setLocations(locations=sensation.getLocations())
+                                #self.setMainNames(mainNames=sensation.getMainNames())
                             else:
                                 self.log("run: SocketServer got sensation " + sensation.toDebugStr())
                                 self.getParent().getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # write sensation to TCPServers Parent, because TCPServer does not read its Axon

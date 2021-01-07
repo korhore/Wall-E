@@ -77,6 +77,7 @@ class Playback(Robot):
 
 
     def __init__(self,
+                 mainRobot,
                  parent=None,
                  instanceName=None,
                  instanceType = Sensation.InstanceType.SubInstance,
@@ -87,6 +88,7 @@ class Playback(Robot):
                  location=None,
                  config=None):
         Robot.__init__(self,
+                       mainRobot=mainRobot,
                        parent=parent,
                        instanceName=instanceName,
                        instanceType=instanceType,

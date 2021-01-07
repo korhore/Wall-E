@@ -62,7 +62,7 @@ class Visual(Robot):
     # Common panel column names
     PANEL_COLUMN_TIME_NAME =             'Time'
     PANEL_COLUMN_LOCATIONS_NAME =        'Locations'
-    PANEL_COLUMN_RECEIVEDFROM_NAME =     'ReceivedFrom'
+    PANEL_COLUMN_RECEIVEDFROM_NAME =     'Received From'
 
     # log panel
     LOG_PANEL_COLUMN_SENSATION_MAINNAMES_NAME ='Main Names'
@@ -114,6 +114,7 @@ class Visual(Robot):
     ID_SENSATION = wx.ID_ANY
         
     def __init__(self,
+                 mainRobot,
                  parent=None,
                  instanceName=None,
                  instanceType = Sensation.InstanceType.SubInstance,
@@ -124,6 +125,7 @@ class Visual(Robot):
                  location=None,
                  config=None):
         Robot.__init__(self,
+                       mainRobot=mainRobot,
                        parent=parent,
                        instanceName=instanceName,
                        instanceType=instanceType,

@@ -250,15 +250,17 @@ class CommunicationTestCase(unittest.TestCase):
         self.axon = Axon(robot=self)
 
         # other Robot
-        self.sense = Robot(parent=self,
-                                           instanceName='Sense',
-                                           instanceType= Sensation.InstanceType.SubInstance,
-                                           level=2)
+        self.sense = Robot(             mainRobot=self,
+                                        parent=self,
+                                        instanceName='Sense',
+                                        instanceType= Sensation.InstanceType.SubInstance,
+                                         level=2)
         self.setRobotMainNames(self.sense, self.OTHERMAINNAMES)
         self.setRobotLocations(self.sense, self.LOCATIONS)
 
         # Robot to test        
-        self.communication = Communication(parent=self,
+        self.communication = Communication(mainRobot=self,
+                                           parent=self,
                                            instanceName='Communication',
                                            instanceType= Sensation.InstanceType.SubInstance,
                                            level=2)

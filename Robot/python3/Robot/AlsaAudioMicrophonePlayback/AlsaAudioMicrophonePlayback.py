@@ -36,6 +36,7 @@ from AlsaAudioMicrophone import AlsaAudioMicrophone
 class AlsaAudioMicrophonePlayback(Robot):
 
     def __init__(self,
+                 mainRobot,
                  parent=None,
                  instanceName=None,
                  instanceType = Sensation.InstanceType.SubInstance,
@@ -46,6 +47,7 @@ class AlsaAudioMicrophonePlayback(Robot):
                  location=None,
                  config=None):
         Robot.__init__(self,
+                       mainRobot=mainRobot,
                        parent=parent,
                        instanceName=instanceName,
                        instanceType=instanceType,

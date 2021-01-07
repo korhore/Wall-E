@@ -45,7 +45,7 @@ class SensationTestCase(unittest.TestCase):
     
 
     def setUp(self):
-        self.robot=Robot()
+        self.robot=Robot(mainRobot=None)
         self.sensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Sensory,
                                                     name='test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Entering)
         self.assertEqual(self.sensation.getPresence(), Sensation.Presence.Entering, "should be entering")

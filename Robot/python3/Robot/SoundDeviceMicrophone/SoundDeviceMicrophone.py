@@ -39,6 +39,7 @@ class SoundDeviceMicrophone(Robot):
 
 
     def __init__(self,
+                 mainRobot,
                  parent=None,
                  instanceName=None,
                  instanceType = Sensation.InstanceType.SubInstance,
@@ -50,6 +51,7 @@ class SoundDeviceMicrophone(Robot):
                  config=None):
         print("We are in SoundDeviceMicrophone, not Robot")
         Robot.__init__(self,
+                       mainRobot=mainRobot,
                        parent=parent,
                        instanceName=instanceName,
                        instanceType=instanceType,

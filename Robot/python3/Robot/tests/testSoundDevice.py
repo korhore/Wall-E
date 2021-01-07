@@ -36,7 +36,8 @@ class SoundDeviceTestCase(unittest.TestCase):
     NAME='Wall-E'           # This should be real Robot name with real identity
                             # Voice sensations to play as test inout
     LOCATION='localhost'    # used to mic presense by location
-    
+    MAINNAMES = ["SoundDeviceTestCaseMainName"]
+   
     '''
     Robot modeling
     '''
@@ -56,6 +57,10 @@ class SoundDeviceTestCase(unittest.TestCase):
             logLevel = self.soundDeviceMicrophone.LogLevel.Normal
         if logLevel <= self.soundDeviceMicrophone.getLogLevel():
              print(self.soundDeviceMicrophone.getName() + ":" + str( self.soundDeviceMicrophone.config.level) + ":" + Sensation.Modes[self.soundDeviceMicrophone.mode] + ": " + logStr)
+    def getMainNames(self):
+        return self.MAINNAMES
+    def getParent(self):
+        return None
 
     '''
     Testing    
@@ -68,11 +73,15 @@ class SoundDeviceTestCase(unittest.TestCase):
     
     def setUp(self):
         self.axon = Axon(robot=self) # parent axon
-        self.soundDeviceMicrophone = SoundDeviceMicrophone(parent=self,
+        self.soundDeviceMicrophone = SoundDeviceMicrophone(
+                            mainRobot=self,
+                            parent=self,
                             instanceName='SoundDeviceMicrophone',
                             instanceType= Sensation.InstanceType.SubInstance,
                             level=2)
-        self.soundDevicePlayback = SoundDevicePlayback(parent=self,
+        self.soundDevicePlayback = SoundDevicePlayback(
+                            mainRobot=self,
+                            parent=self,
                             instanceName='SoundDevicePlayback',
                             instanceType= Sensation.InstanceType.SubInstance,
                             level=2)

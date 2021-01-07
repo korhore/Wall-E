@@ -27,7 +27,7 @@ class MemoryTestCase(unittest.TestCase):
     OLDER_LONGTERM_ITEM_NAME =      "older LongTerm bytes_test"
 
     def setUp(self):
-        self.robot=Robot()
+        self.robot=Robot(mainRobot=None)
         self.memory = self.robot.getMemory()
         
         

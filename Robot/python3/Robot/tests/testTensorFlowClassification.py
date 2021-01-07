@@ -101,7 +101,9 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
 
         self.axon = Axon(robot=self)
 
-        self.tensorFlowClassification = TensorFlowClassification(parent=self,
+        self.tensorFlowClassification = TensorFlowClassification(
+                                       mainRobot=self,
+                                       parent=self,
                                        instanceName='TensorFlowClassification',
                                        instanceType= Sensation.InstanceType.SubInstance,
                                        level=2)

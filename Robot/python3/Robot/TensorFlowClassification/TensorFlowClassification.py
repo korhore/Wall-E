@@ -192,6 +192,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
             self.npresence= presence
   
     def __init__(self,
+                 mainRobot,
                  parent=None,
                  instanceName=None,
                  instanceType = Sensation.InstanceType.SubInstance,
@@ -203,6 +204,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                  config=None):
         print("We are in TensorFlowClassification, not Robot")
         Robot.__init__(self,
+                       mainRobot=mainRobot,
                        parent=parent,
                        instanceName=instanceName,
                        instanceType=instanceType,

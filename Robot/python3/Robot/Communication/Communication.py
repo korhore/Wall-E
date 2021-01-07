@@ -77,6 +77,7 @@ class Communication(Robot):
                                     
 
     def __init__(self,
+                 mainRobot,
                  parent=None,
                  instanceName=None,
                  instanceType = Sensation.InstanceType.Real,
@@ -88,6 +89,7 @@ class Communication(Robot):
                  config=None):
         print("We are in Communication, not Robot")
         Robot.__init__(self,
+                       mainRobot=mainRobot,
                        parent=parent,
                        instanceName=instanceName,
                        instanceType=instanceType,
@@ -129,15 +131,15 @@ class Communication(Robot):
     '''
         
     def initRobot(self):
-        item__sensation = self.createSensation(memoryType=Sensation.MemoryType.Sensory,
-                                               sensationType=Sensation.SensationType.Item,
-                                               robotType=Sensation.RobotType.Muscle,
-                                               name=Robot.getMainRobotInstance().getName(),
-                                               presence=Sensation.Presence.Present,
-                                               locations=self.getLocations(),
-                                               isCommunication=True)
+        itemSensation = self.createSensation(memoryType=Sensation.MemoryType.Sensory,
+                                            sensationType=Sensation.SensationType.Item,
+                                            robotType=Sensation.RobotType.Muscle,
+                                            name=self.getMainRobot().getName(),
+                                            presence=Sensation.Presence.Present,
+                                            locations=self.getLocations(),
+                                            isCommunication=True)
         # speak                 
-        self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=item__sensation)
+        self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemSensation)
 
     '''
     Overridable method to be run just after
@@ -149,15 +151,15 @@ class Communication(Robot):
     '''
         
     def deInitRobot(self):
-        item__sensation = self.createSensation(memoryType=Sensation.MemoryType.Sensory,
-                                               sensationType=Sensation.SensationType.Item,
-                                               robotType=Sensation.RobotType.Muscle,
-                                               name=Robot.getMainRobotInstance().getName(),
-                                               presence=Sensation.Presence.Absent,
-                                               locations=self.getLocations(),
-                                               isCommunication=True)
+        itemSensation = self.createSensation(memoryType=Sensation.MemoryType.Sensory,
+                                            sensationType=Sensation.SensationType.Item,
+                                            robotType=Sensation.RobotType.Muscle,
+                                            name=self.getMainRobot().getName(),
+                                            presence=Sensation.Presence.Absent,
+                                            locations=self.getLocations(),
+                                            isCommunication=True)
         # speak                 
-        self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=item__sensation)
+        self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemSensation)
  
     def process(self, transferDirection, sensation):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: {} {} {} isCommunication {}'.format(systemTime.ctime(sensation.getTime()),transferDirection,sensation.toDebugStr(), sensation.getIsCommunication()))

@@ -35,6 +35,7 @@ class AlsaAudioPlayback(Robot):
     NORMALIZED_VOICE_LEVEL=300.0
 
     def __init__(self,
+                 mainRobot,
                  parent=None,
                  instanceName=None,
                  instanceType = Sensation.InstanceType.SubInstance,
@@ -45,6 +46,7 @@ class AlsaAudioPlayback(Robot):
                  location=None,
                  config=None):
         Robot.__init__(self,
+                       mainRobot=mainRobot,
                        parent=parent,
                        instanceName=instanceName,
                        instanceType=instanceType,
