@@ -13,12 +13,15 @@ two instances will be created. Ment to test 'sublocations'
 Develop
 -------
 
+Remove Sensation.isCommunication
+Add Sensation.RobotType.Communication
+
 Memory.assign
 - when we copy a sensation, assign it always to original one by default.
 
 Communication
 New new ideas
-- Item.name is still special: we trye to get infornation about Item.names, how to communicate with them.
+- Item.name is still special: we try to get infornation about Item.names, how to communicate with them.
 -- If there is no conversation going on, we start a new conversation if any Sensation like these comes
 --- Item.name comes present
 --- if conversation delay is not going on

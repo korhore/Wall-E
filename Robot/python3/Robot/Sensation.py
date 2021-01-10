@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 02.01.2021
+Edited on 10.01.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -100,7 +100,7 @@ class Sensation(object):
     # so many sensationtypes, that first letter is not good idea any more  
     SensationType = enum(Drive='a', Stop='b', Robot='c', Azimuth='d', Acceleration='e', Location='f', Observation='g', HearDirection='h', Voice='i', Image='j',  Calibrate='k', Capability='l', Item='m', Feeling='n', Unknown='o')
     # RobotType of a sensation. Example in Voice: Muscle: Speaking,  Sense: Hearing In->Muscle Out->Sense
-    RobotType = enum(Muscle='M', Sense='S')
+    RobotType = enum(Muscle='M', Sense='S', Communication ='C')
     # RobotType of a sensation transferring, used with Axon. Up: going up like fron AlsaMicroPhone to MainRobot, Down: going down from MainRobot to leaf Robots like AlsaPlayback
     TransferDirection = enum(Up='U', Down='D')
     # Presence of Item  
@@ -115,6 +115,7 @@ class Sensation(object):
     # enum items as strings    
     MUSCLE="Muscle"
     SENSE="Sense"
+    COMMUNICATION="Communication"
     SENSORY="Sensory"
     WORKING="Working"
     LONG_TERM="LongTerm"
@@ -154,10 +155,12 @@ class Sensation(object):
 
       
     RobotTypes={RobotType.Muscle: MUSCLE,
-                RobotType.Sense: SENSE}
+                RobotType.Sense: SENSE,
+                RobotType.Communication: COMMUNICATION}
     RobotTypesOrdered=(
                 RobotType.Muscle,
-                RobotType.Sense)
+                RobotType.Sense,
+                RobotType.Communication)
     
     MemoryTypes = {
                MemoryType.Sensory: SENSORY,
@@ -455,7 +458,7 @@ class Sensation(object):
                                                             # longer than neutral associations
                                                             # our behaver (and) robots has to goal to get good feelings
                                                             # and avoid negative ones
-                                                            # first usage of feeling is wit Communication-Robot, make it
+                                                            # first usage of feeling is with Communication-Robot, make it
                                                             # classify Voices with good feeling when it gets responses
                                                             # and feel CVoice use with bad feeling, if it does not
                                                             # get a response
@@ -642,7 +645,7 @@ class Sensation(object):
                  robotType = None,
                  robot = None,
                  locations =  [],
-                 isCommunication = False,
+                 #isCommunication = False,
                  mainNames =  None,
                  leftPower = None, rightPower = None,                        # Walle motors state
                  azimuth = None,                                             # Walle robotType relative to magnetic north pole
@@ -699,7 +702,7 @@ class Sensation(object):
                                        robotType=robotType,
                                        robot=robot,
                                        locations=locations,
-                                       isCommunication=isCommunication,
+                                       #isCommunication=isCommunication,
                                        mainNames=mainNames,
                                        leftPower=leftPower,rightPower=rightPower,                   # Walle motors state
                                        azimuth=azimuth,                                             # Walle robotType relative to magnetic north pole
@@ -755,7 +758,7 @@ class Sensation(object):
                                        robotType=robotType,
                                        robot=robot,
                                        locations=locations,
-                                       isCommunication=isCommunication,
+                                       #isCommunication=isCommunication,
                                        mainNames=mainNames,
                                        leftPower=leftPower,rightPower=rightPower,                   # Walle motors state
                                        azimuth=azimuth,                                             # Walle robotType relative to magnetic north pole
@@ -786,7 +789,7 @@ class Sensation(object):
 #             self.robotType = robotType
 #             self.robot = robot
 #             self.locations = locations
-#             self.isCommunication = isCommunication,
+#             #self.isCommunication = isCommunication,
 #             self.mainNames = mainNames
 #             self.leftPower = leftPower
 #             self.rightPower = rightPower
@@ -872,9 +875,9 @@ class Sensation(object):
                 self.locations=Sensation.bytesToList(bytes[i:i+locations_size])
                 i += locations_size
                                 
-                # isCommunication
-                self.isCommunication =  Sensation.intToBoolean(bytes[i])
-                i += Sensation.ENUM_SIZE
+#                 # isCommunication
+#                 self.isCommunication =  Sensation.intToBoolean(bytes[i])
+#                 i += Sensation.ENUM_SIZE
                                 
                 # mainNames
                 mainNames_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
@@ -1028,7 +1031,7 @@ class Sensation(object):
                       robotType,
                       robot,
                       locations,
-                      isCommunication,
+                      #isCommunication,
                       mainNames,
                       leftPower, rightPower,                            # Walle motors state
                       azimuth,                                          # Walle robotType relative to magnetic north pole
@@ -1074,10 +1077,10 @@ class Sensation(object):
         else:
             destination.locations = []
             
-        if isCommunication is not None:
-            destination.isCommunication = isCommunication
-        else:
-            destination.isCommunication = False
+#         if isCommunication is not None:
+#             destination.isCommunication = isCommunication
+#         else:
+#             destination.isCommunication = False
 
         if mainNames is not None:
             destination.mainNames = mainNames
@@ -1217,7 +1220,7 @@ class Sensation(object):
                         robotType,
                         robot,
                         locations,
-                        isCommunication,
+#                        isCommunication,
                         mainNames,
                         leftPower, rightPower,                               # Walle motors state
                         azimuth,                                             # Walle robotType relative to magnetic north pole
@@ -1268,10 +1271,10 @@ class Sensation(object):
         else:
             destination.locations = locations
             
-        if isCommunication is None:
-            destination.isCommunication = source.isCommunication
-        else:
-            destination.isCommunication = isCommunication
+#         if isCommunication is None:
+#             destination.isCommunication = source.isCommunication
+#         else:
+#             destination.isCommunication = isCommunication
             
         if mainNames is None:
             destination.mainNames = source.mainNames
@@ -1496,7 +1499,8 @@ class Sensation(object):
 #             s=str(self.robotId) + ' ' + str(self.id) + ' ' + str(self.time) + ' ' + str(self.association_time) + ' ' + Sensation.getMemoryTypeString(self.memoryType) + ' ' + Sensation.getRobotTypeString(self.robotType) + ' ' + Sensation.getSensationTypeString(self.sensationType)
 #         else:
 #             s=self.__str__()
-        s = systemTime.ctime(self.time) + ':' + str(self.robotId) + ':' + str(self.id) + ':' + Sensation.getMemoryTypeString(self.memoryType) + ':' + Sensation.getRobotTypeString(self.robotType) + ':' + Sensation.getSensationTypeString(self.sensationType)+ ':' + self.getLocationsStr() + ':'
+        s = systemTime.ctime(self.time) + ':' + str(self.robotId) + ':' + str(self.id) + ':' + Sensation.getMemoryTypeString(self.memoryType) + ':' +\
+            Sensation.getRobotTypeString(self.robotType) + ':' + Sensation.getSensationTypeString(self.sensationType)+ ':' + self.getLocationsStr() + ':'
         ## OOPS Can be NoneType
         string = Sensation.getFeelingString(self.getFeeling())
         if string :
@@ -1544,7 +1548,7 @@ class Sensation(object):
 #         b +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
 #         b +=  Sensation.strToBytes(self.locations)
 
-        b +=  Sensation.booleanToBytes(self.isCommunication)
+#        b +=  Sensation.booleanToBytes(self.isCommunication)
 
         blist = Sensation.listToBytes(self.mainNames)
         #print(' blist ' +str(blist))
@@ -2084,14 +2088,15 @@ class Sensation(object):
 #            self.isInMainNames(robotMainNames=robotMainNames):
 #             return self.robotType
         
-        if not self.isCommunication or\
-           self.isInMainNames(robotMainNames=robotMainNames):
-            return self.robotType
-
-        #if robotMainNames is given as parameters and self.isInMainNames(robotMainNames=robotMainNames) reverse robotType in foreign mainNames
-        if self.robotType == Sensation.RobotType.Muscle:
-            return Sensation.RobotType.Sense
-        return Sensation.RobotType.Muscle
+#         if not self.isCommunication or\
+#            self.isInMainNames(robotMainNames=robotMainNames):
+#             return self.robotType
+# 
+#         #if robotMainNames is given as parameters and self.isInMainNames(robotMainNames=robotMainNames) reverse robotType in foreign mainNames
+#         if self.robotType == Sensation.RobotType.Muscle:
+#             return Sensation.RobotType.Sense
+#         return Sensation.RobotType.Muscle
+        return self.robotType
     
     '''
 #     Is this Robot at least in one of mainNames
@@ -2130,10 +2135,10 @@ class Sensation(object):
         return Sensation.strArrayToStr(self.getLocations())
  
      
-    def setIsCommunication(self, isCommunication):
-        self.isCommunication = isCommunication
-    def getIsCommunication(self):
-        return self.isCommunication
+#     def setIsCommunication(self, isCommunication):
+#         self.isCommunication = isCommunication
+#     def getIsCommunication(self):
+#         return self.isCommunication
 
     def setMainNames(self, mainNames):
         self.mainNames = mainNames

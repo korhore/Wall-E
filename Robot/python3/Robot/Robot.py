@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 07.01.2021
+Updated on 10.01.2021
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -617,31 +617,42 @@ class Robot(Thread):
     '''
     Has this instance this capability
     ''' 
+#    def hasCapability(self, isCommunication, robotType, memoryType, sensationType, locations, mainNames):
     def hasCapability(self, robotType, memoryType, sensationType, locations, mainNames):
         hasCapalility = False
         if self.is_alive() and self.getCapabilities() is not None and\
            self.isInLocations(locations):
-            testRobotType = self.getMainNamesRobotType(robotType=robotType, mainNames=mainNames)
+#             testRobotType = self.getMainNamesRobotType(isCommunication=isCommunication, robotType=robotType, mainNames=mainNames)
             self.log(logLevel=Robot.LogLevel.Normal, logStr="hasCapability isInLocations locations " + str(locations) + " self.getDownLocations " + str(self.getDownLocations()))      
-            hasCapalility = self.getCapabilities().hasCapability(testRobotType, memoryType, sensationType)
+            hasCapalility = self.getCapabilities().hasCapability(robotType, memoryType, sensationType)
+            # If checked capability RobotType is Communication
+            # is exists only if mainNames is nit this Robots MaionNanes
+            # meaning that communication goes between Robots, not inside one (Main)Robot
+            if robotType == Sensation.RobotType.Communication and self.isInMainNames(mainNames):
+                hasCapalility = False
+            else:
+                hasCapalility = self.getCapabilities().hasCapability(robotType, memoryType, sensationType)                
             if hasCapalility:
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="hasCapability robotType " + str(robotType) + " memoryType " + str(memoryType) + " sensationType " + str(sensationType) + " locations " + str(locations) + ' ' + str(hasCapalility))      
         return hasCapalility
     
     '''
     Reverse robotType in foreign mainName
+    if isCommunication
     '''
-    def getMainNamesRobotType(self, robotType, mainNames=None):
-        if mainNames == None:
-            mainNames = self.getMainNames()
-        if self.isInMainNames(mainNames):
-            self.log(logLevel=Robot.LogLevel.Normal, logStr="getMainNamesRobotType {} -> {}".format(robotType,robotType))      
-            return robotType
-        if robotType == Sensation.RobotType.Muscle:
-            self.log(logLevel=Robot.LogLevel.Normal, logStr="getMainNamesRobotType {} -> {}".format(robotType,Sensation.RobotType.Sense))      
-            return Sensation.RobotType.Sense
-        self.log(logLevel=Robot.LogLevel.Normal, logStr="getMainNamesRobotType {} -> {}".format(robotType,Sensation.RobotType.Muscle))      
-        return Sensation.RobotType.Muscle
+#     def getMainNamesRobotType(self, isCommunication, robotType, mainNames=None):
+#         if isCommunication:
+#             if mainNames == None:
+#                 mainNames = self.getMainNames()
+#             if self.isInMainNames(mainNames):
+#                 self.log(logLevel=Robot.LogLevel.Normal, logStr="getMainNamesRobotType {} -> {}".format(robotType,robotType))      
+#                 return robotType
+#             if robotType == Sensation.RobotType.Muscle:
+#                 self.log(logLevel=Robot.LogLevel.Normal, logStr="getMainNamesRobotType {} -> {}".format(robotType,Sensation.RobotType.Sense))      
+#                 return Sensation.RobotType.Sense
+#             self.log(logLevel=Robot.LogLevel.Normal, logStr="getMainNamesRobotType {} -> {}".format(robotType,Sensation.RobotType.Muscle))      
+#             return Sensation.RobotType.Muscle
+#         return robotType
     
     '''
     Is this Robot at least in one of mainNames
@@ -660,22 +671,29 @@ class Robot(Thread):
     '''
     Has this instance or at least one of its subinstances this capability
     ''' 
+#    def hasSubCapability(self, isCommunication, robotType, memoryType, sensationType, locations, mainNames):
     def hasSubCapability(self, robotType, memoryType, sensationType, locations, mainNames):
         #self.log(logLevel=Robot.LogLevel.Verbose, logStr="hasSubCapability robotType " + str(robotType) + " memoryType " + str(memoryType) + " sensationType " + str(sensationType))
+#        if self.hasCapability(isCommunication, robotType, memoryType, sensationType, locations, mainNames):
         if self.hasCapability(robotType, memoryType, sensationType, locations, mainNames):
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability self has robotType ' + str(robotType) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType) + ' True')      
             return True    
         for robot in self.getSubInstances():
+#            if robot.isInLocations(locations) and robot.getCapabilities().hasCapability(isCommunication, robotType, memoryType, sensationType) or \
             if robot.isInLocations(locations) and robot.getCapabilities().hasCapability(robotType, memoryType, sensationType) or \
-               robot.hasSubCapability(robotType, memoryType, sensationType, locations, mainNames):
+                robot.hasSubCapability(robotType, memoryType, sensationType, locations, mainNames):
+#               robot.hasSubCapability(isCommunication, robotType, memoryType, sensationType, locations, mainNames):
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability subInstance ' + robot.getName() + ' at ' + robot.getLocationsStr() + ' has robotType ' + str(robotType) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType) + ' True')      
                 return True
         #self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability robotType ' + str(robotType) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType) + ' False')      
         return False
    
+#    def getSubCapabilityInstances(self, isCommunication, robotType, memoryType, sensationType, locations, mainNames):
     def getSubCapabilityInstances(self, robotType, memoryType, sensationType, locations, mainNames):
         robots=[]
         for robot in self.getSubInstances():
+#             if robot.hasCapability(isCommunication, robotType, memoryType, sensationType, locations, mainNames) or \
+#                robot.hasSubCapability(isCommunication, robotType, memoryType, sensationType, locations, mainNames): # or \
             if robot.hasCapability(robotType, memoryType, sensationType, locations, mainNames) or \
                robot.hasSubCapability(robotType, memoryType, sensationType, locations, mainNames): # or \
                #robot.getInstanceType() == Sensation.InstanceType.Remote:       # append all Remotes so it gets same Memory NOPE Bad idea, Robot will process this, not just put to memory
@@ -1067,7 +1085,8 @@ class Robot(Thread):
             if self.getParent() is None:
                 # check if we have subRobot that has capability to process this sensation
                 needToDetach=True
-                self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.getSubCapabilityInstances')      
+                self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.getSubCapabilityInstances')
+#                robots = self.getSubCapabilityInstances(isCommunication = sensation.getIsCommunication(),
                 robots = self.getSubCapabilityInstances(robotType=sensation.getRobotType(),
                                                         memoryType=sensation.getMemoryType(),
                                                         sensationType=sensation.getSensationType(),
@@ -1101,6 +1120,7 @@ class Robot(Thread):
             # which sRobot can process this
             needToDetach=True
             self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getSubCapabilityInstances')
+#            robots = self.getSubCapabilityInstances(isCommunication = sensation.getIsCommunication(),
             robots = self.getSubCapabilityInstances(robotType=sensation.getRobotType(),
                                                     memoryType=sensation.getMemoryType(),
                                                     sensationType=sensation.getSensationType(),
@@ -1173,7 +1193,7 @@ class Robot(Thread):
                  memoryType = None,
                  robotType = None,
                  robot = None,
-                 isCommunication=False,
+#                 isCommunication=False,
                  mainNames = None,                 
                  locations =  None,
                  leftPower = None, rightPower = None,                        # Walle motors state
@@ -1211,7 +1231,7 @@ class Robot(Thread):
                  memoryType=memoryType,
                  robotType=robotType,
                  #robot=robot,
-                 isCommunication=isCommunication,
+#                 isCommunication=isCommunication,
                  mainNames=mainNames,
                  locations=locations,
                  leftPower = leftPower, rightPower = rightPower,
@@ -2315,7 +2335,7 @@ def do_server():
 
     print ("do_server: create Robot")
     global mainRobot
-    mainRobot = Robot()
+    mainRobot = Robot(mainRobot=None)
 
     succeeded=True
     try:

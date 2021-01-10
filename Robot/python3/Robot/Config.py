@@ -1,6 +1,6 @@
 '''
 Created on 25.05.2019
-Edited 08.12.2020
+Edited 10.12.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -1267,7 +1267,6 @@ class Capabilities():
     def __init__(self,
                  config=None,
                  location=Config.DEFAULT_LOCATION,
-                 mainName=Config.DEFAULT_MAINNAME,
                  string=None,
                  bytes=None,
                  Or =None,
@@ -1275,7 +1274,6 @@ class Capabilities():
                  deepCopy=None):
         self.config = config
         self.location = location
-        self.mainName = mainName
 #         # self.locations can be overwritten by bytes (or string, not tested)
 #         self.locations = locations
 #         if (self.locations is None or len(self.locations) == 0) and self.config is not None:
@@ -1559,7 +1557,7 @@ def test(name, capabilities):
     for robotType in Sensation.RobotTypesOrdered:
         for memoryType in Sensation.MemoryTypesOrdered:
             for sensationType in Sensation.SensationTypesOrdered:
-                is_set = capabilities.hasCapability(robotType=robotType, memoryType=memoryType, sensationType=sensationType, locations=capabilities.getLocations())
+                is_set = capabilities.hasCapability(robotType=robotType, memoryType=memoryType, sensationType=sensationType)
                 print (name + ': ' + Sensation.getRobotTypeString(robotType) + ' ' + Sensation.getMemoryTypeString(memoryType) + ' ' + Sensation.getSensationTypeString(sensationType) + ': ' + str(is_set))
                 if is_set:
                     #print (name + ': ' + Sensation.getRobotTypeString(robotType) + ' ' + Sensation.getMemoryTypeString(memoryType) + ' ' + Sensation.getSensationTypeString(sensationType) + ': True')
@@ -1604,8 +1602,8 @@ if __name__ == '__main__':
     locations = config.getLocations()
     print('Locations ' + str(locations))
 
-    print(config.getCapabilities().toDebugString('Capabilities from config'))
-    test(name='Capabilities from config', capabilities=config.getCapabilities())
+#     print(config.getCapabilities().toDebugString('Capabilities from config'))
+#     test(name='Capabilities from config', capabilities=config.getCapabilities())
    
     #capabilities
     print('')
@@ -1659,7 +1657,7 @@ if __name__ == '__main__':
  
     # set all True 
     print ('Set all True')
-    for robotType, directionStr in Sensation.Directions.items():
+    for robotType, robotTypeStr in Sensation.RobotTypes.items():
         for memoryType, memoryStr in Sensation.MemoryTypes.items():
             for sensationType, capabilityStr in Sensation.SensationTypes.items():
                 capabilities.setCapability(robotType, memoryType, sensationType, True)
@@ -1667,7 +1665,7 @@ if __name__ == '__main__':
     capabilities.And(other=capabilities2)
     test(name='Set all True capabilities And capabilities2', capabilities=capabilities)
 
-    for robotType, directionStr in Sensation.Directions.items():
+    for robotType, robotTypeStr in Sensation.RobotTypes.items():
         for memoryType, memoryStr in Sensation.MemoryTypes.items():
             for sensationType, capabilityStr in Sensation.SensationTypes.items():
                 capabilities.setCapability(robotType, memoryType, sensationType, True)
@@ -1676,7 +1674,7 @@ if __name__ == '__main__':
 
      # set all False 
     print ('Set all False')
-    for robotType, directionStr in Sensation.Directions.items():
+    for robotType, robotTypeStr in Sensation.RobotTypes.items():
         for memoryType, memoryStr in Sensation.MemoryTypes.items():
             for sensationType, capabilityStr in Sensation.SensationTypes.items():
                 capabilities.setCapability(robotType, memoryType, sensationType, False)

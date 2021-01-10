@@ -1303,64 +1303,73 @@ class SensationTestCase(unittest.TestCase):
         self.robot.setMainNames(SensationTestCase.MAINNAMES_1)
 
         # Voice        
-        voiceSensation = self.robot.createSensation(sensationType=Sensation.SensationType.Voice, robotType=Sensation.RobotType.Sense, isCommunication=True)
+        voiceSensation = self.robot.createSensation(sensationType=Sensation.SensationType.Voice, robotType=Sensation.RobotType.Sense)
         self.assertEqual(voiceSensation.getRobotType(), Sensation.RobotType.Sense, 'plain RobotType should be Sensation.RobotType.Sense')
-        self.assertEqual(voiceSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_1), 
-                                                     Sensation.RobotType.Sense, 'isCommunication same mainNames RobotType should be Sensation.RobotType.Sense')
-        self.assertEqual(voiceSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_2), 
-                                                     Sensation.RobotType.Muscle, 'isCommunication other mainNames RobotType should be Sensation.RobotType.Muscle')
+#         self.assertEqual(voiceSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_1), 
+#                                                      Sensation.RobotType.Sense, 'isCommunication same mainNames RobotType should be Sensation.RobotType.Sense')
+#         self.assertEqual(voiceSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_2), 
+#                                                      Sensation.RobotType.Muscle, 'isCommunication other mainNames RobotType should be Sensation.RobotType.Muscle')
         
-        voiceSensation = self.robot.createSensation(sensationType=Sensation.SensationType.Voice, robotType=Sensation.RobotType.Muscle, isCommunication=True)
+        voiceSensation = self.robot.createSensation(sensationType=Sensation.SensationType.Voice, robotType=Sensation.RobotType.Muscle)
         self.assertEqual(voiceSensation.getRobotType(), Sensation.RobotType.Muscle, 'plain RobotType should be Sensation.RobotType.Muscle')
-        self.assertEqual(voiceSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_1), 
-                                                     Sensation.RobotType.Muscle, 'isCommunication  same mainNames RobotType should be Sensation.RobotType.Muscle')
-        self.assertEqual(voiceSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_2), 
-                                                     Sensation.RobotType.Sense, 'isCommunication other mainNames RobotType should be Sensation.RobotType.Sense')
+#         self.assertEqual(voiceSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_1), 
+#                                                      Sensation.RobotType.Muscle, 'isCommunication  same mainNames RobotType should be Sensation.RobotType.Muscle')
+#         self.assertEqual(voiceSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_2), 
+#                                                      Sensation.RobotType.Sense, 'isCommunication other mainNames RobotType should be Sensation.RobotType.Sense')
         
+        voiceSensation = self.robot.createSensation(sensationType=Sensation.SensationType.Voice, robotType=Sensation.RobotType.Communication)
+        self.assertEqual(voiceSensation.getRobotType(), Sensation.RobotType.Communication, 'plain RobotType should be Sensation.RobotType.Communication')
+
         #Image
-        imageSensation = self.robot.createSensation(sensationType=Sensation.SensationType.Image, robotType=Sensation.RobotType.Sense, isCommunication=True)
+        imageSensation = self.robot.createSensation(sensationType=Sensation.SensationType.Image, robotType=Sensation.RobotType.Sense)
         self.assertEqual(imageSensation.getRobotType(), Sensation.RobotType.Sense, 'plain RobotType should be Sensation.RobotType.Sense')
-        self.assertEqual(imageSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_1), 
-                                                     Sensation.RobotType.Sense, 'isCommunication  same mainNames RobotType should be Sensation.RobotType.Sense')
-        self.assertEqual(imageSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_2), 
-                                                     Sensation.RobotType.Muscle, 'isCommunication other mainNames RobotType should be Sensation.RobotType.Muscle')
+#         self.assertEqual(imageSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_1), 
+#                                                      Sensation.RobotType.Sense, 'isCommunication  same mainNames RobotType should be Sensation.RobotType.Sense')
+#         self.assertEqual(imageSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_2), 
+#                                                      Sensation.RobotType.Muscle, 'isCommunication other mainNames RobotType should be Sensation.RobotType.Muscle')
         
-        imageSensation = self.robot.createSensation(sensationType=Sensation.SensationType.Image, robotType=Sensation.RobotType.Muscle, isCommunication=True)
+        imageSensation = self.robot.createSensation(sensationType=Sensation.SensationType.Image, robotType=Sensation.RobotType.Muscle)
         self.assertEqual(imageSensation.getRobotType(), Sensation.RobotType.Muscle, 'plain RobotType should be Sensation.RobotType.Muscle')
-        self.assertEqual(imageSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_1), 
-                                                     Sensation.RobotType.Muscle, 'isCommunication same mainNames RobotType should be Sensation.RobotType.Muscle')
-        self.assertEqual(imageSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_2), 
-                                                     Sensation.RobotType.Sense, 'isCommunication other mainNames RobotType should be Sensation.RobotType.Sense')
+#         self.assertEqual(imageSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_1), 
+#                                                      Sensation.RobotType.Muscle, 'isCommunication same mainNames RobotType should be Sensation.RobotType.Muscle')
+#         self.assertEqual(imageSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_2), 
+#                                                      Sensation.RobotType.Sense, 'isCommunication other mainNames RobotType should be Sensation.RobotType.Sense')
+        imageSensation = self.robot.createSensation(sensationType=Sensation.SensationType.Image, robotType=Sensation.RobotType.Communication)
+        self.assertEqual(imageSensation.getRobotType(), Sensation.RobotType.Communication, 'plain RobotType should be Sensation.RobotType.Communication')
 
         #Item
         itemSensation = self.robot.createSensation(sensationType=Sensation.SensationType.Item, robotType=Sensation.RobotType.Sense)
         self.assertEqual(itemSensation.getRobotType(), Sensation.RobotType.Sense, 'plain RobotType should be Sensation.RobotType.Sense')
-        self.assertEqual(itemSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_1), 
-                                                     Sensation.RobotType.Sense, 'same mainNames RobotType should be Sensation.RobotType.Sense')
-        self.assertEqual(itemSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_2), 
-                                                     Sensation.RobotType.Sense, 'other mainNames RobotType should be Sensation.RobotType.Sense')
+#         self.assertEqual(itemSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_1), 
+#                                                      Sensation.RobotType.Sense, 'same mainNames RobotType should be Sensation.RobotType.Sense')
+#         self.assertEqual(itemSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_2), 
+#                                                      Sensation.RobotType.Sense, 'other mainNames RobotType should be Sensation.RobotType.Sense')
         
         itemSensation = self.robot.createSensation(sensationType=Sensation.SensationType.Item, robotType=Sensation.RobotType.Muscle)
         self.assertEqual(itemSensation.getRobotType(), Sensation.RobotType.Muscle, 'plain RobotType should be Sensation.RobotType.Muscle')
-        self.assertEqual(itemSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_1), 
-                                                     Sensation.RobotType.Muscle, 'same mainNames RobotType should be Sensation.RobotType.Muscle')
-        self.assertEqual(itemSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_2), 
-                                                     Sensation.RobotType.Muscle, 'other mainNames RobotType should be Sensation.RobotType.Muscle')
+#         self.assertEqual(itemSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_1), 
+#                                                      Sensation.RobotType.Muscle, 'same mainNames RobotType should be Sensation.RobotType.Muscle')
+#         self.assertEqual(itemSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_2), 
+#                                                      Sensation.RobotType.Muscle, 'other mainNames RobotType should be Sensation.RobotType.Muscle')
+        itemSensation = self.robot.createSensation(sensationType=Sensation.SensationType.Item, robotType=Sensation.RobotType.Communication)
+        self.assertEqual(itemSensation.getRobotType(), Sensation.RobotType.Communication, 'plain RobotType should be Sensation.RobotType.Communication')
 
         #Feeling
         feelingSensation = self.robot.createSensation(sensationType=Sensation.SensationType.Feeling, robotType=Sensation.RobotType.Sense)
         self.assertEqual(feelingSensation.getRobotType(), Sensation.RobotType.Sense, 'plain RobotType should be Sensation.RobotType.Sense')
-        self.assertEqual(feelingSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_1), 
-                                                     Sensation.RobotType.Sense, 'same mainNames RobotType should be Sensation.RobotType.Sense')
-        self.assertEqual(feelingSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_2), 
-                                                     Sensation.RobotType.Sense, 'other mainNames RobotType should be Sensation.RobotType.Sense')
+#         self.assertEqual(feelingSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_1), 
+#                                                      Sensation.RobotType.Sense, 'same mainNames RobotType should be Sensation.RobotType.Sense')
+#         self.assertEqual(feelingSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_2), 
+#                                                      Sensation.RobotType.Sense, 'other mainNames RobotType should be Sensation.RobotType.Sense')
         
         feelingSensation = self.robot.createSensation(sensationType=Sensation.SensationType.Feeling, robotType=Sensation.RobotType.Muscle)
         self.assertEqual(feelingSensation.getRobotType(), Sensation.RobotType.Muscle, 'plain RobotType should be Sensation.RobotType.Muscle')
-        self.assertEqual(feelingSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_1), 
-                                                     Sensation.RobotType.Muscle, 'same mainNames RobotType should be Sensation.RobotType.Muscle')
-        self.assertEqual(feelingSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_2), 
-                                                     Sensation.RobotType.Muscle, 'other mainNames RobotType should be Sensation.RobotType.Muscle')
+#         self.assertEqual(feelingSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_1), 
+#                                                      Sensation.RobotType.Muscle, 'same mainNames RobotType should be Sensation.RobotType.Muscle')
+#         self.assertEqual(feelingSensation.getRobotType(robotMainNames=SensationTestCase.MAINNAMES_2), 
+#                                                      Sensation.RobotType.Muscle, 'other mainNames RobotType should be Sensation.RobotType.Muscle')
+        feelingSensation = self.robot.createSensation(sensationType=Sensation.SensationType.Feeling, robotType=Sensation.RobotType.Communication)
+        self.assertEqual(feelingSensation.getRobotType(), Sensation.RobotType.Communication, 'plain RobotType should be Sensation.RobotType.Communication')
 
         
 if __name__ == '__main__':
