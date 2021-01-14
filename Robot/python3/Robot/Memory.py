@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 10.01.2021
+Edited on 13.01.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -254,7 +254,7 @@ class Memory(object):
             self.addToSensationMemory(sensation) # pure new sensation must be added to memory
 
         if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemoryType() == Sensation.MemoryType.Working and\
-               sensation.getRobotType(robotMainNames=self.getRobot().getMainNames()) == Sensation.RobotType.Sense:
+               (sensation.getRobotType() == Sensation.RobotType.Sense or sensation.getRobotType() == Sensation.RobotType.Communication):
                self.tracePresents(sensation)
         # assign other than Feeling sensations
         if sensation.getSensationType() != Sensation.SensationType.Feeling:
@@ -579,11 +579,11 @@ class Memory(object):
                                    sensationType,
                                    timemin,
                                    timemax,
-                                   robotType = Sensation.RobotType.Sense,
+                                   robotTypes = [Sensation.RobotType.Sense,Sensation.RobotType.Communication],
                                    name = None,
                                    notName = None,
                                    associationSensationType = None,
-                                   associationDirection = Sensation.RobotType.Sense,
+                                   associationDirections = [Sensation.RobotType.Sense,Sensation.RobotType.Communication],
                                    ignoredSensations = [],
                                    ignoredVoiceLens = [],
                                    searchLength = 10):
@@ -604,8 +604,8 @@ class Memory(object):
         for sensation in self.sensationMemory:
             if sensation not in ignoredSensations and\
                sensation.getSensationType() == sensationType and\
-               sensation.getRobotType() == robotType and\
-               sensation.hasAssociationSensationType(associationSensationType=associationSensationType,
+               sensation.getRobotType() in robotTypes and\
+               sensation.hasAssociationSensationType(associationSensationTypes=associationSensationTypes,
                                                      associationDirection = associationDirection,
                                                      ignoredSensations=ignoredSensations,
                                                      ignoredVoiceLens=ignoredVoiceLens) and\
@@ -616,7 +616,7 @@ class Memory(object):
                    name is None and sensation.getName() != notName or\
                    name is None and notName is None:
                     bestAssociationSensationImportance = None 
-                    for association in sensation.getAssociationsbBySensationType(associationSensationType=associationSensationType,
+                    for association in sensation.getAssociationsbBySensationType(associationSensationTypes=associationSensationType,
                                                                                  associationDirection = associationDirection,
                                                                                  ignoredSensations=ignoredSensations,
                                                                                  ignoredVoiceLens=ignoredVoiceLens):
@@ -772,7 +772,7 @@ class Memory(object):
                                    timemin,
                                    timemax,
                                    robotMainNames,
-                                   robotType = Sensation.RobotType.Sense,
+                                   robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
                                    name = None,
                                    notName = None,
                                    associationSensationType = None,
@@ -801,9 +801,9 @@ class Memory(object):
             if sensation.getDataId() not in ignoredSensations and\
                sensation.getSensationType() == Sensation.SensationType.Item and\
                sensation.getName() == name and\
-               sensation.getRobotType(robotMainNames=robotMainNames) == robotType and\
+               sensation.getRobotType() in robotTypes and\
                sensation.hasAssociationSensationType(associationSensationType = Sensation.SensationType.Voice,
-                                                     associationDirection = robotType,
+                                                     associationDirections = robotTypes,
                                                      ignoredSensations = ignoredSensations,
                                                      robotMainNames = robotMainNames) and\
                (timemin is None or sensation.getTime() > timemin) and\
@@ -815,7 +815,7 @@ class Memory(object):
 #                                                      ignoredImageLens=ignoredImageLens) and\
                 bestVoiceAssociationSensationImportance = None 
                 for association in sensation.getAssociationsbBySensationType(associationSensationType=Sensation.SensationType.Voice,
-                                                                             associationDirection = robotType,
+                                                                             associationDirections = robotTypes,
                                                                              ignoredSensations = ignoredSensations,
                                                                              robotMainNames = robotMainNames):
                     importance = prevalence * association.getSensation().getImportance() # use prevalence and importance to get prevalence based importance
@@ -837,9 +837,9 @@ class Memory(object):
             if sensation.getDataId() not in ignoredSensations and\
                sensation.getSensationType() == Sensation.SensationType.Item and\
                sensation.getName() == name and\
-               sensation.getRobotType(robotMainNames = robotMainNames) == robotType and\
+               sensation.getRobotType() in robotTypes and\
                sensation.hasAssociationSensationType(associationSensationType = Sensation.SensationType.Image,
-                                                     associationDirection = robotType,
+                                                     associationDirections = robotTypes,
                                                      ignoredSensations = ignoredSensations,
                                                      robotMainNames = robotMainNames) and\
                (timemin is None or sensation.getTime() > timemin) and\
@@ -847,7 +847,7 @@ class Memory(object):
 
                 bestImageAssociationSensationImportance = None 
                 for association in sensation.getAssociationsbBySensationType(associationSensationType=Sensation.SensationType.Image,
-                                                                             associationDirection = robotType,
+                                                                             associationDirections = robotTypes,
                                                                              ignoredSensations = ignoredSensations,
                                                                              robotMainNames = robotMainNames):
                     importance = prevalence * association.getSensation().getImportance() # use prevalence and importance to get prevalence based importance

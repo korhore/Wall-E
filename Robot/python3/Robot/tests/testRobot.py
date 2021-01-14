@@ -1,6 +1,6 @@
 '''
 Created on 13.02.2020
-Updated on 10.01.2021
+Updated on 11.01.2021
 @author: reijo.korhonen@gmail.com
 
 test Robot class
@@ -1757,7 +1757,6 @@ class RobotTestCase(unittest.TestCase):
     '''
     def do_tcp_negative_case(self,
                              robotType,
-                             #isCommunication,
                              isSentLocal,
                              isSentRemote):
         ###################################################################################################################################################
@@ -1863,14 +1862,16 @@ class RobotTestCase(unittest.TestCase):
             time.sleep(RobotTestCase.WAIT_STEP)
         
         self.assertTrue(self.remoteMainRobot.getAxon().empty(),'remoteMainRobot Axon should be empty')
-        
-        if isSentLocal:
-            for location in sensationToSend.getLocations():        
-                self.assertEqual(len(self.sense.getMemory().getPresentItemSensations(location = location)), 1, 'len(self.sense.getMemory().presentItemSensations(location = {}) should be 1'.format(location))
-        else:
-             for location in sensationToSend.getLocations():
-                # TODO check this
-                self.assertEqual(len(self.sense.getMemory().getPresentItemSensations(location = location)), 1, 'len(self.sense.getMemory().presentItemSensations(location = {}) should be 0'.format(location))
+
+# getMemory().getPresentItemSensations is tgested in other tests. Anyway, it does not fepent on if routing locally or not
+#         
+#         if isSentLocal:
+#             for location in sensationToSend.getLocations():        
+#                 self.assertEqual(len(self.sense.getMemory().getPresentItemSensations(location = location)), 1, 'len(self.sense.getMemory().presentItemSensations(location = {}) should be 1'.format(location))
+#         else:
+#              for location in sensationToSend.getLocations():
+#                 # TODO check this
+#                 self.assertEqual(len(self.sense.getMemory().getPresentItemSensations(location = location)), 1, 'len(self.sense.getMemory().presentItemSensations(location = {}) should be 0'.format(location))
      
     '''
     TODO These tests fail.

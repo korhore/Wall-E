@@ -16,6 +16,8 @@ Develop
 Remove Sensation.isCommunication
 Add Sensation.RobotType.Communication
 
+Robot is also Item so it can be Preset in locations.
+
 Memory.assign
 - when we copy a sensation, assign it always to original one by default.
 

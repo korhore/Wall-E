@@ -1978,16 +1978,16 @@ class Sensation(object):
 
     '''
     Has sensation association to other Sensation
-    which SensationType is 'associationSensationType'
+    which SensationType is in 'associationSensationTypes'
     '''
     def hasAssociationSensationType(self, associationSensationType,
-                                    associationDirection = RobotType.Sense,
+                                    associationDirections = [RobotType.Sense],
                                     ignoredSensations=[],
                                     robotMainNames=None):
         has=False
         for association in self.associations:
             if association.getSensation().getSensationType() == associationSensationType and\
-               association.getSensation().getRobotType(robotMainNames=robotMainNames) == associationDirection and\
+               association.getSensation().getRobotType() in associationDirections and\
                association.getSensation().getDataId() not in ignoredSensations:
                 has=True
                 break       
@@ -1998,14 +1998,14 @@ class Sensation(object):
     which SensationType is 'associationSensationType'
     '''
     def getAssociationsbBySensationType(self, associationSensationType,
-                                        associationDirection = RobotType.Sense,
+                                        associationDirections = [RobotType.Sense, RobotType.Communication],
                                         ignoredSensations=[],
                                         ignoredVoiceLens=[],
                                         robotMainNames=None):
         associations=[]
         for association in self.associations:
             if association.getSensation().getSensationType() == associationSensationType and\
-               association.getSensation().getRobotType(robotMainNames=robotMainNames) == associationDirection and\
+               association.getSensation().getRobotType() in associationDirections and\
                association.getSensation().getDataId() not in ignoredSensations:
                 associations.append(association)
         return associations
@@ -2053,8 +2053,8 @@ class Sensation(object):
        
     def setRobotType(self, robotType):
         self.robotType = robotType
-#     def getRobotType(self):
-#         return self.robotType
+    def getRobotType(self):
+        return self.robotType
     
     '''
     If parameters robotMainNames is set, it is mainNames od robot
@@ -2076,27 +2076,27 @@ class Sensation(object):
     or no Voice or Image, we return plain RobotType fron Sensation.
     Reverse robotType in foreign mainNames
     '''
-    def getRobotType(self, robotMainNames=None):
-        # compability to old implementation
-# deprecated
-#         if (self.getSensationType() != Sensation.SensationType.Voice and\
-#            self.getSensationType() != Sensation.SensationType.Image) or\
-#            robotMainNames == None or\
-#            len(robotMainNames) == 0 or\
-#            self.getMainNames() == None or\
-#            len(self.getMainNames()) == 0 or\
-#            self.isInMainNames(robotMainNames=robotMainNames):
-#             return self.robotType
-        
-#         if not self.isCommunication or\
-#            self.isInMainNames(robotMainNames=robotMainNames):
-#             return self.robotType
-# 
-#         #if robotMainNames is given as parameters and self.isInMainNames(robotMainNames=robotMainNames) reverse robotType in foreign mainNames
-#         if self.robotType == Sensation.RobotType.Muscle:
-#             return Sensation.RobotType.Sense
-#         return Sensation.RobotType.Muscle
-        return self.robotType
+#     def getRobotType(self, robotMainNames=None):
+#         # compability to old implementation
+# # deprecated
+# #         if (self.getSensationType() != Sensation.SensationType.Voice and\
+# #            self.getSensationType() != Sensation.SensationType.Image) or\
+# #            robotMainNames == None or\
+# #            len(robotMainNames) == 0 or\
+# #            self.getMainNames() == None or\
+# #            len(self.getMainNames()) == 0 or\
+# #            self.isInMainNames(robotMainNames=robotMainNames):
+# #             return self.robotType
+#         
+# #         if not self.isCommunication or\
+# #            self.isInMainNames(robotMainNames=robotMainNames):
+# #             return self.robotType
+# # 
+# #         #if robotMainNames is given as parameters and self.isInMainNames(robotMainNames=robotMainNames) reverse robotType in foreign mainNames
+# #         if self.robotType == Sensation.RobotType.Muscle:
+# #             return Sensation.RobotType.Sense
+# #         return Sensation.RobotType.Muscle
+#         return self.robotType
     
     '''
 #     Is this Robot at least in one of mainNames
