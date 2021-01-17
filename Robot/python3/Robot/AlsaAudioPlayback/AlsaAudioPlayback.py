@@ -91,7 +91,7 @@ class AlsaAudioPlayback(Robot):
             self.log(logLevel=Robot.LogLevel.Normal, logStr='process: SensationSensationType.Stop')      
             self.stop()
         # we can speak, but only if sensation is new enough
-        elif self.ok and self.running and sensation.getSensationType() == Sensation.SensationType.Voice and sensation.getRobotType(robotMainNames=self.getMainNames()) == Sensation.RobotType.Muscle:
+        elif self.ok and self.running and sensation.getSensationType() == Sensation.SensationType.Voice and sensation.getRobotType() == Sensation.RobotType.Muscle:
         # Test
         #elif self.ok and self.running and sensation.getSensationType() == Sensation.SensationType.Voice:
             if systemTime.time() - sensation.getTime() < AlsaAudioPlayback.COMMUNICATION_INTERVAL:

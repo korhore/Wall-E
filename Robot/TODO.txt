@@ -4,11 +4,14 @@ Critical
 Seems that Sensations make at least one trp back to origin host from other host.
 Is the reason ReceivedFrom ''.'real receivedFrom'
 
-OPPS clear configuration!
+OOPS clear configuration!
 
 Check location/sublocation in configurations.
 If in RaspBerryPiCamera config there are location localhost and under it 'location Ubuntu raspberry', then
 two instances will be created. Ment to test 'sublocations'
+
+picler fails
+
 
 Develop
 -------

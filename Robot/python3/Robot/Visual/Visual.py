@@ -437,9 +437,9 @@ class Visual(Robot):
                 self.gs.Insert(index=Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_MEMORY,
                                window=wx.StaticText(self, label=Sensation.getMemoryTypeString(memoryType=sensation.getMemoryType())), proportion=0, flag=wx.EXPAND)
 
-                # Robot type that the Sensation, Muscle/Sense                                       
+                # Robot type that the Sensation, Muscle/Sense /Communication                                      
                 self.gs.Insert(index=Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_DIRECTION,
-                               window=wx.StaticText(self, label=Sensation.getRobotTypeString(robotType=sensation.getRobotType(robotMainNames=self.getRobot().getMainNames()))), proportion=0, flag=wx.EXPAND)
+                               window=wx.StaticText(self, label=Sensation.getRobotTypeString(robotType=sensation.getRobotType())), proportion=0, flag=wx.EXPAND)
 
                 # Locations                    
                 self.gs.Insert(index=Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_LOCATIONS,
@@ -552,7 +552,7 @@ class Visual(Robot):
                 if sensation.getSensationType() == Sensation.SensationType.Item:
                     text = text + ' ' + sensation.getName()
                 text = text + ' ' + Sensation.getMemoryTypeString(memoryType=sensation.getMemoryType()) + \
-                              ' ' + Sensation.getRobotTypeString(robotType=sensation.getRobotType(robotMainNames=self.getRobot().getMainNames())) +\
+                              ' ' + Sensation.getRobotTypeString(robotType=sensation.getRobotType()) +\
                               ' ' + time.ctime(sensation.getTime())
                 treeItem = self.tree.InsertItem (parent=parent,
                                                  pos=0,

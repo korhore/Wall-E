@@ -1,6 +1,6 @@
 '''
 Created on 30.04.2019
-Updated on 11.10.2020
+Updated on 14.01.2021
 
 @author: reijo.korhonen@gmail.com
 '''
@@ -544,7 +544,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
         if sensation.getSensationType() == Sensation.SensationType.Stop:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='process: SensationSensationType.Stop')      
             self.stop()
-        elif sensation.getRobotType(robotMainNames=self.getMainNames()) == Sensation.RobotType.Sense and \
+        elif sensation.getRobotType() == Sensation.RobotType.Sense and \
                sensation.getSensationType() == Sensation.SensationType.Image and \
                sensation.getMemoryType() == Sensation.MemoryType.Sensory: # and\ # todo, no ordercontrl for testing
                #(self.lastImageTime is None or sensation.getTime() > self.lastImageTime):    # sensation should come in order

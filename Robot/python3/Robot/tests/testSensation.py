@@ -1,6 +1,6 @@
 '''
 Created on 10.06.2019
-Updated on 01.01.2021
+Updated on 17.01.2021
 @author: reijo.korhonen@gmail.com
 
 test Sensation class
@@ -9,9 +9,19 @@ python3 -m unittest tests/testSensation.py
 
 '''
 import time as systemTime
+import os
+
 import unittest
 from Sensation import Sensation#, booleanToBytes, bytesToBoolean
 from Robot import Robot
+from Memory import Memory
+from pygments.lexers import robotframework
+try:
+    import cPickle as pickle
+#except ModuleNotFoundError:
+except Exception as e:
+#    print ("import cPickle as pickle error " + str(e))
+    import pickle
 
 class SensationTestCase(unittest.TestCase):
     TEST_RUNS = 2
@@ -42,6 +52,14 @@ class SensationTestCase(unittest.TestCase):
     LOCATION_2_RADIUS =   14.0
 
     RECEIVEDFROM =        ['127.0.0.1', '192.168.0.0.1', '10.0.0.1']
+    
+    # Fron Sensation.py
+    # Values are changed, so we don't harm real runs
+    
+    DATADIR =           'data'
+    PICLE_FILENAME =    'test_Sensation.pkl'
+    PATH_TO_PICLE_FILE = os.path.join(DATADIR, PICLE_FILENAME)
+
     
 
     def setUp(self):
@@ -1370,6 +1388,97 @@ class SensationTestCase(unittest.TestCase):
 #                                                      Sensation.RobotType.Muscle, 'other mainNames RobotType should be Sensation.RobotType.Muscle')
         feelingSensation = self.robot.createSensation(sensationType=Sensation.SensationType.Feeling, robotType=Sensation.RobotType.Communication)
         self.assertEqual(feelingSensation.getRobotType(), Sensation.RobotType.Communication, 'plain RobotType should be Sensation.RobotType.Communication')
+        
+    '''
+    test_picleability
+    '''
+        
+    def test_Picleability(self):
+        print("\ntest_Picleability\n")
+
+        print("Basic constructor without Robot")
+        memory = Memory(robot = None,                          # owner robot
+                        maxRss = Memory.maxRss,
+                        minAvailMem = Memory.minAvailMem)
+
+        sensation = Sensation(memory=memory, robotId=0.0)
+        self.do_Test_Picleability(sensation=sensation)
+        
+        print("Memory constructor")
+        sensation = memory.create(robot=self.robot)
+        sensation.detachAll()        
+        sensation.robot=None
+
+        self.do_Test_Picleability(sensation=sensation)
+        
+
+        print("Robot constructor")
+        sensation = self.robot.createSensation()
+        sensation.detachAll()        
+        sensation.robot=None
+
+        self.do_Test_Picleability(sensation=sensation)
+
+    
+    '''
+    Picle Sensation same way, than Memory does it.
+    '''        
+    def do_Test_Picleability(self, sensation):
+        
+        print("do_Test_Picleability")
+        sensation.save()
+        
+        # picle
+
+        # save sensation instances
+        if not os.path.exists(SensationTestCase.DATADIR):
+            os.makedirs(SensationTestCase.DATADIR)
+            
+        try:
+            with open(SensationTestCase.PATH_TO_PICLE_FILE, "wb") as f2:
+                try:
+                    pickler = pickle.Pickler(f2, -1)
+                    pickler.dump(Sensation.VERSION)
+                    pickler.dump(sensation)
+                except IOError as e:
+                    self.assertTrue(False,'pickler.dump(sensation) IOError ' + str(e))
+                except pickle.PickleError as e:
+                    self.assertTrue(False,'pickler.dump(sensation) PickleError ' + str(e))
+                except pickle.PicklingError as e:
+                    self.assertTrue(False,'pickler.dump(sensation) PicklingError ' + str(e))
+
+                finally:
+                    f2.close()
+        except Exception as e:
+                self.assertTrue(False,"saveLongTermMemory open(fileName, wb) as f2 error " + str(e))
+                
+        # load
+        if os.path.exists(Sensation.DATADIR):
+            try:
+                with open(SensationTestCase.PATH_TO_PICLE_FILE, "rb") as f:
+                    try:
+                        version = pickle.load(f)
+                        if version == Sensation.VERSION:
+                            loadedSensation = pickle.load(f)
+                            print('sensation loaded')
+                            self.assertEqual(sensation, loadedSensation, "dumped and loaded Sensation should be equal")
+                        else:
+                            print("Sensation could not be loaded. because Sensation cache version {} does not match current sensation version {}".format(version,Sensation.VERSION))
+                    except IOError as e:
+                        self.assertTrue(False,"pickle.load(f) error " + str(e))
+                    except pickle.PickleError as e:
+                        self.assertTrue(False,'pickle.load(f) PickleError ' + str(e))
+                    except pickle.PicklingError as e:
+                        self.assertTrue(False,'pickle.load(f) PicklingError ' + str(e))
+                    except Exception as e:
+                        self.assertTrue(False,'pickle.load(f) Exception ' + str(e))
+                    finally:
+                        f.close()
+            except Exception as e:
+                    self.assertTrue(False,'with open(' + Sensation.PATH_TO_PICLE_FILE + ',"rb") as f error ' + str(e))
+
+        print("\ndo_Test_Picleability OK\n")
+
 
         
 if __name__ == '__main__':

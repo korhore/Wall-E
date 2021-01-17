@@ -413,7 +413,7 @@ class Communication(Robot):
                             candidate_for_communication_item, candidate_for_voice, candidate_for_voice_association,\
                                                               candidate_for_image, candidate_for_image_association = \
                                 self.getMemory().getMostImportantCommunicationSensations( 
-                                                                     robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
+                                                                     #robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
                                                                      robotMainNames=self.getMainNames(),
                                                                      name = name,
                                                                      timemin = None,
@@ -449,7 +449,7 @@ class Communication(Robot):
                             self.mostImportantItemSensation, self.mostImportantVoiceSensation, self.mostImportantVoiceAssociation,\
                                                              self.mostImportantImageSensation, self.mostImportantImageAssociation =\
                                 self.getMemory().getMostImportantCommunicationSensations( 
-                                                                     robotType = Sensation.RobotType.Sense,
+                                                                     #robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
                                                                      robotMainNames=self.getMainNames(),
                                                                      name = None,
                                                                      timemin = None,

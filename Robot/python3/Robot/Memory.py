@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 13.01.2021
+Edited on 17.01.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -44,6 +44,7 @@ from Sensation import Sensation
     
 
 class Memory(object):
+         
     MIN_CACHE_MEMORABILITY = 0.1                            # starting value of min memorability in sensation cache
     min_cache_memorability = MIN_CACHE_MEMORABILITY          # current value min memorability in sensation cache
     MAX_MIN_CACHE_MEMORABILITY = 1.6                         # max value of min memorability in sensation cache we think application does something sensible
@@ -72,8 +73,6 @@ class Memory(object):
         self._presentItemSensations={}           # present item.name sensations
         self.sharedSensationHosts = []          # hosts with we have already shared our sensations NOTE not used, logic removed or idea is not yet implemented?
                                                 # NOTE sharedSensationHosts is used in Robot do don't remove this variable
-
-
                                        
         self.memoryLock = ReadWriteLock()       # for thread_safe Sensation cache
         
@@ -269,7 +268,7 @@ class Memory(object):
     
     def addToSensationMemory(self, sensation):
         self.memoryLock.acquireWrite()  # thread_safe                                     
-        self.forgetLessImportantSensations()        
+        self.forgetLessImportantSensations()
         self.sensationMemory.append(sensation)        
         self.memoryLock.releaseWrite()  # thread_safe
         
@@ -436,7 +435,6 @@ class Memory(object):
         return None
 
     def getSensationsFromSensationMemory(self, associationId):
-        #self.memoryLock.acquireRead()                  # read thread_safe
         sensations=[]
         self.memoryLock.acquireRead()                  # read thread_safe
         for sensation in self.sensationMemory:
@@ -444,7 +442,7 @@ class Memory(object):
                 associationId in sensation.getAssociationIds():
                 if not sensation in sensations:
                     sensations.append(sensation)
-        memoryLock.releaseRead()                  # read thread_safe
+        self.memoryLock.releaseRead()                  # read thread_safe
         return sensations
                      
     '''
@@ -874,12 +872,12 @@ class Memory(object):
         if imageSensation != None:
             self.log(logStr="getMostImportantSensation found imageSensation {} {}".format(imageSensation.toDebugStr(),bestImageAssociationSensationImportance), logLevel=Memory.MemoryLogLevel.Normal)            
                                     
-        self.memoryLock.releaseRead()                  # read thread_safe
         if itemSensation is not None:
             assert itemSensation.getDataId() not in ignoredSensations
         if voiceSensation is not None:
             assert voiceSensation.getDataId() not in ignoredSensations
 
+        self.memoryLock.releaseRead()                  # read thread_safe
         return itemSensation, voiceSensation, voiceAssociation, imageSensation, imageAssociation
 
 # deprecated   
@@ -927,7 +925,7 @@ class Memory(object):
                     if bestSensation is None or\
                        associatedSensation.getImportance() > bestSensation.getImportance():
                         bestSensation = associatedSensation
-        memoryLock.releaseRead()                  # read thread_safe
+        self.memoryLock.releaseRead()                  # read thread_safe
         return bestSensation
 
     '''
@@ -944,8 +942,11 @@ class Memory(object):
             self.sensationMemory[i].attachedBy = []
             if self.sensationMemory[i].getMemoryType() == Sensation.MemoryType.LongTerm and\
                self.sensationMemory[i].getMemorability() >  Sensation.MIN_CACHE_MEMORABILITY:
-                self.sensationMemory[i].attachedBy = [] # clear references to Robots
-                                          # they are not valid wlen loaded and they cannoc be dumped
+                # remove connection to Robot
+                # Robot is Thread and cannoc be dumped
+                self.sensationMemory[i].detachAll()
+                self.sensationMemory[i].robot= None
+
                 self.sensationMemory[i].save()
                 i=i+1
             else:

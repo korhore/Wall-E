@@ -2309,6 +2309,13 @@ class Sensation(object):
             self.attachedBy.remove(robot)
 
     '''
+        Detach a Sensation fron all its attached Robots
+    '''
+    def detachAll(self):
+        self.attachedBy = []
+#         for robot in self.attachedBy:
+#             self.detach(robot)
+    '''
     get attached Robots
     '''            
     def getAttachedBy(self):
