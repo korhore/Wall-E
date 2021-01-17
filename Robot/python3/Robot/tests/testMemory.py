@@ -1,6 +1,6 @@
 '''
 Created on 12.04.2020
-Updated on 07.07.2020
+Updated on 17.01.2021
 @author: reijo.korhonen@gmail.com
 
 test Memory class
@@ -726,8 +726,27 @@ class MemoryTestCase(unittest.TestCase):
                
 
         print("\ntest_Bytes DONE")
+        
+    def test_Picleability(self):
+        print("\ntest_Picleability\n")
+        
+        originalSensations=[]
+        for sensation in self.memory.sensationMemory:
+            if sensation.getMemoryType() == Sensation.MemoryType.LongTerm and\
+               sensation.getMemorability() >  Sensation.MIN_CACHE_MEMORABILITY:
+                originalSensations.append(sensation)
 
-
+        self.memory.saveLongTermMemory()
+        del self.memory.sensationMemory[:]
+        
+        self.memory.loadLongTermMemory()
+        
+        self.assertEqual(len(self.memory.sensationMemory),len(originalSensations), "should load sama amount Sensations")
+        i=0
+        while i < len(self.memory.sensationMemory):
+            self.assertEqual(self.memory.sensationMemory[i],originalSensations[i], "loaded sensation must be same than dumped one")
+            i=i+1
+ 
         
 if __name__ == '__main__':
     unittest.main()
