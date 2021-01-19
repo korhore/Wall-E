@@ -21,10 +21,9 @@ usb-microphone hardware.
 
 '''
 import time as systemTime
-#import alsaaudio
 
 from threading import Thread
-from threading import Timer
+#from threading import Timer
 
 
 from Robot import Robot

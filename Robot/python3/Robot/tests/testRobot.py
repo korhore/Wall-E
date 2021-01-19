@@ -18,6 +18,7 @@ When implemented, update test
 
 '''
 import time as time
+import os
 
 import unittest
 from Sensation import Sensation
@@ -133,6 +134,7 @@ class RobotTestCase(unittest.TestCase):
     
     def setUp(self):
         print('\nsetUp')
+        self.CleanDataDirectory()
         
         
         # set robots to same location
@@ -195,6 +197,24 @@ class RobotTestCase(unittest.TestCase):
         self.setCapabilities(robot=self.muscle, robotTypes=[Sensation.RobotType.Sense])
         #self.setCapabilities(robot=self.muscle, robotType=Sensation.RobotType.Muscle, is_set=False)
 
+    '''
+    Clean data directory from bi9nary files files.
+    Test needs this so known sensations are only created
+    '''  
+    def CleanDataDirectory(self):
+        # load sensation data from files
+        print('CleanDataDirectory')
+        if os.path.exists(Sensation.DATADIR):
+            try:
+                for filename in os.listdir(Sensation.DATADIR):
+                    if filename.endswith('.'+Sensation.BINARY_FORMAT):
+                        filepath = os.path.join(Sensation.DATADIR, filename)
+                        try:
+                            os.remove(filepath)
+                        except Exception as e:
+                            print('os.remove(' + filepath + ') error ' + str(e), logLevel=Memory.MemoryLogLevel.Normal)
+            except Exception as e:
+                    print('os.listdir error ' + str(e), logLevel=Memory.MemoryLogLevel.Normal)
 
     def setUpRemote(self, mainNames):
         print('\nsetUpRemote')

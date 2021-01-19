@@ -1479,6 +1479,28 @@ class SensationTestCase(unittest.TestCase):
 
         print("\ndo_Test_Picleability OK\n")
 
+    '''
+    test save and load to binary file
+    '''
+        
+    def test_Save(self):
+        print("\ntest_Picleability\n")
+
+        print("Basic constructor without Robot")
+        memory = Memory(robot = None,                          # owner robot
+                        maxRss = Memory.maxRss,
+                        minAvailMem = Memory.minAvailMem)
+
+        sensation = Sensation(memory=memory, robotId=0.0)
+        sensation.save()
+        
+        binaryFilePath = sensation.getFilePathByFormat(format=Sensation.BINARY_FORMAT)
+
+        self.assertTrue(os.path.exists(binaryFilePath), "Binary file {} should exist".format(binaryFilePath))
+        loadedSensation = Sensation(memory=memory,
+                                    robotId=0.0,
+                                    binaryFilePath=binaryFilePath)
+        self.assertEqual(sensation, loadedSensation, "Loaded sensation should be equal to original one")
 
         
 if __name__ == '__main__':

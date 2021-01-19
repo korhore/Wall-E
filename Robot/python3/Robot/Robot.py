@@ -314,7 +314,7 @@ class Robot(Thread):
                        
         # in main robot, set up LongTerm Memory and set up TCPServer
         if self.level == 1:                                                            
-            self.getMemory().loadLongTermMemory()
+            self.getMemory().loadLongTermMemoryFromBinaryFiles()# loadLongTermMemory()
             self.getMemory().CleanDataDirectory()
             
             self.tcpServer=TCPServer(mainRobot=self.getMainRobot(),
@@ -726,7 +726,9 @@ class Robot(Thread):
             self.activityAverage = self.shortActivityAverage = self.config.getActivityAvegageLevel()
             self.activityNumber = 0
             self.activityPeriodStartTime = time.time()
-            Timer(interval=Robot.ACTIVITE_LOGGING_INTERVAL, function=self.logActivity).start()
+
+            self.timer = Timer(interval=Robot.ACTIVITE_LOGGING_INTERVAL, function=self.logActivity)
+            self.timer.start()
             
         # live until stopped
         self.mode = Sensation.Mode.Normal
@@ -754,7 +756,10 @@ class Robot(Thread):
         self.deInitRobot()
  
         self.mode = Sensation.Mode.Stopping
-        self.log(logLevel=Robot.LogLevel.Normal, logStr="Stopping robot")      
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="Stopping robot")
+        if self.level == 1:
+           self.timer.cancel()
+        
 
          # stop virtual instances here, when main instance is not running any more
         for robot in self.subInstances:
@@ -798,7 +803,7 @@ class Robot(Thread):
                 time.sleep(Robot.STOPWAIT)
                 i = i+1    
             # finally save memories
-            self.getMemory().saveLongTermMemory()
+            self.getMemory().saveLongTermMemoryToBinaryFiles()#saveLongTermMemory()
         elif self.getInstanceType() == Sensation.InstanceType.Virtual:
             i=0
             while i < Robot.STOPWAIT and self.identity.isAlive():
@@ -848,7 +853,8 @@ class Robot(Thread):
         if self.running:
             self.activityNumber = 0
             self.activityPeriodStartTime = time.time()
-            Timer(interval=Robot.ACTIVITE_LOGGING_INTERVAL, function=self.logActivity).start()
+            self.timer = Timer(interval=Robot.ACTIVITE_LOGGING_INTERVAL, function=self.logActivity)
+            self.timer.start()
         
     '''
     get Feeling of MainRobot

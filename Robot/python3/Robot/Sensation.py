@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 10.01.2021
+Edited on 19.01.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -38,7 +38,7 @@ Sensation is something Robot senses
 '''
 
 class Sensation(object):
-    VERSION=22          # version number to check, if we picle same version
+    VERSION=22          # version number to check, if we picle or bytes same version
                         # instances. Otherwise we get odd errors, with old
                         # version code instances
 
@@ -53,6 +53,8 @@ class Sensation(object):
     DATADIR =           'data'
     VOICE_FORMAT =      'wav'
     PICLE_FILENAME =    'Sensation.pkl'
+    BINARY_FORMAT =     'bin'
+    
     PATH_TO_PICLE_FILE = os.path.join(DATADIR, PICLE_FILENAME)
     LOWPOINT_NUMBERVARIANCE=-100.0
     HIGHPOINT_NUMBERVARIANCE=100.0
@@ -635,6 +637,7 @@ class Sensation(object):
                  associations=None,
                  sensation=None,
                  bytes=None,
+                 binaryFilePath=None,
                  id=None,
                  dataId=None,
                  time=None,
@@ -833,194 +836,222 @@ class Sensation(object):
             self.receivedFrom=[]
             self.addReceivedFrom(receivedFrom)
             
+        if binaryFilePath != None:
+            try:
+                if os.path.exists(binaryFilePath):
+                    try:
+                        with open(binaryFilePath, "rb") as f:
+                            try:
+                                bytes = f.read()
+                            except IOError as e:
+                                print("Sensation bytes = f.read({}) error {}".binaryFilePath, format(str(e)))
+                                bytes = None
+                            finally:
+                                f.close()
+                    except Exception as e:
+                        print("Sensation bytes open({}), rb) as f error {}".format(binaryFilePath, str(e)))
+                        bytes = None
+            except Exception as e:
+                print('os.path.exists({}) error {}'.format(binaryFilePath, str(e)))
 
         if bytes != None:
             try:
                 l=len(bytes)
                 i=0
 #                yougestTime=0.0
-
-                self.robotId = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-                i += Sensation.FLOAT_PACK_SIZE
-                
-                self.id = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-                i += Sensation.FLOAT_PACK_SIZE
-                
-                self.dataId = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-                i += Sensation.FLOAT_PACK_SIZE
-                
-                self.time = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-#                yougestTime=self.time
-                i += Sensation.FLOAT_PACK_SIZE
-
-                self.memoryType = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
-                #print("memoryType " + str(memoryType))
-                i += Sensation.ENUM_SIZE
-                
-                self.sensationType = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
-                #print("sensationType " + str(sensationType))
-                i += Sensation.ENUM_SIZE
-                
-                self.robotType = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
-                #print("robotType " + str(robotType))
-                i += Sensation.ENUM_SIZE
-                                    
-                self.feeling = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER, signed=True)
-                i += Sensation.ID_SIZE
-                
-                # locations
-                locations_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
-                #print("locations_size " + str(locations_size))
-                i += Sensation.ID_SIZE
-                self.locations=Sensation.bytesToList(bytes[i:i+locations_size])
-                i += locations_size
-                                
-#                 # isCommunication
-#                 self.isCommunication =  Sensation.intToBoolean(bytes[i])
-#                 i += Sensation.ENUM_SIZE
-                                
-                # mainNames
-                mainNames_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
-                #print("mainNames_size " + str(mainNames_size))
-                i += Sensation.ID_SIZE
-                self.mainNames=Sensation.bytesToList(bytes[i:i+mainNames_size])
-                i += mainNames_size
-                                
-                if self.sensationType is Sensation.SensationType.Drive:
-                    self.leftPower = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-                    i += Sensation.FLOAT_PACK_SIZE
-                    self.rightPower = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-                    i += Sensation.FLOAT_PACK_SIZE
-                elif self.sensationType is Sensation.SensationType.HearDirection:
-                    self.hearDirection = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-                    i += Sensation.FLOAT_PACK_SIZE
-                elif self.sensationType is Sensation.SensationType.Azimuth:
-                    self.azimuth = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-                    i += Sensation.FLOAT_PACK_SIZE
-                elif self.sensationType is Sensation.SensationType.Acceleration:
-                    self.x = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-                    i += Sensation.FLOAT_PACK_SIZE
-                    self.y = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-                    i += Sensation.FLOAT_PACK_SIZE
-                    self.z = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-                    i += Sensation.FLOAT_PACK_SIZE
-                elif self.sensationType is Sensation.SensationType.Location:
-                    self.x = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-                    i += Sensation.FLOAT_PACK_SIZE
-                    self.y = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-                    i += Sensation.FLOAT_PACK_SIZE
-                    self.z = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-                    i += Sensation.FLOAT_PACK_SIZE
-                    self.radius = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                #Version of bytes
+                b =  Sensation.VERSION.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
+                version = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER)
+                if version == Sensation.VERSION:    # if same versionof bytes
+                    i += Sensation.ID_SIZE
+    
+                    self.robotId = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
                     
-                    name_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
-                    i += Sensation.ID_SIZE
-                    self.name =Sensation.bytesToStr(bytes[i:i+name_size])
-                    i += name_size
-                elif self.sensationType is Sensation.SensationType.Observation:
-                    self.observationDirection = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    self.id = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
-                    self.observationDistance = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    
+                    self.dataId = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
-                elif self.sensationType is Sensation.SensationType.Voice:
-                    filePath_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
-                    #print("filePath_size " + str(filePath_size))
-                    i += Sensation.ID_SIZE
-                    self.filePath =Sensation.bytesToStr(bytes[i:i+filePath_size])
-                    i += filePath_size
-                    data_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
-                    #print("data_size " + str(data_size))
-                    i += Sensation.ID_SIZE
-                    self.data = bytes[i:i+data_size]
-                    i += data_size
-                    self.kind = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                    
+                    self.time = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+    #                yougestTime=self.time
+                    i += Sensation.FLOAT_PACK_SIZE
+    
+                    self.memoryType = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                    #print("memoryType " + str(memoryType))
                     i += Sensation.ENUM_SIZE
-                elif self.sensationType is Sensation.SensationType.Image:
-                    filePath_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
-                    #print("filePath_size " + str(filePath_size))
-                    i += Sensation.ID_SIZE
-                    self.filePath =Sensation.bytesToStr(bytes[i:i+filePath_size])
-                    i += filePath_size
-                    data_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
-                    #print("data_size " + str(data_size))
-                    i += Sensation.ID_SIZE
-                    if data_size > 0:
-                        self.image = PIL_Image.open(io.BytesIO(bytes[i:i+data_size]))
-                    else:
-                        self.image = None
-                    i += data_size
-                elif self.sensationType is Sensation.SensationType.Calibrate:
-                    self.calibrateSensationType = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                    
+                    self.sensationType = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                    #print("sensationType " + str(sensationType))
                     i += Sensation.ENUM_SIZE
-                    if self.calibrateSensationType == Sensation.SensationType.HearDirection:
+                    
+                    self.robotType = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                    #print("robotType " + str(robotType))
+                    i += Sensation.ENUM_SIZE
+                                        
+                    self.feeling = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER, signed=True)
+                    i += Sensation.ID_SIZE
+                    
+                    # locations
+                    locations_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
+                    #print("locations_size " + str(locations_size))
+                    i += Sensation.ID_SIZE
+                    self.locations=Sensation.bytesToList(bytes[i:i+locations_size])
+                    i += locations_size
+                                    
+    #                 # isCommunication
+    #                 self.isCommunication =  Sensation.intToBoolean(bytes[i])
+    #                 i += Sensation.ENUM_SIZE
+                                    
+                    # mainNames
+                    mainNames_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
+                    #print("mainNames_size " + str(mainNames_size))
+                    i += Sensation.ID_SIZE
+                    self.mainNames=Sensation.bytesToList(bytes[i:i+mainNames_size])
+                    i += mainNames_size
+                                    
+                    if self.sensationType is Sensation.SensationType.Drive:
+                        self.leftPower = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                        i += Sensation.FLOAT_PACK_SIZE
+                        self.rightPower = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                        i += Sensation.FLOAT_PACK_SIZE
+                    elif self.sensationType is Sensation.SensationType.HearDirection:
                         self.hearDirection = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                         i += Sensation.FLOAT_PACK_SIZE
-                elif self.sensationType is Sensation.SensationType.Capability:
-                    capabilities_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
-                    #print("capabilities_size " + str(capabilities_size))
+                    elif self.sensationType is Sensation.SensationType.Azimuth:
+                        self.azimuth = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                        i += Sensation.FLOAT_PACK_SIZE
+                    elif self.sensationType is Sensation.SensationType.Acceleration:
+                        self.x = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                        i += Sensation.FLOAT_PACK_SIZE
+                        self.y = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                        i += Sensation.FLOAT_PACK_SIZE
+                        self.z = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                        i += Sensation.FLOAT_PACK_SIZE
+                    elif self.sensationType is Sensation.SensationType.Location:
+                        self.x = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                        i += Sensation.FLOAT_PACK_SIZE
+                        self.y = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                        i += Sensation.FLOAT_PACK_SIZE
+                        self.z = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                        i += Sensation.FLOAT_PACK_SIZE
+                        self.radius = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                        i += Sensation.FLOAT_PACK_SIZE
+                        
+                        name_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
+                        i += Sensation.ID_SIZE
+                        self.name =Sensation.bytesToStr(bytes[i:i+name_size])
+                        i += name_size
+                    elif self.sensationType is Sensation.SensationType.Observation:
+                        self.observationDirection = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                        i += Sensation.FLOAT_PACK_SIZE
+                        self.observationDistance = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                        i += Sensation.FLOAT_PACK_SIZE
+                    elif self.sensationType is Sensation.SensationType.Voice:
+                        filePath_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
+                        #print("filePath_size " + str(filePath_size))
+                        i += Sensation.ID_SIZE
+                        self.filePath =Sensation.bytesToStr(bytes[i:i+filePath_size])
+                        i += filePath_size
+                        data_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
+                        #print("data_size " + str(data_size))
+                        i += Sensation.ID_SIZE
+                        self.data = bytes[i:i+data_size]
+                        i += data_size
+                        self.kind = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                        i += Sensation.ENUM_SIZE
+                    elif self.sensationType is Sensation.SensationType.Image:
+                        filePath_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
+                        #print("filePath_size " + str(filePath_size))
+                        i += Sensation.ID_SIZE
+                        self.filePath =Sensation.bytesToStr(bytes[i:i+filePath_size])
+                        i += filePath_size
+                        data_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
+                        #print("data_size " + str(data_size))
+                        i += Sensation.ID_SIZE
+                        if data_size > 0:
+                            self.image = PIL_Image.open(io.BytesIO(bytes[i:i+data_size]))
+                        else:
+                            self.image = None
+                        i += data_size
+                    elif self.sensationType is Sensation.SensationType.Calibrate:
+                        self.calibrateSensationType = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                        i += Sensation.ENUM_SIZE
+                        if self.calibrateSensationType == Sensation.SensationType.HearDirection:
+                            self.hearDirection = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                            i += Sensation.FLOAT_PACK_SIZE
+                    elif self.sensationType is Sensation.SensationType.Capability:
+                        capabilities_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
+                        #print("capabilities_size " + str(capabilities_size))
+                        i += Sensation.ID_SIZE
+                        self.capabilities = Capabilities(bytes=bytes[i:i+capabilities_size])
+                        i += capabilities_size
+                    elif self.sensationType is Sensation.SensationType.Item:
+                        name_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
+                        i += Sensation.ID_SIZE
+                        self.name =Sensation.bytesToStr(bytes[i:i+name_size])
+                        i += name_size
+                                            
+                        self.score = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                        i += Sensation.FLOAT_PACK_SIZE
+                        
+                        self.presence = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                        i += Sensation.ENUM_SIZE
+                    elif self.sensationType is Sensation.SensationType.Feeling:
+                        firstAssociateSensation_id=Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                        i += Sensation.FLOAT_PACK_SIZE
+                        self.firstAssociateSensation = memory.getSensationFromSensationMemory(id=firstAssociateSensation_id)
+                        
+                        otherAssociateSensation_id=Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                        i += Sensation.FLOAT_PACK_SIZE
+                        self.otherAssociateSensation = memory.getSensationFromSensationMemory(id=otherAssociateSensation_id)
+                        
+                        self.positiveFeeling =  Sensation.intToBoolean(bytes[i])
+                        i += Sensation.ENUM_SIZE
+                        
+                        self.negativeFeeling = Sensation.intToBoolean(bytes[i])
+                        i += Sensation.ENUM_SIZE
+                        
+                    association_id = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
+                    #print("association_id " + str(association_id))
                     i += Sensation.ID_SIZE
-                    self.capabilities = Capabilities(bytes=bytes[i:i+capabilities_size])
-                    i += capabilities_size
-                elif self.sensationType is Sensation.SensationType.Item:
-                    name_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
+                    for j in range(association_id):
+                        sensation_id = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                        i += Sensation.FLOAT_PACK_SIZE
+                   
+                        time = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+    #                    if time > yougestTime:
+    #                        yougestTime=time
+                        i += Sensation.FLOAT_PACK_SIZE
+                    
+                        feeling = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER, signed=True)
+                        i += Sensation.ID_SIZE
+    
+                        # should not associate yet, but let Memory choose if we use this instance of
+                        # sensation with its associations or keep old instance, if we already have a copy
+                        # of sensation with this id in our memory
+                        self.potentialAssociations.append(Sensation.AssociationSensationIds(sensation_id=sensation_id,
+                                                                                            time=time,
+                                                                                            feeling=feeling))
+                                       
+                    #  at the end receivedFrom (list of words)
+                    receivedFrom_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
+                    #print("receivedFrom_size " + str(receivedFrom_size))
                     i += Sensation.ID_SIZE
-                    self.name =Sensation.bytesToStr(bytes[i:i+name_size])
-                    i += name_size
-                                        
-                    self.score = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-                    i += Sensation.FLOAT_PACK_SIZE
+                    self.receivedFrom=Sensation.bytesToList(bytes[i:i+receivedFrom_size])
+                    i += receivedFrom_size
                     
-                    self.presence = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
-                    i += Sensation.ENUM_SIZE
-                elif self.sensationType is Sensation.SensationType.Feeling:
-                    firstAssociateSensation_id=Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-                    i += Sensation.FLOAT_PACK_SIZE
-                    self.firstAssociateSensation = memory.getSensationFromSensationMemory(id=firstAssociateSensation_id)
-                    
-                    otherAssociateSensation_id=Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-                    i += Sensation.FLOAT_PACK_SIZE
-                    self.otherAssociateSensation = memory.getSensationFromSensationMemory(id=otherAssociateSensation_id)
-                    
-                    self.positiveFeeling =  Sensation.intToBoolean(bytes[i])
-                    i += Sensation.ENUM_SIZE
-                    
-                    self.negativeFeeling = Sensation.intToBoolean(bytes[i])
-                    i += Sensation.ENUM_SIZE
-                    
-                association_id = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
-                #print("association_id " + str(association_id))
-                i += Sensation.ID_SIZE
-                for j in range(association_id):
-                    sensation_id = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-                    i += Sensation.FLOAT_PACK_SIZE
-               
-                    time = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-#                    if time > yougestTime:
-#                        yougestTime=time
-                    i += Sensation.FLOAT_PACK_SIZE
-                
-                    feeling = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER, signed=True)
-                    i += Sensation.ID_SIZE
+                    # TODO Decide here is we should return this sensation or a copy of old one
+                    # but should we check it here or elsewhere
+                else:
+                    # other version of Sensation
+                    # We can only mark this to fail
+                    self.sensationType = Sensation.SensationType.UnknownDrive                
 
-                    # should not associate yet, but let Memory choose if we use this instance of
-                    # sensation with its associations or keep old instance, if we already have a copy
-                    # of sensation with this id in our memory
-                    self.potentialAssociations.append(Sensation.AssociationSensationIds(sensation_id=sensation_id,
-                                                                                        time=time,
-                                                                                        feeling=feeling))                
             except (ValueError):
                 self.sensationType = Sensation.SensationType.Unknown
-                
-           #  at the end receivedFrom (list of words)
-            receivedFrom_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
-            #print("receivedFrom_size " + str(receivedFrom_size))
-            i += Sensation.ID_SIZE
-            self.receivedFrom=Sensation.bytesToList(bytes[i:i+receivedFrom_size])
-            i += receivedFrom_size
-            
-            # TODO Decide here is we should return this sensation or a copy of old one
-            # but should we check it here or elsewhere
+                    
             
     '''
     set base fields
@@ -1523,7 +1554,10 @@ class Sensation(object):
 
     def bytes(self):
 #        b = self.id.to_bytes(Sensation.ID_SIZE, byteorder=Sensation.BYTEORDER)
-        b = Sensation.floatToBytes(self.robotId)
+        #Version of bytes
+        b =  Sensation.VERSION.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
+
+        b += Sensation.floatToBytes(self.robotId)
         b += Sensation.floatToBytes(self.id)
         b += Sensation.floatToBytes(self.dataId)
         b += Sensation.floatToBytes(self.time)
@@ -1532,24 +1566,12 @@ class Sensation(object):
         b += Sensation.strToBytes(self.robotType)
         b += self.feeling.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER, signed=True)
         
-#         location_size=len(self.getLocation())
-#         b +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
-#         b +=  Sensation.strToBytes(self.getLocation())
-        # location is deprecated
-        #b += Sensation.listToBytes(self.locations)
-       #  at the end receivedFrom (list of words)
         blist = Sensation.listToBytes(self.locations)
         #print(' blist ' +str(blist))
         blist_size=len(blist)
         b +=  blist_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
         b += blist
         
-#         location_size=len(self.locations)
-#         b +=  location_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
-#         b +=  Sensation.strToBytes(self.locations)
-
-#        b +=  Sensation.booleanToBytes(self.isCommunication)
-
         blist = Sensation.listToBytes(self.mainNames)
         #print(' blist ' +str(blist))
         blist_size=len(blist)
@@ -2329,6 +2351,12 @@ class Sensation(object):
         return len(self.attachedBy) == 0
 
     '''
+    helper method to get binary file name
+    '''
+    def getFilePathByFormat(self, format):
+        return '{}/{}.{}'.format(Sensation.DATADIR, self.getId(), format)
+    
+    '''
     save sensation data permanently
     '''  
     def save(self):
@@ -2371,6 +2399,23 @@ class Sensation(object):
                         print("Sensation.save Voice1 open({}), wb) as f error {}".format(fileName, str(e)))
             except Exception as e:
                 print("Sensation.save Voice2 not os.path.exists({}) error {}".format(fileName, str(e)))
+                
+        binaryFilePath = self.getFilePathByFormat(format=Sensation.BINARY_FORMAT)
+        # update file if exists
+        #try:
+            #if not os.path.exists(binaryFilePath):
+        try:
+            with open(binaryFilePath, "wb") as f:
+                try:
+                    f.write(self.bytes())
+                except IOError as e:
+                    print("Sensation.save f.write(self.bytes()) error {}".format(str(e)))
+                finally:
+                    f.close()
+        except Exception as e:
+             print("Sensation.save open({}), wb) as f error {}".format(binaryFilePath, str(e)))
+        #except Exception as e:
+        #    print('os.path.exists({}) error {}'.format(binaryFilePath, str(e)))
      
     '''
     delete sensation data permanently
@@ -2392,7 +2437,13 @@ class Sensation(object):
                     os.remove(self.getFilePath())
                 except Exception as e:
                     print("os.remove(self.getFilePath() error " + str(e))
-
+                    
+        binaryFilePath = self.getFilePathByFormat(format=Sensation.BINARY_FORMAT)
+        if os.path.exists(binaryFilePath): 
+            try:
+                os.remove(binaryFilePath)
+            except Exception as e:
+                print("os.remove({} error {}".format(binaryFilePath,str(e)))
        
 if __name__ == '__main__':
 

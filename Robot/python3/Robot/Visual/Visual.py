@@ -15,7 +15,7 @@ and give possibility for person to give feedback/communicate with MainRobot
 
 import time as time
 from threading import Thread
-from threading import Timer
+#from threading import Timer
 from PIL import Image as PIL_Image
 import wx
 

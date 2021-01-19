@@ -1,6 +1,6 @@
 '''
 Created on 21.06.2019
-Updated on 13.01.2021
+Updated on 19.01.2021
 @author: reijo.korhonen@gmail.com
 
 test Association class
@@ -9,6 +9,7 @@ python3 -m unittest tests/testCommunication.py
 
 '''
 import time as systemTime
+import os
 
 import unittest
 from Sensation import Sensation
@@ -243,6 +244,8 @@ class CommunicationTestCase(unittest.TestCase):
     
     def setUp(self):
         print('\nsetUp')
+        self.CleanDataDirectory()
+
         Robot.mainRobotInstance = self
         self.mainNames = self.MAINNAMES
         self.axon = Axon(robot=self)
@@ -342,6 +345,24 @@ class CommunicationTestCase(unittest.TestCase):
         self.Eva_image_sensation_association_len = len(self.Eva_image_sensation.getAssociations())
         self.Eva_voice_sensation_association_len = len(self.Eva_voice_sensation.getAssociations())
         
+    '''
+    Clean data directory from bi9nary files files.
+    Test needs this so known sensations are only created
+    '''  
+    def CleanDataDirectory(self):
+        # load sensation data from files
+        print('CleanDataDirectory')
+        if os.path.exists(Sensation.DATADIR):
+            try:
+                for filename in os.listdir(Sensation.DATADIR):
+                    if filename.endswith('.'+Sensation.BINARY_FORMAT):
+                        filepath = os.path.join(Sensation.DATADIR, filename)
+                        try:
+                            os.remove(filepath)
+                        except Exception as e:
+                            print('os.remove(' + filepath + ') error ' + str(e), logLevel=Memory.MemoryLogLevel.Normal)
+            except Exception as e:
+                    print('os.listdir error ' + str(e), logLevel=Memory.MemoryLogLevel.Normal)
         
 
     def tearDown(self):
@@ -1649,10 +1670,12 @@ class CommunicationTestCase(unittest.TestCase):
                     isEmpty=False,
                     muscleImage=Wall_E_image_sensation_4, # or self.Eva_image_sensation, timing dependent
                     isExactMuscleImage=False,
-                    muscleVoice=Wall_E_sense_voice_response_sensation, isExactMuscleVoice=True,
+                    #muscleVoice=Wall_E_sense_voice_response_sensation, isExactMuscleVoice=True,
+                    muscleVoice=self.Eva_voice_sensation, isExactMuscleVoice=True,
                     communicationImage=Wall_E_image_sensation_4, # or self.Eva_image_sensation, timing dependent
                     isExactCommunicationImage=False,
-                    communicationVoice=Wall_E_sense_voice_response_sensation, isExactCommunicationVoice=True,
+                    #communicationVoice=Wall_E_sense_voice_response_sensation, isExactCommunicationVoice=True,
+                    communicationVoice=self.Eva_voice_sensation, isExactCommunicationVoice=True,
                     isVoiceFeeling=True,
                     isImageFeeling=True,
                     isPositiveFeeling=True)
@@ -1681,9 +1704,11 @@ class CommunicationTestCase(unittest.TestCase):
         self.expect(name='response, Wall_E_sense_voice_response_sensation, no image',
                     isEmpty=False,
                     muscleImage=Wall_E_image_sensation_3,# What we get? It is not set to our directory
-                    muscleVoice=Wall_E_sense_voice_response_sensation_2, isExactMuscleVoice=True,
+                    #muscleVoice=Wall_E_sense_voice_response_sensation_2, isExactMuscleVoice=True,
+                    muscleVoice=Wall_E_voice_sensation_4, isExactMuscleVoice=True,
                     communicationImage=Wall_E_image_sensation_3,# What we get? It is not set to our directory
-                    communicationVoice=Wall_E_sense_voice_response_sensation_2, isExactCommunicationVoice=True,
+                    #communicationVoice=Wall_E_sense_voice_response_sensation_2, isExactCommunicationVoice=True,
+                    communicationVoice=Wall_E_voice_sensation_4, isExactCommunicationVoice=True,
                     isVoiceFeeling=True,
                     isImageFeeling=True,
                     isPositiveFeeling=True)
@@ -1794,7 +1819,7 @@ class CommunicationTestCase(unittest.TestCase):
             isImageFeelingStillExpected = isImageFeeling
             while(not self.getAxon().empty()):
                 tranferDirection, sensation = self.getAxon().get()
-                self.printSensationNameById(dataId=sensation.getDataId(), note="expect got")
+                self.printSensationNameById(dataId=sensation.getDataId(), note=name + " expect got")
                 if sensation.getSensationType() == Sensation.SensationType.Voice:
                     if sensation.getRobotType() == Sensation.RobotType.Muscle:
                         gotMuscleVoice=sensation
@@ -1807,7 +1832,7 @@ class CommunicationTestCase(unittest.TestCase):
                                 if sensation.getDataId() == muscleVoice.getDataId():
                                     print("exactMuscleVoice was not expected, but got it!")
                                 else:
-                                    self.printSensationNameById(id=sensation.getId(), note="exactMuscleVoice was not expected, got other Voice")
+                                    self.printSensationNameById(id=sensation.getId(), note=name + " exactMuscleVoice was not expected, got other Voice")
                         else:
                             self.assertTrue(False,"got unexpected Muscle Voice")
                     elif sensation.getRobotType() == Sensation.RobotType.Communication:
@@ -1821,7 +1846,7 @@ class CommunicationTestCase(unittest.TestCase):
                                 if sensation.getDataId() == communicationVoice.getDataId():
                                     print("exactCommunicationVoice was not expected, but got it!")
                                 else:
-                                    self.printSensationNameById(id=sensation.getId(), note="exactCommunicationVoice was not expected, got other Voice")
+                                    self.printSensationNameById(id=sensation.getId(), note=name + " exactCommunicationVoice was not expected, got other Voice")
                         else:
                             self.assertTrue(False,"got unexpected Communication Voice")
                     else:
@@ -1838,7 +1863,7 @@ class CommunicationTestCase(unittest.TestCase):
                                 if sensation.getDataId() == muscleImage.getDataId():
                                     print("exactMuscleImage was not expected, but got it!")
                                 else:
-                                    self.printSensationNameById(id=sensation.getId(), note="exactMuscleImage was not expected, got other Image")
+                                    self.printSensationNameById(id=sensation.getId(), note=name + " exactMuscleImage was not expected, got other Image")
                         else:
                             self.assertTrue(False,"got unexpected Muscle Image")
                     elif sensation.getRobotType() == Sensation.RobotType.Communication:
@@ -1852,7 +1877,7 @@ class CommunicationTestCase(unittest.TestCase):
                                 if sensation.getDataId() == communicationImage.getDataId():
                                     print("exactCommunicationImage was not expected, but got it!")
                                 else:
-                                    self.printSensationNameById(id=sensation.getId(), note="exactCommunicationImage was not expected, got other Image")
+                                    self.printSensationNameById(id=sensation.getId(), note=name + " exactCommunicationImage was not expected, got other Image")
                         else:
                             self.assertTrue(False,"got unexpected Communication Image")
                     else:

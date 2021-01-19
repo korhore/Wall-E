@@ -9,6 +9,7 @@ python3 -m unittest tests/testMemory.py
 
 '''
 import time as systemTime
+import os
 import unittest
 from Sensation import Sensation
 from Robot import Robot
@@ -27,8 +28,12 @@ class MemoryTestCase(unittest.TestCase):
     OLDER_LONGTERM_ITEM_NAME =      "older LongTerm bytes_test"
 
     def setUp(self):
+        self.CleanDataDirectory()
         self.robot=Robot(mainRobot=None)
         self.memory = self.robot.getMemory()
+        # To test, we should know what is in memory, 
+        # we should clear Sensation memory from binary files loaded sensation
+        del self.memory.sensationMemory[:]
         
         
         self.sensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Sensory,
@@ -36,8 +41,27 @@ class MemoryTestCase(unittest.TestCase):
         self.assertEqual(self.sensation.getPresence(), Sensation.Presence.Entering, "should be entering")
         self.assertIsNot(self.sensation, None)
         self.assertEqual(len(self.sensation.getAssociations()), 0)
-        #print('\nlogAssociations 1: setUp')
         Sensation.logAssociations(self.sensation)
+        
+    '''
+    Clean data directory from bi9nary files files.
+    Test needs this so known sensations are only created
+    '''  
+    def CleanDataDirectory(self):
+        # load sensation data from files
+        print('CleanDataDirectory')
+        if os.path.exists(Sensation.DATADIR):
+            try:
+                for filename in os.listdir(Sensation.DATADIR):
+                    if filename.endswith('.'+Sensation.BINARY_FORMAT):
+                        filepath = os.path.join(Sensation.DATADIR, filename)
+                        try:
+                            os.remove(filepath)
+                        except Exception as e:
+                            print('os.remove(' + filepath + ') error ' + str(e), logLevel=Memory.MemoryLogLevel.Normal)
+            except Exception as e:
+                    print('os.listdir error ' + str(e), logLevel=Memory.MemoryLogLevel.Normal)
+        
 
     def tearDown(self):
         self.sensation.delete()
@@ -254,7 +278,7 @@ class MemoryTestCase(unittest.TestCase):
                                                       name='Working_Importance_test', score=MemoryTestCase.SCORE, presence=Sensation.Presence.Present)
         self.assertEqual(workingSensation.getPresence(), Sensation.Presence.Present, "should be present")
         self.assertIsNot(workingSensation, None)
-        self.assertEqual(len(workingSensation.getAssociations()), 0)
+        self.assertEqual(len(workingSensation.getAssociations()), 0) # variates
         workingSensation.associate(sensation=self.sensation,
                                    feeling=MemoryTestCase.NORMAL_FEELING)
         Sensation.logAssociations(workingSensation)
@@ -666,7 +690,7 @@ class MemoryTestCase(unittest.TestCase):
         
         olderLongTermSensation.associate(sensation=olderVoiceSensation,
                                          feeling=MemoryTestCase.NORMAL_FEELING)
-        self.assertEqual(len(olderLongTermSensation.getAssociations()), 2)
+        self.assertEqual(len(olderLongTermSensation.getAssociations()), 2) # variates
         olderAssociation = olderLongTermSensation.getAssociation(sensation=olderVoiceSensation)
         self.assertTrue(olderAssociation.getTime() <  systemTime.time(), "should be older than present")
 
@@ -680,7 +704,7 @@ class MemoryTestCase(unittest.TestCase):
         
         youngerLongTermSensation.associate(sensation=youngerVoiceSensation,
                                           feeling=MemoryTestCase.NORMAL_FEELING)
-        self.assertEqual(len(youngerLongTermSensation.getAssociations()), 2)
+        self.assertEqual(len(youngerLongTermSensation.getAssociations()), 2) # variates
         youngerAssociation = youngerLongTermSensation.getAssociation(sensation=youngerVoiceSensation)
         self.assertTrue(youngerAssociation.getTime() <  systemTime.time(), "should be older than present")
         
@@ -727,7 +751,7 @@ class MemoryTestCase(unittest.TestCase):
 
         print("\ntest_Bytes DONE")
         
-    def test_Picleability(self):
+    def re_test_Picleability(self):
         print("\ntest_Picleability\n")
         
         originalSensations=[]
@@ -741,12 +765,34 @@ class MemoryTestCase(unittest.TestCase):
         
         self.memory.loadLongTermMemory()
         
-        self.assertEqual(len(self.memory.sensationMemory),len(originalSensations), "should load sama amount Sensations")
+        self.assertEqual(len(self.memory.sensationMemory),len(originalSensations), "should load same amount Sensations")
         i=0
         while i < len(self.memory.sensationMemory):
             self.assertEqual(self.memory.sensationMemory[i],originalSensations[i], "loaded sensation must be same than dumped one")
             i=i+1
  
+    def test_SaveLoadToBinaryFiles(self):
+        print("\ntest_SaveLoadToBinaryFiles\n")
+        sensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.LongTerm,
+                                                name='test', score=MemoryTestCase.SCORE, presence=Sensation.Presence.Entering)
+        
+        
+        originalSensations=[]
+        for sensation in self.memory.sensationMemory:
+            if sensation.getMemoryType() == Sensation.MemoryType.LongTerm and\
+               sensation.getMemorability() >  Sensation.MIN_CACHE_MEMORABILITY:
+                originalSensations.append(sensation)
+
+        self.memory.saveLongTermMemoryToBinaryFiles()
+        del self.memory.sensationMemory[:]
+        
+        self.memory.loadLongTermMemoryFromBinaryFiles()
+        
+        self.assertEqual(len(self.memory.sensationMemory),len(originalSensations), "should load same amount Sensations")
+        i=0
+        while i < len(self.memory.sensationMemory):
+            self.assertEqual(self.memory.sensationMemory[i],originalSensations[i], "loaded sensation must be same than dumped one")
+            i=i+1
         
 if __name__ == '__main__':
     unittest.main()

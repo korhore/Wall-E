@@ -11,13 +11,24 @@ If in RaspBerryPiCamera config there are location localhost and under it 'locati
 two instances will be created. Ment to test 'sublocations'
 
 picler fails
+We should stop all MainRobot duties like logging activity ...
+- open(fileName, wb) as file error cannot serialize '_io.TextIOWrapper' object
 
 
 Develop
 -------
 
-Remove Sensation.isCommunication
-Add Sensation.RobotType.Communication
+Robot can tell its capabilities to its parent. which creates it.
+This prevents errors in configuration.
+But configurability is still valuable feature. Can both fetures exist same time?
+Maybe we could detect, if there is configuration mentioned in location,
+whoch is usually 'localhost'.
+
+Maybe we set capabilities first programmally and then override them with
+capabiolities found from location section.
+
+OK Remove Sensation.isCommunication
+OK Add Sensation.RobotType.Communication 
 
 Robot is also Item so it can be Preset in locations.
 

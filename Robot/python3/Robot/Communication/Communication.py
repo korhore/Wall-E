@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 14.01.2021
+Updated on 18.01.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -69,7 +69,7 @@ class Communication(Robot):
                                     # we wait until we will respond if
                                     # someone speaks
     SEARCH_LENGTH=10                # How many response voices we check
-    IGNORE_LAST_HEARD_SENSATIONS_LENGTH=2
+    IGNORE_LAST_HEARD_SENSATIONS_LENGTH=5
                                     # How last heard voices we ignore in this conversation, when
                                     # we search best voicess to to pesponse to voices
                                     # This mast be >= 1 for sure, otherwise we are echo

@@ -74,14 +74,16 @@ class VoiceTestCase(unittest.TestCase):
     def setUp(self):
         self.mainNames = self.MAINNAMES
         self.axon = Axon(robot=self) # parent axon
-        self.microphone = Microphone(parent=self,
-                            instanceName='Microphone',
-                            instanceType= Sensation.InstanceType.SubInstance,
-                            level=2)
-        self.playback = Playback(parent=self,
-                            instanceName='Playback',
-                            instanceType= Sensation.InstanceType.SubInstance,
-                            level=2)
+        self.microphone = Microphone( mainRobot=self,
+                                      parent=self,
+                                      instanceName='Microphone',
+                                      instanceType= Sensation.InstanceType.SubInstance,
+                                      level=2)
+        self.playback = Playback(     mainRobot=self,
+                                      parent=self,
+                                      instanceName='Playback',
+                                      instanceType= Sensation.InstanceType.SubInstance,
+                                      level=2)
 
         self.stopSensation = self.microphone.createSensation(memoryType=Sensation.MemoryType.Working,
                                             sensationType=Sensation.SensationType.Stop,

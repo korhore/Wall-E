@@ -13,7 +13,7 @@ import sounddevice as sd
 import numpy
 import math
 
-from threading import Timer
+#from threading import Timer
 
 
 from Robot import Robot

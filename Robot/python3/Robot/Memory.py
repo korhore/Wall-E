@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 17.01.2021
+Edited on 19.01.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -113,6 +113,7 @@ class Memory(object):
                  associations = None,
                  sensation=None,
                  bytes=None,
+                 binaryFilePath=None,
                  id=None,
                  dataId=None,
                  time=None,
@@ -155,6 +156,7 @@ class Memory(object):
                  associations =  associations,
                  sensation=sensation,
                  bytes=bytes,
+                 binaryFilePath=binaryFilePath,
                  id=id,
                  dataId=dataId,
                  robotId=robot.getId(),
@@ -189,7 +191,7 @@ class Memory(object):
                  negativeFeeling = negativeFeeling)
         # if bytes, then same Sensation can live in many memories
         # check if we have a copy and choose newer one and delete older one
-        if bytes != None:
+        if bytes != None and binaryFilePath == None:
             oldSensation = self.getSensationFromSensationMemory(id=sensation.getId())
             if oldSensation is not None:
                 if oldSensation.getTime() > sensation.getTime():
@@ -936,8 +938,147 @@ class Memory(object):
         # save sensations that are memorable to a file
         # there can be LOngTerm sensations in Sensation.sensationMemorys[Sensation.MemoryType.Sensory]
         # because it is allowed to change memoryType rtpe after sensation is created
+        # save sensation instances
+        if not os.path.exists(Sensation.DATADIR):
+            os.makedirs(Sensation.DATADIR)
+
         self.memoryLock.acquireRead()                  # read thread_safe
         i=0
+        while i < len(self.sensationMemory):
+            self.sensationMemory[i].attachedBy = []
+            if self.sensationMemory[i].getMemoryType() == Sensation.MemoryType.LongTerm and\
+               self.sensationMemory[i].getMemorability() >  Sensation.MIN_CACHE_MEMORABILITY:
+#                 # remove connection to Robot
+#                 # Robot is Thread and cannot be dumped
+#                 self.sensationMemory[i].detachAll()
+#                 self.sensationMemory[i].robot= None
+
+                #self.sensationMemory[i].save()
+                i=i+1
+            else:
+                # association to non saved Sensation will be removed
+                self.sensationMemory[i].delete()
+                del self.sensationMemory[i]
+               
+        # save sensation instances
+        for sensation in self.sensationMemory:
+            sensation.save()
+#             
+#             self.sensationMemory[i].attachedBy = []
+#             if self.sensationMemory[i].getMemoryType() == Sensation.MemoryType.LongTerm and\
+#                self.sensationMemory[i].getMemorability() >  Sensation.MIN_CACHE_MEMORABILITY:
+#                 # remove connection to Robot
+#                 # Robot is Thread and cannot be dumped
+#                 self.sensationMemory[i].detachAll()
+#                 self.sensationMemory[i].robot= None
+# 
+#                 #self.sensationMemory[i].save()
+#                 i=i+1
+#  
+#             
+#         try:
+#             with open(Sensation.PATH_TO_PICLE_FILE, "wb") as file:
+#                 try:
+#                     pickler = pickle.Pickler(file, -1)
+#                     pickler.dump(Sensation.VERSION)
+#                     pickler.dump(self.sensationMemory)
+#                     #print ('saveLongTermMemory dumped ' + str(len(Sensation.sensationMemorys[Sensation.MemoryType.LongTerm])))
+#                     self.log(logStr='saveLongTermMemory dumped {} sensations'.format(len(self.sensationMemory)), logLevel=Memory.MemoryLogLevel.Normal)
+#                 except IOError as e:
+#                     self.log(logStr='pickler.dump(Sensation.sensationMemorys[MemoryType.LongTerm]) IOError ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
+#                 except pickle.PickleError as e:
+#                     self.log(logStr='pickler.dump(Sensation.sensationMemorys[MemoryType.LongTerm]) PickleError ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
+#                 except pickle.PicklingError as e:
+#                     self.log(logStr='pickler.dump(Sensation.sensationMemorys[MemoryType.LongTerm]) PicklingError ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
+# 
+#                 finally:
+#                     file.close()
+#         except Exception as e:
+#                 self.log(logStr="saveLongTermMemory open(fileName, wb) as file error " + str(e), logLevel=Memory.MemoryLogLevel.Error)
+        self.memoryLock.releaseRead()                  # read thread_safe
+
+    '''
+    load LongTerm MemoryType sensation instances
+    '''  
+#     def loadLongTermMemory(self):
+#         # load sensation data from files
+#         if os.path.exists(Sensation.DATADIR):
+#             # find binary files
+#             
+#             
+#             self.memoryLock.acquireWrite()                  # write thread_safe
+#             try:
+#                 with open(Sensation.PATH_TO_PICLE_FILE, "rb") as file:
+#                     try:
+#                         # TODO correct later
+#                         # whole Memory
+#                         #Sensation.sensationMemorys[Sensation.MemoryType.LongTerm] = \
+#                         version = pickle.load(file)
+#                         if version == Sensation.VERSION:
+#                             self.sensationMemory = pickle.load(file)
+#                             self.log(logStr='loaded {} sensations'.format(str(len(self.sensationMemory))), logLevel=Memory.MemoryLogLevel.Normal)
+#                             i=0
+#                             while i < len(self.sensationMemory):
+#                                 if  self.sensationMemory[i].getMemorability() <  Sensation.MIN_CACHE_MEMORABILITY:
+#                                     self.log(logStr='delete sensation {} {} with too low memorability {}'.format(i, self.sensationMemory[i].toDebugStr(), self.sensationMemory[i].getMemorability()), logLevel=Memory.MemoryLogLevel.Normal)
+#                                     self.sensationMemory[i].delete()
+#                                     del self.sensationMemory[i]
+#                                 else:
+#                                     i=i+1
+#                             self.log(logStr='after load and verification {}'.format(str(len(self.sensationMemory))), logLevel=Memory.MemoryLogLevel.Normal)
+#                             #print ('{} after load and verification {}'.format(Sensation.getMemoryTypeString(self.sensationMemory), len(self.sensationMemory)))
+#                         else:
+#                             self.log(logStr="Sensation could not be loaded. because Sensation cache version {} does not match current sensation version {}".format(version,Sensation.VERSION), logLevel=Memory.MemoryLogLevel.Normal)
+# # OOPS Commented out, this is mesh
+# #         # save sensation instances
+# #         if not os.path.exists(Sensation.DATADIR):
+# #             os.makedirs(Sensation.DATADIR)
+# #             
+# #         try:
+# #             with open(Sensation.PATH_TO_PICLE_FILE, "wb") as file:
+# #                 try:
+# #                     pickler = pickle.Pickler(file, -1)
+# #                     pickler.dump(Sensation.VERSION)
+# #                     pickler.dump(self.sensationMemory)
+# #                     #print ('saveLongTermMemory dumped ' + str(len(Sensation.sensationMemorys[Sensation.MemoryType.LongTerm])))
+# #                     self.log(logStr='saveLongTermMemory dumped {} sensations'.format(len(self.sensationMemory)), logLevel=Memory.MemoryLogLevel.Normal)
+# # tionMemory[i].getMemorability() <  Sensation.MIN_CACHE_MEMORABILITY:
+# #                                     self.log(logStr='delete sensation {} {} with too low memorability {}'.format(i, self.sensationMemory[i].toDebugStr(), self.sensationMemory[i].getMemorability()), logLevel=Memory.MemoryLogLevel.Normal)
+# #                                     self.sensationMemory[i].delete()
+# #                                     del self.sensationMemory[i]
+# #                                 else:
+# #                                     i=i+1
+# #                             self.log(logStr='after load and verification {}'.format(str(len(self.sensationMemory))), logLevel=Memory.MemoryLogLevel.Normal)
+# #                             #print ('{} after load and verification {}'.format(Sensation.getMemoryTypeString(self.sensationMemory), len(self.sensationMemory)))
+# #                         else:
+# #                             self.log(logStr="Sensation could not be loaded. because Sensation cache version {} does not match current sensation version {}".format(version,Sensation.VERSION), logLevel=Memory.MemoryLogLevel.Normal)
+# #                     except IOError as e:
+# #                         self.log(logStr="pickle.load(file) error " + str(e), logLevel=Memory.MemoryLogLevel.Error)
+# #                     except pickle.PickleError as e:
+# #                         self.log(logStr='pickle.load(file) PickleError ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
+# #                     except pickle.PicklingError as e:
+# #                         self.log(logStr='pickle.load(file) PicklingError ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
+# #                     except Exception as e:
+# #                         self.log(logStr='pickle.load(file) Exception ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
+#                     finally:
+#                         file.close()
+# 
+#                     except Exception as e:
+#                         self.log(logStr='with open(' + Sensation.PATH_TO_PICLE_FILE + ',"rb") as file error ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
+#                         self.memoryLock.releaseWrite()                  # write thread_safe
+
+    '''  
+    save all LongTerm Memory sensation instances and data permanently
+    so they can be loaded, when running app again
+    '''  
+    def saveLongTermMemoryToBinaryFiles(self):
+        # save sensations that are memorable to a file
+        # there can be LOngTerm sensations in Sensation.sensationMemorys[Sensation.MemoryType.Sensory]
+        # because it is allowed to change memoryType rtpe after sensation is created
+        self.memoryLock.acquireRead()                  # read thread_safe
+        i=0
+        savedSensation = 0
+        deletedSensations = 0
         while i < len(self.sensationMemory):
             self.sensationMemory[i].attachedBy = []
             if self.sensationMemory[i].getMemoryType() == Sensation.MemoryType.LongTerm and\
@@ -948,81 +1089,72 @@ class Memory(object):
                 self.sensationMemory[i].robot= None
 
                 self.sensationMemory[i].save()
+                savedSensation = savedSensation+1
                 i=i+1
             else:
                 self.sensationMemory[i].delete()
                 del self.sensationMemory[i]
+                deletedSensations = deletedSensations+1
+        self.log(logStr="saveLongTermMemoryToBinaryFiles saved {}, deleted {} sensation".format(savedSensation,  deletedSensations))
                
-        # save sensation instances
-        if not os.path.exists(Sensation.DATADIR):
-            os.makedirs(Sensation.DATADIR)
-            
-        try:
-            with open(Sensation.PATH_TO_PICLE_FILE, "wb") as file:
-                try:
-                    pickler = pickle.Pickler(file, -1)
-                    pickler.dump(Sensation.VERSION)
-                    pickler.dump(self.sensationMemory)
-                    #print ('saveLongTermMemory dumped ' + str(len(Sensation.sensationMemorys[Sensation.MemoryType.LongTerm])))
-                    self.log(logStr='saveLongTermMemory dumped {} sensations'.format(len(self.sensationMemory)), logLevel=Memory.MemoryLogLevel.Normal)
-                except IOError as e:
-                    self.log(logStr='pickler.dump(Sensation.sensationMemorys[MemoryType.LongTerm]) IOError ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
-                except pickle.PickleError as e:
-                    self.log(logStr='pickler.dump(Sensation.sensationMemorys[MemoryType.LongTerm]) PickleError ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
-                except pickle.PicklingError as e:
-                    self.log(logStr='pickler.dump(Sensation.sensationMemorys[MemoryType.LongTerm]) PicklingError ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
-
-                finally:
-                    file.close()
-        except Exception as e:
-                self.log(logStr="saveLongTermMemory open(fileName, wb) as file error " + str(e), logLevel=Memory.MemoryLogLevel.Error)
+#         # save sensation instances
+#         if not os.path.exists(Sensation.DATADIR):
+#             os.makedirs(Sensation.DATADIR)
+#             
+#         try:
+#             with open(Sensation.PATH_TO_PICLE_FILE, "wb") as file:
+#                 try:
+#                     pickler = pickle.Pickler(file, -1)
+#                     pickler.dump(Sensation.VERSION)
+#                     pickler.dump(self.sensationMemory)
+#                     #print ('saveLongTermMemory dumped ' + str(len(Sensation.sensationMemorys[Sensation.MemoryType.LongTerm])))
+#                     self.log(logStr='saveLongTermMemory dumped {} sensations'.format(len(self.sensationMemory)), logLevel=Memory.MemoryLogLevel.Normal)
+#                 except IOError as e:
+#                     self.log(logStr='pickler.dump(Sensation.sensationMemorys[MemoryType.LongTerm]) IOError ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
+#                 except pickle.PickleError as e:
+#                     self.log(logStr='pickler.dump(Sensation.sensationMemorys[MemoryType.LongTerm]) PickleError ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
+#                 except pickle.PicklingError as e:
+#                     self.log(logStr='pickler.dump(Sensat        savedSensation = 0
+#ion.sensationMemorys[MemoryType.LongTerm]) PicklingError ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
+# 
+#                 finally:
+#                     file.close()
+#         except Exception as e:
+#                 self.log(logStr="saveLongTermMemory open(fileName, wb) as file error " + str(e), logLevel=Memory.MemoryLogLevel.Error)
         self.memoryLock.releaseRead()                  # read thread_safe
 
     '''
     load LongTerm MemoryType sensation instances
     '''  
-    def loadLongTermMemory(self):
+    def loadLongTermMemoryFromBinaryFiles(self):
         # load sensation data from files
         if os.path.exists(Sensation.DATADIR):
-            self.memoryLock.acquireWrite()                  # write thread_safe
+            #self.memoryLock.acquireWrite()                  # write thread_safe
             try:
-                with open(Sensation.PATH_TO_PICLE_FILE, "rb") as file:
-                    try:
-                        # TODO correct later
-                        # whole Memory
-                        #Sensation.sensationMemorys[Sensation.MemoryType.LongTerm] = \
-                        version = pickle.load(file)
-                        if version == Sensation.VERSION:
-                            self.sensationMemory = pickle.load(file)
-                            self.log(logStr='loaded {} sensations'.format(str(len(self.sensationMemory))), logLevel=Memory.MemoryLogLevel.Normal)
-                            i=0
-                            while i < len(self.sensationMemory):
-                                if  self.sensationMemory[i].getMemorability() <  Sensation.MIN_CACHE_MEMORABILITY:
-                                    self.log(logStr='delete sensation {} {} with too low memorability {}'.format(i, self.sensationMemory[i].toDebugStr(), self.sensationMemory[i].getMemorability()), logLevel=Memory.MemoryLogLevel.Normal)
-                                    self.sensationMemory[i].delete()
-                                    del self.sensationMemory[i]
-                                else:
-                                    i=i+1
-                            self.log(logStr='after load and verification {}'.format(str(len(self.sensationMemory))), logLevel=Memory.MemoryLogLevel.Normal)
-                            #print ('{} after load and verification {}'.format(Sensation.getMemoryTypeString(self.sensationMemory), len(self.sensationMemory)))
-                        else:
-                            self.log(logStr="Sensation could not be loaded. because Sensation cache version {} does not match current sensation version {}".format(version,Sensation.VERSION), logLevel=Memory.MemoryLogLevel.Normal)
-                    except IOError as e:
-                        self.log(logStr="pickle.load(file) error " + str(e), logLevel=Memory.MemoryLogLevel.Error)
-                    except pickle.PickleError as e:
-                        self.log(logStr='pickle.load(file) PickleError ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
-                    except pickle.PicklingError as e:
-                        self.log(logStr='pickle.load(file) PicklingError ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
-                    except Exception as e:
-                        self.log(logStr='pickle.load(file) Exception ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
-                    finally:
-                        file.close()
+                for filename in os.listdir(Sensation.DATADIR):
+                    # There can be image or voice files not any more needed
+                    if filename.endswith('.'+Sensation.BINARY_FORMAT):
+                        filepath = os.path.join(Sensation.DATADIR, filename)
+                        self.create(robot=self.getRobot(),
+                                    binaryFilePath=filepath)
             except Exception as e:
-                    self.log(logStr='with open(' + Sensation.PATH_TO_PICLE_FILE + ',"rb") as file error ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
-            self.memoryLock.releaseWrite()                  # write thread_safe
+                    self.log(logStr='os.listdir error ' + str(e), logLevel=Memory.MemoryLogLevel.Normal)
+                
+            self.log(logStr='loadLongTermMemoryFromBinaryFiles loaded {} sensations'.format(str(len(self.sensationMemory))), logLevel=Memory.MemoryLogLevel.Normal)
+            i=0
+            while i < len(self.sensationMemory):
+                if  self.sensationMemory[i].getMemorability() <  Sensation.MIN_CACHE_MEMORABILITY:
+                    self.log(logStr='loadLongTermMemoryFromBinaryFiles delete sensation {} {} with too low memorability {}'.format(i, self.sensationMemory[i].toDebugStr(), self.sensationMemory[i].getMemorability()), logLevel=Memory.MemoryLogLevel.Normal)
+                    self.sensationMemory[i].delete()
+                    del self.sensationMemory[i]
+                else:
+                    i=i+1
+            self.log(logStr='loadLongTermMemoryFromBinaryFiles after load and verification {}'.format(str(len(self.sensationMemory))), logLevel=Memory.MemoryLogLevel.Normal)
+             #print ('{} after load and verification {}'.format(Sensation.getMemoryTypeString(self.sensationMemory), len(self.sensationMemory)))
+            #self.memoryLock.releaseWrite()                  # write thread_safe
  
     '''
-    Clean data directory fron data files, that are not connected to any sensation.
+    Clean data directory from data files, that are not connected to any sensation.
     '''  
     def CleanDataDirectory(self):
         # load sensation data from files
@@ -1033,7 +1165,8 @@ class Memory(object):
                 for filename in os.listdir(Sensation.DATADIR):
                     # There can be image or voice files not any more needed
                     if filename.endswith('.'+Sensation.IMAGE_FORMAT) or\
-                       filename.endswith('.'+Sensation.VOICE_FORMAT):
+                       filename.endswith('.'+Sensation.VOICE_FORMAT) or\
+                       filename.endswith('.'+Sensation.BINARY_FORMAT):
                         filepath = os.path.join(Sensation.DATADIR, filename)
                         if not self.hasOwner(filepath):
                             self.log(logStr='os.remove(' + filepath + ')', logLevel=Memory.MemoryLogLevel.Normal)
@@ -1056,7 +1189,9 @@ class Memory(object):
                 sensation.getSensationType() == Sensation.SensationType.Voice:
                 if sensation.getFilePath() == filepath:
                     return True
-            return False
+            if sensation.getFilePathByFormat(format=Sensation.BINARY_FORMAT) == filepath:
+                return True
+        return False
 
 #     '''
 #     Presence
