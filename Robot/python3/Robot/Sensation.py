@@ -521,6 +521,7 @@ class Sensation(object):
     
         def setFeeling(self, feeling):
             self.feeling = feeling
+            self.setTime()
             # other part
             association = self.sensation.getAssociation(self.self_sensation)
             if association is not None:
@@ -575,6 +576,9 @@ class Sensation(object):
                     association.feeling = Sensation.Feeling.Good
                 elif association.feeling == Sensation.Feeling.InLove:
                     association.feeling = Sensation.Feeling.Happy
+                    
+            association.setTime()
+
 
         '''
         How important this association is.
@@ -1947,15 +1951,16 @@ class Sensation(object):
             if association:
                 feeling = association.getFeeling()
                 association.time = systemTime.time()
-        else:
-            # one level associations
-            best_association = None
-            for association in self.associations:
-                if abs(association.getFeeling()) > abs(feeling):
-                    feeling = association.getFeeling()
-                    best_association = association
-            if best_association is not None:
-                best_association.time = systemTime.time()
+                return feeling
+        
+        # one level associations
+        best_association = None
+        for association in self.associations:
+            if abs(association.getFeeling()) > abs(feeling):
+                feeling = association.getFeeling()
+                best_association = association
+        if best_association is not None:
+            best_association.time = systemTime.time()
             
         return feeling
     
@@ -1982,8 +1987,10 @@ class Sensation(object):
                 if abs(association.getImportance()) > abs(importance):
                     importance = association.getImportance()
                     best_association = association
-        if best_association is not None:
-            best_association.time = systemTime.time()
+#    don't change association time, because we don't know if this
+#    association or sensation is used
+#         if best_association is not None:
+#             best_association.time = systemTime.time()
             
         return self.getMemorability() * importance
 
@@ -2019,7 +2026,7 @@ class Sensation(object):
     Get sensation association to other Sensation
     which SensationType is 'associationSensationType'
     '''
-    def getAssociationsbBySensationType(self, associationSensationType,
+    def getAssociationsBySensationType(self, associationSensationType,
                                         associationDirections = [RobotType.Sense, RobotType.Communication],
                                         ignoredSensations=[],
                                         ignoredVoiceLens=[],

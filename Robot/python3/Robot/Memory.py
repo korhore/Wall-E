@@ -468,7 +468,7 @@ class Memory(object):
         return sensations
     
     '''
-    prevalence of item.name per Sensation.Sensationtype.
+    prevalence of item.name per Sensation.SensationType.
     TODO implement first flat memory, meaning that there will not be
     per MemoryType tables
     '''
@@ -616,7 +616,7 @@ class Memory(object):
                    name is None and sensation.getName() != notName or\
                    name is None and notName is None:
                     bestAssociationSensationImportance = None 
-                    for association in sensation.getAssociationsbBySensationType(associationSensationTypes=associationSensationType,
+                    for association in sensation.getAssociationsBySensationType(associationSensationTypes=associationSensationType,
                                                                                  associationDirection = associationDirection,
                                                                                  ignoredSensations=ignoredSensations,
                                                                                  ignoredVoiceLens=ignoredVoiceLens):
@@ -650,7 +650,7 @@ class Memory(object):
 #         if bestSensation is not None:
 #             self.log(logStr="getMostImportantSensation found " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getImportance()), logLevel=Memory.MemoryLogLevel.Normal)
 #             bestAssociationSensationImportance = None 
-#             for association in bestSensation.getAssociationsbBySensationType(associationSensationType=associationSensationType, ignoredSensations=ignoredSensations, ignoredVoiceLens=ignoredVoiceLens):
+#             for association in bestSensation.getAssociationsBySensationType(associationSensationType=associationSensationType, ignoredSensations=ignoredSensations, ignoredVoiceLens=ignoredVoiceLens):
 #                 if bestAssociationSensationImportance is None or\
 #                     bestAssociationSensationImportance < association.getSensation().getImportance():
 #                     bestAssociationSensationImportance = association.getSensation().getImportance()
@@ -776,7 +776,7 @@ class Memory(object):
                                    name = None,
                                    notName = None,
                                    associationSensationType = None,
-                                   associationDirection = Sensation.RobotType.Sense,
+                                   #associationDirection = Sensation.RobotType.Sense,
                                    ignoredSensations = [],
                                    searchLength = 10):
 #                                   searchLength = Sensation.SEARCH_LENGTH):
@@ -814,10 +814,10 @@ class Memory(object):
 #                                                      ignoredSensations=ignoredSensations,
 #                                                      ignoredImageLens=ignoredImageLens) and\
                 bestVoiceAssociationSensationImportance = None 
-                for association in sensation.getAssociationsbBySensationType(associationSensationType=Sensation.SensationType.Voice,
-                                                                             associationDirections = robotTypes,
-                                                                             ignoredSensations = ignoredSensations,
-                                                                             robotMainNames = robotMainNames):
+                for association in sensation.getAssociationsBySensationType(associationSensationType=Sensation.SensationType.Voice,
+                                                                            associationDirections = robotTypes,
+                                                                            ignoredSensations = ignoredSensations,
+                                                                            robotMainNames = robotMainNames):
                     importance = prevalence * association.getSensation().getImportance() # use prevalence and importance to get prevalence based importance
                     if bestVoiceAssociationSensationImportance is None or\
                        bestVoiceAssociationSensationImportance < importance:
@@ -846,7 +846,7 @@ class Memory(object):
                (timemax is None or sensation.getTime() < timemax):
 
                 bestImageAssociationSensationImportance = None 
-                for association in sensation.getAssociationsbBySensationType(associationSensationType=Sensation.SensationType.Image,
+                for association in sensation.getAssociationsBySensationType(associationSensationType=Sensation.SensationType.Image,
                                                                              associationDirections = robotTypes,
                                                                              ignoredSensations = ignoredSensations,
                                                                              robotMainNames = robotMainNames):
@@ -1135,8 +1135,10 @@ class Memory(object):
                     # There can be image or voice files not any more needed
                     if filename.endswith('.'+Sensation.BINARY_FORMAT):
                         filepath = os.path.join(Sensation.DATADIR, filename)
-                        self.create(robot=self.getRobot(),
-                                    binaryFilePath=filepath)
+                        # create Sensation
+                        sensation= self.create(robot=self.getRobot(), binaryFilePath=filepath)
+                        # make forgettable
+                        sensation.detach(robot=self.getRobot())
             except Exception as e:
                     self.log(logStr='os.listdir error ' + str(e), logLevel=Memory.MemoryLogLevel.Normal)
                 

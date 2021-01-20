@@ -1,6 +1,6 @@
 '''
 Created on 12.04.2020
-Updated on 17.01.2021
+Updated on 20.01.2021
 @author: reijo.korhonen@gmail.com
 
 test Memory class
@@ -271,49 +271,160 @@ class MemoryTestCase(unittest.TestCase):
         self.assertTrue(self.sensation.getMemorability() == 0.0, 'beyond end Sensory lifetime Sensory sensation must be zero')
         self.assertTrue(workingSensation.getMemorability() == 0.0, 'beyond end working lifetime Sensory sensation must be zero')
         self.assertTrue(longTermSensation.getMemorability()  == 0.0, 'beyond end long term lifetime Sensory sensation must be zero')
+        
+    '''
+    Test importance
+    
+    We use Sensation.SensationType.Image in this test, because
+    Memory keeps track of presence, so We get many instances of
+    Sensation.SensationType.Item
+    Anyway we are searching Images and Voices per Item.name
+    and Importance, but newer Item-names 
+    '''    
 
     def test_Importance(self):        
         print("\ntest_Importance")
-        workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
+        
+        
+        #memoryType=Sensation.MemoryType.Sensory
+        sensorySensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.Sensory,
                                                       name='Working_Importance_test', score=MemoryTestCase.SCORE, presence=Sensation.Presence.Present)
-        self.assertEqual(workingSensation.getPresence(), Sensation.Presence.Present, "should be present")
+        self.assertIsNot(sensorySensation, None)
+        self.assertEqual(sensorySensation.getPresence(), Sensation.Presence.Present, "should be present")
+        self.assertEqual(len(sensorySensation.getAssociations()), 0) # variates
+        sensorySensation.associate(sensation=self.sensation,
+                                   feeling=MemoryTestCase.NORMAL_FEELING)
+        Sensation.logAssociations(sensorySensation)
+        self.assertEqual(len(sensorySensation.getAssociations()), 1)
+        sensoryAssociation = self.sensation.getAssociation(sensation=sensorySensation)
+        self.assertIsNot(sensoryAssociation, None)
+        
+        self.do_test_Importance(sensation=sensorySensation, association=sensoryAssociation)
+        
+        #memoryType=Sensation.MemoryType.Working
+        workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.Working,
+                                                      name='Working_Importance_test', score=MemoryTestCase.SCORE, presence=Sensation.Presence.Present)
         self.assertIsNot(workingSensation, None)
+        self.assertEqual(workingSensation.getPresence(), Sensation.Presence.Present, "should be present")
         self.assertEqual(len(workingSensation.getAssociations()), 0) # variates
         workingSensation.associate(sensation=self.sensation,
                                    feeling=MemoryTestCase.NORMAL_FEELING)
         Sensation.logAssociations(workingSensation)
         self.assertEqual(len(workingSensation.getAssociations()), 1)
-        association = self.sensation.getAssociation(sensation=workingSensation)
-        self.assertIsNot(association, None)
+        workingAssociation = self.sensation.getAssociation(sensation=workingSensation)
+        self.assertIsNot(workingAssociation, None)
+        
+        self.do_test_Importance(sensation=workingSensation, association=workingAssociation)
+
+        #memoryType=Sensation.MemoryType.LongTerm
+        longTermSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.LongTerm,
+                                                      name='LongTerm_Importance_test', score=MemoryTestCase.SCORE, presence=Sensation.Presence.Present)
+        self.assertIsNot(longTermSensation, None)
+        self.assertEqual(longTermSensation.getPresence(), Sensation.Presence.Present, "should be present")
+        #self.assertEqual(len(longTermSensation.getAssociations()), 0) # variates
+        longTermSensation.associate(sensation=self.sensation,
+                                   feeling=MemoryTestCase.NORMAL_FEELING)
+        Sensation.logAssociations(longTermSensation)
+        self.assertEqual(len(longTermSensation.getAssociations()), 1) # variates
+        longTermAssociation = self.sensation.getAssociation(sensation=longTermSensation)
+        self.assertIsNot(longTermAssociation, None)
+        
+        self.do_test_Importance(sensation=longTermSensation, association=longTermAssociation)
+        longTermSensation.delete()# remove associations
+        self.assertEqual(len(longTermSensation.getAssociations()), 0)
+
+    '''
+        Communication uses Sensation.getImportance() so it is most important to test
+        TODO Study parameters getImportance(self, positive=True, negative=False, absolute=False)
+        default is positive=True and it is fine for Communication use to find best positive choice
+        Assosiation.getImportance() is curiosite    
+    '''   
+    def do_test_Importance(self, sensation, association):        
+        print("\ndo_test_Importance")
+
+        # Normal feeling
+        association.setFeeling(feeling=MemoryTestCase.NORMAL_FEELING)
         print("MemoryTestCase.NORMAL_FEELING association.getImportance() " + str(association.getImportance()))
         self.assertTrue(association.getImportance() > 0.0, "association importance must greater than zero")
-        print("MemoryTestCase.NORMAL_FEELING workingSensation.getImportance() " + str(workingSensation.getImportance()))
-        self.assertTrue(workingSensation.getImportance() > 0.0, "sensation now importance must greater than zero")
-        
-        previousAssociationImportance = association.getImportance()
-        previousWorkingSensationImportance = workingSensation.getImportance()
+        print("MemoryTestCase.NORMAL_FEELING sensation.getImportance() " + str(sensation.getImportance()))
+        self.assertTrue(sensation.getImportance() > 0.0, "sensation now importance must greater than zero")
+        normalAssociationImportance = association.getImportance()
+        normalSensationImportance = sensation.getImportance()
+ 
+        #Compare Normal and Better feelings importance of Sensations
         association.setFeeling(feeling=MemoryTestCase.BETTER_FEELING)
-        print("MemoryTestCase.BETTER_FEELING association.getImportance() " + str(association.getImportance()))
-        self.assertTrue(association.getImportance() > previousAssociationImportance, "better feeling association importance must greater than worse feeling")
-        print("MemoryTestCase.BETTER_FEELING workingSensation.getImportance() " + str(workingSensation.getImportance()))
-        self.assertTrue(workingSensation.getImportance() > previousWorkingSensationImportance, "better feeling sensation now importance must greater than worse feeling")
+        betterAssociationImportance = association.getImportance()
+        betterSensationImportance = sensation.getImportance()
         
-        previousAssociationImportance = association.getImportance()
-        previousWorkingSensationImportance = workingSensation.getImportance()
+        print("MemoryTestCase.BETTER_FEELING betterAssociationImportance {}".format(betterAssociationImportance))
+        print("MemoryTestCase.BETTER_FEELING betterSensationImportance {}".format(betterSensationImportance))
+        self.assertTrue(betterAssociationImportance > normalAssociationImportance, "better feeling association importance must greater than normal feeling")
+        self.assertTrue(betterSensationImportance > normalSensationImportance, "better feeling sensation now importance must greater than normal feeling")
+        
+        #Compare Terrified with Normal and Better feelings importance of Sensations    
         association.setFeeling(feeling=MemoryTestCase.TERRIFIED_FEELING)
-        print("feeling=MemoryTestCase.TERRIFIED_FEELING association.getImportance() " + str(association.getImportance()))
-        self.assertTrue(association.getImportance() < previousAssociationImportance, "terrified feeling association importance must smaller than any other feeling")
-        print("feeling=MemoryTestCase.TERRIFIED_FEELING workingSensation.getImportance() " + str(workingSensation.getImportance()))
-        self.assertTrue(workingSensation.getImportance() < previousWorkingSensationImportance, "terrified feeling sensation now importance must smaller than any other feeling")
+        terrifiedAssociationImportance = association.getImportance()
+        terrifiedSensationImportance = sensation.getImportance()
+        
+        print("MemoryTestCase.TERRIFIED_FEELING terrifiedAssociationImportance {}".format(terrifiedAssociationImportance))
+        print("MemoryTestCase.TERRIFIED_FEELING terrifiedSensationImportance {}".format(terrifiedSensationImportance))
+        self.assertTrue(terrifiedAssociationImportance < normalAssociationImportance, "terrified feeling association importance must smaller than normal feeling")
+        self.assertTrue(terrifiedAssociationImportance < betterAssociationImportance, "terrified feeling association importance must smaller than better feeling")
+        self.assertTrue(terrifiedSensationImportance < normalAssociationImportance, "terrified feeling sensation now importance must smaller than normal feeling")
+        self.assertTrue(terrifiedSensationImportance < betterSensationImportance, "terrified feeling sensation now importance must smaller than better feeling")
        
-        previousAssociationImportance = association.getImportance()
-        previousWorkingSensationImportance = workingSensation.getImportance()
-        # set sensation more to the past and look again        
-        history_time = Sensation.sensationMemoryLiveTimes[workingSensation.getMemoryType()] * 0.5      
-        workingSensation.setTime(systemTime.time() - history_time)
+        # set sensation more to the past and look again
+        history_time = Sensation.sensationMemoryLiveTimes[sensation.getMemoryType()] * 0.5      
+        sensation.setTime(systemTime.time() - history_time)
         association.setTime(systemTime.time() - history_time)
-        print("[workingSensation.getMemoryType()] * 0.5 workingSensation.getImportance() " + str(workingSensation.getImportance()))
-        self.assertTrue(workingSensation.getImportance() > previousWorkingSensationImportance, "terrified feeling sensation must be more positive when time goes on")
+        
+        # terrified
+        historyTerrifiedAssociationImportance = association.getImportance()
+        historyTerrifiedSensationImportance = sensation.getImportance()
+        print("historyTerrifiedAssociationImportance {}".format(historyTerrifiedAssociationImportance))
+        print("historyTerrifiedSensationImportance {}".format(historyTerrifiedSensationImportance))
+        self.assertTrue(historyTerrifiedAssociationImportance < betterAssociationImportance, "terrified feeling association importance must smaller than better feeling")
+        self.assertTrue(historyTerrifiedAssociationImportance < normalAssociationImportance, "terrified feeling association importance must smaller than normal feeling")
+        self.assertTrue(historyTerrifiedSensationImportance < normalAssociationImportance, "terrified feeling sensation now importance must smaller than normal feeling")
+        self.assertTrue(historyTerrifiedSensationImportance < betterSensationImportance, "terrified feeling sensation now importance must smaller than better feeling")
+
+        # history importance of Sensations should be higher than current because it is negative
+        # and when time has been going on, things don't feel so terrified that they were, when happened 
+        self.assertTrue(terrifiedAssociationImportance == historyTerrifiedAssociationImportance, "history terrified feeling association importance must smaller than current normal feeling")
+        self.assertTrue(terrifiedSensationImportance < historyTerrifiedSensationImportance, "history terrified feeling sensation importance must smaller than current normal feeling")
+ 
+        # Normal       
+        #Compare Normal and history Better feelings importance of Sensations, history better should still be better
+        association.setFeeling(feeling=MemoryTestCase.NORMAL_FEELING)
+        # must set time back to history
+        association.setTime(systemTime.time() - history_time)
+        sensation.setTime(systemTime.time() - history_time)
+        # test
+        historyNormalAssociationImportance = association.getImportance()
+        historyNormaSensationImportance = sensation.getImportance()
+        print("historyNormalAssociationImportance {}".format(historyNormalAssociationImportance))
+        print("historyNormaSensationImportance {}".format(historyNormaSensationImportance))
+        
+        self.assertTrue(normalAssociationImportance == historyNormalAssociationImportance, "history and current association importances are equal")
+        self.assertTrue(normalSensationImportance > historyNormaSensationImportance, "history importance is lower than current one.")
+        self.assertTrue(historyTerrifiedSensationImportance < historyNormaSensationImportance, "history terrified importance is lower than normal history one.")
+        self.assertTrue(historyTerrifiedSensationImportance < normalSensationImportance, "history terrified importance is lower than normal current one.")
+
+        # Better      
+        #Compare Normal and history Better feelings importance of Sensations, history better should still be better
+        association.setFeeling(feeling=MemoryTestCase.BETTER_FEELING)
+        # must set time back to history
+        association.setTime(systemTime.time() - history_time)
+        sensation.setTime(systemTime.time() - history_time)
+        # test
+        historyBetterAssociationImportance = association.getImportance()
+        historyBetterWorkingSensationImportance = sensation.getImportance()
+        self.assertTrue(betterAssociationImportance == historyBetterAssociationImportance, "history and current association importances are equal")
+        self.assertTrue(betterSensationImportance > historyBetterWorkingSensationImportance, "history importance is lower than current one.")
+        self.assertTrue(historyTerrifiedSensationImportance < historyBetterWorkingSensationImportance, "history terrified importance is lower than Better history one.")
+        self.assertTrue(historyTerrifiedSensationImportance < betterSensationImportance, "history terrified importance is lower than normal current one.")
+        self.assertTrue(historyNormaSensationImportance < historyBetterAssociationImportance, "history normal importance is lower than history normal one.")       
+
 
     def test_AddAssociations(self):
         for i in range(MemoryTestCase.TEST_RUNS):
