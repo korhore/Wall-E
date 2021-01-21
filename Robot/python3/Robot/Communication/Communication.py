@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 18.01.2021
+Updated on 21.01.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -62,8 +62,6 @@ class Communication(Robot):
 
     COMMUNICATION_INTERVAL=30.0     # time window to history 
                                     # for sensations we communicate
-    #COMMUNICATION_INTERVAL=15.0     # time window to history for test to be run quicker
-    #COMMUNICATION_INTERVAL=5.0     # time window to history for test to be run quicker
     CONVERSATION_INTERVAL=300.0     # if no change in present item.names and
                                     # last conversation is ended, how long
                                     # we wait until we will respond if
@@ -465,12 +463,12 @@ class Communication(Robot):
 
             # TODO self.mostImportantItemSensation is not None             
             if self.mostImportantItemSensation is not None and (self.mostImportantVoiceSensation is not None or self.mostImportantImageSensation is not None):
-                self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: self.getMemory().getMostImportantSensation did find self.mostImportantItemSensation OK')
+                self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: self.getMemory().getMostImportantCommunicationSensations did find self.mostImportantItemSensation OK')
                 self.mostImportantItemSensation.attach(robot=self)         #attach Sensation until speaking is ended based on these voices
                 if self.mostImportantImageSensation is not None:
                     self.mostImportantImageSensation.attach(robot=self)
                     self.mostImportantImageSensation.save()     # for debug reasons save voices we have spoken as heard voices
-                    self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: self.getMemory().getMostImportantSensation did find self.mostImportantImageSensation OK')
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: self.getMemory().getMostImportantCommunicationSensations did find self.mostImportantImageSensation OK')
                     self.spokedImageMuscleSensation = self.createSensation( sensation = self.mostImportantImageSensation, kind=self.getKind(),
                                                                       locations=self.getLocations())
                     # NOTE This is needed now, because Sensation.create parameters robotType and memoryType parameters are  overwritten by sensation parameters
@@ -499,7 +497,7 @@ class Communication(Robot):
                 if self.mostImportantVoiceSensation is not None:        
                     self.mostImportantVoiceSensation.attach(robot=self)
                     self.mostImportantVoiceSensation.save()     # for debug reasons save voices we have spoken as heard voices
-                    self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: self.getMemory().getMostImportantSensation did find self.mostImportantVoiceSensation OK')
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: self.getMemory().getMostImportantCommunicationSensations did find self.mostImportantVoiceSensation OK')
                     self.spokedVoiceMuscleSensation = self.createSensation( sensation = self.mostImportantVoiceSensation, kind=self.getKind(),
                                                                       locations=self.getLocations())
                     # NOTE This is needed now, because Sensation.create parameters robotType and memoryType parameters are  overwritten by sensation parameters
@@ -537,7 +535,7 @@ class Communication(Robot):
                 # We did not find anything to say, but are ready to start new conversation, if someone speaks.
                 self._isConversationDelay = False
     
-                self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: self.getMemory().getMostImportantSensation did NOT find self.mostImportantItemSensation')
+                self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: self.getMemory().getMostImportantCommunicationSensations did NOT find self.mostImportantItemSensation')
                 self._isConversationOn = False             
                 self.clearConversation()
 

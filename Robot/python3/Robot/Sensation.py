@@ -1931,11 +1931,12 @@ class Sensation(object):
 #             else:
 #                 i=i+1
 
-    def getAssociationIds(self):
-        associationIds=[]
-        for association in self.associations:
-            associationIds.append(association.getSensation().getId())
-        return associationIds
+# deprecated
+#     def getAssociationIds(self):
+#         associationIds=[]
+#         for association in self.associations:
+#             associationIds.append(association.getSensation().getId())
+#         return associationIds
 
     '''
     get sensations feeling
@@ -1994,16 +1995,6 @@ class Sensation(object):
             
         return self.getMemorability() * importance
 
-    '''
-    Add many associations by association ids
-    associations and associations to then are found from association cache
-    
-    REMOVED, implicit imp+lementation!
-    '''
-#     def addAssociationIds(self, associationIds):
-#         for associationId in associationIds:
-#             associations = Sensation.getSensationsFromSensationMemory(associationId)
-#             self.addAssociations(associations)
 
     '''
     Has sensation association to other Sensation
@@ -2469,11 +2460,9 @@ if __name__ == '__main__':
     
     s_Drive=Sensation(associations=[], sensationType = Sensation.SensationType.Drive, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, leftPower = 0.77, rightPower = 0.55)
     print("str s  " + str(s_Drive))
-    sensations=Sensation.getSensationsFromSensationMemory(s_Drive.getId())
     b=s_Drive.bytes()
     # TODO should s2 be here really association to s, same instance? maybe
     s2=Sensation(associations=[], bytes=b)
-    sensations=Sensation.getSensationsFromSensationMemory(s_Drive.getId())
     print("str s2 " + str(s2))
     print(str(s_Drive == s2))
     
@@ -2481,11 +2470,9 @@ if __name__ == '__main__':
     print("test with create")
     s_Drive_create=Sensation.create(associations=[], sensationType = Sensation.SensationType.Drive, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Muscle, leftPower = 0.77, rightPower = 0.55)
     print(("Sensation.create: str s  " + str(s_Drive_create)))
-    sensations=Sensation.getSensationsFromSensationMemory(s_Drive_create.getId())
     b=s_Drive_create.bytes()
     # TODO should s2 be here really association to s, same instance? maybe
     s2=Sensation.create(associations=[], bytes=b)
-    sensations=Sensation.getSensationsFromSensationMemory(s_Drive_create.getId())
     print("Sensation.create: str s2 " + str(s2))
     print("Sensation.create:" + str(s_Drive_create == s2))
     print()
