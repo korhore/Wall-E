@@ -1263,7 +1263,7 @@ class Robot(Thread):
                         
     '''
     Sensation functionality start
-    This is wrapper to Sensation provided sy real Sensation self.selfSensation
+    This is wrapper to Sensation provided by real Sensation self.selfSensation
     '''
 
     '''

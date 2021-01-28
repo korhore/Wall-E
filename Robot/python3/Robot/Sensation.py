@@ -866,7 +866,7 @@ class Sensation(object):
                 #Version of bytes
                 b =  Sensation.VERSION.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
                 version = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER)
-                if version == Sensation.VERSION:    # if same versionof bytes
+                if version == Sensation.VERSION:    # if same version of bytes
                     i += Sensation.ID_SIZE
     
                     self.robotId = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
@@ -1051,7 +1051,7 @@ class Sensation(object):
                 else:
                     # other version of Sensation
                     # We can only mark this to fail
-                    self.sensationType = Sensation.SensationType.UnknownDrive                
+                    self.sensationType = Sensation.SensationType.Unknow                
 
             except (ValueError):
                 self.sensationType = Sensation.SensationType.Unknown
@@ -1698,18 +1698,29 @@ class Sensation(object):
     
     '''
     How much livetime as a ratio there is left (1.0 -> 0.0) for this sensation
-    
-    Note, that when Sensation is referenced, used its reference-time is renewed
-    and it get full livetime again    
     '''
-    def getLiveTimeLeftRatio(self):
+    def getLiveTimeLeftRatio(time, memoryType):
+# Old with self, parameter
+#         if time == None:
+#             time = self.getTime()
+#         if memoryType == None:
+#             memoryType = self.getMemoryType()
+#         liveTimeLeftRatio = \
+#                 (Sensation.sensationMemoryLiveTimes[memoryType] - (systemTime.time()-time)) / \
+#                 Sensation.sensationMemoryLiveTimes[memoryType]
+#         if liveTimeLeftRatio < 0.0:
+#             liveTimeLeftRatio = 0.0
+#             
+#         return liveTimeLeftRatio
+
         liveTimeLeftRatio = \
-                (Sensation.sensationMemoryLiveTimes[self.getMemoryType()] - (systemTime.time()-self.getLatestTime())) / \
-                Sensation.sensationMemoryLiveTimes[self.getMemoryType()]
+                (Sensation.sensationMemoryLiveTimes[memoryType] - (systemTime.time()-time)) / \
+                Sensation.sensationMemoryLiveTimes[memoryType]
         if liveTimeLeftRatio < 0.0:
             liveTimeLeftRatio = 0.0
-            
+             
         return liveTimeLeftRatio
+
         
     
     '''
@@ -1723,30 +1734,173 @@ class Sensation(object):
     LongTerm Sensation have low memorability when the are created,
     but memorability goes down with a long time.
     Here we use ln(livetimeratio left)
+    
+     
+    Sensation Memorability is time based function
+    There are many ways to define this
+    Sensation only would be time based + feeling based.
+        
+    Memory.forgetLessImportantSensations uses this so it would be best choice,
+    feeling is based o associations, changing Sensations memorability if some association happens
+        
+    Associations have feelings and time. Sensations have time. we could define
+    Sensation Memorability be time, Association Memorability by time+feeling and
+    Sensation whole Memorability by Sensation Memorability + its Associations Memorability.
+    Functions are
+    1) Sensation only
+    2) Sensation+its association sensation based on Feeling and time
+     - used in Memory.forgetLessImportantSensations
+    3) Sensations + list of potential Item-Sensations based on Feeling and Time
+     - used in Communication
+     
+    parameters
+    allAssociations     when True, we calculate Momoralibity by
+                        Sensation itself and by its all Associations
+    sensations          Array of SensationType.Item sensations
+                        When given, calculates Momoralibity by
+                        Sensation itself and by its Associations that are
+                        assigned to an SensationType.Item Sensations, which
+                        name-parameter is same than one of this arrays Sensation.
+                        This is used by Memory method which is used by Robot.Communication
+                        method that seaches best Sensations that have knows
+                        Sensation.Item association.
+                        Next parameters are not used
+    positive            Do we search positive feeling Associations (Default)
+    negative            Do we search negative feeling Associations
+    absolute            Do we calculate result as abs in association, meaning that
+                        result is not added by posive and negative values, but
+                        by abs values, meaning that far os Feeling.Neutral is
+                        bigger value even if it is posivive of negative Feeling
+    
+                        
+    '''
 
-       '''
-    def getMemorability(self):
+    def getMemorability(self,
+                        allAssociations = False,
+                        itemSensations = None,
+                        robotMainNames = None,
+                        robotTypes = None,#[Sensation.RobotType.Sense, Sensation.RobotType.Communication],
+                        ignoredDataIds=[],
+                        ignoredVoiceLens=[],
+                        positive = True,
+                        negative = False,
+                        absolute = False):
         try:
+            # TODO Add this logic to associations too
             if self.getSensationType() == Sensation.SensationType.Feeling:   ## Feeling is functional Sensation
-                memorability = 0.0
+                selfMemorability = 0.0
             elif self.getMemoryType() == Sensation.MemoryType.Sensory:
-                memorability =  10.0 * (math.log10(10.0 + 10.0 * self.getLiveTimeLeftRatio()) -1.0)
+                selfMemorability =  10.0 * (math.log10(10.0 + 10.0 * self.getLiveTimeLeftRatio()) -1.0)
             elif self.getMemoryType() == Sensation.MemoryType.Working:
-                memorability =  math.e * (math.log(math.e + math.e * self.getLiveTimeLeftRatio()) - 1.0)
+                selfMemorability =  math.e * (math.log(math.e + math.e * self.getLiveTimeLeftRatio()) - 1.0)
             else:
-                #memorability =  0.5 * math.e * (math.log(math.e + math.e * self.getLiveTimeLeftRatio()) - 1.0)
-                memorability =  math.e * (math.log10(10.0 + 10.0 * self.getLiveTimeLeftRatio()) -1.0)
+                #selfMemorability =  0.5 * math.e * (math.log(math.e + math.e * self.getLiveTimeLeftRatio()) - 1.0)
+                selfMemorability =  math.e * (math.log10(10.0 + 10.0 * self.getLiveTimeLeftRatio()) -1.0)
         except Exception as e:
-            #print("getMemorability error " + str(e))
-            memorability = 0.0
+            #print("getselfMemorability error " + str(e))
+            selfMemorability = 0.0
+        if selfMemorability < 0.0:
+             selfMemorability = 0.0
+        associationsImportance = 0.0
+             
+        if itemSensations != None or allAssociations:
+            associationsImportance = self.getAssociationsMemorability(
+                                        allAssociations = allAssociations,
+                                        itemSensations = itemSensations,
+                                        robotMainNames = robotMainNames,
+                                        robotTypes = robotTypes,
+                                        ignoredDataIds=ignoredDataIds,
+                                        #ignoredVoiceLens=[],
+                                        positive = positive,
+                                        negative = negative,
+                                        absolute = absolute)
+        if negative:
+            return selfMemorability - associationsImportance
+        return selfMemorability + associationsImportance
+    
+    '''
+    Helper metyhod to calculate Memorability
+    
+    Memorability goes down by time. We use logarithm and Memory type
+    Sensory Sensations have very high Memorability when Sensation has low age
+    but memorability goes down in very short time.
+    Here we use log10(livetimeratio left)
+        
+    LongTerm Sensation have low memorability when they are created,
+    but memorability goes down with a long time.
+    Here we use ln(livetimeratio left)
+    
+    Working Sensation should live longer than Sensory, but much shorter time than
+    LongTerm, so it goes in the middle, using log10
+    
+    
+    
+    '''   
+    def doGetMemorability(time,
+                          memoryType,
+                          feeling = None,
+                          score=None,
+                          positive = True,
+                          negative = False,
+                          absolute = False):
+        if memoryType == Sensation.MemoryType.Sensory:
+                memorability =  10.0 * (math.log10(10.0 + 10.0 * Sensation.getLiveTimeLeftRatio(time=time, memoryType=memoryType)) -1.0)
+        elif memoryType == Sensation.MemoryType.Working:
+                memorability =  math.e * (math.log(math.e + math.e * Sensation.getLiveTimeLeftRatio(time=time, memoryType=memoryType)) - 1.0)
+        else: #Sensation.LongTerm
+                memorability =  math.e * (math.log10(10.0 + 10.0 * Sensation.getLiveTimeLeftRatio(time=time, memoryType=memoryType)) -1.0)
         if memorability < 0.0:
              memorability = 0.0
-           
+             
+        if feeling != None and score != None:
+            memorability = memorability + memorability*float(feeling) * (score)
+             
         return memorability
+    
+    '''
+    get memorability of sensations assiciations
+    We can iterate allAssociations
+    This is used with forgetSensations where we want to forget most
+    meaningless assosiations
+    
+    With Communication we wan't to find best Voice of Image Sensations that
+    are connected to specifies set of SensationType.Item sensation that
+    match in present Items.
+    '''
 
+    def getAssociationsMemorability(self,
+                                    allAssociations = False,
+                                    itemSensations = None,
+                                    robotMainNames = None,
+                                    robotTypes = None,#[Sensation.RobotType.Sense, Sensation.RobotType.Communication],                                    
+                                    ignoredDataIds=[],
+                                    #ignoredVoiceLens=[],
+                                    positive=True,
+                                    negative=False,
+                                    absolute=False):
+        names=[]
+        if itemSensations != None:
+            for sensation in itemSensations:
+                if sensation.getSensationType() == Sensation.SensationType.Item:
+                    names.append(sensation.getName())
+        # one level associations
+        memorability = 0.0
+        best_association = None
+        for association in self.associations:
+            if allAssociations or\
+               association.getSensation().getSensationType() == Sensation.SensationType.Item and\
+               association.getSensation().getName() in names:
+                # association.getImportance() uses score and Feling + time
+                # so we get importance of this association
+                importance = association.getImportance()
+                if absolute:
+                     importance = abs(importance)
+                memorability = memorability + importance
+        return memorability
+                
 
     def setId(self, id):
-        self.id = id
+        self.id = ida
     def getId(self):
         return self.id
     
@@ -1968,9 +2122,9 @@ class Sensation(object):
     # TODO Study logic    
     def getImportance(self, positive=True, negative=False, absolute=False):
         if positive:
-            importance = Sensation.Feeling.Terrified
+            importance = 10*Sensation.Feeling.Terrified
         if negative:
-             importance = Sensation.Feeling.InLove
+             importance = 10*Sensation.Feeling.InLove
         if absolute:
             importance = 0.0
         # one level associations
@@ -2002,13 +2156,13 @@ class Sensation(object):
     '''
     def hasAssociationSensationType(self, associationSensationType,
                                     associationDirections = [RobotType.Sense],
-                                    ignoredSensations=[],
+                                    ignoredDataIds=[],
                                     robotMainNames=None):
         has=False
         for association in self.associations:
             if association.getSensation().getSensationType() == associationSensationType and\
                association.getSensation().getRobotType() in associationDirections and\
-               association.getSensation().getDataId() not in ignoredSensations:
+               association.getSensation().getDataId() not in ignoredDataIds:
                 has=True
                 break       
         return has
@@ -2019,14 +2173,14 @@ class Sensation(object):
     '''
     def getAssociationsBySensationType(self, associationSensationType,
                                         associationDirections = [RobotType.Sense, RobotType.Communication],
-                                        ignoredSensations=[],
+                                        ignoredDataIds=[],
                                         ignoredVoiceLens=[],
                                         robotMainNames=None):
         associations=[]
         for association in self.associations:
             if association.getSensation().getSensationType() == associationSensationType and\
                association.getSensation().getRobotType() in associationDirections and\
-               association.getSensation().getDataId() not in ignoredSensations:
+               association.getSensation().getDataId() not in ignoredDataIds:
                 associations.append(association)
         return associations
 #     def setReceivedFrom(self, receivedFrom):
@@ -2167,10 +2321,10 @@ class Sensation(object):
             return []
         return self.mainNames
 
-    def isInMainNames(self, robotMainNames):
-        if robotMainNames is None:
+    def isInMainNames(self, mainNames):
+        if mainNames is None:
             return True
-        for mainName in robotMainNames:
+        for mainName in mainNames:
             if mainName in self.getMainNames():
                 return True            
         return False

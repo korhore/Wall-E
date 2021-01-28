@@ -115,7 +115,7 @@ class CommunicationTestCase(unittest.TestCase):
     '''
         
     '''
-    Sensation constructor for test opurposes
+    Sensation constructor for test purposes
     
     Parameters are exactly same than in default constructor
     but some parameters are added to do the job is added
