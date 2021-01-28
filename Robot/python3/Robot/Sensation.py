@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 19.01.2021
+Edited on 28.01.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -590,11 +590,13 @@ class Sensation(object):
         Uses now Feeling as main factor and score as minor factor.
         Should use also time, so old Associations are not so important than
         new ones.
+        
+        deprecated
         '''
-        def getImportance(self):
-            if self.feeling >= 0:
-                return float(self.feeling+1) * (1.0 + self.self_sensation.getScore())
-            return float(self.feeling-1) * (1.0 + self.self_sensation.getScore())
+#         def getImportance(self):
+#             if self.feeling >= 0:
+#                 return float(self.feeling+1) * (1.0 + self.self_sensation.getScore())
+#             return float(self.feeling-1) * (1.0 + self.self_sensation.getScore())
         
 
     '''
@@ -1785,22 +1787,13 @@ class Sensation(object):
                         positive = True,
                         negative = False,
                         absolute = False):
-        try:
-            # TODO Add this logic to associations too
-            if self.getSensationType() == Sensation.SensationType.Feeling:   ## Feeling is functional Sensation
-                selfMemorability = 0.0
-            elif self.getMemoryType() == Sensation.MemoryType.Sensory:
-                selfMemorability =  10.0 * (math.log10(10.0 + 10.0 * self.getLiveTimeLeftRatio()) -1.0)
-            elif self.getMemoryType() == Sensation.MemoryType.Working:
-                selfMemorability =  math.e * (math.log(math.e + math.e * self.getLiveTimeLeftRatio()) - 1.0)
-            else:
-                #selfMemorability =  0.5 * math.e * (math.log(math.e + math.e * self.getLiveTimeLeftRatio()) - 1.0)
-                selfMemorability =  math.e * (math.log10(10.0 + 10.0 * self.getLiveTimeLeftRatio()) -1.0)
-        except Exception as e:
-            #print("getselfMemorability error " + str(e))
-            selfMemorability = 0.0
-        if selfMemorability < 0.0:
-             selfMemorability = 0.0
+
+        # Its not need to remember Feeling sensation, so we justgive then zero or minus        
+        if self.getSensationType() == Sensation.SensationType.Feeling:
+            return 0.0
+
+        selfMemorability = Sensation.doGetMemorability(time = self.getTime(),
+                                                       memoryType = self.getMemoryType())
         associationsImportance = 0.0
              
         if itemSensations != None or allAssociations:
@@ -1814,8 +1807,8 @@ class Sensation(object):
                                         positive = positive,
                                         negative = negative,
                                         absolute = absolute)
-        if negative:
-            return selfMemorability - associationsImportance
+#         if negative:
+#             return selfMemorability - associationsImportance
         return selfMemorability + associationsImportance
     
     '''
@@ -1866,6 +1859,8 @@ class Sensation(object):
     With Communication we wan't to find best Voice of Image Sensations that
     are connected to specifies set of SensationType.Item sensation that
     match in present Items.
+    
+    deprecated teporary until logic is checked
     '''
 
     def getAssociationsMemorability(self,
@@ -1887,15 +1882,23 @@ class Sensation(object):
         memorability = 0.0
         best_association = None
         for association in self.associations:
-            if allAssociations or\
-               association.getSensation().getSensationType() == Sensation.SensationType.Item and\
+            if association.getSensation().getSensationType() == Sensation.SensationType.Item and\
                association.getSensation().getName() in names:
                 # association.getImportance() uses score and Feling + time
                 # so we get importance of this association
-                importance = association.getImportance()
-                if absolute:
-                     importance = abs(importance)
-                memorability = memorability + importance
+                memorability = memorability + \
+                               Sensation.doGetMemorability(time = association.getTime(),
+                                                           memoryType = association.getSensation().getMemoryType(),
+                                                           feeling = association.getFeeling(),
+                                                           score = association.getSensation().getScore())
+            elif allAssociations:
+                memorability = memorability + \
+                               Sensation.doGetMemorability(time = association.getTime(),
+                                                           memoryType = association.getSensation().getMemoryType())
+               
+#                 if absolute:
+#                      importance = abs(importance)
+#                 memorability = memorability + importance
         return memorability
                 
 
@@ -2119,35 +2122,36 @@ class Sensation(object):
             
         return feeling
     
-    # TODO Study logic    
-    def getImportance(self, positive=True, negative=False, absolute=False):
-        if positive:
-            importance = 10*Sensation.Feeling.Terrified
-        if negative:
-             importance = 10*Sensation.Feeling.InLove
-        if absolute:
-            importance = 0.0
-        # one level associations
-        best_association = None
-        for association in self.associations:
-            if positive:
-                if association.getImportance() > importance:
-                    importance = association.getImportance()
-                    best_association = association
-            if negative:
-                if association.getImportance() < importance:
-                    importance= association.getImportance()
-                    best_association = association
-            if absolute:
-                if abs(association.getImportance()) > abs(importance):
-                    importance = association.getImportance()
-                    best_association = association
-#    don't change association time, because we don't know if this
-#    association or sensation is used
-#         if best_association is not None:
-#             best_association.time = systemTime.time()
-            
-        return self.getMemorability() * importance
+    # TODO Study logic  
+    # deprecated  
+#     def getImportance(self, positive=True, negative=False, absolute=False):
+#         if positive:
+#             importance = 10*Sensation.Feeling.Terrified
+#         if negative:
+#              importance = 10*Sensation.Feeling.InLove
+#         if absolute:
+#             importance = 0.0
+#         # one level associations
+#         best_association = None
+#         for association in self.associations:
+#             if positive:
+#                 if association.getImportance() > importance:
+#                     importance = association.getImportance()
+#                     best_association = association
+#             if negative:
+#                 if association.getImportance() < importance:
+#                     importance= association.getImportance()
+#                     best_association = association
+#             if absolute:
+#                 if abs(association.getImportance()) > abs(importance):
+#                     importance = association.getImportance()
+#                     best_association = association
+# #    don't change association time, because we don't know if this
+# #    association or sensation is used
+# #         if best_association is not None:
+# #             best_association.time = systemTime.time()
+#             
+#         return self.getMemorability() * importance
 
 
     '''
@@ -2231,7 +2235,7 @@ class Sensation(object):
         return self.robotType
     
     '''
-    If parameters robotMainNames is set, it is mainNames od robot
+    If parameters robotMainNames is set, it is mainNames of robot
     asking sensations RobotType and robot want to know if this is
     Sense or Muscle sensation. If SensationType is Voice or Image, then
     it is used in Communication and with person Communication robot uses
