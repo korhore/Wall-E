@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 11.01.2021
+Edited on 17.01.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -1377,7 +1377,7 @@ class Memory(object):
             while i < len(self.sensationMemory):
                 if self.sensationMemory[i].getMemorability(allAssociations=True) <  Sensation.MIN_CACHE_MEMORABILITY or\
                    self.sensationMemory[i].getSensationType() == Sensation.SensationType.Unknown:
-                    self.log(logStr='loadLongTermMemoryFromBinaryFiles delete sensation {} {} with too low memorability {}'.format(i, self.sensationMemory[i].toDebugStr(), memorability), logLevel=Memory.MemoryLogLevel.Normal)
+                    self.log(logStr='loadLongTermMemoryFromBinaryFiles delete sensation {} {} with too low memorability {}'.format(i, self.sensationMemory[i].toDebugStr(), self.sensationMemory[i].getMemorability(allAssociations=True)), logLevel=Memory.MemoryLogLevel.Normal)
                     self.sensationMemory[i].delete()
                     del self.sensationMemory[i]
                 else:
@@ -1498,10 +1498,10 @@ class Memory(object):
     def hasPresence(self):
         for location in self._presentItemSensations.keys():
             if len(self._presentItemSensations[location].items()) > 0:
-                for name, sensation in self._presentItemSensations[location].items():
-                    print('hasPresence in location {} name {} is present'.format(location,name))
+#                 for name, sensation in self._presentItemSensations[location].items():
+#                     print('hasPresence in location {} name {} is present'.format(location,name))
                 return True
-        print('hasPresence None is present')
+#         print('hasPresence None is present')
         return False
 
     '''
