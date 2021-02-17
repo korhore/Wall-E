@@ -1,6 +1,6 @@
 '''
 Created on 21.06.2019
-Updated on 11.02.2021
+Updated on 17.02.2021
 @author: reijo.korhonen@gmail.com
 
 test Association class
@@ -407,7 +407,7 @@ class CommunicationTestCase(unittest.TestCase):
     TensorfloClöassafication produces
     Item.name Working Out
     '''    
-    def re_test_Presense(self):
+    def test_Presense(self):
         print('\ntest_Presense')
                 
         history_sensationTime = systemTime.time() -2*max(CommunicationTestCase.ASSOCIATION_INTERVAL, Communication.COMMUNICATION_INTERVAL)
@@ -861,7 +861,7 @@ class CommunicationTestCase(unittest.TestCase):
     Sensations outside Robot are in same Robot.mainNames and robotType=Sensation.RobotType.Sense
     so this test is same than without paramweters
     '''    
-    def re_test_2_Presense(self):
+    def test_2_Presense(self):
         self.do_test_Presense(mainNames=self.MAINNAMES, robotType=Sensation.RobotType.Sense)
         
     '''
@@ -871,7 +871,7 @@ class CommunicationTestCase(unittest.TestCase):
     so this test result should  same than with test where robotType=Sensation.RobotType.Sense,
     because Communication should handle those sensation equally, when Robot.mainNames differ
     '''    
-    def re_test_3_Presense(self):
+    def test_3_Presense(self):
         self.do_test_Presense(mainNames=self.OTHERMAINNAMES, robotType=Sensation.RobotType.Communication)
 
     '''
