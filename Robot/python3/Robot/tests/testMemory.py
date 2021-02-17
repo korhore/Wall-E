@@ -1,6 +1,6 @@
 '''
 Created on 12.04.2020
-Updated on 21.01.2021
+Updated on 03.02.2021
 @author: reijo.korhonen@gmail.com
 
 test Memory class
@@ -14,6 +14,7 @@ import unittest
 from Sensation import Sensation
 from Robot import Robot
 from Memory import Memory
+import IN
 
 class MemoryTestCase(unittest.TestCase):
     TEST_RUNS = 2
@@ -28,7 +29,7 @@ class MemoryTestCase(unittest.TestCase):
     OLDER_LONGTERM_ITEM_NAME =      "older LongTerm bytes_test"
     MAINNAMES = ["MemoryTestCaseMainName"]
     OTHERMAINNAMES = ["OTHER_MemoryTestCaseMainName"]
-    SEARCH_LENGTH=10                # How many response voices we check
+    SEARCH_LENGTH=20                # How many response voices we check
     SCORE_1 = 0.1
     SCORE_2 = 0.2
     SCORE_3 = 0.3
@@ -207,7 +208,7 @@ class MemoryTestCase(unittest.TestCase):
     def tearDown(self):
         self.sensation.delete()
         
-    def re_test_Memorybility(self):        
+    def test_Memorybility(self):        
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working, name='Working_test',presence=Sensation.Presence.Absent)
         self.assertEqual(workingSensation.getPresence(), Sensation.Presence.Absent, "should be Absent")
         self.assertIsNot(workingSensation, None)
@@ -219,13 +220,13 @@ class MemoryTestCase(unittest.TestCase):
         self.assertEqual(len(longTermSensation.getAssociations()), 0)
 
         print("\nSensory time now")
-        print("self.sensation.getLiveTimeLeftRatio() " + str(self.sensation.getLiveTimeLeftRatio()))
+        print("Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType()) " + str(Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType())))
         print("self.sensation.getMemorability() " + str(self.sensation.getMemorability()))
         print("Working time now")
-        print("workingSensation.getLiveTimeLeftRatio() " + str(workingSensation.getLiveTimeLeftRatio()))
+        print("workingSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=workingSensation.getTime(), memoryType=workingSensation.getMemoryType())))
         print("workingSensation.getMemorability() " + str(workingSensation.getMemorability()))
         print("LongTerm time now")
-        print("longTermSensation.getLiveTimeLeftRatio() " + str(longTermSensation.getLiveTimeLeftRatio()))
+        print("longTermSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=longTermSensation.getTime(), memoryType=longTermSensation.getMemoryType())))
         print("longTermSensation.getMemorability() " + str(longTermSensation.getMemorability()))
         self.assertTrue(self.sensation.getMemorability() > workingSensation.getMemorability(), 'now Sensory sensation must be more Memorability than Working sensation')
         self.assertTrue(workingSensation.getMemorability() > longTermSensation.getMemorability(), 'now Working sensation must be more Memorability than LongTerm sensation')
@@ -236,12 +237,12 @@ class MemoryTestCase(unittest.TestCase):
         workingSensation.setTime(systemTime.time() - history_time)
         longTermSensation.setTime(systemTime.time() - history_time)
         print("\nSensory history time " + str(history_time))
-        print("self.sensation.getLiveTimeLeftRatio() " + str(self.sensation.getLiveTimeLeftRatio()))
+        print("Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType()) " + str(Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType())))
         print("self.sensation.getMemorability() " + str(self.sensation.getMemorability()))
         print("Working history time " + str(history_time))
-        print("workingSensation.getLiveTimeLeftRatio() " + str(workingSensation.getLiveTimeLeftRatio()))
+        print("workingSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=workingSensation.getTime(), memoryType=workingSensation.getMemoryType())))
         print("workingSensation.getMemorability() " + str(workingSensation.getMemorability()))
-        print("longTermSensation.getLiveTimeLeftRatio() " + str(longTermSensation.getLiveTimeLeftRatio()))
+        print("longTermSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=longTermSensation.getTime(), memoryType=longTermSensation.getMemoryType())))
         print("longTermSensation.getMemorability() " + str(longTermSensation.getMemorability()))
         self.assertTrue(workingSensation.getMemorability() > longTermSensation.getMemorability(), 'half Sensory lifetime Working sensation must be more Memorability than LongTerm sensation')
 
@@ -251,12 +252,12 @@ class MemoryTestCase(unittest.TestCase):
         workingSensation.setTime(systemTime.time() - history_time)
         longTermSensation.setTime(systemTime.time() - history_time)
         print("\nSensory history time " + str(history_time))
-        print("self.sensation.getLiveTimeLeftRatio() " + str(self.sensation.getLiveTimeLeftRatio()))
+        print("Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType()) " + str(Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType())))
         print("self.sensation.getMemorability() " + str(self.sensation.getMemorability()))
         print("Working history time " + str(history_time))
-        print("workingSensation.getLiveTimeLeftRatio() " + str(workingSensation.getLiveTimeLeftRatio()))
+        print("workingSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=workingSensation.getTime(), memoryType=workingSensation.getMemoryType())))
         print("workingSensation.getMemorability() " + str(workingSensation.getMemorability()))
-        print("longTermSensation.getLiveTimeLeftRatio() " + str(longTermSensation.getLiveTimeLeftRatio()))
+        print("longTermSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=longTermSensation.getTime(), memoryType=longTermSensation.getMemoryType())))
         print("longTermSensation.getMemorability() " + str(longTermSensation.getMemorability()))
         self.assertTrue(self.sensation.getMemorability() < workingSensation.getMemorability(), 'near end Sensory lifetime Sensory sensation must be less Memorability than working sensation')
         self.assertTrue(workingSensation.getMemorability() > longTermSensation.getMemorability(), 'near end Sensory lifetime Working sensation must be more Memorability than LongTerm sensation')
@@ -267,12 +268,12 @@ class MemoryTestCase(unittest.TestCase):
         workingSensation.setTime(systemTime.time() - history_time)
         longTermSensation.setTime(systemTime.time() - history_time)
         print("\nSensory history time " + str(history_time))
-        print("self.sensation.getLiveTimeLeftRatio() " + str(self.sensation.getLiveTimeLeftRatio()))
+        print("Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType()) " + str(Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType())))
         print("self.sensation.getMemorability() " + str(self.sensation.getMemorability()))
         print("Working history time " + str(history_time))
-        print("workingSensation.getLiveTimeLeftRatio() " + str(workingSensation.getLiveTimeLeftRatio()))
+        print("workingSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=workingSensation.getTime(), memoryType=workingSensation.getMemoryType())))
         print("workingSensation.getMemorability() " + str(workingSensation.getMemorability()))
-        print("longTermSensation.getLiveTimeLeftRatio() " + str(longTermSensation.getLiveTimeLeftRatio()))
+        print("longTermSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=longTermSensation.getTime(), memoryType=longTermSensation.getMemoryType())))
         print("longTermSensation.getMemorability() " + str(longTermSensation.getMemorability()))
         self.assertTrue(self.sensation.getMemorability() < workingSensation.getMemorability(), 'very near end Sensory lifetime Sensory sensation must be less Memorability than working sensation')
         self.assertTrue(workingSensation.getMemorability() > longTermSensation.getMemorability(), 'very near end Sensory lifetime Working sensation must be more Memorability than LongTerm sensation')
@@ -283,12 +284,12 @@ class MemoryTestCase(unittest.TestCase):
         workingSensation.setTime(systemTime.time() - history_time)
         longTermSensation.setTime(systemTime.time() - history_time)
         print("\nSensory history time " + str(history_time))
-        print("self.sensation.getLiveTimeLeftRatio() " + str(self.sensation.getLiveTimeLeftRatio()))
+        print("Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType()) " + str(Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType())))
         print("self.sensation.getMemorability() " + str(self.sensation.getMemorability()))
         print("Working history time " + str(history_time))
-        print("workingSensation.getLiveTimeLeftRatio() " + str(workingSensation.getLiveTimeLeftRatio()))
+        print("workingSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=workingSensation.getTime(), memoryType=workingSensation.getMemoryType())))
         print("workingSensation.getMemorability() " + str(workingSensation.getMemorability()))
-        print("longTermSensation.getLiveTimeLeftRatio() " + str(longTermSensation.getLiveTimeLeftRatio()))
+        print("longTermSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=longTermSensation.getTime(), memoryType=longTermSensation.getMemoryType())))
         print("longTermSensation.getMemorability() " + str(longTermSensation.getMemorability()))
         self.assertTrue(self.sensation.getMemorability() == 0.0, 'beyond end Sensory lifetime Sensory sensation must be zero')
         self.assertTrue(workingSensation.getMemorability() > 0.0, 'half working lifetime Working sensation must be more than zero')
@@ -300,12 +301,12 @@ class MemoryTestCase(unittest.TestCase):
         workingSensation.setTime(systemTime.time() - history_time)
         longTermSensation.setTime(systemTime.time() - history_time)
         print("\nSensory history time " + str(history_time))
-        print("self.sensation.getLiveTimeLeftRatio() " + str(self.sensation.getLiveTimeLeftRatio()))
+        print("Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType()) " + str(Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType())))
         print("self.sensation.getMemorability() " + str(self.sensation.getMemorability()))
         print("Working history time " + str(history_time))
-        print("workingSensation.getLiveTimeLeftRatio() " + str(workingSensation.getLiveTimeLeftRatio()))
+        print("workingSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=workingSensation.getTime(), memoryType=workingSensation.getMemoryType())))
         print("workingSensation.getMemorability() " + str(workingSensation.getMemorability()))
-        print("longTermSensation.getLiveTimeLeftRatio() " + str(longTermSensation.getLiveTimeLeftRatio()))
+        print("longTermSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=longTermSensation.getTime(), memoryType=longTermSensation.getMemoryType())))
         print("longTermSensation.getMemorability() " + str(longTermSensation.getMemorability()))
         self.assertTrue(self.sensation.getMemorability() == 0.0, 'beyond end Sensory lifetime Sensory sensation must be zero')
         self.assertTrue(workingSensation.getMemorability() > 0.0, 'near working lifetime Sensory sensation must still be more than zero')
@@ -317,12 +318,12 @@ class MemoryTestCase(unittest.TestCase):
         workingSensation.setTime(systemTime.time() - history_time)
         longTermSensation.setTime(systemTime.time() - history_time)
         print("\nSensory history time " + str(history_time))
-        print("self.sensation.getLiveTimeLeftRatio() " + str(self.sensation.getLiveTimeLeftRatio()))
+        print("Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType()) " + str(Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType())))
         print("self.sensation.getMemorability() " + str(self.sensation.getMemorability()))
         print("Working history time " + str(history_time))
-        print("workingSensation.getLiveTimeLeftRatio() " + str(workingSensation.getLiveTimeLeftRatio()))
+        print("workingSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=workingSensation.getTime(), memoryType=workingSensation.getMemoryType())))
         print("workingSensation.getMemorability() " + str(workingSensation.getMemorability()))
-        print("longTermSensation.getLiveTimeLeftRatio() " + str(longTermSensation.getLiveTimeLeftRatio()))
+        print("longTermSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=longTermSensation.getTime(), memoryType=longTermSensation.getMemoryType())))
         print("longTermSensation.getMemorability() " + str(longTermSensation.getMemorability()))
         self.assertTrue(self.sensation.getMemorability() == 0.0, 'beyond end Sensory lifetime Sensory sensation must be zero')
         self.assertTrue(workingSensation.getMemorability() > 0.0, 'very near working lifetime Sensory sensation must still be more than zero')
@@ -334,12 +335,12 @@ class MemoryTestCase(unittest.TestCase):
         workingSensation.setTime(systemTime.time() - history_time)
         longTermSensation.setTime(systemTime.time() - history_time)
         print("\nSensory history time " + str(history_time))
-        print("self.sensation.getLiveTimeLeftRatio() " + str(self.sensation.getLiveTimeLeftRatio()))
+        print("Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType()) " + str(Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType())))
         print("self.sensation.getMemorability() " + str(self.sensation.getMemorability()))
         print("Working history time " + str(history_time))
-        print("workingSensation.getLiveTimeLeftRatio() " + str(workingSensation.getLiveTimeLeftRatio()))
+        print("workingSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=workingSensation.getTime(), memoryType=workingSensation.getMemoryType())))
         print("workingSensation.getMemorability() " + str(workingSensation.getMemorability()))
-        print("longTermSensation.getLiveTimeLeftRatio() " + str(longTermSensation.getLiveTimeLeftRatio()))
+        print("longTermSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=longTermSensation.getTime(), memoryType=longTermSensation.getMemoryType())))
         print("longTermSensation.getMemorability() " + str(longTermSensation.getMemorability()))
         self.assertTrue(self.sensation.getMemorability() == 0.0, 'beyond end Sensory lifetime Sensory sensation must be zero')
         self.assertTrue(workingSensation.getMemorability() > 0.0, 'very very near working lifetime Sensory sensation must still be more than zero')
@@ -351,12 +352,12 @@ class MemoryTestCase(unittest.TestCase):
         workingSensation.setTime(systemTime.time() - history_time)
         longTermSensation.setTime(systemTime.time() - history_time)
         print("\nSensory history time " + str(history_time))
-        print("self.sensation.getLiveTimeLeftRatio() " + str(self.sensation.getLiveTimeLeftRatio()))
+        print("Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType()) " + str(Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType())))
         print("self.sensation.getMemorability() " + str(self.sensation.getMemorability()))
         print("Working history time " + str(history_time))
-        print("workingSensation.getLiveTimeLeftRatio() " + str(workingSensation.getLiveTimeLeftRatio()))
+        print("workingSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=workingSensation.getTime(), memoryType=workingSensation.getMemoryType())))
         print("workingSensation.getMemorability() " + str(workingSensation.getMemorability()))
-        print("longTermSensation.getLiveTimeLeftRatio() " + str(longTermSensation.getLiveTimeLeftRatio()))
+        print("longTermSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=longTermSensation.getTime(), memoryType=longTermSensation.getMemoryType())))
         print("longTermSensation.getMemorability() " + str(longTermSensation.getMemorability()))
         self.assertTrue(self.sensation.getMemorability() == 0.0, 'beyond end Sensory lifetime Sensory sensation must be zero')
         self.assertTrue(workingSensation.getMemorability() == 0.0, 'beyond end working lifetime Sensory sensation must be zero')
@@ -368,12 +369,12 @@ class MemoryTestCase(unittest.TestCase):
         workingSensation.setTime(systemTime.time() - history_time)
         longTermSensation.setTime(systemTime.time() - history_time)
         print("\nSensory history time " + str(history_time))
-        print("self.sensation.getLiveTimeLeftRatio() " + str(self.sensation.getLiveTimeLeftRatio()))
+        print("Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType()) " + str(Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType())))
         print("self.sensation.getMemorability() " + str(self.sensation.getMemorability()))
         print("Working history time " + str(history_time))
-        print("workingSensation.getLiveTimeLeftRatio() " + str(workingSensation.getLiveTimeLeftRatio()))
+        print("workingSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=workingSensation.getTime(), memoryType=workingSensation.getMemoryType())))
         print("workingSensation.getMemorability() " + str(workingSensation.getMemorability()))
-        print("longTermSensation.getLiveTimeLeftRatio() " + str(longTermSensation.getLiveTimeLeftRatio()))
+        print("longTermSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=longTermSensation.getTime(), memoryType=longTermSensation.getMemoryType())))
         print("longTermSensation.getMemorability() " + str(longTermSensation.getMemorability()))
         self.assertTrue(self.sensation.getMemorability() == 0.0, 'beyond end Sensory lifetime Sensory sensation must be zero')
         self.assertTrue(workingSensation.getMemorability() == 0.0, 'beyond end working lifetime Sensory sensation must be zero')
@@ -385,12 +386,12 @@ class MemoryTestCase(unittest.TestCase):
         workingSensation.setTime(systemTime.time() - history_time)
         longTermSensation.setTime(systemTime.time() - history_time)
         print("\nSensory history time " + str(history_time))
-        print("self.sensation.getLiveTimeLeftRatio() " + str(self.sensation.getLiveTimeLeftRatio()))
+        print("Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType()) " + str(Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType())))
         print("self.sensation.getMemorability() " + str(self.sensation.getMemorability()))
         print("Working history time " + str(history_time))
-        print("workingSensation.getLiveTimeLeftRatio() " + str(workingSensation.getLiveTimeLeftRatio()))
+        print("workingSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=workingSensation.getTime(), memoryType=workingSensation.getMemoryType())))
         print("workingSensation.getMemorability() " + str(workingSensation.getMemorability()))
-        print("longTermSensation.getLiveTimeLeftRatio() " + str(longTermSensation.getLiveTimeLeftRatio()))
+        print("longTermSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=longTermSensation.getTime(), memoryType=longTermSensation.getMemoryType())))
         print("longTermSensation.getMemorability() " + str(longTermSensation.getMemorability()))
         self.assertTrue(self.sensation.getMemorability() == 0.0, 'beyond end Sensory lifetime Sensory sensation must be zero')
         self.assertTrue(workingSensation.getMemorability() == 0.0, 'beyond end working lifetime Sensory sensation must be zero')
@@ -402,18 +403,20 @@ class MemoryTestCase(unittest.TestCase):
         workingSensation.setTime(systemTime.time() - history_time)
         longTermSensation.setTime(systemTime.time() - history_time)
         print("\nSensory history time " + str(history_time))
-        print("self.sensation.getLiveTimeLeftRatio() " + str(self.sensation.getLiveTimeLeftRatio()))
+        print("Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType()) " + str(Sensation.getLiveTimeLeftRatio(time=self.sensation.getTime(), memoryType=self.sensation.getMemoryType())))
         print("self.sensation.getMemorability() " + str(self.sensation.getMemorability()))
         print("Working history time " + str(history_time))
-        print("workingSensation.getLiveTimeLeftRatio() " + str(workingSensation.getLiveTimeLeftRatio()))
+        print("workingSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=workingSensation.getTime(), memoryType=workingSensation.getMemoryType())))
         print("workingSensation.getMemorability() " + str(workingSensation.getMemorability()))
-        print("longTermSensation.getLiveTimeLeftRatio() " + str(longTermSensation.getLiveTimeLeftRatio()))
+        print("longTermSensation.getLiveTimeLeftRatio() " + str(Sensation.getLiveTimeLeftRatio(time=longTermSensation.getTime(), memoryType=longTermSensation.getMemoryType())))
         print("longTermSensation.getMemorability() " + str(longTermSensation.getMemorability()))
         self.assertTrue(self.sensation.getMemorability() == 0.0, 'beyond end Sensory lifetime Sensory sensation must be zero')
         self.assertTrue(workingSensation.getMemorability() == 0.0, 'beyond end working lifetime Sensory sensation must be zero')
         self.assertTrue(longTermSensation.getMemorability()  == 0.0, 'beyond end long term lifetime Sensory sensation must be zero')
         
     '''
+    deprecated
+    
     Test importance
     
     We use Sensation.SensationType.Image in this test, because
@@ -423,151 +426,151 @@ class MemoryTestCase(unittest.TestCase):
     and Importance, but newer Item-names 
     '''    
 
-    def re_test_Importance(self):        
-        print("\ntest_Importance")
-        
-        
-        #memoryType=Sensation.MemoryType.Sensory
-        sensorySensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.Sensory,
-                                                      name='Working_Importance_test', score=MemoryTestCase.SCORE, presence=Sensation.Presence.Present)
-        self.assertIsNot(sensorySensation, None)
-        self.assertEqual(sensorySensation.getPresence(), Sensation.Presence.Present, "should be present")
-        self.assertEqual(len(sensorySensation.getAssociations()), 0) # variates
-        sensorySensation.associate(sensation=self.sensation,
-                                   feeling=MemoryTestCase.NORMAL_FEELING)
-        Sensation.logAssociations(sensorySensation)
-        self.assertEqual(len(sensorySensation.getAssociations()), 1)
-        sensoryAssociation = self.sensation.getAssociation(sensation=sensorySensation)
-        self.assertIsNot(sensoryAssociation, None)
-        
-        self.do_test_Importance(sensation=sensorySensation, association=sensoryAssociation)
-        
-        #memoryType=Sensation.MemoryType.Working
-        workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.Working,
-                                                      name='Working_Importance_test', score=MemoryTestCase.SCORE, presence=Sensation.Presence.Present)
-        self.assertIsNot(workingSensation, None)
-        self.assertEqual(workingSensation.getPresence(), Sensation.Presence.Present, "should be present")
-        self.assertEqual(len(workingSensation.getAssociations()), 0) # variates
-        workingSensation.associate(sensation=self.sensation,
-                                   feeling=MemoryTestCase.NORMAL_FEELING)
-        Sensation.logAssociations(workingSensation)
-        self.assertEqual(len(workingSensation.getAssociations()), 1)
-        workingAssociation = self.sensation.getAssociation(sensation=workingSensation)
-        self.assertIsNot(workingAssociation, None)
-        
-        self.do_test_Importance(sensation=workingSensation, association=workingAssociation)
+#     def re_test_Importance(self):        
+#         print("\ntest_Importance")
+#         
+#         
+#         #memoryType=Sensation.MemoryType.Sensory
+#         sensorySensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.Sensory,
+#                                                       name='Working_Importance_test', score=MemoryTestCase.SCORE, presence=Sensation.Presence.Present)
+#         self.assertIsNot(sensorySensation, None)
+#         self.assertEqual(sensorySensation.getPresence(), Sensation.Presence.Present, "should be present")
+#         self.assertEqual(len(sensorySensation.getAssociations()), 0) # variates
+#         sensorySensation.associate(sensation=self.sensation,
+#                                    feeling=MemoryTestCase.NORMAL_FEELING)
+#         Sensation.logAssociations(sensorySensation)
+#         self.assertEqual(len(sensorySensation.getAssociations()), 1)
+#         sensoryAssociation = self.sensation.getAssociation(sensation=sensorySensation)
+#         self.assertIsNot(sensoryAssociation, None)
+#         
+#         self.do_test_Importance(sensation=sensorySensation, association=sensoryAssociation)
+#         
+#         #memoryType=Sensation.MemoryType.Working
+#         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.Working,
+#                                                       name='Working_Importance_test', score=MemoryTestCase.SCORE, presence=Sensation.Presence.Present)
+#         self.assertIsNot(workingSensation, None)
+#         self.assertEqual(workingSensation.getPresence(), Sensation.Presence.Present, "should be present")
+#         self.assertEqual(len(workingSensation.getAssociations()), 0) # variates
+#         workingSensation.associate(sensation=self.sensation,
+#                                    feeling=MemoryTestCase.NORMAL_FEELING)
+#         Sensation.logAssociations(workingSensation)
+#         self.assertEqual(len(workingSensation.getAssociations()), 1)
+#         workingAssociation = self.sensation.getAssociation(sensation=workingSensation)
+#         self.assertIsNot(workingAssociation, None)
+#         
+#         self.do_test_Importance(sensation=workingSensation, association=workingAssociation)
+# 
+#         #memoryType=Sensation.MemoryType.LongTerm
+#         longTermSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.LongTerm,
+#                                                       name='LongTerm_Importance_test', score=MemoryTestCase.SCORE, presence=Sensation.Presence.Present)
+#         self.assertIsNot(longTermSensation, None)
+#         self.assertEqual(longTermSensation.getPresence(), Sensation.Presence.Present, "should be present")
+#         #self.assertEqual(len(longTermSensation.getAssociations()), 0) # variates
+#         longTermSensation.associate(sensation=self.sensation,
+#                                    feeling=MemoryTestCase.NORMAL_FEELING)
+#         Sensation.logAssociations(longTermSensation)
+#         self.assertEqual(len(longTermSensation.getAssociations()), 1) # variates
+#         longTermAssociation = self.sensation.getAssociation(sensation=longTermSensation)
+#         self.assertIsNot(longTermAssociation, None)
+#         
+#         self.do_test_Importance(sensation=longTermSensation, association=longTermAssociation)
+#         longTermSensation.delete()# remove associations
+#         self.assertEqual(len(longTermSensation.getAssociations()), 0)
+# 
+#     '''
+#         Communication uses Sensation.getImportance() so it is most important to test
+#         TODO Study parameters getImportance(self, positive=True, negative=False, absolute=False)
+#         default is positive=True and it is fine for Communication use to find best positive choice
+#         Assosiation.getImportance() is curiosite    
+#     '''   
+#     def do_test_Importance(self, sensation, association):        
+#         print("\ndo_test_Importance")
+# 
+#         # Normal feeling
+#         association.setFeeling(feeling=MemoryTestCase.NORMAL_FEELING)
+#         print("MemoryTestCase.NORMAL_FEELING association.getImportance() " + str(association.getImportance()))
+#         self.assertTrue(association.getImportance() > 0.0, "association importance must greater than zero")
+#         print("MemoryTestCase.NORMAL_FEELING sensation.getImportance() " + str(sensation.getImportance()))
+#         self.assertTrue(sensation.getImportance() > 0.0, "sensation now importance must greater than zero")
+#         normalAssociationImportance = association.getImportance()
+#         normalSensationImportance = sensation.getImportance()
+#  
+#         #Compare Normal and Better feelings importance of Sensations
+#         association.setFeeling(feeling=MemoryTestCase.BETTER_FEELING)
+#         betterAssociationImportance = association.getImportance()
+#         betterSensationImportance = sensation.getImportance()
+#         
+#         print("MemoryTestCase.BETTER_FEELING betterAssociationImportance {}".format(betterAssociationImportance))
+#         print("MemoryTestCase.BETTER_FEELING betterSensationImportance {}".format(betterSensationImportance))
+#         self.assertTrue(betterAssociationImportance > normalAssociationImportance, "better feeling association importance must greater than normal feeling")
+#         self.assertTrue(betterSensationImportance > normalSensationImportance, "better feeling sensation now importance must greater than normal feeling")
+#         
+#         #Compare Terrified with Normal and Better feelings importance of Sensations    
+#         association.setFeeling(feeling=MemoryTestCase.TERRIFIED_FEELING)
+#         terrifiedAssociationImportance = association.getImportance()
+#         terrifiedSensationImportance = sensation.getImportance()
+#         
+#         print("MemoryTestCase.TERRIFIED_FEELING terrifiedAssociationImportance {}".format(terrifiedAssociationImportance))
+#         print("MemoryTestCase.TERRIFIED_FEELING terrifiedSensationImportance {}".format(terrifiedSensationImportance))
+#         self.assertTrue(terrifiedAssociationImportance < normalAssociationImportance, "terrified feeling association importance must smaller than normal feeling")
+#         self.assertTrue(terrifiedAssociationImportance < betterAssociationImportance, "terrified feeling association importance must smaller than better feeling")
+#         self.assertTrue(terrifiedSensationImportance < normalAssociationImportance, "terrified feeling sensation now importance must smaller than normal feeling")
+#         self.assertTrue(terrifiedSensationImportance < betterSensationImportance, "terrified feeling sensation now importance must smaller than better feeling")
+#        
+#         # set sensation more to the past and look again
+#         history_time = Sensation.sensationMemoryLiveTimes[sensation.getMemoryType()] * 0.5      
+#         sensation.setTime(systemTime.time() - history_time)
+#         association.setTime(systemTime.time() - history_time)
+#         
+#         # terrified
+#         historyTerrifiedAssociationImportance = association.getImportance()
+#         historyTerrifiedSensationImportance = sensation.getImportance()
+#         print("historyTerrifiedAssociationImportance {}".format(historyTerrifiedAssociationImportance))
+#         print("historyTerrifiedSensationImportance {}".format(historyTerrifiedSensationImportance))
+#         self.assertTrue(historyTerrifiedAssociationImportance < betterAssociationImportance, "terrified feeling association importance must smaller than better feeling")
+#         self.assertTrue(historyTerrifiedAssociationImportance < normalAssociationImportance, "terrified feeling association importance must smaller than normal feeling")
+#         self.assertTrue(historyTerrifiedSensationImportance < normalAssociationImportance, "terrified feeling sensation now importance must smaller than normal feeling")
+#         self.assertTrue(historyTerrifiedSensationImportance < betterSensationImportance, "terrified feeling sensation now importance must smaller than better feeling")
+# 
+#         # history importance of Sensations should be higher than current because it is negative
+#         # and when time has been going on, things don't feel so terrified that they were, when happened 
+#         self.assertTrue(terrifiedAssociationImportance == historyTerrifiedAssociationImportance, "history terrified feeling association importance must smaller than current normal feeling")
+#         self.assertTrue(terrifiedSensationImportance < historyTerrifiedSensationImportance, "history terrified feeling sensation importance must smaller than current normal feeling")
+#  
+#         # Normal       
+#         #Compare Normal and history Better feelings importance of Sensations, history better should still be better
+#         association.setFeeling(feeling=MemoryTestCase.NORMAL_FEELING)
+#         # must set time back to history
+#         association.setTime(systemTime.time() - history_time)
+#         sensation.setTime(systemTime.time() - history_time)
+#         # test
+#         historyNormalAssociationImportance = association.getImportance()
+#         historyNormaSensationImportance = sensation.getImportance()
+#         print("historyNormalAssociationImportance {}".format(historyNormalAssociationImportance))
+#         print("historyNormaSensationImportance {}".format(historyNormaSensationImportance))
+#         
+#         self.assertTrue(normalAssociationImportance == historyNormalAssociationImportance, "history and current association importances are equal")
+#         self.assertTrue(normalSensationImportance > historyNormaSensationImportance, "history importance is lower than current one.")
+#         self.assertTrue(historyTerrifiedSensationImportance < historyNormaSensationImportance, "history terrified importance is lower than normal history one.")
+#         self.assertTrue(historyTerrifiedSensationImportance < normalSensationImportance, "history terrified importance is lower than normal current one.")
+# 
+#         # Better      
+#         #Compare Normal and history Better feelings importance of Sensations, history better should still be better
+#         association.setFeeling(feeling=MemoryTestCase.BETTER_FEELING)
+#         # must set time back to history
+#         association.setTime(systemTime.time() - history_time)
+#         sensation.setTime(systemTime.time() - history_time)
+#         # test
+#         historyBetterAssociationImportance = association.getImportance()
+#         historyBetterWorkingSensationImportance = sensation.getImportance()
+#         self.assertTrue(betterAssociationImportance == historyBetterAssociationImportance, "history and current association importances are equal")
+#         self.assertTrue(betterSensationImportance > historyBetterWorkingSensationImportance, "history importance is lower than current one.")
+#         self.assertTrue(historyTerrifiedSensationImportance < historyBetterWorkingSensationImportance, "history terrified importance is lower than Better history one.")
+#         self.assertTrue(historyTerrifiedSensationImportance < betterSensationImportance, "history terrified importance is lower than normal current one.")
+#         self.assertTrue(historyNormaSensationImportance < historyBetterAssociationImportance, "history normal importance is lower than history normal one.")       
 
-        #memoryType=Sensation.MemoryType.LongTerm
-        longTermSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.LongTerm,
-                                                      name='LongTerm_Importance_test', score=MemoryTestCase.SCORE, presence=Sensation.Presence.Present)
-        self.assertIsNot(longTermSensation, None)
-        self.assertEqual(longTermSensation.getPresence(), Sensation.Presence.Present, "should be present")
-        #self.assertEqual(len(longTermSensation.getAssociations()), 0) # variates
-        longTermSensation.associate(sensation=self.sensation,
-                                   feeling=MemoryTestCase.NORMAL_FEELING)
-        Sensation.logAssociations(longTermSensation)
-        self.assertEqual(len(longTermSensation.getAssociations()), 1) # variates
-        longTermAssociation = self.sensation.getAssociation(sensation=longTermSensation)
-        self.assertIsNot(longTermAssociation, None)
-        
-        self.do_test_Importance(sensation=longTermSensation, association=longTermAssociation)
-        longTermSensation.delete()# remove associations
-        self.assertEqual(len(longTermSensation.getAssociations()), 0)
 
-    '''
-        Communication uses Sensation.getImportance() so it is most important to test
-        TODO Study parameters getImportance(self, positive=True, negative=False, absolute=False)
-        default is positive=True and it is fine for Communication use to find best positive choice
-        Assosiation.getImportance() is curiosite    
-    '''   
-    def do_test_Importance(self, sensation, association):        
-        print("\ndo_test_Importance")
-
-        # Normal feeling
-        association.setFeeling(feeling=MemoryTestCase.NORMAL_FEELING)
-        print("MemoryTestCase.NORMAL_FEELING association.getImportance() " + str(association.getImportance()))
-        self.assertTrue(association.getImportance() > 0.0, "association importance must greater than zero")
-        print("MemoryTestCase.NORMAL_FEELING sensation.getImportance() " + str(sensation.getImportance()))
-        self.assertTrue(sensation.getImportance() > 0.0, "sensation now importance must greater than zero")
-        normalAssociationImportance = association.getImportance()
-        normalSensationImportance = sensation.getImportance()
- 
-        #Compare Normal and Better feelings importance of Sensations
-        association.setFeeling(feeling=MemoryTestCase.BETTER_FEELING)
-        betterAssociationImportance = association.getImportance()
-        betterSensationImportance = sensation.getImportance()
-        
-        print("MemoryTestCase.BETTER_FEELING betterAssociationImportance {}".format(betterAssociationImportance))
-        print("MemoryTestCase.BETTER_FEELING betterSensationImportance {}".format(betterSensationImportance))
-        self.assertTrue(betterAssociationImportance > normalAssociationImportance, "better feeling association importance must greater than normal feeling")
-        self.assertTrue(betterSensationImportance > normalSensationImportance, "better feeling sensation now importance must greater than normal feeling")
-        
-        #Compare Terrified with Normal and Better feelings importance of Sensations    
-        association.setFeeling(feeling=MemoryTestCase.TERRIFIED_FEELING)
-        terrifiedAssociationImportance = association.getImportance()
-        terrifiedSensationImportance = sensation.getImportance()
-        
-        print("MemoryTestCase.TERRIFIED_FEELING terrifiedAssociationImportance {}".format(terrifiedAssociationImportance))
-        print("MemoryTestCase.TERRIFIED_FEELING terrifiedSensationImportance {}".format(terrifiedSensationImportance))
-        self.assertTrue(terrifiedAssociationImportance < normalAssociationImportance, "terrified feeling association importance must smaller than normal feeling")
-        self.assertTrue(terrifiedAssociationImportance < betterAssociationImportance, "terrified feeling association importance must smaller than better feeling")
-        self.assertTrue(terrifiedSensationImportance < normalAssociationImportance, "terrified feeling sensation now importance must smaller than normal feeling")
-        self.assertTrue(terrifiedSensationImportance < betterSensationImportance, "terrified feeling sensation now importance must smaller than better feeling")
-       
-        # set sensation more to the past and look again
-        history_time = Sensation.sensationMemoryLiveTimes[sensation.getMemoryType()] * 0.5      
-        sensation.setTime(systemTime.time() - history_time)
-        association.setTime(systemTime.time() - history_time)
-        
-        # terrified
-        historyTerrifiedAssociationImportance = association.getImportance()
-        historyTerrifiedSensationImportance = sensation.getImportance()
-        print("historyTerrifiedAssociationImportance {}".format(historyTerrifiedAssociationImportance))
-        print("historyTerrifiedSensationImportance {}".format(historyTerrifiedSensationImportance))
-        self.assertTrue(historyTerrifiedAssociationImportance < betterAssociationImportance, "terrified feeling association importance must smaller than better feeling")
-        self.assertTrue(historyTerrifiedAssociationImportance < normalAssociationImportance, "terrified feeling association importance must smaller than normal feeling")
-        self.assertTrue(historyTerrifiedSensationImportance < normalAssociationImportance, "terrified feeling sensation now importance must smaller than normal feeling")
-        self.assertTrue(historyTerrifiedSensationImportance < betterSensationImportance, "terrified feeling sensation now importance must smaller than better feeling")
-
-        # history importance of Sensations should be higher than current because it is negative
-        # and when time has been going on, things don't feel so terrified that they were, when happened 
-        self.assertTrue(terrifiedAssociationImportance == historyTerrifiedAssociationImportance, "history terrified feeling association importance must smaller than current normal feeling")
-        self.assertTrue(terrifiedSensationImportance < historyTerrifiedSensationImportance, "history terrified feeling sensation importance must smaller than current normal feeling")
- 
-        # Normal       
-        #Compare Normal and history Better feelings importance of Sensations, history better should still be better
-        association.setFeeling(feeling=MemoryTestCase.NORMAL_FEELING)
-        # must set time back to history
-        association.setTime(systemTime.time() - history_time)
-        sensation.setTime(systemTime.time() - history_time)
-        # test
-        historyNormalAssociationImportance = association.getImportance()
-        historyNormaSensationImportance = sensation.getImportance()
-        print("historyNormalAssociationImportance {}".format(historyNormalAssociationImportance))
-        print("historyNormaSensationImportance {}".format(historyNormaSensationImportance))
-        
-        self.assertTrue(normalAssociationImportance == historyNormalAssociationImportance, "history and current association importances are equal")
-        self.assertTrue(normalSensationImportance > historyNormaSensationImportance, "history importance is lower than current one.")
-        self.assertTrue(historyTerrifiedSensationImportance < historyNormaSensationImportance, "history terrified importance is lower than normal history one.")
-        self.assertTrue(historyTerrifiedSensationImportance < normalSensationImportance, "history terrified importance is lower than normal current one.")
-
-        # Better      
-        #Compare Normal and history Better feelings importance of Sensations, history better should still be better
-        association.setFeeling(feeling=MemoryTestCase.BETTER_FEELING)
-        # must set time back to history
-        association.setTime(systemTime.time() - history_time)
-        sensation.setTime(systemTime.time() - history_time)
-        # test
-        historyBetterAssociationImportance = association.getImportance()
-        historyBetterWorkingSensationImportance = sensation.getImportance()
-        self.assertTrue(betterAssociationImportance == historyBetterAssociationImportance, "history and current association importances are equal")
-        self.assertTrue(betterSensationImportance > historyBetterWorkingSensationImportance, "history importance is lower than current one.")
-        self.assertTrue(historyTerrifiedSensationImportance < historyBetterWorkingSensationImportance, "history terrified importance is lower than Better history one.")
-        self.assertTrue(historyTerrifiedSensationImportance < betterSensationImportance, "history terrified importance is lower than normal current one.")
-        self.assertTrue(historyNormaSensationImportance < historyBetterAssociationImportance, "history normal importance is lower than history normal one.")       
-
-
-    def re_test_AddAssociations(self):
+    def test_AddAssociations(self):
         for i in range(MemoryTestCase.TEST_RUNS):
             self.do_test_AddAssociation()
 
@@ -656,7 +659,7 @@ class MemoryTestCase(unittest.TestCase):
         self.assertEqual(self.sensation.getAssociationFeeling(addSensation), MemoryTestCase.BETTER_FEELING)
         self.assertEqual(addSensation.getAssociationFeeling(self.sensation), MemoryTestCase.BETTER_FEELING)
 
-    def re_test_Feeling(self):
+    def test_Feeling(self):
         for i in range(MemoryTestCase.TEST_RUNS):
             self.do_test_Feeling()
 
@@ -761,7 +764,7 @@ class MemoryTestCase(unittest.TestCase):
         self.assertEqual(self.sensation.getAssociationFeeling(addSensation), MemoryTestCase.BETTER_FEELING)
         self.assertEqual(addSensation.getAssociationFeeling(self.sensation), MemoryTestCase.BETTER_FEELING)
 
-    def re_test_Bytes(self):        
+    def test_Bytes(self):        
         print("\ntest_Bytes")
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working, name='Working_Importance_test',presence=Sensation.Presence.Present, receivedFrom=[])
         self.assertTrue(workingSensation != None, "should be created")
@@ -1042,13 +1045,13 @@ class MemoryTestCase(unittest.TestCase):
   
         # Memory is empty, We should get nothing
 
-        sensations, associations = self.memory.getBestSensations(itemSensations=[self.Wall_E_item_sensation],
+        sensations, sensationAssociations = self.memory.getBestSensations(itemSensations=[self.Wall_E_item_sensation],
                                                                 sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
                                                                 robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
                                                                 robotMainNames = robotMainNames,
                                                                 ignoredDataIds = ignoredDataIds)
         self.assertEqual(len(sensations), 0)
-        self.assertEqual(len(associations), 0)
+        self.assertEqual(len(sensationAssociations), 0)
         # Potential      
         # First item, voice and image
         
@@ -1089,7 +1092,7 @@ class MemoryTestCase(unittest.TestCase):
         item_sensation1.associate(sensation=image_sensation1)
         voice_sensation1.associate(sensation=image_sensation1)
         
-        sensations, associations = self.memory.getBestSensations( itemSensations = [item_sensation1],
+        sensations, sensationAssociations = self.memory.getBestSensations( itemSensations = [item_sensation1],
                                                                   sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
                                                                   robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
                                                                   robotMainNames = robotMainNames,
@@ -1097,19 +1100,20 @@ class MemoryTestCase(unittest.TestCase):
                                                                   searchLength=self.SEARCH_LENGTH)
         if succeed:
             self.assertEqual(len(sensations), 2)
-            self.assertEqual(len(associations), 2)
+            self.assertEqual(len(sensationAssociations), 2)
             associationSensations=[]
-            for association in associations:
-                associationSensations.append(association.getSensation())
+            for associations in sensationAssociations:
+                for association in associations:
+                    associationSensations.append(association.getSelfSensation())
                 
             self.assertTrue(voice_sensation1 in sensations)
             self.assertTrue(voice_sensation1 in associationSensations)
             
             self.assertTrue(image_sensation1 in sensations)
-            self.assertTrue(image_sensation1 in associationSensations)
+            #self.assertTrue(image_sensation1 in associationSensations)
         else:
             self.assertEqual(len(sensations), 0)
-            self.assertEqual(len(associations), 0)
+            self.assertEqual(len(sensationAssociations), 0)
        
         # second item, voice and image, better score and Feeling
         
@@ -1150,7 +1154,7 @@ class MemoryTestCase(unittest.TestCase):
         voice_sensation2.associate(sensation=image_sensation2)
         
         
-        sensations, associations = self.memory.getBestSensations( itemSensations = [item_sensation2],
+        sensations, sensationAssociations = self.memory.getBestSensations( itemSensations = [item_sensation2],
                                                                   sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
                                                                   robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
                                                                   robotMainNames = robotMainNames,
@@ -1160,17 +1164,36 @@ class MemoryTestCase(unittest.TestCase):
             self.assertEqual(len(sensations), 2)
             self.assertEqual(len(associations), 2)
             associationSensations=[]
-            for association in associations:
-                associationSensations.append(association.getSensation())
+            sensationAssociations
+            for associations in sensationAssociations:
+                for association in associations:
+                    associationSensations.append(association.getSelfSensation())
                 
             self.assertTrue(voice_sensation2 in sensations)
             self.assertTrue(voice_sensation2 in associationSensations)
             
             self.assertTrue(image_sensation2 in sensations)
-            self.assertTrue(image_sensation2 in associationSensations)
-        else:
-            self.assertEqual(len(sensations), 0)
-            self.assertEqual(len(associations), 0)
+            #self.assertTrue(image_sensation2 in associationSensations)
+            
+            # Test again with ignoredDataIds for last results, so we should get 1. results again
+            sensations, sensationAssociations = self.memory.getBestSensations( itemSensations = [item_sensation2],
+                                                                      sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
+                                                                      robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
+                                                                      robotMainNames = robotMainNames,
+                                                                      ignoredDataIds = [voice_sensation2.getDataId(), image_sensation2.getDataId()],
+                                                                      searchLength=self.SEARCH_LENGTH)
+            self.assertEqual(len(sensations), 2)
+            self.assertEqual(len(sensationAssociations), 2)
+            associationSensations=[]
+            for associations in sensationAssociations:
+                for association in associations:
+                    associationSensations.append(association.getSelfSensation())
+                    
+            self.assertTrue(voice_sensation1 in sensations)
+            self.assertTrue(voice_sensation1 in associationSensations)
+                
+            self.assertTrue(image_sensation1 in sensations)
+            #self.assertTrue(image_sensation1 in associationSensations)
 
         # set first item core also higher as high as item3, set feeling same so we would its items
         # NOTE Feeling is much more meaningful than score, so this test works even if we let lower, SCORE_2
@@ -1180,7 +1203,7 @@ class MemoryTestCase(unittest.TestCase):
         item_sensation1.getAssociation(sensation=image_sensation1).setFeeling(feeling = Sensation.Feeling.Good)
         
         
-        sensations, associations = self.memory.getBestSensations( itemSensations = [item_sensation1],
+        sensations, sensationAssociations = self.memory.getBestSensations( itemSensations = [item_sensation1],
                                                                   sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
                                                                   robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
                                                                   robotMainNames = robotMainNames,
@@ -1190,17 +1213,112 @@ class MemoryTestCase(unittest.TestCase):
             self.assertEqual(len(sensations), 2)
             self.assertEqual(len(associations), 2)
             associationSensations=[]
-            for association in associations:
-                associationSensations.append(association.getSensation())
-                
+            for associations in sensationAssociations:
+                for association in associations:
+                    associationSensations.append(association.getSelfSensation())
+                    
             self.assertTrue(voice_sensation1 in sensations)
             self.assertTrue(voice_sensation1 in associationSensations)
             
             self.assertTrue(image_sensation1 in sensations)
             self.assertTrue(image_sensation1 in associationSensations)
+            
+            # Test again with ignoredDataIds for last results, so we should get 2. results again
+            sensations, sensationAssociations = self.memory.getBestSensations( itemSensations = [item_sensation2],
+                                                                      sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
+                                                                      robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
+                                                                      robotMainNames = robotMainNames,
+                                                                      ignoredDataIds = [voice_sensation1.getDataId(), image_sensation1.getDataId()],
+                                                                      searchLength=self.SEARCH_LENGTH)
+            self.assertEqual(len(sensations), 2)
+            self.assertEqual(len(sensationAssociations), 2)
+            associationSensations=[]
+            for associations in sensationAssociations:
+                for association in associations:
+                    associationSensations.append(association.getSelfSensation())
+                    
+            self.assertTrue(voice_sensation2 in sensations)
+            self.assertTrue(voice_sensation2 in associationSensations)
+                
+            self.assertTrue(image_sensation2 in sensations)
+            #self.assertTrue(image_sensation2 in associationSensations)
         else:
             self.assertEqual(len(sensations), 0)
-            self.assertEqual(len(associations), 0)
+            self.assertEqual(len(sensationAssociations), 0)
+            
+        # Finally test situation, where we have many Sensation.Item.Names present
+        # with same Voice and Image assigned. This is situation, when certain
+        # Voice/Image is heard/seen when these Iten.names are present together.
+        # In this situation this Voice/Image is best.
+        #
+        # Now best Feeling/Score is is Sensation.Feeling.Good/Score2
+        # Calculate how many Voices/Images wins this with
+        # Sensation.Feeling.Normal/Score2
+        
+        new_voice_sensation = self.createSensation(
+                                                    sensationName='new_voice_sensation',
+                                                    robot=self.robot,
+                                                    time=history_sensationTime,
+                                                    memoryType=Sensation.MemoryType.Sensory,
+                                                    sensationType=Sensation.SensationType.Voice,
+                                                    robotType=robotType,
+                                                    mainNames=self.MAINNAMES
+                                                    )
+        self.printSensationNameById(note='new_voice_sensation test', dataId=new_voice_sensation.getDataId())
+        new_image_sensation = self.createSensation(
+                                                    sensationName='new_image_sensation',
+                                                    robot=self.robot,
+                                                    time=history_sensationTime,
+                                                    memoryType=Sensation.MemoryType.Sensory,
+                                                    sensationType=Sensation.SensationType.Image,
+                                                    robotType=robotType,
+                                                    mainNames=self.MAINNAMES)
+        self.printSensationNameById(note='new_image_sensation test', dataId=new_image_sensation.getDataId())
+        
+ 
+        itemSensations = []   
+        for i in range(0,int(Sensation.Feeling.Good/Sensation.Feeling.Normal)+2):
+                name = '{}_{}'.format(self.NAME,i)
+                new_item_sensation = self.createSensation(
+                                                        sensationName='item'+name,
+                                                        robot=self.robot,
+                                                        time=history_sensationTime,
+                                                        memoryType=Sensation.MemoryType.Working,
+                                                        sensationType=Sensation.SensationType.Item,
+                                                        robotType=robotType,
+                                                        name=name,
+                                                        score=self.SCORE_2,
+                                                        presence=Sensation.Presence.Present,
+                                                        mainNames=self.MAINNAMES
+                                                        )
+                self.printSensationNameById(note='item '+name+' test', dataId=new_item_sensation.getDataId())
+    
+                itemSensations.append(new_item_sensation)            
+                new_item_sensation.associate(sensation=new_voice_sensation, feeling = Sensation.Feeling.Normal)
+                new_item_sensation.associate(sensation=new_image_sensation, feeling = Sensation.Feeling.Normal)
+                new_voice_sensation.associate(sensation=new_image_sensation)
+                
+        # Test without ignoredDataIds
+        sensations, sensationAssociations = self.memory.getBestSensations( itemSensations = itemSensations,
+                                                                      sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
+                                                                      robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
+                                                                      robotMainNames = robotMainNames,
+                                                                      ignoredDataIds = [],
+                                                                      searchLength=self.SEARCH_LENGTH)
+        if succeed:
+            self.assertEqual(len(sensations), 2)
+            self.assertEqual(len(sensationAssociations), 2)
+            for associations in sensationAssociations:
+                self.assertEqual(len(associations), len(itemSensations))
+                for association in associations:
+                    self.assertTrue(association.getSensation() in itemSensations)
+                    self.assertTrue(association.getSelfSensation() in [new_voice_sensation, new_image_sensation])
+        else:
+            self.assertEqual(len(sensations), 0)
+            self.assertEqual(len(sensationAssociations), 0)
+#         associationSensations=[]
+#         for association in associations:
+#             associationSensations.append(association.getSensation())
            
        
     '''
@@ -1486,28 +1604,31 @@ class MemoryTestCase(unittest.TestCase):
 #         self.assertEqual(candidate_for_image_association, item_sensation1.getAssociation(sensation=image_sensation1))
 #         
        
-        
-    def re_test_Picleability(self):
-        print("\ntest_Picleability\n")
-        
-        originalSensations=[]
-        for sensation in self.memory.sensationMemory:
-            if sensation.getMemoryType() == Sensation.MemoryType.LongTerm and\
-               sensation.getMemorability() >  Sensation.MIN_CACHE_MEMORABILITY:
-                originalSensations.append(sensation)
-
-        self.memory.saveLongTermMemory()
-        del self.memory.sensationMemory[:]
-        
-        self.memory.loadLongTermMemory()
-        
-        self.assertEqual(len(self.memory.sensationMemory),len(originalSensations), "should load same amount Sensations")
-        i=0
-        while i < len(self.memory.sensationMemory):
-            self.assertEqual(self.memory.sensationMemory[i],originalSensations[i], "loaded sensation must be same than dumped one")
-            i=i+1
+    '''
+    deprecated
+    '''
+#         
+#     def re_test_Picleability(self):
+#         print("\ntest_Picleability\n")
+#         
+#         originalSensations=[]
+#         for sensation in self.memory.sensationMemory:
+#             if sensation.getMemoryType() == Sensation.MemoryType.LongTerm and\
+#                sensation.getMemorability() >  Sensation.MIN_CACHE_MEMORABILITY:
+#                 originalSensations.append(sensation)
+# 
+#         self.memory.saveLongTermMemory()
+#         del self.memory.sensationMemory[:]
+#         
+#         self.memory.loadLongTermMemory()
+#         
+#         self.assertEqual(len(self.memory.sensationMemory),len(originalSensations), "should load same amount Sensations")
+#         i=0
+#         while i < len(self.memory.sensationMemory):
+#             self.assertEqual(self.memory.sensationMemory[i],originalSensations[i], "loaded sensation must be same than dumped one")
+#             i=i+1
  
-    def re_test_SaveLoadToBinaryFiles(self):
+    def test_SaveLoadToBinaryFiles(self):
         print("\ntest_SaveLoadToBinaryFiles\n")
         sensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.LongTerm,
                                                 name='test', score=MemoryTestCase.SCORE, presence=Sensation.Presence.Entering)

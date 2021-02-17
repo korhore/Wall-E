@@ -1,13 +1,12 @@
 '''
 Created on Feb 25, 2013
-Edited on 28.01.2021
+Edited on 06.02.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
 
 import sys
 import os
-#import resource
 import time as systemTime
 from enum import Enum
 import struct
@@ -1778,6 +1777,7 @@ class Sensation(object):
     '''
 
     def getMemorability(self,
+                        getAssociationsList = False,
                         allAssociations = False,
                         itemSensations = None,
                         robotMainNames = None,
@@ -1795,20 +1795,40 @@ class Sensation(object):
         selfMemorability = Sensation.doGetMemorability(time = self.getTime(),
                                                        memoryType = self.getMemoryType())
         associationsImportance = 0.0
+        associations=[]
              
         if itemSensations != None or allAssociations:
-            associationsImportance = self.getAssociationsMemorability(
-                                        allAssociations = allAssociations,
-                                        itemSensations = itemSensations,
-                                        robotMainNames = robotMainNames,
-                                        robotTypes = robotTypes,
-                                        ignoredDataIds=ignoredDataIds,
-                                        #ignoredVoiceLens=[],
-                                        positive = positive,
-                                        negative = negative,
-                                        absolute = absolute)
-#         if negative:
-#             return selfMemorability - associationsImportance
+            if getAssociationsList:
+                associationsImportance, associations = \
+                    self.getAssociationsMemorability(
+                                            getAssociationsList = getAssociationsList,
+                                            allAssociations = allAssociations,
+                                            itemSensations = itemSensations,
+                                            robotMainNames = robotMainNames,
+                                            robotTypes = robotTypes,
+                                            ignoredDataIds=ignoredDataIds,
+                                            #ignoredVoiceLens=[],
+                                            positive = positive,
+                                            negative = negative,
+                                            absolute = absolute)
+    #         if negative:
+    #             return selfMemorability - associationsImportance
+                return selfMemorability + associationsImportance, associations
+            
+            associationsImportance = \
+                self.getAssociationsMemorability(
+                                            getAssociationsList = getAssociationsList,
+                                            allAssociations = allAssociations,
+                                            itemSensations = itemSensations,
+                                            robotMainNames = robotMainNames,
+                                            robotTypes = robotTypes,
+                                            ignoredDataIds=ignoredDataIds,
+                                            #ignoredVoiceLens=[],
+                                            positive = positive,
+                                            negative = negative,
+                                            absolute = absolute)
+    #         if negative:
+    #             return selfMemorability - associationsImportance
         return selfMemorability + associationsImportance
     
     '''
@@ -1864,6 +1884,7 @@ class Sensation(object):
     '''
 
     def getAssociationsMemorability(self,
+                                    getAssociationsList = False,
                                     allAssociations = False,
                                     itemSensations = None,
                                     robotMainNames = None,
@@ -1873,6 +1894,7 @@ class Sensation(object):
                                     positive=True,
                                     negative=False,
                                     absolute=False):
+        associations=[]
         names=[]
         if itemSensations != None:
             for sensation in itemSensations:
@@ -1891,19 +1913,23 @@ class Sensation(object):
                                                            memoryType = association.getSensation().getMemoryType(),
                                                            feeling = association.getFeeling(),
                                                            score = association.getSensation().getScore())
+                associations.append(association)
             elif allAssociations:
                 memorability = memorability + \
                                Sensation.doGetMemorability(time = association.getTime(),
                                                            memoryType = association.getSensation().getMemoryType())
+                associations.append(association)
                
 #                 if absolute:
 #                      importance = abs(importance)
 #                 memorability = memorability + importance
+        if getAssociationsList:
+            return memorability, associations
         return memorability
                 
 
     def setId(self, id):
-        self.id = ida
+        self.id = id
     def getId(self):
         return self.id
     

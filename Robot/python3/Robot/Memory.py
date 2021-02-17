@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 28.01.2021
+Edited on 11.01.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -70,7 +70,7 @@ class Memory(object):
         self.minAvailMem =  minAvailMem
         self.sensationMemory=[]                 # Sensation cache
         
-        self._presentItemSensations={}           # present item.name sensations
+        self._presentItemSensations={}          # present item.name sensations
         self.sharedSensationHosts = []          # hosts with we have already shared our sensations NOTE not used, logic removed or idea is not yet implemented?
                                                 # NOTE sharedSensationHosts is used in Robot do don't remove this variable
                                        
@@ -381,7 +381,7 @@ class Memory(object):
         
         # delete quickly last created Sensations that are not important
 #        while len(memoryType) > 0 and memoryType[0].isForgettable() and memoryType[0].getMemorability() < self.min_cache_memorability:
-        while len(self.sensationMemory) > 0 and self.sensationMemory[0].isForgettable() and self.sensationMemory[0].getMemorability() < self.min_cache_memorability:
+        while len(self.sensationMemory) > 0 and self.sensationMemory[0].isForgettable() and self.sensationMemory[0].getMemorability(allAssociations=True) < self.min_cache_memorability:
             self.log(logStr='delete from sensation cache {}'.format(self.sensationMemory[0].toDebugStr()), logLevel=Memory.MemoryLogLevel.Normal)
             self.sensationMemory[0].delete()
             del self.sensationMemory[0]
@@ -395,7 +395,7 @@ class Memory(object):
                   (Memory.getMemoryUsage() > self.getMaxRss() or\
                    Memory.getAvailableMemory() < self.getMinAvailMem()):
                 if self.sensationMemory[i].isForgettable():
-                    if self.sensationMemory[i].getMemorability() < self.min_cache_memorability:
+                    if self.sensationMemory[i].getMemorability(allAssociations=True) < self.min_cache_memorability:
                         self.log(logStr='delete from sensation cache {}'.format(self.sensationMemory[i].toDebugStr()), logLevel=Memory.MemoryLogLevel.Normal)
                         self.sensationMemory[i].delete()
                         del self.sensationMemory[i]
@@ -881,9 +881,10 @@ class Memory(object):
                           sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
                           robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
                           robotMainNames = [],
-                          ignoredDataIds= [],
+                          ignoredDataIds = [],
                           searchLength = 10):
         # result as dictionares, key sensationType
+        copied_ignoredDataIds = ignoredDataIds[:]   # deep copy, so original lict is not changed
         sensations = {}
         associations = {}
         memorabilitys = {}
@@ -895,7 +896,8 @@ class Memory(object):
                 names.append(sensation.getName())
                 
         # check Sensation.SensationType.Item sensations where name matches        
- #           if sensation.getDataId() not in ignoredDataIds and\
+ #           if sensation.getDataId() not in copied_ignoredDataIds and\
+        searched = 0
         for itemSensation in self.sensationMemory:
             if itemSensation.getSensationType() == Sensation.SensationType.Item and\
                itemSensation.getName() in names:
@@ -904,7 +906,7 @@ class Memory(object):
                         sensation = association.getSensation()
                         if sensation.getSensationType() in sensationTypes and\
                            sensation.getRobotType() in robotTypes and\
-                           sensation.getDataId() not in ignoredDataIds:
+                           sensation.getDataId() not in copied_ignoredDataIds:
                             hasSensationType = True
                             if sensation.getRobotType() == Sensation.RobotType.Communication:
                                 isInMainNames = sensation.isInMainNames(mainNames=robotMainNames)
@@ -914,28 +916,45 @@ class Memory(object):
                                 print("hasSensationType {}  isInMainNames {}".format(hasSensationType, isInMainNames))
                                              
                             if hasSensationType: #sensation associated to itemSensation is right kind
-                                                  # TODO we sip cheking
-                                # calculate score
-                                memorability = sensation.getMemorability(
+                                                 # sensation can heve many matching Item.bane associations
+#                                                  #  we should accept then all
+#                                 memorability = 0.0
+#                                 for reverseAsoosiciation in sensation.getAssociations():
+#                                     reverseSensation = reverseAsoosiciation.getSensation()
+#                                     if reverseSensation.getSensationType() == Sensation.SensationType.Item and\
+#                                         itemSensation.getName() in names
+#                                                   # TODO we skip checking
+                                # calculate sensationTypes memorability backward to
+                                # SensationType.Iten where nmae matches
+                                memorability, sensationAssociations = \
+                                            sensation.getMemorability(
+                                                    getAssociationsList = True,
                                                     itemSensations = itemSensations,
                                                     robotMainNames = robotMainNames,
                                                     robotTypes = robotTypes,#[Sensation.RobotType.Sense, Sensation.RobotType.Communication],
-                                                    ignoredDataIds=ignoredDataIds,
+                                                    ignoredDataIds=copied_ignoredDataIds,
                                                     positive = True,
                                                     negative = False,
                                                     absolute = False)
                                 if sensation.getSensationType() not in memorabilitys or\
                                    memorability > memorabilitys[sensation.getSensationType()]:
+                                    copied_ignoredDataIds.append(sensation.getDataId())    # We have checked this, so don't check again if found assigned 
+                                                                                           # with other Item
                                     memorabilitys[sensation.getSensationType()] = memorability
                                     sensations[sensation.getSensationType()] = sensation
-                                    associations[sensation.getSensationType()] = association
+                                    associations[sensation.getSensationType()] = sensationAssociations
+                                    
+                                    searched = searched+1
+                                    if searched >= searchLength:
+                                        return sensations.values(), associations.values()
+                                    
                         
                      
 #                 hasAssociations = and\
 #                sensation.getRobotType() in robotTypes and\
 #                sensation.hasAssociationSensationType(associationSensationType = Sensation.SensationType.Voice,
 #                                                      associationDirections = robotTypes,
-#                                                      ignoredDataIds = ignoredDataIds,
+#                                                      ignoredDataIds = copied_ignoredDataIds,
 #                                                      robotMainNames = robotMainNames):
         
         
@@ -1157,7 +1176,7 @@ class Memory(object):
         while i < len(self.sensationMemory):
             self.sensationMemory[i].attachedBy = []
             if self.sensationMemory[i].getMemoryType() == Sensation.MemoryType.LongTerm and\
-               self.sensationMemory[i].getMemorability() >  Sensation.MIN_CACHE_MEMORABILITY:
+               self.sensationMemory[i].getMemorability(allAssociations=True) >  Sensation.MIN_CACHE_MEMORABILITY:
 #                 # remove connection to Robot
 #                 # Robot is Thread and cannot be dumped
 #                 self.sensationMemory[i].detachAll()
@@ -1293,7 +1312,7 @@ class Memory(object):
             self.sensationMemory[i].attachedBy = []
             if self.sensationMemory[i].getMemoryType() == Sensation.MemoryType.LongTerm and\
                self.sensationMemory[i].getSensationType() != Sensation.SensationType.Unknown and\
-               self.sensationMemory[i].getMemorability() >  Sensation.MIN_CACHE_MEMORABILITY:
+               self.sensationMemory[i].getMemorability(allAssociations=True) >  Sensation.MIN_CACHE_MEMORABILITY:
                 # remove connection to Robot
                 # Robot is Thread and cannoc be dumped
                 self.sensationMemory[i].detachAll()
@@ -1356,9 +1375,9 @@ class Memory(object):
             self.log(logStr='loadLongTermMemoryFromBinaryFiles loaded {} sensations'.format(str(len(self.sensationMemory))), logLevel=Memory.MemoryLogLevel.Normal)
             i=0
             while i < len(self.sensationMemory):
-                if self.sensationMemory[i].getMemorability() <  Sensation.MIN_CACHE_MEMORABILITY or\
+                if self.sensationMemory[i].getMemorability(allAssociations=True) <  Sensation.MIN_CACHE_MEMORABILITY or\
                    self.sensationMemory[i].getSensationType() == Sensation.SensationType.Unknown:
-                    self.log(logStr='loadLongTermMemoryFromBinaryFiles delete sensation {} {} with too low memorability {}'.format(i, self.sensationMemory[i].toDebugStr(), self.sensationMemory[i].getMemorability()), logLevel=Memory.MemoryLogLevel.Normal)
+                    self.log(logStr='loadLongTermMemoryFromBinaryFiles delete sensation {} {} with too low memorability {}'.format(i, self.sensationMemory[i].toDebugStr(), memorability), logLevel=Memory.MemoryLogLevel.Normal)
                     self.sensationMemory[i].delete()
                     del self.sensationMemory[i]
                 else:
@@ -1477,7 +1496,13 @@ class Memory(object):
     '''
 
     def hasPresence(self):
-        return len(self._presentItemSensations) > 0
+        for location in self._presentItemSensations.keys():
+            if len(self._presentItemSensations[location].items()) > 0:
+                for name, sensation in self._presentItemSensations[location].items():
+                    print('hasPresence in location {} name {} is present'.format(location,name))
+                return True
+        print('hasPresence None is present')
+        return False
 
     '''
     return human readable string of presence items in all locations
@@ -1506,15 +1531,19 @@ class Memory(object):
         return self._presentItemSensations[location].items()
 
     '''
-    get presence sensations in all location
+    get presence sensations in all location,
+    but only one sensation per Item.name
     This is helper function to ne compatible with old implementation when we don't care about locations.
     This method can be removed
     '''
     def getAllPresentItemSensations(self):
         itemSensations = []
+        names=[]
         for location in self._presentItemSensations.keys():
             for name, itemSensation in self._presentItemSensations[location].items():
-                itemSensations.append(itemSensation)
+                if name not in names:
+                    names.append(name)
+                    itemSensations.append(itemSensation)
         return itemSensations
     
     '''
