@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 11.02.2021
+Updated on 17.02.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -47,6 +47,11 @@ if                Voice
 else
 7) Feel Sad Best Voice from Other
    - this way we would try next time other Voice
+   
+TODO tests for
+- isConversationDelay
+- isNoResponseToSay
+
 
 '''
 import time as systemTime
@@ -84,7 +89,7 @@ class Communication(Robot):
                                     # we wait until we will respond if
                                     # someone speaks
     SEARCH_LENGTH=10                # How many response voices we check
-    IGNORE_LAST_HEARD_SENSATIONS_LENGTH=5 #5 Optimize this
+    IGNORE_LAST_HEARD_SENSATIONS_LENGTH=10 #5 Optimize this
                                     # How last heard voices we ignore in this conversation, when
                                     # we search best voicess to to pesponse to voices
                                     # This mast be >= 1 for sure, otherwise we are echo
@@ -365,6 +370,8 @@ class Communication(Robot):
     def isConversationDelay(self):
         return self._isConversationDelay
         
+    def isNoResponseToSay(self):
+        return self._isNoResponseToSay
 
     '''
     Speak:
