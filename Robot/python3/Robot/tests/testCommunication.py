@@ -1872,7 +1872,7 @@ class CommunicationTestCase(unittest.TestCase):
             # if communication could not response, dont cara
             if self.communication._isNoResponseToSay:
                 while not self.getAxon().empty():
-                    tranferDirection, sensation = self.getAxon().get()
+                    tranferDirection, sensation = self.getAxon().get(robot=self)
                     print("\n{} To remove known first reply from self.communication.heardDataIds got sensation {}".format(j,sensation.toDebugStr()))
     
                 i=i+1
@@ -1995,7 +1995,7 @@ class CommunicationTestCase(unittest.TestCase):
             isVoiceFeelingStillExpected = isVoiceFeeling
             isImageFeelingStillExpected = isImageFeeling
             while(not self.getAxon().empty()):
-                tranferDirection, sensation = self.getAxon().get()
+                tranferDirection, sensation = self.getAxon().get(robot=self)
                 self.printSensationNameById(dataId=sensation.getDataId(), note=name + " expect got")
                 if sensation.getSensationType() == Sensation.SensationType.Voice:
                     if sensation.getRobotType() == Sensation.RobotType.Muscle:
@@ -2118,7 +2118,7 @@ class CommunicationTestCase(unittest.TestCase):
             isHeardStillExpected = isHeard
             isVoiceFeelingStillExpected = isVoiceFeeling
             while(not self.getAxon().empty()):
-                tranferDirection, sensation = self.getAxon().get()
+                tranferDirection, sensation = self.getAxon().get(robot=self)
                 if sensation.getSensationType() == Sensation.SensationType.Voice:
                     if isSpokenStillExpected:
                         if sensation.getRobotType() == Sensation.RobotType.Muscle:

@@ -1,7 +1,64 @@
 Critical
 --------
 
-Seems that Sensations make at least one trp back to origin host from other host.
+Wall-E_MainName:father:1:Normal:Ubuntu livingroom:Sensations cache for 2492 Total self.sensationMemory  usage 1347.3828125 MB available 4394.55859375 MB with Sensation.min_cache_memorability 1.5800000000000003
+Wall-E_MainName:father:1:Normal:Ubuntu livingroom:Sensations cache deletion skipped 1048 Not Forgottable Sensation
+
+For some reason, there are Sensations, that will remain Not Forgottable
+We must implement some way, how to keep track of these.
+
+ 359481 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache for 1859 Total self.sensationMemory  usage 719.25390625 MB available 10.5234375 MB
+        with Sensation.min_cache_memorability 2.8799999999990162
+ 359482 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache deletion skipped 1014 Not Forgottable Sensation
+ 359483 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Eva number 10
+ 359484 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot MicrophonePlayback number 2
+ 359485 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Playback number 2
+ 359486 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Microphone number 2
+ 359487 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Visual number 2
+ 359488 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Communication number 939
+ 359489 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Wall-E number 164 ?? What is Wall-E, Identity
+ 359490 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Camera number 2
+ 359491 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot TCPServer: ('', 2000) number 2
+ 359492 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot SocketServer: ('192.168.117.130', 57016) number 5
+ 359493 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot SocketClient: ('192.168.117.130', 57016) number 2
+ 
+ 
+raspberry
+main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Communication SensationType Robot number 1
+main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Communication SensationType Location number 1
+main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Communication SensationType Item number 367
+main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Communication SensationType Image number 198
+main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Communication SensationType Voice number 64
+
+Ubuntu
+Wall-E_MainName:father:1:Normal:Ubuntu livingroom:Sensations cache Not Forgottable robot Communication SensationType Robot number 1
+Wall-E_MainName:father:1:Normal:Ubuntu livingroom:Sensations cache Not Forgottable robot Communication SensationType Item number 39
+Wall-E_MainName:father:1:Normal:Ubuntu livingroom:Sensations cache Not Forgottable robot Communication SensationType Location number 1
+Wall-E_MainName:father:1:Normal:Ubuntu livingroom:Sensations cache Not Forgottable robot Communication SensationType Image number 13
+Wall-E_MainName:father:1:Normal:Ubuntu livingroom:Sensations cache Not Forgottable robot Communication SensationType Voice number 8
+
+
+ main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Communication number 237
+ - Still even if no attach and detached all
+ -- This is logical, because weaded detach to sensation that are Azon put and that makes detach.
+ -- Axon.get does not make detach(All), but maybe it should and after that attach(robot)
+
+
+Stop does not allways success.
+Wall-E_MainName:father:1:Normal:Ubuntu livingroom:logActivity activityAverage 0.2105919444658877 
+Wall-E_MainName:father:1:Normal:Ubuntu livingroom:logActivity shortActivityAverage 0.14039462964392513 
+These should stop if status is stop
+
+Forget < 5 min neutral feeling and if it does not hel, forget feelings
+
+Visual
+When lof Communication, Feeling character on but Chabge empty, nothing else is on the line
+
+Making 2 Robot in same location to communicate if they have same  sensation set
+is no mean, because they communicate for ever. At least we should not forget used Robot voices
+so 2 used voices array makes sense, 1 for person, 1 for robots.
+
+Seems that Sensations make at least one trip back to origin host from other host.
 Is the reason ReceivedFrom ''.'real receivedFrom'
 
 OOPS clear configuration!

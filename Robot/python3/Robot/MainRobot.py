@@ -139,8 +139,8 @@ class MainRobot(Robot):
         # live until stopped
         self.mode = Sensation.Mode.Normal
         while self.running:
-            self.log("transferDirection, sensation, association = self.getAxon().get()")
-            transferDirection, sensation = self.getAxon().get()
+            self.log("transferDirection, sensation, association = self.getAxon().get(robot=self)")
+            transferDirection, sensation = self.getAxon().get(robot=self)
             self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
             # We are main Robot, keep track of presence
             if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemoryType() == Sensation.MemoryType.Working and\

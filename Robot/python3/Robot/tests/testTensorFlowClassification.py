@@ -238,7 +238,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
         # test removed temporarely
         #self.assertTrue(self.getAxon().empty(), 'self.getAxon().empty() should be empty')
         while not self.getAxon().empty():
-                transferDirection, sensation = self.getAxon().get()
+                transferDirection, sensation = self.getAxon().get(robot=self)
                 print("external: got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
                 if sensation.getRobotType() == Sensation.RobotType.Sense and \
                     sensation.getSensationType() == Sensation.SensationType.Image:
@@ -288,7 +288,7 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
                and \
               (systemTime.time() - testStartTime < waitTime):
             if not self.getAxon().empty():
-                transferDirection, sensation = self.getAxon().get()
+                transferDirection, sensation = self.getAxon().get(robot=self)
                 print("1: got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
                 if sensation.getRobotType() == Sensation.RobotType.Sense and \
                     sensation.getSensationType() == Sensation.SensationType.Image:

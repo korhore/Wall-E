@@ -169,7 +169,7 @@ class Visual(Robot):
             # if we can't sense, the we wait until we get something into Axon
             # or if we can sense, but there is something in our Axon, process it
             if not self.getAxon().empty() or not self.canSense():
-                transferDirection, sensation = self.getAxon().get()
+                transferDirection, sensation = self.getAxon().get(robot=self)
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr() + ' len(sensation.getAssociations()) '+ str(len(sensation.getAssociations())))      
                 self.process(transferDirection=transferDirection, sensation=sensation)
             else:

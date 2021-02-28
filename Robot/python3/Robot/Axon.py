@@ -24,14 +24,13 @@ class Axon():
         self.robot = robot      # owner robot of this axon
         self.queue = Queue()
        
-    def put(self, robot, transferDirection, sensation, detach=True):
+    def put(self, robot, transferDirection, sensation):
         self.robot.log("Axon put from {} to {} with original queue length {} full {}".format(robot.getName(),self.robot.getName(), self.queue.qsize(), self.queue.full()))
-        sensation.attach(self.robot)                        # take ownership
+        sensation.attach(robot=self.robot)                        # take ownership
 # let Robots decide locations
 #         if len(sensation.getLocations()) == 0:              # if sensations does not have locations yet, set it as robots locations.
 #             sensation.setLocations(self.robot.getLocations())   #
-        if detach:
-            sensation.detach(robot)         # release from caller
+        sensation.detach(robot=robot)         # release from caller
         self.queue.put((transferDirection, sensation))
         self.robot.log("Axon put from {} to {} with final queue length {} full {}".format(robot.getName(),self.robot.getName(), self.queue.qsize(), self.queue.full()))
  
@@ -40,10 +39,13 @@ class Axon():
     Robot gets sensations only from its own Axon,
     so robot is not mentioned as parameter 
     '''       
-    def get(self):
+    def get(self, robot):
         self.robot.log("Axon get from {} original queue length {} empty {} full {}".format(self.robot.getName(), self.queue.qsize(), self.queue.empty(), self.queue.full()))
         (transferDirection, sensation) = self.queue.get()
         self.robot.log("Axon done get from {} final queue length {} empty {} full {}".format(self.robot.getName(), self.queue.qsize(), self.queue.empty(), self.queue.full()))
+        #sensation.detachAll() # TOTO We should not need this, but without this now, we will get Not Forgottable robot Communications
+                              # Meaning, that sensation.detach() is not done somewhere
+        #sensation.attach(robot=robot) #attached allready to robot=self.robot
         return transferDirection, sensation
         
     def empty(self):

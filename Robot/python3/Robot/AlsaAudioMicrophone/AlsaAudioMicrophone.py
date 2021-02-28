@@ -115,7 +115,7 @@ class AlsaAudioMicrophone(Robot):
                 # interrupt voice and put it to parent for processing
                 self.putVoiceToParent()
 
-                transferDirection, sensation = self.getAxon().get()
+                transferDirection, sensation = self.getAxon().get(robot=self)
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr="got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
 #                 if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemoryType() == Sensation.MemoryType.Working and\
 #                    sensation.getRobotType(robotMainNames=self.getMainNames()) == Sensation.RobotType.Sense: 

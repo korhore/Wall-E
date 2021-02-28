@@ -122,7 +122,7 @@ class VoiceTestCase(unittest.TestCase):
         self.microphone.stop()
         #self.assertEqual(self.microphone.getAxon().empty(), False, 'Axon should not be empty after self.microphone.stop()')
         while(not self.getAxon().empty()):
-            transferDirection, sensation = self.getAxon().get()
+            transferDirection, sensation = self.getAxon().get(robot=self)
 #             self.assertTrue(sensation.getSensationType() == Sensation.SensationType.Stop,
 #                             'parent should get Stop sensation type after test and self.microphone.stop()')
         
@@ -224,7 +224,7 @@ class VoiceTestCase(unittest.TestCase):
             gotHeardVoice = False
             while(not self.getAxon().empty()):
                 isHeardVoice = False
-                tranferDirection, sensation = self.getAxon().get()
+                tranferDirection, sensation = self.getAxon().get(robot=self)
                 if sensation.getSensationType() == Sensation.SensationType.Voice:
                     if sensation.getRobotType() == Sensation.RobotType.Sense:
                         print("--- got Sensations, was heard voice")

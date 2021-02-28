@@ -94,7 +94,7 @@ class OpenCVCamera(Robot):
             # as a leaf sensor robot default processing for sensation we have got
             # in practice we can get stop sensation
             if not self.getAxon().empty():
-                transferDirection, sensation = self.getAxon().get()
+                transferDirection, sensation = self.getAxon().get(robot=self)
                 self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
                 self.process(transferDirection=transferDirection, sensation=sensation)
             else:

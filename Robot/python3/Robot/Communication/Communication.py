@@ -322,6 +322,13 @@ class Communication(Robot):
                                                                       firstAssociateSensation=firstAssociateSensation, otherAssociateSensation=otherAssociateSensation,
                                                                       positiveFeeling=True, locations=self.getLocations())#self.getLocations()) # valid in this location, can be chosen other way
                                     self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
+                                    
+                                    # detach
+                                    firstAssociateSensation.detach(robot=self)
+                                    otherAssociateSensation.detach(robot=self)
+                                    # TODO Try to enable remembering
+                                    feelingSensation.detach(robot=self)        
+                                   
                                 
                                 
                         
@@ -496,7 +503,7 @@ class Communication(Robot):
                                 assert sensation.getDataId() not in self.spokedDataIds
                                 self.spokedDataIds.append(sensation.getDataId())   
 
-                                sensation.attach(robot=self)
+                                #sensation.attach(robot=self) # TODO yes or no, no reason to attach
                                 sensation.save()     # for debug reasons save voices we have spoken as heard voices anf images
                                 self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: self.getMemory().getBestSensations did find sensations, spoke {}'.format(sensation.toDebugStr()))
 
@@ -509,6 +516,8 @@ class Communication(Robot):
                                 self.getMemory().setMemoryType(sensation=spokedSensation, memoryType=Sensation.MemoryType.Sensory)
                                 # speak                 
                                 self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=spokedSensation)
+                                # TODO Try to enable remembering
+                                spokedSensation.detach(robot=self)        
                                 
                                 # create Communication sensation for Robots to be 'heard'
                                 # Robot.createSensation set RobotMainNames
@@ -520,6 +529,8 @@ class Communication(Robot):
                                 self.getMemory().setMemoryType(sensation=spokedSensation, memoryType=Sensation.MemoryType.Sensory)
                                 # speak                 
                                 self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=spokedSensation)
+                                # TODO Try to enable remembering
+                                spokedSensation.detach(robot=self)        
                                 
                             self.spokedAssociations = associations
                             self.log(logLevel=Robot.LogLevel.Normal, logStr="speak: self.spokedAssociations = associations")
@@ -766,6 +777,8 @@ class Communication(Robot):
                                                             firstAssociateSensation=firstAssociateSensation, otherAssociateSensation=otherAssociateSensation,
                                                             negativeFeeling=True, locations=self.getLocations())#self.getLocations()) # valid in this location, can be chosen other way
                     self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
+                    # TODO Try to enable remembering
+                    feelingSensation.detach(robot=self)        
 #         else:
 #             self.log(logLevel=Robot.LogLevel.Normal, logStr="stopWaitingResponse: self.spokedAssociations is None BUT IT SHOULD NOT")
 #             

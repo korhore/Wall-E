@@ -121,7 +121,7 @@ class SoundDeviceMicrophone(Robot):
                 # interrupt possible voice and put it to parent for processing
                 self.putVoiceToParent()
 
-                transferDirection, sensation = self.getAxon().get()
+                transferDirection, sensation = self.getAxon().get(robot=self)
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr="got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
                 self.process(transferDirection=transferDirection, sensation=sensation)
                 sensation.detach(robot=self)

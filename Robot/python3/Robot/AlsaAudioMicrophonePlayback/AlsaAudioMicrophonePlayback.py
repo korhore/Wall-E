@@ -96,7 +96,7 @@ class AlsaAudioMicrophonePlayback(Robot):
                 # interrupt voice and put it to parent for processing
                 self.alsaAudioMicrophone.putVoiceToParent()
 
-                transferDirection, sensation = self.getAxon().get()
+                transferDirection, sensation = self.getAxon().get(robot=self)
                 self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())  
                 if transferDirection == Sensation.TransferDirection.Up:
                     self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation))')      

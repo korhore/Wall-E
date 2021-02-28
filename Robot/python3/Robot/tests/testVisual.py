@@ -243,7 +243,7 @@ class VisualTestCase(unittest.TestCase):
         #self.visual.stop()
         #self.assertEqual(self.visual.getAxon().empty(), False, 'Axon should not be empty after self.visual.stop()')
         while(not self.getAxon().empty()):
-            transferDirection, sensation = self.getAxon().get()
+            transferDirection, sensation = self.getAxon().get(robot=self)
             self.assertTrue(sensation.getSensationType() == Sensation.SensationType.Stop or\
                             sensation.getSensationType() == Sensation.SensationType.Feeling,
                             'parent should get Stop or Feeling sensation type after test and self.visual.stop()')

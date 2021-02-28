@@ -631,6 +631,7 @@ class Sensation(object):
     
         def setFeeling(self, feeling):
             self.feeling = feeling
+
         
 
     '''
@@ -1794,12 +1795,12 @@ class Sensation(object):
 
         selfMemorability = Sensation.doGetMemorability(time = self.getTime(),
                                                        memoryType = self.getMemoryType())
-        associationsImportance = 0.0
+        associationsMemorability = 0.0
         associations=[]
              
         if itemSensations != None or allAssociations:
             if getAssociationsList:
-                associationsImportance, associations = \
+                associationsMemorability, associations = \
                     self.getAssociationsMemorability(
                                             getAssociationsList = getAssociationsList,
                                             allAssociations = allAssociations,
@@ -1807,15 +1808,18 @@ class Sensation(object):
                                             robotMainNames = robotMainNames,
                                             robotTypes = robotTypes,
                                             ignoredDataIds=ignoredDataIds,
-                                            #ignoredVoiceLens=[],
                                             positive = positive,
                                             negative = negative,
                                             absolute = absolute)
     #         if negative:
-    #             return selfMemorability - associationsImportance
-                return selfMemorability + associationsImportance, associations
+    #             return selfMemorability - associationsMemorability
+                memorability = selfMemorability + associationsMemorability
+                # Robot to Robot-commumunication is not so memorable than person to Robot
+                if self.getRobotType() == Sensation.RobotType.Communication:
+                    memorability = memorability/2.0
+                return memorability, associations
             
-            associationsImportance = \
+            associationsMemorability = \
                 self.getAssociationsMemorability(
                                             getAssociationsList = getAssociationsList,
                                             allAssociations = allAssociations,
@@ -1823,13 +1827,16 @@ class Sensation(object):
                                             robotMainNames = robotMainNames,
                                             robotTypes = robotTypes,
                                             ignoredDataIds=ignoredDataIds,
-                                            #ignoredVoiceLens=[],
                                             positive = positive,
                                             negative = negative,
                                             absolute = absolute)
     #         if negative:
-    #             return selfMemorability - associationsImportance
-        return selfMemorability + associationsImportance
+    #             return selfMemorability - associationsMemorability
+        memorability = selfMemorability + associationsMemorability
+        # Robot to Robot-commumunication is not so memorable than person to Robot
+        if self.getRobotType() == Sensation.RobotType.Communication:
+            memorability = memorability/2.0
+        return memorability
     
     '''
     Helper metyhod to calculate Memorability
@@ -1927,6 +1934,27 @@ class Sensation(object):
             return memorability, associations
         return memorability
                 
+    '''
+    Calculate memorability where all MemoryType sensations should live
+    half of its lifetime if Feeling is Good.
+    This is guite high, so we will forgets less important Sensations soon
+    but safe so, that Robot should not stop soon for out of memory
+    '''            
+    def getMaxMinCacheMemorability():
+        maxCacheMemorability = 10000
+        for memoryType in Sensation.MemoryTypes:
+            # set sensation more to the past and look again        
+            history_time = systemTime.time() -Sensation.sensationMemoryLiveTimes[memoryType] * 0.5
+            candidateMaxCacheMemorability = Sensation.doGetMemorability(time = history_time,
+                                                                        memoryType = memoryType,
+                                                                        feeling = Sensation.Feeling.Good,
+                                                                        score=0.5)
+
+            if candidateMaxCacheMemorability < maxCacheMemorability:
+                maxCacheMemorability = candidateMaxCacheMemorability
+                
+        return maxCacheMemorability
+
 
     def setId(self, id):
         self.id = id
@@ -2516,7 +2544,8 @@ class Sensation(object):
         Detach a Sensation fron all its attached Robots
     '''
     def detachAll(self):
-        self.attachedBy = []
+#         self.attachedBy = []
+        del self.attachedBy[:]
 #         for robot in self.attachedBy:
 #             self.detach(robot)
     '''

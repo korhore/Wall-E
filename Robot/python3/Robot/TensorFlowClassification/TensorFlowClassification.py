@@ -530,7 +530,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
         
         self.log(logLevel=Robot.LogLevel.Normal, logStr="Running")
         while self.running:
-            transferDirection, sensation = self.getAxon().get()
+            transferDirection, sensation = self.getAxon().get(robot=self)
             self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())      
             self.process(transferDirection=transferDirection, sensation=sensation)
         self.log("Stopping TensorFlowClassification")

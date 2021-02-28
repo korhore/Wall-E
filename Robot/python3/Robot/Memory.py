@@ -76,6 +76,10 @@ class Memory(object):
                                        
         self.memoryLock = ReadWriteLock()       # for thread_safe Sensation cache
         
+        self.maxMinCacheMemorability = Sensation.getMaxMinCacheMemorability()
+        self.nearMaxMinCacheMemorability = self.maxMinCacheMemorability - Memory.MIN_MIN_CACHE_MEMORABILITY
+        
+        
     '''
     getters, setters
     '''
@@ -366,8 +370,10 @@ class Memory(object):
         # calibrate memorability        
         if (Memory.getMemoryUsage() > self.getMaxRss() or\
             Memory.getAvailableMemory() < self.getMinAvailMem()) and\
-            self.min_cache_memorability < Memory.MAX_MIN_CACHE_MEMORABILITY:
-            if self.min_cache_memorability >= Memory.NEAR_MAX_MIN_CACHE_MEMORABILITY:
+            self.min_cache_memorability < self.maxMinCacheMemorability:
+            #self.min_cache_memorability < Memory.MAX_MIN_CACHE_MEMORABILITY:
+#            if self.min_cache_memorability >= Memory.NEAR_MAX_MIN_CACHE_MEMORABILITY:
+            if self.min_cache_memorability >= self.nearMaxMinCacheMemorability:
                 self.min_cache_memorability = self.min_cache_memorability + 0.01
             else:
                 self.min_cache_memorability = self.min_cache_memorability + 0.1
@@ -388,6 +394,7 @@ class Memory(object):
 
         # if we are still using too much self.sensationMemory for Sensations, we should check all Sensations in the cache
         notForgettablesByRobot={}
+        notForgettablesByRobotBySensationType={}
         if Memory.getMemoryUsage() > self.getMaxRss() or\
            Memory.getAvailableMemory() < self.getMinAvailMem():
             i=0
@@ -406,7 +413,11 @@ class Memory(object):
                     for robot in self.sensationMemory[i].getAttachedBy():
                         if robot.getName() not in notForgettablesByRobot:
                             notForgettablesByRobot[robot.getName()] = []
+                            notForgettablesByRobotBySensationType[robot.getName()] = {}
+                        if self.sensationMemory[i].getSensationType() not in notForgettablesByRobotBySensationType[robot.getName()]:
+                            notForgettablesByRobotBySensationType[robot.getName()][self.sensationMemory[i].getSensationType()] = []
                         notForgettablesByRobot[robot.getName()].append(self.sensationMemory[i])
+                        notForgettablesByRobotBySensationType[robot.getName()][self.sensationMemory[i].getSensationType()].append(self.sensationMemory[i])
                     i=i+1
        
         self.log(logStr='Sensations cache for {} Total self.sensationMemory  usage {} MB available {} MB with Sensation.min_cache_memorability {}'.\
@@ -418,7 +429,10 @@ class Memory(object):
                 self.log(logStr='Sensations cache Not Forgottable robot {} number {}'.format(robotName, len(notForgottableSensations)), logLevel=Memory.MemoryLogLevel.Detailed)
                 for notForgottableSensation in notForgottableSensations:
                     self.log(logStr='Sensations cache Not Forgottable robot {} Sensation {}'.format(robotName, notForgottableSensation.toDebugStr()), logLevel=Memory.MemoryLogLevel.Verbose)
-        #self.log(logStr='Memory usage for {} Sensations {} after {} MB'.format(len(self.sensationMemory), Sensation.getMemoryTypeString(sensation.getMemoryType()), Sensation.getMemoryUsage()-Sensation.startSensationMemoryUsageLevel), logLevel=Memory.MemoryLogLevel.Normal)
+            for robotName, notForgettablesByRobotBySensationTypes in notForgettablesByRobotBySensationType.items():
+                for sensationType, notForgettablesByRobotBySensationType in notForgettablesByRobotBySensationTypes.items():
+                    self.log(logStr='Sensations cache Not Forgottable robot {} SensationType {} number {}'.format(robotName, Sensation.getSensationTypeString(sensationType), len(notForgettablesByRobotBySensationType)), logLevel=Memory.MemoryLogLevel.Detailed)
+       #self.log(logStr='Memory usage for {} Sensations {} after {} MB'.format(len(self.sensationMemory), Sensation.getMemoryTypeString(sensation.getMemoryType()), Sensation.getMemoryUsage()-Sensation.startSensationMemoryUsageLevel), logLevel=Memory.MemoryLogLevel.Normal)
 
     '''
     sensation getter
@@ -910,10 +924,10 @@ class Memory(object):
                             hasSensationType = True
                             if sensation.getRobotType() == Sensation.RobotType.Communication:
                                 isInMainNames = sensation.isInMainNames(mainNames=robotMainNames)
-                                print("isInMainNames {}".format(isInMainNames))
+                                #print("isInMainNames {}".format(isInMainNames))
                                 if sensation.getRobotType() == Sensation.RobotType.Communication and isInMainNames:
                                     hasSensationType = False
-                                print("hasSensationType {}  isInMainNames {}".format(hasSensationType, isInMainNames))
+                                #print("hasSensationType {}  isInMainNames {}".format(hasSensationType, isInMainNames))
                                              
                             if hasSensationType: #sensation associated to itemSensation is right kind
                                                  # sensation can heve many matching Item.bane associations
