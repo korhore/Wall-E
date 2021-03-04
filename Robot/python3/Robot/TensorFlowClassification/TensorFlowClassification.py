@@ -1,6 +1,6 @@
 '''
 Created on 30.04.2019
-Updated on 14.01.2021
+Updated on 02.03.2021
 
 @author: reijo.korhonen@gmail.com
 '''
@@ -168,7 +168,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
     PATH_TO_TEST_IMAGES_DIR = 'test_images'
     TEST_IMAGE_PATHS = [ os.path.join('test_images', 'image{}.jpg'.format(i)) for i in range(1, 3) ]
     
-    present = {}       # which items are present
+    #present = {}       # which items are present
         
     '''
     presence of Item.name
@@ -218,6 +218,8 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
         self.tflite_model=None
         self.detection_graph = None
         self.firstImage = True
+        self.present = {}       # which items are present
+
         
 
     def load_labels(self, path):
@@ -738,12 +740,12 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
             if name not in names:   # we don't calculate detected names count
                                     # or try to identify name yet
                 names.append(name)
-                if name not in TensorFlowClassification.present:
+                if name not in self.present:
                     self.log("Name " + name + " Entering")
-                    TensorFlowClassification.present[name] = Sensation.Presence.Entering
+                    self.present[name] = Sensation.Presence.Entering
                     return True, Sensation.Presence.Entering, names
-                elif TensorFlowClassification.present[name] == Sensation.Presence.Entering:
-                    TensorFlowClassification.present[name] = Sensation.Presence.Present
+                elif self.present[name] == Sensation.Presence.Entering:
+                    self.present[name] = Sensation.Presence.Present
                     self.log("Name " + name + " Entering to Present")
                     return True, Sensation.Presence.Present, names 
                 self.log("Name " + name + " Still Present")
@@ -754,21 +756,21 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
            
     def logAbsents(self, current_present):
         absent_names=[]
-        for name, presence in TensorFlowClassification.present.items():
+        for name, presence in self.present.items():
             if name not in current_present:
                 if presence == Sensation.Presence.Exiting:
                    presence = Sensation.Presence.Absent
                    absent_names.append(name)
                 else:
                    presence = Sensation.Presence.Exiting  
-                   TensorFlowClassification.present[name] = presence
+                   self.present[name] = presence
                 itemsensation = self.createSensation( sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense, name=name,\
                                                  presence = presence, locations=self.getUpLocations())
                 self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
                 self.log("process created exiting/absent itemsensation " + itemsensation.toDebugStr())
         # can't del in loop, do it here
         for name in absent_names:
-            del TensorFlowClassification.present[name]
+            del self.present[name]
           
 if __name__ == "__main__":
     if not os.path.exists(TensorFlowClassification.PATH_TO_FROZEN_GRAPH):

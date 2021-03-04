@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 17.02.2021
+Updated on 01.03.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -91,9 +91,10 @@ class Communication(Robot):
     SEARCH_LENGTH=10                # How many response voices we check
     IGNORE_LAST_HEARD_SENSATIONS_LENGTH=10 #5 Optimize this
                                     # How last heard voices we ignore in this conversation, when
-                                    # we search best voicess to to pesponse to voices
+                                    # we search best voices to to response to voices
                                     # This mast be >= 1 for sure, otherwise we are echo
-                                    # vut propapble >=2, otherwise we are parrot
+                                    # but probably >=2, otherwise we are parrot
+    ROBOT_RESPONSE_MAX = 6          # How many times we response to a Robot in one conversation
                                     
 
     def __init__(self,
@@ -149,6 +150,7 @@ class Communication(Robot):
         self.timer=None
         self.spokedDataIds = []     # Sensations dataIds we have said in this conversation 
         self.heardDataIds = []      # Sensations ataIds  we have heard in this conversation
+        self.robotResponses = 0
         
     '''
     Overridable method to be run just before
@@ -202,8 +204,8 @@ class Communication(Robot):
              sensation.getRobotType() == Sensation.RobotType.Communication):
             # all kind Items found
             if sensation.getSensationType() == Sensation.SensationType.Item:
-               if sensation.getPresence() == Sensation.Presence.Entering or\
-                  sensation.getPresence() == Sensation.Presence.Present:
+                if sensation.getPresence() == Sensation.Presence.Entering or\
+                   sensation.getPresence() == Sensation.Presence.Present:
                     # or sensation.getPresence() == Sensation.Presence.Exiting):
                     # presence is tracked in MainRobot for all Robots
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: got item ' + sensation.toDebugStr())
@@ -215,10 +217,67 @@ class Communication(Robot):
                     # even if we have said something so other present ones
                     # this means we need (again)
     
-                    # if communication is not going on item.name when comes
-                    self.log(logLevel=Robot.LogLevel.Normal, logStr='process: got item starting new = {} communication with {}'.format(not self.isConversationOn(), sensation.getName()))
-                    self.speak(onStart=not self.isConversationOn()) #itemSensation=sensation)
-               elif sensation.getPresence() == Sensation.Presence.Absent and\
+                    # if communication is going on item.name when comes
+                    # handle as a response to said voice
+                    # because it was as interesting that new iterm.name joins into conversation
+                    
+                    if self.timer is not None:
+                        self.timer.cancel()
+                        self.timer = None
+                    if self.spokedAssociations != None:
+                        for associations in self.spokedAssociations:
+                            for association in associations:
+                                firstAssociateSensation = association.getSensation()
+                                otherAssociateSensation = association.getSelfSensation()
+                                    
+                                if firstAssociateSensation.getMemoryType() != Sensation.MemoryType.LongTerm:
+                                    self.getMemory().setMemoryType(sensation=firstAssociateSensation, memoryType=Sensation.MemoryType.LongTerm)
+                                if otherAssociateSensation.getMemoryType() != Sensation.MemoryType.LongTerm:
+                                    self.getMemory().setMemoryType(sensation=otherAssociateSensation, memoryType=Sensation.MemoryType.LongTerm)
+        
+                                self.log(logLevel=Robot.LogLevel.Normal, logStr='process: good voice/image feeling with ' + firstAssociateSensation.getName())
+                                feelingSensation = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
+                                                                      firstAssociateSensation=firstAssociateSensation, otherAssociateSensation=otherAssociateSensation,
+                                                                      positiveFeeling=True, locations=self.getLocations())#self.getLocations()) # valid in this location, can be chosen other way
+                                self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
+                                    
+                                # detach
+                                firstAssociateSensation.detach(robot=self)
+                                otherAssociateSensation.detach(robot=self)
+                                # TODO Try to enable remembering
+                                feelingSensation.detach(robot=self)        
+                                   
+                                
+                    self.speak(onStart=not self.isConversationOn())
+#                 # we have someone to talk with
+#                 # time is elapsed, so we can start communicating again with present item.names
+#                 elif not self.isConversationOn() and\
+#                     self.getMemory().hasPresence() and\
+#                      (not self.isConversationDelay() or\
+#                       sensation.getTime() - self.lastConversationEndTime > self.CONVERSATION_INTERVAL):
+#                     self._isConversationDelay = False
+#                     # we have still someone to talk with and not yet started a conversation at all or
+#                     # enough time is elapses of last conversation
+#                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: got voice as restarted conversation ' + sensation.toDebugStr())
+#                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: got voice as restarted conversation ' + sensation.getName() + ' present now' + self.getMemory().presenceToStr())
+#  
+#                     # We want to remember this voice
+#                     self.getMemory().setMemoryType(sensation=sensation, memoryType=Sensation.MemoryType.Working)
+#                     # don't use this voice in this same conversation
+#                     #assert sensation.getDataId() not in self.heardDataIds
+#                     self.heardDataIds.append(sensation.getDataId())
+#                     while len(self.heardDataIds) > Communication.IGNORE_LAST_HEARD_SENSATIONS_LENGTH:
+#                         del self.heardDataIds[0]
+#                 
+#                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: got voice as restarted conversation ' + sensation.getName() + ' got voice and tries to speak with presents ones ' + self.getMemory().presenceToStr())
+#                     self.speak(onStart=True)
+#                     
+#                     
+#                     
+#                     
+#                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: got item starting new = {} communication with {}'.format(not self.isConversationOn(), sensation.getName()))
+#                     self.speak(onStart=not self.isConversationOn()) #itemSensation=sensation)
+                elif sensation.getPresence() == Sensation.Presence.Absent and\
                     not self.getMemory().hasPresence():# and\
                     #self.isConversationOn():
                     # conversation is on and they have left us without responding
@@ -256,55 +315,7 @@ class Communication(Robot):
                         # We want to remember this voice
                         #sensation.setMemory(memoryType=Sensation.MemoryType.Working)
                         self.getMemory().setMemoryType(sensation=sensation, memoryType=Sensation.MemoryType.Working)
-                        # don't use this voice in this same conversation
-                        # for reason or another, same voice can be heard twice. accept until we know why to accept
-                        # reason is that we can say some things twice, if said enougn long ago, self.IGNORE_LAST_HEARD_SENSATIONS_LENGTH
-                        #assert sensation.getDataId() not in self.heardDataIds
-#                         if sensation.getDataId() not in self.heardDataIds:
-#                             self.heardDataIds.append(sensation.getDataId())
-#                             while len(self.heardDataIds) > Communication.IGNORE_LAST_HEARD_SENSATIONS_LENGTH:
-#                                 del self.heardDataIds[0]
-                    
-                    # mark original item Sensation to be remembered
-                    # and also good feeling to the original voice
-                    # to this voice will be found again in new conversations
-                    # TODO study if we can publish these sensations or not, because is RobotType is Muscle, we speak etc.
-#                     if self.mostImportantItemSensation is not None:
-#                         if self.mostImportantItemSensation.getMemoryType() != Sensation.MemoryType.LongTerm:
-#                             self.getMemory().setMemoryType(sensation=self.mostImportantItemSensation, memoryType=Sensation.MemoryType.LongTerm)
-#                             # publish update to other sites TODO
-#                             # self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.mostImportantItemSensation)
-#                     if self.mostImportantVoiceSensation is not None:
-#                         if self.mostImportantVoiceSensation.getMemoryType() != Sensation.MemoryType.LongTerm:
-#                             self.getMemory().setMemoryType(sensation=self.mostImportantVoiceSensation, memoryType=Sensation.MemoryType.LongTerm)
-#                             # publish update to other sites TODO
-#                             # self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.mostImportantVoiceSensation)
-#                     if self.mostImportantImageSensation is not None:
-#                         if self.mostImportantImageSensation.getMemoryType() != Sensation.MemoryType.LongTerm:
-#                             self.getMemory().setMemoryType(sensation=self.mostImportantImageSensation, memoryType=Sensation.MemoryType.LongTerm)
-#                             # publish update to other sites TODO
-#                             # self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.mostImportantImageSensation)
-#                     #  mark also good feeling to original voice we said
-# #                     if self.mostImportantVoiceAssociation is not None:
-# #                         self.mostImportantVoiceAssociation.changeFeeling(positive=True) #last voice was a good one because we got a response
-#                     if self.mostImportantItemSensation is not None and self.mostImportantVoiceSensation is not None:
-#                         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: good voice feeling with ' + self.mostImportantItemSensation.getName())
-#                         feelingSensation = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
-#                                                           firstAssociateSensation=self.mostImportantItemSensation, otherAssociateSensation=self.mostImportantVoiceSensation,
-#                                                           positiveFeeling=True, locations=self.getLocations())#self.getLocations()) # valid in this location, can be chosen other way
-#                         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
-#                     else:
-#                         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: good image feeling but conversation protocol or implementation error ')
-#                         
-#                     if self.mostImportantItemSensation is not None and self.mostImportantImageSensation is not None:
-#                         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: good image feeling with ' + self.mostImportantItemSensation.getName())
-#                         feelingSensation = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
-#                                                           firstAssociateSensation=self.mostImportantItemSensation, otherAssociateSensation=self.mostImportantImageSensation,
-#                                                           positiveFeeling=True, locations=self.getLocations())#self.getLocations()) # valid in this location, can be chosen other way
-#                         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
-#                     else:
-#                         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: good image feeling but conversation implementation did not get image this time error ')
-#                         
+                        
                         # new implementation
                         if self.spokedAssociations != None:
                             for associations in self.spokedAssociations:
@@ -337,7 +348,9 @@ class Communication(Robot):
                             self.speak(onStart=False)
                         else:
                             self._isConversationOn = False # present ones are disappeared even if we  head a voice.
-                            self.communicationState = Communication.CommunicationState.Waiting                                                
+                            self.communicationState = Communication.CommunicationState.Waiting
+                            self.robotResponses = 0
+
                 # we have someone to talk with
                 # time is elapsed, so we can start communicating again with present item.names
                 elif not self.isConversationOn() and\
@@ -345,7 +358,8 @@ class Communication(Robot):
                      (not self.isConversationDelay() or\
                       sensation.getTime() - self.lastConversationEndTime > self.CONVERSATION_INTERVAL):
                     self._isConversationDelay = False
-                    # we have still someone to talk with and not yeat started a conversation at all or
+                    self.robotResponses = 0
+                   # we have still someone to talk with and not yet started a conversation at all or
                     # enough time is elapses of last conversation
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: got voice as restarted conversation ' + sensation.toDebugStr())
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='process: got voice as restarted conversation ' + sensation.getName() + ' present now' + self.getMemory().presenceToStr())
@@ -368,11 +382,11 @@ class Communication(Robot):
         sensation.detach(robot=self)    # detach processed sensation
         
     def isConversationOn(self):
-        return  self._isConversationOn
+        return self._isConversationOn
         # returnself.mostImportantItemSensation is not None      # when conversaing, we know most important item.name to cerversate with
    
     def isConversationEnded(self):
-        return  self._isConversationEnded
+        return self._isConversationEnded
     
     def isConversationDelay(self):
         return self._isConversationDelay
@@ -521,16 +535,18 @@ class Communication(Robot):
                                 
                                 # create Communication sensation for Robots to be 'heard'
                                 # Robot.createSensation set RobotMainNames
-                                spokedSensation = self.createSensation( sensation = sensation, kind=self.getKind(), locations=self.getLocations())
-                                # NOTE This is needed now, because Sensation.create parameters robotType and memoryType parameters are  overwritten by sensation parameters
-                                spokedSensation.setKind(self.getKind())
-                                spokedSensation.setRobotType(Sensation.RobotType.Communication)  # 'speak' to Robots       
-                                #association = self.mostImportantItemSensation.getAssociation(sensation = self.mostImportantVoiceSensation)
-                                self.getMemory().setMemoryType(sensation=spokedSensation, memoryType=Sensation.MemoryType.Sensory)
-                                # speak                 
-                                self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=spokedSensation)
-                                # TODO Try to enable remembering
-                                spokedSensation.detach(robot=self)        
+                                if self.robotResponses < self.ROBOT_RESPONSE_MAX:
+                                    spokedSensation = self.createSensation( sensation = sensation, kind=self.getKind(), locations=self.getLocations())
+                                    # NOTE This is needed now, because Sensation.create parameters robotType and memoryType parameters are  overwritten by sensation parameters
+                                    spokedSensation.setKind(self.getKind())
+                                    spokedSensation.setRobotType(Sensation.RobotType.Communication)  # 'speak' to Robots       
+                                    #association = self.mostImportantItemSensation.getAssociation(sensation = self.mostImportantVoiceSensation)
+                                    self.getMemory().setMemoryType(sensation=spokedSensation, memoryType=Sensation.MemoryType.Sensory)
+                                    # speak                 
+                                    self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=spokedSensation)
+                                    # TODO Try to enable remembering
+                                    spokedSensation.detach(robot=self)
+                                    self.robotResponses = self.robotResponses+1
                                 
                             self.spokedAssociations = associations
                             self.log(logLevel=Robot.LogLevel.Normal, logStr="speak: self.spokedAssociations = associations")
@@ -838,6 +854,7 @@ class Communication(Robot):
         self._isConversationEnded = True
         self._isConversationDelay = True
         self.communicationState = Communication.CommunicationState.Delay
+        self.robotResponses = 0
         
 
         

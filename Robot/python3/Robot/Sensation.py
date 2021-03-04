@@ -1947,7 +1947,7 @@ class Sensation(object):
             history_time = systemTime.time() -Sensation.sensationMemoryLiveTimes[memoryType] * 0.5
             candidateMaxCacheMemorability = Sensation.doGetMemorability(time = history_time,
                                                                         memoryType = memoryType,
-                                                                        feeling = Sensation.Feeling.Good,
+                                                                        feeling = Sensation.Feeling.Happy,
                                                                         score=0.5)
 
             if candidateMaxCacheMemorability < maxCacheMemorability:
@@ -2124,6 +2124,7 @@ class Sensation(object):
     remove associations from this sensation connected to sensation given as parameter
     '''
     def removeAssociation(self, sensation):
+        # old implementations
         #i=0
         for association in self.associations:
             if association.getSensation() == sensation:
@@ -2559,7 +2560,25 @@ class Sensation(object):
     '''
             
     def isForgettable(self):
-        return len(self.attachedBy) == 0
+#        return len(self.attachedBy) == 0
+        if len(self.attachedBy) != 0:
+#            print('is not forgettale by Robots ' + self.getAttachedByRobotStr())
+            return False
+            
+        return True
+    
+    def getAttachedByRobotStr(self):
+        s=''
+        for robot in self.attachedBy:
+            s=s+robot.getName()+':'
+        return s
+
+    def logAttachedBy(self):
+        s=''
+        for robot in self.attachedBy:
+            s=s+robot.getName()+':'
+        print('attached by:' + self.getAttachedByRobotStr())
+    
 
     '''
     helper method to get binary file name
@@ -2631,11 +2650,14 @@ class Sensation(object):
     '''
     delete sensation data permanently
     but sensation will be remained to be deteted dy del
-    You should call first 'sensation.delte()' and right a way 'del sensation'
+    You should call first 'sensation.delete()' and right a way 'del sensation'
     '''  
     def delete(self):
-        for association in self.getAssociations():
-            association.getSensation().removeAssociation(self)
+        # Note self.associations changes while 
+        # self.associations[0].getSensation().removeAssociation(self)
+        # so we can not use 'for association in self.associations' syntax
+        while len(self.associations) > 0: 
+            self.associations[0].getSensation().removeAssociation(self)      
 
         if not os.path.exists(Sensation.DATADIR):
             os.makedirs(Sensation.DATADIR)

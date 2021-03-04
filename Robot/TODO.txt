@@ -1,5 +1,21 @@
 Critical
 --------
+Too much logging as Normal
+Visual, Socket*
+
+  File "/home/reijo/git/Wall-E/Robot/python3/Robot/TensorFlowClassification/TensorFlowClassification.py", line 535, in run
+    self.process(transferDirection=transferDirection, sensation=sensation)
+  File "/home/reijo/git/Wall-E/Robot/python3/Robot/TensorFlowClassification/TensorFlowClassification.py", line 628, in process
+    self.logAbsents(current_present=current_present)
+  File "/home/reijo/git/Wall-E/Robot/python3/Robot/TensorFlowClassification/TensorFlowClassification.py", line 757, in logAbsents
+    for name, presence in TensorFlowClassification.present.items():
+RuntimeError: dictionary changed size during iteration
+OOPS. there are two instaces of TensorFlowClassification running same time, normal and Identification. Ther can't be TensorFlowClassification.present,
+but self.present
+When Identifity communicates, does it get responses?
+
+We shouls set limit for Communication responses per Concersation, 5 for instance to avoid loops and too much traffic.
+Correct test
 
 Wall-E_MainName:father:1:Normal:Ubuntu livingroom:Sensations cache for 2492 Total self.sensationMemory  usage 1347.3828125 MB available 4394.55859375 MB with Sensation.min_cache_memorability 1.5800000000000003
 Wall-E_MainName:father:1:Normal:Ubuntu livingroom:Sensations cache deletion skipped 1048 Not Forgottable Sensation
@@ -42,6 +58,17 @@ Wall-E_MainName:father:1:Normal:Ubuntu livingroom:Sensations cache Not Forgottab
  - Still even if no attach and detached all
  -- This is logical, because weaded detach to sensation that are Azon put and that makes detach.
  -- Axon.get does not make detach(All), but maybe it should and after that attach(robot)
+ 
+ attach/detach logic is broken and now for test reasons it does nothing with Axons, that change Forgattable to oine Robot no next one.
+ Maybe we should add one meyhod more, just to do this ownership change, detach and attach in one method. Ataach when creating a Sensation is OK
+ and it is OK that Robot.process we should detach Sensations Sensations when processing is done. It is OK to keep logic that we mark Sensations that are
+ in active processing, not only in passive Memory.
+ 
+ Another way to think think this case is that when processing is done, Sensations will change to Memorytype.LongTerm, but this way we will get too much Sensations,
+ because there is Memory limit how many Senations we can keep.
+ 
+ More important problem is that we wee lose available Memory somewhere. Robot keeps running in Raspberry no more than 12 h, but then
+ Sensation.min_cache_memorability 24.420000000000076 is max and only 48 Sensations are kept.
 
 
 Stop does not allways success.

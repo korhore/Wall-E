@@ -47,9 +47,9 @@ class Memory(object):
          
     MIN_CACHE_MEMORABILITY = 0.1                            # starting value of min memorability in sensation cache
     min_cache_memorability = MIN_CACHE_MEMORABILITY          # current value min memorability in sensation cache
-    MAX_MIN_CACHE_MEMORABILITY = 1.6                         # max value of min memorability in sensation cache we think application does something sensible
+    #MAX_MIN_CACHE_MEMORABILITY = 1.6                         # max value of min memorability in sensation cache we think application does something sensible
                                                              # Makes Sensory memoryType above 150s, which should be enough
-    NEAR_MAX_MIN_CACHE_MEMORABILITY = 1.5                    # max value of min memorability in sensation cache we think application does something sensible
+    #NEAR_MAX_MIN_CACHE_MEMORABILITY = 1.5                    # max value of min memorability in sensation cache we think application does something sensible
     MIN_MIN_CACHE_MEMORABILITY = 0.1                         # min value of min memorability in sensation cache we think application does everything well and no need to
                                                              # set min_cache_memorability lower
     NEAR_MIN_MIN_CACHE_MEMORABILITY = 0.2                    
@@ -78,6 +78,9 @@ class Memory(object):
         
         self.maxMinCacheMemorability = Sensation.getMaxMinCacheMemorability()
         self.nearMaxMinCacheMemorability = self.maxMinCacheMemorability - Memory.MIN_MIN_CACHE_MEMORABILITY
+        
+        self.initialMemoryRssUsage = Memory.getMemoryRssUsage()
+        self.initialAvailableMemory = Memory.getAvailableMemory()
         
         
     '''
@@ -346,15 +349,32 @@ class Memory(object):
     '''
     get memory usage
     '''
-    def getMemoryUsage():     
+    def getMemoryRssUsage():     
          #memUsage= resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0            
         return Memory.psutilProcess.memory_info().rss/(1024*1024)              # hope this works better
+    
+    '''
+    get memory usage per Sensation
+    '''
+    def getMemoryRssUsagePerSensation(self): 
+        if len(self.sensationMemory) > 0:
+            return 1024.0*(Memory.getMemoryRssUsage()-self.initialMemoryRssUsage)/len(self.sensationMemory)
+        return 0
+    
     
     '''
     get available memory
     '''
     def getAvailableMemory():
         return psutil.virtual_memory().available/(1024*1024)
+
+    '''
+    get memory usage per Sensation calculated by available memory
+    '''
+    def getUsedAvailableMemoryPerSensation(self):
+        if len(self.sensationMemory) > 0:
+            return 1024.0*(self.initialAvailableMemory - Memory.getAvailableMemory())/len(self.sensationMemory)
+        return 0
         
     '''
     Forget sensations that are not important
@@ -368,18 +388,14 @@ class Memory(object):
         numNotForgettables=0
 
         # calibrate memorability        
-        if (Memory.getMemoryUsage() > self.getMaxRss() or\
-            Memory.getAvailableMemory() < self.getMinAvailMem()) and\
-            self.min_cache_memorability < self.maxMinCacheMemorability:
-            #self.min_cache_memorability < Memory.MAX_MIN_CACHE_MEMORABILITY:
-#            if self.min_cache_memorability >= Memory.NEAR_MAX_MIN_CACHE_MEMORABILITY:
+        if self.isLowMemory() and\
+           self.min_cache_memorability < self.maxMinCacheMemorability:
             if self.min_cache_memorability >= self.nearMaxMinCacheMemorability:
                 self.min_cache_memorability = self.min_cache_memorability + 0.01
             else:
                 self.min_cache_memorability = self.min_cache_memorability + 0.1
-        elif (Memory.getMemoryUsage() < self.getMaxRss() or\
-              Memory.getAvailableMemory() > self.getMinAvailMem() )and\
-            self.min_cache_memorability > Memory.MIN_MIN_CACHE_MEMORABILITY:
+        elif not self.isLowMemory() and\
+             self.min_cache_memorability > Memory.MIN_MIN_CACHE_MEMORABILITY:
             if self.min_cache_memorability <= Memory.NEAR_MIN_MIN_CACHE_MEMORABILITY:
                 self.min_cache_memorability = self.min_cache_memorability - 0.01
             else:
@@ -388,22 +404,20 @@ class Memory(object):
         # delete quickly last created Sensations that are not important
 #        while len(memoryType) > 0 and memoryType[0].isForgettable() and memoryType[0].getMemorability() < self.min_cache_memorability:
         while len(self.sensationMemory) > 0 and self.sensationMemory[0].isForgettable() and self.sensationMemory[0].getMemorability(allAssociations=True) < self.min_cache_memorability:
-            self.log(logStr='delete from sensation cache {}'.format(self.sensationMemory[0].toDebugStr()), logLevel=Memory.MemoryLogLevel.Normal)
+            self.log(logStr='delete from sensation cache [0] {}'.format(self.sensationMemory[0].toDebugStr()), logLevel=Memory.MemoryLogLevel.Normal)
             self.sensationMemory[0].delete()
             del self.sensationMemory[0]
 
         # if we are still using too much self.sensationMemory for Sensations, we should check all Sensations in the cache
         notForgettablesByRobot={}
         notForgettablesByRobotBySensationType={}
-        if Memory.getMemoryUsage() > self.getMaxRss() or\
-           Memory.getAvailableMemory() < self.getMinAvailMem():
+            
+        if self.isLowMemory():
             i=0
-            while i < len(self.sensationMemory) and\
-                  (Memory.getMemoryUsage() > self.getMaxRss() or\
-                   Memory.getAvailableMemory() < self.getMinAvailMem()):
+            while i < len(self.sensationMemory) and self.isLowMemory():
                 if self.sensationMemory[i].isForgettable():
                     if self.sensationMemory[i].getMemorability(allAssociations=True) < self.min_cache_memorability:
-                        self.log(logStr='delete from sensation cache {}'.format(self.sensationMemory[i].toDebugStr()), logLevel=Memory.MemoryLogLevel.Normal)
+                        self.log(logStr='delete from sensation cache [{}] {}'.format(i, self.sensationMemory[i].toDebugStr()), logLevel=Memory.MemoryLogLevel.Normal)
                         self.sensationMemory[i].delete()
                         del self.sensationMemory[i]
                     else:
@@ -420,19 +434,33 @@ class Memory(object):
                         notForgettablesByRobotBySensationType[robot.getName()][self.sensationMemory[i].getSensationType()].append(self.sensationMemory[i])
                     i=i+1
        
-        self.log(logStr='Sensations cache for {} Total self.sensationMemory  usage {} MB available {} MB with Sensation.min_cache_memorability {}'.\
+        self.log(logStr='Sensations cache for {} Total self.sensationMemory total rss usage {} MB per sensation rss usage {} KB available total {} MB sensation usage {} KB with Sensation.min_cache_memorability {}'.\
               format(len(self.sensationMemory),\
-                     Memory.getMemoryUsage(), Memory.getAvailableMemory(), self.min_cache_memorability), logLevel=Memory.MemoryLogLevel.Normal)
+                     Memory.getMemoryRssUsage(), self.getMemoryRssUsagePerSensation(), Memory.getAvailableMemory(), self.getUsedAvailableMemoryPerSensation(), self.min_cache_memorability), logLevel=Memory.MemoryLogLevel.Normal)
         if numNotForgettables > 0:
             self.log(logStr='Sensations cache deletion skipped {} Not Forgottable Sensation'.format(numNotForgettables), logLevel=Memory.MemoryLogLevel.Normal)
-            for robotName, notForgottableSensations in notForgettablesByRobot.items():
-                self.log(logStr='Sensations cache Not Forgottable robot {} number {}'.format(robotName, len(notForgottableSensations)), logLevel=Memory.MemoryLogLevel.Detailed)
-                for notForgottableSensation in notForgottableSensations:
-                    self.log(logStr='Sensations cache Not Forgottable robot {} Sensation {}'.format(robotName, notForgottableSensation.toDebugStr()), logLevel=Memory.MemoryLogLevel.Verbose)
-            for robotName, notForgettablesByRobotBySensationTypes in notForgettablesByRobotBySensationType.items():
-                for sensationType, notForgettablesByRobotBySensationType in notForgettablesByRobotBySensationTypes.items():
-                    self.log(logStr='Sensations cache Not Forgottable robot {} SensationType {} number {}'.format(robotName, Sensation.getSensationTypeString(sensationType), len(notForgettablesByRobotBySensationType)), logLevel=Memory.MemoryLogLevel.Detailed)
-       #self.log(logStr='Memory usage for {} Sensations {} after {} MB'.format(len(self.sensationMemory), Sensation.getMemoryTypeString(sensation.getMemoryType()), Sensation.getMemoryUsage()-Sensation.startSensationMemoryUsageLevel), logLevel=Memory.MemoryLogLevel.Normal)
+            if Memory.MemoryLogLevel.Detailed <= self.getLogLevel():
+                for robotName, notForgottableSensations in notForgettablesByRobot.items():
+                    self.log(logStr='Sensations cache Not Forgottable robot {} number {}'.format(robotName, len(notForgottableSensations)), logLevel=Memory.MemoryLogLevel.Detailed)
+                    for notForgottableSensation in notForgottableSensations:
+                        self.log(logStr='Sensations cache Not Forgottable robot {} Sensation {}'.format(robotName, notForgottableSensation.toDebugStr()), logLevel=Memory.MemoryLogLevel.Verbose)
+                for robotName, notForgettablesByRobotBySensationTypes in notForgettablesByRobotBySensationType.items():
+                    for sensationType, notForgettablesByRobotBySensationType in notForgettablesByRobotBySensationTypes.items():
+                        self.log(logStr='Sensations cache Not Forgottable robot {} SensationType {} number {}'.format(robotName, Sensation.getSensationTypeString(sensationType), len(notForgettablesByRobotBySensationType)), logLevel=Memory.MemoryLogLevel.Detailed)
+       #self.log(logStr='Memory usage for {} Sensations {} after {} MB'.format(len(self.sensationMemory), Sensation.getMemoryTypeString(sensation.getMemoryType()), Sensation.getMemoryRssUsage()-Sensation.startSensationMemoryUsageLevel), logLevel=Memory.MemoryLogLevel.Normal)
+
+    '''
+    Is Memory low
+    '''
+    def isLowMemory(self):
+        # We cannot lof this often, because, when momory is low and re release sensation, This is logged very often.
+        if Memory.getMemoryRssUsage() > self.getMaxRss():
+            #self.log(logStr='Sensations cache for isLowMemory Memory.getMemoryRssUsage() {} > self.getMaxRss() {}'.format(Memory.getMemoryRssUsage(), self.getMaxRss()))
+            return True
+        if Memory.getAvailableMemory() < self.getMinAvailMem():
+            #self.log(logStr='Sensations cache for isLowMemory Memory.getAvailableMemory() {} < self.getMinAvailMem() {}'.format(Memory.getAvailableMemory(), self.getMinAvailMem()))
+            return True
+        return False
 
     '''
     sensation getter
@@ -1569,4 +1597,10 @@ class Memory(object):
         if hasattr(self.getRobot(), 'selfSensation') and\
            self.getRobot().logLevel != Memory.MemoryLogLevel.No:
             self.getRobot().log(logStr=logStr, logLevel=logLevel)
+            
+    def getLogLevel(self):
+        # should test, if we have initiated Robot enough
+        if hasattr(self.getRobot(), 'selfSensation'):
+            return self.getRobot().getLogLevel()
+        return Memory.MemoryLogLevel.No
     

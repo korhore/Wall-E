@@ -389,7 +389,7 @@ class Visual(Robot):
             if event.data is not None:
                 # Thread aborted (using our convention of None return)
                 sensation=event.data
-                self.getRobot().log(logLevel=Robot.LogLevel.Detailed, logStr='LogPanel.OnSensation got sensation from event.data ' + sensation.toDebugStr() + ' len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) 
+                #self.getRobot().log(logLevel=Robot.LogLevel.Detailed, logStr='LogPanel.OnSensation got sensation from event.data ' + sensation.toDebugStr() + ' len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) 
                 self.status.SetLabel('Got Sensation Event')
                 
                 # First delete last line
