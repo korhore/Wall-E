@@ -17,6 +17,23 @@ When Identifity communicates, does it get responses?
 We shouls set limit for Communication responses per Concersation, 5 for instance to avoid loops and too much traffic.
 Correct test
 
+Forget proglem:
+initial Ubuntu settings
+maxrss = 2048
+minavailmem = 4000
+raspberry
+maxrss = 768
+minavailmem = 256
+
+Seems that SocketClient has very many Sensations in its queue.
+raspberry.SocketClient gets Sensation to its queue more often than
+Ubuntu.SocketServer gets them.
+This means that raspberry.SocketClient is too slow to send.
+
+This was cause of whole Memory releasing problem. When Sensations are in Axon queue, they can't re released and thats why Memory releasing does nor work.
+Put now max to Axon queue as well in SocketClient, but maybe SocketClient correction is not needed. We should consider, if Tennsorflow is hoo heavy and we should use
+Lite only. At this point learnable Tensorflow benefits are not used so lite functionality is as good.
+
 Wall-E_MainName:father:1:Normal:Ubuntu livingroom:Sensations cache for 2492 Total self.sensationMemory  usage 1347.3828125 MB available 4394.55859375 MB with Sensation.min_cache_memorability 1.5800000000000003
 Wall-E_MainName:father:1:Normal:Ubuntu livingroom:Sensations cache deletion skipped 1048 Not Forgottable Sensation
 
@@ -69,7 +86,14 @@ Wall-E_MainName:father:1:Normal:Ubuntu livingroom:Sensations cache Not Forgottab
  
  More important problem is that we wee lose available Memory somewhere. Robot keeps running in Raspberry no more than 12 h, but then
  Sensation.min_cache_memorability 24.420000000000076 is max and only 48 Sensations are kept.
+ Seems that Memory handling works now fine untill we reach max of Sensation.min_cache_memorability. Sensation number in Memory can Variate a lot.
+ In raspberry there can be at max 7000 Sensations witj 0.1 Memorbility, but then it can only 1000.
+ Memory usage can of cource be much higher with SensationType.Image than SensationType.Item.
+ Anyway we should test not tu use limit at all. and we should excees step or stop using associations with memorability calculation, because one Sensation
+ where all are  associated, can make it impossible to release any otheers.
 
+When MainRobot is very busy, Hurry, Busy, Breaking, we should make our subRobots slower. In practice we need sleep in Robot.Sense and Robot.process(). Maybe same mechanism as
+in Memory handling.
 
 Stop does not allways success.
 Wall-E_MainName:father:1:Normal:Ubuntu livingroom:logActivity activityAverage 0.2105919444658877 

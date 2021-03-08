@@ -148,6 +148,7 @@ class Robot(Thread):
     IS_SOCKET_ERROR_TEST =      False
     SOCKET_ERROR_TEST_RATE =    10
     SOCKET_ERROR_TEST_NUMBER =  0
+    SOCKETCLIENT_MAX_QUEUE_LENGTH = 256
     STOPWAIT = 5                    # Tryes to Stop subRobots and Wait Time
     
     
@@ -850,7 +851,7 @@ class Robot(Thread):
         # to define default level
         self.config.setActivityAvegageLevel(activityLevelAverage = self.activityAverage)
         
-        if self.running and self.mode != Sensation.Mode.Stopping:
+        if self.running and self.mode == Sensation.Mode.Normal:
             self.activityNumber = 0
             self.activityPeriodStartTime = time.time()
             self.timer = Timer(interval=Robot.ACTIVITE_LOGGING_INTERVAL, function=self.logActivity)
@@ -1371,15 +1372,17 @@ Experiences determine how we react to things (Item.names)
 class Identity(Robot):
 
     # test
-    SLEEPTIME = 10.0
+    #SLEEPTIME = 10.0
     # normal
-    #SLEEPTIME = 60.0
+    SLEEPTIME = 60.0
     # test
-    CLASSIFICATION_TIME = 10.0      # can take a long time
+    #CLASSIFICATION_TIME = 10.0      # can take a long time
     #CLASSIFICATION_TIME = 40.0      # can take a long time
+    CLASSIFICATION_TIME = 80.0      # can take a long time
 #    SLEEPTIME = 5.0
-    SLEEP_BETWEEN_IMAGES = 20.0
-    SLEEP_BETWEEN_VOICES = 10.0
+    #SLEEP_BETWEEN_IMAGES = 20.0
+    #SLEEP_BETWEEN_VOICES = 10.0
+    SLEEP_BETWEEN_VOICES = 20.0
     VOICES_PER_CONVERSATION = 4
     
     IMAGE_FILENAME_TYPE = ".jpg"
@@ -1400,6 +1403,8 @@ class Identity(Robot):
         Robot.__init__(self,
                        mainRobot=mainRobot,
                        memory=memory,
+#                        isForgettableMemory=False, # when we use other Robots Memory
+#                                                   # we can't gorget sensations
                        parent=parent,
                        instanceName=instanceName,
                        instanceType=instanceType,
@@ -1956,32 +1961,35 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
         self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         # We can handle only sensation going down transfer-robotType
         if transferDirection == Sensation.TransferDirection.Down:
-            self.running = self.sendSensation(sensation, self.sock, self.address)
-            # if we have got broken pipe -error, meaning that socket writing does not work any more
-            # then try to get new association, meaning that ask TCPServer to give us a new open socket
-            if not self.running and self.mode == Sensation.Mode.Interrupted:
-                self.log('process: interrupted')
-                connected = False
-                tries=0
-                while not connected and tries < Robot.HOST_RECONNECT_MAX_TRIES:
-                    self.log('process: interrupted self.tcpServer.connectToHost ' + str(self.getHost()))
-                    connected, socketClient, socketServer = self.tcpServer.connectToHost(self.getHost())
-                    if not connected:
-                        self.log('process: interrupted self.tcpServer.connectToHost did not succeed ' + str(self.getHost()) + ' time.sleep(Robot.SOCKET_ERROR_WAIT_TIME)')
-                        time.sleep(Robot.SOCKET_ERROR_WAIT_TIME)
-                        tries=tries+1
-                if connected:
-                    self.log('process: interrupted self.tcpServer.connectToHost SUCCEEDED to ' + str(self.getHost()))
-                    # transfer sensation we could not send to the new SocketClient
-                    socketClient.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
-                    # transfer all sensation from out Axon to the new SocketClient
-                    while(not self.getAxon().empty()):
-                        tranferDirection, sensationToMove = self.getAxon().get(robot=self)
-                        socketClient.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensationToMove)
-                else:
-                    self.log('process: interrupted self.tcpServer.connectToHost did not succeed FINAL, no more tries to ' + str(self.getHost()))
-                # we are stopped anyway, if we are lucky we have new SocketServer and SocketClient now to our host
-                # don't touch anything, if we are reused
+            if self.getAxon().length() > Robot.SOCKETCLIENT_MAX_QUEUE_LENGTH:
+                self.log('process: skipping too long Axon queue Sensation')
+            else:
+                self.running = self.sendSensation(sensation, self.sock, self.address)
+                # if we have got broken pipe -error, meaning that socket writing does not work any more
+                # then try to get new association, meaning that ask TCPServer to give us a new open socket
+                if not self.running and self.mode == Sensation.Mode.Interrupted:
+                    self.log('process: interrupted')
+                    connected = False
+                    tries=0
+                    while not connected and tries < Robot.HOST_RECONNECT_MAX_TRIES:
+                        self.log('process: interrupted self.tcpServer.connectToHost ' + str(self.getHost()))
+                        connected, socketClient, socketServer = self.tcpServer.connectToHost(self.getHost())
+                        if not connected:
+                            self.log('process: interrupted self.tcpServer.connectToHost did not succeed ' + str(self.getHost()) + ' time.sleep(Robot.SOCKET_ERROR_WAIT_TIME)')
+                            time.sleep(Robot.SOCKET_ERROR_WAIT_TIME)
+                            tries=tries+1
+                    if connected:
+                        self.log('process: interrupted self.tcpServer.connectToHost SUCCEEDED to ' + str(self.getHost()))
+                        # transfer sensation we could not send to the new SocketClient
+                        socketClient.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
+                        # transfer all sensation from out Axon to the new SocketClient
+                        while(not self.getAxon().empty()):
+                            tranferDirection, sensationToMove = self.getAxon().get(robot=self)
+                            socketClient.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensationToMove)
+                    else:
+                        self.log('process: interrupted self.tcpServer.connectToHost did not succeed FINAL, no more tries to ' + str(self.getHost()))
+                    # we are stopped anyway, if we are lucky we have new SocketServer and SocketClient now to our host
+                    # don't touch anything, if we are reused
         sensation.detach(robot=self) # finally release sent sensation
 
 

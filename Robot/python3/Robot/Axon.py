@@ -1,6 +1,6 @@
 '''
 Created on Jan 19, 2014
-Updated on 07.08.2019
+Updated on 07.03.2021
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -18,7 +18,8 @@ class Axon():
     capability (or subrobots subrobot has capability) to process this Sensation
     until Leaf Robot is reached.
   """
-    
+    MAX_QUEUE_LENGTH = 256
+     
 
     def __init__(self, robot):
         self.robot = robot      # owner robot of this axon
@@ -32,6 +33,9 @@ class Axon():
 #         if len(sensation.getLocations()) == 0:              # if sensations does not have locations yet, set it as robots locations.
 #             sensation.setLocations(self.robot.getLocations())   #
         sensation.detach(robot=robot)         # release from caller
+        while self.queue.qsize() > Axon.MAX_QUEUE_LENGTH:
+            (_, _) = self.queue.get()
+            self.robot.log("{} Axon skipped overloaded oldest Sensation, but will put asked one".format(self.robot.getName()))
         self.queue.put((transferDirection, sensation))
         self.robot.log("Axon put from {} to {} with final queue length {} full {}".format(robot.getName(),self.robot.getName(), self.queue.qsize(), self.queue.full()))
  
@@ -51,3 +55,7 @@ class Axon():
         
     def empty(self):
         return self.queue.empty()
+    
+    def length(self):
+        return self.queue.qsize()
+

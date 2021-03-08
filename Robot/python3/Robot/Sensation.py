@@ -2139,6 +2139,14 @@ class Sensation(object):
             if association.getSensation() == self:
 #                print("sensation.associations.remove(association)")
                 sensation.associations.remove(association)
+
+        # with SensationTypr.Feeling, we have also AssociateSensations              
+        if self.getSensationType() == Sensation.SensationType.Feeling:
+            if sensation == self.firstAssociateSensation:
+                self.firstAssociateSensation = None
+            if sensation == self.therAssociateSensation:
+                self.therAssociateSensation = None
+
 #                 del sensation.associations[i]
 #             else:
 #                 i=i+1
@@ -2657,8 +2665,15 @@ class Sensation(object):
         # self.associations[0].getSensation().removeAssociation(self)
         # so we can not use 'for association in self.associations' syntax
         while len(self.associations) > 0: 
-            self.associations[0].getSensation().removeAssociation(self)      
+            self.associations[0].getSensation().removeAssociation(self)
+            
+        # remove references to other objects
+        if self.getSensationType() == Sensation.SensationType.Feeling:
+            self.firstAssociateSensation = None
+            self.otherAssociateSensation = None
+        self.robot = None
 
+        # remove files assiciated to this Sensation
         if not os.path.exists(Sensation.DATADIR):
             os.makedirs(Sensation.DATADIR)
 
