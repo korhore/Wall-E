@@ -1,6 +1,6 @@
 '''
 Created on 10.06.2019
-Updated on 04.03.2021
+Updated on 11.03.2021
 @author: reijo.korhonen@gmail.com
 
 test Sensation class
@@ -15,19 +15,23 @@ from enum import Enum
 import struct
 import random
 
+from PIL import Image as PIL_Image
+
+
 import unittest
 from Sensation import Sensation#, booleanToBytes, bytesToBoolean
 from Robot import Robot
 from Memory import Memory
 
-# 
-# from pygments.lexers import robotframework
-try:
-    import cPickle as pickle
-#except ModuleNotFoundError:
-except Exception as e:
-#    print ("import cPickle as pickle error " + str(e))
-    import pickle
+#deprecated
+# # 
+# # from pygments.lexers import robotframework
+# try:
+#     import cPickle as pickle
+# #except ModuleNotFoundError:
+# except Exception as e:
+# #    print ("import cPickle as pickle error " + str(e))
+#     import pickle
 
 class SensationTestCase(unittest.TestCase):
     TEST_RUNS = 3
@@ -1512,6 +1516,9 @@ class SensationTestCase(unittest.TestCase):
         # when we create sensation=self.sensation, other parameters can't be used
         addSensation = self.robot.createSensation(associations=None, sensation=self.sensation)
         self.assertIsNot(addSensation, None)
+        self.assertTrue(addSensation in self.sensation.copySensations)
+        # TODO logic is odd, when we copy a sensation, its data should not be changed ans here name is data
+        # We should prevent this
         addSensation.setName(name='connect_test')
         self.assertEqual(addSensation.getName(), 'connect_test', "should be \'connect_test\' ")
         self.robot.getMemory().setMemoryType(sensation=addSensation, memoryType=Sensation.MemoryType.Working)
@@ -1673,6 +1680,8 @@ class SensationTestCase(unittest.TestCase):
                 self.assertEqual(len(addSensations[i].getAssociations()), len(addSensations)-1)
                 i=i+1
             del addSensations[0]
+            
+        # TODO test vopy#
         
 
         
@@ -2019,6 +2028,7 @@ class SensationTestCase(unittest.TestCase):
         self.assertEqual(fromWorkingSensation.getLocations(), workingSensation.getLocations(), "should be equal")
         self.assertEqual(fromWorkingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
         self.assertEqual(fromWorkingSensation.getDataId(), workingSensation.getDataId(), "should be equal")
+        self.assertEqual(fromWorkingSensation.getDataId(), workingSensation.getId(), "should be equal")
         self.assertTrue(workingSensation.isOriginal(), "workingSensation should be original")
         self.assertFalse(fromWorkingSensation.isOriginal(), "fromWorkingSensation should be copy")
         
@@ -2064,10 +2074,14 @@ class SensationTestCase(unittest.TestCase):
         self.assertEqual(fromVoiceSensation.getDataId(), voiceSensation.getDataId(), "should be equal")
         self.assertTrue(voiceSensation.isOriginal(), "voiceSensation should be original")
         self.assertFalse(fromVoiceSensation.isOriginal(), "fromVoiceSensation should be copy")
+        # test that Sensation.data is same instance
+        self.assertEqual(voiceSensation.data, fromVoiceSensation.data)
+        self.assertTrue(voiceSensation.data is fromVoiceSensation.data)
        
         self.assertFalse(fromVoiceSensation.isForgettable(), "should be False, until detached")
         fromVoiceSensation.detach(robot=self.robot)
         self.assertTrue(fromVoiceSensation.isForgettable(), "should be True after detach")
+        
 
         # Image
         
@@ -2085,6 +2099,9 @@ class SensationTestCase(unittest.TestCase):
         self.assertEqual(fromImageSensation.getDataId(), imageSensation.getDataId(), "should be equal")
         self.assertTrue(imageSensation.isOriginal(), "imageSensation should be original")
         self.assertFalse(fromImageSensation.isOriginal(), "fromImageSensation should be copy")
+        # test that SEnsation.data is same instance
+        #self.assertEqual(voiceSensation.image, fromVoiceSensation.image)
+        self.assertTrue(voiceSensation.image is fromVoiceSensation.image)
         
         self.assertFalse(fromImageSensation.isForgettable(), "should be False, until detached")
         fromImageSensation.detach(robot=self.robot)
@@ -2388,96 +2405,96 @@ class SensationTestCase(unittest.TestCase):
         feelingSensation = self.robot.createSensation(sensationType=Sensation.SensationType.Feeling, robotType=Sensation.RobotType.Communication)
         self.assertEqual(feelingSensation.getRobotType(), Sensation.RobotType.Communication, 'plain RobotType should be Sensation.RobotType.Communication')
         
-    '''
-    test_picleability
-    deprecated
-    '''
-        
-    def deprecated_test_Picleability(self):
-        print("\ntest_Picleability\n")
-
-        print("Basic constructor without Robot")
-        memory = Memory(robot = None,                          # owner robot
-                        maxRss = Memory.maxRss,
-                        minAvailMem = Memory.minAvailMem)
-
-        sensation = Sensation(memory=memory, robotId=0.0)
-        self.do_Test_Picleability(sensation=sensation)
-        
-        print("Memory constructor")
-        sensation = memory.create(robot=self.robot)
-        sensation.detachAll()        
-        sensation.robot=None
-
-        self.do_Test_Picleability(sensation=sensation)
-        
-
-        print("Robot constructor")
-        sensation = self.robot.createSensation()
-        sensation.detachAll()        
-        sensation.robot=None
-
-        self.do_Test_Picleability(sensation=sensation)
-
-    
-    '''
-    Picle Sensation same way, than Memory does it.
-    '''        
-    def do_Test_Picleability(self, sensation):
-        
-        print("do_Test_Picleability")
-        sensation.save()
-        
-        # picle
-
-        # save sensation instances
-        if not os.path.exists(SensationTestCase.DATADIR):
-            os.makedirs(SensationTestCase.DATADIR)
-            
-        try:
-            with open(SensationTestCase.PATH_TO_PICLE_FILE, "wb") as f2:
-                try:
-                    pickler = pickle.Pickler(f2, -1)
-                    pickler.dump(Sensation.VERSION)
-                    pickler.dump(sensation)
-                except IOError as e:
-                    self.assertTrue(False,'pickler.dump(sensation) IOError ' + str(e))
-                except pickle.PickleError as e:
-                    self.assertTrue(False,'pickler.dump(sensation) PickleError ' + str(e))
-                except pickle.PicklingError as e:
-                    self.assertTrue(False,'pickler.dump(sensation) PicklingError ' + str(e))
-
-                finally:
-                    f2.close()
-        except Exception as e:
-                self.assertTrue(False,"saveLongTermMemory open(fileName, wb) as f2 error " + str(e))
-                
-        # load
-        if os.path.exists(Sensation.DATADIR):
-            try:
-                with open(SensationTestCase.PATH_TO_PICLE_FILE, "rb") as f:
-                    try:
-                        version = pickle.load(f)
-                        if version == Sensation.VERSION:
-                            loadedSensation = pickle.load(f)
-                            print('sensation loaded')
-                            self.assertEqual(sensation, loadedSensation, "dumped and loaded Sensation should be equal")
-                        else:
-                            print("Sensation could not be loaded. because Sensation cache version {} does not match current sensation version {}".format(version,Sensation.VERSION))
-                    except IOError as e:
-                        self.assertTrue(False,"pickle.load(f) error " + str(e))
-                    except pickle.PickleError as e:
-                        self.assertTrue(False,'pickle.load(f) PickleError ' + str(e))
-                    except pickle.PicklingError as e:
-                        self.assertTrue(False,'pickle.load(f) PicklingError ' + str(e))
-                    except Exception as e:
-                        self.assertTrue(False,'pickle.load(f) Exception ' + str(e))
-                    finally:
-                        f.close()
-            except Exception as e:
-                    self.assertTrue(False,'with open(' + Sensation.PATH_TO_PICLE_FILE + ',"rb") as f error ' + str(e))
-
-        print("\ndo_Test_Picleability OK\n")
+#     '''
+#     test_picleability
+#     deprecated
+#     '''
+#         
+#     def deprecated_test_Picleability(self):
+#         print("\ntest_Picleability\n")
+# 
+#         print("Basic constructor without Robot")
+#         memory = Memory(robot = None,                          # owner robot
+#                         maxRss = Memory.maxRss,
+#                         minAvailMem = Memory.minAvailMem)
+# 
+#         sensation = Sensation(memory=memory, robotId=0.0)
+#         self.do_Test_Picleability(sensation=sensation)
+#         
+#         print("Memory constructor")
+#         sensation = memory.create(robot=self.robot)
+#         sensation.detachAll()        
+#         sensation.robot=None
+# 
+#         self.do_Test_Picleability(sensation=sensation)
+#         
+# 
+#         print("Robot constructor")
+#         sensation = self.robot.createSensation()
+#         sensation.detachAll()        
+#         sensation.robot=None
+# 
+#         self.do_Test_Picleability(sensation=sensation)
+# 
+#     
+#     '''
+#     Picle Sensation same way, than Memory does it.
+#     '''        
+#     def do_Test_Picleability(self, sensation):
+#         
+#         print("do_Test_Picleability")
+#         sensation.save()
+#         
+#         # picle
+# 
+#         # save sensation instances
+#         if not os.path.exists(SensationTestCase.DATADIR):
+#             os.makedirs(SensationTestCase.DATADIR)
+#             
+#         try:
+#             with open(SensationTestCase.PATH_TO_PICLE_FILE, "wb") as f2:
+#                 try:
+#                     pickler = pickle.Pickler(f2, -1)
+#                     pickler.dump(Sensation.VERSION)
+#                     pickler.dump(sensation)
+#                 except IOError as e:
+#                     self.assertTrue(False,'pickler.dump(sensation) IOError ' + str(e))
+#                 except pickle.PickleError as e:
+#                     self.assertTrue(False,'pickler.dump(sensation) PickleError ' + str(e))
+#                 except pickle.PicklingError as e:
+#                     self.assertTrue(False,'pickler.dump(sensation) PicklingError ' + str(e))
+# 
+#                 finally:
+#                     f2.close()
+#         except Exception as e:
+#                 self.assertTrue(False,"saveLongTermMemory open(fileName, wb) as f2 error " + str(e))
+#                 
+#         # load
+#         if os.path.exists(Sensation.DATADIR):
+#             try:
+#                 with open(SensationTestCase.PATH_TO_PICLE_FILE, "rb") as f:
+#                     try:
+#                         version = pickle.load(f)
+#                         if version == Sensation.VERSION:
+#                             loadedSensation = pickle.load(f)
+#                             print('sensation loaded')
+#                             self.assertEqual(sensation, loadedSensation, "dumped and loaded Sensation should be equal")
+#                         else:
+#                             print("Sensation could not be loaded. because Sensation cache version {} does not match current sensation version {}".format(version,Sensation.VERSION))
+#                     except IOError as e:
+#                         self.assertTrue(False,"pickle.load(f) error " + str(e))
+#                     except pickle.PickleError as e:
+#                         self.assertTrue(False,'pickle.load(f) PickleError ' + str(e))
+#                     except pickle.PicklingError as e:
+#                         self.assertTrue(False,'pickle.load(f) PicklingError ' + str(e))
+#                     except Exception as e:
+#                         self.assertTrue(False,'pickle.load(f) Exception ' + str(e))
+#                     finally:
+#                         f.close()
+#             except Exception as e:
+#                     self.assertTrue(False,'with open(' + Sensation.PATH_TO_PICLE_FILE + ',"rb") as f error ' + str(e))
+# 
+#         print("\ndo_Test_Picleability OK\n")
 
     '''
     test save and load to binary file
@@ -2486,6 +2503,482 @@ class SensationTestCase(unittest.TestCase):
     def test_Save(self):
         print("\ntest_Save\n")
 
+        # test all SensationTypes
+        
+        for sensationtype in Sensation.SensationTypes:
+            # Stop and Capability will mever be saved to Memory
+            if sensationtype != Sensation.SensationType.Stop and\
+               sensationtype != Sensation.SensationType.Capability and\
+               sensationtype != Sensation.SensationType.Unknown:
+                self.do_Test_CopyBinaryFiles(sensationtype = sensationtype)
+#         
+#         self.do_Test_CopyBinaryFiles(sensationtype = Sensation.SensationType.Voice)
+#         self.do_Test_CopyBinaryFiles(sensationtype = Sensation.SensationType.Image)
+#         self.do_Test_CopyBinaryFiles(sensationtype = Sensation.SensationType.Item)
+        
+    '''
+    test save and load to binary file
+    '''
+        
+    def do_Test_CopyBinaryFiles(self, sensationtype):
+        print("\ndo_Test_CopyBinaryFiles {}\n".format(Sensation.getSensationTypeString(sensationtype)))
+
+        
+        # test image, Voice. Item
+        # Voice
+        
+        data = b'\x01\x02'
+        image = PIL_Image.new(size=(2,2), mode='RGB')
+        name = "name"
+        
+        if sensationtype == Sensation.SensationType.Voice:
+            originalSensation = self.robot.createSensation(
+                                       associations=None, sensationType=sensationtype, memoryType=Sensation.MemoryType.Sensory,
+                                       data=data, locations=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva)
+        elif sensationtype == Sensation.SensationType.Image:
+             originalSensation = self.robot.createSensation(
+                                       associations=None, sensationType=sensationtype, memoryType=Sensation.MemoryType.Sensory,
+                                       image=image, locations=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva)
+        elif sensationtype == Sensation.SensationType.Item:
+             originalSensation = self.robot.createSensation(
+                                       associations=None, sensationType=sensationtype, memoryType=Sensation.MemoryType.Sensory,
+                                       name=name, locations=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva)
+        else:
+             originalSensation = self.robot.createSensation(
+                                       associations=None, sensationType=sensationtype, memoryType=Sensation.MemoryType.Sensory,
+                                       locations=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva)
+
+        self.assertTrue(originalSensation in self.robot.getMemory().sensationMemory)
+        
+        # copy 1
+        copySensation1 = self.robot.createSensation(sensation=originalSensation)
+        self.assertTrue(copySensation1 in self.robot.getMemory().sensationMemory)
+        # originalSensation knows its copies
+        self.assertTrue(copySensation1 in originalSensation.copySensations)
+
+        # test test        
+        self.assertNotEqual(originalSensation, copySensation1, "should not be equal")
+        self.assertEqual(originalSensation.getKind(), copySensation1.getKind(), "should be equal")
+        self.assertEqual(originalSensation.getData(), copySensation1.getData(), "should be equal")
+        # TODO Enable this, locaion should be equal
+        #self.assertEqual(voiceSensation.getLocations(), copySensation1.getLocations(), "should be equal")
+        self.assertEqual(copySensation1.getDataId(), originalSensation.getDataId(), "should be equal")
+        self.assertTrue(originalSensation.isOriginal(), "originalSensation should be original")
+        self.assertFalse(copySensation1.isOriginal(), "copySensation1 should be copy")
+        # test that Sensation.data is same instance
+        if sensationtype == Sensation.SensationType.Voice:
+            self.assertEqual(originalSensation.data, copySensation1.data)
+            self.assertTrue(originalSensation.data is copySensation1.data)
+        elif sensationtype == Sensation.SensationType.Image:
+            self.assertEqual(originalSensation.image, copySensation1.image)
+            self.assertTrue(originalSensation.image is copySensation1.image)
+        elif sensationtype == Sensation.SensationType.Item:
+            self.assertEqual(originalSensation.name, copySensation1.name)
+            self.assertTrue(originalSensation.name is copySensation1.name)
+               
+        # copy 2
+        copySensation2 = self.robot.createSensation(sensation=originalSensation)
+        self.assertTrue(copySensation2 in self.robot.getMemory().sensationMemory)
+        # originalSensation knows its copies
+        self.assertTrue(copySensation2 in originalSensation.copySensations)
+
+        # test test        
+        self.assertNotEqual(originalSensation, copySensation2, "should not be equal")
+        self.assertEqual(originalSensation.getKind(), copySensation2.getKind(), "should be equal")
+        self.assertEqual(originalSensation.getData(), copySensation2.getData(), "should be equal")
+        # TODO Enable this, locaion should be equal
+        #self.assertEqual(originalSensation.getLocations(), copySensation2.getLocations(), "should be equal")
+        self.assertEqual(copySensation2.getDataId(), originalSensation.getDataId(), "should be equal")
+        self.assertTrue(originalSensation.isOriginal(), "originalSensation should be original")
+        self.assertFalse(copySensation2.isOriginal(), "copySensation2 should be copy")
+        # test that Sensation.data is same instance
+        if sensationtype == Sensation.SensationType.Voice:
+            self.assertEqual(originalSensation.data, copySensation2.data)
+            self.assertTrue(originalSensation.data is copySensation2.data)
+        elif sensationtype == Sensation.SensationType.Image:
+            self.assertEqual(originalSensation.image, copySensation2.image)
+            self.assertTrue(originalSensation.image is copySensation2.image)
+        elif sensationtype == Sensation.SensationType.Item:
+            self.assertEqual(originalSensation.name, copySensation2.name)
+            self.assertTrue(originalSensation.name is copySensation2.name)
+        
+        # save
+        originalSensation.save()
+        originalSensationBinaryFilePath = originalSensation.getFilePathByFormat(format=Sensation.BINARY_FORMAT)
+        originalSensationId = originalSensation.getId()
+        
+        copySensation1.save()
+        copySensation1BinaryFilePath = copySensation1.getFilePathByFormat(format=Sensation.BINARY_FORMAT)
+        copySensation1Id = copySensation1.getId()
+        
+        # now delete originalSensation and copySensation1 from memory
+        copySensation2.save()
+        copySensation2BinaryFilePath = copySensation2.getFilePathByFormat(format=Sensation.BINARY_FORMAT)
+        copySensation2Id = copySensation2.getId()
+        
+        i=0
+        while i < len(self.robot.getMemory().sensationMemory) and (originalSensation != None or\
+              copySensation1 != None or copySensation2 != None):
+            if originalSensation != None and\
+               self.robot.getMemory().sensationMemory[i].getId() == originalSensation.getId():
+                del self.robot.getMemory().sensationMemory[i]
+                originalSensation = None
+            elif copySensation1 != None and\
+                 self.robot.getMemory().sensationMemory[i].getId() == copySensation1.getId():
+                del self.robot.getMemory().sensationMemory[i]
+                copySensation1 = None
+            elif copySensation2 != None and\
+                 self.robot.getMemory().sensationMemory[i].getId() == copySensation2.getId():
+                del self.robot.getMemory().sensationMemory[i]
+                copySensation2 = None
+            else:
+                i += 1
+            
+        #test test
+        self.assertEqual(originalSensation, None)
+        self.assertEqual(copySensation1, None)
+        self.assertEqual(copySensation2, None)
+        
+        # now create deleted Sensation fron files and test that there is only
+        # one copy of data
+        # original
+        originalSensation = Sensation(memory=self.robot.getMemory(),
+                                   robotId=self.robot.getId(),
+                                   binaryFilePath=originalSensationBinaryFilePath)
+        # this does not yet add Sensation to Memory
+        self.robot.getMemory().addToSensationMemory(originalSensation)
+        self.assertTrue(originalSensation in self.robot.getMemory().sensationMemory)
+        if sensationtype == Sensation.SensationType.Voice:
+            self.assertEqual(originalSensation.data, data)
+            self.assertFalse(originalSensation.data is data)
+# image is not same, tham char arraays
+#         elif sensationtype == Sensation.SensationType.Image:
+#             self.assertEqual(originalSensation.image, image)
+#             self.assertFalse(originalSensation.image is image)
+        elif sensationtype == Sensation.SensationType.Item:
+            self.assertEqual(originalSensation.name, name)
+            self.assertFalse(originalSensation.name is name)
+        
+        #copy 1
+        copySensation1 = Sensation(memory=self.robot.getMemory(),
+                                       robotId=self.robot.getId(),
+                                       binaryFilePath=copySensation1BinaryFilePath)
+        self.assertEqual(copySensation1Id, copySensation1.getId())
+        self.robot.getMemory().addToSensationMemory(copySensation1)
+        self.assertTrue(copySensation1 in self.robot.getMemory().sensationMemory)
+        
+        if sensationtype == Sensation.SensationType.Voice:
+            self.assertEqual(copySensation1.data, data)
+            self.assertFalse(copySensation1.data is data)
+# image is not same, tham char arraays
+#         elif sensationtype == Sensation.SensationType.Image:
+#             self.assertEqual(originalSensation.image, image)
+#             self.assertFalse(originalSensation.image is image)
+        elif sensationtype == Sensation.SensationType.Item:
+            self.assertEqual(copySensation1.name, name)
+            self.assertFalse(copySensation1.name is name)
+
+
+        
+        # copy data should be referenge to original
+        if sensationtype == Sensation.SensationType.Voice:
+            self.assertTrue(originalSensation.data is copySensation1.data)
+        elif sensationtype == Sensation.SensationType.Image:
+            self.assertTrue(originalSensation.image is copySensation1.image)
+        elif sensationtype == Sensation.SensationType.Item:
+            self.assertTrue(originalSensation.name is copySensation1.name)
+
+        #copy 2
+        copySensation2 = Sensation(memory=self.robot.getMemory(),
+                                       robotId=self.robot.getId(),
+                                       binaryFilePath=copySensation2BinaryFilePath)
+        self.robot.getMemory().addToSensationMemory(copySensation2)
+        self.assertEqual(copySensation2Id, copySensation2.getId())
+        self.assertTrue(copySensation2 in self.robot.getMemory().sensationMemory)
+
+        if sensationtype == Sensation.SensationType.Voice:
+            self.assertEqual(copySensation2.data, data)
+            self.assertFalse(copySensation2.data is data)
+             # copy data should be referenge to original
+            self.assertTrue(originalSensation.data is copySensation2.data)
+        elif sensationtype == Sensation.SensationType.Image:
+             # copy image should be referenge to original
+            self.assertTrue(originalSensation.image is copySensation2.image)
+        elif sensationtype == Sensation.SensationType.Item:
+            self.assertEqual(copySensation2.name, name)
+            self.assertFalse(copySensation2.name is name)
+             # copy name should be referenge to original
+            self.assertTrue(originalSensation.name is copySensation2.name)
+        
+        # load first copy and then original
+        # now delete originalSensation and copySensation1 from memory
+        i=0
+        while i < len(self.robot.getMemory().sensationMemory) and (originalSensation != None or\
+              copySensation1 != None) or copySensation2 != None:
+            if originalSensation != None and\
+               self.robot.getMemory().sensationMemory[i].getId() == originalSensation.getId():
+                del self.robot.getMemory().sensationMemory[i]
+                originalSensation = None
+            elif copySensation1 != None and\
+                 self.robot.getMemory().sensationMemory[i].getId() == copySensation1.getId():
+                del self.robot.getMemory().sensationMemory[i]
+                copySensation1 = None
+            elif copySensation2 != None and\
+                 self.robot.getMemory().sensationMemory[i].getId() == copySensation2.getId():
+                del self.robot.getMemory().sensationMemory[i]
+                copySensation2 = None
+            else:
+                i += 1
+            
+        #test test
+        self.assertEqual(originalSensation, None)
+        self.assertEqual(copySensation1, None)
+        self.assertEqual(copySensation2, None)
+        
+        # load copy first copySensation1, then copySensation2 and finally original
+        #copy 1
+        copySensation1 = Sensation(memory=self.robot.getMemory(),
+                                        robotId=self.robot.getId(),
+                                        binaryFilePath=copySensation1BinaryFilePath)
+        self.assertEqual(copySensation1Id, copySensation1.getId())
+
+        self.robot.getMemory().addToSensationMemory(copySensation1)
+        self.assertTrue(copySensation1 in self.robot.getMemory().sensationMemory)
+        self.assertEqual(self.robot.getMemory().getSensationFromSensationMemory(id=copySensation1.getId()),
+                         copySensation1)
+        self.assertEqual(self.robot.getMemory().getSensationFromSensationMemory(id=copySensation1Id),
+                         copySensation1)
+        
+        if sensationtype == Sensation.SensationType.Voice:
+            self.assertEqual(copySensation1.data, data)
+            self.assertFalse(copySensation1.data is data)
+#         elif sensationtype == Sensation.SensationType.Image:
+# #             self.assertEqual(copySensation1.image, image)
+#             self.assertFalse(copySensation1.image is image)
+        elif sensationtype == Sensation.SensationType.Item:
+            self.assertEqual(copySensation1.name, name)
+            self.assertFalse(copySensation1.name is name)
+        
+       
+        # and load copy 2
+        copySensation2 = Sensation(memory=self.robot.getMemory(),
+                                       robotId=self.robot.getId(),
+                                       binaryFilePath=copySensation2BinaryFilePath)
+        self.assertEqual(copySensation2Id, copySensation2.getId())
+        self.robot.getMemory().addToSensationMemory(copySensation2)
+        self.assertTrue(copySensation2 in self.robot.getMemory().sensationMemory)
+        self.assertEqual(self.robot.getMemory().getSensationFromSensationMemory(id=copySensation2.getId()),
+                         copySensation2)
+        self.assertEqual(self.robot.getMemory().getSensationFromSensationMemory(id=copySensation2Id),
+                         copySensation2)
+
+        if sensationtype == Sensation.SensationType.Voice:
+            self.assertEqual(copySensation2.data, data)
+            self.assertFalse(copySensation2.data is data)
+#         elif sensationtype == Sensation.SensationType.Image:
+# #             self.assertEqual(copySensation2.image, image)
+#             self.assertFalse(copySensation2.image is image)
+        elif sensationtype == Sensation.SensationType.Item:
+            self.assertEqual(copySensation2.name, name)
+            self.assertFalse(copySensation2.name is name)
+
+        # then original
+        originalSensation = Sensation(memory=self.robot.getMemory(),
+                                   robotId=self.robot.getId(),
+                                   binaryFilePath=originalSensationBinaryFilePath)
+        self.assertEqual(originalSensationId, originalSensation.getId())
+        # this does not yet add Sensation to Memory
+        # todo logic
+        self.robot.getMemory().addToSensationMemory(originalSensation)
+        self.assertTrue(originalSensation in self.robot.getMemory().sensationMemory)
+        
+        if sensationtype == Sensation.SensationType.Voice:
+            self.assertEqual(originalSensation.data, data)
+            self.assertFalse(originalSensation.data is data)
+#         elif sensationtype == Sensation.SensationType.Image:
+# #             self.assertEqual(originalSensation.image, image)
+#             self.assertFalse(originalSensation.image is image)
+        elif sensationtype == Sensation.SensationType.Item:
+            self.assertEqual(originalSensation.name, name)
+            self.assertFalse(originalSensation.name is name)
+                        
+        self.assertEqual(len(originalSensation.copySensationIds), 0)
+        self.assertEqual(len(originalSensation.copySensations), 2)
+ 
+        
+        # and now copy2 should have reference to original from its data
+        # this fails now, because we don't have Sensation ids of copyes in
+        # our original
+        if sensationtype == Sensation.SensationType.Voice:
+            self.assertTrue(originalSensation.data is copySensation1.data)
+            self.assertTrue(originalSensation.data is copySensation2.data)
+            self.assertTrue(copySensation1.data is copySensation2.data)
+        elif sensationtype == Sensation.SensationType.Image:
+            self.assertTrue(originalSensation.image is copySensation1.image)
+            self.assertTrue(originalSensation.image is copySensation2.image)
+            self.assertTrue(copySensation1.image is copySensation2.image)
+        elif sensationtype == Sensation.SensationType.Item:
+            self.assertTrue(originalSensation.name is copySensation1.name)
+            self.assertTrue(originalSensation.name is copySensation2.name)
+            self.assertTrue(copySensation1.name is copySensation2.name)
+                
+        ######################################
+        # load first copy and then original
+        # now delete originalSensation and copySensation1 from memory
+        i=0
+        while i < len(self.robot.getMemory().sensationMemory) and (originalSensation != None or\
+              copySensation1 != None) or copySensation2 != None:
+            if originalSensation != None and\
+               self.robot.getMemory().sensationMemory[i].getId() == originalSensation.getId():
+                del self.robot.getMemory().sensationMemory[i]
+                originalSensation = None
+            elif copySensation1 != None and\
+                 self.robot.getMemory().sensationMemory[i].getId() == copySensation1.getId():
+                del self.robot.getMemory().sensationMemory[i]
+                copySensation1 = None
+            elif copySensation2 != None and\
+                 self.robot.getMemory().sensationMemory[i].getId() == copySensation2.getId():
+                del self.robot.getMemory().sensationMemory[i]
+                copySensation2 = None
+            else:
+                i += 1
+            
+        #test test
+        self.assertEqual(originalSensation, None)
+        self.assertEqual(copySensation1, None)
+        self.assertEqual(copySensation2, None)
+        
+        #################################
+        
+        # load copy first copySensation1, then original  and finally copySensation2
+
+        # now delete originalSensation and copySensation1 from memory
+        i=0
+        while i < len(self.robot.getMemory().sensationMemory) and (originalSensation != None or\
+              copySensation1 != None) or copySensation2 != None:
+            if originalSensation != None and\
+               self.robot.getMemory().sensationMemory[i].getId() == originalSensation.getId():
+                del self.robot.getMemory().sensationMemory[i]
+                originalSensation = None
+            elif copySensation1 != None and\
+                 self.robot.getMemory().sensationMemory[i].getId() == copySensation1.getId():
+                del self.robot.getMemory().sensationMemory[i]
+                copySensation1 = None
+            elif copySensation2 != None and\
+                 self.robot.getMemory().sensationMemory[i].getId() == copySensation2.getId():
+                del self.robot.getMemory().sensationMemory[i]
+                copySensation2 = None
+            else:
+                i += 1
+        
+        
+        #copy 1
+        copySensation1 = Sensation(memory=self.robot.getMemory(),
+                                        robotId=self.robot.getId(),
+                                        binaryFilePath=copySensation1BinaryFilePath)
+        self.assertEqual(copySensation1Id, copySensation1.getId())
+
+        self.robot.getMemory().addToSensationMemory(copySensation1)
+        self.assertTrue(copySensation1 in self.robot.getMemory().sensationMemory)
+        self.assertEqual(self.robot.getMemory().getSensationFromSensationMemory(id=copySensation1.getId()),
+                         copySensation1)
+        self.assertEqual(self.robot.getMemory().getSensationFromSensationMemory(id=copySensation1Id),
+                         copySensation1)
+
+        if sensationtype == Sensation.SensationType.Voice:
+            self.assertEqual(copySensation1.data, data)
+            self.assertFalse(copySensation1.data is data)
+        elif sensationtype == Sensation.SensationType.Image:
+            #self.assertEqual(copySensation1.image, image)
+            self.assertFalse(copySensation1.image is image)
+        elif sensationtype == Sensation.SensationType.Item:
+            self.assertEqual(copySensation1.name, name)
+            self.assertFalse(copySensation1.name is name)
+
+        
+        # then original
+        originalSensation = Sensation(memory=self.robot.getMemory(),
+                                   robotId=self.robot.getId(),
+                                   binaryFilePath=originalSensationBinaryFilePath)
+        self.assertEqual(originalSensationId, originalSensation.getId())
+        # this does not yet add Sensation to Memory
+        # todo logic
+        self.robot.getMemory().addToSensationMemory(originalSensation)
+        self.assertTrue(originalSensation in self.robot.getMemory().sensationMemory)
+        
+        if sensationtype == Sensation.SensationType.Voice:
+            self.assertEqual(originalSensation.data, data)
+            self.assertFalse(originalSensation.data is data)
+            self.assertTrue(copySensation1.data is originalSensation.data)
+        elif sensationtype == Sensation.SensationType.Image:
+            #self.assertEqual(originalSensation.image, image)
+            self.assertFalse(originalSensation.image is image)
+            self.assertTrue(copySensation1.image is originalSensation.image)
+        elif sensationtype == Sensation.SensationType.Item:
+            self.assertEqual(originalSensation.name, name)
+            self.assertFalse(originalSensation.name is name)
+            self.assertTrue(copySensation1.name is originalSensation.name)
+                                
+        self.assertEqual(len(originalSensation.copySensationIds), 1)
+        self.assertEqual(len(originalSensation.copySensations), 1)
+        
+        
+        # and load copy 2
+        copySensation2 = Sensation(memory=self.robot.getMemory(),
+                                       robotId=self.robot.getId(),
+                                       binaryFilePath=copySensation2BinaryFilePath)
+        self.assertEqual(copySensation2Id, copySensation2.getId())
+        self.robot.getMemory().addToSensationMemory(copySensation2)
+        self.assertTrue(copySensation2 in self.robot.getMemory().sensationMemory)
+        self.assertEqual(self.robot.getMemory().getSensationFromSensationMemory(id=copySensation2.getId()),
+                         copySensation2)
+        self.assertEqual(self.robot.getMemory().getSensationFromSensationMemory(id=copySensation2Id),
+                         copySensation2)
+        
+        
+        if sensationtype == Sensation.SensationType.Voice:
+            self.assertEqual(copySensation2.data, data)
+            self.assertFalse(copySensation2.data is data)
+            self.assertTrue(copySensation2.data is originalSensation.data)
+            self.assertTrue(copySensation2.originalSensation is originalSensation)
+            # also copySensation1 remain1
+            self.assertEqual(copySensation1.data, data)
+            self.assertFalse(copySensation1.data is data)
+            self.assertTrue(copySensation1.data is originalSensation.data)
+        elif sensationtype == Sensation.SensationType.Image:
+            #self.assertEqual(copySensation2.image, image)
+            self.assertFalse(copySensation2.image is image)
+            self.assertTrue(copySensation2.image is originalSensation.image)
+            self.assertTrue(copySensation2.originalSensation is originalSensation)
+            # also copySensation1 remain1
+            #self.assertEqual(copySensation1.image, image)
+            self.assertFalse(copySensation1.image is image)
+            self.assertTrue(copySensation1.image is originalSensation.image)
+        elif sensationtype == Sensation.SensationType.Item:
+            self.assertEqual(copySensation2.name, name)
+            self.assertFalse(copySensation2.name is name)
+            self.assertTrue(copySensation2.name is originalSensation.name)
+            self.assertTrue(copySensation2.originalSensation is originalSensation)
+            # also copySensation1 remain1
+            self.assertEqual(copySensation1.name, name)
+            self.assertFalse(copySensation1.name is name)
+            self.assertTrue(copySensation1.name is originalSensation.name)
+                        
+        self.assertEqual(len(originalSensation.copySensations), 2)
+        self.assertTrue(copySensation1 in originalSensation.copySensations)
+        self.assertTrue(copySensation2 in originalSensation.copySensations)
+        self.assertEqual(len(originalSensation.copySensationIds), 0)
+ 
+         
+
+    '''
+    test save and load to binary file
+    '''
+        
+    def if_needed_testSaveCopyBinaryFile(self):
+        print("\ntest_Save\n")
+
+        
         print("Basic constructor without Robot")
         memory = Memory(robot = None,                          # owner robot
                         maxRss = Memory.maxRss,
@@ -2501,6 +2994,79 @@ class SensationTestCase(unittest.TestCase):
                                     robotId=0.0,
                                     binaryFilePath=binaryFilePath)
         self.assertEqual(sensation, loadedSensation, "Loaded sensation should be equal to original one")
+        
+        # test image and Voice
+        # Voice
+        # TODO pure constructor of Sensation can't be used
+        # bacause it does not inset sensations to memory even if it has that parameter.
+        
+        data=b'\x01\x02'
+        voiceSensation = Sensation(memory=memory, robotId=0.0,
+                                   associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, locations=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva)
+        self.assertTrue(voiceSensation in memory.sensationMemory)
+        fromVoiceSensation = Sensation(memory=memory, robotId=0.0,
+                                       sensation=voiceSensation)
+        self.assertTrue(fromVoiceSensation in memory.sensationMemory)
+
+        # test test        
+        self.assertNotEqual(voiceSensation, fromVoiceSensation, "should not be equal")
+        self.assertEqual(voiceSensation.getKind(), fromVoiceSensation.getKind(), "should be equal")
+        self.assertEqual(voiceSensation.getData(), fromVoiceSensation.getData(), "should be equal")
+        # TODO Enable this, locaion should be equal
+        #self.assertEqual(voiceSensation.getLocations(), fromVoiceSensation.getLocations(), "should be equal")
+        self.assertEqual(fromVoiceSensation.getDataId(), voiceSensation.getDataId(), "should be equal")
+        self.assertTrue(voiceSensation.isOriginal(), "voiceSensation should be original")
+        self.assertFalse(fromVoiceSensation.isOriginal(), "fromVoiceSensation should be copy")
+        # test that Sensation.data is same instance
+        self.assertEqual(voiceSensation.data, fromVoiceSensation.data)
+        self.assertTrue(voiceSensation.data is fromVoiceSensation.data)
+       
+        
+        # save
+        voiceSensation.save()
+        voiceSensationBinaryFilePath = voiceSensation.getFilePathByFormat(format=Sensation.BINARY_FORMAT)
+        
+        fromVoiceSensation.save()
+        fromVoiceSensationBinaryFilePath = fromVoiceSensation.getFilePathByFormat(format=Sensation.BINARY_FORMAT)
+        
+        # now delete voiceSensation and fromVoiceSensation from memory
+        i=0
+        while i < len(memory.sensationMemory) and (voiceSensation != None or\
+              fromVoiceSensation != None):
+            if memory.sensationMemory[i].getId() == voiceSensation.getId():
+                del memory.sensationMemory[i]
+                voiceSensation = None
+            elif memory.sensationMemory[i].getId() == fromVoiceSensation.getId():
+                del memory.sensationMemory[i]
+                fromVoiceSensation = None
+            else:
+                i += 1
+            
+        #test test
+        self.assertEqual(voiceSensation, None)
+        self.assertEqual(fromVoiceSensation, None)
+        
+        # now create deleted Sensation fron files and test that there is only
+        # one copy of data
+        # original
+        voiceSensation = Sensation(memory=memory,
+                                    robotId=0.0,
+                                    binaryFilePath=voiceSensationBinaryFilePath)
+        self.assertEqual(voiceSensation.data, data)
+        self.assertFalse(voiceSensation.data is data)
+        
+        #copy
+        fromVoiceSensation = Sensation(memory=memory,
+                                       robotId=0.0,
+                                       binaryFilePath=fromVoiceSensationBinaryFilePath)
+        self.assertEqual(fromVoiceSensation.data, data)
+        self.assertFalse(fromVoiceSensation.data is data)
+        
+        # copy data should be rerenge to original
+        self.assertFalse(voiceSensation.data is fromVoiceSensation.data)
+        
+        # load first copy and then original
+       
 
         
 if __name__ == '__main__':

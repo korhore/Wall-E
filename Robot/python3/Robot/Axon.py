@@ -27,7 +27,7 @@ class Axon():
        
     def put(self, robot, transferDirection, sensation):
         self.robot.log("Axon put from {} to {} with original queue length {} full {}".format(robot.getName(),self.robot.getName(), self.queue.qsize(), self.queue.full()))
-        #sensation.attach(robot=self.robot)                        # take ownership
+        sensation.attach(robot=self.robot)                        # take ownership
         # TODO commented out, because. seems attach(/detach logic is broken
 # let Robots decide locations
 #         if len(sensation.getLocations()) == 0:              # if sensations does not have locations yet, set it as robots locations.

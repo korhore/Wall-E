@@ -118,13 +118,52 @@ Check location/sublocation in configurations.
 If in RaspBerryPiCamera config there are location localhost and under it 'location Ubuntu raspberry', then
 two instances will be created. Ment to test 'sublocations'
 
-picler fails
-We should stop all MainRobot duties like logging activity ...
-- open(fileName, wb) as file error cannot serialize '_io.TextIOWrapper' object
-
 
 Develop
 -------
+
+1. Minimize memory using
+- test that we have reference to Sensation.image and Sensation.data, when
+  we make a copy in all situations, also creating SWensation from binary
+- Study Conversation
+-- Conversation by Location
+-- Conversation with Robots and persons, using person rules hearting and speaking.
+   This is what is implemented now, but mixed. One logical Robot has Playback in Location and it
+   speaks out TobotType.Muscle voices from itself and logical Robots present in this location.
+   Robots speak RobotType.Copmmunication speak in their conversation, but person does not hear it, but in practice
+   RobotType.muscle voices are same.
+-- Conversation with Robots only, uaing Robots rules, where is no speaking and Hearing,
+   but associations only
+
+Now Sensation.dataId == Sensation.Id defines, if this Sensation is original
+or copy from other Sensation. Thos wastes a lopt of Memory, because data is same and copied
+and it does not change. More cleaver way to do ts same kind relationship as
+Assiciation, one boolean field and getters will know where to find data.
+Think again! Images take most of Memory. When we create a copy of Sensation,
+we do 'destination.image = source.image' which means that in this phase no
+PIL.image is replicated but python makes a reference to same data. Problem comes if
+we make a binary file of original ans copy Sensations and create them.
+Now we would get 2 different copies of PIL.image instances. Situation can be found in
+load method  id != origibalId and corrected. Same situation is with voices.
+We should study how many this king images there will be. It can be also so, that
+original imageSensaton will not be loaded.
+And if original imageSensation will be deleted, then copy ill be not copy any more,
+but comes new original and it can be new original for many copies and only one
+can be new original. Hmm. algorithm shouldf de studies how original with copies can be deleted.
+Anyway, seems that original must know it copies.
+
+2. Studu organisation Sensations by SensationType with
+2.1 Dictionary of originals by SensationType
+2.2 Dictionary of copies by SensationType
+
+This can save Memory, because now there will be only one instance of data
+with all SensationTypes of there used data.
+
+
+picler fails
+We should stop all MainRobot duties like logging activity ...
+- open(fileName, wb) as file error cannot serialize '_io.TextIOWrapper' object
+- picler is is replaced by simple binary  files, so we can forget this.
 
 Robot can tell its capabilities to its parent. which creates it.
 This prevents errors in configuration.

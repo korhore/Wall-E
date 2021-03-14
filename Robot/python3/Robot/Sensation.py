@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 06.02.2021
+Edited on 14.03.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -16,12 +16,6 @@ from PIL import Image as PIL_Image
 import io
 import psutil
 
-try:
-    import cPickle as pickle
-#except ModuleNotFoundError:
-except Exception as e:
-#    print ("import cPickle as pickle error " + str(e))
-    import pickle
     
 #def enum(**enums):
 #    return type('Enum', (), enums)
@@ -645,7 +639,7 @@ class Sensation(object):
                  bytes=None,
                  binaryFilePath=None,
                  id=None,
-                 dataId=None,
+                 #originalSensationId=None,
                  time=None,
                  receivedFrom=[],
                  # base field are by default None, so we know what fields are given and what not
@@ -682,12 +676,15 @@ class Sensation(object):
             self.time = systemTime.time()
 
         self.robotId = robotId
+        
         self.id = id
         if self.id == None:
             self.id = Sensation.getNextId()
-        self.dataId = dataId
-        if self.dataId == None:
-            self.dataId = self.id
+
+# depreacated            
+#         self.dataId = dataId
+#         if self.dataId == None:
+#             self.dataId = self.id
             
         self.attachedBy = []
         self.associations =[]
@@ -700,12 +697,27 @@ class Sensation(object):
                            feeling=association.feeling)
         self.potentialAssociations = [] # does not have init value in creation,
                                         # but is always empty in creation
+                                       # associations are always both way
+                                       
+        # copy
+        self.originalSensation = None # references to Sensation, that holds riginal data or image
+        self.originalSensationId = self.id #None # id of originalSensation when self.originalSensation is not in Memory
+                                        # we use this to set self.originalSensation and to detetec if this Sensation is Original Sensatioj por copy
+                                        # there are situations, when 
+        self.copySensations = []      # if this Sensation is original Sensation
+                                      # then this arryy contains referencess Sensations
+                                      # that have reference to this Sensations data ot image
+                                      # This to bookkeeping where referencces are
+                                      # because data of sound and image as picture use a lot ofr memory
+                                      # and we will have ionly one vopy of those data
+                                      # and copySensations will have only reference to original one
+        self.copySensationIds = []   # ids of self.copySensations
+                                      # used to load self.copySensations and setting data and image references, when original Sensation is loaded
 
-        # associations are always both way
         if sensation is not None:   # copy constructor
             # associate makes both sides
             Sensation.updateBaseFields(destination=self, source=sensation,
-                                       dataId = dataId,
+                                       #originalSensationId = originalSensationId,
                                        sensationType=sensationType,
                                        memoryType=memoryType,
                                        robotType=robotType,
@@ -754,11 +766,11 @@ class Sensation(object):
             # and we don't know them exactly
             # so we don't set then, but code should use set methods itself explicitly
             
-            # only way to solve this is set default values to None and fot every
-            # property set only those propertys, that are bot None
+            # only way to solve this is set default values to None and for every
+            # property set only those properties, that are both None
             
-            # this will cause that, that if vontructor, where no sensation is given,
-            # we should set default value by habd.
+            # this will cause that, that if constructor, where no sensation is given,
+            # we should set default value by hand.
 
         else:            
             Sensation.setBaseFields(   destination=self,
@@ -877,8 +889,14 @@ class Sensation(object):
                     self.id = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
                     
-                    self.dataId = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+                    self.originalSensationId = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                     i += Sensation.FLOAT_PACK_SIZE
+                    
+                    copySensationsLen = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
+                    i += Sensation.ID_SIZE
+                    for j in range(copySensationsLen):
+                        self.copySensationIds.append(Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE]))
+                        i += Sensation.FLOAT_PACK_SIZE
                     
                     self.time = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
     #                yougestTime=self.time
@@ -967,6 +985,12 @@ class Sensation(object):
                         i += data_size
                         self.kind = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
                         i += Sensation.ENUM_SIZE
+                        #check if this is copy from original
+                        if not self.isOriginal():
+                            #try to find original and set reference to it's data
+                            originalSensation = memory.getSensationFromSensationMemory(id=self.getDataId())
+                            if originalSensation != None:
+                                self.data = originalSensation.getData()               
                     elif self.sensationType is Sensation.SensationType.Image:
                         filePath_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
                         #print("filePath_size " + str(filePath_size))
@@ -981,6 +1005,12 @@ class Sensation(object):
                         else:
                             self.image = None
                         i += data_size
+                        #check if this is copy from original
+                        if not self.isOriginal():
+                            #try to find original and set reference to it's data
+                            originalSensation = memory.getSensationFromSensationMemory(id=self.getDataId())
+                            if originalSensation != None:
+                                self.image = originalSensation.getImage()               
                     elif self.sensationType is Sensation.SensationType.Calibrate:
                         self.calibrateSensationType = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
                         i += Sensation.ENUM_SIZE
@@ -1004,6 +1034,13 @@ class Sensation(object):
                         
                         self.presence = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
                         i += Sensation.ENUM_SIZE
+                        
+                        #check if this is copy from original
+                        if not self.isOriginal():
+                            #try to find original and set reference to it's data
+                            originalSensation = memory.getSensationFromSensationMemory(id=self.getDataId())
+                            if originalSensation != None:
+                                self.name = originalSensation.getName()               
                     elif self.sensationType is Sensation.SensationType.Feeling:
                         firstAssociateSensation_id=Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                         i += Sensation.FLOAT_PACK_SIZE
@@ -1019,10 +1056,10 @@ class Sensation(object):
                         self.negativeFeeling = Sensation.intToBoolean(bytes[i])
                         i += Sensation.ENUM_SIZE
                         
-                    association_id = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
-                    #print("association_id " + str(association_id))
+                    associationIdsLen = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
+                    #print("associationIdsLen " + str(associationIdsLen))
                     i += Sensation.ID_SIZE
-                    for j in range(association_id):
+                    for j in range(associationIdsLen):
                         sensation_id = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                         i += Sensation.FLOAT_PACK_SIZE
                    
@@ -1040,7 +1077,39 @@ class Sensation(object):
                         self.potentialAssociations.append(Sensation.AssociationSensationIds(sensation_id=sensation_id,
                                                                                             time=time,
                                                                                             feeling=feeling))
-                                       
+                        
+                    # finally set data to copySensation that are in Memory now
+                    j=0
+                    while j < len(self.copySensationIds):
+                        copySensation = memory.getSensationFromSensationMemory(id=self.copySensationIds[j])
+                        if copySensation != None:
+                            if copySensation.getSensationType() == Sensation.SensationType.Voice:
+                                copySensation.data = self.data
+                            elif copySensation.getSensationType() == Sensation.SensationType.Image:
+                                copySensation.image = self.image
+                            elif copySensation.getSensationType() == Sensation.SensationType.Item:
+                                 copySensation.name = self.name
+                            copySensation.originalSensation = self
+                            copySensation.originalSensationId = self.id                               
+                            self.copySensations.append(copySensation)
+                                                
+                            del self.copySensationIds[j] # self.copySensationIds contains only original ids, that are not found yet
+                        else:
+                            j=j+1
+
+                    # if this is copy and original does not know it yet, set                            
+                    if self.originalSensationId != self.id:
+                        self.originalSensation = memory.getSensationFromSensationMemory(id=self.originalSensationId)
+                        if self.originalSensation != None:
+                            if self not in self.originalSensation.copySensations:
+                                self.originalSensation.copySensations.append(self)
+                                j = 0
+                                while j < len(self.originalSensation.copySensationIds):
+                                    if self.id == self.originalSensation.copySensationIds[j]:
+                                        del self.originalSensation.copySensationIds[j]
+                                        break
+                                    j = j+1
+ 
                     #  at the end receivedFrom (list of words)
                     receivedFrom_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
                     #print("receivedFrom_size " + str(receivedFrom_size))
@@ -1053,7 +1122,7 @@ class Sensation(object):
                 else:
                     # other version of Sensation
                     # We can only mark this to fail
-                    self.sensationType = Sensation.SensationType.Unknow                
+                    self.sensationType = Sensation.SensationType.Unknown
 
             except (ValueError):
                 self.sensationType = Sensation.SensationType.Unknown
@@ -1068,18 +1137,17 @@ class Sensation(object):
                       robotType,
                       robot,
                       locations,
-                      #isCommunication,
                       mainNames,
-                      leftPower, rightPower,                            # Walle motors state
-                      azimuth,                                          # Walle robotType relative to magnetic north pole
+                      leftPower, rightPower,                            # Robot motors state
+                      azimuth,                                          # Robot direction relative to magnetic north pole
                       x, y, z, radius,                                  # location and acceleration of Robot
-                      hearDirection,                                    # sound robotType heard by Walle, relative to Walle
-                      observationDirection,observationDistance,         # Walle's observation of something, relative to Walle
+                      hearDirection,                                    # sound direction, relative to Robot
+                      observationDirection,observationDistance,         # observation of itrm, relative to Robot
                       filePath,
                       data,                                             # ALSA voice is string (uncompressed voice information)
                       image,                                            # Image internal representation is PIl.Image 
                       calibrateSensationType,
-                      capabilities,                                     # capabilitis of sensorys, robotType what way sensation go
+                      capabilities,                                     # capabilities of sensorys, robotType what way sensation go
                       name,                                             # name of Item
                       score,                                            # used at least with item to define how good was the detection 0.0 - 1.0
                       presence,                                         # presence of Item
@@ -1251,7 +1319,7 @@ class Sensation(object):
     update base fields
     '''
     def updateBaseFields(source, destination,
-                        dataId,
+                        #originalSensationId,
                         sensationType,
                         memoryType,
                         robotType,
@@ -1278,11 +1346,15 @@ class Sensation(object):
                         feeling,                                             # feeling of sensation or association
                         positiveFeeling,                                     # change association feeling to more positive robotType if possible
                         negativeFeeling):                                    # change association feeling to more negative robotType if possible
-        if dataId is None:
-            destination.dataId = source.dataId
-        else:
-            destination.dataId = dataId
-
+#         if originalSensationId is None:
+#             destination.originalSensationId = source.originalSensationId
+#         else:
+#             destination.originalSensationId = originalSensationId
+        destination.originalSensationId = source.originalSensationId # or source.id
+        destination.originalSensation = source
+        if destination not in source.copySensations:
+            source.copySensations.append(destination)
+        
         if sensationType is None:
             destination.sensationType = source.sensationType
         else:
@@ -1368,6 +1440,7 @@ class Sensation(object):
         else:
             destination.observationDistance = observationDistance
 
+        # TODO should we copy filepath?
         if filePath is None:
             destination.filePath = source.filePath
         else:
@@ -1565,7 +1638,14 @@ class Sensation(object):
 
         b += Sensation.floatToBytes(self.robotId)
         b += Sensation.floatToBytes(self.id)
-        b += Sensation.floatToBytes(self.dataId)
+        
+        b += Sensation.floatToBytes(self.originalSensationId)
+        
+        copySensationsLen=len(self.copySensations)
+        b +=  copySensationsLen.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
+        for j in range(copySensationsLen):
+            b +=  Sensation.floatToBytes(self.copySensations[j].getId())
+        
         b += Sensation.floatToBytes(self.time)
         b += Sensation.strToBytes(self.memoryType)
         b += Sensation.strToBytes(self.sensationType)
@@ -1654,9 +1734,9 @@ class Sensation(object):
             b +=  Sensation.booleanToBytes(self.getNegativeFeeling())
            
         #  at the end associations (ids)
-        association_id=len(self.associations)
-        b +=  association_id.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
-        for j in range(association_id):
+        associationIdsLen=len(self.associations)
+        b +=  associationIdsLen.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
+        for j in range(associationIdsLen):
             b +=  Sensation.floatToBytes(self.associations[j].getSensation().getId())
             b +=  Sensation.floatToBytes(self.associations[j].getTime())
             b +=  (self.associations[j].getFeeling()).to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER, signed=True)
@@ -1961,12 +2041,12 @@ class Sensation(object):
     def getId(self):
         return self.id
     
-    def setDataId(self, dataId):
-        self.dataId = dataId
+    def setDataId(self, originalSensationId):
+        self.originalSensationId = originalSensationId
     def getDataId(self):
-        return self.dataId
+        return self.originalSensationId
     def isOriginal(self):
-        return self.dataId == self.id
+        return self.originalSensationId == self.id
 
     def setRobotId(self, robotId):
         self.robotId = robotId
@@ -2553,10 +2633,8 @@ class Sensation(object):
         Detach a Sensation fron all its attached Robots
     '''
     def detachAll(self):
-#         self.attachedBy = []
         del self.attachedBy[:]
-#         for robot in self.attachedBy:
-#             self.detach(robot)
+
     '''
     get attached Robots
     '''            

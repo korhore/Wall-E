@@ -518,7 +518,7 @@ class Communication(Robot):
                                 self.spokedDataIds.append(sensation.getDataId())   
 
                                 #sensation.attach(robot=self) # TODO yes or no, no reason to attach
-                                sensation.save()     # for debug reasons save voices we have spoken as heard voices anf images
+                                sensation.save()     # for debug reasons save voices we have spoken as heard voices and images
                                 self.log(logLevel=Robot.LogLevel.Normal, logStr='Communication.process speak: self.getMemory().getBestSensations did find sensations, spoke {}'.format(sensation.toDebugStr()))
 
                                 #create normal Muscle sensation for persons to be hards
@@ -530,8 +530,8 @@ class Communication(Robot):
                                 self.getMemory().setMemoryType(sensation=spokedSensation, memoryType=Sensation.MemoryType.Sensory)
                                 # speak                 
                                 self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=spokedSensation)
-                                # TODO Try to enable remembering
-                                spokedSensation.detach(robot=self)        
+                                # TODO Try to enable remembering, commented out, getAxon().put does this
+                                #spokedSensation.detach(robot=self)        
                                 
                                 # create Communication sensation for Robots to be 'heard'
                                 # Robot.createSensation set RobotMainNames
@@ -545,7 +545,7 @@ class Communication(Robot):
                                     # speak                 
                                     self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=spokedSensation)
                                     # TODO Try to enable remembering
-                                    spokedSensation.detach(robot=self)
+                                    #spokedSensation.detach(robot=self)
                                     self.robotResponses = self.robotResponses+1
                                 
                             self.spokedAssociations = associations

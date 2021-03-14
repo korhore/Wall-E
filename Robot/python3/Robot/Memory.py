@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 08.03.2021
+Edited on 14.03.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -126,7 +126,7 @@ class Memory(object):
                  bytes=None,
                  binaryFilePath=None,
                  id=None,
-                 dataId=None,
+                 #originalSensationId=None,
                  time=None,
                  receivedFrom=[],
                  # base field are by default None, so we know what fields are given and what not
@@ -169,7 +169,7 @@ class Memory(object):
                  bytes=bytes,
                  binaryFilePath=binaryFilePath,
                  id=id,
-                 dataId=dataId,
+                 #originalSensationId=originalSensationId,
                  robotId=robot.getId(),
                  time=time,
                  receivedFrom=receivedFrom,
@@ -211,7 +211,7 @@ class Memory(object):
                 else:
                     #update old sensation
                     Sensation.updateBaseFields(destination=oldSensation, source=sensation,
-                                               dataId = dataId,
+                                               #originalSensationId = originalSensationId,
                                                sensationType=sensationType,
                                                memoryType=memoryType,
                                                robotType=robotType,
@@ -405,18 +405,24 @@ class Memory(object):
 
         # calibrate memorability        
         if self.isLowMemory():
-            # and\
-#            self.min_cache_memorability < self.maxMinCacheMemorability:
-#             if self.min_cache_memorability >= self.nearMaxMinCacheMemorability:
-#                 self.min_cache_memorability = self.min_cache_memorability + 0.01
-#             else:
-            self.min_cache_memorability = self.min_cache_memorability + 0.1
-        elif not self.isLowMemory() and\
-             self.min_cache_memorability > Memory.MIN_MIN_CACHE_MEMORABILITY:
-            if self.min_cache_memorability <= Memory.NEAR_MIN_MIN_CACHE_MEMORABILITY:
-                self.min_cache_memorability = self.min_cache_memorability - 0.01
+            # if lowmwmory and memorability is lower than max limit
+            # add Momorability a little
+            if self.min_cache_memorability < self.maxMinCacheMemorability:
+                self.min_cache_memorability = self.min_cache_memorability + 0.1
+            # but if momorability is over max limit, it should be added soon to high
+            # before we run out of memory
             else:
+                self.min_cache_memorability = self.min_cache_memorability + 1.0
+        else:
+            # if we are higher thN Max limit, we can make it fast lower
+            if self.min_cache_memorability > self.maxMinCacheMemorability:
+                self.min_cache_memorability = self.min_cache_memorability - 1.0
+            # under max limit and over near min limit, lower it normal way
+            elif self.min_cache_memorability > Memory.NEAR_MIN_MIN_CACHE_MEMORABILITY:
                 self.min_cache_memorability = self.min_cache_memorability - 0.1
+            #  near min limit, lower it little by little, so will go just under min
+            elif self.min_cache_memorability > Memory.MIN_MIN_CACHE_MEMORABILITY:
+               self.min_cache_memorability = self.min_cache_memorability - 0.01
         
         # delete quickly last created Sensations that are not important
 #        while len(memoryType) > 0 and memoryType[0].isForgettable() and memoryType[0].getMemorability() < self.min_cache_memorability:
