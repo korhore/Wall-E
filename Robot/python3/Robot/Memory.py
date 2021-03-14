@@ -282,12 +282,21 @@ class Memory(object):
     this is temporary Sensation we should be able to stop with this memory
     and it can be impossible to get more so stopping can stop,
     so app does not stop.
+    
+    parameters
+    sensation                        added sensation
+    isForgetLessImportantSensations  default True, but in some test we need to
+                                     set this feature False some all
+                                     Sensations will be kept in Memory
+                                     until implicitly deleted.
+    
     '''
     
-    def addToSensationMemory(self, sensation):
+    def addToSensationMemory(self, sensation, isForgetLessImportantSensations = True):
         if sensation.getSensationType() != Sensation.SensationType.Stop:                                   
             self.memoryLock.acquireWrite()  # thread_safe
-            self.forgetLessImportantSensations()
+            if isForgetLessImportantSensations:
+                self.forgetLessImportantSensations()
             self.sensationMemory.append(sensation)        
             self.memoryLock.releaseWrite()  # thread_safe
         

@@ -647,7 +647,7 @@ class Sensation(object):
                  memoryType = None,
                  robotType = None,
                  robot = None,
-                 locations =  [],
+                 locations =  None,
                  #isCommunication = False,
                  mainNames =  None,
                  leftPower = None, rightPower = None,                        # Walle motors state
@@ -2750,7 +2750,38 @@ class Sensation(object):
             self.firstAssociateSensation = None
             self.otherAssociateSensation = None
         self.robot = None
-
+        
+        # remove copy references
+        if self.originalSensation != None:
+            i = 0
+            while i < len(self.originalSensation.copySensations):
+                if self.originalSensation.copySensations[i] is self:
+                    del self.originalSensation.copySensations[i]
+                    break
+                i += 1
+            self.originalSensation = None
+        # if we have only one copy, then
+        if len(self.copySensations) > 0:
+            # first vopy will now be next original
+            self.copySensations[0].originalSensation = None
+            self.copySensations[0].originalSensationId = self.copySensations[0].id
+            i=1
+            # next copySentations will get first one as original
+            while i < len(self.copySensations):
+                self.copySensations[i].originalSensation = self.copySensations[0]
+                self.copySensations[i].originalSensationId = self.copySensations[0].id
+                self.copySensations[0].copySensations.append(self.copySensations[i])
+                i +=1
+            # finally we don't have references to copySensations
+            del self.copySensations[:]
+            # Note, that chared referenced data in original and copySensation is handled
+            # by python memory handling, when there is one reference less now
+            # and data if free-ed, when no rererences 
+                
+           
+        # if we have copy sensations, we are ogiginal one and we
+        # must arrange new original ti them
+ 
         # remove files assiciated to this Sensation
         if not os.path.exists(Sensation.DATADIR):
             os.makedirs(Sensation.DATADIR)
