@@ -1592,7 +1592,9 @@ class Memory(object):
     have we presence in some locations
     '''
 
-    def hasPresence(self):
+    def hasPresence(self, location=None):
+        if location and location in self._presentItemSensations:
+            return len(self._presentItemSensations[location].items()) > 0
         for location in self._presentItemSensations.keys():
             if len(self._presentItemSensations[location].items()) > 0:
 #                 for name, sensation in self._presentItemSensations[location].items():
@@ -1604,7 +1606,13 @@ class Memory(object):
     '''
     return human readable string of presence items in all locations
     '''
-    def presenceToStr(self):
+    def presenceToStr(self, location=None):
+        if location:
+            namesStr='['+location + ':'
+            for name, sensation in self._presentItemSensations[location].items():
+                namesStr = namesStr + ' ' + name
+            return namesStr
+
         allLocationnamesStr=''
         for location in self._presentItemSensations.keys():
             namesStr='['+location + ':'

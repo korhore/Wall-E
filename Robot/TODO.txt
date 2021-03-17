@@ -122,6 +122,15 @@ two instances will be created. Ment to test 'sublocations'
 Develop
 -------
 
+Robot state is not clear enought for person.
+1) Conversation on
+2) Robot Waitinf for answer,
+3) Conversation eneen or Waiting someone to talk with
+4) Conversation ended, because did not get answer
+Anyway, we need Communication.Conversation.
+
+How to visualize it and implement new SensationType for it.
+
 1. Minimize memory using
 - test that we have reference to Sensation.image and Sensation.data, when
   we make a copy in all situations, also creating SWensation from binary
@@ -132,7 +141,7 @@ Develop
    speaks out TobotType.Muscle voices from itself and logical Robots present in this location.
    Robots speak RobotType.Copmmunication speak in their conversation, but person does not hear it, but in practice
    RobotType.muscle voices are same.
--- Conversation with Robots only, uaing Robots rules, where is no speaking and Hearing,
+-- Conversation with Robots only, using Robots rules, where is no speaking and Hearing,
    but associations only
 
 Now Sensation.dataId == Sensation.Id defines, if this Sensation is original

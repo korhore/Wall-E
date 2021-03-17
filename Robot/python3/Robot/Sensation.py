@@ -2652,18 +2652,25 @@ class Sensation(object):
             return False
             
         return True
-    
+
+    '''
+    deprecated, move to test
+    '''    
     def getAttachedByRobotStr(self):
         s=''
         for robot in self.attachedBy:
             s=s+robot.getName()+':'
         return s
 
+    '''
+    deprecated, move to test
+    '''    
     def logAttachedBy(self):
-        s=''
-        for robot in self.attachedBy:
-            s=s+robot.getName()+':'
-        print('attached by:' + self.getAttachedByRobotStr())
+        if len(self.attachedBy) > 0:
+            s=''
+            for robot in self.attachedBy:
+                s=s+robot.getName()+':'
+            print('attached by:' + self.getAttachedByRobotStr())
     
 
     '''

@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 10.01.2021
+Updated on 16.03.2021
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -168,7 +168,13 @@ class Robot(Thread):
                  memory = None,
                  maxRss = Config.MAXRSS_DEFAULT,
                  minAvailMem = Config.MINAVAILMEM_DEFAULT,
-                 location=None,
+                 location=None,             # TODO this is config section for configuration, NOT location
+                                            # terminology should be clarofied
+                                            # and even if this is given, it is always
+                                            # overridded first be default value and then by config value if found
+                                            # maybe oiinal idea was allow many instances of this Robot with many confugurations
+                                            # or run same configuration in many locations (inside mainRobot)
+                                            # but ideas are confused and mixed
                  config=None):
         print("Robot 1")
         Thread.__init__(self)
@@ -217,8 +223,11 @@ class Robot(Thread):
             self.config = Config(instanceName=self.instanceName,
                                  instanceType=self.instanceType,
                                  level=level)   # don't increase level, it has increased yet and Config has its own levels (that are same)
+            # TODO self.location is marked to default value, so Init_parameter was meaningless
             self.location = Config.DEFAULT_LOCATION
         print("Robot 3")
+        # TODO we get configuration allways fron default section Config.DEFAULT_LOCATIO == 'localhost' 
+        # other section in cobfif are meaninglees, exceo 'DEFAULT' because we get default from there, if they are not overridden in 'localhost'
         self.id = self.config.getRobotId(section=self.location)
         self.capabilities = Capabilities(config=self.config, location=self.location)
         print("Robot 4")
@@ -1377,8 +1386,8 @@ class Identity(Robot):
     SLEEPTIME = 60.0
     # test
     #CLASSIFICATION_TIME = 10.0      # can take a long time
-    #CLASSIFICATION_TIME = 40.0      # can take a long time
-    CLASSIFICATION_TIME = 80.0      # can take a long time
+    CLASSIFICATION_TIME = 40.0      # can take a long time
+    #CLASSIFICATION_TIME = 80.0       # can take a long time
 #    SLEEPTIME = 5.0
     #SLEEP_BETWEEN_IMAGES = 20.0
     #SLEEP_BETWEEN_VOICES = 10.0
@@ -1951,10 +1960,15 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
 
         # finally normal run from Robot-class
         if self.running:
-            super(SocketClient, self).run()
-
-        
+            super(SocketClient, self).run()        
         # starting other threads/senders/capabilities
+        # If there has been problem in connections
+        # at this point bew SocketClient is runngi and it should have all Sensations fron out Axon to send
+        # but to be sure that no Sensations will be as unForgettable state
+        # ans momory can not be released, just try to enpty out Axon
+        while(not self.getAxon().empty()):        
+            tranferDirection, sensation = self.getAxon().get(robot=self)
+            sensation.detachAll()
 
         
     def process(self, transferDirection, sensation):
@@ -1966,7 +1980,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
             else:
                 self.running = self.sendSensation(sensation, self.sock, self.address)
                 # if we have got broken pipe -error, meaning that socket writing does not work any more
-                # then try to get new association, meaning that ask TCPServer to give us a new open socket
+                # then try to get new connection, meaning that ask TCPServer to give us a new open socket
                 if not self.running and self.mode == Sensation.Mode.Interrupted:
                     self.log('process: interrupted')
                     connected = False
@@ -1985,6 +1999,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
                         # transfer all sensation from out Axon to the new SocketClient
                         while(not self.getAxon().empty()):
                             tranferDirection, sensationToMove = self.getAxon().get(robot=self)
+                            sensationToMove.detachAll()
                             socketClient.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensationToMove)
                     else:
                         self.log('process: interrupted self.tcpServer.connectToHost did not succeed FINAL, no more tries to ' + str(self.getHost()))
