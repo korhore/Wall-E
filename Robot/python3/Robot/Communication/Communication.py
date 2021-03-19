@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 16.03.2021
+Updated on 17.03.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -228,7 +228,7 @@ class Communication(Robot):
         def getKind(self):
             return self.getRobot().getKind()
         def getLocations(self):
-            return self.getRobot().getLocations()
+            return [self.getLocation()]
         def getParent(self):
             return self.getRobot().getParent()
         def getName(self):

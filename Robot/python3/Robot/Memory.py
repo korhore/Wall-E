@@ -68,7 +68,8 @@ class Memory(object):
         self.minAvailMem =  minAvailMem
         self.sensationMemory=[]                 # Sensation cache
         
-        self._presentItemSensations={}          # present item.name sensations
+        self._presentItemSensations={}          # present SensationType.Item.name sensations
+        self._presentRobotSensations={}         # present SensationType.Robot.name sensations
         self.sharedSensationHosts = []          # hosts with we have already shared our sensations NOTE not used, logic removed or idea is not yet implemented?
                                                 # NOTE sharedSensationHosts is used in Robot do don't remove this variable
                                        
@@ -266,8 +267,11 @@ class Memory(object):
             self.addToSensationMemory(sensation) # pure new sensation must be added to memory
 
         if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemoryType() == Sensation.MemoryType.Working and\
-               (sensation.getRobotType() == Sensation.RobotType.Sense or sensation.getRobotType() == Sensation.RobotType.Communication):
-               self.tracePresents(sensation)
+           sensation.getRobotType() == Sensation.RobotType.Sense:
+               self.tracePresentItems(sensation=sensation, name = sensation.getName(), presentDict=self._presentItemSensations)
+        elif sensation.getSensationType() == Sensation.SensationType.Robot and sensation.getMemoryType() == Sensation.MemoryType.Working and\
+             sensation.getRobotType() == Sensation.RobotType.Communication:
+               self.tracePresentItems(sensation=sensation, names = sensation.getMainNames(), presentDict=self._presentRobotSensations)
         # assign other than Feeling sensations
         if sensation.getSensationType() != Sensation.SensationType.Feeling:
             self.assign(log = log, sensation=sensation)
@@ -1551,42 +1555,60 @@ class Memory(object):
     '''
     Presence
     '''
-    def tracePresents(self, sensation):
+    def tracePresentItems(self, 
+                          sensation,
+                          presentDict,
+                          name = None,
+                          names = None):
         # present means pure Present, all other if handled not present
         # if present sensations must come in order
         locations = sensation.getLocations()
         if locations == None or len(locations) == 0:
             locations = [''] 
         for location in locations:
-            self.tracePresentsByLocation(sensation, location)
+            if name != None:
+                self.tracePresentsByLocation(sensation,
+                                             location = location,
+                                             presentDict = presentDict,
+                                             name = name)
+            if names != None:
+                for n in names:
+                    self.tracePresentsByLocation(sensation,
+                                                 location = location,
+                                                 presentDict = presentDict,
+                                                 name = n)
 
     '''
     Presence by location
     '''
-    def tracePresentsByLocation(self, sensation, location):
+    def tracePresentsByLocation(self,
+                                sensation,
+                                location,
+                                presentDict,
+                                name):
         # present means pure Present, all other if handled not present
         # if present sensations must come in order
-        if not location in self._presentItemSensations:
-            self._presentItemSensations[location] = {}
-        if sensation.getName() in self._presentItemSensations[location] and\
-           sensation.getTime() > self._presentItemSensations[location][sensation.getName()].getTime(): 
+        if not location in presentDict:
+            presentDict[location] = {}
+        if name in presentDict[location] and\
+           sensation.getTime() > presentDict[location][name].getTime(): 
 
             if sensation.getPresence() == Sensation.Presence.Entering or\
                sensation.getPresence() == Sensation.Presence.Present or\
                sensation.getPresence() == Sensation.Presence.Exiting:
-                self._presentItemSensations[location][sensation.getName()] = sensation
-                self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="Entering, Present or Exiting " + sensation.getName())
+                presentDict[location][name] = sensation
+                self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="Entering, Present or Exiting " + name)
             else:
-                del self._presentItemSensations[location][sensation.getName()]
-                self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="Absent " + sensation.getName())
+                del presentDict[location][name]
+                self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="Absent " + name)
         # accept only sensation items that are not present, but not not in order ones
         # absent sensations don't have any mean at this case
-        elif (sensation.getName() not in self._presentItemSensations[location]) and\
+        elif (name not in presentDict[location]) and\
              (sensation.getPresence() == Sensation.Presence.Entering or\
                sensation.getPresence() == Sensation.Presence.Present or\
                sensation.getPresence() == Sensation.Presence.Exiting):
-                self._presentItemSensations[location][sensation.getName()] = sensation
-                self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="Entering, Present or Exiting " + sensation.getName())
+                presentDict[location][name] = sensation
+                self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="Entering, Present or Exiting " + name)
                 
     '''
     have we presence in some locations

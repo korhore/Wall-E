@@ -128,6 +128,17 @@ Robot state is not clear enought for person.
 3) Conversation eneen or Waiting someone to talk with
 4) Conversation ended, because did not get answer
 Anyway, we need Communication.Conversation.
+Done/Doing
+
+If Communication.Conversation is location based, then also feeling should be, instead of whole Robots Feeling.
+Study Robots role in cobversation
+(Robot1+person) + Robot2, means that Robots can conversate very fast with each other, but now person does not hear what other Robort says.
+This is confusing. Robots1 answers to Robot2, but then person hears it. Robot2 can answer to person, and now person hears it. But when person answers,
+does person answer to Robot1 or Robot2, Robots don't know it. Whole idea is a mesh. Maybe we should implement Rot-Robot conversation of a subject Item.name,
+when person enters. And keep Conversation with person to be responsible only with that Robot, which is present in that location. And keep configurations so, that only one Robot conversates in one location with person. But Robot can still be present in many location to conversate.
+downlocation/uplocations, robotlocations/communicationlocations for Robot tp Robot communication?
+
+Robo1+Robot2 conversation of some subject
 
 How to visualize it and implement new SensationType for it.
 

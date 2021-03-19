@@ -1918,7 +1918,12 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
                  
         try:
             # tell robot we are, speaking
-            sensation=self.getMainRobot().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Robot, robot=self.getName())
+            sensation=self.getMainRobot().createSensation(associations=[], robotType=Sensation.RobotType.Communication,
+                                                          sensationType = Sensation.SensationType.Robot,
+                                                          memoryType = Sensation.MemoryType.Working,
+                                                          #robot = self.getName(), # TODO is this needed and is this OK?
+                                                          name = self.getName(),
+                                                          locations = self.getLocations())
             self.log('run: sendSensation(sensation=Sensation(robot=self.getMainRobot(),sensationType = Sensation.SensationType.Robot), sock=self.sock,'  + str(self.address) + ')')
             self.running =  self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
             sensation.detach(robot=self.getMainRobot())
