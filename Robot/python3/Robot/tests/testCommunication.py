@@ -84,9 +84,22 @@ class CommunicationTestCase(unittest.TestCase):
     def getName(self):
         #print('CommunicationTestCase getName')
         return "CommunicationTestCaseRobot"
+ 
+    '''
+    get test locations
+    NOTE Communication is now location based.
+         We use now only one location in test
+         and test Communication.Conversation subclass
+         functionality. This subclass serves one location.
+         Sio test is same than in previous versions, where
+         Communication produced Communication Sensations for
+         all  locations.
+         
+         Lets test how our new Communication strategy works.
     
+    '''   
     def getLocations(self):
-        return self.LOCATIONS_1_2
+        return self.LOCATIONS_1
     def setRobotLocations(self, robot, locations):
         robot.locations = locations
         robot.uplocations = locations
@@ -805,11 +818,15 @@ class CommunicationTestCase(unittest.TestCase):
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 2, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 2')
         # TODO Next commented test should be valid Why this?
         #self.expect(name='Present NAME2 again basic change in presentation', isEmpty=True, isSpoken=False, isHeard=False, isVoiceFeeling=False)
+        # TODO We don't get Communication sensations, because limit is exceede
+        # But Communication implementation will we Changed
         self.expect(name='Present NAME2 again basic change in presentation', isEmpty=False, # isSpoken=True, isHeard=False, isVoiceFeeling=False, isImageFeeling=False,
                     muscleVoice=voice_sensation6, isExactMuscleVoice=True,
                     muscleImage=image_sensation6, isExactMuscleImage=True,
-                    communicationVoice=voice_sensation6, isExactCommunicationVoice=True,
-                    communicationImage=image_sensation6, isExactCommunicationImage=True,
+#                     communicationVoice=voice_sensation6, isExactCommunicationVoice=True,
+#                     communicationImage=image_sensation6, isExactCommunicationImage=True,
+                    communicationVoice=None,
+                    communicationImage=None,
                     isVoiceFeeling=True,
                     isImageFeeling=True,
                     isPositiveFeeling=True)
@@ -1107,8 +1124,10 @@ class CommunicationTestCase(unittest.TestCase):
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation2)
         #  we will get response and 4 associations are created more
         self.assertEqual(len(Wall_E_item_sensation1.getAssociations()), 1)
-        self.assertEqual(len(item_sensation1.getAssociations()), 7) #3/7
-        self.assertEqual(len(Wall_E_item_sensation2.getAssociations()), 5) #1/5
+        self.assertTrue(len(item_sensation1.getAssociations()) == 7 or\
+                        len(item_sensation1.getAssociations()) == 11) #3/7/11
+        self.assertTrue(len(Wall_E_item_sensation2.getAssociations()) == 5 or\
+                         len(Wall_E_item_sensation2.getAssociations()) == 9) #1/5/9
         
         self.expect(name='Wall_E_item_sensation2', isEmpty=False,
                     muscleImage=image_sensation1, isExactMuscleImage=True,
@@ -1506,11 +1525,15 @@ class CommunicationTestCase(unittest.TestCase):
        
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation8)
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 2, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 3')
+        # We don't get any Communication Sensations, becuse response limit is expected
+        # TODO Communication Sensation functionality will be changed
         self.expect(name='Present NAME2 again basic change in presentation', isEmpty=False,
                     muscleImage=Eva_image_sensation2, isExactMuscleImage=True,
                     muscleVoice=Eva_voice_sensation2, isExactMuscleVoice=True,
-                    communicationImage=Eva_image_sensation2, isExactCommunicationImage=True,
-                    communicationVoice=Eva_voice_sensation2, isExactCommunicationVoice=True,
+#                     communicationImage=Eva_image_sensation2, isExactCommunicationImage=True,
+#                     communicationVoice=Eva_voice_sensation2, isExactCommunicationVoice=True,
+                    communicationImage=None,
+                    communicationVoice=None,
                     isVoiceFeeling=True,
                     isImageFeeling=True,
                     isPositiveFeeling=True)
@@ -1932,12 +1955,16 @@ class CommunicationTestCase(unittest.TestCase):
         # because Wall_E_image_sensation_4 feeling was low
         # We get also positive feeling to revious responses.
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_sense_voice_response_sensation_3)
+        # TODO WE will not get Communication Sensations, because limit is exceeded
+        # But Communication implementation will be changed
         self.expect(name='response, response voice, fourth best image, voice',
                     isEmpty=False,
                     muscleImage=Wall_E_image_sensation_4, isExactMuscleImage=True,
                     muscleVoice=Wall_E_voice_sensation_4, isExactMuscleVoice=True,#Wall_E_sense_voice_response_sensation_3, isExactMuscleVoice=False, #self.Eva_voice_sensation
-                    communicationImage=Wall_E_image_sensation_4, isExactCommunicationImage=True,
-                    communicationVoice=Wall_E_voice_sensation_4, isExactCommunicationVoice=True,#self.Eva_voice_sensation
+#                     communicationImage=Wall_E_image_sensation_4, isExactCommunicationImage=True,
+#                     communicationVoice=Wall_E_voice_sensation_4, isExactCommunicationVoice=True,#self.Eva_voice_sensation
+                    communicationImage=None,
+                    communicationVoice=None,
                     isVoiceFeeling=True,
                     isImageFeeling=True,
                     isPositiveFeeling=True)

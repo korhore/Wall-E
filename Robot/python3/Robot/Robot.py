@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 16.03.2021
+Updated on 25.03.2021
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -261,7 +261,8 @@ class Robot(Thread):
                                                 name = self.getName(),
                                                 presence = Sensation.Presence.Present,
                                                 kind=self.getKind(),
-                                                feeling=self.getFeeling())
+                                                feeling=self.getFeeling(),
+                                                locations=self.config.getLocations())
 
 
         # create locationSensation
@@ -1123,13 +1124,13 @@ class Robot(Thread):
                         # if this sensation comes from sockrServers host
                         if sensation.isReceivedFrom(robot.getHost()) or \
                             sensation.isReceivedFrom(robot.getSocketServer().getHost()):
-                            self.log(logLevel=Robot.LogLevel.Normal, logStr='Remote robot ' + robot.getName() + ' has capability for this, but sensation comes from it self. Don\'t recycle it {}'.format(sensation.toDebugStr()))
+                            self.log(logLevel=Robot.LogLevel.Detailed, logStr='Remote robot ' + robot.getName() + ' has capability for this, but sensation comes from it self. Don\'t recycle it {}'.format(sensation.toDebugStr()))
                         else:
-                            self.log(logLevel=Robot.LogLevel.Normal, logStr='Remote robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation= {})'.format(sensation.toDebugStr()))
+                            self.log(logLevel=Robot.LogLevel.Detailed, logStr='Remote robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation= {})'.format(sensation.toDebugStr()))
                             robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)#, detach=False) # keep ownerdhip untill sent to all sub Robots
                             #needToDetach=False
                     else:
-                        self.log(logLevel=Robot.LogLevel.Normal, logStr='Local robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation= {})'.format(sensation.toDebugStr()))
+                        self.log(logLevel=Robot.LogLevel.Detailed, logStr='Local robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation= {})'.format(sensation.toDebugStr()))
                         # new instance or sensation for process
                         robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)#, detach=False) # keep ownerdhip untill sent to all sub Robots
                         #needToDetach=False
@@ -1354,7 +1355,7 @@ class Robot(Thread):
             
             
     '''
-    Helper function to get selfSenation by certain SensationType
+    Helper function to get selfSensation by certain SensationType
     '''
     def getSelfSensation(self, sensationType=None):
         if sensationType is None:
@@ -1420,7 +1421,6 @@ class Identity(Robot):
                        level=level)
         print("We are in Identity, not Robot")
         
-        self.selfItemSensation = None
         self.selfImageSensation = None
         self.selfVoiceSensation = None
 
@@ -1968,9 +1968,9 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
             super(SocketClient, self).run()        
         # starting other threads/senders/capabilities
         # If there has been problem in connections
-        # at this point bew SocketClient is runngi and it should have all Sensations fron out Axon to send
+        # at this point new SocketClient is running and it should have all Sensations fron out Axon to send
         # but to be sure that no Sensations will be as unForgettable state
-        # ans momory can not be released, just try to enpty out Axon
+        # and momory can not be released, just try to enpty out Axon
         while(not self.getAxon().empty()):        
             tranferDirection, sensation = self.getAxon().get(robot=self)
             sensation.detachAll()
@@ -2061,7 +2061,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
     '''
     def getMainNames(self):
         if self.getSocketServer() is not None:
-            self.log(logLevel=Robot.LogLevel.Normal, logStr='getMainNames: self.getSocketServer().getMainNames {}'.format(self.getSocketServer().getMainNames()))
+            self.log(logLevel=Robot.LogLevel.Detailed, logStr='getMainNames: self.getSocketServer().getMainNames {}'.format(self.getSocketServer().getMainNames()))
             return self.getSocketServer().getMainNames()
         return None
     '''
@@ -2088,9 +2088,9 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
         if sensation.isReceivedFrom(self.getHost()) or \
            sensation.isReceivedFrom(self.getSocketServer().getHost()):
             #pass
-            self.log('socketClient.sendSensation asked to send sensation back to sensation original host. We Don\'t recycle it! receivedFrom:' + str(sensation.receivedFrom) + ': self.getHost(): ' + self.getHost() + ': self.getSocketServer().getHost(): ' + self.getSocketServer().getHost())
+            self.log(logLevel=Robot.LogLevel.Detailed, logStr='socketClient.sendSensation asked to send sensation back to sensation original host. We Don\'t recycle it! receivedFrom:' + str(sensation.receivedFrom) + ': self.getHost(): ' + self.getHost() + ': self.getSocketServer().getHost(): ' + self.getSocketServer().getHost())
         else:
-            self.log(logLevel=Robot.LogLevel.Verbose, logStr='socketClient.sendSensation no back, normal send receivedFrom::' + str(sensation.receivedFrom) + ' self.getHost(): ' + self.getHost() + ': self.getSocketServer().getHost(): ' + self.getSocketServer().getHost())
+            self.log(logLevel=Robot.LogLevel.Verbose, logStr='socketClient.sendSensation receivedFrom:' + str(sensation.receivedFrom) + ' self.getHost(): ' + self.getHost() + ': self.getSocketServer().getHost(): ' + self.getSocketServer().getHost())
             sensation.setRobotId(self.getMainRobot().getId()) # claim that
                                                                   # all sensation come from Robot
             bytes = sensation.bytes()
@@ -2132,7 +2132,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
                 if ok:
                     try:
                         sock.sendall(bytes)                              # message data section
-                        self.log("SocketClient.sendSensation wrote sensation " + sensation.toDebugStr() + " to " + str(address))
+                        self.log(logLevel=Robot.LogLevel.Detailed, logStr="SocketClient.sendSensation wrote sensation " + sensation.toDebugStr() + " to " + str(address))
                     except Exception as err:
                         self.log("SocketClient.sendSensation error writing Sensation to " + str(address) + " error " + str(err))
                         ok = False
@@ -2260,12 +2260,12 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
 #             self.socketClient.askCapabilities()
  
         while self.running:
-            self.log("run: waiting next Sensation from " + str(self.address))
+            self.log(logLevel=Robot.LogLevel.Detailed, logStr="run: waiting next Sensation from " + str(self.address))
             synced = False
             ok = True
             while not synced and self.running:
                 try:
-                    self.log("self.sock.recv SEPARATOR from " + str(self.address))
+                    self.log(logLevel=Robot.LogLevel.Detailed, logStr="self.sock.recv SEPARATOR from " + str(self.address))
                     self.data = self.sock.recv(Sensation.SEPARATOR_SIZE).strip().decode('utf-8')  # message separator section
                     if len(self.data) == len(Sensation.SEPARATOR) and self.data[0] is Sensation.SEPARATOR[0]:
                         synced = True
@@ -2279,13 +2279,13 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                     self.mode = Sensation.Mode.Interrupted   
             if synced and self.running:
                 # message length section
-                self.log("run: waiting size of next Sensation from " + str(self.address))
+                self.log(logLevel=Robot.LogLevel.Detailed, logStr="run: waiting size of next Sensation from " + str(self.address))
                 # we can get id of sensation in many pieces
                 sensation_length_length = Sensation.ID_SIZE
                 self.data = None
                 while sensation_length_length > 0 and self.running and ok:
                     try:
-                        self.log("run: self.sock.recv(sensation_length_length) from " + str(self.address))
+                        self.log(logLevel=Robot.LogLevel.Detailed, logStr="run: self.sock.recv(sensation_length_length) from " + str(self.address))
                         data = self.sock.recv(sensation_length_length)                       # message data section
                         if len(data) == 0:
                             self.running = False
@@ -2312,7 +2312,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                         synced = False
                                 
                     if length_ok:
-                        self.log("run: SocketServer Client " + str(self.address) + " wrote " + str(sensation_length))
+                        self.log(logLevel=Robot.LogLevel.Detailed, logStr="run: SocketServer Client " + str(self.address) + " wrote " + str(sensation_length))
                         self.data=None
                         while self.running and ok and sensation_length > 0:
                             try:

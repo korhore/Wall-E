@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 17.03.2021
+Updated on 24.03.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -94,7 +94,7 @@ class Communication(Robot):
                                     # we wait until we will respond if
                                     # someone speaks
     SEARCH_LENGTH=10                # How many response voices we check
-    IGNORE_LAST_HEARD_SENSATIONS_LENGTH=10 #5 Optimize this
+    IGNORE_LAST_HEARD_SENSATIONS_LENGTH=20 #5 Optimize this
                                     # How last heard voices we ignore in this conversation, when
                                     # we search best voices to to response to voices
                                     # This mast be >= 1 for sure, otherwise we are echo
@@ -105,7 +105,7 @@ class Communication(Robot):
         def __init__(self,
                      robot,
                      location=None):
-            self.ROBOT_RESPONSE_MAX = robot.ROBOT_RESPONSE_MAX
+            #self.ROBOT_RESPONSE_MAX = robot.ROBOT_RESPONSE_MAX
             self.robot=robot
             self.location=location  # single location, NOT array
                                     
@@ -383,7 +383,7 @@ class Communication(Robot):
                     elif not self.isConversationOn() and\
                         self.getMemory().hasPresence(location=self.getLocation()) and\
                          (not self.isConversationDelay() or\
-                          sensation.getTime() - self.lastConversationEndTime > self.CONVERSATION_INTERVAL):
+                          sensation.getTime() - self.lastConversationEndTime > Communication.CONVERSATION_INTERVAL):
                         self._isConversationDelay = False
                         self.robotResponses = 0
                        # we have still someone to talk with and not yet started a conversation at all or
@@ -541,7 +541,7 @@ class Communication(Robot):
                                     
                                     # create Communication sensation for Robots to be 'heard'
                                     # Robot.createSensation set RobotMainNames
-                                    if self.robotResponses < self.ROBOT_RESPONSE_MAX:
+                                    if self.robotResponses < Communication.ROBOT_RESPONSE_MAX:
                                         spokedSensation = self.createSensation(sensation = sensation, kind=self.getKind(), locations=self.getLocations())
                                         # NOTE This is needed now, because Sensation.create parameters robotType and memoryType parameters are  overwritten by sensation parameters
                                         spokedSensation.setKind(self.getKind())
@@ -808,7 +808,7 @@ class Communication(Robot):
 # #                 elif not self.isConversationOn() and\
 # #                     self.getMemory().hasPresence() and\
 # #                      (not self.isConversationDelay() or\
-# #                       sensation.getTime() - self.lastConversationEndTime > self.CONVERSATION_INTERVAL):
+# #                       sensation.getTime() - self.lastConversationEndTime > Communication.CONVERSATION_INTERVAL):
 # #                     self._isConversationDelay = False
 # #                     # we have still someone to talk with and not yet started a conversation at all or
 # #                     # enough time is elapses of last conversation
@@ -911,7 +911,7 @@ class Communication(Robot):
 #                 elif not self.isConversationOn() and\
 #                     self.getMemory().hasPresence() and\
 #                      (not self.isConversationDelay() or\
-#                       sensation.getTime() - self.lastConversationEndTime > self.CONVERSATION_INTERVAL):
+#                       sensation.getTime() - self.lastConversationEndTime > Communication.CONVERSATION_INTERVAL):
 #                     self._isConversationDelay = False
 #                     self.robotResponses = 0
 #                    # we have still someone to talk with and not yet started a conversation at all or
