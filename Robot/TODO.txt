@@ -122,9 +122,46 @@ two instances will be created. Ment to test 'sublocations'
 Develop
 -------
 
+How lown Identity runs. After along run, when stopping we get
+Wall-E_MainName:father:1:Stopping:Ubuntu livingroom:MainRobot Stopping self.identity Identity
+Wall-E_MainName:Identity:2:Stopping::Stopping robot
+
+First implement Visual: poisite/negative feedback in all parts of logic. with one method.
+
+Seems wxPython is heavy to run, when there is load and many Sensatition density per time tyo handle.
+Also Visual can be too hard to run. Anyway, seems it can be good idea  to implement Visual with kivy, because it
+can be less heavy to run and it supports also Android to run same application as python.
+
+State-Sensation for Communication, is this Robot is Waiting new Communication to start,
+waiting new answer, meaning microphone is on or its is speaking, meaning that
+it can't hear anything. And we need Implementation for it in Visual.
+
+Make Conversation -> ConversationWithItem
+- implementation from RobotType.Sense as it is
+Make Conversation -> ConversationWithRobot
+- needs planning
+- We can have two Robot roles
+-- 1) ComversationgRobot
+      Robot that has conversation going on with a Item.name in a location
+      and has MicroPhone and Playback-Robots in that location
+-- 2) ConsultingRobot
+      Robot that has some knowlehge what to say top Item.name in a conversation
+      so that it responses, meaning that it just shares its best Voices and
+      Images and this information should be based on real conversations.
+      If we thinh to creatye a 'main knowledge', then role 1) gives feedback
+      also to role 2) what was result spoked voices and images, meaning to
+      send Feeling + their original Sensations, so Role 2) robot can collect
+      this information basicaslly from many Robots, building assosiation map.
+      Association map is that information what our Robots understand from the world.
+- We need means to set those roles. Now we can use
+-- DownLocations to those locations that Robots has MicroPhone and Playback-Robots and
+   wants to be real Communicating Robot using role 1)
+-- UpLocations to those locations that this Robot wants to be consulting Robots
+  using Role 2)
+
 Robot state is not clear enought for person.
 1) Conversation on
-2) Robot Waitinf for answer,
+2) Robot Waiting for answer,
 3) Conversation eneen or Waiting someone to talk with
 4) Conversation ended, because did not get answer
 Anyway, we need Communication.Conversation.
