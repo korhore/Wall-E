@@ -270,7 +270,8 @@ class Memory(object):
            sensation.getRobotType() == Sensation.RobotType.Sense:
                self.tracePresentItems(sensation=sensation, name = sensation.getName(), presentDict=self._presentItemSensations)
         elif sensation.getSensationType() == Sensation.SensationType.Robot and sensation.getMemoryType() == Sensation.MemoryType.Working and\
-             sensation.getRobotType() == Sensation.RobotType.Communication:
+             sensation.getRobotType() == Sensation.RobotType.Communication: # and\
+            if sensation.getMainNames() != self.getRobot().getMainNames():        # ignore if mainNames is from us.
                self.tracePresentItems(sensation=sensation, names = sensation.getMainNames(), presentDict=self._presentRobotSensations)
         # assign other than Feeling sensations
         if sensation.getSensationType() != Sensation.SensationType.Feeling:

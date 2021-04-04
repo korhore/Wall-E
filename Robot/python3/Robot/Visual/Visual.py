@@ -1334,7 +1334,7 @@ class Visual(Robot):
         def tracePresence(self, sensation):
             # present means pure Present, all other if handled not present
             # if present sensations must come in order
-            self.presenceText.SetLabel(label=self.robot.getMemory().itemsPresenceToStr())
+            self.presenceText.SetLabel(label='items:{} robots:{}'.format(self.robot.getMemory().itemsPresenceToStr(),self.robot.getMemory().robotsPresenceToStr()))
                 
  
     class MainApp(wx.App):

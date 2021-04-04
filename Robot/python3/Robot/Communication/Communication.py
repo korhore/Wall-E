@@ -134,7 +134,7 @@ class Communication(Robot):
             self.timer=None
             self.spokedDataIds = []                     # Sensations dataIds we have said in this conversation 
             self.heardDataIds = []                      # Sensations dataIds  we have heard in this conversation
-            self.robotResponses = 0
+#             self.robotResponses = 0
             
             
             
@@ -457,7 +457,7 @@ class Communication(Robot):
             self._isConversationEnded = True
             self._isConversationDelay = True
             self.communicationState = Communication.CommunicationState.Delay
-            self.robotResponses = 0
+#             self.robotResponses = 0
 
     '''
     class ConversationWithItem implements conversation
@@ -569,7 +569,7 @@ class Communication(Robot):
                          (not self.isConversationDelay() or\
                           sensation.getTime() - self.lastConversationEndTime > Communication.CONVERSATION_INTERVAL):
                         self._isConversationDelay = False
-                        self.robotResponses = 0
+#                         self.robotResponses = 0
                        # we have still someone to talk with and not yet started a conversation at all or
                         # enough time is elapses of last conversation
                         self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: got voice as new or restarted conversation ' + sensation.toDebugStr())
@@ -893,16 +893,22 @@ class Communication(Robot):
     
                                 sensation.save()     # for debug reasons save voices we have spoken as heard voices and images
                                 self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithRobot speak: self.getMemory().getBestSensations did find sensations, spoke {}'.format(sensation.toDebugStr()))
+                                # speak                                                     self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=spokedSensation)
+                                spokedSensation = self.createSensation(sensation = sensation)
+                                # NOTE This is needed now, because Sensation.create parameters robotType and memoryType parameters are  overwritten by sensation parameters
+                                spokedSensation.setRobotType(Sensation.RobotType.Communication)  # 'speak' to Robots       
+                                self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=spokedSensation)
+#                                     # speak                 
     
-                                if self.robotResponses < Communication.ROBOT_RESPONSE_MAX:
-                                    spokedSensation = self.createSensation(sensation = sensation, kind=self.getKind(), locations=self.getLocations())
-                                    # NOTE This is needed now, because Sensation.create parameters robotType and memoryType parameters are  overwritten by sensation parameters
-                                    spokedSensation.setKind(self.getKind())
-                                    spokedSensation.setRobotType(Sensation.RobotType.Communication)  # 'speak' to Robots       
-                                    #association = self.mostImportantItemSensation.getAssociation(sensation = self.mostImportantVoiceSensation)
-                                    self.getMemory().setMemoryType(sensation=spokedSensation, memoryType=Sensation.MemoryType.Sensory)
-                                    # speak                 
-                                    self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=spokedSensation)
+#                                 if self.robotResponses < Communication.ROBOT_RESPONSE_MAX:
+#                                     spokedSensation = self.createSensation(sensation = sensation, kind=self.getKind(), locations=self.getLocations())
+#                                     # NOTE This is needed now, because Sensation.create parameters robotType and memoryType parameters are  overwritten by sensation parameters
+#                                     spokedSensation.setKind(self.getKind())
+#                                     spokedSensation.setRobotType(Sensation.RobotType.Communication)  # 'speak' to Robots       
+#                                     #association = self.mostImportantItemSensation.getAssociation(sensation = self.mostImportantVoiceSensation)
+#                                     self.getMemory().setMemoryType(sensation=spokedSensation, memoryType=Sensation.MemoryType.Sensory)
+#                                     # speak                 
+#                                     self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=spokedSensation)
 #                                     self.robotResponses = self.robotResponses+1
 #                                     
 #                             self.spokedAssociations = associations
@@ -1026,8 +1032,10 @@ class Communication(Robot):
         #self.log(logLevel=Robot.LogLevel.Normal, logStr="process: systemTime.time() " + str(systemTime.time()) + ' -  sensation.getTime() ' + str(sensation.getTime()) + ' < Communication.COMMUNICATION_INTERVAL ' + str(Communication.COMMUNICATION_INTERVAL))
         self.log(logLevel=Robot.LogLevel.Normal, logStr="process: " + str(systemTime.time() - sensation.getTime()) + ' < ' + str(Communication.COMMUNICATION_INTERVAL))
         if len(sensation.getLocations()) == 0:
-            self.itemConversations[''].process(transferDirection=transferDirection, sensation=sensation)
-            self.robotConversations[''].process(transferDirection=transferDirection, sensation=sensation)
+            if '' in self.itemConversations:
+                self.itemConversations[''].process(transferDirection=transferDirection, sensation=sensation)
+            if '' in self.robotConversations:
+                self.robotConversations[''].process(transferDirection=transferDirection, sensation=sensation)
         else:
             for location in sensation.getLocations():
                 if location in self.itemConversations:

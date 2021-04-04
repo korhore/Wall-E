@@ -629,7 +629,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                     i = i+1
             self.logAbsents(current_present=current_present)  
         else:
-            self.log(logLevel=Robot.LogLevel.Error, logStr='process: got sensation we this robot can\'t process')
+            self.log(logLevel=Robot.LogLevel.Error, logStr='process: got sensation this robot can\'t process')
 
         sensation.detach(robot=self)    # detach processed sensation
            

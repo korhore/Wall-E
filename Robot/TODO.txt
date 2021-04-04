@@ -126,7 +126,7 @@ How lown Identity runs. After along run, when stopping we get
 Wall-E_MainName:father:1:Stopping:Ubuntu livingroom:MainRobot Stopping self.identity Identity
 Wall-E_MainName:Identity:2:Stopping::Stopping robot
 
-First implement Visual: poisite/negative feedback in all parts of logic. with one method.
+First implement Visual: posite/negative feedback in all parts of logic. with one method.
 
 Seems wxPython is heavy to run, when there is load and many Sensatition density per time tyo handle.
 Also Visual can be too hard to run. Anyway, seems it can be good idea  to implement Visual with kivy, because it
@@ -158,6 +158,12 @@ Make Conversation -> ConversationWithRobot
    wants to be real Communicating Robot using role 1)
 -- UpLocations to those locations that this Robot wants to be consulting Robots
   using Role 2)
+  
+Check Locations in Ubuntu ans Rasoberry. WE don't need Livingroom location any more,
+but one mainRobot is responsible  of one location and other Robots can consult it.
+
+Seems Robots presence is now local MainName presence, meaning local Main Robot, but should be opposite one,
+ remore ones, got fromSocketServer and Local mainNames should be ignored.
 
 Robot state is not clear enought for person.
 1) Conversation on

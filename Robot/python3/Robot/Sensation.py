@@ -1041,6 +1041,9 @@ class Sensation(object):
                             originalSensation = memory.getSensationFromSensationMemory(id=self.getDataId())
                             if originalSensation != None:
                                 self.name = originalSensation.getName()               
+                    elif self.sensationType is Sensation.SensationType.Robot:
+                        self.presence = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                        i += Sensation.ENUM_SIZE
                     elif self.sensationType is Sensation.SensationType.Feeling:
                         firstAssociateSensation_id=Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                         i += Sensation.FLOAT_PACK_SIZE
@@ -1718,6 +1721,8 @@ class Sensation(object):
             b +=  name_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
             b +=  Sensation.strToBytes(self.name)
             b +=  Sensation.floatToBytes(self.score)
+            b +=  Sensation.strToBytes(self.presence)
+        elif self.sensationType is Sensation.SensationType.Robot:
             b +=  Sensation.strToBytes(self.presence)
         elif self.sensationType is Sensation.SensationType.Feeling:
             if self.getFirstAssociateSensation():
