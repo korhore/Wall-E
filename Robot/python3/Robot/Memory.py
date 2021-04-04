@@ -1611,45 +1611,90 @@ class Memory(object):
                 self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="Entering, Present or Exiting " + name)
                 
     '''
+    have we Item presence in some locations
+    '''
+
+    def hasItemsPresence(self, location=None):
+        return self.hasPresence(presentDict=self._presentItemSensations, location=location)
+
+    '''
+    have we Robot presence in some locations
+    '''
+
+    def hasRobotsPresence(self, location=None):
+        return self.hasPresence(presentDict=self._presentRobotSensations, location=location)
+
+    '''
     have we presence in some locations
     '''
 
-    def hasPresence(self, location=None):
-        if location and location in self._presentItemSensations:
-            return len(self._presentItemSensations[location].items()) > 0
-        for location in self._presentItemSensations.keys():
-            if len(self._presentItemSensations[location].items()) > 0:
-#                 for name, sensation in self._presentItemSensations[location].items():
-#                     print('hasPresence in location {} name {} is present'.format(location,name))
+    def hasPresence(self, presentDict, location=None):
+        if location and location in presentDict:
+            return len(presentDict[location].items()) > 0
+        for location in presentDict.keys():
+            if len(presentDict[location].items()) > 0:
                 return True
-#         print('hasPresence None is present')
         return False
 
     '''
     return human readable string of presence items in all locations
     '''
-    def presenceToStr(self, location=None):
+    def itemsPresenceToStr(self, location=None):
+        return self.presenceToStr(presentDict=self._presentItemSensations, location=location)
+    
+    '''
+    return human readable string of presence Robots in all locations
+    '''
+    def robotsPresenceToStr(self, location=None):
+        return self.presenceToStr(presentDict=self._presentRobotSensations, location=location)
+    
+
+    '''
+    return human readable string of presence items in all locations
+    '''
+    def presenceToStr(self, presentDict, location=None):
         if location:
             namesStr='['+location + ':'
-            for name, sensation in self._presentItemSensations[location].items():
+            for name, sensation in presentDict[location].items():
                 namesStr = namesStr + ' ' + name
             return namesStr
 
         allLocationnamesStr=''
-        for location in self._presentItemSensations.keys():
+        for location in presentDict.keys():
             namesStr='['+location + ':'
-            for name, sensation in self._presentItemSensations[location].items():
-#             for presentItemSensations in self._presentItemSensations[location].items():
-#                 for name, sensation in presentItemSensations:
+            for name, sensation in presentDict[location].items():
                 namesStr = namesStr + ' ' + name
             allLocationnamesStr += namesStr + ']'
         
         return allLocationnamesStr
     
     '''
-    get presence sensations in a location
+    get Item presence sensations in a location
     '''
     def getPresentItemSensations(self, location):
+        return self.getPresentItemSensations(self, presentDict=self._presentItemsSensations, location=location)
+
+    '''
+    get Robot presence sensations in a location
+    '''
+    def getPresentItemSensations(self, location):
+        return self.getPresentItemSensations(self, presentDict=self._presentRobotSensations, location=location)
+
+    '''
+    get presence sensations in a location
+    '''
+    def getPresentSensations(self, presentDict, location):
+        if location == None :
+            location = ''
+        if not location in presentDict:
+            presentDict[location] = {}
+            return []
+        return presentDict[location].items()
+
+    '''
+    get Item presence sensations in a location
+    '''
+    def getPresentSensations(self, location):
         if location == None :
             location = ''
         if not location in self._presentItemSensations:
@@ -1658,7 +1703,7 @@ class Memory(object):
         return self._presentItemSensations[location].items()
 
     '''
-    get presence sensations in all location,
+    get Item presence sensations in all location,
     but only one sensation per Item.name
     This is helper function to ne compatible with old implementation when we don't care about locations.
     This method can be removed
@@ -1673,6 +1718,33 @@ class Memory(object):
                     itemSensations.append(itemSensation)
         return itemSensations
     
+    '''
+    get Robot presence sensations in a location
+    '''
+    def getPresentRobotSensations(self, location):
+        if location == None :
+            location = ''
+        if not location in self._presentRobotSensations:
+            self._presentRobotSensations[location] = {}
+            return []
+        return self._presentRobotSensations[location].items()
+
+    '''
+    get Robot presence sensations in all location,
+    but only one sensation per Robot.name
+    This is helper function to ne compatible with old implementation when we don't care about locations.
+    This method can be removed
+    '''
+    def getAllPresentRobotSensations(self):
+        robotSensations = []
+        names=[]
+        for location in self._presentRobotSensations.keys():
+            for name, robotSensation in self._presentRobotSensations[location].items():
+                if name not in names:
+                    names.append(name)
+                    robotSensations.append(robotSensation)
+        return robotSensations
+
     '''
     log
     '''

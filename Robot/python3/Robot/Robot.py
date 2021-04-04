@@ -1917,11 +1917,12 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
         self.log("run: Starting")
                  
         try:
-            # tell robot we are, speaking
-            sensation=self.getMainRobot().createSensation(associations=[], robotType=Sensation.RobotType.Communication,
+            # tell other side robot that we are present ion these location with MainNames
+            sensation=self.getMainRobot().createSensation(associations=[],
+                                                          robotType=Sensation.RobotType.Communication,
                                                           sensationType = Sensation.SensationType.Robot,
                                                           memoryType = Sensation.MemoryType.Working,
-                                                          #robot = self.getName(), # TODO is this needed and is this OK?
+                                                          presence = Sensation.Presence.Present,
                                                           name = self.getName(),
                                                           locations = self.getLocations())
             self.log('run: sendSensation(sensation=Sensation(robot=self.getMainRobot(),sensationType = Sensation.SensationType.Robot), sock=self.sock,'  + str(self.address) + ')')
@@ -2152,6 +2153,19 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
         # socketserver can't close itself, just put it to closing mode
         self.getSocketServer().stop() # socketserver can't close itself, we must send a stop sensation to it
         # we must send a stop sensation to it
+        
+        # tell other side robot that we are absentt in these location with MainNames
+        sensation=self.getMainRobot().createSensation(associations=[],
+                                                      robotType=Sensation.RobotType.Communication,
+                                                      sensationType = Sensation.SensationType.Robot,
+                                                      memoryType = Sensation.MemoryType.Working,
+                                                      presence = Sensation.Presence.Absent,
+                                                      name = self.getName(),
+                                                      locations = self.getLocations())
+        self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
+        sensation.detach(robot=self)
+        
+        # try to stop other side robot, it should decide itself, if it stops or not but that is not yet implemented        
         sensation=self.createSensation(associations=[], sensationType = Sensation.SensationType.Stop)
         self.sendSensation(sensation=sensation, sock=self.getSocketServer().getSocket(), address=self.getSocketServer().getAddress())
         # stop remote with same technique

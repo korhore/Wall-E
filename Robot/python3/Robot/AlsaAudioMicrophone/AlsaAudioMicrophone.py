@@ -124,9 +124,9 @@ class AlsaAudioMicrophone(Robot):
                 self.process(transferDirection=transferDirection, sensation=sensation)
                 sensation.detach(robot=self)
             else:
-                if self.getMemory().hasPresence(): # listen is we have items that can speak
+                if self.getMemory().hasItemsPresence(): # listen is we have items that can speak
                     if not self.logged:
-                        self.log(logLevel=Robot.LogLevel.Normal, logStr=self.getMemory().presenceToStr() + " items speaking, sense")
+                        self.log(logLevel=Robot.LogLevel.Normal, logStr=self.getMemory().itemsPresenceToStr() + " items speaking, sense")
                         self.logged = True
                     self.sense()
                 else:
@@ -178,7 +178,7 @@ class AlsaAudioMicrophone(Robot):
             # connected to present Item.names
             voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
                                                    data=self.getVoiceData(data=self.voice_data, dtype=Settings.AUDIO_CONVERSION_FORMAT), locations=self.getLocations())
-            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: voice from " + self.getMemory().presenceToStr())
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: voice from " + self.getMemory().itemsPresenceToStr())
             for itemSensation in self.getMemory().getAllPresentItemSensations():
                 itemSensation.associate(sensation=voiceSensation)
             self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: self.getParent().getAxon().put(robot=self, sensation)")

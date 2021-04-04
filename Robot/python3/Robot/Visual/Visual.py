@@ -1280,7 +1280,7 @@ class Visual(Robot):
            
             #mainframe presents           
             presenceHbox = wx.BoxSizer(wx.HORIZONTAL)
-            self.presenceText = wx.StaticText(self, label="Empty")#label=self.robot.getMemory().presenceToStr())
+            self.presenceText = wx.StaticText(self, label="Empty")#label=self.robot.getMemory().itemsPresenceToStr())
             presenceHbox.Add(self.presenceText, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
             vbox.Add(presenceHbox, flag=wx.EXPAND)
             
@@ -1334,7 +1334,7 @@ class Visual(Robot):
         def tracePresence(self, sensation):
             # present means pure Present, all other if handled not present
             # if present sensations must come in order
-            self.presenceText.SetLabel(label=self.robot.getMemory().presenceToStr())
+            self.presenceText.SetLabel(label=self.robot.getMemory().itemsPresenceToStr())
                 
  
     class MainApp(wx.App):
