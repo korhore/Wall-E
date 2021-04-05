@@ -122,6 +122,9 @@ two instances will be created. Ment to test 'sublocations'
 Develop
 -------
 
+Implament 'all' in SensaTionType, MemopryType, RobotType
+This is readonly, meaning that this defines what Robot acepts as capability.
+
 How lown Identity runs. After along run, when stopping we get
 Wall-E_MainName:father:1:Stopping:Ubuntu livingroom:MainRobot Stopping self.identity Identity
 Wall-E_MainName:Identity:2:Stopping::Stopping robot

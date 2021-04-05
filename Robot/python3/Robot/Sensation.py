@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 14.03.2021
+Edited on 05.04.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -93,15 +93,15 @@ class Sensation(object):
     FALSE_AS_STR  =     'F'
      
     # so many sensationtypes, that first letter is not good idea any more  
-    SensationType = enum(Drive='a', Stop='b', Robot='c', Azimuth='d', Acceleration='e', Location='f', Observation='g', HearDirection='h', Voice='i', Image='j',  Calibrate='k', Capability='l', Item='m', Feeling='n', Unknown='o')
+    SensationType = enum(Drive='a', Stop='b', Robot='c', Azimuth='d', Acceleration='e', Location='f', Observation='g', HearDirection='h', Voice='i', Image='j',  Calibrate='k', Capability='l', Item='m', Feeling='n', Unknown='o', All='p')
     # RobotType of a sensation. Example in Voice: Muscle: Speaking,  Sense: Hearing In->Muscle Out->Sense
-    RobotType = enum(Muscle='M', Sense='S', Communication ='C')
-    # RobotType of a sensation transferring, used with Axon. Up: going up like fron AlsaMicroPhone to MainRobot, Down: going down from MainRobot to leaf Robots like AlsaPlayback
+    RobotType = enum(Muscle='M', Sense='S', Communication ='C', All='A')
+    # RobotType of a sensation transferring, used with Axon. Up: going up like from AlsaMicroPhone to MainRobot, Down: going down from MainRobot to leaf Robots like AlsaPlayback
     TransferDirection = enum(Up='U', Down='D')
     # Presence of Item  
     Presence = enum(Entering='a', Present='b', Exiting='c', Absent='d', Unknown='e')
 
-    MemoryType = enum(Sensory='S', Working='W', LongTerm='L' )
+    MemoryType = enum(Sensory='S', Working='W', LongTerm='L' , All='A')
     #MemoryType = enum(Sensory='S', LongTerm='L' )
     Kind = enum(WallE='w', Eva='e', Normal='n')
     InstanceType = enum(Real='r', SubInstance='s', Virtual='v', Remote='m')

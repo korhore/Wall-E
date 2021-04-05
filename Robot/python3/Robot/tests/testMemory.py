@@ -221,13 +221,25 @@ class MemoryTestCase(unittest.TestCase):
                             name='test')
         # TOO implementation is missing.
         # Robotr.name presence
-        for name in self.MAINNAMES:
-            self.dotestPresence(sensationType=Sensation.SensationType.Robot,
-                                robotType=Sensation.RobotType.Communication,
-                                presentDict=self.memory._presentRobotSensations,
-                                name=name)
+#         for name in self.MAINNAMES:
+#             self.dotestPresence(sensationType=Sensation.SensationType.Robot,
+#                                 robotType=Sensation.RobotType.Communication,
+#                                 presentDict=self.memory._presentRobotSensations,
+#                                 name=name)
+        self.dotestPresence(sensationType=Sensation.SensationType.Robot,
+                            robotType=Sensation.RobotType.Communication,
+                            presentDict=self.memory._presentRobotSensations,
+                            name=None)
         
-    def dotestPresence(self, sensationType, robotType, presentDict, name):
+        self.dotestPresence(sensationType=Sensation.SensationType.Robot,
+                            robotType=Sensation.RobotType.Communication,
+                            presentDict=self.memory._presentRobotSensations,
+                            name=None,
+                            mainNames=MemoryTestCase.OTHERMAINNAMES)
+        
+      
+        
+    def dotestPresence(self, sensationType, robotType, presentDict, name, mainNames=None):
         #del self.memory.sensationMemory[:]
         
         
@@ -235,68 +247,129 @@ class MemoryTestCase(unittest.TestCase):
                                                        sensationType=sensationType,
                                                        robotType=robotType,
                                                        memoryType=Sensation.MemoryType.Working,
-                                                       name=name, score=MemoryTestCase.SCORE, presence=Sensation.Presence.Entering,
-                                                       locations=self.LOCATIONS)
-        self.assertEqual(enteringSensation.getMainNames(), self.MAINNAMES)
+                                                       name=name,
+                                                       score=MemoryTestCase.SCORE,
+                                                       presence=Sensation.Presence.Entering,
+                                                       locations=self.LOCATIONS,
+                                                       mainNames=mainNames)
+        self.assertEqual(len(enteringSensation.getAssociations()), 0)
+        Sensation.logAssociations(enteringSensation)
+
+        if mainNames == None:
+            self.assertEqual(enteringSensation.getMainNames(), self.MAINNAMES)
+        else:
+            self.assertEqual(enteringSensation.getMainNames(), mainNames)
         self.assertEqual(enteringSensation.getLocations(), self.LOCATIONS)
         self.assertEqual(enteringSensation.getPresence(), Sensation.Presence.Entering, "should be entering")
         self.assertIsNot(enteringSensation, None)
-        self.assertEqual(len(enteringSensation.getAssociations()), 0)
-        Sensation.logAssociations(enteringSensation)
-        for location in self.LOCATIONS:        
-            self.assertTrue(location in presentDict)
-            self.assertTrue(name in presentDict[location])
+        if name != None:
+            for location in self.LOCATIONS:        
+                self.assertTrue(location in presentDict)
+                self.assertTrue(name in presentDict[location])
+        else:
+            # With local Robot presence, there is no presence, because local robot is not present for itself
+            if mainNames == None:
+                for location in self.LOCATIONS:        
+                    self.assertFalse(location in presentDict)
+            else:
+            # With remote Robot presence, there is presence
+                for location in self.LOCATIONS:        
+                    self.assertTrue(location in presentDict)
+                    for mainName in mainNames:
+                        self.assertTrue(mainName in presentDict[location])
 
         presentSensation = self.robot.createSensation(associations=None,
                                                       sensationType=sensationType,
                                                       robotType=robotType,
                                                       memoryType=Sensation.MemoryType.Working,
                                                       name=name, score=MemoryTestCase.SCORE, presence=Sensation.Presence.Present,
-                                                      locations=self.LOCATIONS)
-        self.assertEqual(presentSensation.getMainNames(), self.MAINNAMES)
+                                                      locations=self.LOCATIONS,
+                                                      mainNames=mainNames)
+        if mainNames == None:
+            self.assertEqual(presentSensation.getMainNames(), self.MAINNAMES)
+        else:
+            self.assertEqual(presentSensation.getMainNames(), mainNames)
         self.assertEqual(enteringSensation.getLocations(), self.LOCATIONS)
         self.assertEqual(presentSensation.getPresence(), Sensation.Presence.Present, "should be present")
         self.assertIsNot(presentSensation, None)
         self.assertEqual(len(presentSensation.getAssociations()), 0)
         Sensation.logAssociations(presentSensation)
 
-        for location in self.LOCATIONS:        
-            self.assertTrue(location in presentDict)
-            self.assertTrue(name in presentDict[location])
+        if name != None:
+            for location in self.LOCATIONS:        
+                self.assertTrue(location in presentDict)
+                self.assertTrue(name in presentDict[location])
+        else:
+            if mainNames == None:
+                for location in self.LOCATIONS:        
+                    self.assertFalse(location in presentDict)
+            else:
+                for location in self.LOCATIONS:        
+                    self.assertTrue(location in presentDict)
+                    for mainName in mainNames:
+                        self.assertTrue(mainName in presentDict[location])
 
         exitingSensation = self.robot.createSensation(associations=None,
                                                       sensationType=sensationType,
                                                       robotType=robotType,
                                                       memoryType=Sensation.MemoryType.Working,
                                                       name=name, score=MemoryTestCase.SCORE, presence=Sensation.Presence.Exiting,
-                                                      locations=self.LOCATIONS)
-        self.assertEqual(exitingSensation.getMainNames(), self.MAINNAMES)
+                                                      locations=self.LOCATIONS,
+                                                      mainNames=mainNames)
+        if mainNames == None:
+            self.assertEqual(enteringSensation.getMainNames(), self.MAINNAMES)
+        else:
+            self.assertEqual(enteringSensation.getMainNames(), mainNames)
         self.assertEqual(enteringSensation.getLocations(), self.LOCATIONS)
         self.assertEqual(exitingSensation.getPresence(), Sensation.Presence.Exiting, "should be Exiting")
         self.assertIsNot(exitingSensation, None)
         self.assertEqual(len(exitingSensation.getAssociations()), 0)
         Sensation.logAssociations(exitingSensation)
 
-        for location in self.LOCATIONS:        
-            self.assertTrue(location in presentDict)
-            self.assertTrue(name in presentDict[location])
+        if name != None:
+            for location in self.LOCATIONS:        
+                self.assertTrue(location in presentDict)
+                self.assertTrue(name in presentDict[location])
+        else:
+            if mainNames == None:
+                for location in self.LOCATIONS:        
+                    self.assertFalse(location in presentDict)
+            else:
+                for location in self.LOCATIONS:        
+                    self.assertTrue(location in presentDict)
+                    for mainName in mainNames:
+                        self.assertTrue(mainName in presentDict[location])
         
         absentSensation = self.robot.createSensation(associations=None,
                                                      sensationType=sensationType,
                                                      robotType=robotType,
                                                      memoryType=Sensation.MemoryType.Working,
                                                      name=name, score=MemoryTestCase.SCORE, presence=Sensation.Presence.Absent,
-                                                     locations=self.LOCATIONS)
-        self.assertEqual(absentSensation.getMainNames(), self.MAINNAMES)
+                                                     locations=self.LOCATIONS,
+                                                      mainNames=mainNames)
+        if mainNames == None:
+            self.assertEqual(enteringSensation.getMainNames(), self.MAINNAMES)
+        else:
+            self.assertEqual(enteringSensation.getMainNames(), mainNames)
         self.assertEqual(enteringSensation.getLocations(), self.LOCATIONS)
         self.assertEqual(absentSensation.getPresence(), Sensation.Presence.Absent, "should be Absent")
         self.assertIsNot(absentSensation, None)
         self.assertEqual(len(absentSensation.getAssociations()), 0)
         Sensation.logAssociations(absentSensation)
 
-        for location in self.LOCATIONS:        
-            self.assertTrue(location in presentDict)
-            self.assertFalse(name in presentDict[location])
+        if name != None:
+            for location in self.LOCATIONS:        
+                self.assertTrue(location in presentDict)
+                self.assertFalse(name in presentDict[location])
+        else:
+            if mainNames == None:
+                for location in self.LOCATIONS:        
+                    self.assertFalse(location in presentDict)
+            else:
+                for location in self.LOCATIONS:        
+                    self.assertTrue(location in presentDict)
+                    for mainName in mainNames:
+                        self.assertFalse(mainName in presentDict[location])
         
     def test_Memorybility(self):
         sensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Sensory,

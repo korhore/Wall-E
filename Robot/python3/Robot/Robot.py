@@ -1967,11 +1967,10 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
         # finally normal run from Robot-class
         if self.running:
             super(SocketClient, self).run()        
-        # starting other threads/senders/capabilities
         # If there has been problem in connections
-        # at this point new SocketClient is running and it should have all Sensations fron out Axon to send
+        # at this point new SocketClient is running and it should have all Sensations from out Axon to send
         # but to be sure that no Sensations will be as unForgettable state
-        # and momory can not be released, just try to enpty out Axon
+        # and momory can not be released, just try to empty out Axon
         while(not self.getAxon().empty()):        
             tranferDirection, sensation = self.getAxon().get(robot=self)
             sensation.detachAll()
