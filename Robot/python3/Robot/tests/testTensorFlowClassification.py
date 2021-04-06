@@ -4,12 +4,11 @@ Updated on 31.12.2020
 @author: reijo.korhonen@gmail.com
 
 test TensorFlowClassification class
-you must provide models/research
-PYTHONPATH=/<here it is>/models/research python3 -m unittest tests/testTensorFlowClassification.py
+python3 -m unittest tests/testTensorFlowClassification.py
 
 Testing is complicated, because we must test TensorFlowClassification thread
 and unittest goes to tearDown while we are in the middle of testing.
-so we must set sleep in teadDown
+so we must set sleep in tearDown
 
 
 '''
@@ -199,7 +198,8 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
         if previousNames is not None:
             enteringNames = self.getDifferItems(firstPresent=currentNames, secondPresent=previousNames)
             exitingNames = self.getDifferItems(firstPresent=previousNames, secondPresent=currentNames)
-            presentNames = self.getSameItems(firstPresent=previousNames, secondPresent=currentNames)
+# Nothing will be present yet
+#             presentNames = self.getSameItems(firstPresent=previousNames, secondPresent=currentNames)
             
         self.doTestItemSensations(imageSensation=imageSensation,
                                   enteringNames=enteringNames,
@@ -209,12 +209,12 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
 
         #present
         #absent
+        presentNames=enteringNames
         enteringNames=[]
-        presentNames=currentNames
+        absentNames = exitingNames#[]
         exitingNames = []
-        absentNames = []
-        if previousNames is not None:
-            absentNames = self.getDifferItems(firstPresent=previousNames, secondPresent=currentNames)
+#         if previousNames is not None:
+#             absentNames = self.getDifferItems(firstPresent=previousNames, secondPresent=currentNames)
          
         self.doTestItemSensations(imageSensation=imageSensation,
                                   enteringNames=enteringNames,
@@ -222,10 +222,10 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
                                   exitingNames=exitingNames,
                                   absentNames=absentNames)
        
-        #still present
+        #still present, so no sensations got
         # no absent
         enteringNames=[]
-        presentNames=currentNames
+        presentNames=[]#currentNames
         exitingNames = []
         absentNames = []
          
@@ -296,22 +296,22 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
                 elif sensation.getSensationType() == Sensation.SensationType.Item and\
                     sensation.getPresence() == Sensation.Presence.Entering:
                     print("1: got item Entering " + str(transferDirection) + ' ' + sensation.toDebugStr())
-                    self.assertTrue(sensation.getName() in enteringNames, sensation.getName()+' should be in test entering names')
+                    self.assertTrue(sensation.getName() in enteringNames, '{} should be in test entering names'.format(sensation.getName(), enteringNames))
                     foundEnteringNames.append(sensation.getName())
                 elif sensation.getSensationType() == Sensation.SensationType.Item and\
                     sensation.getPresence() == Sensation.Presence.Present:
                     print("2: got item Present " + str(transferDirection) + ' ' + sensation.toDebugStr())
-                    self.assertTrue(sensation.getName() in presentNames, sensation.getName()+ ' should be in test still present names')
+                    self.assertTrue(sensation.getName() in presentNames, '{} should be in test still present names {}'.format(sensation.getName(), presentNames))
                     foundPresentNames.append(sensation.getName())
                 elif sensation.getSensationType() == Sensation.SensationType.Item and\
                     sensation.getPresence() == Sensation.Presence.Exiting:
                     print("1: got item Exiting " + str(transferDirection) + ' ' + sensation.toDebugStr())
-                    self.assertTrue(sensation.getName() in exitingNames, 'should be in test exiting_names')
+                    self.assertTrue(sensation.getName() in exitingNames, '{} should be in test exiting_names {}'.format(sensation.getName(), exitingNames))
                     foundExitingNames.append(sensation.getName())
                 elif sensation.getSensationType() == Sensation.SensationType.Item and\
                     sensation.getPresence() == Sensation.Presence.Absent:
                     print("1: got item Absent " + str(transferDirection) + ' ' + sensation.toDebugStr())
-                    self.assertTrue(sensation.getName() in absentNames, 'should be in test absent_names')
+                    self.assertTrue(sensation.getName() in absentNames, '{} should be in test absent_names {}'.format(sensation.getName(), absentNames))
                     foundAbsentNames.append(sensation.getName())
                 else:
                    print("1: got something else" + str(transferDirection) + ' ' + sensation.toDebugStr())

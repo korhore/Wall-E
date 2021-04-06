@@ -122,8 +122,16 @@ two instances will be created. Ment to test 'sublocations'
 Develop
 -------
 
+Semms that We get lot of Item Present Sensory sensations even if not presense changes, because TensorflowClassification reports what is sees.
+It reportrs oalso if Item.name is still present. Changed this.
+
+Memory keeps track presences and assiggn sensation current Item Present Sensory sensations.
+But there is no mechanism to report onlw presence changes, when item cones in or out.
+Memory could do that. 
+
 Implament 'all' in SensaTionType, MemopryType, RobotType
 This is readonly, meaning that this defines what Robot acepts as capability.
+Coninue implementing so, that that this 'all' is local 'read only and not newer transferred to other Robot by bytes.
 
 How lown Identity runs. After along run, when stopping we get
 Wall-E_MainName:father:1:Stopping:Ubuntu livingroom:MainRobot Stopping self.identity Identity

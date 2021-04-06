@@ -31,7 +31,7 @@ Sensation is something Robot senses
 '''
 
 class Sensation(object):
-    VERSION=22          # version number to check, if we picle or bytes same version
+    VERSION=23          # version number to check, if we picle or bytes same version
                         # instances. Otherwise we get odd errors, with old
                         # version code instances
 
@@ -108,6 +108,7 @@ class Sensation(object):
     Mode = enum(Normal='n', StudyOwnIdentity='t',Sleeping='l',Starting='s', Stopping='p', Interrupted='i')
     
     # enum items as strings    
+    ALL="All"
     MUSCLE="Muscle"
     SENSE="Sense"
     COMMUNICATION="Communication"
@@ -151,8 +152,17 @@ class Sensation(object):
       
     RobotTypes={RobotType.Muscle: MUSCLE,
                 RobotType.Sense: SENSE,
+                RobotType.Communication: COMMUNICATION,
+                RobotType.All: ALL}
+    NormalRobotTypes={RobotType.Muscle: MUSCLE,
+                RobotType.Sense: SENSE,
                 RobotType.Communication: COMMUNICATION}
     RobotTypesOrdered=(
+                RobotType.Muscle,
+                RobotType.Sense,
+                RobotType.Communication,
+                RobotType.All)
+    NormalRobotTypesOrdered=(
                 RobotType.Muscle,
                 RobotType.Sense,
                 RobotType.Communication)
@@ -160,8 +170,18 @@ class Sensation(object):
     MemoryTypes = {
                MemoryType.Sensory: SENSORY,
                MemoryType.Working: WORKING,
+               MemoryType.LongTerm: LONG_TERM,
+               MemoryType.All: ALL}
+    NormalMemoryTypes = {
+               MemoryType.Sensory: SENSORY,
+               MemoryType.Working: WORKING,
                MemoryType.LongTerm: LONG_TERM}
     MemoryTypesOrdered = (
+               MemoryType.Sensory,
+               MemoryType.Working,
+               MemoryType.LongTerm,
+               MemoryType.All)
+    NormalMemoryTypesOrdered = (
                MemoryType.Sensory,
                MemoryType.Working,
                MemoryType.LongTerm)
@@ -180,9 +200,43 @@ class Sensation(object):
                SensationType.Calibrate: CALIBRATE,
                SensationType.Capability: CAPABILITY,
                SensationType.Item: ITEM,
-               SensationType.Feeling: FEELING,
+               SensationType.Feeling: FEELING,             
+               SensationType.Unknown: UNKNOWN,
+               SensationType.All: ALL}
+    NormalSensationTypes={
+               SensationType.Drive: DRIVE,
+               SensationType.Stop: STOP,
+               SensationType.Robot: ROBOT,
+               SensationType.Azimuth: AZIMUTH,
+               SensationType.Acceleration: ACCELERATION,
+               SensationType.Location: LOCATION,
+               SensationType.Observation: OBSERVATION,
+               SensationType.HearDirection: HEARDIRECTION,
+               SensationType.Voice: VOICE,
+               SensationType.Image: IMAGE,
+               SensationType.Calibrate: CALIBRATE,
+               SensationType.Capability: CAPABILITY,
+               SensationType.Item: ITEM,
+               SensationType.Feeling: FEELING,             
                SensationType.Unknown: UNKNOWN}
     SensationTypesOrdered=(
+               SensationType.Drive,
+               SensationType.Stop,
+               SensationType.Robot,
+               SensationType.Azimuth,
+               SensationType.Acceleration,
+               SensationType.Location,
+               SensationType.Observation,
+               SensationType.HearDirection,
+               SensationType.Voice,
+               SensationType.Image,
+               SensationType.Calibrate,
+               SensationType.Capability,
+               SensationType.Item,
+               SensationType.Feeling,
+               SensationType.Unknown,
+               SensationType.All)
+    NormalSensationTypesOrdered=(
                SensationType.Drive,
                SensationType.Stop,
                SensationType.Robot,
@@ -226,7 +280,8 @@ class Sensation(object):
     sensationMemoryLiveTimes={
         MemoryType.Sensory:  SENSORY_LIVE_TIME,
         MemoryType.Working:  WORKING_LIVE_TIME,
-        MemoryType.LongTerm: LONG_TERM_LIVE_TIME }
+        MemoryType.LongTerm: LONG_TERM_LIVE_TIME}#,
+        #MemoryType.All: LONG_TERM_LIVE_TIME }
     
     # Feeling
     Terrified='Terrified' 
@@ -2027,7 +2082,7 @@ class Sensation(object):
     '''            
     def getMaxMinCacheMemorability():
         maxCacheMemorability = 10000
-        for memoryType in Sensation.MemoryTypes:
+        for memoryType in Sensation.NormalMemoryTypes:
             # set sensation more to the past and look again        
             history_time = systemTime.time() -Sensation.sensationMemoryLiveTimes[memoryType] * 0.5
             candidateMaxCacheMemorability = Sensation.doGetMemorability(time = history_time,

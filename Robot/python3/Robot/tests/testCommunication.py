@@ -399,7 +399,8 @@ class CommunicationTestCase(unittest.TestCase):
                                            memoryType = Sensation.MemoryType.Working,
                                            name = self.communication.getName(),
                                            presence = Sensation.Presence.Present,
-                                           locations = self.getLocations())
+                                           locations = self.getLocations(),
+                                           mainNames=self.OTHERMAINNAMES), # Should haver other mainnames than this Robot to get robot presence
         
         self.assertTrue(len(self.communication.getMemory().getAllPresentRobotSensations()) > 0)
         self.assertTrue(self.communication.getMemory().hasRobotsPresence())

@@ -1,6 +1,6 @@
 '''
 Created on 12.05.2020
-Updated on 12.07.2020
+Updated on 06.04.2021
 @author: reijo.korhonen@gmail.com
 
 test Config class
@@ -52,6 +52,14 @@ class ConfigTestCase(unittest.TestCase):
 
         
         self.capabilities = Capabilities(config=self.config)
+        self.capabilities.setCapability(robotType=Sensation.RobotType.Sense,
+                                        memoryType=Sensation.MemoryType.Sensory,
+                                        sensationType=Sensation.SensationType.Voice,
+                                        is_set = True)
+        self.assertTrue(self.capabilities.hasCapability(
+                                        robotType=Sensation.RobotType.Sense,
+                                        memoryType=Sensation.MemoryType.Sensory,
+                                        sensationType=Sensation.SensationType.Voice))
 #         self.assertEqual(self.capabilities.toString(), self.config.getCapabilities().toString(), "should be equal")
 #         self.assertEqual(self.capabilities, self.config.getCapabilities(), "should be equal")
 
@@ -59,6 +67,62 @@ class ConfigTestCase(unittest.TestCase):
     def tearDown(self):
         del self.capabilities
         del self.config
+        
+    def testHasCapability(self):
+        # in fonfig file should be
+        self.assertTrue(self.capabilities.hasCapability(robotType=Sensation.RobotType.Sense,
+                                                         memoryType = Sensation.MemoryType.Sensory,
+                                                         sensationType = Sensation.SensationType.Image))
+
+        self.capabilities.setCapability(robotType=Sensation.RobotType.Sense,
+                                        memoryType = Sensation.MemoryType.Sensory,
+                                        sensationType = Sensation.SensationType.Voice,
+                                        is_set = False)
+        self.assertFalse(self.capabilities.hasCapability(robotType=Sensation.RobotType.Sense,
+                                                         memoryType = Sensation.MemoryType.Sensory,
+                                                         sensationType = Sensation.SensationType.Voice))
+
+        self.capabilities.setCapability(robotType=Sensation.RobotType.Sense,
+                                        memoryType = Sensation.MemoryType.Sensory,
+                                        sensationType = Sensation.SensationType.Voice,
+                                        is_set = True)
+        self.assertTrue(self.capabilities.hasCapability(robotType=Sensation.RobotType.Sense,
+                                                        memoryType = Sensation.MemoryType.Sensory,
+                                                        sensationType = Sensation.SensationType.Voice))
+        
+        self.capabilities.setCapability(robotType=Sensation.RobotType.All,
+                                  memoryType = Sensation.MemoryType.All,
+                                  sensationType = Sensation.SensationType.All,
+                                  is_set = False)
+        self.assertTrue(self.capabilities.hasCapability(robotType=Sensation.RobotType.Sense,
+                                                        memoryType = Sensation.MemoryType.Sensory,
+                                                        sensationType = Sensation.SensationType.Voice))
+        
+        
+        self.capabilities.setCapability(robotType=Sensation.RobotType.Sense,
+                                  memoryType = Sensation.MemoryType.Sensory,
+                                  sensationType = Sensation.SensationType.Voice,
+                                  is_set = False)
+        self.capabilities.setCapability(robotType=Sensation.RobotType.Sense,
+                                        memoryType = Sensation.MemoryType.Sensory,
+                                        sensationType = Sensation.SensationType.Image,
+                                        is_set = False)
+        self.assertFalse(self.capabilities.hasCapability(robotType=Sensation.RobotType.Sense,
+                                                         memoryType = Sensation.MemoryType.Sensory,
+                                                         sensationType = Sensation.SensationType.Voice))        
+        self.assertFalse(self.capabilities.hasCapability(robotType=Sensation.RobotType.Sense,
+                                                         memoryType = Sensation.MemoryType.Sensory,
+                                                         sensationType = Sensation.SensationType.Image))        
+        self.capabilities.setCapability(robotType=Sensation.RobotType.All,
+                                        memoryType = Sensation.MemoryType.All,
+                                        sensationType = Sensation.SensationType.All,
+                                        is_set = True)
+        self.assertTrue(self.capabilities.hasCapability(robotType=Sensation.RobotType.Sense,
+                                                        memoryType = Sensation.MemoryType.Sensory,
+                                                        sensationType = Sensation.SensationType.Voice))        
+        self.assertTrue(self.capabilities.hasCapability(robotType=Sensation.RobotType.Sense,
+                                                        memoryType = Sensation.MemoryType.Sensory,
+                                                        sensationType = Sensation.SensationType.Image))        
         
     def testConfig(self):
         # methods that has set
@@ -70,7 +134,11 @@ class ConfigTestCase(unittest.TestCase):
         self.assertEqual(self.config.getMicrophoneVoiceAvegageLevel(section=ConfigTestCase.SET_1_2_LOCATIONS[0]), Config.MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT+1)
         self.assertEqual(self.config.getMicrophoneVoiceAvegageLevel(section=ConfigTestCase.SET_1_2_LOCATIONS[1]), Config.MICROPHONE_VOICE_LEVEL_AVERAGE_DEFAULT)
        
-       
+
+    '''
+    Config bytes does not copy capabilities
+    TODO check test
+    '''       
     def testConfigBytes(self):
         print("testConfigBytes 1: self.config " + self.config.toString())
         b=self.config.toBytes()
@@ -79,7 +147,7 @@ class ConfigTestCase(unittest.TestCase):
         fromBytesConfig = Config(instanceName=ConfigTestCase.TEST_INSTANCE,
                                  instanceType=Sensation.InstanceType.Real,
                                  level=0)    # should get another copy
-        capabilities = Capabilities(config=fromBytesConfig)
+        #capabilities = Capabilities(config=fromBytesConfig)
         # exact copy created same way, than self.config
         print("testConfigBytes 2: self.config " + self.config.toString())
         print("testConfigBytes 3: fromBytes   " + fromBytesConfig.toString())
@@ -91,9 +159,12 @@ class ConfigTestCase(unittest.TestCase):
         print("testConfigBytes 4: fromBytes   " + fromBytesConfig.toString())
         self.compareConfig('self.config, fromBytesConfig', self.config, fromBytesConfig)
         self.assertEqual(fromBytesConfig, self.config, "should now be equal")
+        
+        #capabilities = Capabilities(config=fromBytesConfig)
 
         fromBytesConfigBytes = fromBytesConfig.toBytes()
         self.assertEqual(fromBytesConfigBytes, b, "should be equal")
+        
         
     def compareConfig(self, logStr, firstConfig, secondConfig):
         if firstConfig.instanceName != secondConfig.instanceName:
@@ -120,18 +191,33 @@ class ConfigTestCase(unittest.TestCase):
             
 
     def testCapabilitiesBytes(self):
+        self.assertTrue(self.capabilities.hasCapability(
+                                        robotType=Sensation.RobotType.Sense,
+                                        memoryType=Sensation.MemoryType.Sensory,
+                                        sensationType=Sensation.SensationType.Voice))
+
         b = self.capabilities.toBytes()
         print('capabilities.toBytes  ' + str(b))
         
         fromBytesCabalities = Capabilities(bytes=b, config=self.config)
         fromBytesCabalitiesBytes=fromBytesCabalities.toBytes()
         self.assertEqual(fromBytesCabalitiesBytes, b, "should be equal")
+        self.assertTrue(fromBytesCabalities.hasCapability(
+                                        robotType=Sensation.RobotType.Sense,
+                                        memoryType=Sensation.MemoryType.Sensory,
+                                        sensationType=Sensation.SensationType.Voice))
+        self.assertEqual(self.capabilities.directions, fromBytesCabalities.directions)
         
         #again
         fromBytesCabalities = Capabilities(bytes=fromBytesCabalitiesBytes, config=self.config)
         fromBytesCabalitiesBytes=fromBytesCabalities.toBytes()
         self.assertEqual(fromBytesCabalitiesBytes, b, "should be equal")
-        
+        self.assertTrue(fromBytesCabalities.hasCapability(
+                                        robotType=Sensation.RobotType.Sense,
+                                        memoryType=Sensation.MemoryType.Sensory,
+                                        sensationType=Sensation.SensationType.Voice))
+        self.assertEqual(self.capabilities.directions, fromBytesCabalities.directions)
+      
         #change Locations
 #         fromBytesCabalities.setLocations(ConfigTestCase.SET_1_1_LOCATIONS_1)
 #         fromBytesCabalitiesBytes=fromBytesCabalities.toBytes()
@@ -140,6 +226,7 @@ class ConfigTestCase(unittest.TestCase):
 #         fromBytesCabalities = Capabilities(bytes=fromBytesCabalitiesBytes, config=self.config)
 #         fromBytesCabalitiesBytes2=fromBytesCabalities.toBytes()
 #         self.assertEqual(fromBytesCabalitiesBytes, fromBytesCabalitiesBytes2, "should be equal")
+
 
     def testCapabilitiesString(self):
         s = self.capabilities.toString()

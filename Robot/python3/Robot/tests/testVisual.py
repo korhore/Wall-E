@@ -324,7 +324,7 @@ class VisualTestCase(unittest.TestCase):
         
         print("--- test sleeping " + str(VisualTestCase.TEST_TIME) + " second until stop should be done")
         systemTime.sleep(VisualTestCase.TEST_TIME) # let result UI be shown until cleared           
-        print("--- Visual should be disappear when you press Stop now")
+        print("--- Visual should disappear when you press Stop now")
         
     '''
     functionality from Robot

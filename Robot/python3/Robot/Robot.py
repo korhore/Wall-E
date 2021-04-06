@@ -635,14 +635,14 @@ class Robot(Thread):
            self.isInLocations(locations):
 #             testRobotType = self.getMainNamesRobotType(isCommunication=isCommunication, robotType=robotType, mainNames=mainNames)
             self.log(logLevel=Robot.LogLevel.Normal, logStr="hasCapability isInLocations locations " + str(locations) + " self.getDownLocations " + str(self.getDownLocations()))      
-            hasCapalility = self.getCapabilities().hasCapability(robotType, memoryType, sensationType)
+            hasCapalility = self.getCapabilities().hasCapability(robotType=robotType, memoryType=memoryType, sensationType=sensationType, acceptAll=self.getInstanceType() != Sensation.InstanceType.Remote)
             # If checked capability RobotType is Communication
             # is exists only if mainNames is nit this Robots MaionNanes
             # meaning that communication goes between Robots, not inside one (Main)Robot
             if robotType == Sensation.RobotType.Communication and self.isInMainNames(mainNames):
                 hasCapalility = False
             else:
-                hasCapalility = self.getCapabilities().hasCapability(robotType, memoryType, sensationType)                
+                hasCapalility = self.getCapabilities().hasCapability(robotType=robotType, memoryType=memoryType, sensationType=sensationType, acceptAll=self.getInstanceType() != Sensation.InstanceType.Remote)                
             if hasCapalility:
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="hasCapability robotType " + str(robotType) + " memoryType " + str(memoryType) + " sensationType " + str(sensationType) + " locations " + str(locations) + ' ' + str(hasCapalility))      
         return hasCapalility

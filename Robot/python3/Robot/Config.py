@@ -1,6 +1,6 @@
 '''
 Created on 25.05.2019
-Edited 10.12.2020
+Edited 05.04.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -826,14 +826,31 @@ class Config(ConfigParser):
 #             print('self.canSee() ' + str(e))
 
  
-    # what capabilities we have TODO
+    # what capabilities we have
+    '''
+    get specific option name
+    '''
     def getOptionName(self, robotType,memoryType,sensationType):
         from Sensation import Sensation
         return Sensation.getRobotTypeString(robotType)+'_'+Sensation.getMemoryTypeString(memoryType)+'_'+ Sensation.getSensationTypeString(sensationType)
-
+    '''
+    have this option allowed that match, meaning that match is normal option name or 'all'
+    '''
     def hasCapability(self, robotType,memoryType,sensationType, section=DEFAULT_LOCATION):
-        option=self.getOptionName(robotType,memoryType,sensationType)
-        return self.getboolean(section, option)
+        from Sensation import Sensation
+        for r in robotType, Sensation.RobotType.All:
+            for m in memoryType, Sensation.MemoryType.All:
+                for s in sensationType, Sensation.SensationType.All:
+                    option = Sensation.getRobotTypeString(r)+'_'+Sensation.getMemoryTypeString(m)+'_'+ Sensation.getSensationTypeString(s)
+                    isCapability = self.getboolean(section, option)
+                    if self.getboolean(section, option):
+                        return True
+        return False
+
+# deprecated method version
+#     def hasCapability(self, robotType,memoryType,sensationType, section=DEFAULT_LOCATION):
+#         option=self.getOptionName(robotType,memoryType,sensationType)
+#         return self.getboolean(section, option)
 
              
     def getSubInstanceNames(self, section=DEFAULT_LOCATION):
@@ -1320,6 +1337,9 @@ class Capabilities():
 #         i += location_size
        
         # then capabilities
+        # create first whole arrays set False
+        # because 'all' values are not set to bytes array
+        # and should be initiated to False
         for robotType in Sensation.RobotTypesOrdered:
             memorys={}
             self.directions[robotType] = memorys
@@ -1327,11 +1347,15 @@ class Capabilities():
                 capabilitys={}
                 memorys[memoryType] = capabilitys
                 for sensationType in Sensation.SensationTypesOrdered:
-                    is_set=Config.byteToBool(b=bytes[i])
-#                     if is_set:
-#                         print (str(robotType) + str(memoryType) + str(sensationType) + ': TRUE')
-                    capabilitys[sensationType] = is_set
-#                     print ('i ' + str(i) + ': ' + str(bytes[i]) + ' ' + str(is_set))
+                    capabilitys[sensationType] = False
+        # then set all values except 'all'
+#         for robotType in Sensation.NormalRobotTypesOrdered:
+        for robotType in Sensation.RobotTypesOrdered:
+#             for memoryType in Sensation.NormalMemoryTypesOrdered:
+            for memoryType in Sensation.MemoryTypesOrdered:
+#                for sensationType in Sensation.NormalSensationTypesOrdered:
+               for sensationType in Sensation.SensationTypesOrdered:
+                    self.directions[robotType][memoryType][sensationType] = Config.byteToBool(b=bytes[i])
                     i=i+1
     '''
     to bytes
@@ -1345,9 +1369,12 @@ class Capabilities():
 #         bytes +=  Sensation.strToBytes(self.getLocationsStr())
         
         # then capabilites
+#        for robotType in Sensation.NormalRobotTypesOrdered:
         for robotType in Sensation.RobotTypesOrdered:
+#            for memoryType in Sensation.NormalMemoryTypesOrdered:
             for memoryType in Sensation.MemoryTypesOrdered:
-                for sensationType in Sensation.SensationTypesOrdered:
+               for sensationType in Sensation.SensationTypesOrdered:
+#               for sensationType in Sensation.NormalSensationTypesOrdered:
                     bytes += Config.boolToByte(self.directions[robotType][memoryType][sensationType])
         return bytes
     
@@ -1420,9 +1447,25 @@ class Capabilities():
     '''
     Getter to get if single capability is set
     in location this Capabilities set has
+    parameters:
+    acceptAll if we allow All-capability, meaning that 'All' capability
+              means all of this kind capabilityty 
     '''
-    def hasCapability(self, robotType, memoryType, sensationType):
+    def hasCapability(self, robotType, memoryType, sensationType, acceptAll=True):
+        if acceptAll:
+            from Sensation import Sensation
+            for r in robotType, Sensation.RobotType.All:
+                for m in memoryType, Sensation.MemoryType.All:
+                    for s in sensationType, Sensation.SensationType.All:
+                        if self.directions[r][m][s]:
+                            return True
+            return False
         return self.directions[robotType][memoryType][sensationType]
+    '''
+    deprecated
+    '''   
+#     def hasCapability(self, robotType, memoryType, sensationType):
+#         return self.directions[robotType][memoryType][sensationType]
     
 #     def hasCapability(self, robotType, memoryType, sensationType, locations):
 #         if self.isInLocations(locations):

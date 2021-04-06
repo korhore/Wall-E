@@ -1,6 +1,6 @@
 '''
 Created on 13.02.2020
-Updated on 11.01.2021
+Updated on 06.04.2021
 @author: reijo.korhonen@gmail.com
 
 test Robot class
@@ -321,7 +321,7 @@ class RobotTestCase(unittest.TestCase):
         del self.remoteMainRobot
         
     '''
-    
+    TODO is this test valid or not?
     '''
         
     def test_Locations(self):
@@ -502,7 +502,7 @@ class RobotTestCase(unittest.TestCase):
         #Wall_E_item_sensation.setLocations(RobotTestCase.LOCATIONS_1)
         self.muscle.setLocations(RobotTestCase.LOCATIONS_2)
         self.muscle.setDownLocations(RobotTestCase.LOCATIONS_2)
-        # locations donn't match so nothing is routed
+        # locations don't match so nothing is routed
         self.do_TestRouting(locations=RobotTestCase.LOCATIONS_1,
                             senseMainNames = self.MAINNAMES_1,
                             muscleMainNames = self.MAINNAMES_1,                          
@@ -1071,15 +1071,19 @@ class RobotTestCase(unittest.TestCase):
                                                      score=RobotTestCase.SCORE_1,
                                                      presence=Sensation.Presence.Entering)
         else:
-             Wall_E_item_sensation = self.sense.createSensation(
+            Wall_E_item_sensation = self.sense.createSensation(
                                                      memoryType=Sensation.MemoryType.Working,
                                                      sensationType=Sensation.SensationType.Item,
                                                      robotType=robotType,
-                                                     #isCommunication=isCommunication,
                                                      name=RobotTestCase.NAME,
                                                      score=RobotTestCase.SCORE_1,
                                                      presence=Sensation.Presence.Entering,
                                                      locations=locations)
+# TODO tested somewhere else and this test is not valid
+#         for location in Wall_E_item_sensation.getLocations():        
+#             self.assertEqual(len(self.sense.getMemory().getPresentItemSensations(location)), 1, 'len(self.sense.getMemory().getPresentItemSensations({}))'.format(location))
+#             print('len(self.sense.getMemory().getPresentItemSensations({})) == 1 OK'.format(location))
+            
         self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty before we test')
         # test
         self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
@@ -1092,14 +1096,13 @@ class RobotTestCase(unittest.TestCase):
         if shouldBeRouted:
             self.assertFalse(self.muscle.getAxon().empty(),'muscle Axon should not be empty')
             tranferDirection, sensation = self.muscle.getAxon().get(robot=self)
+# TODO tested elswhere and this test is not valid
+#             for location in sensation.getLocations():        
+#                 self.assertEqual(len(self.sense.getMemory().getPresentItemSensations(location)), 1, 'len(self.sense.getMemory().getPresentItemSensations({}))'.format(location))
+#                 self.assertEqual(len(self.muscle.getMemory().getPresentItemSensations(location)), 1, 'len(self.muscle.getMemory().getPresentItemSensations({}))'.format(location))
         else:
             self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty')
 
-        # same logic than in Memory
-        if locations == None or len(locations) == 0:
-            locations = [''] 
-        for location in locations:        
-            self.assertEqual(len(self.sense.getMemory().getPresentItemSensations(location)), 1, 'len(self.sense.getMemory().presentItemSensations should be 1')
 
     '''
     deprecated
@@ -1563,17 +1566,14 @@ class RobotTestCase(unittest.TestCase):
         # We set muscle mainNames different than sense and after that capabilities should match      
 #        self.do_tcp_positive_case(robotType=Sensation.RobotType.Muscle,
         self.do_tcp_positive_case(robotType=Sensation.RobotType.Communication,
-                                  #isCommunication =True,
                                   isSentLocal = False,
                                   isSentRemote = True)
         # negative case
         self.do_tcp_negative_case(robotType=Sensation.RobotType.Sense,
-                                  #isCommunication=False,
                                   isSentLocal = True,
-                                  isSentRemote = True)# TODO False)
+                                  isSentRemote = True)
         #self.do_tcp_negative_case(robotType=Sensation.RobotType.Muscle,
         self.do_tcp_negative_case(robotType=Sensation.RobotType.Communication,
-                                  #isCommunication=True,
                                   isSentLocal = False,
                                   isSentRemote = True)
 
@@ -1696,7 +1696,7 @@ class RobotTestCase(unittest.TestCase):
             self.assertEqual(sensationToSend, sensation, 'send and received sensations should be equal')
             
             for location in sensationToSend.getLocations():       
-                self.assertEqual(len(self.sense.getMemory().getPresentItemSensations(location=location)), 1, 'len(self.sense.getMemory().presentItemSensations should be 1')
+                self.assertEqual(len(self.sense.getMemory().getPresentItemSensations(location=location)), 1, 'len(self.sense.getMemory().getPresentItemSensations({}) should be 1'.format(location))
         else:
             self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should  be empty')
 
@@ -1797,22 +1797,25 @@ class RobotTestCase(unittest.TestCase):
                                                  memoryType=Sensation.MemoryType.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  robotType=robotType,
-                                                 #isCommunication=isCommunication,
                                                  name=RobotTestCase.NAME,
                                                  score=RobotTestCase.SCORE_1,
                                                  presence=Sensation.Presence.Entering,
                                                  locations=self.sense.getLocations())
+        for location in Wall_E_item_sensation.getLocations():       
+            self.assertEqual(len(self.sense.getMemory().getPresentItemSensations(location=location)), 1, 'len(self.sense.getMemory().getPresentItemSensations({}) should be 1'.format(location))
         # with sensation, that has different location the srcSocker we should fail       
          
-        # local global sensation, that goes every location in local robot, but not with remote and local Robots
+        # local global sensation, that goes every location in local robot, but not with remote robots
         Wall_E_item_sensation_no_location = self.sense.createSensation(time=history_sensationTime,
                                                  memoryType=Sensation.MemoryType.Working,
                                                  sensationType=Sensation.SensationType.Item,
                                                  robotType=robotType,
-                                                 #isCommunication=isCommunication,
                                                  name=RobotTestCase.NAME,
                                                  score=RobotTestCase.SCORE_1,
                                                  presence=Sensation.Presence.Entering)
+
+        for location in Wall_E_item_sensation_no_location.getLocations():       
+            self.assertEqual(len(self.sense.getMemory().getPresentItemSensations(location=location)), 1, 'len(self.sense.getMemory().getPresentItemSensations({}) should be 1'.format(location))
 
         self.assertTrue(self.remoteMainRobot.getAxon().empty(),'remoteMainRobote Axon should be empty BEFORE we test')
         self.assertEqual(Wall_E_item_sensation.getLocations(), RobotTestCase.LOCATIONS_1, 'sensation should have location {} BEFORE we test'.format(RobotTestCase.LOCATIONS_1))
@@ -1883,15 +1886,14 @@ class RobotTestCase(unittest.TestCase):
         
         self.assertTrue(self.remoteMainRobot.getAxon().empty(),'remoteMainRobot Axon should be empty')
 
-# getMemory().getPresentItemSensations is tgested in other tests. Anyway, it does not fepent on if routing locally or not
-#         
-#         if isSentLocal:
-#             for location in sensationToSend.getLocations():        
-#                 self.assertEqual(len(self.sense.getMemory().getPresentItemSensations(location = location)), 1, 'len(self.sense.getMemory().presentItemSensations(location = {}) should be 1'.format(location))
-#         else:
-#              for location in sensationToSend.getLocations():
-#                 # TODO check this
-#                 self.assertEqual(len(self.sense.getMemory().getPresentItemSensations(location = location)), 1, 'len(self.sense.getMemory().presentItemSensations(location = {}) should be 0'.format(location))
+        # TODO presence does not change in this test so this is basically obsolote test
+        # but it should be true
+        if isSentLocal:
+            for location in sensationToSend.getLocations():        
+                self.assertEqual(len(self.sense.getMemory().getPresentItemSensations(location = location)), 1, 'len(self.sense.getMemory().presentItemSensations(location = {}) should be 1'.format(location))
+        else:
+             for location in sensationToSend.getLocations():
+                self.assertEqual(len(self.sense.getMemory().getPresentItemSensations(location = location)), 1, 'len(self.sense.getMemory().presentItemSensations(location = {}) should be 0'.format(location))
      
     '''
     TODO These tests fail.

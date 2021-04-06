@@ -1673,13 +1673,13 @@ class Memory(object):
     get Item presence sensations in a location
     '''
     def getPresentItemSensations(self, location):
-        return self.getPresentItemSensations(self, presentDict=self._presentItemsSensations, location=location)
+        return self.getPresentSensations(presentDict=self._presentItemSensations, location=location)
 
     '''
     get Robot presence sensations in a location
     '''
-    def getPresentItemSensations(self, location):
-        return self.getPresentItemSensations(self, presentDict=self._presentRobotSensations, location=location)
+    def getPresentRobotSensations(self, location):
+        return self.getPresentSensations(presentDict=self._presentRobotSensations, location=location)
 
     '''
     get presence sensations in a location
@@ -1695,13 +1695,13 @@ class Memory(object):
     '''
     get Item presence sensations in a location
     '''
-    def getPresentSensations(self, location):
-        if location == None :
-            location = ''
-        if not location in self._presentItemSensations:
-            self._presentItemSensations[location] = {}
-            return []
-        return self._presentItemSensations[location].items()
+#     def getPresentSensations(self, location):
+#         if location == None :
+#             location = ''
+#         if not location in self._presentItemSensations:
+#             self._presentItemSensations[location] = {}
+#             return []
+#         return self._presentItemSensations[location].items()
 
     '''
     get Item presence sensations in all location,
