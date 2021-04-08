@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 14.03.2021
+Edited on 08.04.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -540,6 +540,7 @@ class Memory(object):
                      
     '''
     Get sensations from sensation memory that are set in capabilities
+    # or are common shared sensation (Sensationtype Robot, when we are present to others)
     
     Time window can be set separately min, max or both,
     from time min to time max, to get sensations that are happened at same moment.   
@@ -549,9 +550,14 @@ class Memory(object):
         sensations=[]
         for sensation in self.sensationMemory:
             # accept sensations from all Locations #location='') and
-            if capabilities.hasCapability(robotType=sensation.getRobotType(),
+            # also common sensations, that don't have capability (Sensationtype.Robot)
+            if (capabilities.hasCapability(robotType=sensation.getRobotType(),
                                           memoryType=sensation.getMemoryType(),
-                                          sensationType=sensation.getSensationType()) and\
+                                          sensationType=sensation.getSensationType()) or\
+                 (sensation.getSensationType() == Sensation.SensationType.Robot and\
+                  sensation.getRobotnType() == Sensation.RobotType.Communication,
+                  sensation.getMemotyType() == Sensation.MemoryType.Working,
+                  sensation.getPresence() == Sensation.Presence.Present)) and\
                 (timemin is None or sensation.getTime() > timemin) and\
                 (timemax is None or sensation.getTime() < timemax):
                 sensations.append(sensation)

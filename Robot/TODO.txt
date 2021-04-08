@@ -122,22 +122,43 @@ two instances will be created. Ment to test 'sublocations'
 Develop
 -------
 
-Semms that We get lot of Item Present Sensory sensations even if not presense changes, because TensorflowClassification reports what is sees.
-It reportrs oalso if Item.name is still present. Changed this.
+Reply from SocketServer that Robotis present.
 
-Memory keeps track presences and assiggn sensation current Item Present Sensory sensations.
-But there is no mechanism to report onlw presence changes, when item cones in or out.
-Memory could do that. 
+Implement visual things.
 
-Implament 'all' in SensaTionType, MemopryType, RobotType
+VisualCommunication is a Robot between MainRobot and Comunication. Base implementation is current Visual.
+It does nothing but visualises Sensation traffic from between MainRobot and Communication. It should also passthrough
+capabilities from Communication to MainRobot. so many Robots routing methods should be overwitten.
+Anyway, we need this to develope Communication, to get clear picture what Communication does.
+Remaining Visual has very little functionality, only log-panel.
+Maybe default Robot functionality is nearly enough.
+
+
+Communiation, Conversation should show exactly those sensations, it handles. Maybe we
+should use public method, that Visual can use. It should show inputs and outputs,
+meaning RobotType Sense, Muscle and Communication. This makes develioping easier, because we can see what happens insedi subRobots, what they do.
+
+For Visual - Coversation
+- Sensationtype.State, carrying minimal data for Conversation State
+--- ConversatioSate
+--- place
+-- visual implementation for that, maybe clearer status line: items present, state
+-- Visual.RobotConversation, visualising RobotType.Communication sensations. Maybe Log-panel is OK for that
+- Robot feeling
+- Robot activity
+
+OK Semms that We get lot of Item Present Sensory sensations even if not presense changes, because TensorflowClassification reports what is sees.
+
+It reportrs also if Item.name is _still_ present. Changed this. Only Item.name presence changes are reported.
+TODO Still we should check from Memory prenet items, when resence should be updated.
+
+OK Implament 'all' in SensaTionType, MemopryType, RobotType
 This is readonly, meaning that this defines what Robot acepts as capability.
-Coninue implementing so, that that this 'all' is local 'read only and not newer transferred to other Robot by bytes.
+Continue implementing so, that that this 'all' is local 'read only and not newer transferred to other Robot by bytes.
 
-How lown Identity runs. After along run, when stopping we get
+How long Identity runs? After along run, when stopping we get
 Wall-E_MainName:father:1:Stopping:Ubuntu livingroom:MainRobot Stopping self.identity Identity
 Wall-E_MainName:Identity:2:Stopping::Stopping robot
-
-First implement Visual: posite/negative feedback in all parts of logic. with one method.
 
 Seems wxPython is heavy to run, when there is load and many Sensatition density per time tyo handle.
 Also Visual can be too hard to run. Anyway, seems it can be good idea  to implement Visual with kivy, because it

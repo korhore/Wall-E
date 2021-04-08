@@ -382,7 +382,7 @@ class Communication(Robot):
                         
                         # ask other Robots to say, what we should say to this Item.name
                         if self.getMemory().hasRobotsPresence():
-                            askSensation = self.createSensation(sensation = sensation, locations=self.getLocations())
+                            askSensation = self.createSensation(sensation = sensation, locations=Robot.GLOBAL_LOCATIONS)
                             # NOTE This is needed now, because Sensation.create parameters robotType and memoryType parameters are  overwritten by sensation parameters
                             askSensation.setKind(self.getKind())
                             askSensation.setRobotType(Sensation.RobotType.Communication)  # communication to other Robots       
@@ -670,7 +670,7 @@ class Communication(Robot):
                                 sensation.save()     # for debug reasons save voices we have spoken as heard voices and images
                                 self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithRobot speak: self.getMemory().getBestSensations did find sensations, spoke {}'.format(sensation.toDebugStr()))
                                 # speak                                                     self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=spokedSensation)
-                                spokedSensation = self.createSensation(sensation = sensation)
+                                spokedSensation = self.createSensation(sensation = sensation, locations=Robot.GLOBAL_LOCATIONS)
                                 # NOTE This is needed now, because Sensation.create parameters robotType and memoryType parameters are  overwritten by sensation parameters
                                 spokedSensation.setRobotType(Sensation.RobotType.Communication)  # 'speak' to Robots       
                                 self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=spokedSensation)

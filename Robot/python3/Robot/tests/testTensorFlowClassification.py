@@ -192,14 +192,13 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
         #entering new ones
         #exiting old ones
         enteringNames=currentNames
+        # Nothing will be present yet
         presentNames=[]
         exitingNames = []
         absentNames = []
         if previousNames is not None:
             enteringNames = self.getDifferItems(firstPresent=currentNames, secondPresent=previousNames)
             exitingNames = self.getDifferItems(firstPresent=previousNames, secondPresent=currentNames)
-# Nothing will be present yet
-#             presentNames = self.getSameItems(firstPresent=previousNames, secondPresent=currentNames)
             
         self.doTestItemSensations(imageSensation=imageSensation,
                                   enteringNames=enteringNames,
@@ -207,14 +206,14 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
                                   exitingNames=exitingNames,
                                   absentNames=absentNames)
 
-        #present
-        #absent
+        #entering names be now present
+        # and no new entering names will come
         presentNames=enteringNames
         enteringNames=[]
-        absentNames = exitingNames#[]
+        # exiting names are now absent ones
+        # and no new exiting names come
+        absentNames = exitingNames
         exitingNames = []
-#         if previousNames is not None:
-#             absentNames = self.getDifferItems(firstPresent=previousNames, secondPresent=currentNames)
          
         self.doTestItemSensations(imageSensation=imageSensation,
                                   enteringNames=enteringNames,
@@ -222,10 +221,11 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
                                   exitingNames=exitingNames,
                                   absentNames=absentNames)
        
-        #still present, so no sensations got
-        # no absent
+        # still same one present
+        # no exiting or absent ones
+        # so no sensations got
         enteringNames=[]
-        presentNames=[]#currentNames
+        presentNames=[]
         exitingNames = []
         absentNames = []
          
@@ -234,7 +234,8 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
                                   presentNames=presentNames,
                                   exitingNames=exitingNames,
                                   absentNames=absentNames)
-         
+  
+        # TODO study if we ared done here       
         # test removed temporarely
         #self.assertTrue(self.getAxon().empty(), 'self.getAxon().empty() should be empty')
         while not self.getAxon().empty():

@@ -1,6 +1,6 @@
 '''
 Created on 12.03.2020
-Updated on 01.01.2020
+Updated on 07.04.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -382,6 +382,15 @@ class Visual(Robot):
             self.robot=robot #called
         def getRobot(self):
             return self.robot #called
+ 
+        '''
+        helper method to return SensationType.Item name with presewnce, when presence is valid
+        '''       
+        def getItemNamePresenceString(self, sensation):
+            if sensation.getRobotType() == Sensation.RobotType.Sense:
+                return '{}:{}'.format(sensation.getName(),Sensation.getPresenceString(sensation.getPresence()))
+            return sensation.getName()
+            
                     
         def OnSensation(self, event):
             """OnSensation."""
@@ -425,7 +434,7 @@ class Visual(Robot):
                                        window=wx.StaticText(self, label=''), proportion=0, flag=wx.EXPAND)
                 elif sensation.getSensationType() == Sensation.SensationType.Item:
                     self.gs.Insert(index=Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_DATA,
-                                   window=wx.StaticText(self, label=sensation.getName()), proportion=0, flag=wx.EXPAND)
+                                   window=wx.StaticText(self, label=self.getItemNamePresenceString(sensation)), proportion=0, flag=wx.EXPAND)
                 else:
                     self.gs.Insert(index=Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_DATA,
                                    window=wx.StaticText(self, label=''), proportion=0, flag=wx.EXPAND)
@@ -739,6 +748,12 @@ class Visual(Robot):
 #             
 #             self.status = wx.StaticText(self, -1)   
 #             vbox.Add(self.status, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+            # finally set communication tabs
+            for location in self.getRobot().getLocations():
+                communicationByLocationPanel = Visual.CommunicationByLocationPanel(parent=self.notebook, robot=self.getRobot(), location=location)
+                self.notebook.AddPage(communicationByLocationPanel, location)
+                self.communicationByLocationPanels[location]=communicationByLocationPanel
+            
             self.Fit()
             
             #Visual.setEventHandler(self, Visual.ID_POSITIVE, self.OnFeelingChange)
@@ -767,16 +782,16 @@ class Visual(Robot):
         def handleLocation(self, location, sensation):
 
             # if no subpage by location, create one            
-            if location not in self.communicationByLocationPanels:
-                 
-                communicationByLocationPanel = Visual.CommunicationByLocationPanel(parent=self.notebook, robot=self.getRobot(), location=location)
-                self.notebook.AddPage(communicationByLocationPanel, location)
-
-#                 self.sizer.Add(communicationByLocationPanel)
-#                 self.AddPage(communicationByLocationPanel, location)
-                self.communicationByLocationPanels[location]=communicationByLocationPanel
-                
-            self.communicationByLocationPanels[location].OnSensation(sensation=sensation)
+            if location in self.communicationByLocationPanels:
+#                  
+#                 communicationByLocationPanel = Visual.CommunicationByLocationPanel(parent=self.notebook, robot=self.getRobot(), location=location)
+#                 self.notebook.AddPage(communicationByLocationPanel, location)
+# 
+# #                 self.sizer.Add(communicationByLocationPanel)
+# #                 self.AddPage(communicationByLocationPanel, location)
+#                 self.communicationByLocationPanels[location]=communicationByLocationPanel
+#                 
+                self.communicationByLocationPanels[location].OnSensation(sensation=sensation)
                 
 #             
 #                 notebook.AddPage(self.treeLogPanel, Visual.TREE_LOG_TAB_NAME)

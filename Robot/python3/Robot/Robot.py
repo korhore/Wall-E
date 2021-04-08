@@ -128,6 +128,9 @@ class Robot(Thread):
     NORMAL =    'Normal'
     DETAILED =  'Detailed'
     VERBOSE =   'Verbose'
+    
+    GLOBAL_LOCATION =   'global'
+    GLOBAL_LOCATIONS =  [GLOBAL_LOCATION]
 
     LogLevels={LogLevel.No: NO,
                LogLevel.Critical: CRITICAL,
@@ -470,8 +473,8 @@ class Robot(Thread):
         # in other case test if at least one location match
         if (len(locations) == 0 and self.getInstanceType() != Sensation.InstanceType.Remote) or\
            (len(self.getDownLocations()) == 0 and self.getInstanceType() != Sensation.InstanceType.Remote) or\
-           'global' in self.getDownLocations() or\
-           'global' in locations:            
+           Robot.GLOBAL_LOCATION in self.getDownLocations() or\
+           Robot.GLOBAL_LOCATION in locations:            
             return True
         for location in locations:
             if location in self.getDownLocations():
@@ -2078,6 +2081,18 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
             self.getMemory().sharedSensationHosts.append(self.getHost())
 
     '''
+    share Robot presense
+       
+    This is happening when SocketServer is calling it and we don't know if
+    SocketClient is running so best way can be just put all sensations into our Axon
+    '''
+    def shareSensations(self, capabilities):
+        if self.getHost() not in self.getMemory().sharedSensationHosts:
+            for sensation in self.getMemory().getSensations(capabilities):
+                 self.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
+
+            self.getMemory().sharedSensationHosts.append(self.getHost())
+    '''
     method for sending a sensation
     '''
         
@@ -2358,7 +2373,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                                     self.getSocketClient().shareSensations(self.getCapabilities())
                             elif sensation.getSensationType() == Sensation.SensationType.Robot:
                                 self.log("run: SocketServer got Robot sensation " + sensation.toDebugStr())
-                                # TODO has to do with this
+                                # reply with Robot-sensation is done with self.getSocketClient().shareSensations(self.getCapabilities()
                             elif sensation.getSensationType() == Sensation.SensationType.Location:
                                 self.log("run: SocketServer got Location sensation " + sensation.toDebugStr())
                                 self.setLocations(locations=sensation.getLocations())

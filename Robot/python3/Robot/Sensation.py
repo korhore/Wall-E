@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 05.04.2021
+Edited on 07.04.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -92,8 +92,9 @@ class Sensation(object):
     TRUE_AS_STR  =      'T'
     FALSE_AS_STR  =     'F'
      
-    # so many sensationtypes, that first letter is not good idea any more  
-    SensationType = enum(Drive='a', Stop='b', Robot='c', Azimuth='d', Acceleration='e', Location='f', Observation='g', HearDirection='h', Voice='i', Image='j',  Calibrate='k', Capability='l', Item='m', Feeling='n', Unknown='o', All='p')
+    # SensationType 
+    SensationType = enum(Drive='a', Stop='b', Robot='c', Azimuth='d', Acceleration='e', Location='f', Observation='g', HearDirection='h',
+                         Voice='i', Image='j',  Calibrate='k', Capability='l', Item='m', Feeling='n', RobotState='o', Unknown='p', All='q')
     # RobotType of a sensation. Example in Voice: Muscle: Speaking,  Sense: Hearing In->Muscle Out->Sense
     RobotType = enum(Muscle='M', Sense='S', Communication ='C', All='A')
     # RobotType of a sensation transferring, used with Axon. Up: going up like from AlsaMicroPhone to MainRobot, Down: going down from MainRobot to leaf Robots like AlsaPlayback
@@ -106,6 +107,27 @@ class Sensation(object):
     Kind = enum(WallE='w', Eva='e', Normal='n')
     InstanceType = enum(Real='r', SubInstance='s', Virtual='v', Remote='m')
     Mode = enum(Normal='n', StudyOwnIdentity='t',Sleeping='l',Starting='s', Stopping='p', Interrupted='i')
+
+    # Robots states    
+    RobotState = enum(#Activity level
+                      ActivitySleeping='a',
+                      ActivityDreaming='b',
+                      ActivityLazy='c',
+                      ActivityRelaxed='d',
+                      ActivityNormal='e',
+                      ActivityBusy='f',
+                      ActivityHurry='g',
+                      ActivityTired='h',
+                      ActivityBreaking='i',
+                      
+                      # Communication
+                      CommunicationNotStarted = 'j',
+                      CommunicatioWaiting = 'k',
+                      CommunicationOn ='l',
+                      CommunicationNoResponseToSay='m',
+                      CommunicationEnded ='n',
+                      CommunicationDelay = '0')
+
     
     # enum items as strings    
     ALL="All"
