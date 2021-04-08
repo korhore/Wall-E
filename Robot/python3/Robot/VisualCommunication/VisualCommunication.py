@@ -27,7 +27,7 @@ from Robot import Robot
 from Config import Config, Capabilities
 from Sensation import Sensation
 
-class VisualCommunicationCommunication(Robot):
+class VisualCommunication(Robot):
     SLEEPTIME = 30.0
     SLEEPTIMERANDOM = 15.0
     
@@ -139,7 +139,7 @@ class VisualCommunicationCommunication(Robot):
                        minAvailMem = minAvailMem,
                        location = location,
                        config = config)
-        print("We are in VisualCommunicationCommunication, not Robot")
+        print("We are in VisualCommunication, not Robot")
         self.app = None
         
         # not yet running
@@ -151,9 +151,9 @@ class VisualCommunicationCommunication(Robot):
         self.running=True
         self.log(logLevel=Robot.LogLevel.Normal, logStr="run: Starting robot name " + self.getName() + " kind " + self.getKind() + " instanceType " + self.config.getInstanceType())      
         # wait until started so all others can start first        
-        time.sleep(Sensation.getRandom(base = VisualCommunicationCommunication.SLEEPTIME,
-                                       randomMin = -VisualCommunicationCommunication.SLEEPTIMERANDOM,
-                                       randomMax = VisualCommunicationCommunication.SLEEPTIMERANDOM))       
+        time.sleep(Sensation.getRandom(base = VisualCommunication.SLEEPTIME,
+                                       randomMin = -VisualCommunication.SLEEPTIMERANDOM,
+                                       randomMax = VisualCommunication.SLEEPTIMERANDOM))       
         # starting other threads/senders/capabilities
         for robot in self.subInstances:
             if robot.getInstanceType() != Sensation.InstanceType.Remote:
@@ -162,10 +162,10 @@ class VisualCommunicationCommunication(Robot):
         # live until stopped
         self.mode = Sensation.Mode.Normal
         
-        #self.app = VisualCommunicationCommunication.MainApp(robot=self)
+        #self.app = VisualCommunication.MainApp(robot=self)
         #self.app.setRobot(self)
         
-        self.wxWorker = VisualCommunicationCommunication.wxWorker(robot=self)#, app=self.app)
+        self.wxWorker = VisualCommunication.wxWorker(robot=self)#, app=self.app)
         self.wxWorker.start()       # start ui on its own thread
        
        # default
@@ -1358,9 +1358,9 @@ class VisualCommunicationCommunication(Robot):
  
     class MainApp(wx.App):
         """Class Main App."""
-        def __init__(self, robot, redirect=False, filename=None, useBestVisualCommunication=False, clearSigInt=True):
+        def __init__(self, robot, redirect=False, filename=None, useBestVisual=False, clearSigInt=True):
             self.robot=robot
-            wx.App.__init__(self, redirect=redirect, filename=filename, useBestVisualCommunication=useBestVisualCommunication, clearSigInt=clearSigInt)
+            wx.App.__init__(self, redirect=redirect, filename=filename, useBestVisual=useBestVisual, clearSigInt=clearSigInt)
 
 
         def OnInit(self):
