@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 06.04.2021
+Updated on 08.04.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -793,8 +793,8 @@ class Communication(Robot):
                         if location in self.robotConversations:
                             self.robotConversations[location].process(transferDirection=transferDirection, sensation=sensation)
                             handledSensation = True
-        if not handledSensation:
-            self.log(logLevel=Robot.LogLevel.Normal, logStr='process: could not process this Sensation {}'.format(sensation.toDebugStr()))
+            if not handledSensation:
+                self.log(logLevel=Robot.LogLevel.Normal, logStr='process: could not process this Sensation {}'.format(sensation.toDebugStr()))
         sensation.detach(robot=self)    # detach processed sensation
                 
 

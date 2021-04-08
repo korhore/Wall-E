@@ -192,24 +192,32 @@ class VisualCommunication(Robot):
         self.log(logLevel=Robot.LogLevel.Normal, logStr="run ALL SHUT DOWN")
         
     def process(self, transferDirection, sensation):
-        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr() + '  len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) #called
-        if sensation.getSensationType() == Sensation.SensationType.Stop:
-            self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: SensationSensationType.Stop')      
-            self.stop()
-        elif transferDirection == Sensation.TransferDirection.Up:
-            if self.getParent() is not None: # if sensation is going up  and we have a parent
-                self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation))')      
-                self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)
-        else:
-            # just pass Sensation to wx-process
-            # if we already got self.app and self.app.frame running
-            # otherwise we just forget this sensation and wait new ones to come and to be shown
-            if self.app and self.app: 
-                wx.PostEvent(self.app.frame, VisualCommunication.Event(eventType=VisualCommunication.ID_SENSATION, data=sensation))
-        # TODO should we release sensation, when we delete it from UI
-        # that way we should attach also all sensations we get from associations
-        # maybe for readonly logic this is not a problem
-        sensation.detach(robot=self) # finally release played sensation
+        # default Robot.process
+        super(VisualCommunication, self).process(transferDirection, sensation)
+#             # just pass Sensation to wx-process
+#             # if we already got self.app and self.app.frame running
+#             # otherwise we just forget this sensation and wait new ones to come and to be shown
+        if self.app: 
+              wx.PostEvent(self.app.frame, VisualCommunication.Event(eventType=VisualCommunication.ID_SENSATION, data=sensation))
+       # and all sensations are also processed to wx 
+#         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr() + '  len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) #called
+#         if sensation.getSensationType() == Sensation.SensationType.Stop:
+#             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: SensationSensationType.Stop')      
+#             self.stop()
+#         elif transferDirection == Sensation.TransferDirection.Up:
+#             if self.getParent() is not None: # if sensation is going up  and we have a parent
+#                 self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation))')      
+#                 self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)
+#         else:
+#             # just pass Sensation to wx-process
+#             # if we already got self.app and self.app.frame running
+#             # otherwise we just forget this sensation and wait new ones to come and to be shown
+#             if self.app and self.app: 
+#                 wx.PostEvent(self.app.frame, VisualCommunication.Event(eventType=VisualCommunication.ID_SENSATION, data=sensation))
+#         # TODO should we release sensation, when we delete it from UI
+#         # that way we should attach also all sensations we get from associations
+#         # maybe for readonly logic this is not a problem
+#         sensation.detach(robot=self) # finally release played sensation
 
  
     '''
