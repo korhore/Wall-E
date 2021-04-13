@@ -613,7 +613,6 @@ class CommunicationTestCase(unittest.TestCase, RobotTestCase):
         #simulate TensorFlowClassification send presence item to MainRobot
         # Now we should have 1 item in self.getMemory().getAllPresentItemSensations() (and be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 1, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 1')
-##############################
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation_present)
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 1, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 1')
 
@@ -664,9 +663,6 @@ class CommunicationTestCase(unittest.TestCase, RobotTestCase):
                                                 presence=Sensation.Presence.Absent,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='Wall_E_item_sensation_absent test', dataId=Wall_E_item_sensation_absent.getDataId())
-        #simulate TensorFlowClassification send presence item to MainRobot
-        # Now we should have 1 item in self.getMemory().getAllPresentItemSensations() (can be assigned as self.association) with with  name and associations count
-        #TODO enable this
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 0, 'len(self.communication.getMemory().getAllPresentItemSensations() after Absent Item Sensation should be 0')
 
         #process              
@@ -738,30 +734,8 @@ class CommunicationTestCase(unittest.TestCase, RobotTestCase):
         # Now we should have 1 item in self.getMemory().getAllPresentItemSensations() (can be assigned as self.association) with with  name and associations count
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 1, 'len(self.communication.getMemory().getAllPresentItemSensations() after Entering Item Sensation should be 1')
 
-#          # do we have Robots present
-#         if isPresentRobot:
-#             communicationItem=Wall_E_item_sensation_entering3
-#             isExactCommunicationItem=True
-#         else:
-#             communicationItem=None
-#             isExactCommunicationItem=False
-
         #process                      
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation_entering3)
-#         # will get images/voices #2, because they have better feeling than #3
-#         # TODO Check this, we get #3 sensations
-#         self.expect(name='Entering Name, Conversation continues', isEmpty=False,# isSpoken=True, isHeard=False, isVoiceFeeling=False, isImageFeeling=False,
-#                     muscleVoice=voice_sensation3, isExactMuscleVoice=True,
-#                     muscleImage=image_sensation3, isExactMuscleImage=True,
-#                     communicationItem=communicationItem, isExactCommunicationItem=isExactCommunicationItem)
-# 
-#         if isPresentRobot:
-#             self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=self.communicationItem)
-#             self.expect(name='Entering, reply to communicationItem, response 3', isEmpty=False, #isSpoken=True, isHeard=False, isVoiceFeeling=False,
-#                         communicationVoice=voice_sensation3, isExactCommunicationVoice=True,
-#                         communicationImage=image_sensation3, isExactCommunicationImage=True,
-#                         communicationItem=None)
-            
                         
         if isPresentRobot:
             # We expect to get communication to a Item.name and request to consult other robot what to say.
@@ -770,7 +744,7 @@ class CommunicationTestCase(unittest.TestCase, RobotTestCase):
                         muscleVoice=voice_sensation3, isExactMuscleVoice=True,
                         communicationItem=Wall_E_item_sensation_entering3, isExactCommunicationItem=True)
             # To test other Communication Robots functionality we must make a trick and change this Sensation ocatio
-            # so this Robot think that Sensation comes fromother Robot, not it self
+            # so this Robot think that Sensation comes from other Robot, not it self
             self.communicationItem.setMainNames(mainNames=self.OTHERMAINNAMES)
             
             # This sensation should be processed in foreign Robot, but is test we do it in directly in same Communication-Robot
@@ -844,30 +818,8 @@ class CommunicationTestCase(unittest.TestCase, RobotTestCase):
         # other entering is handled as response
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 2, 'len(self.communication.getMemory().getAllPresentItemSensations() after Entering Item NAME2 Sensation should NAME2 be 2')
 
-#          # do we have Robots present
-#         if isPresentRobot:
-#             communicationItem=Wall_E_item_sensation_entering4
-#             isExactCommunicationItem=True
-#         else:
-#             communicationItem=None
-#             isExactCommunicationItem=False
 
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation_entering4)
-#         self.expect(name='Entering Name2, change in presentation',  isEmpty=False, #isSpoken=True, isHeard=False,
-#                     muscleVoice=voice_sensation4, isExactMuscleVoice=True,
-#                     muscleImage=image_sensation4, isExactMuscleImage=True,
-#                     communicationItem=communicationItem,
-#                     isExactCommunicationItem=isExactCommunicationItem,
-#                     isVoiceFeeling=True,
-#                     isImageFeeling=True,
-#                     isPositiveFeeling=True)
-# 
-#         if isPresentRobot:
-#             self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=self.communicationItem)
-#             self.expect(name='Entering, reply to communicationItem, response 2', isEmpty=False, #isSpoken=True, isHeard=False, isVoiceFeeling=False,
-#                         communicationVoice=voice_sensation4, isExactMuscleVoice=True,
-#                         communicationImage=image_sensation4, isExactMuscleImage=True,
-#                         communicationItem=None)
         
         if isPresentRobot:
             # We expect to get communication to a Item.name and request to consult other robot what to say.
@@ -945,36 +897,10 @@ class CommunicationTestCase(unittest.TestCase, RobotTestCase):
                                                 presence=Sensation.Presence.Present,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='Wall_E_item_sensation_present2 test', dataId=Wall_E_item_sensation_present2.getDataId())
-        #simulate TensorFlowClassification send presence item to MainRobot
-       
-         # do we have Robots present
-#         if isPresentRobot:
-#             communicationItem=Wall_E_item_sensation_present2
-#             isExactCommunicationItem=True
-#         else:
-#             communicationItem=None
-#             isExactCommunicationItem=False
 
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation_present2)
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 2, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 2')
-#         self.expect(name='Present Name 2, change in presentation',  isEmpty=False, #isSpoken=True, isHeard=False,
-#                     muscleVoice=voice_sensation5, isExactMuscleVoice=True,
-#                     muscleImage=image_sensation5, isExactMuscleImage=True,
-#                     communicationItem=communicationItem,
-#                     isExactCommunicationItem=isExactCommunicationItem,
-#                     isVoiceFeeling=True,
-#                     isImageFeeling=True,
-#                     isPositiveFeeling=True)
-#         
-#         if isPresentRobot:
-#             self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=self.communicationItem)
-#             
-#             self.expect(name='Entering, reply to communicationItem, response 2', isEmpty=False, #isSpoken=True, isHeard=False, isVoiceFeeling=False,
-#                         communicationVoice=voice_sensation5, isExactCommunicationVoice=True,
-#                         communicationImage=image_sensation5, isExactCommunicationImage=True,
-#                         communicationItem=None)
-#             
- #####################
+
         if isPresentRobot:
             # We expect to get communication to a Item.name and request to consult other robot what to say.
             self.expect(name='isPresentRobot Name2 present, response 5', isEmpty=False, #isSpoken=True, isHeard=False, isVoiceFeeling=False,
@@ -1064,29 +990,6 @@ class CommunicationTestCase(unittest.TestCase, RobotTestCase):
        
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation_present3)
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 2, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 2')
-#         # TODO Next commented test should be valid Why this?
-#         #self.expect(name='Present NAME2 again basic change in presentation', isEmpty=True, isSpoken=False, isHeard=False, isVoiceFeeling=False)
-#         # TODO We don't get Communication sensations, because limit is exceede
-#         # But Communication implementation will we Changed
-#         self.expect(name='Present NAME2 again basic change in presentation', isEmpty=False, # isSpoken=True, isHeard=False, isVoiceFeeling=False, isImageFeeling=False,
-#                     muscleVoice=voice_sensation6, isExactMuscleVoice=True,
-#                     muscleImage=image_sensation6, isExactMuscleImage=True,
-#                     communicationItem=communicationItem,
-#                     isExactCommunicationItem=isExactCommunicationItem,
-#                     communicationVoice=None,
-#                     communicationImage=None,
-#                     isVoiceFeeling=True,
-#                     isImageFeeling=True,
-#                     isPositiveFeeling=True)
-# 
-#         if isPresentRobot:
-#             self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=self.communicationItem)
-#             
-#             self.expect(name='Entering, reply to communicationItem, response 6', isEmpty=False, #isSpoken=True, isHeard=False, isVoiceFeeling=False,
-#                         communicationVoice=voice_sensation6, isExactCommunicationVoice=True,
-#                         communicationImage=image_sensation6, isExactCommunicationImage=True,
-#                         communicationItem=None)
-###################
 
         if isPresentRobot:
             # We expect to get communication to a Item.name and request to consult other robot what to say.
@@ -1177,7 +1080,7 @@ class CommunicationTestCase(unittest.TestCase, RobotTestCase):
     Sensations outside Robot are in same Robot.mainNames and robotType=Sensation.RobotType.Sense
     so this test is same than without paramweters
     '''    
-    def re_test_2_Presense(self):
+    def test_2_Presense(self):
         self.do_test_Presense(mainNames=self.MAINNAMES, robotType=Sensation.RobotType.Sense)
         
     '''
@@ -1187,7 +1090,7 @@ class CommunicationTestCase(unittest.TestCase, RobotTestCase):
     so this test result should  same than with test where robotType=Sensation.RobotType.Sense,
     because Communication should handle those sensation equally, when Robot.mainNames differ
     '''    
-    def re_test_3_Presense(self):
+    def test_3_Presense(self):
         self.do_test_Presense(mainNames=self.OTHERMAINNAMES, robotType=Sensation.RobotType.Communication)
 
     '''
@@ -1970,7 +1873,7 @@ class CommunicationTestCase(unittest.TestCase, RobotTestCase):
                                            robotType=Sensation.RobotType.Communication)
         
         
-    def re_test_ProcessItemImageVoiceFromSameRobotSenses(self):
+    def test_ProcessItemImageVoiceFromSameRobotSenses(self):
         #responses
         # - come from mainNames=self.OTHERMAINNAMES
         # - are marked as robotType=Sensation.RobotType.Muscle
