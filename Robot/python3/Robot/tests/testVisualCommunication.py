@@ -60,16 +60,6 @@ class VisualCommunicationTestCase(unittest.TestCase):
     ASSOCIATION_INTERVAL=3.0 # in float seconds
     AXON_WAIT = 10           # in int time to conditionally wait to get something into Axon
 
-#     SCORE_1 = 0.1
-#     SCORE_2 = 0.2
-#     SCORE_3 = 0.3
-#     SCORE_4 = 0.4
-#     SCORE_5 = 0.5
-#     SCORE_6 = 0.6
-#     SCORE_7 = 0.7
-#     SCORE_8 = 0.8
-#     NAME='Wall-E'
-#     NAME2='Eva'
     TECNICAL_NAME='TechnicalName'
     VOICEDATA1=b'0x000x00'
     VOICEDATA2=b'0x000x000x01'
@@ -587,51 +577,52 @@ class VisualCommunicationTestCase(unittest.TestCase):
         # not too far away in history, so sensation will not be deleted
         self.history_sensationTime = systemTime.time() -2*max(VisualCommunicationTestCase.ASSOCIATION_INTERVAL, Communication.COMMUNICATION_INTERVAL)
 
-        self.stopSensation = self.visualCommunication.createSensation(memoryType=Sensation.MemoryType.Working,
-                                            sensationType=Sensation.SensationType.Stop,
-                                            robotType=Sensation.RobotType.Sense,
-                                            locations=self.getLocations())
+#         self.stopSensation = self.visualCommunication.createSensation(memoryType=Sensation.MemoryType.Working,
+#                                             sensationType=Sensation.SensationType.Stop,
+#                                             robotType=Sensation.RobotType.Sense,
+#                                             locations=self.getLocations())
 
-       # simulate item and image are connected each other with TensorflowClassifivation
-        # Item is in LongTerm memoryType
-        #systemTime.sleep(0.1)  # wait to get really even id
-        self.Wall_E_item_sensation = self.visualCommunication.createSensation(time=self.history_sensationTime,
-                                                      memoryType=Sensation.MemoryType.Working,
-                                                      sensationType=Sensation.SensationType.Item,
-                                                      robotType=Sensation.RobotType.Sense,
-                                                      name=VisualCommunicationTestCase.NAME,
-                                                      score=VisualCommunicationTestCase.SCORE_1,
-                                                      presence = Sensation.Presence.Present,
-                                                      locations=self.getLocations())
-        # Image is in LongTerm memoryType, it comes from TensorFlowClassification and is crop of original big image
-        #systemTime.sleep(0.1)  # wait to get really even id
-        self.Wall_E_image_sensation = self.visualCommunication.createSensation(time=self.history_sensationTime,
-                                                       memoryType=Sensation.MemoryType.Working,
-                                                       sensationType=Sensation.SensationType.Image,
-                                                       robotType=Sensation.RobotType.Sense,
-                                                       locations=self.getLocations())
-        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation)
-        # set association also to history
-        self.Wall_E_item_sensation.getAssociation(sensation=self.Wall_E_image_sensation).setTime(time=self.history_sensationTime)
-        
-        # these connected each other
-        self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 1)
-        self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 1)
-        
-        #systemTime.sleep(0.1)  # wait to get really even id
-        self.Wall_E_voice_sensation = self.visualCommunication.createSensation(time=self.history_sensationTime,
-                                                       memoryType=Sensation.MemoryType.Sensory,
-                                                       sensationType=Sensation.SensationType.Voice,
-                                                       robotType=Sensation.RobotType.Sense,
-                                                       data="1",
-                                                       locations=self.getLocations())
-        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_voice_sensation)
-        self.Wall_E_image_sensation.associate(sensation=self.Wall_E_voice_sensation)
-        # these connected each other
-        self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 2)
-        self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 2)
-        self.assertEqual(len(self.Wall_E_voice_sensation.getAssociations()), 2)
-
+#######################################
+#        # simulate item and image are connected each other with TensorflowClassifivation
+#         # Item is in LongTerm memoryType
+#         #systemTime.sleep(0.1)  # wait to get really even id
+#         self.Wall_E_item_sensation = self.visualCommunication.createSensation(time=self.history_sensationTime,
+#                                                       memoryType=Sensation.MemoryType.Working,
+#                                                       sensationType=Sensation.SensationType.Item,
+#                                                       robotType=Sensation.RobotType.Sense,
+#                                                       name=VisualCommunicationTestCase.NAME,
+#                                                       score=VisualCommunicationTestCase.SCORE_1,
+#                                                       presence = Sensation.Presence.Present,
+#                                                       locations=self.getLocations())
+#         # Image is in LongTerm memoryType, it comes from TensorFlowClassification and is crop of original big image
+#         #systemTime.sleep(0.1)  # wait to get really even id
+#         self.Wall_E_image_sensation = self.visualCommunication.createSensation(time=self.history_sensationTime,
+#                                                        memoryType=Sensation.MemoryType.Working,
+#                                                        sensationType=Sensation.SensationType.Image,
+#                                                        robotType=Sensation.RobotType.Sense,
+#                                                        locations=self.getLocations())
+#         self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation)
+#         # set association also to history
+#         self.Wall_E_item_sensation.getAssociation(sensation=self.Wall_E_image_sensation).setTime(time=self.history_sensationTime)
+#         
+#         # these connected each other
+#         self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 1)
+#         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 1)
+#         
+#         #systemTime.sleep(0.1)  # wait to get really even id
+#         self.Wall_E_voice_sensation = self.visualCommunication.createSensation(time=self.history_sensationTime,
+#                                                        memoryType=Sensation.MemoryType.Sensory,
+#                                                        sensationType=Sensation.SensationType.Voice,
+#                                                        robotType=Sensation.RobotType.Sense,
+#                                                        data="1",
+#                                                        locations=self.getLocations())
+#         self.Wall_E_item_sensation.associate(sensation=self.Wall_E_voice_sensation)
+#         self.Wall_E_image_sensation.associate(sensation=self.Wall_E_voice_sensation)
+#         # these connected each other
+#         self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 2)
+#         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 2)
+#         self.assertEqual(len(self.Wall_E_voice_sensation.getAssociations()), 2)
+####################################################
        
          
 #         self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 2)
@@ -671,7 +662,7 @@ class VisualCommunicationTestCase(unittest.TestCase):
                                                     locations=self.getLocations())
         self.addToSensationDirectory(name='self.technicalSensation', dataId=self.technicalSensation.getDataId(), id=self.technicalSensation.getId())
         self.printSensationNameById(note='self.technicalSensation test', dataId=self.technicalSensation.getDataId())
-        self.assertEqual(len(self.visualCommunication.getMemory().getAllPresentItemSensations()), 1, 'len(self.visualCommunication.getMemory().getAllPresentItemSensations() should be 1')
+        self.assertEqual(len(self.visualCommunication.getMemory().getAllPresentItemSensations()), 0, 'len(self.visualCommunication.getMemory().getAllPresentItemSensations() should be 0')
 
         # remember new previous
         self.previousGotMuscleVoice = None
@@ -816,7 +807,7 @@ class VisualCommunicationTestCase(unittest.TestCase):
             systemTime.sleep(1)
          
         del self.visualCommunication
-        del self.Wall_E_voice_sensation
+#         del self.Wall_E_voice_sensation
 # TODO check these
 #         del self.Wall_E_image_sensation_2
 #         del self.Wall_E_image_sensation
@@ -928,18 +919,18 @@ class VisualCommunicationTestCase(unittest.TestCase):
 
         # create Robot sensation
         # don't We test lining process so there should be this one in Axon
-#         self.assertFalse(len(self.visualCommunication.getMemory().getAllPresentRobotSensations()) > 0)
-#         self.assertFalse(self.visualCommunication.getMemory().hasRobotsPresence())
-#         roboSensation=self.createSensation(associations=[],
-#                                            robotType=Sensation.RobotType.Communication,
-#                                            sensationName='roboSensation',
-#                                            robot=self.visualCommunication,
-#                                            sensationType = Sensation.SensationType.Robot,
-#                                            memoryType = Sensation.MemoryType.Working,
-#                                            name = self.visualCommunication.getName(),
-#                                            presence = Sensation.Presence.Present,
-#                                            locations = self.getLocations(),
-#                                            mainNames=self.OTHERMAINNAMES), # Should haver other mainnames than this Robot to get robot presence
+        self.assertFalse(len(self.visualCommunication.getMemory().getAllPresentRobotSensations()) > 0)
+        self.assertFalse(self.visualCommunication.getMemory().hasRobotsPresence())
+        roboSensation=self.createSensation(associations=[],
+                                           robotType=Sensation.RobotType.Communication,
+                                           sensationName='roboSensation',
+                                           robot=self.visualCommunication,
+                                           sensationType = Sensation.SensationType.Robot,
+                                           memoryType = Sensation.MemoryType.Working,
+                                           name = self.visualCommunication.getName(),
+                                           presence = Sensation.Presence.Present,
+                                           locations = self.getLocations(),
+                                           mainNames=self.OTHERMAINNAMES), # Should haver other mainnames than this Robot to get robot presence
         
         self.assertTrue(len(self.visualCommunication.getMemory().getAllPresentRobotSensations()) > 0)
         self.assertTrue(self.visualCommunication.getMemory().hasRobotsPresence())
@@ -950,7 +941,7 @@ class VisualCommunicationTestCase(unittest.TestCase):
     TensorfloClöassafication produces
     Item.name Working Out
     '''    
-    def test_PresenseItemAbsentRobot(self):
+    def re_test_PresenseItemAbsentRobot(self):
         self.assertEqual(self.visualCommunication.getAxon().empty(), True, 'Axon should be empty at the beginning of test_VisualCommunication\nCannot test properly this!')
         self.visualCommunication.start()
         
@@ -1100,8 +1091,8 @@ class VisualCommunicationTestCase(unittest.TestCase):
         self.visualCommunication.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation_entering2)
         self.expect(isWait=True,
                     name='Entering, response 1', isEmpty=False, #isSpoken=True, isHeard=False, isVoiceFeeling=False,
-                    muscleImage=image_sensation1, isExactMuscleImage=True,
-                    muscleVoice=voice_sensation1, isExactMuscleVoice=True,
+                    muscleImage=image_sensation1, isExactMuscleImage=False,
+                    muscleVoice=voice_sensation1, isExactMuscleVoice=False,
                     communicationItem=communicationItem, isExactCommunicationItem=isExactCommunicationItem)
         
 
@@ -1186,8 +1177,8 @@ class VisualCommunicationTestCase(unittest.TestCase):
         self.assertEqual(len(self.visualCommunication.getMemory().getAllPresentItemSensations()), 1, 'len(self.visualCommunication.getMemory().getAllPresentItemSensations() should be 1')
         self.expect(isWait=True,
                     name='Present, response', isEmpty=False,
-                    muscleImage=image_sensation2, isExactMuscleImage=True,
-                    muscleVoice=voice_sensation2, isExactMuscleVoice=True,
+                    muscleImage=image_sensation2, isExactMuscleImage=False,
+                    muscleVoice=voice_sensation2, isExactMuscleVoice=False,
                     isVoiceFeeling=True,
                     isImageFeeling=True,
                     isPositiveFeeling=True,
@@ -1476,8 +1467,8 @@ class VisualCommunicationTestCase(unittest.TestCase):
             
             self.expect(isWait=True,
                         name='Entering, reply to communicationItem, response 2', isEmpty=False, #isSpoken=True, isHeard=False, isVoiceFeeling=False,
-                        communicationVoice=voice_sensation5, isExactCommunicationVoice=True,
-                        communicationImage=image_sensation5, isExactCommunicationImage=True,
+                        communicationVoice=voice_sensation5, isExactCommunicationVoice=False,
+                        communicationImage=image_sensation5, isExactCommunicationImage=False,
                         communicationItem=None)
 
         print('\n NAME2 current Present again {}'.format(VisualCommunicationTestCase.NAME2))
@@ -1546,8 +1537,8 @@ class VisualCommunicationTestCase(unittest.TestCase):
         # But Communication implementation will we Changed
         self.expect(isWait=True,
                     name='Present NAME2 again basic change in presentation', isEmpty=False, # isSpoken=True, isHeard=False, isVoiceFeeling=False, isImageFeeling=False,
-                    muscleVoice=voice_sensation6, isExactMuscleVoice=True,
-                    muscleImage=image_sensation6, isExactMuscleImage=True,
+                    muscleVoice=voice_sensation6, isExactMuscleVoice=False,
+                    muscleImage=image_sensation6, isExactMuscleImage=False,
                     communicationItem=communicationItem,
                     isExactCommunicationItem=isExactCommunicationItem,
                     communicationVoice=None,
@@ -1561,8 +1552,8 @@ class VisualCommunicationTestCase(unittest.TestCase):
             
             self.expect(isWait=True,
                         name='Entering, reply to communicationItem, response 6', isEmpty=False, #isSpoken=True, isHeard=False, isVoiceFeeling=False,
-                        communicationVoice=voice_sensation6, isExactCommunicationVoice=True,
-                        communicationImage=image_sensation6, isExactCommunicationImage=True,
+                        communicationVoice=voice_sensation6, isExactCommunicationVoice=False,
+                        communicationImage=image_sensation6, isExactCommunicationImage=False,
                         communicationItem=None)
         
         print('\n NAME2 current Absent {}'.format(VisualCommunicationTestCase.NAME2))

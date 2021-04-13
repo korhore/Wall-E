@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 08.04.2021
+Updated on 13.04.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -109,7 +109,7 @@ class Communication(Robot):
                      robot,
                      location=None):
             self.robot=robot
-            self.location=location  # single location, NOT array
+            self.location=location    # local single location, NOT array
                                     
             self.lastConversationEndTime = None
             self._isConversationOn = False
@@ -713,20 +713,17 @@ class Communication(Robot):
                        location = location,
                        config = config)
                 
-        self.itemConversations={}
-        self.robotConversations={}
+        self.robotConversation = Communication.ConversationWithRobot(robot=self)
+        self.itemConversations = {}
+
         if len(self.getLocations()) > 0:
             for location in self.getLocations():
                 self.itemConversations[location] =\
                     Communication.ConversationWithItem(robot=self, location=location)
-                self.robotConversations[location] =\
-                    Communication.ConversationWithRobot(robot=self, location=location)
         else:
             location=''
             self.itemConversations[location] =\
                 Communication.ConversationWithItem(robot=self, location=location)
-            self.robotConversations[location] =\
-                Communication.ConversationWithRobot(robot=self, location=location)
 
         
     '''
@@ -773,13 +770,12 @@ class Communication(Robot):
         # don't communicate with history Sensation Items, we are communicating Item.name just seen.
         #self.log(logLevel=Robot.LogLevel.Normal, logStr="process: systemTime.time() " + str(systemTime.time()) + ' -  sensation.getTime() ' + str(sensation.getTime()) + ' < Communication.COMMUNICATION_INTERVAL ' + str(Communication.COMMUNICATION_INTERVAL))
         self.log(logLevel=Robot.LogLevel.Normal, logStr="process: " + str(systemTime.time() - sensation.getTime()) + ' < ' + str(Communication.COMMUNICATION_INTERVAL))
+        handledSensation = False
         if len(sensation.getLocations()) == 0:
             if '' in self.itemConversations:
                 self.itemConversations[''].process(transferDirection=transferDirection, sensation=sensation)
-            if '' in self.robotConversations:
-                self.robotConversations[''].process(transferDirection=transferDirection, sensation=sensation)
+                handledSensation = True
         else:
-            handledSensation = False
             if (systemTime.time() - sensation.getTime()) < Communication.COMMUNICATION_INTERVAL:
                 if sensation.getRobotType() == Sensation.RobotType.Sense and\
                     (sensation.getSensationType() == Sensation.SensationType.Item or sensation.getSensationType() == Sensation.SensationType.Voice):
@@ -788,13 +784,12 @@ class Communication(Robot):
                             self.itemConversations[location].process(transferDirection=transferDirection, sensation=sensation)
                             handledSensation = True
                 if sensation.getRobotType() == Sensation.RobotType.Communication and\
-                  sensation.getSensationType() == Sensation.SensationType.Item:
-                    for location in sensation.getLocations():
-                        if location in self.robotConversations:
-                            self.robotConversations[location].process(transferDirection=transferDirection, sensation=sensation)
-                            handledSensation = True
-            if not handledSensation:
-                self.log(logLevel=Robot.LogLevel.Normal, logStr='process: could not process this Sensation {}'.format(sensation.toDebugStr()))
+                   sensation.getSensationType() == Sensation.SensationType.Item and\
+                   self.getMemory().hasRobotsPresence():
+                        self.robotConversation.process(transferDirection=transferDirection, sensation=sensation)
+                        handledSensation = True
+        if not handledSensation:
+            self.log(logLevel=Robot.LogLevel.Normal, logStr='process: could not process this Sensation {}'.format(sensation.toDebugStr()))
         sensation.detach(robot=self)    # detach processed sensation
                 
 
