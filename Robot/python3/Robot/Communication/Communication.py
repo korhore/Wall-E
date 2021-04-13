@@ -411,7 +411,7 @@ class Communication(Robot):
                         self.handleGotFeedback(positiveFeeling=False, negativeFeeling=True)
                         self.endConversation()
                         
-                # if a Spoken Voice voice or image TODO Item can not show images
+                # if a Spoken voice Note Item.name == person  can not show us images, Robots can, but they consult, not communycy
                 elif sensation.getSensationType() == Sensation.SensationType.Voice and\
                      sensation.getMemoryType() == Sensation.MemoryType.Sensory and\
                      sensation.getRobotType() == Sensation.RobotType.Sense:

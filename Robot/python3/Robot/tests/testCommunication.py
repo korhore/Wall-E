@@ -1,6 +1,6 @@
 '''
 Created on 21.06.2019
-Updated on 12.04.2021
+Updated on 13.04.2021
 @author: reijo.korhonen@gmail.com
 
 test Association class
@@ -17,8 +17,6 @@ from Sensation import Sensation
 # set Communication.COMMUNICATION_INTERVAL smaller,
 # so test runs faster, when no waits normal time 30s, when we don't get
 # response from person
-# TODO enamle 1.0 after test is fine
-#TEST_COMMUNICATION_INTERVAL=300.0 
 TEST_COMMUNICATION_INTERVAL=1.0 
 from Communication.Communication import Communication
 Communication.COMMUNICATION_INTERVAL = TEST_COMMUNICATION_INTERVAL
@@ -36,227 +34,6 @@ class CommunicationTestCase(unittest.TestCase, RobotTestCase):
         - voice
     '''
     
-#     ASSOCIATION_INTERVAL=3.0 # in float seconds
-#     AXON_WAIT = 10           # in int time to conditionally wait to get something into Axon
-# 
-#     SCORE_1 = 0.1
-#     SCORE_2 = 0.2
-#     SCORE_3 = 0.3
-#     SCORE_4 = 0.4
-#     SCORE_5 = 0.5
-#     SCORE_6 = 0.6
-#     SCORE_7 = 0.7
-#     SCORE_8 = 0.8
-#     NAME='Wall-E'
-#     NAME2='Eva'
-#     TECNICAL_NAME='TechnicalName'
-#     VOICEDATA1=b'0x000x00'
-#     VOICEDATA2=b'0x000x000x01'
-#     VOICEDATA3=b'0x000x00x01x01'
-#     VOICEDATA4=b'0x000x00x01x01x01'
-#     VOICEDATA5=b'0x000x00x01x01x01x01'
-#     VOICEDATA6=b'0x000x00x01x01x01x01x01'
-#     VOICEDATA7=b'0x000x00x01x01x01x01x01x01'
-#     VOICEDATA8=b'0x000x00x01x01x01x01x01x01x01'
-#     VOICEDATA9=b'0x000x00x01x01x01x01x01x01x01x01'
-#     BEST_FEELING = Sensation.Feeling.Happy
-#     BETTER_FEELING = Sensation.Feeling.Good
-#     NORMAL_FEELING = Sensation.Feeling.Normal
-#     NEUTRAL_FEELING = Sensation.Feeling.Neutral
-#     
-#     MAINNAMES = ["CommunicationTestCaseMainName"]
-#     OTHERMAINNAMES = ["OTHER_CommunicationTestCaseMainName"]
-#     
-#     LOCATIONS_1 =   ['testLocation1']
-#     LOCATIONS_2 =   ['testLocation2']
-#     LOCATIONS_1_2 = ['testLocation1','testLocation2']
-# 
-#     
-#     SensationDirectory=[]
-#     SensationDataDirectory=[]
-#    
-#     '''
-#     Robot modeling
-#     '''
-#     
-#     def getAxon(self):
-#         #print('CommunicationTestCase getAxon')
-#         return self.axon
-#     def getId(self):
-#         #print('CommunicationTestCase getId')
-#         return 1.1
-#     def getName(self):
-#         #print('CommunicationTestCase getName')
-#         return "CommunicationTestCaseRobot"
-#  
-#     '''
-#     get test locations
-#     NOTE Communication is now location based.
-#          We use now only one location in test
-#          and test Communication.ConversationWithItem subclass
-#          functionality. This subclass serves one location.
-#          So test is same than in previous versions, where
-#          Communication produced Communication Sensations for
-#          all  locations.
-#          
-#          Lets test how our new Communication strategy works.
-#     
-#     '''   
-#     def getLocations(self):
-#         return self.LOCATIONS_1
-#     def setRobotLocations(self, robot, locations):
-#         robot.locations = locations
-#         robot.uplocations = locations
-#         robot.downlocations = locations
-#     
-#     def setMainNames(self, mainNames):
-#         self.mainNames = mainNames
-#     def getMainNames(self):
-#         return self.mainNames
-#     def setRobotMainNames(self, robot, mainNames):
-#         robot.mainNames = mainNames
-# 
-#     def getParent(self):
-#         return None
-#     
-#     def log(self, logStr, logLevel=None):
-#         if hasattr(self, 'communication'):
-#             if self.communication:
-#                 if logLevel == None:
-#                     logLevel = self.communication.LogLevel.Normal
-#                 if logLevel <= self.communication.getLogLevel():
-#                      print(self.communication.getName() + ":" + str( self.communication.config.level) + ":" + Sensation.Modes[self.communication.mode] + ": " + logStr)
-#     
-#     def logAxon(self):
-#         self.log("{} Axon with queue length {} full {}".format(self.getName(), self.getAxon().queue.qsize(), self.getAxon().queue.full()))
-#         
-#     '''
-#     Helper methods
-#     '''
-#         
-#     '''
-#     Sensation constructor for test purposes
-#     
-#     Parameters are exactly same than in default constructor
-#     but some parameters are added to do the job is added
-#     
-#     robot           robot to do the job
-#     sensationName   name for this Sensation, so we can log created sensation
-#                     so we can tell content of Robot's memory and tell
-#                     if something goes wrong in tested Communication Rpbot's
-#                     expected logic
-#                     
-#     sensationNames and created sensations are added to SensationDirectory
-#     '''
-#        
-#     def createSensation(self,
-#                  robot,
-#                  sensationName,
-#                  log=True,
-#                  associations = None,
-#                  sensation=None,
-#                  bytes=None,
-#                  id=None,
-#                  time=None,
-#                  receivedFrom=[],
-#                  
-#                   # base field are by default None, so we know what fields are given and what not
-#                  sensationType = None,
-#                  memoryType = None,
-#                  robotType = None,
-#                  locations =  None,
-#                  mainNames = None,
-#                  leftPower = None, rightPower = None,                        # Walle motors state
-#                  azimuth = None,                                             # Walle robotType relative to magnetic north pole
-#                  x=None, y=None, z=None, radius=None,                        # location and acceleration of Robot
-#                  hearDirection = None,                                       # sound robotType heard by Walle, relative to Walle
-#                  observationDirection = None,observationDistance = None,     # Walle's observation of something, relative to Walle
-#                  filePath = None,
-#                  data = None,                                                # ALSA voice is string (uncompressed voice information)
-#                  image = None,                                               # Image internal representation is PIl.Image 
-#                  calibrateSensationType = None,
-#                  capabilities = None,                                        # capabilitis of sensorys, robotType what way sensation go
-#                  name = None,                                                # name of Item
-#                  score = None,                                               # used at least with item to define how good was the detection 0.0 - 1.0
-#                  presence = None,                                            # presence of Item
-#                  kind = None,                                                # kind (for instance voice)
-#                  firstAssociateSensation = None,                             # associated sensation first side
-#                  otherAssociateSensation = None,                             # associated Sensation other side
-#                  feeling = None,                                             # feeling of sensation or association
-#                  positiveFeeling = None,                                     # change association feeling to more positive robotType if possible
-#                  negativeFeeling = None):                                    # change association feeling to more negative robotType if possible
-#         
-#         sensation = robot.createSensation(
-#                  log=log,
-#                  robot=self,
-#                  associations = associations,
-#                  sensation=sensation,
-#                  bytes=bytes,
-#                  id=id,
-#                  time=time,
-#                  receivedFrom=receivedFrom,
-#                  sensationType = sensationType,
-#                  memoryType=memoryType,
-#                  robotType=robotType,
-#                  #robot=robot,
-#                  locations=locations,
-#                  mainNames = mainNames, #self.getMainNames(),
-#                  leftPower = leftPower, rightPower = rightPower,
-#                  azimuth = azimuth,
-#                  x=x, y = y, z = z, radius=radius,
-#                  hearDirection = hearDirection,
-#                  observationDirection = observationDirection, observationDistance = observationDistance,
-#                  filePath = filePath,
-#                  data = data,
-#                  image = image,
-#                  calibrateSensationType = calibrateSensationType,
-#                  capabilities = capabilities,
-#                  name = name,
-#                  score = score,
-#                  presence = presence,
-#                  kind = kind,
-#                  firstAssociateSensation = firstAssociateSensation,
-#                  otherAssociateSensation = otherAssociateSensation,
-#                  feeling = feeling,
-#                  positiveFeeling=positiveFeeling,
-#                  negativeFeeling=negativeFeeling)
-#             
-#         # if we get mainNames. overwrite Robots given mainNames
-#         if mainNames != None and len(mainNames) > 0:
-#             sensation.setMainNames(mainNames)
-#         # associate to self.technicalSensation so all created Sensations
-#         # can be found associated to self.technicalSensation.name.
-#         sensation.associate(sensation=self.technicalSensation, feeling=feeling)
-# 
-#         # add sensation to directory, so we can find it's name by ids
-#         self.addToSensationDirectory(name=sensationName, dataId=sensation.getDataId(), id=sensation.getId())
-#         sensation.detach(robot=robot)
-#         return sensation
-#         
-# 
-# 
-#         
-#     def addToSensationDirectory(self, name, dataId, id=None):
-#         if id != None:
-#             self.SensationDirectory.append((id, name))
-#         self.SensationDataDirectory.append((dataId, name))
-#        
-#     def getSensationNameById(self, note, dataId=None,id=None):
-#         assert(dataId is not None or id is not None)
-#         if dataId is not None:
-#             for did, name in self.SensationDataDirectory:
-#                 if did == dataId:
-#                     return '{} | dataId {} | name: {}'.format(note, dataId, name)
-#         if id is not None:
-#             for iid, name in self.SensationDataDirectory:
-#                 if iid == id:
-#                     return '{} | dataId {} | name: {}'.format(note, id, name)
-#         if dataId is not None:
-#             return'{} | dataId {} | was not found'.format(note, dataId)
-#         return'{} | id {} | was not found'.format(note, id)
-#         
-#     def printSensationNameById(self, note, dataId=None,id=None):
-#         print('\n{}\n'.format(self.getSensationNameById(note=note, dataId=dataId, id=id)))
 
 
     '''
@@ -271,15 +48,6 @@ class CommunicationTestCase(unittest.TestCase, RobotTestCase):
         Robot.mainRobotInstance = self
         self.mainNames = self.MAINNAMES
         self.axon = Axon(robot=self)
-
-        # other Robot
-        self.sense = Robot(             mainRobot=self,
-                                        parent=self,
-                                        instanceName='Sense',
-                                        instanceType= Sensation.InstanceType.SubInstance,
-                                         level=2)
-        self.setRobotMainNames(self.sense, self.OTHERMAINNAMES)
-        self.setRobotLocations(self.sense, self.getLocations)
 
         # Robot to test        
         self.communication = Communication(mainRobot=self,
@@ -303,16 +71,6 @@ class CommunicationTestCase(unittest.TestCase, RobotTestCase):
             self.communication.itemConversations['']=Communication.ConversationWithItem(robot=self.communication, location='')
             self.communication.robotConversations['']=Communication.ConversationWithRobot(robot=self.communication, location='')
             
-        # Test is now broken with limited robot responses, which is set to
-        # ROBOT_RESPONSE_MAX = 6
-        ROBOT_RESPONSE_MAX = 100
-        self.communication.ROBOT_RESPONSE_MAX = ROBOT_RESPONSE_MAX
-        for location in self.communication.getLocations():
-            self.communication.itemConversations[location].ROBOT_RESPONSE_MAX = ROBOT_RESPONSE_MAX
-        
-        
-#         # remember original MainNames
-#         self.originalMainNames = self.communication.getMainNames()
         # should get Identity for proper functionality. Use Wall-E Identity in test
         self.communication.imageSensations, self.communication.voiceSensations = \
             self.communication.getIdentitySensations(name=CommunicationTestCase.NAME)
@@ -320,84 +78,18 @@ class CommunicationTestCase(unittest.TestCase, RobotTestCase):
         
         self.doSetUp(robot=self.communication)
         
-       
-        # test setup   
-        # define time in history, that is different than in all tests
-        # not too far away in history, so sensation will not be deleted
-#         self.history_sensationTime = systemTime.time() -2*max(CommunicationTestCase.ASSOCIATION_INTERVAL, Communication.COMMUNICATION_INTERVAL)
-        
-        
-#         # name=CommunicationTestCase.NAME
-#         # Item where all test created and self.communication seen Sensations are associated
-#         # WE can't use self.createSensation yet
-#         # technical sensation should be harmless
-#         
-#         self.technicalSensation = self.communication.createSensation(
-#                                                     robot = self.communication,
-#                                                     time=self.history_sensationTime,
-#                                                     memoryType=Sensation.MemoryType.Working,
-#                                                     sensationType=Sensation.SensationType.Item,
-#                                                     robotType=Sensation.RobotType.Sense,
-#                                                     name=CommunicationTestCase.TECNICAL_NAME,
-#                                                     score=CommunicationTestCase.SCORE_1,
-#                                                     presence=Sensation.Presence.Absent,
-#                                                     locations=self.getLocations())
-#         self.addToSensationDirectory(name='self.technicalSensation', dataId=self.technicalSensation.getDataId(), id=self.technicalSensation.getId())
-#         self.printSensationNameById(note='self.technicalSensation test', dataId=self.technicalSensation.getDataId())
-#         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 0, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 0')
-# 
-#         # remember new previous
-#         self.previousGotMuscleVoice = None
-#         self.previousGotMuscleImage = None
-#         self.previousGotCommunicationVoice = None
-#         self.previousGotCommunicationImage = None
-#         
-#         # remember last got
-#         self.muscleVoice = None
-#         self.communicationVoice = None
-#         self.muscleImage = None
-#         self.communicationImage = None
-#         self.communicationItem = None
-        
- 
-        
-    '''
-    Clean data directory from bi9nary files files.
-    Test needs this so known sensations are only created
-    '''  
-    def CleanDataDirectory(self):
-        # load sensation data from files
-        print('CleanDataDirectory')
-        if os.path.exists(Sensation.DATADIR):
-            try:
-                for filename in os.listdir(Sensation.DATADIR):
-                    if filename.endswith('.'+Sensation.BINARY_FORMAT):
-                        filepath = os.path.join(Sensation.DATADIR, filename)
-                        try:
-                            os.remove(filepath)
-                        except Exception as e:
-                            print('os.remove(' + filepath + ') error ' + str(e), logLevel=Memory.MemoryLogLevel.Normal)
-            except Exception as e:
-                    print('os.listdir error ' + str(e), logLevel=Memory.MemoryLogLevel.Normal)
-        
 
     def tearDown(self):
         print('\ntearDown')       
-        del self.communication
-        del self.sense
-        #del self.Wall_E_item_sensation
-        del self.technicalSensation
-        
-#         del self.Eva_item_sensation
-#         del self.Eva_voice_sensation
-#         del self.Eva_image_sensation
+        self.doTearDown()
 
+        del self.communication
+        
     '''
-    TensorfloClöassafication produces
+    TensorfloClassafication produces
     Item.name Working Out
     
-    TODO this test is broken
-    '''    
+   '''    
     def test_PresenseItemPresentRobot(self):
         # create Robot sensation
         self.assertFalse(len(self.communication.getMemory().getAllPresentRobotSensations()) > 0)
@@ -1113,8 +805,6 @@ class CommunicationTestCase(unittest.TestCase, RobotTestCase):
             print("Present name {}".format(sensation.getName()))        
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 0, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 0')
       
-        self.setRobotMainNames(self.sense, mainNames)
-                
         history_sensationTime = systemTime.time() -2*max(CommunicationTestCase.ASSOCIATION_INTERVAL, Communication.COMMUNICATION_INTERVAL)
 
         self.assertEqual(self.getAxon().empty(), True, 'Axon should be empty at the beginning of test_Presense\nCannot test properly this!')
@@ -1230,7 +920,10 @@ class CommunicationTestCase(unittest.TestCase, RobotTestCase):
         self.expect(name='voice_sensation1', isEmpty=True)
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 1, 'len(self.communication.getMemory()..getAllPresentItemSensations() should be 0')
         
-        
+ 
+        # TODO We don't get SensationType.Image from Item.name (==person)
+        # so this test is very obsolete
+        # remove test? 
         image_sensation1 = self.createSensation(
                                                 sensationName='image_sensation1',
                                                 robot=self.communication,
@@ -1241,14 +934,14 @@ class CommunicationTestCase(unittest.TestCase, RobotTestCase):
                                                 locations=self.getLocations())
         self.printSensationNameById(note='image_sensation1 test', dataId=image_sensation1.getDataId())
         self.assertEqual(len(item_sensation1.getAssociations()), 3)
-        self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 1, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 0')
+        self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 1, 'len(self.communication.getMemory().getAllPresentItemSensations() should be 1')
 
         self.communication.process(transferDirection=Sensation.TransferDirection.Down, sensation=image_sensation1)
         # TODO enable and reimplement next 3 lines, because 
-        # heardDataIds is location based now       
-#         self.assertEqual(len(self.communication.heardDataIds), 2)
-#         self.assertEqual(self.communication.heardDataIds[0], voice_sensation1.getDataId())
-#         self.assertEqual(self.communication.heardDataIds[1], image_sensation1.getDataId())
+        # heardDataIds is location based now
+        if robotType == Sensation.RobotType.Sense:   
+            self.assertEqual(len(self.communication.itemConversations[self.getLocations()[0]].heardDataIds), 1, 'self.getLocations(self.communication.itemConversations[{}].heardDataIds)'.format(self.getLocations()))
+            self.assertEqual(self.communication.itemConversations[self.getLocations()[0]].heardDataIds[0], voice_sensation1.getDataId())
         # We get Voice, if Communication can respond but it can't, we hear it in this discussion
         self.expect(name='image_sensation1', isEmpty=True)
         self.assertEqual(len(self.communication.getMemory().getAllPresentItemSensations()), 1, 'len(self.communication.getMemory()..getAllPresentItemSensations() should be 0')
