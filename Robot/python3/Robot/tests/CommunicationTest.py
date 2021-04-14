@@ -3,15 +3,18 @@ Created on 14.04.2021
 Updated on 14.04.2021
 @author: reijo.korhonen@gmail.com
 
-test Communication or VisualCommunication classes
+test Communication or Visualommunication classes
 This class includeas al tests for these classes.
 This file can't be run directly, bus is a library for tests.
 Test methods take as a parameter Robot instance to test.
 
-Test runner class inherits this class and uses these methods to implement
+Tes runner class inherits this class and uses these methods to implement
 tests normal way with unittest. This class is used to in
 testCommunication.py and test VisualCommunication.py, where unittest
 frameworks.
+
+python3 -m unittest tests/testCommunication.py
+
 
 '''
 import time as systemTime
