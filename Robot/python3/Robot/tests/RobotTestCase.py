@@ -601,5 +601,6 @@ class RobotTestCase():
             self.log(logStr='doTearDown self.getAxon().get(robot=self) sensation = {}'.format(sensation.toDebugStr()))
          
         del self.axon
+        del self.technicalSensation
         
  
