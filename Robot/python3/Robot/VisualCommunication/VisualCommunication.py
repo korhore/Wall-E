@@ -217,7 +217,7 @@ class VisualCommunication(Robot):
 #         # TODO should we release sensation, when we delete it from UI
 #         # that way we should attach also all sensations we get from associations
 #         # maybe for readonly logic this is not a problem
-#         sensation.detach(robot=self) # finally release played sensation
+        sensation.detach(robot=self) # finally release played sensation
 
  
     '''
