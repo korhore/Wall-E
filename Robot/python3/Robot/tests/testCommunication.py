@@ -21,20 +21,10 @@ TEST_COMMUNICATION_INTERVAL=1.0
 from Communication.Communication import Communication
 Communication.COMMUNICATION_INTERVAL = TEST_COMMUNICATION_INTERVAL
 
-from Association.Association import Association
-from Axon import Axon
-from Robot import Robot
 
 from CommunicationTest import CommunicationTest
 
 class CommunicationTestCase(unittest.TestCase, CommunicationTest):
-    ''' create situation, where we have found
-        - Wall_E_item
-        - Image
-        - voice
-    '''
-    
-
 
     '''
     Testing    
@@ -90,10 +80,9 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
     TensorfloClassification produces
     Item.name Working Out
     Sensations outside Robot are in same Robot.mainNames and robotType=Sensation.RobotType.Sense
-    so this test is same than without paramweters
+    so this test is same than without parameters
     '''    
     def test_2_Presense(self):
-        #self.do_test_Presense(mainNames=self.MAINNAMES, robotType=Sensation.RobotType.Sense)
         self.doTest_2_Presense(robot=self.communication, isWait=False)
         
     '''
@@ -104,20 +93,16 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
     because Communication should handle those sensation equally, when Robot.mainNames differ
     '''    
     def test_3_Presense(self):
-        #self.do_test_Presense(mainNames=self.OTHERMAINNAMES, robotType=Sensation.RobotType.Communication)
         self.doTest_3_Presense(robot=self.communication, isWait=False)
 
         
+    '''
+    Voice comes from this Robots Sense-Robot (Microphone)
+    '''    
         
     def test_ProcessItemImageVoiceFromSameRobotSenses(self):
-        #responses
-        # - come from mainNames=self.OTHERMAINNAMES
-        # - are marked as robotType=Sensation.RobotType.Muscle
-        #
-        # but Communication should handle these responses as person said,
-        # Microphone detects as Sense type Voices in same mainNames
         print('\ntest_ProcessItemImageVoiceFromSameRobotSenses\n')
-        self.doTest_ProcessItemImageVoiceFromSameRobotSenses(robot = self.communication, isWait = True)
+        self.doTest_ProcessItemImageVoiceFromSameRobotSenses(robot = self.communication, isWait = False)
         
         
 if __name__ == '__main__':

@@ -122,6 +122,22 @@ two instances will be created. Ment to test 'sublocations'
 Develop
 -------
 
+Both VisualCommunication and Communication study identity in test
+Communication test 2x
+Not needed in
+setUp
+CleanDataDirectory
+MainName:Communication:3:Starting:location1:Identitypath for Wall-E is Identitys/Wall-E
+
+
+Visualcommunication test
+VisualCommunication 2x
+Communication 1x
+Not needed in
+setUp
+CleanDataDirectory
+MainName:VisualCommunication:3:Starting:location1:Identitypath for Wall-E is Identitys/Wall-E
+
 Reply from SocketServer that Robotis present.
 
 Implement visual things.

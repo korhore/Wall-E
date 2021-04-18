@@ -596,6 +596,7 @@ class RobotTestCase():
     doTearDown
     '''
     def doTearDown(self):
+        print('\nRobotTestCase:doTearDown')       
         while(not self.getAxon().empty()):
             transferDirection, sensation = self.getAxon().get(robot=self)
             self.log(logStr='doTearDown self.getAxon().get(robot=self) sensation = {}'.format(sensation.toDebugStr()))

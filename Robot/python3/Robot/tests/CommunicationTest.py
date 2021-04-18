@@ -26,7 +26,7 @@ from Sensation import Sensation
 # set Communication.COMMUNICATION_INTERVAL smaller,
 # so test runs faster, when no waits normal time 30s, when we don't get
 # response from person
-TEST_COMMUNICATION_INTERVAL=1.0 
+TEST_COMMUNICATION_INTERVAL=3.0 # 1.0 works if we don't use living presesses, but min for living process this is 2.5
 from Communication.Communication import Communication
 Communication.COMMUNICATION_INTERVAL = TEST_COMMUNICATION_INTERVAL
 
@@ -96,20 +96,22 @@ class CommunicationTest(RobotTestCase):
         else:
             self.communication.itemConversations['']=Communication.ConversationWithItem(robot=self.communication, location='')
             self.communication.robotConversations['']=Communication.ConversationWithRobot(robot=self.communication, location='')
-            
-        # should get Identity for proper functionality. Use Wall-E Identity in test
-        self.communication.imageSensations, self.communication.voiceSensations = \
-            self.communication.getIdentitySensations(name=CommunicationTest.NAME)
-        self.assertTrue(len(self.communication.getMemory().getRobot().voiceSensations) > 0, "should have identity for testing")
 
-        # base class doSetUp
+# This is done in Robot setup            
+#         # should get Identity for proper functionality. Use Wall-E Identity in test
+#         self.communication.imageSensations, self.communication.voiceSensations = \
+#             self.communication.getIdentitySensations(name=CommunicationTest.NAME)
+#         self.assertTrue(len(self.communication.getMemory().getRobot().voiceSensations) > 0, "should have identity for testing")
+
+        # base class (RobotTestCase) doSetUp
         super(CommunicationTest, self).doSetUp(robot=self.robot)
         
 
     def doTearDown(self):
-        print('\ntearDown')       
-        # base class doSetUp
+        print('\nCommunicationTest:doTearDown')       
+        # base class (RobotTestCase) doTearDown
         super(CommunicationTest, self).doTearDown()
+        print('\nCommunicationTest:doTearDown\n')       
         
     '''
     TensorfloClassafication produces

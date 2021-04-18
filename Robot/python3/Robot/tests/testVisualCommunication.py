@@ -992,7 +992,7 @@ class VisualCommunicationTestCase(unittest.TestCase):
     def do_test_PresenseItemRobot(self, isPresentRobot):
         print('\ntest_Presense')
         
-        # We run lining process so here we clear Axon
+        # We run living process so here we clear Axon
         while(not self.getAxon().empty()):
             transferDirection, sensation = self.getAxon().get(robot=self)
             self.log(logStr='do_test_PresenseItemRobot self.getAxon().get(robot=self) sensation = {}'.format(sensation.toDebugStr()))
