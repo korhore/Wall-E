@@ -1,6 +1,6 @@
 '''
 Created on 21.06.2019
-Updated on 14.04.2021
+Updated on 25.04.2021
 @author: reijo.korhonen@gmail.com
 
 test Association class
@@ -65,6 +65,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
     
    '''    
     def test_PresenseItemPresentRobot(self):
+        print('\ntest_PresenseItemPresentRobot\n')       
         self.doTest_PresenseItemPresentRobot(robot=self.communication, isWait=False)
        
             
@@ -73,6 +74,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
     Item.name Working Out
     '''    
     def test_PresenseItemAbsentRobot(self):
+        print('\ntest_PresenseItemAbsentRobot\n')       
         self.doTest_PresenseItemAbsentRobot(robot=self.communication, isWait=False)
         
 
@@ -83,6 +85,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
     so this test is same than without parameters
     '''    
     def test_2_Presense(self):
+        print('\ntest_2_Presense\n')       
         self.doTest_2_Presense(robot=self.communication, isWait=False)
         
     '''
@@ -93,6 +96,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
     because Communication should handle those sensation equally, when Robot.mainNames differ
     '''    
     def test_3_Presense(self):
+        print('\ntest_3_Presense\n')       
         self.doTest_3_Presense(robot=self.communication, isWait=False)
 
         

@@ -68,7 +68,7 @@ class RobotTestCase():
     
     # from testCommunicatoion
     ASSOCIATION_INTERVAL=3.0 # in float seconds
-    AXON_WAIT = 10           # in int time to conditionally wait to get something into Axon
+    AXON_WAIT = 60           # in int time to conditionally wait to get something into Axon
 
     TECNICAL_NAME='TechnicalName'
     VOICEDATA1=b'0x000x00'
@@ -140,6 +140,19 @@ class RobotTestCase():
     
     def logAxon(self):
         self.log("{} Axon with queue length {} full {}".format(self.getName(), self.getAxon().queue.qsize(), self.getAxon().queue.full()))
+        
+    '''
+    process sensation in tested Robot
+    If living process we put sensation in Robots Axon
+    but if robot is static state, then we call oitst process-method
+    '''
+        
+    def doProcess(self, robot, sensation):
+        if self.robot.running:
+            robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
+        else:
+            robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
+        
 
     '''
     Helper methods
@@ -328,9 +341,9 @@ class RobotTestCase():
         self.communicationImage = None
         gotCommunicationItem = None
         errortext = '{}: Axon empty should not be {}'.format(name, str(self.getAxon().empty()))
-        if isWait and not isEmpty: 
-            i=0  
-            while self.getAxon().empty() and i < RobotTestCase.AXON_WAIT:
+        i=0  
+        if isWait:# and not isEmpty: 
+             while self.getAxon().empty() and i < Communication.COMMUNICATION_INTERVAL:
                 systemTime.sleep(1)
                 i=i+1
                 print('slept {}s to get something to Axon'.format(i))
@@ -369,119 +382,130 @@ class RobotTestCase():
                 isExactCommunicationItemStillExpected = False
             isVoiceFeelingStillExpected = isVoiceFeeling
             isImageFeelingStillExpected = isImageFeeling
-            while(not self.getAxon().empty()):
-                tranferDirection, sensation = self.getAxon().get(robot=self)
-                self.printSensationNameById(dataId=sensation.getDataId(), note=name + " expect got")
-                sensation.detach(robot=self)# We are acting mainrobot and should detach sensation
-                if sensation.getSensationType() == Sensation.SensationType.Voice:
-                    if sensation.getRobotType() == Sensation.RobotType.Muscle:
-                        self.muscleVoice=sensation
-                        self.assertTrue(muscleVoice != None, "got unexpected MuscleVoice")
-                        self.assertTrue(isMuscleVoiceStillExpected, "got duplicate Muscle Voice")
-                        isMuscleVoiceStillExpected = False
-                        if muscleVoice != None:
-                            if isExactMuscleVoiceStillExpected:
-                                isExactMuscleVoiceStillExpected = (sensation.getDataId() != muscleVoice.getDataId())
-                            else:
-                                if sensation.getDataId() == muscleVoice.getDataId():
-                                    print("exactMuscleVoice was not expected, but got it!")
+            while (not isWait and not self.getAxon().empty()) or\
+                  (isWait and (i < Communication.COMMUNICATION_INTERVAL and\
+                   (isMuscleVoiceStillExpected or isCommunicationVoiceStillExpected or\
+                    isMuscleImageStillExpected or isCommunicationImageStillExpected or\
+                    isVoiceFeelingStillExpected or isImageFeelingStillExpected or
+                    isItemStillExpected))):
+                while isWait and self.getAxon().empty() and i < Communication.COMMUNICATION_INTERVAL:
+                    systemTime.sleep(1)
+                    i=i+1
+                    print('slept {}s to get something to Axon'.format(i))
+                    
+                if not self.getAxon().empty():
+                    tranferDirection, sensation = self.getAxon().get(robot=self)
+                    self.printSensationNameById(dataId=sensation.getDataId(), note=name + " expect got")
+                    sensation.detach(robot=self)# We are acting mainrobot and should detach sensation
+                    if sensation.getSensationType() == Sensation.SensationType.Voice:
+                        if sensation.getRobotType() == Sensation.RobotType.Muscle:
+                            self.muscleVoice=sensation
+                            self.assertTrue(muscleVoice != None, "got unexpected MuscleVoice")
+                            self.assertTrue(isMuscleVoiceStillExpected, "got duplicate Muscle Voice")
+                            isMuscleVoiceStillExpected = False
+                            if muscleVoice != None:
+                                if isExactMuscleVoiceStillExpected:
+                                    isExactMuscleVoiceStillExpected = (sensation.getDataId() != muscleVoice.getDataId())
                                 else:
-                                    self.printSensationNameById(id=sensation.getId(), note=name + " exactMuscleVoice was not expected, got other Voice")
-                        else:
-                            self.assertTrue(False,"got unexpected Muscle Voice")
-                    elif sensation.getRobotType() == Sensation.RobotType.Communication:
-                        self.communicationVoice = sensation
-                        self.assertTrue(communicationVoice != None, "got unexpected Communication Voice")
-                        self.assertTrue(isCommunicationVoiceStillExpected, "got duplicate Communication Voice")
-                        isCommunicationVoiceStillExpected = False
-                        if communicationVoice != None:
-                            if isExactCommunicationVoiceStillExpected:
-                                isExactCommunicationVoiceStillExpected = (sensation.getDataId() != communicationVoice.getDataId())
+                                    if sensation.getDataId() == muscleVoice.getDataId():
+                                        print("exactMuscleVoice was not expected, but got it!")
+                                    else:
+                                        self.printSensationNameById(id=sensation.getId(), note=name + " exactMuscleVoice was not expected, got other Voice")
                             else:
-                                if sensation.getDataId() == communicationVoice.getDataId():
-                                    print("exactCommunicationVoice was not expected, but got it!")
+                                self.assertTrue(False,"got unexpected Muscle Voice")
+                        elif sensation.getRobotType() == Sensation.RobotType.Communication:
+                            self.communicationVoice = sensation
+                            self.assertTrue(communicationVoice != None, "got unexpected Communication Voice")
+                            self.assertTrue(isCommunicationVoiceStillExpected, "got duplicate Communication Voice")
+                            isCommunicationVoiceStillExpected = False
+                            if communicationVoice != None:
+                                if isExactCommunicationVoiceStillExpected:
+                                    isExactCommunicationVoiceStillExpected = (sensation.getDataId() != communicationVoice.getDataId())
                                 else:
-                                    self.printSensationNameById(id=sensation.getId(), note=name + " exactCommunicationVoice was not expected, got other Voice")
-                        else:
-                            self.assertTrue(False,"got unexpected Communication Voice")
-                    else:
-                        self.assertTrue(False, 'got unexpected Voice RobotType')
-                elif sensation.getSensationType() == Sensation.SensationType.Image:
-                    if sensation.getRobotType() == Sensation.RobotType.Muscle:
-                        self.muscleImage=sensation
-                        self.assertTrue(muscleImage != None, "got unexpected Muscle Image")
-                        self.assertTrue(isMuscleImageStillExpected, "got duplicate Muscle Image")
-                        isMuscleImageStillExpected = False
-                        if muscleImage != None:
-                            if isExactMuscleImageStillExpected:
-                                isExactMuscleImageStillExpected = (sensation.getDataId() != muscleImage.getDataId())
+                                    if sensation.getDataId() == communicationVoice.getDataId():
+                                        print("exactCommunicationVoice was not expected, but got it!")
+                                    else:
+                                        self.printSensationNameById(id=sensation.getId(), note=name + " exactCommunicationVoice was not expected, got other Voice")
                             else:
-                                if sensation.getDataId() == muscleImage.getDataId():
-                                    print("exactMuscleImage was not expected, but got it!")
-                                else:
-                                    self.printSensationNameById(id=sensation.getId(), note=name + " exactMuscleImage was not expected, got other Image")
+                                self.assertTrue(False,"got unexpected Communication Voice")
                         else:
-                            self.assertTrue(False,"got unexpected Muscle Image")
-                    elif sensation.getRobotType() == Sensation.RobotType.Communication:
-                        self.communicationImage=sensation
-                        self.assertTrue(communicationImage != None, "got unexpected Communication Image")
-                        self.assertTrue(isCommunicationImageStillExpected, "got duplicate Communication Image")
-                        isCommunicationImageStillExpected = False
-                        if communicationImage != None:
-                            if isExactCommunicationImageStillExpected:
-                                isExactCommunicationImageStillExpected = (sensation.getDataId() != communicationImage.getDataId())
+                            self.assertTrue(False, 'got unexpected Voice RobotType')
+                    elif sensation.getSensationType() == Sensation.SensationType.Image:
+                        if sensation.getRobotType() == Sensation.RobotType.Muscle:
+                            self.muscleImage=sensation
+                            self.assertTrue(muscleImage != None, "got unexpected Muscle Image")
+                            self.assertTrue(isMuscleImageStillExpected, "got duplicate Muscle Image")
+                            isMuscleImageStillExpected = False
+                            if muscleImage != None:
+                                if isExactMuscleImageStillExpected:
+                                    isExactMuscleImageStillExpected = (sensation.getDataId() != muscleImage.getDataId())
+                                else:
+                                    if sensation.getDataId() == muscleImage.getDataId():
+                                        print("exactMuscleImage was not expected, but got it!")
+                                    else:
+                                        self.printSensationNameById(id=sensation.getId(), note=name + " exactMuscleImage was not expected, got other Image")
                             else:
-                                if sensation.getDataId() == communicationImage.getDataId():
-                                    print("exactCommunicationImage was not expected, but got it!")
+                                self.assertTrue(False,"got unexpected Muscle Image")
+                        elif sensation.getRobotType() == Sensation.RobotType.Communication:
+                            self.communicationImage=sensation
+                            self.assertTrue(communicationImage != None, "got unexpected Communication Image")
+                            self.assertTrue(isCommunicationImageStillExpected, "got duplicate Communication Image")
+                            isCommunicationImageStillExpected = False
+                            if communicationImage != None:
+                                if isExactCommunicationImageStillExpected:
+                                    isExactCommunicationImageStillExpected = (sensation.getDataId() != communicationImage.getDataId())
                                 else:
-                                    self.printSensationNameById(id=sensation.getId(), note=name + " exactCommunicationImage was not expected, got other Image")
-                        else:
-                            self.assertTrue(False,"got unexpected Communication Image")
-                    else:
-                        self.assertTrue(False, 'got unexpected Image RobotType')
-                elif sensation.getSensationType() == Sensation.SensationType.Feeling:
-                    print("got Feeling")
-                    self.assertTrue(isVoiceFeeling or isImageFeeling or isPositiveFeeling or isNegativeFeeling,'got Feeling, but Feeling was not expected')
-# We can get many Feeling for same Voice, so  many feelings is not unexpected
-#                     errortext =  '{}: got unexpected Feeling Another Feeling {}'.format(name, str(not (isVoiceFeelingStillExpected or isImageFeelingStillExpected)))
-#                     self.assertTrue(isVoiceFeelingStillExpected or isImageFeelingStillExpected, errortext)
-# #                     self.assertEqual(len(sensation.getAssociations()), 1)
-                    if sensation.getOtherAssociateSensation().getSensationType() == Sensation.SensationType.Voice:
-                        self.assertTrue(isVoiceFeeling,'got Voice Feeling, but Voice Feeling was not expected')
-                        isVoiceFeelingStillExpected = False
-                        self.assertEqual(sensation.getPositiveFeeling(), isPositiveFeeling)
-                        self.assertEqual(sensation.getNegativeFeeling(), isNegativeFeeling)
-                    elif sensation.getOtherAssociateSensation().getSensationType() == Sensation.SensationType.Image:
-                        self.assertTrue(isImageFeeling,'got Image Feeling, but Image Feeling was not expected')
-                        isImageFeelingStillExpected = False
-                        self.assertEqual(sensation.getPositiveFeeling(), isPositiveFeeling)
-                        self.assertEqual(sensation.getNegativeFeeling(), isNegativeFeeling)
-                    else:
-                        self.assertTrue(False, "Unsupported associate type {} with feeling".format( Sensation.getSensationTypeString(sensation.getOtherAssociateSensation().getSensationType())))
-
-#                     self.assertEqual(sensation.getPositiveFeeling(), isPositiveFeeling)
-#                     self.assertEqual(sensation.getNegativeFeeling(), isNegativeFeeling)
-                elif sensation.getSensationType() == Sensation.SensationType.Item:
-                    # TODO check if this is used
-                    gotItem = sensation
-                    isItemStillExpected = False
-                    if sensation.getRobotType() == Sensation.RobotType.Communication:
-                        self.communicationItem = sensation
-                        self.assertTrue(communicationItem != None, "got unexpected Communication Item")
-                        self.assertTrue(isCommunicationItemStillExpected, "got duplicate Communication Item")
-                        isCommunicationItemStillExpected = False
-                        if communicationItem != None:
-                            if isExactCommunicationItemStillExpected:
-                                isExactCommunicationItemStillExpected = (sensation.getDataId() != communicationItem.getDataId())
+                                    if sensation.getDataId() == communicationImage.getDataId():
+                                        print("exactCommunicationImage was not expected, but got it!")
+                                    else:
+                                        self.printSensationNameById(id=sensation.getId(), note=name + " exactCommunicationImage was not expected, got other Image")
                             else:
-                                if sensation.getDataId() == communicationItem.getDataId():
-                                    print("exactCommunicationItem was not expected, but got it!")
-                                else:
-                                    self.printSensationNameById(id=sensation.getId(), note=name + " exactCommunicationItem was not expected, got other Item")
+                                self.assertTrue(False,"got unexpected Communication Image")
                         else:
-                            self.assertTrue(False,"got unexpected Communication Item")
-                    else:
-                        self.assertTrue(False, 'got unexpected Item RobotType')
+                            self.assertTrue(False, 'got unexpected Image RobotType')
+                    elif sensation.getSensationType() == Sensation.SensationType.Feeling:
+                        print("got Feeling")
+                        self.assertTrue(isVoiceFeeling or isImageFeeling or isPositiveFeeling or isNegativeFeeling,'got Feeling, but Feeling was not expected')
+    # We can get many Feeling for same Voice, so  many feelings is not unexpected
+    #                     errortext =  '{}: got unexpected Feeling Another Feeling {}'.format(name, str(not (isVoiceFeelingStillExpected or isImageFeelingStillExpected)))
+    #                     self.assertTrue(isVoiceFeelingStillExpected or isImageFeelingStillExpected, errortext)
+    # #                     self.assertEqual(len(sensation.getAssociations()), 1)
+                        if sensation.getOtherAssociateSensation().getSensationType() == Sensation.SensationType.Voice:
+                            self.assertTrue(isVoiceFeeling,'got Voice Feeling, but Voice Feeling was not expected')
+                            isVoiceFeelingStillExpected = False
+                            self.assertEqual(sensation.getPositiveFeeling(), isPositiveFeeling)
+                            self.assertEqual(sensation.getNegativeFeeling(), isNegativeFeeling)
+                        elif sensation.getOtherAssociateSensation().getSensationType() == Sensation.SensationType.Image:
+                            self.assertTrue(isImageFeeling,'got Image Feeling, but Image Feeling was not expected')
+                            isImageFeelingStillExpected = False
+                            self.assertEqual(sensation.getPositiveFeeling(), isPositiveFeeling)
+                            self.assertEqual(sensation.getNegativeFeeling(), isNegativeFeeling)
+                        else:
+                            self.assertTrue(False, "Unsupported associate type {} with feeling".format( Sensation.getSensationTypeString(sensation.getOtherAssociateSensation().getSensationType())))
+    
+    #                     self.assertEqual(sensation.getPositiveFeeling(), isPositiveFeeling)
+    #                     self.assertEqual(sensation.getNegativeFeeling(), isNegativeFeeling)
+                    elif sensation.getSensationType() == Sensation.SensationType.Item:
+                        # TODO check if this is used
+                        gotItem = sensation
+                        isItemStillExpected = False
+                        if sensation.getRobotType() == Sensation.RobotType.Communication:
+                            self.communicationItem = sensation
+                            self.assertTrue(communicationItem != None, "got unexpected Communication Item")
+                            self.assertTrue(isCommunicationItemStillExpected, "got duplicate Communication Item")
+                            isCommunicationItemStillExpected = False
+                            if communicationItem != None:
+                                if isExactCommunicationItemStillExpected:
+                                    isExactCommunicationItemStillExpected = (sensation.getDataId() != communicationItem.getDataId())
+                                else:
+                                    if sensation.getDataId() == communicationItem.getDataId():
+                                        print("exactCommunicationItem was not expected, but got it!")
+                                    else:
+                                        self.printSensationNameById(id=sensation.getId(), note=name + " exactCommunicationItem was not expected, got other Item")
+                            else:
+                                self.assertTrue(False,"got unexpected Communication Item")
+                        else:
+                            self.assertTrue(False, 'got unexpected Item RobotType')
                     
             self.assertFalse(isMuscleVoiceStillExpected,  'Did not get muscleVoice')
             if self.muscleVoice != None and muscleVoice != None:                   
