@@ -8,7 +8,7 @@ This class includeas al tests for these classes.
 This file can't be run directly, bus is a library for tests.
 Test methods take as a parameter Robot instance to test.
 
-Tes runner class inherits this class and uses these methods to implement
+Test runner class inherits this class and uses these methods to implement
 tests normal way with unittest. This class is used to in
 testCommunication.py and test VisualCommunication.py, where unittest
 frameworks.
@@ -26,7 +26,7 @@ from Sensation import Sensation
 # set Communication.COMMUNICATION_INTERVAL smaller,
 # so test runs faster, when no waits normal time 30s, when we don't get
 # response from person
-TEST_COMMUNICATION_INTERVAL=5.0 # 1.0 works if we don't use living presesses, but min for living process this is 2.5
+TEST_COMMUNICATION_INTERVAL=5.0 # 1.0 works if we don't use living processes, but min for living process this is 2.5
 from Communication.Communication import Communication
 Communication.COMMUNICATION_INTERVAL = TEST_COMMUNICATION_INTERVAL
 
@@ -51,18 +51,11 @@ class CommunicationTest(RobotTestCase):
     parameters
     robot               robot instance to test,
                         either Communication or VisualCommunication class instance
-    communication       Communication class instance
-                        ODO do we need visualCommunication?
-    visualCommunication VisualCommunication  class instance, can be and is None,
-                        when testing Communication class instance 
     '''
     
-    def doSetUp(self, robot,
-                      communication,
-                      visualCommunication = None):
+    def doSetUp(self, robot):
         print('\nsetUp')
         self.robot=robot
-        self.communication = communication
         
         self.CleanDataDirectory()
 
@@ -71,18 +64,18 @@ class CommunicationTest(RobotTestCase):
         self.axon = Axon(robot=self)
 
         # Robot to test        
-#         self.communication = Communication(mainRobot=self,
-#                                            parent=self,
-#                                            instanceName='Communication',
-#                                            instanceType= Sensation.InstanceType.SubInstance,
-#                                            level=2)
-        if self.robot != self.communication:
-            robots = [self.robot, self.communication]
-        else:
-            robots = [self.robot]
-        for robot in robots:
-            self.setRobotMainNames(robot, self.MAINNAMES)
-            self.setRobotLocations(robot, self.getLocations())
+        self.setRobotMainNames(robot, self.MAINNAMES)
+        self.setRobotLocations(robot, self.getLocations())
+
+        # base class (RobotTestCase) doSetUp
+        super(CommunicationTest, self).doSetUp(robot=self.robot)            
+        
+    def doSetUpCommunication(self, communication):
+        print('\ndoSetUpCommunication')
+        self.communication = communication
+
+        self.setRobotMainNames(communication, self.MAINNAMES)
+        self.setRobotLocations(communication, self.getLocations())
         # should correct self.communication.itemConversations,
         # because it is tested in _init__ normal way with configuration settings
         self.communication.itemConversations={}
@@ -96,23 +89,6 @@ class CommunicationTest(RobotTestCase):
         else:
             self.communication.itemConversations['']=Communication.ConversationWithItem(robot=self.communication, location='')
             self.communication.robotConversations['']=Communication.ConversationWithRobot(robot=self.communication, location='')
-
-        # base class (RobotTestCase) doSetUp
-        super(CommunicationTest, self).doSetUp(robot=self.robot)
-        
-#     '''
-#     process sensation in tested Robot
-#     If living process we put sensation in Robots Axon
-#     but if robot is static state, then we call oitst process-method
-#     '''
-#         
-#     def doProcess(self, robot, sensation):
-#         if elf.visualCommunication.running:
-#             robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
-#         else:
-#             robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
-            
-        
 
     def doTearDown(self):
         print('\nCommunicationTest:doTearDown')       
@@ -829,8 +805,8 @@ class CommunicationTest(RobotTestCase):
     Sensations outside Robot are in same Robot.mainNames and robotType=Sensation.RobotType.Sense
     so this test is same than without paramweters
     '''    
-    def doTest_2_Presense(self, robot, isWait):
-        self.do_test_Presense(robot=robot, isWait=isWait, mainNames=self.MAINNAMES, robotType=Sensation.RobotType.Sense)
+    def doTest_2_Presense(self, robot, communication, isWait):
+        self.do_test_Presense(robot=robot, communication=communication, isWait=isWait, mainNames=self.MAINNAMES, robotType=Sensation.RobotType.Sense)
         
     '''
     TensorfloClöassafication produces
@@ -839,8 +815,8 @@ class CommunicationTest(RobotTestCase):
     so this test result should  same than with test where robotType=Sensation.RobotType.Sense,
     because Communication should handle those sensation equally, when Robot.mainNames differ
     '''    
-    def doTest_3_Presense(self,  robot, isWait):
-        self.do_test_Presense(robot=robot, isWait=isWait, mainNames=self.OTHERMAINNAMES, robotType=Sensation.RobotType.Communication)
+    def doTest_3_Presense(self,  robot, communication, isWait):
+        self.do_test_Presense(robot=robot, communication=communication, isWait=isWait, mainNames=self.OTHERMAINNAMES, robotType=Sensation.RobotType.Communication)
 
     '''
     TensorfloClöassafication produces
@@ -853,7 +829,7 @@ class CommunicationTest(RobotTestCase):
     Present and the Absent and so on.
     
     '''    
-    def do_test_Presense(self, robot, isWait, mainNames, robotType):
+    def do_test_Presense(self, robot, communication, isWait, mainNames, robotType):
         print('\ndo_test_Presense {} {}'.format(mainNames, robotType))
 
         # robot setup  
@@ -1256,9 +1232,9 @@ class CommunicationTest(RobotTestCase):
                     name='Absent, feeling', isEmpty=False, isVoiceFeeling=True, isImageFeeling=True, isNegativeFeeling=True)
         
         # conversation should be ended, when lst Iten is absent
-        for location in robot.getLocations():
-            self.assertEqual(len(robot.itemConversations[location].spokedDataIds),0)
-            self.assertEqual(len(robot.itemConversations[location].heardDataIds),0)
+        for location in communication.getLocations():
+            self.assertEqual(len(communication.itemConversations[location].spokedDataIds),0)
+            self.assertEqual(len(communication.itemConversations[location].heardDataIds),0)
         
  
         # NAME with NAME2
@@ -1325,9 +1301,9 @@ class CommunicationTest(RobotTestCase):
         self.assertEqual(len(robot.getMemory().getAllPresentItemSensations()), 1, 'len(robot.getMemory().getAllPresentItemSensations() after Entering Item Sensation should be 2')
 
         #  We are starting new conversation so there should not be spokedDataIds or heardDataIds
-        for location in robot.getLocations():
-            self.assertEqual(len(robot.itemConversations[location].spokedDataIds),0)
-            self.assertEqual(len(robot.itemConversations[location].heardDataIds),0)
+        for location in communication.getLocations():
+            self.assertEqual(len(communication.itemConversations[location].spokedDataIds),0)
+            self.assertEqual(len(communication.itemConversations[location].heardDataIds),0)
 
         #process                      
 #         robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation5)

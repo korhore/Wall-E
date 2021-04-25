@@ -50,7 +50,8 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
             self.communication.getIdentitySensations(name=CommunicationTestCase.NAME)
         self.assertTrue(len(self.communication.getMemory().getRobot().voiceSensations) > 0, "should have identity for testing")
         
-        self.doSetUp(robot=self.communication, communication=self.communication)
+        self.doSetUp(robot=self.communication)
+        self.doSetUpCommunication(communication=self.communication)
         
 
     def tearDown(self):
@@ -86,7 +87,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
     '''    
     def test_2_Presense(self):
         print('\ntest_2_Presense\n')       
-        self.doTest_2_Presense(robot=self.communication, isWait=False)
+        self.doTest_2_Presense(robot=self.communication, communication=self.communication, isWait=False)
         
     '''
     TensorfloClöassafication produces
@@ -97,7 +98,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
     '''    
     def test_3_Presense(self):
         print('\ntest_3_Presense\n')       
-        self.doTest_3_Presense(robot=self.communication, isWait=False)
+        self.doTest_3_Presense(robot=self.communication, communication=self.communication, isWait=False)
 
         
     '''

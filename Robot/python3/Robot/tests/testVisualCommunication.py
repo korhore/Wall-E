@@ -55,7 +55,7 @@ class VisualCommunicationTestCase(unittest.TestCase, CommunicationTest):
             self.visualCommunication.getIdentitySensations(name=VisualCommunicationTestCase.NAME)
         self.assertTrue(len(self.visualCommunication.getMemory().getRobot().voiceSensations) > 0, "should have identity for testing")
         
-        self.doSetUp(robot=self.visualCommunication, communication=self.visualCommunication)
+        self.doSetUp(robot=self.visualCommunication)#, communication=self.visualCommunication)
         
        
         
@@ -73,12 +73,13 @@ class VisualCommunicationTestCase(unittest.TestCase, CommunicationTest):
                 self.communication = subRobot
         self.assertFalse(self.communication==None, "No Communication found")
         self.assertTrue(self.communication.running, "No Communication running'")
+        self.doSetUpCommunication(communication=self.communication)
         #Forse same location
-        self.setRobotLocations(self.communication, self.getLocations())
-         # TODO should set these, deleting others missing
-        for location in self.communication.getLocations():
-            self.communication.itemConversations[location] =\
-                Communication.ConversationWithItem(robot=self.communication, location=location)
+#         self.setRobotLocations(self.communication, self.getLocations())
+#          # TODO should set these, deleting others missing
+#         for location in self.communication.getLocations():
+#             self.communication.itemConversations[location] =\
+#                 Communication.ConversationWithItem(robot=self.communication, location=location)
 #         self.communication.robotConversation =\
 #                 Communication.ConversationWithRobot(robot=self)
 #         
@@ -125,7 +126,7 @@ class VisualCommunicationTestCase(unittest.TestCase, CommunicationTest):
     '''    
     def test_2_Presense(self):
         print('\ntest_2_Presense\n')       
-        self.doTest_2_Presense(robot=self.visualCommunication, isWait = True)
+        self.doTest_2_Presense(robot=self.visualCommunication, communication=self.communication, isWait = True)
         
     '''
     TensorfloClöassafication produces
@@ -136,7 +137,7 @@ class VisualCommunicationTestCase(unittest.TestCase, CommunicationTest):
     '''    
     def test_3_Presense(self):
         print('\ntest_3_Presense\n')       
-        self.doTest_3_Presense(robot=self.visualCommunication, isWait = True)
+        self.doTest_3_Presense(robot=self.visualCommunication, communication=self.communication, isWait = True)
 
         
     '''
