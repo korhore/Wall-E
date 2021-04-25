@@ -74,15 +74,7 @@ class VisualCommunicationTestCase(unittest.TestCase, CommunicationTest):
         self.assertFalse(self.communication==None, "No Communication found")
         self.assertTrue(self.communication.running, "No Communication running'")
         self.doSetUpCommunication(communication=self.communication)
-        #Forse same location
-#         self.setRobotLocations(self.communication, self.getLocations())
-#          # TODO should set these, deleting others missing
-#         for location in self.communication.getLocations():
-#             self.communication.itemConversations[location] =\
-#                 Communication.ConversationWithItem(robot=self.communication, location=location)
-#         self.communication.robotConversation =\
-#                 Communication.ConversationWithRobot(robot=self)
-#         
+
         while(not self.getAxon().empty()):
             transferDirection, sensation = self.getAxon().get(robot=self)
             self.log(logStr='setUp self.getAxon().get(robot=self) sensation = {}'.format(sensation.toDebugStr()))
