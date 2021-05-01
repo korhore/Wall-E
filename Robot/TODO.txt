@@ -1,99 +1,33 @@
 Critical
 --------
-Too much logging as Normal
-Visual, Socket*
 
-  File "/home/reijo/git/Wall-E/Robot/python3/Robot/TensorFlowClassification/TensorFlowClassification.py", line 535, in run
-    self.process(transferDirection=transferDirection, sensation=sensation)
-  File "/home/reijo/git/Wall-E/Robot/python3/Robot/TensorFlowClassification/TensorFlowClassification.py", line 628, in process
-    self.logAbsents(current_present=current_present)
-  File "/home/reijo/git/Wall-E/Robot/python3/Robot/TensorFlowClassification/TensorFlowClassification.py", line 757, in logAbsents
-    for name, presence in TensorFlowClassification.present.items():
-RuntimeError: dictionary changed size during iteration
-OOPS. there are two instaces of TensorFlowClassification running same time, normal and Identification. Ther can't be TensorFlowClassification.present,
-but self.present
-When Identifity communicates, does it get responses?
-
-We shouls set limit for Communication responses per Concersation, 5 for instance to avoid loops and too much traffic.
-Correct test
-
-Forget proglem:
-initial Ubuntu settings
-maxrss = 2048
-minavailmem = 4000
-raspberry
-maxrss = 768
-minavailmem = 256
-
-Seems that SocketClient has very many Sensations in its queue.
-raspberry.SocketClient gets Sensation to its queue more often than
-Ubuntu.SocketServer gets them.
-This means that raspberry.SocketClient is too slow to send.
-
-This was cause of whole Memory releasing problem. When Sensations are in Axon queue, they can't re released and thats why Memory releasing does nor work.
-Put now max to Axon queue as well in SocketClient, but maybe SocketClient correction is not needed. We should consider, if Tennsorflow is hoo heavy and we should use
-Lite only. At this point learnable Tensorflow benefits are not used so lite functionality is as good.
-
-Wall-E_MainName:father:1:Normal:Ubuntu livingroom:Sensations cache for 2492 Total self.sensationMemory  usage 1347.3828125 MB available 4394.55859375 MB with Sensation.min_cache_memorability 1.5800000000000003
-Wall-E_MainName:father:1:Normal:Ubuntu livingroom:Sensations cache deletion skipped 1048 Not Forgottable Sensation
-
-For some reason, there are Sensations, that will remain Not Forgottable
-We must implement some way, how to keep track of these.
-
- 359481 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache for 1859 Total self.sensationMemory  usage 719.25390625 MB available 10.5234375 MB
-        with Sensation.min_cache_memorability 2.8799999999990162
- 359482 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache deletion skipped 1014 Not Forgottable Sensation
- 359483 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Eva number 10
- 359484 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot MicrophonePlayback number 2
- 359485 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Playback number 2
- 359486 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Microphone number 2
- 359487 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Visual number 2
- 359488 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Communication number 939
- 359489 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Wall-E number 164 ?? What is Wall-E, Identity
- 359490 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Camera number 2
- 359491 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot TCPServer: ('', 2000) number 2
- 359492 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot SocketServer: ('192.168.117.130', 57016) number 5
- 359493 main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot SocketClient: ('192.168.117.130', 57016) number 2
- 
- 
-raspberry
-main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Communication SensationType Robot number 1
-main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Communication SensationType Location number 1
-main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Communication SensationType Item number 367
-main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Communication SensationType Image number 198
-main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Communication SensationType Voice number 64
-
-Ubuntu
-Wall-E_MainName:father:1:Normal:Ubuntu livingroom:Sensations cache Not Forgottable robot Communication SensationType Robot number 1
-Wall-E_MainName:father:1:Normal:Ubuntu livingroom:Sensations cache Not Forgottable robot Communication SensationType Item number 39
-Wall-E_MainName:father:1:Normal:Ubuntu livingroom:Sensations cache Not Forgottable robot Communication SensationType Location number 1
-Wall-E_MainName:father:1:Normal:Ubuntu livingroom:Sensations cache Not Forgottable robot Communication SensationType Image number 13
-Wall-E_MainName:father:1:Normal:Ubuntu livingroom:Sensations cache Not Forgottable robot Communication SensationType Voice number 8
-
-
- main_Eva:Eva:1:Normal:raspberry livingroom:Sensations cache Not Forgottable robot Communication number 237
- - Still even if no attach and detached all
- -- This is logical, because weaded detach to sensation that are Azon put and that makes detach.
- -- Axon.get does not make detach(All), but maybe it should and after that attach(robot)
- 
- attach/detach logic is broken and now for test reasons it does nothing with Axons, that change Forgattable to oine Robot no next one.
- Maybe we should add one meyhod more, just to do this ownership change, detach and attach in one method. Ataach when creating a Sensation is OK
- and it is OK that Robot.process we should detach Sensations Sensations when processing is done. It is OK to keep logic that we mark Sensations that are
- in active processing, not only in passive Memory.
- 
- Another way to think think this case is that when processing is done, Sensations will change to Memorytype.LongTerm, but this way we will get too much Sensations,
- because there is Memory limit how many Senations we can keep.
- 
- More important problem is that we wee lose available Memory somewhere. Robot keeps running in Raspberry no more than 12 h, but then
- Sensation.min_cache_memorability 24.420000000000076 is max and only 48 Sensations are kept.
- Seems that Memory handling works now fine untill we reach max of Sensation.min_cache_memorability. Sensation number in Memory can Variate a lot.
- In raspberry there can be at max 7000 Sensations witj 0.1 Memorbility, but then it can only 1000.
- Memory usage can of cource be much higher with SensationType.Image than SensationType.Item.
- Anyway we should test not tu use limit at all. and we should excees step or stop using associations with memorability calculation, because one Sensation
- where all are  associated, can make it impossible to release any otheers.
+Clean up this file
 
 When MainRobot is very busy, Hurry, Busy, Breaking, we should make our subRobots slower. In practice we need sleep in Robot.Sense and Robot.process(). Maybe same mechanism as
 in Memory handling.
+
+One Idea is Task. Task is like association, but in memory only with one Robot. When Sense creates
+a Sensation, it is handle by other Robots that create new Sensation besed on it. Not always copies, but reactyions like Communication does.
+Sense Robot should not proceed with new Sensations untill its Task is handled.
+Task has
+- task Sensation
+- tast reaction Sensations
+These links should be both way. Task is ended, when wall task Sensations are destached.
+Same Sensation can be both task Sensation and task reaction Sensation. Comminication
+example Tast reaction Sensations for our previous response.
+Communication beging, when either nre SensationType.Item,name or SensationTye.Voice with
+present SensationType.Item,name is got. This is task Sensation. When we response those
+Sensations are tast reaction Sensations. When we get a next Voice from some present SensationType.Item,name,
+those are tast reaction Sensations to out previous response.
+
+Tasks should be per Robot, because conversation is based on one Voice which is basic task Sensation.
+This task should be ended in Microphone, when Communication starts to pcess it or when proicess is ended. Maybe the last one.
+If we use Microphoneplayback, then it can next time call Microphone.Microphone.Sense,
+when Microphone.Microphone.Playback has ended this task. So terst  should be to imitiate
+MicrphonePlayback.Microphone -> Communucation -> MicrophonePlayback.Playback test case
+
+Maybe we shoild allow many task Sensations.
+
 
 Stop does not allways success.
 Wall-E_MainName:father:1:Normal:Ubuntu livingroom:logActivity activityAverage 0.2105919444658877 
@@ -122,24 +56,57 @@ two instances will be created. Ment to test 'sublocations'
 Develop
 -------
 
-Both VisualCommunication and Communication study identity in test
-Communication test 2x
-Not needed in
-setUp
-CleanDataDirectory
-MainName:Communication:3:Starting:location1:Identitypath for Wall-E is Identitys/Wall-E
+1) Implement star-routing Axon architecture.
+- No dedicated MainRobot
+     Natural functionality now is communicating Robot and all future Robot functionality
+     can be same kind even if we make moving Robots a what ever. Every Robot should see directly
+     all other Robots and their Axons. MainRobot has only that functionality, that it owns Memory
+     and starts all other subrobots, initial Robot, exposures Robots, Virtual Robots,
+     and tcp-Robots
+- No Axon transfer direction.
+- Sense Robots don't transfer any more Sense-Sensation to their parent, but directly to those
+  Robots that are interested of them
+- Capability calculation is needed now only for tcp-Robots
+
+2) Sensationtype.State
+
+3) Sensation.Task
+
+OK ?
+Can be typos im Momory.py
+Seems consulting with 'global' location breaks Microphoneplayback
+main_Eva:MicrophonePlayback:2:Normal:raspberry:hasCapability isInLocations locations ['raspberry', 'Ubuntu'] self.getDownLocations ['raspberry']
+main_Eva:MicrophonePlayback:2:Normal:raspberry:hasCapability isInLocations locations ['global'] self.getDownLocations ['raspberry']
+main_Eva:MicrophonePlayback:2:Normal:raspberry:isInMainNames main_Eva in ['main_Eva']: True
+main_Eva:MicrophonePlayback:2:Normal:raspberry:hasCapability isInLocations locations ['global'] self.getDownLocations ['raspberry']
+main_Eva:MicrophonePlayback:2:Normal:raspberry:isInMainNames main_Eva in ['main_Eva']: True
+main_Eva:MicrophonePlayback:2:Normal:raspberry:hasCapability isInLocations locations ['raspberry'] self.getDownLocations ['raspberry']
+main_Eva:MicrophonePlayback:2:Normal:raspberry:hasCapability isInLocations locations ['raspberry'] self.getDownLocations ['raspberry']
+main_Eva:MicrophonePlayback:2:Normal:raspberry:hasCapability isInLocations locations ['raspberry'] self.getDownLocations ['raspberry']
+main_Eva:MicrophonePlayback:2:Normal:raspberry:hasCapability robotType M memoryType S sensationType i locations ['raspberry'] True
+main_Eva:Eva:1:Normal:raspberry:Local robot MicrophonePlayback has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation= Wed Apr 28 10:03:44 2021:1619592596.8940964:1619593394.9571738:Sensory:Muscle:Voice:raspberry::Neutral:Wall-E)
 
 
-Visualcommunication test
-VisualCommunication 2x
-Communication 1x
-Not needed in
-setUp
-CleanDataDirectory
-MainName:VisualCommunication:3:Starting:location1:Identitypath for Wall-E is Identitys/Wall-E
-
-Reply from SocketServer that Robotis present.
-
+Implement Task to handle load for Robot
+- Sense-type Robots wll couse load as Task, when creating a Sense-type Sensation
+- creates a Task
+- Task is assigned to its crerator, Sense type Robot (Camera, Microphone)
+- assigned to Sensations cretated to its ortiginal creator or higher level
+  Robos like TensoflowClassification
+- when we create o new sensation, we can detect task or Ortiginal Sensation
+- Tash id is different than Original id, because it can be different SensationType
+- like Camera: Image -> TensorflowCommunication: Item -> Communication : Image -> VisualCommunication
+                                                                         Voice -> Playback 
+       Microphone: Voice -> Communication  -> Communication : Image > VisualCommunication
+                                                              Voice -> Playback
+- in Sensation.create, we could use taskSensation same way than originalSensation
+- When task is handled, Sense-type Robot can make sene-method again.
+- Memory could handle this book-keeping, tasks Robots and Sensation assigned to a task, so
+  we could implement callback method for a Robor or evwn make thread control, make a Sense type Robot to
+  sleep until its task is handled. Thios wouild make out Ronots army very efficient, because Robots that
+  cause a lot of load could not make load morre unttill previouys load is handled. Disadventage is that
+  our Robot could discard input Sensations, so nothing happens.
+   
 Implement visual things.
 
 VisualCommunication is a Robot between MainRobot and Comunication. Base implementation is current Visual.
@@ -184,7 +151,7 @@ State-Sensation for Communication, is this Robot is Waiting new Communication to
 waiting new answer, meaning microphone is on or its is speaking, meaning that
 it can't hear anything. And we need Implementation for it in Visual.
 
-Make Conversation -> ConversationWithItem
+OK Make Conversation -> ConversationWithItem
 - implementation from RobotType.Sense as it is
 Make Conversation -> ConversationWithRobot
 - needs planning
@@ -1153,6 +1120,12 @@ People log to present <-              !   !
 
 Corrected
 ---------
+
+OK Forget proglem
+
+OK Too much logging as Normal
+Visual, Socket*
+
 
 OK It seems that Robot tcp routing is hard to test
 OK -- For reason or another it seems that in same code is not possible test local and tcp Robot sensations routing.

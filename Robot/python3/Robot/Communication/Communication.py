@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 13.04.2021
+Updated on 26.04.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -370,7 +370,8 @@ class Communication(Robot):
                self.isThisLocation(sensation.getLocations()) and\
                sensation.getRobotType() == Sensation.RobotType.Sense:
                 #  entering to this location
-                if sensation.getSensationType() == Sensation.SensationType.Item:
+                if sensation.getSensationType() == Sensation.SensationType.Item and\
+                   sensation.getMemoryType() == Sensation.MemoryType.Working  :
                     if sensation.getPresence() == Sensation.Presence.Entering or\
                        sensation.getPresence() == Sensation.Presence.Present:
                         # or sensation.getPresence() == Sensation.Presence.Exiting):
@@ -670,9 +671,12 @@ class Communication(Robot):
                                 sensation.save()     # for debug reasons save voices we have spoken as heard voices and images
                                 self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithRobot speak: self.getMemory().getBestSensations did find sensations, spoke {}'.format(sensation.toDebugStr()))
                                 # speak                                                     self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=spokedSensation)
-                                spokedSensation = self.createSensation(sensation = sensation, locations=Robot.GLOBAL_LOCATIONS)
+                                spokedSensation = self.createSensation(sensation = sensation,
+                                                                       robotType = Sensation.RobotType.Communication,
+                                                                       memoryType = Sensation.MemoryType.Sensory,
+                                                                       locations=Robot.GLOBAL_LOCATIONS)
                                 # NOTE This is needed now, because Sensation.create parameters robotType and memoryType parameters are  overwritten by sensation parameters
-                                spokedSensation.setRobotType(Sensation.RobotType.Communication)  # 'speak' to Robots       
+                                spokedSensation.setRobotType(Sensation.RobotType.Communication)  # 'speak' to Robots
                                 self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=spokedSensation)
                         else:
                             # We did not find anything to say, but are ready to start new conversation, if someone speaks.

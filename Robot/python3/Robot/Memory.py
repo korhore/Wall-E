@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 08.04.2021
+Edited on 01.05.04.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -555,8 +555,8 @@ class Memory(object):
                                           memoryType=sensation.getMemoryType(),
                                           sensationType=sensation.getSensationType()) or\
                  (sensation.getSensationType() == Sensation.SensationType.Robot and\
-                  sensation.getRobotnType() == Sensation.RobotType.Communication,
-                  sensation.getMemotyType() == Sensation.MemoryType.Working,
+                  sensation.getRobotType() == Sensation.RobotType.Communication,
+                  sensation.getMemoryType() == Sensation.MemoryType.Working,
                   sensation.getPresence() == Sensation.Presence.Present)) and\
                 (timemin is None or sensation.getTime() > timemin) and\
                 (timemax is None or sensation.getTime() < timemax):

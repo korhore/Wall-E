@@ -2434,14 +2434,14 @@ class Sensation(object):
     
     '''
     returns True, if this Sensation is received from this host
-    Method is uded to avoid sendinmg Senation back fron some host, even if
+    Method is used to avoid sendinmg Senation back fron some host, even if
     if has been originally setn from this host. This situation causes
     circulating Senastions for ever between hosts that have same capability to handle
-    same Senastion type with same Memory level, so we must avoid it.
+    same Sensation type with same Memory level, so we must avoid it.
     
-    Still it in allowed to process same senmsation type sensations with different
-    menory level in different hosts, so we mustset self.receivedFrom, when we
-    chage SEnsations menory level (or copy sensation to different meemory level.
+    Still it in allowed to process same sensation type sensations with different
+    memory level in different hosts, so we must set self.receivedFrom, when we
+    change Sensations memory level (or copy sensation to different memory level).
     '''
     def isReceivedFrom(self, host):
         return host in self.receivedFrom
