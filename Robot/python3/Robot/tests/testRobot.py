@@ -1,6 +1,6 @@
 '''
 Created on 13.02.2020
-Updated on 06.04.2021
+Updated on 02.05.2021
 @author: reijo.korhonen@gmail.com
 
 test Robot class
@@ -12,8 +12,27 @@ to study functionality.
 
 python3 -m unittest tests/testRobot.py
 
-TODO Robot does not yet have selLocationSensation.
+TODO Robot does not yet have selfLocationSensation.
 When implemented, update test
+
+TODO Tests work now with Robot star routing, meaning that
+Sensations are always routed directly from Robot to Robot
+and all subRobots are mentioned in MainRobots configuration.
+
+Routing is done default Robot.process, but that can be changed and
+then test should be changed. Anyway 
+
+Robot.process(self, transferDirection, sensation)
+parameters should be changed 
+Robot.process(self, sensation)
+default functionality should empty, byt detach sensation
+
+and routing
+Robot.route(self, sensation)
+should do what Robot.process does now.
+
+and in subRobots
+
 
 
 '''
@@ -1087,15 +1106,20 @@ class RobotTestCase(unittest.TestCase):
         self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty before we test')
         # test
         self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=Wall_E_item_sensation)
+        # old routing
+#         # should be routed to mainRobot
+#         self.assertFalse(self.mainRobot.getAxon().empty(),'mainRobot Axon should not be empty')
+#         tranferDirection, sensation = self.mainRobot.getAxon().get(robot=self)
+#         # test routing to muscle
+        # new star routing
         # should be routed to mainRobot
-        self.assertFalse(self.mainRobot.getAxon().empty(),'mainRobot Axon should not be empty')
-        tranferDirection, sensation = self.mainRobot.getAxon().get(robot=self)
+        self.assertTrue(self.mainRobot.getAxon().empty(),'mainRobot Axon should be empty')
         # test routing to muscle
-        self.mainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
         # should be routed to mainRobot
         if shouldBeRouted:
             self.assertFalse(self.muscle.getAxon().empty(),'muscle Axon should not be empty')
             tranferDirection, sensation = self.muscle.getAxon().get(robot=self)
+            self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty')
 # TODO tested elswhere and this test is not valid
 #             for location in sensation.getLocations():        
 #                 self.assertEqual(len(self.sense.getMemory().getPresentItemSensations(location)), 1, 'len(self.sense.getMemory().getPresentItemSensations({}))'.format(location))
@@ -1206,9 +1230,9 @@ class RobotTestCase(unittest.TestCase):
                             muscleMainNames,
                             muscleRobotType,
                             shouldBeRouted):
-        self.assertTrue(self.mainRobot.getAxon().empty(), 'mainRobot Axon should be empty at the beginning of test_Presense\nCannot test properly this!')
-        self.assertTrue(self.sense.getAxon().empty(), 'sense Axon should be empty at the beginning of test_Presense\nCannot test properly this!')
-        self.assertTrue(self.muscle.getAxon().empty(), 'muscle Axon should be empty at the beginning of test_Presense\nCannot test properly this!')
+        self.assertTrue(self.mainRobot.getAxon().empty(), 'mainRobot Axon should be empty at the beginning of do_MainNamesRoutin\nCannot test properly this!')
+        self.assertTrue(self.sense.getAxon().empty(), 'sense Axon should be empty at the beginning of do_MainNamesRoutin\nCannot test properly this!')
+        self.assertTrue(self.muscle.getAxon().empty(), 'muscle Axon should be empty at the beginning of do_MainNamesRoutin\nCannot test properly this!')
 
         self.sense.setMainNames(senseMainNames)
         self.muscle.setMainNames(muscleMainNames)
@@ -1234,17 +1258,35 @@ class RobotTestCase(unittest.TestCase):
         self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty before we test')
         # test
         self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=sense_sensation)
-        # should be routed to mainRobot
-        self.assertFalse(self.mainRobot.getAxon().empty(),'mainRobot Axon should not be empty')
-        tranferDirection, sensation = self.mainRobot.getAxon().get(robot=self)
-        # test routing to muscle
-        self.mainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
-        # should be routed to mainRobot
+        
+        # old Up/down routing
+#         # should be routed to mainRobot
+#         self.assertFalse(self.mainRobot.getAxon().empty(),'mainRobot Axon should not be empty')
+#         tranferDirection, sensation = self.mainRobot.getAxon().get(robot=self)
+#         # test routing to muscle
+#         self.mainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
+        # new Star routing
+        self.assertTrue(self.mainRobot.getAxon().empty(),'mainRobot Axon should be empty')
+
+        # test routing to the muscle
         if shouldBeRouted:
             self.assertFalse(self.muscle.getAxon().empty(),'muscle Axon should not be empty')
             tranferDirection, sensation = self.muscle.getAxon().get(robot=self)
+            self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty')
         else:
             self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty')
+            
+#         # new start routing    
+#         # should NOT be routed to mainRobot
+#         self.assertTrue(self.mainRobot.getAxon().empty(),'mainRobot Axon should be empty')
+#         # test routing to muscle
+#         # should be routed to mainRobot
+#         if shouldBeRouted:
+#             self.assertFalse(self.muscle.getAxon().empty(),'muscle Axon should not be empty')
+#             tranferDirection, sensation = self.muscle.getAxon().get(robot=self)
+#             self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty')
+#         else:
+#             self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty')
 
 # should not use tricks like this            
 #     def reverserRobotType(self, robotType):
@@ -1680,14 +1722,17 @@ class RobotTestCase(unittest.TestCase):
         self.assertEqual(sensationToSend.getReceivedFrom(), [], 'local sensation should not have receivedFrom information at the beginning of test')
         ################ test same location localSocket , remoteSocket, sense, muscle ####################
         self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=sensationToSend)
-            # should be routed to mainRobot
-        self.assertFalse(self.mainRobot.getAxon().empty(), 'local mainRobot Axon should be empty')
-        tranferDirection, sensation = self.mainRobot.getAxon().get(robot=self)
-        self.assertEqual(sensationToSend.getId(), sensation.getId(), 'send and received sensations ids should be equal')
-        self.assertEqual(sensationToSend, sensation, 'send and received sensations should be equal')
-       
+        # old Up/down routing
+#             # should be routed to mainRobot
+#         self.assertFalse(self.mainRobot.getAxon().empty(), 'local mainRobot Axon should be empty')
+#         tranferDirection, sensation = self.mainRobot.getAxon().get(robot=self)
+#         self.assertEqual(sensationToSend.getId(), sensation.getId(), 'send and received sensations ids should be equal')
+#         self.assertEqual(sensationToSend, sensation, 'send and received sensations should be equal')
+#         self.mainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
+
+        # new star routing       
         # process   
-        self.mainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
+        self.assertTrue(self.mainRobot.getAxon().empty(), 'local mainRobot Axon should be empty')
         if isSentLocal:
             # test routing to muscle
             self.assertFalse(self.muscle.getAxon().empty(),'muscle Axon should not be empty')
@@ -1737,11 +1782,13 @@ class RobotTestCase(unittest.TestCase):
         
             self.remoteSense.process(transferDirection=Sensation.TransferDirection.Up, sensation=sensation)
             # remote SocketServer should have got it and when it is living process, it has put it to remoteMainRobot
-            self.assertFalse(self.remoteMainRobot.getAxon().empty(),'remoteMainRobote Axon should not be empty')
-            tranferDirection, sensation = self.remoteMainRobot.getAxon().get(robot=self)
+            # old routing
+#             self.assertFalse(self.remoteMainRobot.getAxon().empty(),'remoteMainRobote Axon should not be empty')
+#             tranferDirection, sensation = self.remoteMainRobot.getAxon().get(robot=self)
+# 
+#             # test routing to remoteMuscle
+#             self.remoteMainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
 
-            # test routing to remoteMuscle
-            self.remoteMainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
             self.assertFalse(self.remoteMuscle.getAxon().empty(),'remoteMuscle Axon should not be empty')
             tranferDirection, sensation = self.remoteMuscle.getAxon().get(robot=self)
             self.assertTrue(self.remoteMuscle.getAxon().empty(),'remoteMuscle Axon should be empty')
@@ -1861,12 +1908,17 @@ class RobotTestCase(unittest.TestCase):
                                        isSentLocal):
         
         self.sense.process(transferDirection=Sensation.TransferDirection.Up, sensation=sensationToSend)
+        # old routing
         # should be routed to mainRobot
-        self.assertFalse(self.mainRobot.getAxon().empty(),'mainRobot Axon should not be empty')
-        tranferDirection, sensation = self.mainRobot.getAxon().get(robot=self)
+#         self.assertFalse(self.mainRobot.getAxon().empty(),'mainRobot Axon should not be empty')
+#         tranferDirection, sensation = self.mainRobot.getAxon().get(robot=self)
+#         
+#         self.mainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
+
+        # new star routing
+        self.assertTrue(self.mainRobot.getAxon().empty(),'mainRobot Axon should be empty')
         
         # test routing to muscle
-        self.mainRobot.process(transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
         if isSentLocal:
             # should be routed to mainRobot
             self.assertFalse(self.muscle.getAxon().empty(),'muscle Axon should not be empty')
@@ -1878,13 +1930,16 @@ class RobotTestCase(unittest.TestCase):
         # remote SocketServer should have NOT got it and when it is living process, it has NOT put it to remoteMainRobot
         print ('Wait Sensation is transferred by tcp')
 
-        # conditional wait               
+        # conditional wait
         endTime = time.time() + RobotTestCase.SLEEPTIME
-        # wait ere this time if we will bet something routes even if positive case is that should be self.remoteMainRobot.getAxon().empty()
-        while self.remoteMainRobot.getAxon().empty() and time.time() < endTime:
+        # wait ere this time if we will get something routes even if positive case is that should be self.remoteMainRobot.getAxon().empty()
+        # old routing             
+#         while self.remoteMainRobot.getAxon().empty() and time.time() < endTime:
+#             time.sleep(RobotTestCase.WAIT_STEP)
+        while self.remoteMuscle.getAxon().empty() and time.time() < endTime:
             time.sleep(RobotTestCase.WAIT_STEP)
         
-        self.assertTrue(self.remoteMainRobot.getAxon().empty(),'remoteMainRobot Axon should be empty')
+        self.assertTrue(self.remoteMuscle.getAxon().empty(),'remoteMuscle Axon should be empty')
 
         # TODO presence does not change in this test so this is basically obsolote test
         # but it should be true

@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 25.03.2021
+Updated on 05.03.2021
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -220,6 +220,7 @@ class Robot(Thread):
                                 # and writing to outAxon, which is created by us
                                 # or give in this method
         self.running=False
+        self.activityNumber = 0
 
         print("Robot 2")
         if self.config == None:
@@ -701,19 +702,32 @@ class Robot(Thread):
                 return True
         #self.log(logLevel=Robot.LogLevel.Verbose, logStr='hasSubCapability robotType ' + str(robotType) + ' memoryType ' + str(memoryType) + ' sensationType ' + str(sensationType) + ' False')      
         return False
-   
-#    def getSubCapabilityInstances(self, isCommunication, robotType, memoryType, sensationType, locations, mainNames):
+
+    '''
+    return subrobots that have themselves or their subrobots have capabilities requires
+    '''   
     def getSubCapabilityInstances(self, robotType, memoryType, sensationType, locations, mainNames):
         robots=[]
         for robot in self.getSubInstances():
-#             if robot.hasCapability(isCommunication, robotType, memoryType, sensationType, locations, mainNames) or \
-#                robot.hasSubCapability(isCommunication, robotType, memoryType, sensationType, locations, mainNames): # or \
             if robot.hasCapability(robotType, memoryType, sensationType, locations, mainNames) or \
                robot.hasSubCapability(robotType, memoryType, sensationType, locations, mainNames): # or \
                #robot.getInstanceType() == Sensation.InstanceType.Remote:       # append all Remotes so it gets same Memory NOPE Bad idea, Robot will process this, not just put to memory
                 robots.append(robot)
         return robots
 
+    '''
+    return subrobots that have themselves have capabilities requires.
+    Owner Robots are not mentioned
+    This method is used in star routing
+    '''   
+    def getCapabilityInstances(self, robotType, memoryType, sensationType, locations, mainNames):
+        robots=[]
+        if self.hasCapability(robotType, memoryType, sensationType, locations, mainNames):
+            robots.append(self)
+        for robot in self.getSubInstances():
+            if robot.hasCapability(robotType, memoryType, sensationType, locations, mainNames):
+                robots.append(robot)
+        return robots
 
     def run(self):
         self.running=True
@@ -736,13 +750,13 @@ class Robot(Thread):
         elif self.getInstanceType() == Sensation.InstanceType.Virtual:
             self.identity.start()
             
-        if self.level == 1:
-            self.activityAverage = self.shortActivityAverage = self.config.getActivityAvegageLevel()
-            self.activityNumber = 0
-            self.activityPeriodStartTime = time.time()
+#         if self.level == 1:
+        self.activityAverage = self.shortActivityAverage = self.config.getActivityAvegageLevel()
+#         self.activityNumber = 0
+        self.activityPeriodStartTime = time.time()
 
-            self.timer = Timer(interval=Robot.ACTIVITE_LOGGING_INTERVAL, function=self.logActivity)
-            self.timer.start()
+        self.timer = Timer(interval=Robot.ACTIVITE_LOGGING_INTERVAL, function=self.logActivity)
+        self.timer.start()
             
         # live until stopped
         self.mode = Sensation.Mode.Normal
@@ -771,8 +785,8 @@ class Robot(Thread):
  
         self.mode = Sensation.Mode.Stopping
         self.log(logLevel=Robot.LogLevel.Normal, logStr="Stopping robot")
-        if self.level == 1:
-           self.timer.cancel()
+#         if self.level == 1:
+        self.timer.cancel()
         
 
          # stop virtual instances here, when main instance is not running any more
@@ -1061,9 +1075,10 @@ class Robot(Thread):
     def process(self, transferDirection, sensation):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
 
-        # log MainTobot activity
-        if self.level == 1:
-            self.activityNumber += 1
+        # log MainRobot activity
+        # log Robot activity
+        #if self.level == 1:
+        self.activityNumber += 1
 
          # MainRobot and Virtual robot has Memory
         if ((sensation.sensationType is Sensation.SensationType.Feeling) and (self.isMainRobot())) or\
@@ -1086,7 +1101,7 @@ class Robot(Thread):
                     self.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation2)
             sensation.detachAll()
                                                            
-                    # send it to us
+            # send it to us
             # we should also process this in tcp-connection and Virtual Robots.
             # it is done below by normal route rules
 
@@ -1104,18 +1119,29 @@ class Robot(Thread):
             sensation.detachAll()
 
         # sensation going up
-        elif transferDirection == Sensation.TransferDirection.Up:
+#         elif transferDirection == Sensation.TransferDirection.Up:
+        elif True:
             # if sensation is going up  and we have a parent
-            if self.getParent() is None:
+#             if self.getParent() is None:
+            if True:
                 # check if we have subRobot that has capability to process this sensation
                 #needToDetach=True
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.getSubCapabilityInstances')
 #                robots = self.getSubCapabilityInstances(isCommunication = sensation.getIsCommunication(),
-                robots = self.getSubCapabilityInstances(robotType=sensation.getRobotType(),
+                selfSubrobots = self.getCapabilityInstances(robotType=sensation.getRobotType(),
                                                         memoryType=sensation.getMemoryType(),
                                                         sensationType=sensation.getSensationType(),
                                                         locations=sensation.getLocations(),
                                                         mainNames=sensation.getMainNames())
+                mainSubrobots = self.getMainRobot().getCapabilityInstances(robotType=sensation.getRobotType(),
+                                                        memoryType=sensation.getMemoryType(),
+                                                        sensationType=sensation.getSensationType(),
+                                                        locations=sensation.getLocations(),
+                                                        mainNames=sensation.getMainNames())
+                robots = []
+                for subrobot in selfSubrobots + mainSubrobots:
+                    if not subrobot is self and not subrobot in robots:
+                        robots.append(subrobot)
                 self.log(logLevel=Robot.LogLevel.Verbose, logStr='process for ' + sensation.toDebugStr() + ' robots ' + str(robots))
                 if len(robots) == 0:
                      self.log(logLevel=Robot.LogLevel.Normal, logStr='None robot has capability for this sensation= {})'.format(sensation.toDebugStr()))

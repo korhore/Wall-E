@@ -67,6 +67,11 @@ Develop
 - Sense Robots don't transfer any more Sense-Sensation to their parent, but directly to those
   Robots that are interested of them
 - Capability calculation is needed now only for tcp-Robots
+- move route-functionality from Robot.process to Robot.route with parameters
+  - rouToRobot: array, if routed only to these Robots, default None
+  - isRouToParent: boolean, True if routed only to parent Robot, default False
+                   Functionality will be same than current routing, when
+                   transferDirection is up.
 
 2) Sensationtype.State
 
