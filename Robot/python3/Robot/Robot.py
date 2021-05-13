@@ -726,8 +726,18 @@ class Robot(Thread):
         if self.hasCapability(robotType, memoryType, sensationType, locations, mainNames):
             robots.append(self)
         for robot in self.getSubInstances():
-            if robot.hasCapability(robotType, memoryType, sensationType, locations, mainNames):
-                robots.append(robot)
+            if robot.getInstanceType() == Sensation.InstanceType.Virtual:
+                virtualSubRobots = robot.getCapabilityInstances(robotType=robotType,
+                                                                memoryType=memoryType,
+                                                                sensationType=sensationType,
+                                                                locations=locations,
+                                                                mainNames=mainNames)
+                for virtualSubRobot in virtualSubRobots:
+                    robots.append(virtualSubRobot)
+
+            else:
+                if robot.hasCapability(robotType, memoryType, sensationType, locations, mainNames):
+                    robots.append(robot)
         return robots
 
     def run(self):
