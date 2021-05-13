@@ -72,6 +72,37 @@ Develop
   - isRouToParent: boolean, True if routed only to parent Robot, default False
                    Functionality will be same than current routing, when
                    transferDirection is up.
+                   
+- Routing topologies
+-- Point-to-point
+-- direct connection between two points
+-- Daisy chain
+--- In the linear daisy chain the first point is connected to a second point, a third point is connected to the second point,
+    and so on until the circuit is returned to ground. In the Ring is last one is connected to first one
+-- Star
+--- A star routing topology involves connecting multiple points to a central hub.
+-- Bus
+---involves connecting multiple points to a single power/signal line or component
+
+Optimal routing is Point-to-point, where we get matching Points from MainRobots and from its subRobots by capabilities.
+But incases, where  we have used (shareSensations) Down, we still need it. Down is also used many times in tests and should be checked
+if it is needed there. Down is special case where sensation should be routed to child Robots only,
+even if other Robots may have capabilitys to process its. It is used when we have a problen with a connection ans we have created next Robot
+with next connection to handle broken Robots work or when we ca,'t be sure if receiving Robots is ready to receice Sensation (Socketclient) and
+we put sensations to a cache to its parent. OK, this is not safe way also, parent can put Sensations to its clients too soon. We should fix this.
+We nees also TransferFirection.No, meaning that receiver Robot should not transfer Sensation further, because it is Point to Point routed Sensation
+and Routing is now done. Otherwise we are looping Sensations.
+TransferDirection
+- Direct Up -> Direct in code
+- Up, leave as backup. Should work even if left in a code
+- Down, as it is now
+- No, code should set TransferDirection.NO to Sensations that are Direct routed
+  Sensations is not routed anywhere in the receiving Robot.
+  But maybe we need Down? It works also. What about MicrophonePlayback. It shows capabilities of
+  Microphone (None) and Playback, but for timing reason it is not implemented as subRobots,
+  but with direct subRobot handling without running subRobots as threads. Maybe we don't need 'No'.
+  
+
 
 2) Sensationtype.State
 

@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 05.03.2021
+Updated on 10.05.2021
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -28,6 +28,7 @@ from Config import Config, Capabilities
 from Sensation import Sensation
 from Memory import Memory
 from AlsaAudio import Settings as AudioSettings
+#from syntaxnet.tensorflow.tensorflow.python.ops.linalg_ops import self_adjoint_eig
 
 def enum(*sequential, **named):
     enums = dict(zip(sequential, range(len(sequential))), **named)
@@ -1042,13 +1043,51 @@ class Robot(Thread):
     
 
     '''
+    Every Robot processes Sensations it gets from its Axon.
+    Here, in basic class method are basic processing,
+    meaning statistical processing, how hurry this Robots is
+    ans handling globals Snsasations, meaning now Stop. When Robot gets
+    a Stop-sensatgions, it stops recursively its subRobots and itself.
+    
+    Process basic functionality is validate meaning level of the sensation.
+    We should remember meaningful sensations and ignore (forget) less
+    meaningful sensations. Implementation is dependent on Sensation.MemoryType
+    level.
+    
+    When in Sensory level, we should process sensations very fast and
+    detect changes.
+    
+    When in Work level, we are processing meanings of sensations.
+    Typical example is detscting what Items are in a Image. Image-SEnsation
+    is Sensory-leval and Item-Sensations are Work level, information that
+    is output from Sosory-Sensations.
+    
+    If there are many assignments to other Sensations with high meaning level,
+    also this Sensation is meaningful.
+    
+    This method rarely gets Sensation.MemoryType.LongTerm Sensation
+    to process, but processing itself can create this kiund Sensation as a copy
+    which Robot wants to remember.
+    
+    Processing a Sensation can produce new Sensations that are routed
+    to other Robots. It is also possible to create new Sensation, which is
+    not routed anywhere now, but further processing of some Robot can find it
+    from Memory, when it processes some other Sensation.
+    Robots can create momories.When in Longterm level, we process memories.
+    Which memories are still important and which memories we should forget.
+    
+    Finally, this basic implementation is called from this method overridded
+    by subRobots.
+    
+    
     In basic class Sensation processing in not implemented, but this the place
     for derived classes to process Sensations and then call this basic
     implementation.
     
     Process basic functionality is validate meaning level of the sensation.
     We should remember meaningful sensations and ignore (forget) less
-    meaningful sensations. Implementation is dependent on memoryType level.
+    meaningful sensations. Implementation is dependent on Sensation.MemoryType
+    level.
     
     When in Sensory level, we should process sensations very fast and
     detect changes.
@@ -1081,8 +1120,9 @@ class Robot(Thread):
         self.activityNumber += 1
 
          # MainRobot and Virtual robot has Memory
-        if ((sensation.sensationType is Sensation.SensationType.Feeling) and (self.isMainRobot())) or\
-             ((sensation.sensationType is Sensation.SensationType.Feeling) and (self.getInstanceType() == Sensation.InstanceType.Virtual)):
+#         if ((sensation.sensationType is Sensation.SensationType.Feeling) and (self.isMainRobot())) or\
+#              ((sensation.sensationType is Sensation.SensationType.Feeling) and (self.getInstanceType() == Sensation.InstanceType.Virtual)):
+        if sensation.sensationType is Sensation.SensationType.Feeling:
             feeling = self.getMemory().process(sensation=sensation)# process locally
             if feeling is not None:
                 self.feelingLevel = ((Robot.FEELING_LOGGING_SHORT_AVERAGE_PERIOD-1.0)/Robot.FEELING_LOGGING_SHORT_AVERAGE_PERIOD) * self.feeling +\
@@ -1095,15 +1135,20 @@ class Robot(Thread):
                     # We choose both now
                     feelingSensation = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                             robotType=Sensation.RobotType.Sense, feeling = self.feeling, locations=self.getUpLocations()) # valid in this location
-                    self.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
+#                     self.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
+                    self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=feelingSensation)
                     feelingSensation2 = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                             robotType=Sensation.RobotType.Muscle, feeling = self.feeling, locations=self.getUpLocations()) # valid in this location
-                    self.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation2)
+#                     self.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation2)
+                    self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=feelingSensation2)
             sensation.detachAll()
                                                            
             # send it to us
             # we should also process this in tcp-connection and Virtual Robots.
             # it is done below by normal route rules
+            
+        # TODO Stop
+        # How to stop
 
         if sensation.getSensationType() == Sensation.SensationType.Stop:
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: SensationSensationType.Stop')      
@@ -1117,89 +1162,189 @@ class Robot(Thread):
             self.setLocations(locations=sensation.getLocations())
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: locations: ' + self.getLocationsStr())
             sensation.detachAll()
+            
+            
+        # route tp subRobot.process
+            
+#         self.route(transferDirection=transferDirection, sensation=sensation)
 
-        # sensation going up
-#         elif transferDirection == Sensation.TransferDirection.Up:
-        elif True:
-            # if sensation is going up  and we have a parent
-#             if self.getParent() is None:
-            if True:
+#         # sensation going up
+# #         elif transferDirection == Sensation.TransferDirection.Up:
+#         elif True:
+#             # if sensation is going up  and we have a parent
+# #             if self.getParent() is None:
+#             if True:
+#                 # check if we have subRobot that has capability to process this sensation
+#                 #needToDetach=True
+#                 self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.getSubCapabilityInstances')
+# #                robots = self.getSubCapabilityInstances(isCommunication = sensation.getIsCommunication(),
+#                 selfSubrobots = self.getCapabilityInstances(robotType=sensation.getRobotType(),
+#                                                         memoryType=sensation.getMemoryType(),
+#                                                         sensationType=sensation.getSensationType(),
+#                                                         locations=sensation.getLocations(),
+#                                                         mainNames=sensation.getMainNames())
+#                 mainSubrobots = self.getMainRobot().getCapabilityInstances(robotType=sensation.getRobotType(),
+#                                                         memoryType=sensation.getMemoryType(),
+#                                                         sensationType=sensation.getSensationType(),
+#                                                         locations=sensation.getLocations(),
+#                                                         mainNames=sensation.getMainNames())
+#                 robots = []
+#                 for subrobot in selfSubrobots + mainSubrobots:
+#                     if not subrobot is self and not subrobot in robots:
+#                         robots.append(subrobot)
+#                 self.log(logLevel=Robot.LogLevel.Verbose, logStr='process for ' + sensation.toDebugStr() + ' robots ' + str(robots))
+#                 if len(robots) == 0:
+#                      self.log(logLevel=Robot.LogLevel.Normal, logStr='None robot has capability for this sensation= {})'.format(sensation.toDebugStr()))
+#                 # TODO getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation, detach=False)
+#                 # logic does not work, so it is removed and we don't keep Sensations ownership, but let all subRobot to get ownership evwn if same
+#                 # sensation is sent to many subRobots
+#                 for robot in robots:
+#                     if robot.getInstanceType() == Sensation.InstanceType.Remote:
+#                         # if this sensation comes from sockrServers host
+#                         if sensation.isReceivedFrom(robot.getHost()) or \
+#                             sensation.isReceivedFrom(robot.getSocketServer().getHost()):
+#                             self.log(logLevel=Robot.LogLevel.Detailed, logStr='Remote robot ' + robot.getName() + ' has capability for this, but sensation comes from it self. Don\'t recycle it {}'.format(sensation.toDebugStr()))
+#                         else:
+#                             self.log(logLevel=Robot.LogLevel.Detailed, logStr='Remote robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation= {})'.format(sensation.toDebugStr()))
+#                             robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)#, detach=False) # keep ownerdhip untill sent to all sub Robots
+#                             #needToDetach=False
+#                     else:
+#                         self.log(logLevel=Robot.LogLevel.Detailed, logStr='Local robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation= {})'.format(sensation.toDebugStr()))
+#                         # new instance or sensation for process
+#                         robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)#, detach=False) # keep ownerdhip untill sent to all sub Robots
+#                         #needToDetach=False
+# #                 if needToDetach:
+# #                     sensation.detach(robot=self) # detach if no subRobot found
+#             else: # we are subRobot
+#                 self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation= {})'.format(sensation.toDebugStr()))      
+#                 self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)
+#         # sensation going down
+#         else:
+#             # which subRobot can process this
+#             #needToDetach=True
+#             self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getSubCapabilityInstances')
+# #            robots = self.getSubCapabilityInstances(isCommunication = sensation.getIsCommunication(),
+#             robots = self.getSubCapabilityInstances(robotType=sensation.getRobotType(),
+#                                                     memoryType=sensation.getMemoryType(),
+#                                                     sensationType=sensation.getSensationType(),
+#                                                     locations=sensation.getLocations(),
+#                                                     mainNames=sensation.getMainNames())
+#             self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getSubCapabilityInstances' + str(robots))
+#             if len(robots) == 0:
+#                 self.log(logLevel=Robot.LogLevel.Normal, logStr='None robot has capability for this sensation= {})'.format(sensation.toDebugStr()))
+#             for robot in robots:
+#                 if robot.getInstanceType() == Sensation.InstanceType.Remote:
+#                     # if this sensation comes from sockrServers host
+#                     if sensation.isReceivedFrom(robot.getHost()) or \
+#                        sensation.isReceivedFrom(robot.getSocketServer().getHost()):
+#                         self.log(logLevel=Robot.LogLevel.Verbose, logStr='Remote robot ' + robot.getName() + 'has capability for this, but sensation comes from it self. Don\'t recycle sensation {})'.format(sensation.toDebugStr()))
+#                     else:
+#                         self.log(logLevel=Robot.LogLevel.Detailed, logStr='Remote robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, {})'.format(sensation.toDebugStr()))
+#                         robot.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)#, detach=False) # keep ownerdhip untill sent to all sub Robots
+#                         #needToDetach=False
+#                 else:
+#                     self.log(logLevel=Robot.LogLevel.Verbose, logStr='Local robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, {})'.format(sensation.toDebugStr()))
+#                     robot.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)#, detach=False) # keep ownerdhip untill sent to all sub Robots
+#                     #needToDetach=False
+# #             if needToDetach:
+# #                 sensation.detach(robot=self) # detach if no subRobot found
+        sensation.detach(robot=self)         # finally detach sensation
+ 
+    '''
+    Sensation routing from one Robot to others
+    Routing is based on
+    - capabilities
+    - locations
+    - MainNames
+    
+    Sensation has capability as well Robots has set of capabilities. If Robot has
+    asked capability asked be Sensation, it is routed, if also
+    locations has match.
+    
+    MainNames define logcal Robot si if capabilitys and
+    location match and also MainNames match, then Sensation is routed also by networ,
+    because this is logical Robot working is different computers.
+    If SensationType is Communication and MainNames don't mach, this is communication between
+    different Robots, so Sensation is routed even if Locations don't match.
+    
+    In a computer, meaning in one run, there one Robots has stated its subrobots,
+    all (sub)Robots route Sensations directly to each other. We get list of (sub)Robots
+    from MainRobot which can have its own functionality or it can be just host
+    for networking subRobots. Networking subRobots get their copabilities for
+    foreign Robots fron network and give their own copabilitis - logical add
+    of all SubRobots capabilities - to opposite partt of the connection.
+    
+    There is also virtualRobot-robottype and it acts as networking Robot. Its
+    routing is handled by transferDirection-parameter, so VirtualRobots subRobots
+    route their Sensations only to that VirtualRobot. VirtualRobot itself is
+    subRobot to MainRobot so their can communicate with each other. Anyway
+    virtualRobot is a demomo efect,
+    
+
+    
+    Parameters
+    
+    sensation         Sensation to route
+    isRoutedToParent     True if sensation will be routed only to parent
+
+        
+    '''
+            
+    def route(self, transferDirection, sensation):
+        self.log(logLevel=Robot.LogLevel.Normal, logStr='route: ' + time.ctime(sensation.getTime()) + ' ' + sensation.toDebugStr())
+        self.log(logLevel=Robot.LogLevel.Detailed, logStr='route: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
+        
+        robots = []
+        # Route up
+        # this version routes directly to this Robots MainRobot and call same method with  Sensation.TransferDirection.Down parameter
+        if transferDirection == Sensation.TransferDirection.Up:
+            self.getMainRobot().route(transferDirection = Sensation.TransferDirection.Down, sensation=sensation)
+            return
+        else:
+            if transferDirection == Sensation.TransferDirection.Down:
+            # transferDirection == Sensation.TransferDirection.Direct
+                self.log(logLevel=Robot.LogLevel.Verbose, logStr='route: self.getSubCapabilityInstances')
+                robots = self.getCapabilityInstances(robotType=sensation.getRobotType(),
+                                                            memoryType=sensation.getMemoryType(),
+                                                            sensationType=sensation.getSensationType(),
+                                                            locations=sensation.getLocations(),
+                                                            mainNames=sensation.getMainNames())
+            else:
                 # check if we have subRobot that has capability to process this sensation
                 #needToDetach=True
-                self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.getSubCapabilityInstances')
-#                robots = self.getSubCapabilityInstances(isCommunication = sensation.getIsCommunication(),
+                self.log(logLevel=Robot.LogLevel.Verbose, logStr='route: self.getSubCapabilityInstances')
                 selfSubrobots = self.getCapabilityInstances(robotType=sensation.getRobotType(),
-                                                        memoryType=sensation.getMemoryType(),
-                                                        sensationType=sensation.getSensationType(),
-                                                        locations=sensation.getLocations(),
-                                                        mainNames=sensation.getMainNames())
+                                                            memoryType=sensation.getMemoryType(),
+                                                            sensationType=sensation.getSensationType(),
+                                                            locations=sensation.getLocations(),
+                                                            mainNames=sensation.getMainNames())
                 mainSubrobots = self.getMainRobot().getCapabilityInstances(robotType=sensation.getRobotType(),
-                                                        memoryType=sensation.getMemoryType(),
-                                                        sensationType=sensation.getSensationType(),
-                                                        locations=sensation.getLocations(),
-                                                        mainNames=sensation.getMainNames())
-                robots = []
+                                                            memoryType=sensation.getMemoryType(),
+                                                            sensationType=sensation.getSensationType(),
+                                                            locations=sensation.getLocations(),
+                                                            mainNames=sensation.getMainNames())
                 for subrobot in selfSubrobots + mainSubrobots:
                     if not subrobot is self and not subrobot in robots:
                         robots.append(subrobot)
-                self.log(logLevel=Robot.LogLevel.Verbose, logStr='process for ' + sensation.toDebugStr() + ' robots ' + str(robots))
-                if len(robots) == 0:
-                     self.log(logLevel=Robot.LogLevel.Normal, logStr='None robot has capability for this sensation= {})'.format(sensation.toDebugStr()))
-                # TODO getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation, detach=False)
-                # logic does not work, so it is removed and we don't keep Sensations ownership, but let all subRobot to get ownership evwn if same
-                # sensation is sent to many subRobots
-                for robot in robots:
-                    if robot.getInstanceType() == Sensation.InstanceType.Remote:
-                        # if this sensation comes from sockrServers host
-                        if sensation.isReceivedFrom(robot.getHost()) or \
-                            sensation.isReceivedFrom(robot.getSocketServer().getHost()):
-                            self.log(logLevel=Robot.LogLevel.Detailed, logStr='Remote robot ' + robot.getName() + ' has capability for this, but sensation comes from it self. Don\'t recycle it {}'.format(sensation.toDebugStr()))
-                        else:
-                            self.log(logLevel=Robot.LogLevel.Detailed, logStr='Remote robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation= {})'.format(sensation.toDebugStr()))
-                            robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)#, detach=False) # keep ownerdhip untill sent to all sub Robots
-                            #needToDetach=False
-                    else:
-                        self.log(logLevel=Robot.LogLevel.Detailed, logStr='Local robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation= {})'.format(sensation.toDebugStr()))
-                        # new instance or sensation for process
-                        robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)#, detach=False) # keep ownerdhip untill sent to all sub Robots
-                        #needToDetach=False
-#                 if needToDetach:
-#                     sensation.detach(robot=self) # detach if no subRobot found
-            else: # we are subRobot
-                self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation= {})'.format(sensation.toDebugStr()))      
-                self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)
-        # sensation going down
-        else:
-            # which subRobot can process this
-            #needToDetach=True
-            self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getSubCapabilityInstances')
-#            robots = self.getSubCapabilityInstances(isCommunication = sensation.getIsCommunication(),
-            robots = self.getSubCapabilityInstances(robotType=sensation.getRobotType(),
-                                                    memoryType=sensation.getMemoryType(),
-                                                    sensationType=sensation.getSensationType(),
-                                                    locations=sensation.getLocations(),
-                                                    mainNames=sensation.getMainNames())
-            self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getSubCapabilityInstances' + str(robots))
+                        
+            self.log(logLevel=Robot.LogLevel.Verbose, logStr='process for ' + sensation.toDebugStr() + ' robots ' + str(robots))
+               
             if len(robots) == 0:
                 self.log(logLevel=Robot.LogLevel.Normal, logStr='None robot has capability for this sensation= {})'.format(sensation.toDebugStr()))
             for robot in robots:
                 if robot.getInstanceType() == Sensation.InstanceType.Remote:
                     # if this sensation comes from sockrServers host
                     if sensation.isReceivedFrom(robot.getHost()) or \
-                       sensation.isReceivedFrom(robot.getSocketServer().getHost()):
-                        self.log(logLevel=Robot.LogLevel.Verbose, logStr='Remote robot ' + robot.getName() + 'has capability for this, but sensation comes from it self. Don\'t recycle sensation {})'.format(sensation.toDebugStr()))
+                        sensation.isReceivedFrom(robot.getSocketServer().getHost()):
+                        self.log(logLevel=Robot.LogLevel.Detailed, logStr='Remote robot ' + robot.getName() + ' has capability for this, but sensation comes from it self. Don\'t recycle it {}'.format(sensation.toDebugStr()))
                     else:
-                        self.log(logLevel=Robot.LogLevel.Detailed, logStr='Remote robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, {})'.format(sensation.toDebugStr()))
-                        robot.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)#, detach=False) # keep ownerdhip untill sent to all sub Robots
-                        #needToDetach=False
+                        self.log(logLevel=Robot.LogLevel.Detailed, logStr='Remote robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation= {})'.format(sensation.toDebugStr()))
+                        robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)#, detach=False) # keep ownerdhip untill sent to all sub Robots
                 else:
-                    self.log(logLevel=Robot.LogLevel.Verbose, logStr='Local robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, {})'.format(sensation.toDebugStr()))
-                    robot.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)#, detach=False) # keep ownerdhip untill sent to all sub Robots
-                    #needToDetach=False
-#             if needToDetach:
-#                 sensation.detach(robot=self) # detach if no subRobot found
-        sensation.detach(robot=self)         # finally detach sensation
-    
+                    self.log(logLevel=Robot.LogLevel.Detailed, logStr='Local robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation= {})'.format(sensation.toDebugStr()))
+                    # new instance or sensation for process
+                    robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)#, detach=False) # keep ownerdhip untill sent to all sub Robots
+   
     '''
     Memory functionality
     '''      
@@ -1779,7 +1924,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
             self.log('run: self.sock.accept() '+ str(address))
             if self.running:
                 self.log('run: as server socketServer = self.createSocketServer'+ str(address))
-                socketServer = self.createSocketServer(sock=sock, address=address)
+                socketServer = self.createSocketServer(sock=sock, address=address, mainRobot=self.getMainRobot())
                 self.log('run: as server socketClient = self.createSocketClient'+ str(address))
                 socketClient = self.createSocketClient(sock=sock, address=address, socketServer=socketServer, tcpServer=self)
                 self.log('run: socketServer.setSocketClient(socketClient)'+ str(address))
@@ -1820,7 +1965,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
             connected = False
     
         if connected:
-            socketServer = self.createSocketServer(sock=sock, address=address)
+            socketServer = self.createSocketServer(sock=sock, address=address, mainRobot=self.getMainRobot())
             socketClient = self.createSocketClient(sock=sock, address=address, socketServer=socketServer, tcpServer=self)
             socketServer.setSocketClient(socketClient)
             # add only socketClients to subInstances, because they give us capabilities
@@ -1861,9 +2006,9 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
             self.log("run: sock.connect(" + str(address) + ') exception ' + str(e))
  
                    
-    def createSocketServer(self, sock, address, socketClient=None):
+    def createSocketServer(self, sock, address,  mainRobot, socketClient=None):
         self.log('createSocketServer: creating new SocketServer')
-        socketServer = SocketServer(mainRobot=self,
+        socketServer = SocketServer(mainRobot=mainRobot,
                                     parent=self,
                                     memory=self.getMemory(),    # use same memory
                                     instanceName='SocketServer',
@@ -2008,7 +2153,8 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
     def process(self, transferDirection, sensation):
         self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         # We can handle only sensation going down transfer-robotType
-        if transferDirection == Sensation.TransferDirection.Down:
+#         if transferDirection == Sensation.TransferDirection.Down:
+        if True:
             if self.getAxon().length() > Robot.SOCKETCLIENT_MAX_QUEUE_LENGTH:
                 self.log('process: skipping too long Axon queue Sensation')
             else:
@@ -2099,12 +2245,12 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
     This is happening when SocketServer is calling it and we don't know if
     SocketClient is running so best way can be just put all sensations into our Axon
     '''
-    def shareSensations(self, capabilities):
-        if self.getHost() not in self.getMemory().sharedSensationHosts:
-            for sensation in self.getMemory().getSensations(capabilities):
-                 self.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
-
-            self.getMemory().sharedSensationHosts.append(self.getHost())
+#     def shareSensations(self, capabilities):
+#         if self.getHost() not in self.getMemory().sharedSensationHosts:
+#             for sensation in self.getMemory().getSensations(capabilities):
+#                  self.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
+# 
+#             self.getMemory().sharedSensationHosts.append(self.getHost())
 
     '''
     share Robot presense
@@ -2393,6 +2539,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                                 self.log('run: SocketServer got Capability sensation {} mainNames {}'.format(sensation.getCapabilities().toDebugString('SocketServer'), sensation.getMainNames()))
                                 self.setMainNames(mainNames=sensation.getMainNames())
                                 self.process(transferDirection=Sensation.TransferDirection.Up, sensation=sensation)
+                                self.route(transferDirection=Sensation.TransferDirection.Up, sensation=sensation)
                                 # share here sensations from our memory that this host has capabilities
                                 # We wan't always share our all knowledge with all other robots
                                 if self.getSocketClient() is not None:
@@ -2406,7 +2553,8 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                                 #self.setMainNames(mainNames=sensation.getMainNames())
                             else:
                                 self.log("run: SocketServer got sensation " + sensation.toDebugStr())
-                                self.getParent().getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # write sensation to TCPServers Parent, because TCPServer does not read its Axon
+#                                 self.getParent().getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # write sensation to TCPServers Parent, because TCPServer does not read its Axon
+                                self.route(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # write sensation to TCPServers Parent, because TCPServer does not read its Axon
 
         try:
             self.sock.close()

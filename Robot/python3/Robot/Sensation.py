@@ -98,7 +98,7 @@ class Sensation(object):
     # RobotType of a sensation. Example in Voice: Muscle: Speaking,  Sense: Hearing In->Muscle Out->Sense
     RobotType = enum(Muscle='M', Sense='S', Communication ='C', All='A')
     # RobotType of a sensation transferring, used with Axon. Up: going up like from AlsaMicroPhone to MainRobot, Down: going down from MainRobot to leaf Robots like AlsaPlayback
-    TransferDirection = enum(Up='U', Down='D')
+    TransferDirection = enum(Direct = 'a', Up = 'b', Down='c')
     # Presence of Item  
     Presence = enum(Entering='a', Present='b', Exiting='c', Absent='d', Unknown='e')
 
