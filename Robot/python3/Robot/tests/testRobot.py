@@ -1965,11 +1965,9 @@ class RobotTestCase(unittest.TestCase):
                                                  robotType=robotType,
                                                  name=RobotTestCase.NAME,
                                                  score=RobotTestCase.SCORE_1,
-                                                 presence=Sensation.Presence.Entering)
-        # TODO This fails with Virtual nad it is real error
-        # remove next if and  Correct and enable
-        if isTcp:
-            self.do_remote_positive_case_sensation(remoteMainRobot = remoteMainRobot,
+                                                 presence=Sensation.Presence.Entering,
+                                                 locations=[])
+        self.do_remote_positive_case_sensation(remoteMainRobot = remoteMainRobot,
                                                 remoteSense = remoteSense,
                                                 remoteMuscle = remoteMuscle,
                                                 sensationToSend = Wall_E_item_sensation_no_location,
@@ -2055,12 +2053,13 @@ class RobotTestCase(unittest.TestCase):
     
         if isSentRemote:
             
-            # test test here
-            self.assertTrue(remoteMuscle in remoteMainRobot.getCapabilityInstances(robotType = sensationToSend.getRobotType(),
-                                                                                             memoryType = sensationToSend.getMemoryType(),
-                                                                                             sensationType = sensationToSend.getSensationType(),
-                                                                                             locations = sensationToSend.getLocations(),
-                                                                                             mainNames = sensationToSend.getMainNames()))
+            # test test here TODO Cant test like this,
+            # because we test also no location and then there are no getCapabilityInstances
+#             self.assertTrue(remoteMuscle in remoteMainRobot.getCapabilityInstances(robotType = sensationToSend.getRobotType(),
+#                                                                                              memoryType = sensationToSend.getMemoryType(),
+#                                                                                              sensationType = sensationToSend.getSensationType(),
+#                                                                                              locations = sensationToSend.getLocations(),
+#                                                                                              mainNames = sensationToSend.getMainNames()))
             
             
             # remote SocketServer should have got it and when it is living process, it has put it to remoteMainRobot
@@ -2181,7 +2180,8 @@ class RobotTestCase(unittest.TestCase):
                                                  robotType=robotType,
                                                  name=RobotTestCase.NAME,
                                                  score=RobotTestCase.SCORE_1,
-                                                 presence=Sensation.Presence.Entering)
+                                                 presence=Sensation.Presence.Entering,
+                                                 locations=[])
 
         for location in Wall_E_item_sensation_no_location.getLocations():       
             self.assertEqual(len(self.sense.getMemory().getPresentItemSensations(location=location)), 1, 'len(self.sense.getMemory().getPresentItemSensations({}) should be 1'.format(location))
@@ -2207,10 +2207,7 @@ class RobotTestCase(unittest.TestCase):
                                             transferDirection = transferDirection)
 
         # with local global sensation should fail
-        # TODO this fails with Virtual
-        # remove next if and correct
-        if isTcp:       
-            self.do_tcp_negative_case_sensation(remoteMainRobot,
+        self.do_tcp_negative_case_sensation(remoteMainRobot,
                                                 remoteSense,
                                                 remoteMuscle,
                                                 sensationToSend = Wall_E_item_sensation_no_location,

@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 10.05.2021
+Updated on 14.05.2021
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -473,11 +473,23 @@ class Robot(Thread):
     def isInLocations(self, locations):
         # is no location requirement or Capabilities accepts all, return True
         # in other case test if at least one location match
-        if (len(locations) == 0 and self.getInstanceType() != Sensation.InstanceType.Remote) or\
-           (len(self.getDownLocations()) == 0 and self.getInstanceType() != Sensation.InstanceType.Remote) or\
-           Robot.GLOBAL_LOCATION in self.getDownLocations() or\
+
+        # local global is empty locations and it matches if Robots or its MainRobots instancetype is not Remote of Virtual
+        # meaning local
+        if len(locations) == 0 or len(self.getDownLocations()) == 0:
+            if self.getMainRobot() != None and\
+               self.getMainRobot().getInstanceType() != Sensation.InstanceType.Remote and\
+               self.getMainRobot().getInstanceType() != Sensation.InstanceType.Virtual and\
+               self.getInstanceType() != Sensation.InstanceType.Remote and\
+               self.getInstanceType() != Sensation.InstanceType.Virtual:
+                return True
+        
+        # global location matches fron Robot or fron Sensation        
+        if Robot.GLOBAL_LOCATION in self.getDownLocations() or\
            Robot.GLOBAL_LOCATION in locations:            
             return True
+
+        # Normal case is to check if at least one Robots down location matches        
         for location in locations:
             if location in self.getDownLocations():
                 return True
