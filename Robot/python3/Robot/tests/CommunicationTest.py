@@ -1,6 +1,6 @@
 '''
 Created on 14.04.2021
-Updated on 25.04.2021
+Updated on 13.05.2021
 @author: reijo.korhonen@gmail.com
 
 test Communication or Visualommunication classes
@@ -234,7 +234,9 @@ class CommunicationTest(RobotTestCase):
         #simulate TensorFlowClassification send presence item to MainRobot
         # Now we should have 1 item in self.getMemory().getAllPresentItemSensations() (can be assigned as self.association) with with  name and associations count
         self.assertEqual(len(robot.getMemory().getAllPresentItemSensations()), 1, 'len(robot.getMemory().getAllPresentItemSensations() should be 1')
-
+        # test test
+        self.assertTrue(voice_sensation1.isForgettable())
+        
         robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation_entering2)
 
         if isPresentRobot:

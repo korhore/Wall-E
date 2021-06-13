@@ -889,7 +889,8 @@ class VisualCommunication(Robot):
             feelingSensation.setNegativeFeeling(not isPositive)
             feelingSensation.setRobotType(Sensation.RobotType.Sense)
             self.getRobot().getMemory().setMemoryType(sensation=feelingSensation, memoryType=Sensation.MemoryType.Sensory)
-            self.getRobot().getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
+#             self.getRobot().getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
+            self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=feelingSensation)
                 
                 
         def showSensation(self, data_gs, sensation):

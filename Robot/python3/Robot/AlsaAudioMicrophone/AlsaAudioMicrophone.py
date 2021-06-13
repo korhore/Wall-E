@@ -181,8 +181,9 @@ class AlsaAudioMicrophone(Robot):
             self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: voice from " + self.getMemory().itemsPresenceToStr())
             for itemSensation in self.getMemory().getAllPresentItemSensations():
                 itemSensation.associate(sensation=voiceSensation)
-            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: self.getParent().getAxon().put(robot=self, sensation)")
-            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=voiceSensation)")
+#             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)
+            self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=voiceSensation)
             self.voice_data=None
             self.voice_l=0
         

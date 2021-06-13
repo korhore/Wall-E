@@ -180,12 +180,14 @@ class Camera(Robot):
                 image = PIL_Image.fromarray(frame)
             
         if image and self.isChangedImage(image):
-            self.log("sense self.getParent().getAxon().put(robot=self, sensation)")
+#             self.log("sense self.getParent().getAxon().put(robot=self, sensation)")
             # put robotType out (seen image) to the parent Axon going up to main Robot
             sensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
                                               image=image, locations=self.getLocations())
 #            sensation.save()
-            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation)
+#             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation)
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: route(transferDirection=Sensation.TransferDirection.Direct, sensation=sensation")
+            self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=sensation)
         else:
              self.log("sense no change")
         if IsPiCamera:

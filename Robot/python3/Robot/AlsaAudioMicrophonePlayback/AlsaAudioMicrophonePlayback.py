@@ -4,6 +4,8 @@ Updated on 19.07.2019
 
 @author: reijo.korhonen@gmail.com
 
+Deprecated
+
 This class is low level sensory (muscle) for speaking
 combined with low level sense hearing.
 
@@ -99,8 +101,9 @@ class AlsaAudioMicrophonePlayback(Robot):
                 transferDirection, sensation = self.getAxon().get(robot=self)
                 self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())  
                 if transferDirection == Sensation.TransferDirection.Up:
-                    self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation))')      
-                    self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)
+                    self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=sensation))')      
+#                     self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)
+                    self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=sensation)
                 else:
                     # stop
                     if sensation.getSensationType() == Sensation.SensationType.Stop:

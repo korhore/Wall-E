@@ -100,8 +100,13 @@ class MicrophonePlayback(Robot):
                 transferDirection, sensation = self.getAxon().get(robot=self)
                 self.log("got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())  
                 if transferDirection == Sensation.TransferDirection.Up:
-                    self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation))')      
-                    self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)
+                    # NOTE this handling is obsolote with self.route and
+                    # should never happened and will be removced later from code,
+                    # because sensations are routed directly to target Axons
+#                     self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation))')      
+#                     self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)
+                    self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=sensation)')      
+                    self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=sensation)(transferDirection=Sensation.TransferDirection.Direct, sensation=sensation)
                 else:
                     # stop
                     if sensation.getSensationType() == Sensation.SensationType.Stop:

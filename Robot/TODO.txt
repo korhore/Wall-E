@@ -1,6 +1,19 @@
 Critical
 --------
 
+Stop-
+How to stop if only Identity stops?
+
+
+testIdentification.py
+Is this in use?
+  File "/home/reijo/git/Wall-E/Robot/python3/Robot/Robot.py", line 1323, in route
+    self.getMainRobot().route(transferDirection = Sensation.TransferDirection.Down, sensation=sensation)
+AttributeError: 'IdentityTestCase' object has no attribute 'route'
+
+testIdentity.py
+
+
 Clean up this file
 
 When MainRobot is very busy, Hurry, Busy, Breaking, we should make our subRobots slower. In practice we need sleep in Robot.Sense and Robot.process(). Maybe same mechanism as
@@ -73,7 +86,10 @@ Develop
                    Functionality will be same than current routing, when
                    transferDirection is up.
                    
-- Routing topologies
+- Routing topologies  File "/home/reijo/git/Wall-E/Robot/python3/Robot/Robot.py", line 1323, in route
+    self.getMainRobot().route(transferDirection = Sensation.TransferDirection.Down, sensation=sensation)
+AttributeError: 'IdentityTestCase' object has no attribute 'route'
+
 -- Point-to-point
 -- direct connection between two points
 -- Daisy chain

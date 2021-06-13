@@ -1,6 +1,6 @@
 '''
 Created on 10.04.2021
-Updated on 10.04.2021
+Updated on 13.06.2021
 @author: reijo.korhonen@gmail.com
 
 Base class routines used to test-clersses for Robot-delivered classes.
@@ -109,7 +109,20 @@ class RobotTestCase():
         robot.mainNames = mainNames
     def getParent(self):
         return None
-
+    '''
+    route to test class
+    '''
+    def route(self, transferDirection, sensation):
+        self.log(logLevel=self.robot.LogLevel.Normal, logStr='route: ' + sensation.toDebugStr())
+        self.log(logLevel=self.robot.LogLevel.Detailed, logStr='route: '  + str(transferDirection) +  ' ' + sensation.toDebugStr())
+        self.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)
+        
+    def getCapabilityInstances(self, robotType, memoryType, sensationType, locations, mainNames):
+        robots=[self]
+        return robots
+    def getInstanceType(self):
+        return Sensation.InstanceType.Real
+ 
     '''
     get test locations
     '''   
@@ -530,38 +543,42 @@ class RobotTestCase():
             self.assertFalse(isItemStillExpected,  'Did not get item')
             
         # test isForgotytable
-        # TODO responses and answers should be Forgettable, bot
+        # TODO responses and answers should be Forgettable, but
         # we should test instead Communication.spokedAssociations
         # and .sensations.
         if self.muscleVoice != None:
-            self.assertTrue(self.muscleVoice.isForgettable())
+            self.muscleVoice.logAttachedBy()
+            self.assertTrue(self.muscleVoice.isForgettable(), self.muscleVoice.getAttachedByRobotStr())
                 
         if self.muscleImage != None:
-            self.assertTrue(self.muscleImage.isForgettable())
+            self.muscleImage.logAttachedBy()
+            self.assertTrue(self.muscleImage.isForgettable(), self.muscleImage.getAttachedByRobotStr())
 
         if self.communicationVoice  != None:
-            self.assertTrue(self.communicationVoice .isForgettable())
+            self.communicationVoice.logAttachedBy()
+            self.assertTrue(self.communicationVoice .isForgettable(), self.communicationVoice.getAttachedByRobotStr())
             
         if self.communicationImage != None:
-            self.assertTrue(self.communicationImage.isForgettable())
+            self.communicationImage.logAttachedBy()
+            self.assertTrue(self.communicationImage.isForgettable(), self.communicationImage.getAttachedByRobotStr())
                 
         # previous
         
         if self.previousGotMuscleVoice != None:
             self.previousGotMuscleVoice.logAttachedBy()
-            self.assertTrue(self.previousGotMuscleVoice.isForgettable())
+            self.assertTrue(self.previousGotMuscleVoice.isForgettable(), self.previousGotMuscleVoice.getAttachedByRobotStr())
                 
         if self.previousGotMuscleImage != None:
             self.previousGotMuscleImage.logAttachedBy()
-            self.assertTrue(self.previousGotMuscleImage.isForgettable())
+            self.assertTrue(self.previousGotMuscleImage.isForgettable(), self.previousGotMuscleImage.getAttachedByRobotStr())
 
         if self.previousGotCommunicationVoice != None:
             self.previousGotCommunicationVoice.logAttachedBy()
-            self.assertTrue(self.previousGotCommunicationVoice.isForgettable())
+            self.assertTrue(self.previousGotCommunicationVoice.isForgettable(), self.previousGotCommunicationVoice.getAttachedByRobotStr())
             
         if self.previousGotCommunicationImage != None:
             self.previousGotCommunicationImage.logAttachedBy()
-            self.assertTrue(self.previousGotCommunicationImage.isForgettable())
+            self.assertTrue(self.previousGotCommunicationImage.isForgettable(), self.previousGotCommunicationImage.getAttachedByRobotStr())
                 
         # remember new previous
         self.previousGotMuscleVoice = self.muscleVoice 

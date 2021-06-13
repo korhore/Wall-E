@@ -1,6 +1,6 @@
 '''
 Created on 23.06.2019
-Updated on 31.12.2020
+Updated on 13.06.2021
 @author: reijo.korhonen@gmail.com
 
 test TensorFlowClassification class
@@ -87,7 +87,15 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
                     logLevel = self.tensorFlowClassification.LogLevel.Normal
                 if logLevel <= self.tensorFlowClassification.getLogLevel():
                      print(self.tensorFlowClassification.getName() + ":" + str( self.tensorFlowClassification.config.level) + ":" + Sensation.Modes[self.tensorFlowClassification.mode] + ": " + logStr)
-    
+
+    '''
+    route to test class
+    '''
+    def route(self, transferDirection, sensation):
+        self.log(logLevel=self.tensorFlowClassification.LogLevel.Normal, logStr='route: ' + sensation.toDebugStr())
+        self.log(logLevel=self.tensorFlowClassification.LogLevel.Detailed, logStr='route: '  + str(transferDirection) +  ' ' + sensation.toDebugStr())
+        self.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)
+   
     '''
     Testing    
     '''
@@ -117,14 +125,11 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
 
 
     def tearDown(self):
-        print('sleep ' + str(TensorFlowClassificationTestCase.TEST_STOP_TIME) + ' to Stop Robot and test finishes')
-        systemTime.sleep(TensorFlowClassificationTestCase.TEST_STOP_TIME)       # give Robot some time to stop
-        self.tensorFlowClassification.getAxon().put(robot=self,
-                                                    transferDirection=Sensation.TransferDirection.Up,
-                                                    sensation=self.tensorFlowClassification.createSensation(associations=[], sensationType = Sensation.SensationType.Stop))
-        print('sleep ' + str(TensorFlowClassificationTestCase.TEST_STOP_TIME) + ' time for Robot to process Stop Sensation')
-        systemTime.sleep(TensorFlowClassificationTestCase.TEST_STOP_TIME)       # give Robot some time to stop
-
+        if self.tensorFlowClassification.isRunning():
+            self.tensorFlowClassification.stop()
+            print('tearDown sleep ' + str(TensorFlowClassificationTestCase.TEST_STOP_TIME) + ' time for self.tensorFlowClassification to stop')
+            systemTime.sleep(TensorFlowClassificationTestCase.TEST_STOP_TIME)       # give Robot some time to stop
+ 
         del self.tensorFlowClassification
         del self.axon
         

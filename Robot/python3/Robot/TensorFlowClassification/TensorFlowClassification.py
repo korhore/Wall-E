@@ -623,8 +623,10 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                                 # TODO Here we used association. Study if this has some effect and use Feeling sensation if needed. Seems that no effect-
                                 #self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
                                 #self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
-                                self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
-                                self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+#                                 self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
+                                self.route(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
+#                                 self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+                                self.route(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
                                 self.log("Created Working subImage and item sensation for this")
                         # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
                     i = i+1
@@ -687,8 +689,10 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                         # TODO study if paramameter association has some effect and use Feeling sensation, if it had
                         #self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
                         #self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
-                        self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
-                        self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
+#                         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+                        self.route(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+#                         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
+                        self.route(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
                         self.log("Created Working subImage and item sensation for this")
         return current_present
     
@@ -768,7 +772,8 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                    self.present[name] = presence
                 itemsensation = self.createSensation( sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense, name=name,\
                                                  presence = presence, locations=self.getUpLocations())
-                self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+#                 self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+                self.route(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
                 self.log("process created exiting/absent itemsensation " + itemsensation.toDebugStr())
         # can't del in loop, do it here
         for name in absent_names:

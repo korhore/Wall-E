@@ -4,6 +4,8 @@ Updated on 09.09.2020
 
 @author: reijo.korhonen@gmail.com
 
+Deprecated
+
 This class is low level sensory for hearing,
 implemented by sounddevice and need usb-microphone as hardware
 

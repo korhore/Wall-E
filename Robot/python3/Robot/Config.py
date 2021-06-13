@@ -838,6 +838,9 @@ class Config(ConfigParser):
     '''
     def hasCapability(self, robotType,memoryType,sensationType, section=DEFAULT_LOCATION):
         from Sensation import Sensation
+        # all Configs has stop capability even if they deny it
+        if sensationType == Sensation.SensationType.Stop:
+            return True
         for r in robotType, Sensation.RobotType.All:
             for m in memoryType, Sensation.MemoryType.All:
                 for s in sensationType, Sensation.SensationType.All:

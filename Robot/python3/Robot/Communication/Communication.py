@@ -268,7 +268,10 @@ class Communication(Robot):
                                                                     firstAssociateSensation=firstAssociateSensation, otherAssociateSensation=otherAssociateSensation,
                                                                     negativeFeeling=True, locations=self.getLocations())#self.getLocations()) # valid in this location, can be chosen other way
 
-                        self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
+#                         self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
+#                         self.getParent().route(transferDirection=Sensation.TransferDirection.Direct, sensation=feelingSensation)
+                        self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=feelingSensation)
+
                                         
                         # detach
                         firstAssociateSensation.detach(robot=self.getRobot())
@@ -359,7 +362,7 @@ class Communication(Robot):
             
      
         def process(self, transferDirection, sensation):
-            self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: {} {}'.format(systemTime.ctime(sensation.getTime()),transferDirection,sensation.toDebugStr()))
+            self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: {} {} {}'.format(systemTime.ctime(sensation.getTime()),transferDirection,sensation.toDebugStr()))
             # don't communicate with history Sensation Items, we are communicating Item.name just seen.
             #self.log(logLevel=Robot.LogLevel.Normal, logStr="process: systemTime.time() " + str(systemTime.time()) + ' -  sensation.getTime() ' + str(sensation.getTime()) + ' < Communication.COMMUNICATION_INTERVAL ' + str(Communication.COMMUNICATION_INTERVAL))
             self.log(logLevel=Robot.LogLevel.Normal, logStr="ConversationWithItem process: " + str(systemTime.time() - sensation.getTime()) + ' < ' + str(Communication.COMMUNICATION_INTERVAL))
@@ -389,8 +392,10 @@ class Communication(Robot):
                             askSensation.setRobotType(Sensation.RobotType.Communication)  # communication to other Robots       
                             self.getMemory().setMemoryType(sensation=askSensation, memoryType=Sensation.MemoryType.Sensory)
                             # speak                 
-                            self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=askSensation)
-     
+#                             self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=askSensation)
+#                             self.getParent().route(transferDirection=Sensation.TransferDirection.Direct, sensation=askSensation)
+                            self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=askSensation)
+    
                         # now we can say something to the sensation.getName()
                         # even if we have said something so other present ones
                         # this means we need (again)
@@ -545,7 +550,9 @@ class Communication(Robot):
                                 #association = self.mostImportantItemSensation.getAssociation(sensation = self.mostImportantVoiceSensation)
                                 self.getMemory().setMemoryType(sensation=spokedSensation, memoryType=Sensation.MemoryType.Sensory)
                                 # speak                 
-                                self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=spokedSensation)
+#                                 self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=spokedSensation)
+#                                 self.getParent().route(transferDirection=Sensation.TransferDirection.Direct, sensation=spokedSensation)
+                                self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=spokedSensation)
                                 # create Communication sensation for Robots to be 'heard'
                                 # Robot.createSensation set RobotMainNames
                                     
@@ -677,7 +684,9 @@ class Communication(Robot):
                                                                        locations=Robot.GLOBAL_LOCATIONS)
                                 # NOTE This is needed now, because Sensation.create parameters robotType and memoryType parameters are  overwritten by sensation parameters
                                 spokedSensation.setRobotType(Sensation.RobotType.Communication)  # 'speak' to Robots
-                                self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=spokedSensation)
+#                                 self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=spokedSensation)
+#                                 self.getParent().route(transferDirection=Sensation.TransferDirection.Direct, sensation=spokedSensation)
+                                self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=spokedSensation)
                         else:
                             # We did not find anything to say, but are ready to start new conversation, if someone speaks.
                             self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithRobot speak: self.getMemory().getBestSensations did NOT find Sensation to speak')
@@ -748,7 +757,9 @@ class Communication(Robot):
                                             presence=Sensation.Presence.Present,
                                             locations=self.getLocations())    
         # speak                 
-        self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemSensation)
+#         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemSensation)
+#         self.getParent().route(transferDirection=Sensation.TransferDirection.Direct, sensation=itemSensation)
+        self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=itemSensation)
 
     '''
     Overridable method to be run just after
@@ -767,8 +778,10 @@ class Communication(Robot):
                                             presence=Sensation.Presence.Absent,
                                             locations=self.getLocations())
         # speak                 
-        self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemSensation)
- 
+#         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemSensation)
+#         self.getParent().route(transferDirection=Sensation.TransferDirection.Direct, sensation=itemSensation)
+        self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=itemSensation)
+
     def process(self, transferDirection, sensation):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: {} {}'.format(systemTime.ctime(sensation.getTime()),transferDirection,sensation.toDebugStr()))
         # don't communicate with history Sensation Items, we are communicating Item.name just seen.

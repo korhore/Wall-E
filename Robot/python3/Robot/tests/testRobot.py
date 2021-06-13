@@ -25,13 +25,15 @@ then test should be changed. Anyway
 Robot.process(self, transferDirection, sensation)
 parameters should be changed 
 Robot.process(self, sensation)
-default functionality should empty, byt detach sensation
+default functionality handles Main Robot feeling and stop-sensation,
+and finally but detach sensation
+transferDirection is not yest removed, but it is igneroed in implementation.
 
 and routing
 Robot.route(self, sensation)
-should do what Robot.process does now.
+does what Robot.process did before.
 
-and in subRobots
+and changes shouls (are now) done in subRobots and tested
 
 
 
@@ -98,7 +100,7 @@ class RobotTestCase(unittest.TestCase):
     REMOTE_LOCALHOST='127.0.0.2'
     FAKE_PORT = 2001
     
-    SLEEPTIME=8.0
+    SLEEPTIME=10.0
     WAIT_STEP = 1.0
     
    
@@ -212,8 +214,8 @@ class RobotTestCase(unittest.TestCase):
  #       self.assertEqual(RobotTestCase.MAINNAMES_1, self.muscle.getMainNames())
                 
         #set muscle capabilities  Item, Image, Voice
-        self.setCapabilities(robot=self.muscle, robotTypes=[Sensation.RobotType.Sense])
-        #self.setCapabilities(robot=self.muscle, robotType=Sensation.RobotType.Muscle, is_set=False)
+        self.setRobotCapabilities(robot=self.muscle, robotTypes=[Sensation.RobotType.Sense])
+        #self.setRobotCapabilities(robot=self.muscle, robotType=Sensation.RobotType.Muscle, is_set=False)
 
     '''
     Clean data directory from bi9nary files files.
@@ -303,7 +305,7 @@ class RobotTestCase(unittest.TestCase):
         self.assertEqual(RobotTestCase.MAINNAMES_2, self.remoteMuscle.getMainNames())
                 
         #set muscle capabilities  Item, Image, Voice
-        self.setCapabilities(robot=self.remoteMuscle, robotTypes=[Sensation.RobotType.Sense, Sensation.RobotType.Communication])
+        self.setRobotCapabilities(robot=self.remoteMuscle, robotTypes=[Sensation.RobotType.Sense, Sensation.RobotType.Communication])
         #self.setCapabilities(robot=self.remoteMuscle, robotType=Sensation.RobotType.Muscle, is_set=False)
         
         self.assertTrue(self.remoteMuscle in self.remoteMainRobot.getCapabilityInstances(robotType = Sensation.RobotType.Communication,
@@ -391,7 +393,7 @@ class RobotTestCase(unittest.TestCase):
         self.assertEqual(RobotTestCase.MAINNAMES_2, self.virtualMuscle.getMainNames())
                 
         #set muscle capabilities  Item, Image, Voice
-        self.setCapabilities(robot=self.virtualMuscle, robotTypes=[Sensation.RobotType.Sense, Sensation.RobotType.Communication])
+        self.setRobotCapabilities(robot=self.virtualMuscle, robotTypes=[Sensation.RobotType.Sense, Sensation.RobotType.Communication])
         #self.setCapabilities(robot=self.virtualMuscle, robotType=Sensation.RobotType.Muscle, is_set=False)
         
         self.assertTrue(self.virtualMuscle in self.virtualMainRobot.getCapabilityInstances(robotType = Sensation.RobotType.Communication,
@@ -430,7 +432,7 @@ class RobotTestCase(unittest.TestCase):
     '''
     set capabilities  Item, Image, Voice
     '''
-    def setCapabilities(self, robot, robotTypes):
+    def setRobotCapabilities(self, robot, robotTypes):
         capabilities  =  robot.getCapabilities()
 
         for robotType in Sensation.RobotTypesOrdered:
@@ -1239,7 +1241,7 @@ class RobotTestCase(unittest.TestCase):
         self.assertEqual(self.mainRobot.getAxon().empty(), True, 'Axon should be empty at the beginning of test_Presense\nCannot test properly this!')
         self.setRobotMainNames(robot=self.sense, mainNames=senseMainNames)
         self.setRobotMainNames(robot=self.muscle, mainNames=muscleMainNames)
-        self.setCapabilities(robot=self.muscle, robotTypes=[robotType])
+        self.setRobotCapabilities(robot=self.muscle, robotTypes=[robotType])
 
         if locations == None:     
             Wall_E_item_sensation = self.sense.createSensation(
@@ -1475,9 +1477,9 @@ class RobotTestCase(unittest.TestCase):
         self.muscle.setMainNames(muscleMainNames)
  
         # Clear sense capabilities so MainRobot does not route sensation back to it       
-        self.setCapabilities(robot=self.sense, robotTypes=[])
+        self.setRobotCapabilities(robot=self.sense, robotTypes=[])
 
-        self.setCapabilities(robot=self.muscle, robotTypes=[muscleRobotType])
+        self.setRobotCapabilities(robot=self.muscle, robotTypes=[muscleRobotType])
         
         
         if locations == None:     

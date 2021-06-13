@@ -962,14 +962,18 @@ class Robot(Thread):
 
     def stop(self):
         self.log(logLevel=Robot.LogLevel.Normal, logStr="Stopping robot")
-
-         # stop virtual instances here, when main instance is not running any more
-        for robot in self.subInstances:
-            robot.stop()
-        self.log(logLevel=Robot.LogLevel.Verbose, logStr="self.running = False")      
-        self.running = False    # this in not real, but we wait for Sensation,
+        if self.running:
+             # stop sub instances here, when main instance is not running any more
+            for robot in self.subInstances:
+                robot.stop()
+#             if not self.isMainRobot():
+#                 self.getMainRobot().stop()
+            self.log(logLevel=Robot.LogLevel.Verbose, logStr="self.running = False")      
+            self.running = False    # this in not real, but we wait for Sensation,
                                 # so give  us one stop sensation
-        self.log(logLevel=Robot.LogLevel.Verbose, logStr="self.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=self.createSensation(sensationType = Sensation.SensationType.Stop))") 
+        # TODO removed temporarely
+        # do not stop with sensation
+        self.log(logLevel=Robot.LogLevel.Verbose, logStr="self.routet(transferDirection=Sensation.TransferDirection.Up, sensation=self.createSensation(sensationType = Sensation.SensationType.Stop))") 
         # stop sensation
         sensation=self.createSensation(associations=[], sensationType = Sensation.SensationType.Stop)
         # us,but maybe not send up
@@ -977,7 +981,7 @@ class Robot(Thread):
         # to the parent also
         if self.getParent() is not None:
             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation)
-
+        #self.route(transferDirection=Sensation.TransferDirection.Up, sensation=sensation)
 
     '''
     doStop is used to stop server process and its subprocesses (threads)
@@ -1186,7 +1190,7 @@ class Robot(Thread):
             sensation.detachAll()
             
             
-        # route tp subRobot.process
+        # route to subRobot.process
             
 #         self.route(transferDirection=transferDirection, sensation=sensation)
 
@@ -1300,7 +1304,7 @@ class Robot(Thread):
     routing is handled by transferDirection-parameter, so VirtualRobots subRobots
     route their Sensations only to that VirtualRobot. VirtualRobot itself is
     subRobot to MainRobot so their can communicate with each other. Anyway
-    virtualRobot is a demomo efect,
+    virtualRobot is a demo efect,
     
 
     

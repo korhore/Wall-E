@@ -3,6 +3,8 @@ Created on 09.01.2020
 Updated on 09.10.2020
 @author: reijo.korhonen@gmail.com
 
+deprecated
+
 test SoundDeviceMicrophone and SoundDeviceOlaypack classes
 python3 -m unittest tests/testoundDevice.py
 

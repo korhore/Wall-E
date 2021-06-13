@@ -1,9 +1,9 @@
 '''
 Created on 03.06.2020
-Updated on 03.06.2020
+Updated on 13.06.2021
 @author: reijo.korhonen@gmail.com
 
-test Robot.Identification class
+test Robot.Identity class
 you must provide models/research
 PYTHONPATH=/<here it is>/models/research python3 -m unittest tests/testidentification.py
 
@@ -67,6 +67,13 @@ class IdentityTestCase(unittest.TestCase):
                      print(self.identity.getName() + ":" + str( self.identity.config.level) + ":" + Sensation.Modes[self.identity.mode] + ": " + logStr)
     
     '''
+    route to test class
+    '''
+    def route(self, transferDirection, sensation):
+        self.log(logLevel=self.identity.LogLevel.Normal, logStr='route: ' + sensation.toDebugStr())
+        self.log(logLevel=self.identity.LogLevel.Detailed, logStr='route: '  + str(transferDirection) +  ' ' + sensation.toDebugStr())
+        self.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)
+    '''
     Testing    
     '''
     
@@ -90,23 +97,20 @@ class IdentityTestCase(unittest.TestCase):
 
 
     def tearDown(self):
-        print('sleep ' + str(IdentityTestCase.TEST_TIME) + ' to Stop Robot and test finishes')
-        systemTime.sleep(IdentityTestCase.TEST_TIME)       # give Robot some time to stop
-        self.identity.getAxon().put(robot=self,
-                                                    transferDirection=Sensation.TransferDirection.Up,
-                                                    sensation=self.identity.createSensation(associations=[], sensationType = Sensation.SensationType.Stop))
-        print('sleep ' + str(IdentityTestCase.TEST_STOP_TIME) + ' time for Robot to process Stop Sensation')
-        systemTime.sleep(IdentityTestCase.TEST_STOP_TIME)       # give Robot some time to stop
+        if self.identity.isRunning():
+            self.identity.stop()
+            print('tearDown sleep ' + str(IdentityTestCase.TEST_STOP_TIME) + ' time for self.identity to stop')
+            systemTime.sleep(IdentityTestCase.TEST_STOP_TIME)       # give Robot some time to stop
 
         del self.identity
         del self.axon
         
-    def test_Identification(self):
+    def test_Identity(self):
         # how to test?
         i=0
         self.identity.start()
         while self.identity.isRunning() and i < 100:
-            print('test_Identification sleep ' + str(IdentityTestCase.TEST_TIME) + ' waiting test to finish {}'.format(i))
+            print('test_Identification sleep ' + str(IdentityTestCase.TEST_TIME) + ' waiting while self.identity.isRunning() and {} < 100: sleep {}s'.format(i, IdentityTestCase.TEST_TIME))
             systemTime.sleep(IdentityTestCase.TEST_TIME)
             i=i+1
 

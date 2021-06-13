@@ -3,6 +3,8 @@ Created on 30.04.2019
 Updated on 28.06.2019
 
 @author: reijo.korhonen@gmail.com
+
+Deprecated
 '''
 
 import os

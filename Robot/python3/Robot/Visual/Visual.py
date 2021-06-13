@@ -193,9 +193,12 @@ class Visual(Robot):
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: SensationSensationType.Stop')      
             self.stop()
         elif transferDirection == Sensation.TransferDirection.Up:
-            if self.getParent() is not None: # if sensation is going up  and we have a parent
-                self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation))')      
-                self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)
+            # NOTE when using self.route, this never happens, because sensasation are routed directly
+#             if self.getParent() is not None: # if sensation is going up  and we have a parent
+#                 self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation))')      
+#                 self.getParent().getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)
+            self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: self.route(transferDirection=transferDirection, sensation=sensation)')      
+            self.route(transferDirection=transferDirection, sensation=sensation)
         else:
             # just pass Sensation to wx-process
             # if we already got self.app and self.app.frame running
@@ -1182,7 +1185,8 @@ class Visual(Robot):
             feelingSensation.setNegativeFeeling(not isPositive)
             feelingSensation.setRobotType(Sensation.RobotType.Sense)
             self.getRobot().getMemory().setMemoryType(sensation=feelingSensation, memoryType=Sensation.MemoryType.Sensory)
-            self.getRobot().getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
+#             self.getRobot().getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
+            self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=feelingSensation)
                 
                 
         def showSensation(self, data_gs, sensation):

@@ -1,6 +1,6 @@
 '''
 Created on 21.09.2020
-Updated on 07.10.2020
+Updated on 14.05.2021
 @author: reijo.korhonen@gmail.com
 
 test Microphone and SoundDevicePlaypack classes
@@ -22,7 +22,7 @@ from Axon import Axon
 from AlsaAudio import Settings
 
 
-class VoiceTestCase(unittest.TestCase):
+class VoiceTestCase(unittest.TestCase, Robot):
     ''' create situation, where we have found
         - Wall_E_item
         - Image
@@ -36,6 +36,7 @@ class VoiceTestCase(unittest.TestCase):
     NAME='Wall-E'           # This should be real Robot name with real identity
                             # Voice sensations to play as test inout
     LOCATION='localhost'    # used to mic presense by location
+    LOCATIONS=[LOCATION]    # used to mic presense by location
     
     MAINNAMES = ["VoiceTestCaseMainName"]
     OTHERMAINNAMES = ["OTHER_VoiceTestCaseMainName"]
@@ -44,27 +45,63 @@ class VoiceTestCase(unittest.TestCase):
     Robot modeling
     '''
     
-    def getAxon(self):
-        return self.axon
-    def getId(self):
-        return 1.1
-    def getName(self):
-        return VoiceTestCase.NAME
-    def getMainNames(self):
-        return self.mainNames
-    def setRobotMainNames(self, robot, mainNames):
-        robot.mainNames = mainNames
-    def getParent(self):
-        return None
-    def log(self, logStr, logLevel=None):
-        if logLevel == None:
-            logLevel = self.microphone.LogLevel.Normal
-        if logLevel <= self.microphone.getLogLevel():
-             print(self.microphone.getName() + ":" + str( self.microphone.config.level) + ":" + Sensation.Modes[self.microphone.mode] + ": " + logStr)
+#     def getAxon(self):
+#         return self.axon
+#     def getId(self):
+#         return 1.1
+#     def getName(self):
+#         return VoiceTestCase.NAME
+#     def getMainNames(self):
+#         return self.mainNames
+#     def setRobotMainNames(self, robot, mainNames):
+#         robot.mainNames = mainNames
+#     def getParent(self):
+#         return None
+    
+    '''
+    Must fake is_alive to True, so we could test Sensation routing
+    '''
+    def is_alive(self):
+            return True
+   
+#     def log(self, logStr, logLevel=None):
+#         if logLevel == None:
+#             logLevel = self.microphone.LogLevel.Normal
+#         if logLevel <= self.microphone.getLogLevel():
+#              print(self.microphone.getName() + ":" + str( self.microphone.config.level) + ":" + Sensation.Modes[self.microphone.mode] + ": " + logStr)
 
     '''
-    Testing    
+    return subrobots that have themselves have capabilities requires.
+    Owner Robots are not mentioned
+    This method is used in star routing
+    '''   
+
     '''
+    Helper methods   
+    '''
+    def setRobotLocations(self, robot, locations):
+        robot.locations = locations
+        robot.uplocations = locations
+        robot.downlocations = locations    
+ 
+    def setRobotMainNames(self, robot, mainNames):
+        robot.mainNames = mainNames
+    '''
+    set capabilities  Item, Image, Voice
+    '''
+    def setRobotCapabilities(self, robot, robotTypes):
+        capabilities  =  robot.getCapabilities()
+
+        for robotType in Sensation.RobotTypesOrdered:
+            is_set = robotType in robotTypes    
+            #sensory
+            capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Voice, is_set=is_set)   
+            #Working
+            capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Working, sensationType=Sensation.SensationType.Voice, is_set=is_set)   
+            #LongTerm
+            capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.LongTerm, sensationType=Sensation.SensationType.Voice, is_set=is_set)   
+
+        robot.setCapabilities(capabilities)
     
 
     '''
@@ -72,18 +109,39 @@ class VoiceTestCase(unittest.TestCase):
     '''
     
     def setUp(self):
-        self.mainNames = self.MAINNAMES
-        self.axon = Axon(robot=self) # parent axon
+        Robot.__init__(self=self,
+                       mainRobot=None,
+                       parent=None,
+                       instanceName='testVoice',
+                       instanceType= Sensation.InstanceType.Real,
+                       level=1)
+#         self.mainRobot=self
+#         self.mainNames = self.MAINNAMES
+# #         self.axon = Axon(robot=self) # parent axon
+#         self.setLocations(VoiceTestCase.LOCATIONS)
+#         self.setMainNames(VoiceTestCase.MAINNAMES)
+        self.setRobotLocations(robot=self, locations=VoiceTestCase.LOCATIONS)
+        self.setRobotMainNames(robot=self,mainNames=VoiceTestCase.MAINNAMES)        
+        self.setRobotCapabilities(robot=self, robotTypes=[Sensation.RobotType.Sense])
+       
         self.microphone = Microphone( mainRobot=self,
                                       parent=self,
                                       instanceName='Microphone',
                                       instanceType= Sensation.InstanceType.SubInstance,
                                       level=2)
+        self.setRobotLocations(robot=self.microphone, locations=VoiceTestCase.LOCATIONS)
+        self.setRobotMainNames(robot=self.microphone, mainNames=VoiceTestCase.MAINNAMES)        
+        self.subInstances.append(self.microphone)
+        
         self.playback = Playback(     mainRobot=self,
                                       parent=self,
                                       instanceName='Playback',
                                       instanceType= Sensation.InstanceType.SubInstance,
                                       level=2)
+        self.setRobotLocations(robot=self.playback, locations=VoiceTestCase.LOCATIONS)
+        self.setRobotMainNames(robot=self.playback, mainNames=VoiceTestCase.MAINNAMES)        
+        self.subInstances.append(self.playback)
+
 
         self.stopSensation = self.microphone.createSensation(memoryType=Sensation.MemoryType.Working,
                                             sensationType=Sensation.SensationType.Stop,
@@ -111,15 +169,19 @@ class VoiceTestCase(unittest.TestCase):
 
     def tearDown(self):
 # TODO Re-enable stop       
-        print("--- put stop-sensation for Microphone")
-        self.microphone.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.stopSensation)
-        print("--- put stop-sensation for Microphone")
-        self.playback.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.stopSensation)
-        
-        print("--- test sleeping " + str(VoiceTestCase.SLEEP_TIME) + " second until stop should be done")
-        systemTime.sleep(VoiceTestCase.SLEEP_TIME) # let result UI be shown until cleared           
+#         print("--- put stop-sensation for Microphone")
+#         self.microphone.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.stopSensation)
+#         print("--- put stop-sensation for Microphone")
+#         self.playback.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.stopSensation)
+
+#         print("--- put stop-sensation for All")
+#         self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=self.stopSensation)
+#         
+#         print("--- test sleeping " + str(VoiceTestCase.SLEEP_TIME) + " second until stop should be done")
+#         systemTime.sleep(VoiceTestCase.SLEEP_TIME) # let result UI be shown until cleared           
 
         self.microphone.stop()
+        self.playback.stop()
         #self.assertEqual(self.microphone.getAxon().empty(), False, 'Axon should not be empty after self.microphone.stop()')
         while(not self.getAxon().empty()):
             transferDirection, sensation = self.getAxon().get(robot=self)

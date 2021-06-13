@@ -3,6 +3,8 @@ Created on Feb 24, 2013
 Updated on 06.04.2020
 @author: reijo.korhonen@gmail.com
 
+deprecated
+
 This class Main robot
 that start and manages all subrobots
 

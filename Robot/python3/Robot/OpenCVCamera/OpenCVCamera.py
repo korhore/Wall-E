@@ -4,6 +4,8 @@ Updated on 02.09.2020
 
 @author: reijo.korhonen@gmail.com
 
+Deprecated
+
 OpenCVCamera is Sense type Robot
 that produces Image-sensations from default camera
 This works fine at least Windows-laptops with tiny cameras with 640x480 pixels.
