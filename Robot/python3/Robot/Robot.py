@@ -1362,12 +1362,12 @@ class Robot(Thread):
                     # if this sensation comes from sockrServers host
                     if sensation.isReceivedFrom(robot.getHost()) or \
                         sensation.isReceivedFrom(robot.getSocketServer().getHost()):
-                        self.log(logLevel=Robot.LogLevel.Detailed, logStr='Remote robot ' + robot.getName() + ' has capability for this, but sensation comes from it self. Don\'t recycle it {}'.format(sensation.toDebugStr()))
+                        self.log(logLevel=Robot.LogLevel.Normal, logStr='Remote robot ' + robot.getName() + ' has capability for this, but sensation comes from it self. Don\'t recycle it {}'.format(sensation.toDebugStr()))
                     else:
-                        self.log(logLevel=Robot.LogLevel.Detailed, logStr='Remote robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation= {})'.format(sensation.toDebugStr()))
+                        self.log(logLevel=Robot.LogLevel.Normal, logStr='Remote robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation= {})'.format(sensation.toDebugStr()))
                         robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)#, detach=False) # keep ownerdhip untill sent to all sub Robots
                 else:
-                    self.log(logLevel=Robot.LogLevel.Detailed, logStr='Local robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation= {})'.format(sensation.toDebugStr()))
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr='Local robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation= {})'.format(sensation.toDebugStr()))
                     # new instance or sensation for process
                     robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)#, detach=False) # keep ownerdhip untill sent to all sub Robots
    

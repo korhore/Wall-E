@@ -759,7 +759,7 @@ class Communication(Robot):
         # speak                 
 #         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemSensation)
 #         self.getParent().route(transferDirection=Sensation.TransferDirection.Direct, sensation=itemSensation)
-        self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=itemSensation)
+        self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=itemSensation)
 
     '''
     Overridable method to be run just after
