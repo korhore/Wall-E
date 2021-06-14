@@ -779,8 +779,7 @@ class Communication(Robot):
                                             locations=self.getLocations())
         # speak                 
 #         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemSensation)
-#         self.getParent().route(transferDirection=Sensation.TransferDirection.Direct, sensation=itemSensation)
-        self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=itemSensation)
+        self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=itemSensation)
 
     def process(self, transferDirection, sensation):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: {} {}'.format(systemTime.ctime(sensation.getTime()),transferDirection,sensation.toDebugStr()))
