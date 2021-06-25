@@ -6,32 +6,35 @@ Wall-E -project studies robots and controllers for them.
 
 ### Robot
 
-Robot-project is newes and most ambitious.
+Robot-project is newest and most ambitious.
 It models human kognitive-capabilities as application ones.
+Why? Because I can model things like this and be cause it is fun.
+
 #### Architercture 
-Architercture is planned to work in a network and to be fully congugurable,
-so that Robot is biud by same kind elements- called Robots - that can be in same
+Architercture is planned to work in a network and to be fully configurable,
+so that Robot is buid by same kind elements - called Robots - that can be in same
 computer or in another computer in the network and there can be as many Robots
-in the network as you want, communicating with each other and with hunam beings also.
+in the network as you want, communicating with each other and with human beings also.
 
 Sounds scifi? Yes, this project was my hobby project to implement all kind
-scifi-films nightmare. Basic lines in films are individual very capable robots
+scifi-films nightmare. Basic lines in the films are individual very capable robots
 or networking robots that is everywhere and controls everything and of course
-tries to destroy all humans, because humans tru to destroy it. This the was at the first
-beginning of Robot-scifi from the first one 1968: A Space Odyssey.
+tries to destroy all humans, because humans try to destroy it. This the was case i the first
+beginning of Robot-scifi from 1968: A Space Odyssey.
 
-OK, Robot from this project cant destroy anyone, but can be fun ans if you take
+OK, Robot from this project can't destroy anyone, but can be fun ans if you take
 it seriously, it can be scientifically valuable.
+
 #### Robot
 
-Robot represents and models our senses and mucles. Robot can hear, see, movee, speak, ect.
+Robot represents and models our senses and mucles. Robot can hear, see, move, speak, ect.
 Robot can own other Robots, so one of them is main Robot. All Robots including one logical
-main Robot know their main name which is same, so main Robot can be build logically in one computer or many.
-There ab be many main Robots in a network and they con communicate each other if they wan't.
-Main Robots cam also share sub Robots if they wan't. Robots have always very tiny API
+main Robot know their main name which is same, so main Robot can be build logically in one computer or using many computers.
+There can be many main Robots in a network and they can communicate each other if they wan't.
+Main Robots can also share sub Robots if they wan't. Robots have always very tiny API.
 
     def process(self, sensation)
-Robot can always process sensations. Sensation gives information to a Robot what to do and Robot perform actions needen
+Robot can always process sensations. Sensation gives information to a Robot what to do and Robot perform actions needed.
 Robot can also create new sensations given to other Robots.
 
     def route(self, transferDirection, sensation)
@@ -44,20 +47,28 @@ like speking Robot, this method does nothing and method canSense return False.
 #### Capabilities
 Each Robot advitices in it capabilities what kind sensations they are interested of. If Roboty is logical
 main Robot it defines its subRobots, meanic senses ns muscles sthat will bew started in tyhis computer for it.
-For networking main Robot also defines computers in the networh that it connects. With capabilies same Robot-components
+For networking main Robot also defines computers in the network that it connects. With capabilies same Robot-components
 can be used in many kind configurations.
 
 #### Sensation
 Sensation can tranfer all information about seen or heard things, what they names are etc. Sensations are transferred by axons, ame way
 than humans do, but we use direct transfer from Robot to Robots, because we do so and it is more efficient way.
 
+Sensations heve Memory levels that mimics kognitive proces of a human.
+When Robot senses something it creates a *sense level* sensations.
+This includes low level data and Robot does not know what it means. Sense-type Robots create this kind sensations.
+The human brain is a machine of vision.
+They are the sense where what we see takes on meaning and we know what we see.
+This processing takes place in working memory and therefore the robot also has *working level* sensations.
+The third level of remembrance is *long-term* memories. They will remain in our minds for a long time, some forever.
+
 #### Memory
 Main Robot owns memory. Memory consist of Sensations connected with associations, same way than in human being.
-Association has feeling element so our Root can also feel. This makes fun for pour project. Robots fall in love!
+Association has feeling element so our Root can also feel. This makes fun for our project. Robots can fall in love!
 If Robots gets responses what it says, it likes more of the object and of responses it uses, so feelings guide
 Robot what to do with different kind objects.
 
-In practice remembering function needs alo forgetting function. We human beeings can remember important things only because we cam forget less
+In practice remembering function needs also forgetting function. We human beeings can remember important things only because we cam forget less
 important things, human memory capacity is not limitless as previously thought and the same applies to computers and robots built with them.
 This is implemented using feelings. The Robot tries to gain pleasure and forget about observations where it has not been liked.
 
@@ -66,7 +77,7 @@ Main pronsiple is not to help any kimd Robot to observe world and what are objec
 is build in. But we mimic human beings so that, when main Robot starts it gets a directory where are basuv inages of itself
 and basic phrases it says. Little baby startr to study itself and Robot does same.
 
-Next thing bady does is study to world. Robot gets also directory where are images and voices of one thing Robot sees and hears first.
+Next thing baby does is study to the world. Robot gets also directory where are images and voices Robot sees and hears first.
 With humans this thing is mother. With this projects that can be anything you want Robot to react certain way. Robot tryes to speak voices it has got
 and hears responses so those are associated in its memory with positive feelings.
 
