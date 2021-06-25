@@ -1,14 +1,14 @@
-#Wall-E Project
+# Wall-E Project
 
-##Introduction
+## Introduction
 
 Wall-E -project studies robots and controllers for them.
 
-###Robot
+### Robot
 
 Robot-project is newes and most ambitious.
 It models human kognitive-capabilities as application ones.
-####Architercture 
+#### Architercture 
 Architercture is planned to work in a network and to be fully congugurable,
 so that Robot is biud by same kind elements- called Robots - that can be in same
 computer or in another computer in the network and there can be as many Robots
@@ -22,7 +22,7 @@ beginning of Robot-scifi from the first one 1968: A Space Odyssey.
 
 OK, Robot from this project cant destroy anyone, but can be fun ans if you take
 it seriously, it can be scientifically valuable.
-####Robot
+#### Robot
 
 Robot represents and models our senses and mucles. Robot can hear, see, movee, speak, ect.
 Robot can own other Robots, so one of them is main Robot. All Robots including one logical
@@ -41,17 +41,17 @@ Called inside process. This routes sensation to thos Robots that are *capable* t
 Frameworks calls this if this is sense-type Robot, like hearing-Robot. If this is muscle type Robot
 like speking Robot, this method does nothing and method canSense return False.
 
-####Capabilities
+#### Capabilities
 Each Robot advitices in it capabilities what kind sensations they are interested of. If Roboty is logical
 main Robot it defines its subRobots, meanic senses ns muscles sthat will bew started in tyhis computer for it.
 For networking main Robot also defines computers in the networh that it connects. With capabilies same Robot-components
 can be used in many kind configurations.
 
-####Sensation
+#### Sensation
 Sensation can tranfer all information about seen or heard things, what they names are etc. Sensations are transferred by axons, ame way
 than humans do, but we use direct transfer from Robot to Robots, because we do so and it is more efficient way.
 
-####Memory
+#### Memory
 Main Robot owns memory. Memory consist of Sensations connected with associations, same way than in human being.
 Association has feeling element so our Root can also feel. This makes fun for pour project. Robots fall in love!
 If Robots gets responses what it says, it likes more of the object and of responses it uses, so feelings guide
@@ -61,7 +61,7 @@ In practice remembering function needs alo forgetting function. We human beeings
 important things, human memory capacity is not limitless as previously thought and the same applies to computers and robots built with them.
 This is implemented using feelings. The Robot tries to gain pleasure and forget about observations where it has not been liked.
 
-####Exposure
+#### Exposure
 Main pronsiple is not to help any kimd Robot to observe world and what are objects names and what they say etc. Nothing
 is build in. But we mimic human beings so that, when main Robot starts it gets a directory where are basuv inages of itself
 and basic phrases it says. Little baby startr to study itself and Robot does same.
@@ -73,28 +73,28 @@ and hears responses so those are associated in its memory with positive feelings
 That is all we help our robot and each run of the Robot(s) are different, depending what they see and what they hear.
 
 
-####Theory of Robots
+#### Theory of Robots
 
 Robot implementation based on research domains including developmental psychology, cognitive neuroscience, and cognitive psycology, very popular areas
 stydy with robotics.
 
-#####Events Perception
+##### Events Perception
 
 Robot can notice events using its sensories.
 
-#####Goal driven action
+##### Goal driven action
 
 Robot has goals, it makes decisions what actions are it makes to reach its goals. Implementation uses circle of event-decision-action to
 make tasks to reach goals. Some Goals are more important than others, so we implement Maslow's Hierarchy of Needs to guide robots actions,
 but robot itself has higher needs, its thinks is most important.
 
-#####Starting point of Wall-E
+##### Starting point of Wall-E
 
 This comes from Wall-E film. Wall-E likes to watch people dancing and thinks it would be nice to hold
 on hands with a girl robot. One day it see Eve, very graceful being, it can't set eyes off her. Here we gat most important goal of Wall-E,
 hold Eve's hand. OK, we must build a robot that can find out Eve. So we must build at least hearing and seeing as a start.
 
-#####Concept
+##### Concept
 
 We must have sensorys. Project implements sensory framework sor simultaneous percertons
 like we human can do, Axons to corry these percetions from interbaö sensorys and from exterbal sensorys to the brain.
@@ -107,7 +107,7 @@ Next target will be object recognize using seeing.
 
 
 
-###WalleRobotoController
+### WalleRobotoController
 
 WalleRobotoController is a legacy projecticluding same basic elements as
 Robots-projects has, but it is more contrete. It works with robots car run
@@ -121,7 +121,7 @@ All parts are cheap and we use everything we already own.
 
 All devices are programmed with their own native programming language.
 
-####Arduino Pirate 4WD car
+#### Arduino Pirate 4WD car
 
 Role as Robot device, its "muscles"
 
@@ -130,7 +130,7 @@ written in C, compiled in host computer and uploaded by USB to the device. On th
 control Arduino by Raspberry PI computer, which native programming language is Python, so we load
 pyfirmata sketch 1) to it.
 
-####Raspberry PI
+#### Raspberry PI
 
 Role as Robot logic, it's "brains".
 
@@ -150,7 +150,7 @@ Raspberry PI also has it's official camera, so we can see in remote controller w
 Later we can use camera to recognize objects.
 
 
-####N900
+#### N900
 
 Role as remote controller
 
@@ -159,15 +159,15 @@ applications with graphical UI and WLAN-client. We study fancy logics how to con
 platform to make them.
 
 
-####E7 or other Qt Phone
+#### E7 or other Qt Phone
 --------------------
 
 Role as remote controller
 
-####E7 is mobile phone which runs Qt above Symbian. It runs same source code as N900 does.
+#### E7 is mobile phone which runs Qt above Symbian. It runs same source code as N900 does.
 
 
-####Android Phone
+#### Android Phone
 
 Role as external Senses or remote controller
 
