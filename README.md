@@ -38,29 +38,30 @@ Robot can always process sensations. Sensation gives information to a Robot what
 Robot can also create new sensations given to other Robots.
 
     def route(self, transferDirection, sensation)
-Called inside process. This routes sensation to thos Robots that are *capable* to process it.
+Called inside process. This routes sensation to thos Robots that are **capable** to process it.
 
     def sense(self)
 Frameworks calls this if this is sense-type Robot, like hearing-Robot. If this is muscle type Robot
 like speking Robot, this method does nothing and method canSense return False.
 
 #### Capabilities
-Each Robot advitices in it capabilities what kind sensations they are interested of. If Roboty is logical
-main Robot it defines its subRobots, meanic senses ns muscles sthat will bew started in tyhis computer for it.
+Each Robot advitices in it capabilities what kind sensations they are interested of. If Robot is a logical
+main Robot it defines its subRobots, meaning senses and muscles that will be started in this computer for it.
 For networking main Robot also defines computers in the network that it connects. With capabilies same Robot-components
 can be used in many kind configurations.
 
 #### Sensation
-Sensation can tranfer all information about seen or heard things, what they names are etc. Sensations are transferred by axons, ame way
+Sensation can tranfer all information about seen or heard things, what they names are etc.
+Sensations are transferred by axons, same way
 than humans do, but we use direct transfer from Robot to Robots, because we do so and it is more efficient way.
 
 Sensations heve Memory levels that mimics kognitive proces of a human.
-When Robot senses something it creates a *sense level* sensations.
+When Robot senses something it creates a **sense level** sensations.
 This includes low level data and Robot does not know what it means. Sense-type Robots create this kind sensations.
 The human brain is a machine of vision.
 They are the sense where what we see takes on meaning and we know what we see.
-This processing takes place in working memory and therefore the robot also has *working level* sensations.
-The third level of remembrance is *long-term* memories. They will remain in our minds for a long time, some forever.
+This processing takes place in working memory and therefore the robot also has **working level** sensations.
+The third level of remembrance is **long-term** memories. They will remain in our minds for a long time, some forever.
 
 #### Memory
 Main Robot owns memory. Memory consist of Sensations connected with associations, same way than in human being.
