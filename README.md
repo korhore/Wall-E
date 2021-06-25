@@ -34,7 +34,7 @@ There can be many main Robots in a network and they can communicate each other i
 Main Robots can also share sub Robots if they wan't. Robots have always very tiny API.
 
     def process(self, sensation)
-Robot can always process sensations [def process(self, sensation)](Robot/python3/Robot/Robot.py#process). Sensation gives information to a Robot what to do and Robot perform actions needed.
+Robot can always process sensations. Sensation gives information to a Robot what to do and Robot perform actions needed.
 Robot can also create new sensations given to other Robots.
 
     def route(self, transferDirection, sensation)
