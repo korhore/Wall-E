@@ -69,18 +69,19 @@ Association has feeling element so our Root can also feel. This makes fun for ou
 If Robots gets responses what it says, it likes more of the object and of responses it uses, so feelings guide
 Robot what to do with different kind objects.
 
-In practice remembering function needs also forgetting function. We human beeings can remember important things only because we cam forget less
-important things, human memory capacity is not limitless as previously thought and the same applies to computers and robots built with them.
-This is implemented using feelings. The Robot tries to gain pleasure and forget about observations where it has not been liked.
+In practice remembering function needs also forgetting function.
+We human beeings can remember important things only because we can forget less important things.
+Human memory capacity is not limitless as previously thought and the same applies to computers and robots built with them.
+This is implemented using feelings. The Robot tries to gain pleasure and forget about sensations where it has not been liked.
 
 #### Exposure
-Main pronsiple is not to help any kimd Robot to observe world and what are objects names and what they say etc. Nothing
-is build in. But we mimic human beings so that, when main Robot starts it gets a directory where are basuv inages of itself
-and basic phrases it says. Little baby startr to study itself and Robot does same.
+Main prinsiple is not to help any way a Robot to observe world and what are objects names and what they say etc. Nothing
+is build in. But we mimic human being gining to Robot a directory with basic imges of itself
+and basic phrases it says. Little baby starts to study itself and Robot does the same.
 
-Next thing baby does is study to the world. Robot gets also directory where are images and voices Robot sees and hears first.
-With humans this thing is mother. With this projects that can be anything you want Robot to react certain way. Robot tryes to speak voices it has got
-and hears responses so those are associated in its memory with positive feelings.
+Next thing baby does is study the world. Robot gets also directory where are images and voices Robot sees and hears first.
+With humans this thing is mother. With this project that can be anything you want Robot to react certain way.
+Robot tries to speak voices it has got and hears responses so those are associated in its memory with positive feelings.
 
 That is all we help our robot and each run of the Robot(s) are different, depending what they see and what they hear.
 
