@@ -8,10 +8,10 @@ Wall-E -project studies robots and controllers for them.
 
 Robot-project is newest and most ambitious.
 It models human kognitive-capabilities as application ones.
-Why? Because I can model things like this and be cause it is fun.
+Why? Because I can model things like this and it is fun.
 
-#### Architercture 
-Architercture is planned to work in a network and to be fully configurable,
+#### Architecture 
+Architecture is planned to work in a network and to be fully configurable,
 so that Robot is buid by same kind elements - called Robots - that can be in same
 computer or in another computer in the network and there can be as many Robots
 in the network as you want, communicating with each other and with human beings also.
@@ -22,12 +22,12 @@ or networking robots that is everywhere and controls everything and of course
 tries to destroy all humans, because humans try to destroy it. This the was case i the first
 beginning of Robot-scifi from 1968: A Space Odyssey.
 
-OK, Robot from this project can't destroy anyone, but can be fun ans if you take
+OK, Robot from this project can't destroy anyone, but can be fun and if you take
 it seriously, it can be scientifically valuable.
 
 #### Robot
 
-Robot represents and models our senses and mucles. Robot can hear, see, move, speak, ect.
+[Robot](Robot/python/Robot.py) represents and models our senses and mucles. Robot can hear, see, move, speak, ect.
 Robot can own other Robots, so one of them is main Robot. All Robots including one logical
 main Robot know their main name which is same, so main Robot can be build logically in one computer or using many computers.
 There can be many main Robots in a network and they can communicate each other if they wan't.
