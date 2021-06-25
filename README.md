@@ -27,7 +27,7 @@ it seriously, it can be scientifically valuable.
 
 #### Robot
 
-[Robot](Robot/python/Robot.py) represents and models our senses and mucles. Robot can hear, see, move, speak, ect.
+[Robot](Robot/python3/Robot/Robot.py) represents and models our senses and mucles. Robot can hear, see, move, speak, ect.
 Robot can own other Robots, so one of them is main Robot. All Robots including one logical
 main Robot know their main name which is same, so main Robot can be build logically in one computer or using many computers.
 There can be many main Robots in a network and they can communicate each other if they wan't.
