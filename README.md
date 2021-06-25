@@ -109,9 +109,9 @@ hold Eve's hand. OK, we must build a robot that can find out Eve. So we must bui
 
 ##### Concept
 
-We must have sensorys. Project implements sensory framework sor simultaneous percertons
-like we human can do, Axons to corry these percetions from interbaö sensorys and from exterbal sensorys to the brain.
-Framewrk is veru flexible so Wall-E xan use all suitable devices we can offers (cheap devices we allreasy have or buy).
+We must have sensorys. Project implements sensory framework for simultaneous percertons
+like we human can do, Axons to carry these percetions from internal sensorys and from external sensorys to the brain.
+Framework is very flexible so Wall-E can use all suitable devices we can offers (cheap devices we allready have or buy).
 
 OK Lets Start, project has already object positioning using hearing and turning using position
 sensory (azimuth) to that direction. Demo will be made to youtube.
@@ -120,9 +120,9 @@ Next target will be object recognize using seeing.
 
 
 
-### WalleRobotoController
+### WalleRobotController
 
-WalleRobotoController is a legacy projecticluding same basic elements as
+WalleRobotController is a legacy projecticluding same basic elements as
 Robots-projects has, but it is more contrete. It works with robots car run
 by arduino, Car can be controller by a mobile device. Anorher one is put
 in the cat. Controil-mobile and device-mobile are connected by wlan and
@@ -173,7 +173,6 @@ platform to make them.
 
 
 #### E7 or other Qt Phone
---------------------
 
 Role as remote controller
 
