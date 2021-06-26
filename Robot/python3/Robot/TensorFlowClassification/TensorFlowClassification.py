@@ -543,6 +543,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
 
     def process(self, transferDirection, sensation):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
+        self.activityNumber += 1
         if sensation.getSensationType() == Sensation.SensationType.Stop:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='process: SensationSensationType.Stop')      
             self.stop()
@@ -778,6 +779,24 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
         # can't del in loop, do it here
         for name in absent_names:
             del self.present[name]
+            
+    '''
+    deInitRobot(
+    
+    Inform that present items are absent
+    When this TensoflowClassification stops, it should inform to other Robots
+    then Items in these location this TensorflowClassificatio keeps trach
+    are not prent any more, wecause it does not know any more
+    when they really are absent.
+    '''
+    
+            
+    def deInitRobot(self):
+        for name, presence in self.present.items():
+            itemsensation = self.createSensation( sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense, name=name,\
+                                                 presence = Sensation.Presence.Absent, locations=self.getUpLocations())
+            self.route(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+            self.log("deInitRobot created absent itemsensation " + itemsensation.toDebugStr())
           
 if __name__ == "__main__":
     if not os.path.exists(TensorFlowClassification.PATH_TO_FROZEN_GRAPH):

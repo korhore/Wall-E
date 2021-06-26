@@ -1,6 +1,6 @@
 '''
 Created on 12.03.2020
-Updated on 07.04.2021
+Updated on 26.06.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -189,6 +189,7 @@ class Visual(Robot):
         
     def process(self, transferDirection, sensation):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr() + '  len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) #called
+        self.activityNumber += 1
         if sensation.getSensationType() == Sensation.SensationType.Stop:
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: SensationSensationType.Stop')      
             self.stop()
@@ -350,7 +351,7 @@ class Visual(Robot):
                 (wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_SENSATION_TYPE_NAME), 0, wx.EXPAND),             # 1
                 (wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_DATA_NAME), 0, wx.EXPAND),                       # 2
                 (wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_MEMORY_NAME), 0, wx.EXPAND),                     # 3
-                (wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_ROBOT_TYPE_NAME), 0, wx.EXPAND|wx.ALIGN_CENTER), # 4
+                (wx.StaticText(self, label=Visual.LOG_PANEL_COLUMN_ROBOT_TYPE_NAME), 0, wx.EXPAND),                 # 4
                 (wx.StaticText(self, label=Visual.PANEL_COLUMN_LOCATIONS_NAME), 0, wx.EXPAND),                      # 5
                 (wx.StaticText(self, label=Visual.PANEL_COLUMN_RECEIVEDFROM_NAME), 0, wx.EXPAND),                   # 6
                 (wx.StaticText(self, label=Visual.PANEL_COLUMN_TIME_NAME), 0, wx.EXPAND)])                          # 7

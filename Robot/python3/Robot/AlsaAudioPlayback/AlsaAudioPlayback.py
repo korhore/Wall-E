@@ -87,6 +87,7 @@ class AlsaAudioPlayback(Robot):
                     
     def process(self, transferDirection, sensation):
         self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
+        self.activityNumber += 1
         if sensation.getSensationType() == Sensation.SensationType.Stop:
             self.log(logLevel=Robot.LogLevel.Normal, logStr='process: SensationSensationType.Stop')      
             self.stop()

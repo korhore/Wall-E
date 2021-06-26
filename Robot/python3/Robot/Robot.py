@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 14.05.2021
+Updated on 17.06.2021
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -231,19 +231,27 @@ class Robot(Thread):
             # TODO self.location is marked to default value, so Init_parameter was meaningless
             self.location = Config.DEFAULT_LOCATION
         print("Robot 3")
-        # TODO we get configuration allways fron default section Config.DEFAULT_LOCATIO == 'localhost' 
-        # other section in cobfif are meaninglees, exceo 'DEFAULT' because we get default from there, if they are not overridden in 'localhost'
+        # TODO we get configuration always from default section Config.DEFAULT_LOCATIO == 'localhost' 
+        # other section in config are meaningless, except 'DEFAULT' because we get default from there, if they are not overridden in 'localhost'
         self.id = self.config.getRobotId(section=self.location)
         self.capabilities = Capabilities(config=self.config, location=self.location)
         print("Robot 4")
         self.setName(self.config.getName(section=self.location))
         
+        # self.activityLevel is property of every Robot
+        # TODO this variable is not used, but other
+        # self.activity* variables
+
+        # self.feeling and self.feelingLevel are propertys of MainRobot and Virtual Robot but how ti doit is TODO
+        #
+#         self.activityLevel = Sensation.ActivityLevel.Normal
+       
         if self.level == 1:                        
             self.mainRobot = self
             self._isMainRobot = True
             self.feeling = Sensation.Feeling.Neutral
             self.feelingLevel = float(Sensation.Feeling.Neutral)
-            self.activityLevel = Sensation.ActivityLevel.Normal
+#             self.activityLevel = Sensation.ActivityLevel.Normal
             
             self.getMemory().setMaxRss(self.config.getMaxRss())
             self.getMemory().setMinAvailMem (self.config.getMinAvailMem())
@@ -251,7 +259,7 @@ class Robot(Thread):
             # also virtual instance has feeling and activity
             self.feeling = Sensation.Feeling.Neutral
             self.feelingLevel = float(Sensation.Feeling.Neutral)
-            self.activityLevel = Sensation.ActivityLevel.Normal
+#             self.activityLevel = Sensation.ActivityLevel.Normal
             
             self._isMainRobot = False
         else:
@@ -774,13 +782,16 @@ class Robot(Thread):
             self.identity.start()
             
 #         if self.level == 1:
+        # activity start values
         self.activityAverage = self.shortActivityAverage = self.config.getActivityAvegageLevel()
-#         self.activityNumber = 0
         self.activityPeriodStartTime = time.time()
 
-        self.timer = Timer(interval=Robot.ACTIVITE_LOGGING_INTERVAL, function=self.logActivity)
-        self.timer.start()
-            
+        # and start for MainRobot and VirtualRobot
+        if self.isMainRobot() or self.getInstanceType() == Sensation.InstanceType.Virtual:
+            self.activityNumber = 0
+            self.timer = Timer(interval=Robot.ACTIVITE_LOGGING_INTERVAL, function=self.logActivity)
+            self.timer.start()
+                
         # live until stopped
         self.mode = Sensation.Mode.Normal
         
@@ -808,8 +819,8 @@ class Robot(Thread):
  
         self.mode = Sensation.Mode.Stopping
         self.log(logLevel=Robot.LogLevel.Normal, logStr="Stopping robot")
-#         if self.level == 1:
-        self.timer.cancel()
+        if self.isMainRobot() or self.getInstanceType() == Sensation.InstanceType.Virtual:
+            self.timer.cancel()
         
 
          # stop virtual instances here, when main instance is not running any more
@@ -890,22 +901,46 @@ class Robot(Thread):
     '''
         
     def logActivity(self):
-        activityLevel = float(self.activityNumber)/(time.time() - self.activityPeriodStartTime)
+        activityNumber = self.activityNumber 
+        for robot in self.getSubInstances():
+            activityNumber += robot.getActivityNumber()
+
+        activityLevel = float(activityNumber)/(time.time() - self.activityPeriodStartTime)
         self.log("logActivity activityLevel {} ".format(activityLevel))
         self.activityAverage = ((self.activityAverage * (Robot.ACTIVITE_LOGGING_AVERAGE_PERIOD - 1.0))  + activityLevel)/Robot.ACTIVITE_LOGGING_AVERAGE_PERIOD
         self.log("logActivity activityAverage {} ".format(self.activityAverage))
         self.shortActivityAverage = ((self.activityAverage * (Robot.ACTIVITE_LOGGING_SHORT_AVERAGE_PERIOD - 1.0))  + activityLevel)/Robot.ACTIVITE_LOGGING_SHORT_AVERAGE_PERIOD
         self.log("logActivity shortActivityAverage {} ".format(self.shortActivityAverage))
+        self.activityNumber = 0
        # normal
         #self.config.setActivityAvegageLevel(activityLevelAverage = self.activityAverage)
         # to define default level
         self.config.setActivityAvegageLevel(activityLevelAverage = self.activityAverage)
         
         if self.running and self.mode == Sensation.Mode.Normal:
-            self.activityNumber = 0
             self.activityPeriodStartTime = time.time()
             self.timer = Timer(interval=Robot.ACTIVITE_LOGGING_INTERVAL, function=self.logActivity)
             self.timer.start()
+
+    '''
+    get activityNumber for Robot
+    '''
+        
+    def getActivityNumber(self):
+        
+        # ignore virtual, it calculates its activity independently by its subRobots
+        # ignore Robots that are not running
+        if self.getInstanceType() != Sensation.InstanceType.Virtual and\
+           self.running and self.mode == Sensation.Mode.Normal:
+            activityNumber = self.activityNumber
+            for robot in self.getSubInstances():
+                    activityNumber = activityNumber + robot.getActivityNumber()
+            self.activityNumber = 0
+    
+            return activityNumber
+        
+        return 0
+        
         
     '''
     get Feeling of MainRobot
@@ -1069,6 +1104,8 @@ class Robot(Thread):
     
 
     '''
+    #process
+    
     Every Robot processes Sensations it gets from its Axon.
     Here, in basic class method are basic processing,
     meaning statistical processing, how hurry this Robots is
@@ -2180,6 +2217,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
         self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         # We can handle only sensation going down transfer-robotType
 #         if transferDirection == Sensation.TransferDirection.Down:
+        self.activityNumber += 1
         if True:
             if self.getAxon().length() > Robot.SOCKETCLIENT_MAX_QUEUE_LENGTH:
                 self.log('process: skipping too long Axon queue Sensation')

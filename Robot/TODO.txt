@@ -1,17 +1,22 @@
 Critical
 --------
 
-Stop-
-How to stop if only Identity stops?
+Who should keep track on presence?
+- maybe it is Communication
+- it can be also TensorfloCommunication as now, because it alanyses images, but
+  when it stops, it should set presence as absent, because it does not know any more presense.
+  
+Robot.route
+- Sensations don't transfedr to mainRobot any more, but Capabilitis are got from mainRobot and each Robot routes sensations directly to target Robots.
+- Activity don't work as it used in mainRobot level, so each Robot should calculate their activity itself.
+- mainActivity can be calculated by all route actions by all Robots.
+- Activity by Robot can be calculated by same way as mainRobot has calcutaled it before.
 
-
-testIdentification.py
-Is this in use?
-  File "/home/reijo/git/Wall-E/Robot/python3/Robot/Robot.py", line 1323, in route
-    self.getMainRobot().route(transferDirection = Sensation.TransferDirection.Down, sensation=sensation)
-AttributeError: 'IdentityTestCase' object has no attribute 'route'
-
-testIdentity.py
+Next duties
+- clanup after Robot.route
+- activity
+- implement SensationType.conversationstus. so we can track conversation and understand it.
+- next big step will be human feedback with 
 
 
 Clean up this file
@@ -1511,6 +1516,31 @@ requires
 - sudo apt-get install libfreetype6-dev
 
 OK also you need models from data, application should download these, but the is an error. TODO
+
+Ubuntu 20.04
+
+sudo apt install python3-pip
+sudo pip3 install python_daemon
+sudo pip3 install psutil
+sudo pip3 install numpy
+
+sudo apt-get install libasound2-dev
+sudo pip3 install pyalsaaudio
+sudo pip3 install sounddevice
+
+sudo pip3 install tensorflow
+-- get tensorflow-2.5.0-cp38-cp38-manylinux2010_x86_64.whl
+
+sudo apt install libgtk-3-dev
+sudo pip3 install wxpython
+-- take (very) long time even with PC
+
+
+
+
+
+
+
 
 Hardware
 --------

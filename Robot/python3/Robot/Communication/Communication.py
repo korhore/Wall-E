@@ -369,6 +369,7 @@ class Communication(Robot):
             # accept heard voices and Item.name presentation Item.name changes
             #sensation.getMemoryType() == Sensation.MemoryType.Working and# No item is Working, voice is Sensory
             # TODO enable line below, disabled for testing only
+            
             if (systemTime.time() - sensation.getTime()) < Communication.COMMUNICATION_INTERVAL and\
                self.isThisLocation(sensation.getLocations()) and\
                sensation.getRobotType() == Sensation.RobotType.Sense:
@@ -786,6 +787,7 @@ class Communication(Robot):
         # don't communicate with history Sensation Items, we are communicating Item.name just seen.
         #self.log(logLevel=Robot.LogLevel.Normal, logStr="process: systemTime.time() " + str(systemTime.time()) + ' -  sensation.getTime() ' + str(sensation.getTime()) + ' < Communication.COMMUNICATION_INTERVAL ' + str(Communication.COMMUNICATION_INTERVAL))
         self.log(logLevel=Robot.LogLevel.Normal, logStr="process: " + str(systemTime.time() - sensation.getTime()) + ' < ' + str(Communication.COMMUNICATION_INTERVAL))
+        self.activityNumber += 1
         handledSensation = False
         if len(sensation.getLocations()) == 0:
             if '' in self.itemConversations:

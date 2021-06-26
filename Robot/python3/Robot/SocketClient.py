@@ -66,6 +66,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         
     def process(self, sensation):
         self.log('process: ' + time.ctime(sensation.getTime()) + ' ' + str(sensation.getRobotType()) + ' ' + sensation.toDebugStr())
+        self.activityNumber += 1
         if sensation.getSensationType() == Sensation.SensationType.Stop:
             self.log('process: SensationSensationType.Stop')      
             self.stop()
