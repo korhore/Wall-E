@@ -27,10 +27,11 @@ it seriously, it can be scientifically valuable.
 
 #### Robot
 
-[Robot](Robot/python3/Robot/Robot.py) represents and models our senses and mucles. Robot can hear, see, move, speak, ect.
+[Robot](Robot/python3/Robot/Robot.py) represents and models our senses and muscles.
+Robot can hear, see, move, speak, ect.
 Robot can own other Robots, so one of them is main Robot. All Robots including one logical
 main Robot know their main name which is same, so main Robot can be build logically in one computer or using many computers.
-There can be many main Robots in a network and they can communicate each other if they wan't.
+There can be many main Robots in the network and they can communicate each other if they wan't.
 Main Robots can also share sub Robots if they wan't. Robots have always very tiny API.
 
     def process(self, sensation)
@@ -38,36 +39,36 @@ Robot can always process sensations. Sensation gives information to a Robot what
 Robot can also create new sensations given to other Robots.
 
     def route(self, transferDirection, sensation)
-Called inside process. This routes sensation to thos Robots that are **capable** to process it.
+Called inside process. This routes sensation to those Robots that are **capable** to process it.
 
     def sense(self)
 Frameworks calls this if this is sense-type Robot, like hearing-Robot. If this is muscle type Robot
 like speking Robot, this method does nothing and method canSense return False.
 
 #### Capabilities
-Each Robot advitices in it capabilities what kind sensations they are interested of. If Robot is a logical
+Each Robot advertices in it capabilities what kind sensations they are interested of. If Robot is a logical
 main Robot it defines its subRobots, meaning senses and muscles that will be started in this computer for it.
 For networking main Robot also defines computers in the network that it connects. With capabilies same Robot-components
 can be used in many kind configurations.
 
 #### Sensation
-Sensation can tranfer all information about seen or heard things, what they names are etc.
+Sensation can transfer all information about seen or heard things, what their names are etc.
 Sensations are transferred by axons, same way
-than humans do, but we use direct transfer from Robot to Robots, because we do so and it is more efficient way.
+as humans do, but we use direct transfer from Robot to Robots, because we do so and it is more efficient way.
 
-Sensations heve Memory levels that mimics kognitive proces of a human.
-When Robot senses something it creates a **sense level** sensations.
+Sensations have Memory levels that mimics kognitive proces of a human.
+When Robot senses something, it creates a **sense level** sensations.
 This includes low level data and Robot does not know what it means. Sense-type Robots create this kind sensations.
 The human brain is a machine of vision.
-They are the sense where what we see takes on meaning and we know what we see.
+Brain is the sense where what we see takes on meaning and how we know what we see.
 This processing takes place in working memory and therefore the robot also has **working level** sensations.
 The third level of remembrance is **long-term** memories. They will remain in our minds for a long time, some forever.
 
 #### Memory
-Main Robot owns memory. Memory consist of Sensations connected with associations, same way than in human being.
-Association has feeling element so our Root can also feel. This makes fun for our project. Robots can fall in love!
+Main Robot owns a memory. Memory consist of Sensations connected with associations, same way than in human's memory.
+Association has a feeling element so our Robot can also feel. This makes fun for our project. Robots can fall in love!
 If Robots gets responses what it says, it likes more of the object and of responses it uses, so feelings guide
-Robot what to do with different kind objects.
+Robot what to do with different kind of objects.
 
 In practice remembering function needs also forgetting function.
 We human beeings can remember important things only because we can forget less important things.
@@ -76,7 +77,7 @@ This is implemented using feelings. The Robot tries to gain pleasure and forget 
 
 #### Exposure
 Main prinsiple is not to help any way a Robot to observe world and what are objects names and what they say etc. Nothing
-is build in. But we mimic human being gining to Robot a directory with basic imges of itself
+is build in. But we mimic human being giving to Robot a directory with basic imges of itself
 and basic phrases it says. Little baby starts to study itself and Robot does the same.
 
 Next thing baby does is study the world. Robot gets also directory where are images and voices Robot sees and hears first.
