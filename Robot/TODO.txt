@@ -74,13 +74,33 @@ two instances will be created. Ment to test 'sublocations'
 Develop
 -------
 
-1) Make Memory per Robot based
+1) Don't use Robot.py baset MainRobot, but start Main Functionality Robot,
+   which is now Communication.Communication.py
+   How to do i now, so workink directory is sama than old one, not Communication?
+   Reads now
+   - from working directory
+     Config instanceName Robot level 1 Robot/etc/Robot.cfg instanceType r config_file_path Robot/etc/Robot.cfg
+     read config from config_file_path Robot/etc/Robot.cfg
+   - from Communication/ and we get douns Probots  
+     Config instanceName Communication level 2 Communication/etc/Robot.cfg instanceType s config_file_path Communication/etc/Robot.cfg
+     read config from config_file_path Communication/etc/Robot.cfg
+     
+    Hint is
+    Number of arguments: 1 arguments.
+    Argument List: ['/home/reijo/git/Wall-E/Robot/python3/Robot/Communication/Communication.py']
+    
+    get last '/' separated Robot name and if it is not 'Robot.py', the set read config from 'Communication'
 
-2) Move finding best Sensation functions to devicated Communication Robot.
+
+
+   
+2) Make Memory per Robot based
+
+3) Move finding best Sensation functions to devicated Communication Robot.
    This is functionality for that and we should have dedicated functionaly
    for Robot only in inherited Robot code to make code clear.
 
-3) OK Implement star-routing Axon architecture.
+4) OK Implement star-routing Axon architecture.
 - No dedicated MainRobot
      Natural functionality now is communicating Robot and all future Robot functionality
      can be same kind even if we make moving Robots a what ever. Every Robot should see directly

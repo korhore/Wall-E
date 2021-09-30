@@ -59,6 +59,21 @@ from enum import Enum
 import threading 
 #import random
 import traceback
+# main Robot functionality imports
+import getopt
+import signal
+import daemon
+import lockfile
+
+# relative import from parent
+import os
+import sys
+import inspect
+
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0, parentdir) 
+# relative import from parent
 
 from Robot import Robot
 from Sensation import Sensation
@@ -806,9 +821,176 @@ class Communication(Robot):
                    self.getMemory().hasRobotsPresence():
                         self.robotConversation.process(transferDirection=transferDirection, sensation=sensation)
                         handledSensation = True
-        if not handledSensation:
-            self.log(logLevel=Robot.LogLevel.Normal, logStr='process: could not process this Sensation {}'.format(sensation.toDebugStr()))
+        # if we are mainRobot, we should use default processing also
+        if self.isMainRobot():
+            super().process(transferDirection=transferDirection, sensation=sensation)
+        else:
+            if not handledSensation:
+                self.log(logLevel=Robot.LogLevel.Normal, logStr='process: could not process this Sensation {}'.format(sensation.toDebugStr()))
         sensation.detach(robot=self)    # detach processed sensation
+        
+# # Main Robot starting code
+# # should be removed to Robot.py as common method
+# def do_server():
+#     signal.signal(signal.SIGINT, signal_handler)
+#     # commented only linux only signals
+#     # rest can be found in Windows also
+#     #signal.signal(signal.SIGHUP, signal_handler)
+#     #signal.signal(signal.SIGQUIT, signal_handler)
+#     signal.signal(signal.SIGTERM, signal_handler)
+# 
+#     print ("do_server: create Robot")
+#     global mainRobot
+#     mainRobot = Robot(mainRobot=None)
+# 
+#     succeeded=True
+#     try:
+#         mainRobot.start()
+# #         for virtailInstace in mainRobot.GetVirtailInstaces():
+# #             virtailInstace.start()
+#         
+#     except Exception: 
+#         print ("do_server: sock error, " + str(e) + " exiting")
+#         succeeded=False
+# 
+#     if succeeded:
+#         print ('do_server: Press Ctrl+C to Stop')
+# 
+#         Robot.mainRobot = mainRobot   # remember mainRobot so
+#                               # we can stop it in signal_handler   
+#         mainRobot.join()
+#         
+#     print ("do_server exit")
+#     
+# def signal_handler(signal, frame):
+#     print ('signal_handler: You pressed Ctrl+C!')
+#     
+#     mainRobot.doStop()
+#     print ('signal_handler: ended!')        
+#         #                                                 location=self.getLocations())
+# 
+# 
+# #     exit()
+#     
+# #     print ('signal_handler: Shutting down sensation server ...')
+# #     RobotRequestHandler.server.serving =False
+# #     print ('signal_handler: sensation server is down OK')
+# #     
+# #     print ('signal_handler: Shutting down picture server...')
+# #     RobotRequestHandler.pictureServer.serving =False
+# #     print ('signal_handler: picture server is down OK')
+# 
+# 
+# 
+#     
+# def start(is_daemon):
+#         if is_daemon:
+#             print ("start: daemon.__file__ " +  daemon.__file__)
+# # try system default
+# #             stdout=open('/tmp/Robot_Server.stdout', 'w+')
+# #             stderr=open('/tmp/Robot_Server.stderr', 'w+')
+#             #remove('/var/run/Robot_Server.pid.lock')
+#             pidfile=lockfile.FileLock('/var/run/Robot.pid')
+#             cwd = os.getcwd()   #work at that directory we are when calling this
+#                                 # We have data and config directories there
+#                                 # so it is important where we are
+# 
+#             with daemon.DaemonContext(working_directory=cwd,
+# # try ststem default
+# #                                       stdout=stdout,
+# #                                       stderr=stderr,
+#                                       pidfile=pidfile):
+#                 do_server()
+#         else:
+#             do_server()
+#             print ("start: stopped")
+# 
+#     
+# def stop():
+#     
+#     print ("stop: socket.socket(sock.AF_INET, socket.SOCK_STREAM)")
+#     # Create a socket (SOCK_STREAM means a TCP socket)
+#     try:
+#         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#         try:
+#             # Connect to server and send data
+#             print ('stop: sock.connect((localhost, PORT))')
+#             address=('localhost', PORT)
+#             sock.connect(address)
+#             print ("stop: connected")
+#             print ("stop: SocketClient.stop(sock = sock, address=address)")
+#             # TODO This does not worn, because SocketClient.sendStop is broken, because it needs self and it is not global
+#             ok = SocketClient.sendStop(sock = sock, address=address)
+#         except Exception as err: #if __name__ == "__main__":
+
+#             print ("stop: sock connect, cannot stop localhost, error " + str(err))
+#             return
+#     except Exception as err: 
+#         print ("stop: socket error, cannot stop localhost , error " + str(err))
+#         returnIdentity
+# 
+#     finally:
+#         print ('stop: sock.close()')
+#         sock.close()
+#     print ("stop: end")
+# 
+# if __name__ == "__main__":
+#     cwd = os.getcwd()
+#     print("cwd " + cwd)
+# 
+# 
+#     print ('Number of arguments:', len(sys.argv), 'arguments.')
+#     print ('Argument List:', str(sys.argv))
+#     try:
+#         opts, args = getopt.getopt(sys.argv[1:],"",["start","stop","restart","daemon","manual"])
+#     except getopt.GetoptError:
+#       print (sys.argv[0] + '[--start] [--stop] [--restart] [--daemon] [--manual]')
+#       sys.exit(2)
+#     print ('opts '+ str(opts))
+#     for opt, arg in opts:
+#         print ('opt '+ opt)
+#         if opt == '--start':
+#             print (sys.argv[0] + ' start')
+#             Robot.START=True
+#         elif opt == '--stop':
+#             print (sys.argv[0] + ' stop')
+#             Robot.STOP=True
+#         elif opt == '--restart':
+#             print (sys.argv[0] + ' restart')
+#             Robot.STOP=True
+#             Robot.START=True
+#         elif opt == '--daemon':
+#             print (sys.argv[0] + ' daemon')
+#             Robot.DAEMON=True
+#         elif opt == '--manual':
+#             print (sys.argv[0] + ' manual')
+#             Robot.MANUAL=True
+#            
+#     if not Robot.START and not  Robot.STOP:
+#         Robot.START=True
+#     
+#     if (Robot.STOP):
+#         stop()
+#     if (Robot.START): 
+#         start(Robot.DAEMON)   
+#              
+#     print ("__main__ exit")
+#     exit()
+#     print ("__main__ exit has been done so this should not be printed")
+    
+# Main Robot starting code
+# Main Robot starting code
+if __name__ == "__main__":
+    from Robot import doMainRobot
+    print ("Communication __main__: create Robot mainRobot = Communication(mainRobot=None)")
+    #global mainRobot
+    mainRobot = Communication(mainRobot=None, instanceName="Communication")
+    print ("Communication __main__: create Robot doMainRobot(mainRobot=mainRobot, instanceName=\"Communication\")")
+    doMainRobot(mainRobot=mainRobot)
+    print ("Communication __main__: create Robot all done")
+
+        
+        
                 
 
         
