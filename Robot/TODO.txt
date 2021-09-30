@@ -74,7 +74,13 @@ two instances will be created. Ment to test 'sublocations'
 Develop
 -------
 
-1) Implement star-routing Axon architecture.
+1) Make Memory per Robot based
+
+2) Move finding best Sensation functions to devicated Communication Robot.
+   This is functionality for that and we should have dedicated functionaly
+   for Robot only in inherited Robot code to make code clear.
+
+3) OK Implement star-routing Axon architecture.
 - No dedicated MainRobot
      Natural functionality now is communicating Robot and all future Robot functionality
      can be same kind even if we make moving Robots a what ever. Every Robot should see directly
@@ -801,7 +807,7 @@ to all sites, is it valid in all sites in other locations, hmm...?
 
 Implement exposure.
 
-Separate (again) identiyu and exposures-
+Separate (again) identiy and exposures-
 Make exposure a Sensation, so we can reconfigure Robot in live-
 
 Implement exposure with base identity and all exposures per each with a fealing.
@@ -812,16 +818,16 @@ ImageSensations, VoiceSesations and, which needs TensoflowClassification to that
 Lets implement and start with Identity, which will handle the job. 
 
 Old idea is Exposure is VirtualRobot, but it uses MainRobots Memory
-ins it does not have any other SubRobot than Identity. Reason is that
+and it does not have any other SubRobot than Identity. Reason is that
 it will react to everyting just same way than MainRobot even it had Communication,
 but it's meaning is exposure MainRobot to Memories, identity of Exposures identity,
 what ity has looked like and what it has said. What is odd, is that it MainRobot speaks out
 what it  responses to the Virtual Robot. Well anyway, we can do this exposure at backgrond
-if we don't let any Sensation soutside Exposure Robot and don't let any Sensation to fo in
-Exposure, letting it to live in its buddle, Try this nesx. We naed one Robot type more.
+if we don't let any Sensation outside Exposure Robot and don't let any Sensation to fo in
+Exposure, letting it to live in its buddle, Try this next. We neadd one Robot type more.
 
 Should prevent Exposure to get any Sensations except Stop.
-Styudy hasSubCapability and hasCapability
+Study hasSubCapability and hasCapability
 Exposure Communicates very long sequences, because it gets its responces back
 but it should revers Muscle to Sensory.
 Make test to test Exposure.

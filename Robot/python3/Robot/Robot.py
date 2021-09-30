@@ -1097,7 +1097,7 @@ class Robot(Thread):
                     voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.LongTerm, robotType = Sensation.RobotType.Sense, data=data)
                     voiceSensations.append(voiceSensation)
                     
-        return  imageSensations, voiceSensations
+        return imageSensations, voiceSensations
 
 
                 
@@ -1666,7 +1666,8 @@ class Identity(Robot):
         
 
     '''
-    get identity sensations 
+    get identity sensations
+    this handles also exposures
     '''
 
     def getIdentitySensations(self, name, exposures, feeling):
@@ -1674,6 +1675,7 @@ class Identity(Robot):
         
         tensorFlowClassification = TensorFlowClassification(mainRobot=self.getMainRobot(),
                                                             parent=self,
+                                                            privateParent=self,     # note, this guides TensorFlowClassification to send sensations direcly to us instead route
                                                             instanceName='TensorFlowClassification',
                                                             instanceType= Sensation.InstanceType.SubInstance,
                                                             level=self.level)
@@ -1764,9 +1766,11 @@ class Identity(Robot):
                     transferDirection, sensation = self.getAxon().get(robot=self)
                     self.log('{} Identity get from tensorFlowClassification {}'.format(name, sensation.toDebugStr()))
                     if sensation.getSensationType() == Sensation.SensationType.Image:
+                        self.log('{} Identity get Image from tensorFlowClassification'.format(name))
                         identityImageSensations.append(sensation)
                     elif sensation.getSensationType() == Sensation.SensationType.Item and\
                          sensation.getPresence() == Sensation.Presence.Entering:
+                        self.log('{} Identity get Item from tensorFlowClassification {}'.format(name, sensation.getName()))
                         identityItemSensations.append(sensation)
                             
             for imageSensation in imageSensations:
@@ -1796,6 +1800,11 @@ class Identity(Robot):
                 for identityVoiceSensation in identityVoiceSensations:
                         identityVoiceSensation.associate(sensation=identityImageSensation, 
                                                          feeling = feeling)
+                        
+        # TODO we have assosicated each exposura and mainrobot.name, but we havent assocated anything with
+        # mainrobot.name sensations witj exposure sensations so this is still
+        # setting identity andfot main Robot and eaach erxposure, but they don't communiocate with each other.
+        # should they?
 
         tensorFlowClassification.stop()
 
@@ -1824,14 +1833,11 @@ class Identity(Robot):
                    
         # wait until started so all others can start first        
         time.sleep(self.sleeptime)
-        # prepare Memory ance
+        # prepare Memory once
+        self.mode = Sensation.Mode.Normal
         self.getIdentitySensations(name=self.getParent().getName(), exposures=self.getParent().getExposures(), feeling = Sensation.Feeling.InLove)
         
-        self.mode = Sensation.Mode.Normal
-        
-        
-        ##Robot.run(self) #normal Robot run
-        
+        # all done        
         self.running=False
         self.mode = Sensation.Mode.Stopping
 
@@ -1843,50 +1849,56 @@ class Identity(Robot):
                  
     '''
     tell your identity
+    TODO newer called
+         Identity is something that is in main Robots memory
+         this is OK,
+         but we should handle also exposures
+         
+    deprecated
     '''   
-    def tellOwnIdentity(self):
-        
-        selfSensation = self.createSensation( associations=[], sensation=self.getParent().selfSensation, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
-                                              locations='') # valid everywhere
-        self.log('tellOwnIdentity: selfSensation self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=' + selfSensation.toDebugStr())      
-        self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=selfSensation) # or self.process
-        selfSensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
-       
-        imageind = random.randint(0, len(self.getParent().imageSensations)-1)
-        imageSensation = self.createSensation( associations=[], sensation=self.getParent().imageSensations[imageind], memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
-                                               locations='') # valid everywhere
-        self.log('tellOwnIdentity: imageind  ' + str(imageind) + ' self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=' + imageSensation.toDebugStr())      
-        self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation) # or self.process
-        imageSensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
-
-        for i in range(Identity.VOICES_PER_CONVERSATION):          
-            time.sleep(Identity.SLEEP_BETWEEN_VOICES)
-            
-            voiceind = random.randint(0, len(self.getParent().voiceSensations)-1)
-            voiceSensation = self.createSensation(associations=[], sensation=self.getParent().voiceSensations[voiceind], memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
-                                                  locations='') # valid everywhere
-            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation, association=None) # or self.process
-            self.log("tellOwnIdentity: " + str(voiceind) + " self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=" + voiceSensation.toDebugStr())      
-            voiceSensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
-
-    '''
-    We can sense
-    We are Sense type Robot
-    '''        
-    def canSense(self):
-        return False 
-    
-    '''
-    sense
-    '''
-    
-    def sense(self):
-        if len(self.getParent().imageSensations) > 0 and len(self.getParent().voiceSensations) > 0:
-            time.sleep(self.sleeptime)
-            self.tellOwnIdentity()
-            self.sleeptime = 2*self.sleeptime
-        else:
-            self.running = False
+#     def tellOwnIdentity(self):
+#         
+#         selfSensation = self.createSensation( associations=[], sensation=self.getParent().selfSensation, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
+#                                               locations='') # valid everywhere
+#         self.log('tellOwnIdentity: selfSensation self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=' + selfSensation.toDebugStr())      
+#         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=selfSensation) # or self.process
+#         selfSensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
+#        
+#         imageind = random.randint(0, len(self.getParent().imageSensations)-1)
+#         imageSensation = self.createSensation( associations=[], sensation=self.getParent().imageSensations[imageind], memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
+#                                                locations='') # valid everywhere
+#         self.log('tellOwnIdentity: imageind  ' + str(imageind) + ' self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=' + imageSensation.toDebugStr())      
+#         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation) # or self.process
+#         imageSensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
+# 
+#         for i in range(Identity.VOICES_PER_CONVERSATION):          
+#             time.sleep(Identity.SLEEP_BETWEEN_VOICES)
+#             
+#             voiceind = random.randint(0, len(self.getParent().voiceSensations)-1)
+#             voiceSensation = self.createSensation(associations=[], sensation=self.getParent().voiceSensations[voiceind], memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
+#                                                   locations='') # valid everywhere
+#             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation, association=None) # or self.process
+#             self.log("tellOwnIdentity: " + str(voiceind) + " self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=" + voiceSensation.toDebugStr())      
+#             voiceSensation.detach(robot=self) #to be sure all is deteched, TODO Study to remove other detachhes
+# 
+#     '''
+#     We can sense
+#     We are Sense type Robot
+#     '''        
+#     def canSense(self):
+#         return False 
+#     
+#     '''
+#     sense
+#     '''
+#     
+#     def sense(self):
+#         if len(self.getParent().imageSensations) > 0 and len(self.getParent().voiceSensations) > 0:
+#             time.sleep(self.sleeptime)
+#             self.tellOwnIdentity()
+#             self.sleeptime = 2*self.sleeptime
+#         else:
+#             self.running = False
             
             
 

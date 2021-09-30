@@ -7,22 +7,29 @@ Wall-E -project studies robots and controllers for them.
 ### Robot
 
 Robot-project is newest and most ambitious.
-It models human kognitive-capabilities as application ones.
+It models human cognitive-capabilities as application ones.
 Why? Because I can model things like this and it is fun.
 
-#### Architecture 
-Architecture is planned to work in a network and to be fully configurable,
-so that Robot is buid by same kind elements - called Robots - that can be in same
+#### Films, Goals, Human structure
+
+Nerv, axons, muscle, sense
+
+#### Architecture
+Architecture idea is mimic human structure, model a human.
+We are built from stem cells that specialize in their tasks.
+Robot is build 
+Architecture is planned to work **in a network** and to be **fully configurable*,
+so that Robot is **buid by same kind elements** - called Robots - that can be in same
 computer or in another computer in the network and there can be as many Robots
 in the network as you want, communicating with each other and with human beings also.
 
 Sounds scifi? Yes, this project was my hobby project to implement all kind
 scifi-films nightmare. Basic lines in the films are individual very capable robots
-or networking robots that is everywhere and controls everything and of course
-tries to destroy all humans, because humans try to destroy it. This the was case i the first
+or networking robot that is everywhere and controls everything and of course
+tries to destroy all humans, because humans try to destroy it. This the was case in the first
 beginning of Robot-scifi from 1968: A Space Odyssey.
 
-OK, Robot from this project can't destroy anyone, but can be fun and if you take
+OK, Robot from this project can't destroy anyone, but it can be fun and if you take
 it seriously, it can be scientifically valuable.
 
 #### Robot
@@ -56,13 +63,20 @@ Sensation can transfer all information about seen or heard things, what their na
 Sensations are transferred by axons, same way
 as humans do, but we use direct transfer from Robot to Robots, because we do so and it is more efficient way.
 
-Sensations have Memory levels that mimics kognitive proces of a human.
+Sensations have **Memory levels** that mimics cognitive process of a human.
 When Robot senses something, it creates a **sense level** sensations.
 This includes low level data and Robot does not know what it means. Sense-type Robots create this kind sensations.
 The human brain is a machine of vision.
 Brain is the sense where what we see takes on meaning and how we know what we see.
 This processing takes place in working memory and therefore the robot also has **working level** sensations.
 The third level of remembrance is **long-term** memories. They will remain in our minds for a long time, some forever.
+
+Sensation has also **Robot type** information, is it muscle or or sense sensation.
+
+Last tking is sensation information, including **sensation type** - for inctance voice for hearing, image for seeing,
+item for identified objects, etc - and of cource sensation parameters depending of sansation type, so voice type sensation carries voice data.
+If voice sensations Robot type is sense, this means that our Robot has heard this voice and opposite, it Robot type is muscle,
+thi means that our Robot will be speaking out this voice.
 
 #### Memory
 Main Robot owns a memory. Memory consist of Sensations connected with associations, same way than in human's memory.
@@ -85,6 +99,8 @@ With humans this thing is mother. With this project that can be anything you wan
 Robot tries to speak voices it has got and hears responses so those are associated in its memory with positive feelings.
 
 That is all we help our robot and each run of the Robot(s) are different, depending what they see and what they hear.
+
+Read enought to be raady and prepared to see Robots in love?
 
 
 #### Theory of Robots
@@ -110,14 +126,9 @@ hold Eve's hand. OK, we must build a robot that can find out Eve. So we must bui
 
 ##### Concept
 
-We must have sensorys. Project implements sensory framework for simultaneous percertons
+We must have sensorys. Project implements sensory framework for simultaneous percertions
 like we human can do, Axons to carry these percetions from internal sensorys and from external sensorys to the brain.
 Framework is very flexible so Wall-E can use all suitable devices we can offers (cheap devices we allready have or buy).
-
-OK Lets Start, project has already object positioning using hearing and turning using position
-sensory (azimuth) to that direction. Demo will be made to youtube.
-Next target will be object recognize using seeing.
-
 
 
 

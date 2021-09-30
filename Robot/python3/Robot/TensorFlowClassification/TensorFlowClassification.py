@@ -1,6 +1,6 @@
 '''
 Created on 30.04.2019
-Updated on 06.04.2021
+Updated on 04.07.2021
 
 @author: reijo.korhonen@gmail.com
 '''
@@ -194,6 +194,10 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
     def __init__(self,
                  mainRobot,
                  parent=None,
+                 
+                 privateParent=None, # added parameter to Robot.__init__
+                                     # to guide #ensorFlowClassification
+                                     # directyly to parent instead using route
                  instanceName=None,
                  instanceType = Sensation.InstanceType.SubInstance,
                  level=0,
@@ -214,13 +218,30 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                        minAvailMem = minAvailMem,
                        location = location,
                        config = config)
+        self.privateParent=privateParent
         self.lastImageTime=None
         self.tflite_model=None
         self.detection_graph = None
         self.firstImage = True
         self.present = {}       # which items are present
-
         
+    '''
+    overwrite Robot.route
+    If self.privateParent is not None
+    send sensation directly to it,
+    instead use standard route
+    
+    This solves Robot.Identity problem to get
+    identity and exposure sensations directly to it
+    '''
+
+    def route(self, transferDirection, sensation):
+        self.log(logLevel=Robot.LogLevel.Normal, logStr='TensorFlowClassification.route: ' + systemTime.ctime(sensation.getTime()) + ' ' + sensation.toDebugStr())
+        self.log(logLevel=Robot.LogLevel.Detailed, logStr='TensorFlowClassification.route: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
+        if self.privateParent is None:
+            super(route, self).route(transferDirection=transferDirection, sensation=sensation)
+        else:
+            self.privateParent.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)
 
     def load_labels(self, path):
       with open(path, 'r') as f:
