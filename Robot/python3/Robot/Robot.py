@@ -2032,6 +2032,13 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                     socketClient.start()
                     time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
         self.log('run: STOPPED')
+        if socketClient and socketClient.running:
+            self.log('run: socketClient.stop()')
+            socketClient.stop()
+        if socketServer and socketServer.running:
+            self.log('run: socketServer.stop()')
+            socketServer.stop()
+        self.log('run: ENDED')
         
     '''
     Connect to host by creating SocketClient and SocketServer
@@ -2806,7 +2813,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
             Robot.START=True
         
         if (Robot.STOP):
-            Robot.robotStop()
+            robotStop()
         if (Robot.START): 
             robotStart(Robot.DAEMON, mainRobot=mainRobot)   
                  

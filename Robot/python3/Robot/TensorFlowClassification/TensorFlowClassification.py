@@ -1,6 +1,6 @@
 '''
 Created on 30.04.2019
-Updated on 04.07.2021
+Updated on 01.10.2021
 
 @author: reijo.korhonen@gmail.com
 '''
@@ -239,7 +239,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
         self.log(logLevel=Robot.LogLevel.Normal, logStr='TensorFlowClassification.route: ' + systemTime.ctime(sensation.getTime()) + ' ' + sensation.toDebugStr())
         self.log(logLevel=Robot.LogLevel.Detailed, logStr='TensorFlowClassification.route: ' + systemTime.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         if self.privateParent is None:
-            super(route, self).route(transferDirection=transferDirection, sensation=sensation)
+            super().route(transferDirection=transferDirection, sensation=sensation)
         else:
             self.privateParent.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation)
 
