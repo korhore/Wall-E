@@ -1,19 +1,45 @@
 Critical
 --------
 
+Add little picture to Sensation.Item, because Item.name always based in image by Tensirflow.
+
+OK Seems Communication repeats same phrase again and again.
+   We should use at leasts global Sensation Orinanal is arrays to disable this.
+
+main_Eva:Eva:1:Normal:raspberry:Sensations cache for 4208 Total self.sensationMemory total rss usage 670.2890625 MB per sensation rss usage 159.7861216730038 KB available total 40.23828125 MB sensation usage 159.11596958174906 KB with Sensation.min_cache_memorability 4939.5
+main_Eva:Eva:1:Normal:raspberry:Sensations cache deletion skipped 4208 Not Forgottable Sensation
+Hmm..
+OK now main_Eva:Eva:1:Normal:raspberry:Sensations cache Not Forgottable robot SocketServer: ('192.168.117.248', 40768) SensationType Feeling number 1153
+OK now main_Eva:Eva:1:Normal:raspberry:Sensations cache Not Forgottable robot SocketServer: ('192.168.117.248', 40768) SensationType Voice number 1821
+OK now  ain_Eva:Eva:1:Normal:raspberry:Sensations cache Not Forgottable robot SocketServer: ('192.168.117.248', 40768) SensationType Image number 161
+For reason or another, SocketServer does not release Sensations.
+OK now, cant find it Another problem Robot is named 'Wall-E', at logs line 142, but what this Robot is?
+OK now TensorFlowClassification also don't release Item and Image Sensations it creates
+
+Seems Communication does not release all Sentationtype.Item sensations
+main_Eva:Eva:1:Normal:raspberry:Sensations cache Not Forgottable robot Eva SensationType Item number 670
+This is last significanr memory loss, so try to find it.
+
+
+
+
+
+
+but by Sensation type .the is only 
 Who should keep track on presence?
 - maybe it is Communication
-- it can be also TensorfloCommunication as now, because it alanyses images, but
+- it can be also TensorfloCommunication as now, because it alalyses images, but
   when it stops, it should set presence as absent, because it does not know any more presense.
+
   
 Robot.route
-- Sensations don't transfedr to mainRobot any more, but Capabilitis are got from mainRobot and each Robot routes sensations directly to target Robots.
+- Sensations don't transfer to mainRobot any more, but Capabilitis are got from mainRobot and each Robot routes sensations directly to target Robots.
 - Activity don't work as it used in mainRobot level, so each Robot should calculate their activity itself.
 - mainActivity can be calculated by all route actions by all Robots.
 - Activity by Robot can be calculated by same way as mainRobot has calcutaled it before.
 
 Next duties
-- clanup after Robot.route
+- cleanup after Robot.route
 - activity
 - implement SensationType.conversationstus. so we can track conversation and understand it.
 - next big step will be human feedback with 
@@ -90,13 +116,12 @@ Develop
     Argument List: ['/home/reijo/git/Wall-E/Robot/python3/Robot/Communication/Communication.py']
     
     get last '/' separated Robot name and if it is not 'Robot.py', the set read config from 'Communication'
+    
+2) Add liile image to Sensationtype.Item, because it is the thing that is code for Item.name
+  
+3) Make Memory per Robot based
 
-
-
-   
-2) Make Memory per Robot based
-
-3) Move finding best Sensation functions to devicated Communication Robot.
+4) Move finding best Sensation functions to devicated Communication Robot.
    This is functionality for that and we should have dedicated functionaly
    for Robot only in inherited Robot code to make code clear.
 

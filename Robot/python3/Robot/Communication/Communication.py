@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 30.09.2021
+Updated on 08.10.09.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -107,12 +107,20 @@ class Communication(Robot):
                                     # we wait until we will respond if
                                     # someone speaks
     SEARCH_LENGTH=10                # How many response voices we check
-    IGNORE_LAST_HEARD_SENSATIONS_LENGTH=20 #5 Optimize this
-                                    # How last heard voices we ignore in this conversation, when
+    IGNORE_LAST_HEARD_SENSATIONS_LENGTH=5 #5 Optimize this
+                                    # How many last heard voices we ignore in this conversation, when
                                     # we search best voices to to response to voices
                                     # This mast be >= 1 for sure, otherwise we are echo
                                     # but probably >=2, otherwise we are parrot
+    IGNORE_LAST_SAID_SENSATIONS_LENGTH=10 #5 Optimize this
+                                    # How many last said voices we ignore in this conversation, when
+                                    # we search best voices to to response to voices
+                                    # This mast be >= 1 for sure, otherwise we are repeat ourselves
+    
     ROBOT_RESPONSE_MAX = 6          # How many times we response to a Robot in one conversation
+    
+#    spokedDataIds = []              # Sensations dataIds we have said
+#    heardDataIds = []               # Sensations dataIds  we have heard
     
     '''
     base
@@ -334,8 +342,8 @@ class Communication(Robot):
             
         def clearConversation(self):
             self.detachSpokedAssociations()  
-            del self.spokedDataIds[:]            # clear used spoked voices, communication is ended, so used voices are free to be used in next conversation.
-            del self.heardDataIds[:]             # clear used heard  voices, communication is ended, so used voices are free to be used in next conversation.
+#            del self.spokedDataIds[:]            # clear used spoked voices, communication is ended, so used voices are free to be used in next conversation.
+#            del self.heardDataIds[:]             # clear used heard  voices, communication is ended, so used voices are free to be used in next conversation.
             
         def detachSpokedAssociations(self):     
             if self.spokedAssociations != None:        
@@ -411,6 +419,7 @@ class Communication(Robot):
 #                             self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=askSensation)
 #                             self.getParent().route(transferDirection=Sensation.TransferDirection.Direct, sensation=askSensation)
                             self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=askSensation)
+                            askSensation.detach(robot=self.getRobot())
     
                         # now we can say something to the sensation.getName()
                         # even if we have said something so other present ones
@@ -546,19 +555,21 @@ class Communication(Robot):
                                                             sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
                                                             robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
                                                             robotMainNames = self.getMainNames(),
-                                                            ignoredDataIds=self.spokedDataIds+self.heardDataIds)#,
+                                                            ignoredDataIds=self.spokedDataIds+self.heardDataIds)
                                                             #ignoredVoiceLens=self.ignoredVoiceLens)
                         if len(sensations) > 0 and len(associations) > 0:
                             self._isNoResponseToSay = False
                             for sensation in sensations:
                                 #self.saidSensations.append(self.spokedVoiceMuscleSensation.getDataId())
                                 assert sensation.getDataId() not in self.spokedDataIds
+                                while len(self.spokedDataIds) > Communication.IGNORE_LAST_SAID_SENSATIONS_LENGTH:
+                                    del self.spokedDataIds[0]
                                 self.spokedDataIds.append(sensation.getDataId())   
     
                                 sensation.save()     # for debug reasons save voices we have spoken as heard voices and images
                                 self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process speak: self.getMemory().getBestSensations did find sensations, spoke {}'.format(sensation.toDebugStr()))
     
-                                #create normal Muscle sensation for persons to be hards
+                                #create normal Muscle sensation for persons to be heard
                                 spokedSensation = self.createSensation(sensation = sensation, kind=self.getKind(), locations=self.getLocations())
                                 # NOTE This is needed now, because Sensation.create parameters robotType and memoryType parameters are  overwritten by sensation parameters
                                 spokedSensation.setKind(self.getKind())
@@ -569,6 +580,8 @@ class Communication(Robot):
 #                                 self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=spokedSensation)
 #                                 self.getParent().route(transferDirection=Sensation.TransferDirection.Direct, sensation=spokedSensation)
                                 self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=spokedSensation)
+                                spokedSensation.detach(robot=self.getRobot()) # to be sure
+                                
                                 # create Communication sensation for Robots to be 'heard'
                                 # Robot.createSensation set RobotMainNames
                                     
@@ -703,6 +716,7 @@ class Communication(Robot):
 #                                 self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=spokedSensation)
 #                                 self.getParent().route(transferDirection=Sensation.TransferDirection.Direct, sensation=spokedSensation)
                                 self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=spokedSensation)
+                                spokedSensation.detach(robot=self.getRobot()) # to be sure
                         else:
                             # We did not find anything to say, but are ready to start new conversation, if someone speaks.
                             self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithRobot speak: self.getMemory().getBestSensations did NOT find Sensation to speak')

@@ -1,6 +1,6 @@
 '''
 Created on 12.03.2020
-Updated on 26.06.2021
+Updated on 08.10.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -204,7 +204,7 @@ class Visual(Robot):
             # just pass Sensation to wx-process
             # if we already got self.app and self.app.frame running
             # otherwise we just forget this sensation and wait new ones to come and to be shown
-            if self.app and self.app: 
+            if self.app and self.app and self.app.frame: 
                 wx.PostEvent(self.app.frame, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
         # TODO should we release sensation, when we delete it from UI
         # that way we should attach also all sensations we get from associations

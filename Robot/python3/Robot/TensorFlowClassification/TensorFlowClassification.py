@@ -1,6 +1,6 @@
 '''
 Created on 30.04.2019
-Updated on 01.10.2021
+Updated on 05.10.2021
 
 @author: reijo.korhonen@gmail.com
 '''
@@ -647,8 +647,10 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                                 #self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
 #                                 self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
                                 self.route(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
+                                subsensation.detach(robot=self) # detach processed sensation
 #                                 self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
                                 self.route(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+                                itemsensation.detach(robot=self) # detach processed sensation
                                 self.log("Created Working subImage and item sensation for this")
                         # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
                     i = i+1
@@ -713,9 +715,10 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                         #self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
 #                         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
                         self.route(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+                        itemsensation.detach(robot=self) # detach processed sensation
 #                         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
                         self.route(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
-                        self.log("Created Working subImage and item sensation for this")
+                        subsensation.detach(robot=self) # detach processed sensation
         return current_present
     
 # old version            
@@ -796,6 +799,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                                                  presence = presence, locations=self.getUpLocations())
 #                 self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
                 self.route(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+                itemsensation.detach(robot=self) # detach processed sensation
                 self.log("process created exiting/absent itemsensation " + itemsensation.toDebugStr())
         # can't del in loop, do it here
         for name in absent_names:

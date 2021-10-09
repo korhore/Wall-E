@@ -2654,7 +2654,8 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                                 self.log("run: SocketServer got sensation " + sensation.toDebugStr())
 #                                 self.getParent().getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # write sensation to TCPServers Parent, because TCPServer does not read its Axon
                                 self.route(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # write sensation to TCPServers Parent, because TCPServer does not read its Axon
-
+                            sensation.detach(robot=self)
+                            self.log("done sensation.detach(robot=self)")
         try:
             self.sock.close()
         except Exception as err:
