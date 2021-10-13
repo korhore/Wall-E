@@ -1,7 +1,20 @@
 Critical
 --------
 
-Add little picture to Sensation.Item, because Item.name always based in image by Tensirflow.
+Testing
+When we get Image from byte, we get JpegImageFile
+- we don't compare PIL-images, hoping that all work OK, no matter how images are created
+Do tests
+- byte test
+- copy test
+
+Add little picture to Sensation.Item, because Item.name always based in image by Tensirflow,
+or maybe better idea
+- only one instance of Item.name
+-- changes to Memory, we need directory of names or tuple name, ItemSensation
+- Add little picture to Association, because that is reason of Item.Name
+
+OK, we can still have directory of Item.names andlinks to those ItemSensations
 
 OK Seems Communication repeats same phrase again and again.
    We should use at leasts global Sensation Orinanal is arrays to disable this.

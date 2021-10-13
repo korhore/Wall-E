@@ -17,6 +17,8 @@ import struct
 import random
 
 from PIL import Image as PIL_Image
+# for testing, get Image comparison
+from PIL import ImageChops
 
 
 import unittest
@@ -1684,27 +1686,183 @@ class SensationTestCase(unittest.TestCase):
             
         # TODO test vopy#
         
+    '''
+    Test PIL-image equality with PILO-library method
+    '''
+    def areImagesEqual(self, image1, image2):
+        diff = ImageChops.difference(image1, image2)
 
+        box = diff.getbbox()
+        if box:
+            return False
+        return True
+    
+    def test_ItemWithImageVoice(self):        
+        print("\ntest_ItemWithImageVoice")
+        # voice test data
+        data=b'\x01\x02'
+        # image test data
+        image=PIL_Image.new(mode="RGB", size=(10, 10), color = (153, 153, 255))
+        print("1 image.format {}".format(image.format))
+        
+        self.robot.setMainNames(SensationTestCase.MAINNAMES_1)
+        workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, image=image,
+                                                      memoryType=Sensation.MemoryType.Working,
+                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=[],
+                                                      locations = SensationTestCase.SET_1_2_LOCATIONS)
+        self.assertTrue(workingSensation != None, "should be created")
+        self.assertEqual(SensationTestCase.MAINNAMES_1, workingSensation.getMainNames(), "should be equal")
+        self.assertEqual(workingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
+        
+        # test image
+        self.assertTrue(workingSensation.getImage() == image, "image should be equal")
+        self.assertTrue(self.areImagesEqual(workingSensation.getImage(), image), "image  areImagesEqual should be equal") # should test this thios special method
+                
+        bytes=workingSensation.bytes()
+        self.assertTrue(bytes != None, "should be get bytes")
+        
+        # NOTE, at this point we should change original sensations id, because other way
+        # creations thinks, that we are updating original sensation with new data
+        workingSensationId = workingSensation.getId()
+        workingSensation.setId(Sensation.getNextId())
+        workingSensationDataId   = workingSensation.getDataId()
+        workingSensation.setDataId(workingSensation.getId())
+
+        # we should get back original kind Sensation        
+        fromBytesWorkingSensation = self.robot.createSensation(bytes=bytes)
+        self.assertTrue(fromBytesWorkingSensation != None, "should be created")
+        self.assertEqual(fromBytesWorkingSensation.getId(), workingSensationId, "should be equal")
+        self.assertEqual(fromBytesWorkingSensation.getDataId(), workingSensationDataId, "should be equal")
+        
+        self.assertNotEqual(fromBytesWorkingSensation, workingSensation, "should not be equal, because we changedmanulla original id")
+        self.assertEqual(fromBytesWorkingSensation.getMainNames(), workingSensation.getMainNames(), "should be equal")
+        self.assertEqual(fromBytesWorkingSensation.getLocations(), workingSensation.getLocations(), "should be equal")
+        self.assertEqual(fromBytesWorkingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
+        self.assertNotEqual(fromBytesWorkingSensation.getDataId(), workingSensation.getDataId(), "should not be equal, because we changed manually original id")
+        self.assertTrue(workingSensation.isOriginal(), "workingSensation should be original")
+        self.assertTrue(fromBytesWorkingSensation.isOriginal(), "fromBytesWorkingSensation should be original")
+        
+#         
+        # test Item.image
+        self.assertTrue(self.areImagesEqual(workingSensation.getImage(), image), "areImagesEqual should be equal" ) # should test this this special method
+
+        self.assertIsNotNone(fromBytesWorkingSensation.getImage(), "should get image")
+        fromBytesImage = fromBytesWorkingSensation.getImage() # this is now JPegImageFile, image is PIL.image, so we can't compare them
+        self.assertFalse(self.areImagesEqual(fromBytesWorkingSensation.getImage(), image), "should not be equal, because Image format differs") # should test this thios special method
+        self.assertFalse(fromBytesWorkingSensation.getImage() == image, "should not be equal, because Image format differs")
+        
         
 
+        # Item with Voice
+        voiceSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, locations=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva)
+        workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, data=data,
+                                                      memoryType=Sensation.MemoryType.Working,
+                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=[],
+                                                      locations = SensationTestCase.SET_1_2_LOCATIONS)
+        self.assertTrue(workingSensation != None, "should be created")
+        self.assertEqual(SensationTestCase.MAINNAMES_1, workingSensation.getMainNames(), "should be equal")
+        self.assertEqual(workingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
+        
+        # test Voice data
+        self.assertTrue(workingSensation.getData() == data, "data should be equal")
+                
+        bytes=workingSensation.bytes()
+        self.assertTrue(bytes != None, "should be get bytes")
+        
+        # NOTE, at this point we should change original sensations id, because other way
+        # creations thinks, that we are updating original sensation with new data
+        workingSensationId = workingSensation.getId()
+        workingSensation.setId(Sensation.getNextId())
+        workingSensationDataId   = workingSensation.getDataId()
+        workingSensation.setDataId(workingSensation.getId())
+
+        # we should get back original kind Sensation        
+        fromBytesWorkingSensation = self.robot.createSensation(bytes=bytes)
+        self.assertTrue(fromBytesWorkingSensation != None, "should be created")
+        self.assertEqual(fromBytesWorkingSensation.getId(), workingSensationId, "should be equal")
+        self.assertEqual(fromBytesWorkingSensation.getDataId(), workingSensationDataId, "should be equal")
+        
+        self.assertNotEqual(fromBytesWorkingSensation, workingSensation, "should not be equal, because we changedmanulla original id")
+        self.assertEqual(fromBytesWorkingSensation.getMainNames(), workingSensation.getMainNames(), "should be equal")
+        self.assertEqual(fromBytesWorkingSensation.getLocations(), workingSensation.getLocations(), "should be equal")
+        self.assertEqual(fromBytesWorkingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
+        self.assertNotEqual(fromBytesWorkingSensation.getDataId(), workingSensation.getDataId(), "should not be equal, because we changed manually original id")
+        self.assertTrue(workingSensation.isOriginal(), "workingSensation should be original")
+        self.assertTrue(fromBytesWorkingSensation.isOriginal(), "fromBytesWorkingSensation should be original")
+        
+#         
+        # test Item.Voice
+        self.assertEqual(workingSensation.getData(), data, " should be equal" ) # should test this this special method
+
+        self.assertIsNotNone(fromBytesWorkingSensation.getData(), "should get data")
+        self.assertEqual(fromBytesWorkingSensation.getData(), data, "should be equal")
+        self.assertTrue(fromBytesWorkingSensation.getData() == data, "should not be equal")
+        # item with voice
+        
+        
+        # TODO maybe voice-test is not reasonable, because  we don't update from bytes, but get new voices, look image below
+        
+        #data=b'\x01\x02'
+        voiceSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, locations=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva)
+
+        self.assertFalse(voiceSensation.isForgettable(), "should be False, until detached")
+        voiceSensation.detach(robot=self.robot)
+        self.assertTrue(voiceSensation.isForgettable(), "should be True after detach")
+
+        self.assertTrue(voiceSensation.getKind() == Sensation.Kind.Eva, "should be equal")
+        bytes=voiceSensation.bytes()
+        self.assertTrue(bytes != None, "should be get bytes")
+        fromBytesVoiceSensation = self.robot.createSensation(bytes=bytes)
+        
+        self.assertEqual(voiceSensation, fromBytesVoiceSensation, "should be equal")
+        self.assertEqual(voiceSensation.getKind(), fromBytesVoiceSensation.getKind(), "should be equal")
+        self.assertEqual(voiceSensation.getData(), fromBytesVoiceSensation.getData(), "should be equal")
+        self.assertEqual(voiceSensation.getLocations(), fromBytesVoiceSensation.getLocations(), "should be equal")
+        self.assertEqual(fromBytesVoiceSensation.getDataId(), voiceSensation.getDataId(), "should be equal")
+        self.assertTrue(voiceSensation.isOriginal(), "voiceSensation should be original")
+        self.assertTrue(fromBytesVoiceSensation.isOriginal(), "fromBytesVoiceSensation should be original")
+        
+        self.assertFalse(fromBytesVoiceSensation.isForgettable(), "should be False, until detached")
+        fromBytesVoiceSensation.detach(robot=self.robot)
+        self.assertTrue(fromBytesVoiceSensation.isForgettable(), "should be True after detach")
+
+    
     def test_Bytes(self):        
         print("\ntest_Bytes")
+        # voice test data
+        data=b'\x01\x02'
+        # image test data
+        image=PIL_Image.new(mode="RGB", size=(10, 10), color = (153, 153, 255))
+        print("1 image.format {}".format(image.format))
+        
         self.robot.setMainNames(SensationTestCase.MAINNAMES_1)
-        workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
+        workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, image=image,
+                                                      memoryType=Sensation.MemoryType.Working,
                                                       name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=[],
                                                       locations = SensationTestCase.SET_1_2_LOCATIONS)
         self.assertEqual(SensationTestCase.MAINNAMES_1, workingSensation.getMainNames(), "should be equal")
         self.assertTrue(workingSensation != None, "should be created")
         self.assertEqual(workingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
+        
+        # test image
+        self.assertTrue(workingSensation.getImage() == image, "image should be equal")
+        self.assertTrue(self.areImagesEqual(workingSensation.getImage(), image), "image  areImagesEqual should be equal") # should test this thios special method
+                
         bytes=workingSensation.bytes()
         self.assertTrue(bytes != None, "should be get bytes")
+        
+        # NOTE, at this point we should change original sensations id, because other way
+        # creations thinks, that we are updating original sensation with new data
+        workingSensation.setId(Sensation.getNextId())
+        workingSensation.setDataId(workingSensation.getId())
+        
         fromBytesWorkingSensation = self.robot.createSensation(bytes=bytes)
         self.assertTrue(fromBytesWorkingSensation != None, "should be created")
-        self.assertEqual(fromBytesWorkingSensation, workingSensation, "should be equal")
+        self.assertNotEqual(fromBytesWorkingSensation, workingSensation, "should not be equal, because we changed manully original id")
         self.assertEqual(fromBytesWorkingSensation.getMainNames(), workingSensation.getMainNames(), "should be equal")
         self.assertEqual(fromBytesWorkingSensation.getLocations(), workingSensation.getLocations(), "should be equal")
         self.assertEqual(fromBytesWorkingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
-        self.assertEqual(fromBytesWorkingSensation.getDataId(), workingSensation.getDataId(), "should be equal")
+        self.assertNotEqual(fromBytesWorkingSensation.getDataId(), workingSensation.getDataId(), "should not be equal, because we changed manually original id")
         self.assertTrue(workingSensation.isOriginal(), "workingSensation should be original")
         self.assertTrue(fromBytesWorkingSensation.isOriginal(), "fromBytesWorkingSensation should be original")
         
@@ -1713,17 +1871,39 @@ class SensationTestCase(unittest.TestCase):
         self.assertEqual(workingSensation.getLocations(), SensationTestCase.SET_1_1_LOCATIONS_1, "should be equal")
         bytes=workingSensation.bytes()
         self.assertTrue(bytes != None, "should be get bytes")
+    
+        # NOTE, at this point we should change original sensations id, because other way
+        # creations thinks, that we are updating original sensation with new data
+        workingSensation.setId(Sensation.getNextId())
+        workingSensation.setDataId(workingSensation.getId())
+
         fromBytesWorkingSensation = self.robot.createSensation(bytes=bytes)
         self.assertTrue(fromBytesWorkingSensation != None, "should be created")
-        self.assertEqual(fromBytesWorkingSensation, workingSensation, "should be equal")
+        self.assertNotEqual(fromBytesWorkingSensation, workingSensation, "should not be equal, because we changed manually original id")
         self.assertEqual(SensationTestCase.MAINNAMES_1, fromBytesWorkingSensation.getMainNames(), "should be equal")
         self.assertEqual(fromBytesWorkingSensation.getMainNames(), workingSensation.getMainNames(), "should be equal")
         self.assertEqual(fromBytesWorkingSensation.getLocations(), workingSensation.getLocations(), "should be equal")
         self.assertEqual(fromBytesWorkingSensation.getLocations(), SensationTestCase.SET_1_1_LOCATIONS_1, "should be equal")
-        self.assertEqual(fromBytesWorkingSensation.getDataId(), workingSensation.getDataId(), "should be equal")
+        self.assertNotEqual(fromBytesWorkingSensation.getDataId(), workingSensation.getDataId(), "should not be equal, because we changed manually original id")
         self.assertTrue(workingSensation.isOriginal(), "workingSensation should be original")
         self.assertTrue(fromBytesWorkingSensation.isOriginal(), "fromBytesWorkingSensation should be original")
-       
+        
+        # test Item.image
+        self.assertTrue(self.areImagesEqual(workingSensation.getImage(), image), "areImagesEqual should be equal" ) # should test this this special method
+
+        self.assertIsNotNone(fromBytesWorkingSensation.getImage(), "should get image")
+        fromBytesImage = fromBytesWorkingSensation.getImage() # this is now JPegImageFile, image is PIL.image, so we can't compare them
+        self.assertFalse(self.areImagesEqual(fromBytesWorkingSensation.getImage(), image), "should not be equal, because Image format differs") # should test this thios special method
+        self.assertFalse(fromBytesWorkingSensation.getImage() == image, "should not be equal, because Image format differs")
+        self.assertTrue(self.areImagesEqual(workingSensation.getImage(), image), "should be equal") # should test this thios special method
+        self.assertTrue(workingSensation.getImage() == image, "should be equal")
+        self.assertFalse(workingSensation.getImage() == fromBytesWorkingSensation.getImage(), "should not be equal, because Image format differs")
+        self.assertNotEqual(fromBytesWorkingSensation.getDataId(), workingSensation.getDataId(), "should be not equal, because we have changed original id")
+        self.assertTrue(workingSensation.isOriginal(), "imageSensation should be original")
+        self.assertTrue(fromBytesWorkingSensation.isOriginal(), "fromBytesImageSensation should be original")
+        
+        
+        # Working_Importance_test
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
                                                       name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=SensationTestCase.RECEIVEDFROM)
         self.assertTrue(workingSensation != None, "should be created")
@@ -1738,8 +1918,9 @@ class SensationTestCase(unittest.TestCase):
         self.assertTrue(fromBytesWorkingSensation.isOriginal(), "fromBytesWorkingSensation should be original")
 
         # Voice
+        # TODO maybe voice-test is not reasonable, because  we don't update from bytes, but get new voices, look image below
         
-        data=b'\x01\x02'
+        #data=b'\x01\x02'
         voiceSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, locations=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva)
 
         self.assertFalse(voiceSensation.isForgettable(), "should be False, until detached")
@@ -1765,20 +1946,39 @@ class SensationTestCase(unittest.TestCase):
 
         # Image
         
-        imageSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.Sensory, data=data, locations=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva)
+        imageSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.Sensory, image=image, locations=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva)
+        # test test
+        self.assertTrue(imageSensation.getImage() == image, "should be equal 1")
+        self.assertTrue(self.areImagesEqual(imageSensation.getImage(), image), "areImagesEqual should be equal 1") # should test this thios special method
 
         self.assertFalse(imageSensation.isForgettable(), "should be False, until detached")
         imageSensation.detach(robot=self.robot)
+        self.assertTrue(imageSensation.getImage() == image, "should be equal 2")
+        self.assertTrue(self.areImagesEqual(imageSensation.getImage(), image), "areImagesEqual should be equal 2") # should test this thios special method
         self.assertTrue(imageSensation.isForgettable(), "should be True after detach")
 
-        bytes=imageSensation.bytes()
+        bytes=imageSensation.bytes() # Note, this changes Sensation.image, even if iamage itself is same inside Sensation.image
+        self.assertTrue(imageSensation.getImage() == image, "== should be equal 3")
+        self.assertTrue(self.areImagesEqual(imageSensation.getImage(), image), "areImagesEqual should be equal 3") # should test this this special method
         self.assertTrue(bytes != None, "should be get bytes")
+        
+        # NOTE, at this point we should change original sensations id, because other way
+        # creations thinks, that we are updating original sensation with new data
+        imageSensation.setId(Sensation.getNextId())
+        imageSensation.setDataId(imageSensation.getId())
+        
         fromBytesImageSensation = self.robot.createSensation(bytes=bytes)
+        self.assertTrue(self.areImagesEqual(imageSensation.getImage(), image), "areImagesEqual should be equal 4") # should test this this special method
 
-        self.assertTrue(imageSensation == fromBytesImageSensation, "should be equal")
-        self.assertTrue(imageSensation.getImage() == fromBytesImageSensation.getImage(), "should be equal") # empty image, not given in creation, TODO
+        fromBytesImage = fromBytesImageSensation.getImage() # this is now JPegImageFile, image is PIL.image, so we can't compare them
+        self.assertFalse(imageSensation == fromBytesImageSensation, "should be equal, because we have changed id manually")
+        self.assertFalse(self.areImagesEqual(fromBytesImageSensation.getImage(), image), "should not be equal 4, because Image format differs") # should test this thios special method
+        self.assertFalse(fromBytesImageSensation.getImage() == image, "should be equal 4, because Image format differs")
+        self.assertTrue(self.areImagesEqual(imageSensation.getImage(), image), "should be equal 5") # should test this thios special method
+        self.assertTrue(imageSensation.getImage() == image, "should be equal 5")
+        self.assertFalse(imageSensation.getImage() == fromBytesImageSensation.getImage(), "should not be equal, because Image format differs")
         self.assertTrue(imageSensation.getLocations() == fromBytesImageSensation.getLocations(), "should be equal")
-        self.assertEqual(fromBytesImageSensation.getDataId(), imageSensation.getDataId(), "should be equal")
+        self.assertNotEqual(fromBytesImageSensation.getDataId(), imageSensation.getDataId(), "should be not equal, because we have changed original id")
         self.assertTrue(imageSensation.isOriginal(), "imageSensation should be original")
         self.assertTrue(fromBytesImageSensation.isOriginal(), "fromBytesImageSensation should be original")
         

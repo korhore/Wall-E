@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 01.05.04.2021
+Edited on 13.10.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -1660,11 +1660,12 @@ class Memory(object):
     return human readable string of presence items in all locations
     '''
     def presenceToStr(self, presentDict, location=None):
-        if location:
+        if location and location in presentDict:
             namesStr='['+location + ':'
             for name, sensation in presentDict[location].items():
                 namesStr = namesStr + ' ' + name
             return namesStr
+        return ''
 
         allLocationnamesStr=''
         for location in presentDict.keys():

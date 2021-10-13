@@ -4,12 +4,13 @@ Updated on 13.06.2021
 @author: reijo.korhonen@gmail.com
 
 test Robot.Identity class
-you must provide models/research
-PYTHONPATH=/<here it is>/models/research python3 -m unittest tests/testidentification.py
 
 Testing is complicated, because we must test Identity thread
 and unittest goes to tearDown while we are in the middle of testing.
-so we must set sleep in teadDown
+so we must set sleep in tearDown
+
+python3 -m unittest tests/testidentity.py
+
 
 
 '''
@@ -94,6 +95,13 @@ class IdentityTestCase(unittest.TestCase):
                                        instanceType= Sensation.InstanceType.SubInstance,
                                        memory = self.memory,
                                        level=2)
+        self.identity.SLEEPTIME = 5    # test faster
+        self.identity.sleeptime = 5
+
+        self.identity.CLASSIFICATION_TIME = 20
+        Identity.CLASSIFICATION_TIME = 20
+        
+        self.identity.SLEEP_BETWEEN_VOICES = 1
 
 
     def tearDown(self):
@@ -106,7 +114,6 @@ class IdentityTestCase(unittest.TestCase):
         del self.axon
         
     def test_Identity(self):
-        # how to test?
         i=0
         self.identity.start()
         while self.identity.isRunning() and i < 100:

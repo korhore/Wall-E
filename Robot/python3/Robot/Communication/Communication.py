@@ -112,7 +112,7 @@ class Communication(Robot):
                                     # we search best voices to to response to voices
                                     # This mast be >= 1 for sure, otherwise we are echo
                                     # but probably >=2, otherwise we are parrot
-    IGNORE_LAST_SAID_SENSATIONS_LENGTH=10 #5 Optimize this
+    IGNORE_LAST_SAID_SENSATIONS_LENGTH=20 #5 Optimize this
                                     # How many last said voices we ignore in this conversation, when
                                     # we search best voices to to response to voices
                                     # This mast be >= 1 for sure, otherwise we are repeat ourselves

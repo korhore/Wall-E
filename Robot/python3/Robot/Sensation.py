@@ -1,22 +1,23 @@
 '''
 Created on Feb 25, 2013
-Edited on 07.04.2021
+Edited on 13.10.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
 
-import sys
-import os
-import time as systemTime
-from enum import Enum
-import struct
-import random
-import math
 from PIL import Image as PIL_Image
+from enum import Enum
 import io
+import math
+import os
 import psutil
+import random
+import struct
+import sys
 
-    
+import time as systemTime
+
+
 #def enum(**enums):
 #    return type('Enum', (), enums)
 LIST_SEPARATOR=':'
@@ -1070,12 +1071,10 @@ class Sensation(object):
                                 self.data = originalSensation.getData()               
                     elif self.sensationType is Sensation.SensationType.Image:
                         filePath_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
-                        #print("filePath_size " + str(filePath_size))
                         i += Sensation.ID_SIZE
                         self.filePath =Sensation.bytesToStr(bytes[i:i+filePath_size])
                         i += filePath_size
                         data_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
-                        #print("data_size " + str(data_size))
                         i += Sensation.ID_SIZE
                         if data_size > 0:
                             self.image = PIL_Image.open(io.BytesIO(bytes[i:i+data_size]))
@@ -1112,12 +1111,33 @@ class Sensation(object):
                         self.presence = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
                         i += Sensation.ENUM_SIZE
                         
+                        # image part just as image # TODO filepath
+                        filePath_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
+                        i += Sensation.ID_SIZE
+                        self.filePath =Sensation.bytesToStr(bytes[i:i+filePath_size])
+                        i += filePath_size
+                        data_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
+                        i += Sensation.ID_SIZE
+                        if data_size > 0:
+                            self.image = PIL_Image.open(io.BytesIO(bytes[i:i+data_size]))
+                        else:
+                            self.image = None
+                        i += data_size
+                        # voice just like as voice but no kind
+                        data_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
+                        #print("data_size " + str(data_size))
+                        i += Sensation.ID_SIZE
+                        self.data = bytes[i:i+data_size]
+                        i += data_size
+                        
                         #check if this is copy from original
                         if not self.isOriginal():
                             #try to find original and set reference to it's data
                             originalSensation = memory.getSensationFromSensationMemory(id=self.getDataId())
                             if originalSensation != None:
                                 self.name = originalSensation.getName()               
+                                self.image = originalSensation.getImage()               
+                                self.idata = originalSensation.getData()               
                     elif self.sensationType is Sensation.SensationType.Robot:
                         self.presence = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
                         i += Sensation.ENUM_SIZE
@@ -1169,6 +1189,7 @@ class Sensation(object):
                                 copySensation.image = self.image
                             elif copySensation.getSensationType() == Sensation.SensationType.Item:
                                  copySensation.name = self.name
+                                 copySensation.image = self.image
                             copySensation.originalSensation = self
                             copySensation.originalSensationId = self.id                               
                             self.copySensations.append(copySensation)
@@ -1799,6 +1820,26 @@ class Sensation(object):
             b +=  Sensation.strToBytes(self.name)
             b +=  Sensation.floatToBytes(self.score)
             b +=  Sensation.strToBytes(self.presence)
+            # just like Image
+            filePath_size=len(self.filePath)
+            b +=  filePath_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
+            b +=  Sensation.strToBytes(self.filePath)
+            stream = io.BytesIO()
+            if self.image is None:
+                data = b''
+            else:
+                self.image.save(fp=stream, format=Sensation.IMAGE_FORMAT)
+                data=stream.getvalue()
+            data_size=len(data)
+            b +=  data_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
+            b +=  data
+            #just like voice, but no kind
+            if self.data is not None:
+                data_size=len(self.data)
+            else:
+                data_size=0
+            b +=  data_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
+            b +=  self.data
         elif self.sensationType is Sensation.SensationType.Robot:
             b +=  Sensation.strToBytes(self.presence)
         elif self.sensationType is Sensation.SensationType.Feeling:
@@ -2763,15 +2804,18 @@ class Sensation(object):
     
     '''
     save sensation data permanently
+    TODO do we need filepath at all, because we can calculate it from self.getId()
     '''  
     def save(self):
         if not os.path.exists(Sensation.DATADIR):
             os.makedirs(Sensation.DATADIR)
             
-        if self.getSensationType() == Sensation.SensationType.Image and\
+        if (self.getSensationType() == Sensation.SensationType.Image or\
+            self.getSensationType() == Sensation.SensationType.Item) and\
            self.getImage() != None:       
-            fileName = '{}/{}.{}'.format(Sensation.DATADIR, self.getId(),\
-                                         Sensation.IMAGE_FORMAT)
+            fileName = '{}/{}'.format(Sensation.DATADIR, self.getId()) # without image format
+            self.setFilePath(fileName)
+            fileName = '{}.{}'.format(fileName,Sensation.IMAGE_FORMAT) # with image format
             self.setFilePath(fileName)
             try:
                 if not os.path.exists(fileName):
@@ -2787,9 +2831,12 @@ class Sensation(object):
                         print("Sensation.save Image open({}), wb) as f error {}".format(fileName, str(e)))
             except Exception as e:
                 print('os.path.exists({}) error {}'.format(fileName, str(e)))
-        elif self.getSensationType() == Sensation.SensationType.Voice:       
-            fileName = '{}/{}.{}'.format(Sensation.DATADIR,self.getId(),Sensation.VOICE_FORMAT)
+        elif (self.getSensationType() == Sensation.SensationType.Voice or\
+              self.getSensationType() == Sensation.SensationType.Item) and\
+             self.getData() != None:             
+            fileName = '{}/{}'.format(Sensation.DATADIR, self.getId()) # without voice format
             self.setFilePath(fileName)
+            fileName = '{}.{}'.format(fileName,Sensation.DATADIR,self.getId(),Sensation.VOICE_FORMAT)
             try:
                 if not os.path.exists(fileName):
                     try:
