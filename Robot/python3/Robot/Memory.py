@@ -1530,7 +1530,7 @@ class Memory(object):
                 sensation.getSensationType() == Sensation.SensationType.Voice:
                 if sensation.getFilePath() == filepath:
                     return True
-            if sensation.getFilePathByFormat(format=Sensation.BINARY_FORMAT) == filepath:
+            if sensation.getFilePath(sensationType=ensation.SensationType.All) == filepath:
                 return True
         return False
 
@@ -1665,15 +1665,18 @@ class Memory(object):
             for name, sensation in presentDict[location].items():
                 namesStr = namesStr + ' ' + name
             return namesStr
-        return ''
 
         allLocationnamesStr=''
+        isFirst=True
         for location in presentDict.keys():
             namesStr='['+location + ':'
             for name, sensation in presentDict[location].items():
-                namesStr = namesStr + ' ' + name
+                if isFirst:
+                    namesStr = namesStr + name
+                    isFirst=False
+                else:
+                    namesStr = namesStr + '|' + name
             allLocationnamesStr += namesStr + ']'
-        
         return allLocationnamesStr
     
     '''

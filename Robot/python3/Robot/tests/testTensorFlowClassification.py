@@ -1,6 +1,6 @@
 '''
 Created on 23.06.2019
-Updated on 13.06.2021
+Updated on 14.10.2021
 @author: reijo.korhonen@gmail.com
 
 test TensorFlowClassification class
@@ -247,15 +247,16 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
                 transferDirection, sensation = self.getAxon().get(robot=self)
                 print("external: got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr())
                 if sensation.getRobotType() == Sensation.RobotType.Sense and \
-                    sensation.getSensationType() == Sensation.SensationType.Image:
+                   sensation.getSensationType() == Sensation.SensationType.Image:
                     print("external: got crop image of item " + str(transferDirection) + ' ' + sensation.toDebugStr())
                 elif sensation.getSensationType() == Sensation.SensationType.Item and\
                     sensation.getPresence() == Sensation.Presence.Present:
                     print("external: got item Present " + str(transferDirection) + ' ' + sensation.toDebugStr())
                     if sensation.getName() not in itemnames:
                         itemnames.append(sensation.getName())
-                    self.assertTrue(sensation.getName() in currentNames, 'should be in test names')
+                    self.assertTrue(sensation.getName() in currentNames, 'should be in current test names')
                     found_names.append(sensation.getName())
+                    self.assertIsNotNone(sensation.getImage(), 'should not be none')
                 elif sensation.getSensationType() == Sensation.SensationType.Item and\
                     sensation.getPresence() == Sensation.Presence.Absent:
                     print("external: got item Absent but SHOULD NOT " + str(transferDirection) + ' ' + sensation.toDebugStr())
@@ -299,26 +300,31 @@ class TensorFlowClassificationTestCase(unittest.TestCase):
                 if sensation.getRobotType() == Sensation.RobotType.Sense and \
                     sensation.getSensationType() == Sensation.SensationType.Image:
                     print("1: got crop image of item " + str(transferDirection) + ' ' + sensation.toDebugStr())
+                    self.assertIsNotNone(sensation.getImage(), 'should not be none')
                 elif sensation.getSensationType() == Sensation.SensationType.Item and\
                     sensation.getPresence() == Sensation.Presence.Entering:
                     print("1: got item Entering " + str(transferDirection) + ' ' + sensation.toDebugStr())
                     self.assertTrue(sensation.getName() in enteringNames, '{} should be in test entering names'.format(sensation.getName(), enteringNames))
                     foundEnteringNames.append(sensation.getName())
+                    self.assertIsNotNone(sensation.getImage(), 'should not be none')
                 elif sensation.getSensationType() == Sensation.SensationType.Item and\
                     sensation.getPresence() == Sensation.Presence.Present:
                     print("2: got item Present " + str(transferDirection) + ' ' + sensation.toDebugStr())
                     self.assertTrue(sensation.getName() in presentNames, '{} should be in test still present names {}'.format(sensation.getName(), presentNames))
                     foundPresentNames.append(sensation.getName())
+                    self.assertIsNotNone(sensation.getImage(), 'should not be none')
                 elif sensation.getSensationType() == Sensation.SensationType.Item and\
                     sensation.getPresence() == Sensation.Presence.Exiting:
                     print("1: got item Exiting " + str(transferDirection) + ' ' + sensation.toDebugStr())
                     self.assertTrue(sensation.getName() in exitingNames, '{} should be in test exiting_names {}'.format(sensation.getName(), exitingNames))
                     foundExitingNames.append(sensation.getName())
+                    self.assertIsNone(sensation.getImage(), 'should be none')
                 elif sensation.getSensationType() == Sensation.SensationType.Item and\
                     sensation.getPresence() == Sensation.Presence.Absent:
                     print("1: got item Absent " + str(transferDirection) + ' ' + sensation.toDebugStr())
                     self.assertTrue(sensation.getName() in absentNames, '{} should be in test absent_names {}'.format(sensation.getName(), absentNames))
                     foundAbsentNames.append(sensation.getName())
+                    self.assertIsNone(sensation.getImage(), 'should be none')
                 else:
                    print("1: got something else" + str(transferDirection) + ' ' + sensation.toDebugStr())
             else:

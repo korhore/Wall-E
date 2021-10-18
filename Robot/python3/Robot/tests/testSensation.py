@@ -2822,21 +2822,21 @@ class SensationTestCase(unittest.TestCase):
         
         # save
         originalSensation.save()
-        originalSensationBinaryFilePath = originalSensation.getFilePathByFormat(format=Sensation.BINARY_FORMAT)
+        originalSensationBinaryFilePath = originalSensation.getFilePath(sensationType = Sensation.SensationType.All)
         # delete deletes also bin files, so we must save binary files.
         originalSensationBinaryFilePathBak = originalSensationBinaryFilePath+'.bak'
         shutil.copyfile(src=originalSensationBinaryFilePath, dst=originalSensationBinaryFilePathBak)
         originalSensationId = originalSensation.getId()
         
         copySensation1.save()
-        copySensation1BinaryFilePath = copySensation1.getFilePathByFormat(format=Sensation.BINARY_FORMAT)
+        copySensation1BinaryFilePath = copySensation1.getFilePath(sensationType = Sensation.SensationType.All)
         copySensation1BinaryFilePathBak = copySensation1BinaryFilePath+'.bak'
         # delete deletes also bin files, so we must save binary files.
         shutil.copyfile(src=copySensation1BinaryFilePath, dst=copySensation1BinaryFilePathBak)
         copySensation1Id = copySensation1.getId()
         
         copySensation2.save()
-        copySensation2BinaryFilePath = copySensation2.getFilePathByFormat(format=Sensation.BINARY_FORMAT)
+        copySensation2BinaryFilePath = copySensation2.getFilePath(sensationType = Sensation.SensationType.All)
         copySensation2BinaryFilePathBak = copySensation2BinaryFilePath+'.bak'
         # delete deletes also bin files, so we must save binary files.
         shutil.copyfile(src=copySensation2BinaryFilePath, dst=copySensation2BinaryFilePathBak)
@@ -3361,7 +3361,7 @@ class SensationTestCase(unittest.TestCase):
         sensation = Sensation(memory=memory, robotId=0.0)
         sensation.save()
         
-        binaryFilePath = sensation.getFilePathByFormat(format=Sensation.BINARY_FORMAT)
+        binaryFilePath = sensation.getFilePath(sensationType = Sensation.SensationType.All)
 
         self.assertTrue(os.path.exists(binaryFilePath), "Binary file {} should exist".format(binaryFilePath))
         loadedSensation = Sensation(memory=memory,
@@ -3398,10 +3398,10 @@ class SensationTestCase(unittest.TestCase):
         
         # save
         voiceSensation.save()
-        voiceSensationBinaryFilePath = voiceSensation.getFilePathByFormat(format=Sensation.BINARY_FORMAT)
+        voiceSensationBinaryFilePath = voiceSensation.getFilePath(sensationType = Sensation.SensationType.All)
         
         fromVoiceSensation.save()
-        fromVoiceSensationBinaryFilePath = fromVoiceSensation.getFilePathByFormat(format=Sensation.BINARY_FORMAT)
+        fromVoiceSensationBinaryFilePath = fromVoiceSensation.getFilePath(sensationType = Sensation.SensationType.All)
         
         # now delete voiceSensation and fromVoiceSensation from memory
         i=0

@@ -1,6 +1,6 @@
 '''
 Created on 12.03.2020
-Updated on 08.10.2021
+Updated on 14.10.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -388,7 +388,7 @@ class Visual(Robot):
             return self.robot #called
  
         '''
-        helper method to return SensationType.Item name with presewnce, when presence is valid
+        helper method to return SensationType.Item name with presence, when presence is valid
         '''       
         def getItemNamePresenceString(self, sensation):
             if sensation.getRobotType() == Sensation.RobotType.Sense:
@@ -1338,7 +1338,7 @@ class Visual(Robot):
                 sensation=event.data
                 # log presence to user
                 if sensation.getSensationType() == Sensation.SensationType.Item:
-                    self.tracePresence(sensation)
+                    self.tracePresence()
                 # all sensation are shown  in  log and treeview
                 wx.PostEvent(self.logPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
                 wx.PostEvent(self.treeLogPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
@@ -1351,7 +1351,7 @@ class Visual(Robot):
         '''
         Presence
         '''
-        def tracePresence(self, sensation):
+        def tracePresence(self):
             # present means pure Present, all other if handled not present
             # if present sensations must come in order
             self.presenceText.SetLabel(label='items:{} robots:{}'.format(self.robot.getMemory().itemsPresenceToStr(),self.robot.getMemory().robotsPresenceToStr()))

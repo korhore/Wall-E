@@ -2660,10 +2660,26 @@ class Sensation(object):
     def getImage(self):
         return self.image
     
-    def setFilePath(self, filePath):
-        self.filePath = filePath       
-    def getFilePath(self):
-        return self.filePath
+#     def setFilePath(self, filePath):
+#         self.filePath = filePath       
+    def getFilePath(self, sensationType=None):
+        if sensationType == None:
+            sensationType = self.getSensationType()
+        
+        format = None
+        if sensationType == Sensation.SensationType.Image:
+            format = Sensation.IMAGE_FORMAT
+        elif sensationType == Sensation.SensationType.Voice:
+            format = Sensation.VOICE_FORMAT
+        elif sensationType == Sensation.SensationType.All:
+            format = Sensation.BINARY_FORMAT
+        else:
+            format = None
+            
+        if format:
+            return '{}/{}.{}'.format(Sensation.DATADIR, self.getId(), format)
+            
+        return None
    
     def setCapabilities(self, capabilities):
         self.capabilities = capabilities
@@ -2799,8 +2815,8 @@ class Sensation(object):
     '''
     helper method to get binary file name
     '''
-    def getFilePathByFormat(self, format):
-        return '{}/{}.{}'.format(Sensation.DATADIR, self.getId(), format)
+#     def getFilePathByFormat(self, format):
+#         return '{}/{}.{}'.format(Sensation.DATADIR, self.getId(), format)
     
     '''
     save sensation data permanently
@@ -2813,10 +2829,10 @@ class Sensation(object):
         if (self.getSensationType() == Sensation.SensationType.Image or\
             self.getSensationType() == Sensation.SensationType.Item) and\
            self.getImage() != None:       
-            fileName = '{}/{}'.format(Sensation.DATADIR, self.getId()) # without image format
-            self.setFilePath(fileName)
-            fileName = '{}.{}'.format(fileName,Sensation.IMAGE_FORMAT) # with image format
-            self.setFilePath(fileName)
+            fileName = self.getFilePath(sensationType=Sensation.SensationType.Image)
+#             self.setFilePath(fileName)
+#             fileName = '{}.{}'.format(fileName,Sensation.IMAGE_FORMAT) # with image format
+#             self.setFilePath(fileName)
             try:
                 if not os.path.exists(fileName):
                     try:
@@ -2831,12 +2847,13 @@ class Sensation(object):
                         print("Sensation.save Image open({}), wb) as f error {}".format(fileName, str(e)))
             except Exception as e:
                 print('os.path.exists({}) error {}'.format(fileName, str(e)))
-        elif (self.getSensationType() == Sensation.SensationType.Voice or\
+        if (self.getSensationType() == Sensation.SensationType.Voice or\
               self.getSensationType() == Sensation.SensationType.Item) and\
              self.getData() != None:             
-            fileName = '{}/{}'.format(Sensation.DATADIR, self.getId()) # without voice format
-            self.setFilePath(fileName)
-            fileName = '{}.{}'.format(fileName,Sensation.DATADIR,self.getId(),Sensation.VOICE_FORMAT)
+            fileName = self.getFilePath(sensationType=Sensation.SensationType.Voice)
+#             fileName = '{}/{}'.format(Sensation.DATADIR, self.getId()) # without voice format
+#             self.setFilePath(fileName)
+#             fileName = '{}.{}'.format(fileName,Sensation.DATADIR,self.getId(),Sensation.VOICE_FORMAT)
             try:
                 if not os.path.exists(fileName):
                     try:
@@ -2852,7 +2869,7 @@ class Sensation(object):
             except Exception as e:
                 print("Sensation.save Voice2 not os.path.exists({}) error {}".format(fileName, str(e)))
                 
-        binaryFilePath = self.getFilePathByFormat(format=Sensation.BINARY_FORMAT)
+        binaryFilePath = self.getFilePath(sensationType = Sensation.SensationType.All)
         # update file if exists
         #try:
             #if not os.path.exists(binaryFilePath):
@@ -2931,7 +2948,7 @@ class Sensation(object):
                 except Exception as e:
                     print("os.remove(self.getFilePath() error " + str(e))
                     
-        binaryFilePath = self.getFilePathByFormat(format=Sensation.BINARY_FORMAT)
+        binaryFilePath = self.getFilePath(sensationType=Sensation.SensationType.All)
         if os.path.exists(binaryFilePath): 
             try:
                 os.remove(binaryFilePath)

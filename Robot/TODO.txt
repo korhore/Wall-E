@@ -1,6 +1,27 @@
 Critical
 --------
 
+Develop
+------
+
+Exposures
+- mimic real image -> Item.name seen, voice heard and we answer and get answer back etc
+
+SensationType
+If Sensation can rarry Item and Image -data, meaning that name is based on Image
+or in future Item and Voice data, meaning that name is based on Voice,
+this means that in Sensation SensationType should tell, what part of Sensation data is valid,
+that can be told by Sensationstys as 'or'-operations, meaning 'Item | Image',
+Iten | Voice', etc.
+and method changes,
+- Sensation.setSensationTypes(sensationType)
+- Sensation.isSensationType(sensationType1 | sensationtype2)
+
+Memory, Item
+- make name directory so that we can study what we know and feel abaiut Item.names
+- meta-memorytype for base sensations, that are newer deleted, but contains assiciations to real sensations?
+
+Finalise movinh Bestsensation-method from Memory to Communication. 
 Testing
 When we get Image from byte, we get JpegImageFile
 - we don't compare PIL-images, hoping that all work OK, no matter how images are created
@@ -8,9 +29,16 @@ Do tests
 - byte test
 - copy test
 
-Add little picture to Sensation.Item, because Item.name always based in image by Tensirflow,
-or maybe better idea
-- only one instance of Item.name
+Add little picture to Sensation.Item, because Item.name always based in image by Tensorflow,
+- can carry image
+- can carry Voice
+No changes to Assiciations
+- Chech filepath, because now filepath is not exact, because we have many filetypes, but
+filepath is always based on Sensation.id so we must create method pased on filetype
+
+
+or maybe evan better idea
+- only one instance of Item.name or directory
 -- changes to Memory, we need directory of names or tuple name, ItemSensation
 - Add little picture to Association, because that is reason of Item.Name
 

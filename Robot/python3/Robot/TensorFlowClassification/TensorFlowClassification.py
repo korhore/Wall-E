@@ -1,6 +1,6 @@
 '''
 Created on 30.04.2019
-Updated on 05.10.2021
+Updated on 14.10.2021
 
 @author: reijo.korhonen@gmail.com
 '''
@@ -42,7 +42,7 @@ if TensorFlow_LITE:
             # we get it from source and for that we need gfile (io) and it is not in tflite_runtime
             # so we still have dependency for tensorflow and this is a problem
             # from tensorflow.io import gfile
-            # solution is re-engineer those simp0le auxliar helper methods without gfile.
+            # solution is re-engineer those simple auxliar helper methods without gfile.
         
         #from tensorflow.lite.python.interpreter import Interpreter
         #print("TensorFlowClassification import tflite_runtime.interpreter as tflite OK")
@@ -196,8 +196,8 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                  parent=None,
                  
                  privateParent=None, # added parameter to Robot.__init__
-                                     # to guide #ensorFlowClassification
-                                     # directyly to parent instead using route
+                                     # to guide TensorFlowClassification
+                                     # directly to parent instead using route
                  instanceName=None,
                  instanceType = Sensation.InstanceType.SubInstance,
                  level=0,
@@ -631,7 +631,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                             if is_change:
                                 subimage = sensation.getImage().crop(size)
                                 subsensation = self.createSensation( sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense,\
-                                                                image=subimage, locations=self.getUpLocations())
+                                                                     image=subimage, locations=self.getUpLocations())
                                 self.log("process created subimage sensation " + subsensation.toDebugStr())
                                 # don't associate to original image sensation
                                 # we wan't to save memory and subimage is important, not whore image
@@ -639,7 +639,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                                 subsensation.save()
                                 
                                 itemsensation = self.createSensation( sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense,
-                                                                      name = name, score = score, presence = precence, locations=self.getUpLocations())
+                                                                      name = name, image=subimage, score = score, presence = precence, locations=self.getUpLocations())
                                 itemsensation.associate(sensation=subsensation)
                                 self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
                                 # TODO Here we used association. Study if this has some effect and use Feeling sensation if needed. Seems that no effect-
@@ -707,7 +707,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                         subsensation.save()
                                           
                         itemsensation = self.createSensation( sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense,
-                                                              name=name, score=scores[i], presence = precence, locations=self.getUpLocations())
+                                                              name=name, image=subsubimage, score=scores[i], presence = precence, locations=self.getUpLocations())
                         itemsensation.associate(sensation=subsensation)
                         self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(scores[i]))
                         # TODO study if paramameter association has some effect and use Feeling sensation, if it had
