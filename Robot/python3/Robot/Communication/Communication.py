@@ -94,7 +94,7 @@ class Communication(Robot):
     CommunicationState = enum(NotStarted = 'n',
                               Waiting = 'w',
                               On ='o',
-                              NoResponseToSay='n',
+                              NoResponseToSay='r',
                               Ended ='e',
                               Delay = 'd')
     CommunicationLogLevel = enum(No=-1, Critical=0, Error=1, Normal=2, Detailed=3, Verbose=4)
@@ -363,7 +363,10 @@ class Communication(Robot):
             self._isConversationOn = False
             self._isConversationEnded = True
             self._isConversationDelay = True
-            self.communicationState = Communication.CommunicationState.Delay
+            if self.getMemory().hasItemsPresence(location=self.getLocation()):
+                self.communicationState = Communication.CommunicationState.Delay
+            else:
+                self.communicationState = Communication.CommunicationState.Ended
 
     '''
     class ConversationWithItem implements conversation
@@ -409,6 +412,7 @@ class Communication(Robot):
                         self.log(logLevel=Robot.LogLevel.Detailed, logStr='ConversationWithItem process: got item ' + sensation.getName() + ' present now' + self.getMemory().itemsPresenceToStr())
                         self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: got item ' + sensation.getName() + ' joined to communication')
                         self._isConversationDelay = False   # ready to continue conversation with new Item.name
+                        self.communicationState = Communication.CommunicationState.Waiting
                         
                         # ask other Robots to say, what we should say to this Item.name
                         if self.getMemory().hasRobotsPresence():
@@ -434,15 +438,23 @@ class Communication(Robot):
                         self.handleGotFeedback(positiveFeeling=True, negativeFeeling=False)
                         
                         self.speak(onStart=not self.isConversationOn())
-                    elif sensation.getPresence() == Sensation.Presence.Absent and\
-                         not self.getMemory().hasItemsPresence(location=self.getLocation()):
-                        # conversation is on and they have left us without responding
-                        # We are disappointed
-                        self._isConversationOn = False # present ones are disappeared even if we  head a voice.
-                        self.communicationState = Communication.CommunicationState.Waiting
-#                         self.robotResponses = 0
-                        self.handleGotFeedback(positiveFeeling=False, negativeFeeling=True)
-                        self.endConversation()
+                    elif sensation.getPresence() == Sensation.Presence.Absent:
+                        # if someone is present
+                        if self.getMemory().hasItemsPresence(location=self.getLocation()):
+                            self.log(logLevel=Robot.LogLevel.Normal, logStr='{} is now absent, but there are others we wait answer'.format(sensation.getName()))
+#                             # conversation is on and they have left us without responding
+#                             # We are disappointed
+#                             self._isConversationOn = False # present ones are disappeared even if we  head a voice.
+#                             self.communicationState = Communication.CommunicationState.Waiting
+#     #                         self.robotResponses = 0
+#                             self.handleGotFeedback(positiveFeeling=False, negativeFeeling=True)
+#                             self.endConversation()
+                        else:
+                            # no-one is present, no hope someone responses
+                            self.log(logLevel=Robot.LogLevel.Normal, logStr='no-one are now present, so we are diappointed')
+                            self._isConversationOn = False # present ones are disappeared even if we  head a voice.
+                            self.handleGotFeedback(positiveFeeling=False, negativeFeeling=True)
+                            self.endConversation()
                         
                 # if a Spoken voice Note Item.name == person  can not show us images, Robots can, but they consult, not communycy
                 elif sensation.getSensationType() == Sensation.SensationType.Voice and\

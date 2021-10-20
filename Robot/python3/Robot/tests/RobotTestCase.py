@@ -98,8 +98,6 @@ class RobotTestCase():
     def getAxon(self):
         #return self.axon
         # try
-        return self.communication.axon
-        # try
         return self.robot.axon
         print ("self.axon was OK")
     def getId(self):
