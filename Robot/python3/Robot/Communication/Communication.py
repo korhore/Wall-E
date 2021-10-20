@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 08.10.09.2021
+Updated on 20.10.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -335,15 +335,17 @@ class Communication(Robot):
 
             # We are disappointed            
             self.handleGotFeedback(positiveFeeling=False, negativeFeeling=True)
-                            
+            # conversation is ended
             self.endConversation()
             self._isConversationDelay = True
+
+                            
     
             
         def clearConversation(self):
             self.detachSpokedAssociations()  
-#            del self.spokedDataIds[:]            # clear used spoked voices, communication is ended, so used voices are free to be used in next conversation.
-#            del self.heardDataIds[:]             # clear used heard  voices, communication is ended, so used voices are free to be used in next conversation.
+            del self.spokedDataIds[:]            # clear used spoked voices, communication is ended, so used voices are free to be used in next conversation.
+            del self.heardDataIds[:]             # clear used heard  voices, communication is ended, so used voices are free to be used in next conversation.
             
         def detachSpokedAssociations(self):     
             if self.spokedAssociations != None:        

@@ -1,6 +1,6 @@
 '''
 Created on 10.04.2021
-Updated on 13.06.2021
+Updated on 20.10.2021
 @author: reijo.korhonen@gmail.com
 
 Base class routines used to test-clersses for Robot-delivered classes.
@@ -8,7 +8,7 @@ This class do't make tests, but includes helper methods for testing.
 
 Robot modeling
 --------------
- Plays a (Man)Robot so we run tested Robot class as subRobot as they
+ Plays a (Main)Robot so we run tested Robot class as subRobot as they
  are run normally
  
  Robot set methods
@@ -96,7 +96,12 @@ class RobotTestCase():
     
     
     def getAxon(self):
-        return self.axon
+        #return self.axon
+        # try
+        return self.communication.axon
+        # try
+        return self.robot.axon
+        print ("self.axon was OK")
     def getId(self):
         return 1.1
     def getName(self):

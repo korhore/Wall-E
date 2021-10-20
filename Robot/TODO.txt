@@ -21,7 +21,7 @@ Memory, Item
 - make name directory so that we can study what we know and feel abaiut Item.names
 - meta-memorytype for base sensations, that are newer deleted, but contains assiciations to real sensations?
 
-Finalise movinh Bestsensation-method from Memory to Communication. 
+Finalise moving BestSensation-method from Memory to Communication. 
 Testing
 When we get Image from byte, we get JpegImageFile
 - we don't compare PIL-images, hoping that all work OK, no matter how images are created
