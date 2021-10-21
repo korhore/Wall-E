@@ -1842,7 +1842,7 @@ class Identity(Robot):
     get item sensasions from imageSensations sensations
     '''
 
-    def getItemSensations(self, name, imageSensations):
+    def getItemSensations(self, tensorFlowClassification, name, imageSensations):
         itemSensations=[]
         itemImageSensations=[]
         names=[]
@@ -1852,7 +1852,7 @@ class Identity(Robot):
             # if  stopped break
             if not self.running:
                 break
-            self.log('Identity tensorFlowClassification {}'.format(mageSensation.toDebugStr()))
+            self.log('Identity tensorFlowClassification {}'.format(imageSensation.toDebugStr()))
             tensorFlowClassification.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=imageSensation)
             # give tensorFlowClassification                
             if isFirstSleep:
@@ -1922,7 +1922,7 @@ class Identity(Robot):
                                                                 instanceType= Sensation.InstanceType.SubInstance,
                                                                 level=self.level)
             tensorFlowClassification.start()
-            self.getParent().itemSensations, self.getParent().itemImageSensations = self.getItemSensations(name = self.getParent().getName(), imageSensations = self.getParent().imageSensations)
+            self.getParent().itemSensations, self.getParent().itemImageSensations = self.getItemSensations(tensorFlowClassification=tensorFlowClassification, name = self.getParent().getName(), imageSensations = self.getParent().imageSensations)
             
                 
             for exposure in self.getParent().getExposures():
