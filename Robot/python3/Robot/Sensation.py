@@ -208,6 +208,10 @@ class Sensation(object):
                MemoryType.Sensory,
                MemoryType.Working,
                MemoryType.LongTerm)
+    # QoSMemoryTypesOrdered is used in Axon
+    QoSMemoryTypesOrdered = (
+               MemoryType.Working,
+               MemoryType.LongTerm)
     
     SensationTypes={
                SensationType.Drive: DRIVE,

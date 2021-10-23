@@ -2338,14 +2338,6 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
                 self.log('run: self.getLocalMasterCapabilities() toDebugString '  + capabilities.toDebugString('SocketClient before send'))
                 locations = self.getLocalMasterLocations();
                 self.log('run: self.getLocalMasterLocations() ' + str(locations))
-# location ios sent in capabilities sensation
-#                 # send locations, where Capabilities are valid
-#                 sensation=self.getMainRobot().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Location,
-#                                                                        locations=locations)
-#                 self.log('run: sendSensation(sensationType = Sensation.SensationType.Location, locations={}), sock=self.sock, {})'.format(locations, str(self.address)))
-#                 self.running = self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
-#                 sensation.detach(robot=self.getMainRobot())
-
                 sensation=self.getMainRobot().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Capability,
                                                                        capabilities=capabilities,
                                                                        locations = locations,
