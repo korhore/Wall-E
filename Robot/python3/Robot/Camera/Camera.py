@@ -1,6 +1,6 @@
 '''
 Created on 22.09.2020
-Updated on 22.09.2020
+Updated on 23.10.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -71,7 +71,7 @@ class Camera(Robot):
     
     DATADIR='data'
     COMPARE_SQUARES=20
-    CHANGE_RANGE=1000000
+    CHANGE_RANGE=1500000
     SLEEP_TIME=5
   
     def __init__(self,
@@ -178,8 +178,10 @@ class Camera(Robot):
                 # gray type is numpu.ndarray
                 self.log("sense image = PIL_Image.fromarray(frame)")      
                 image = PIL_Image.fromarray(frame)
-            
-        if image and self.isChangedImage(image):
+
+        # if there are changes from previous image or if we have have item presences, that strt presence, we check this image for presence changes
+        # giving it for analyse for a Robot that is dedicated for that, TensorfloeClassification now.          
+        if image and (self.isChangedImage(image) or self.getMemory().hasPendingPresentItemChanges()):
 #             self.log("sense self.getParent().getAxon().put(robot=self, sensation)")
             # put robotType out (seen image) to the parent Axon going up to main Robot
             sensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,

@@ -1,6 +1,21 @@
 Critical
 --------
 
+father is not getting Image, sensory sense
+is main robot witing long enougn to get all subrobots started
+Eva stops to send images
+- Axon skipped overloaded oldest Sensation, but will put asked one
+- SocketClient does not recover, maybe we don't send capabilitys
+- global location is sent, but normal not, meaning that Communication works
+- Axon skipped overloaded oldest Sensation, but will put asked one
+- getMasterLocations and getLocalMasterLocations are colled only once, but OK
+- main problem is that we should use comtroö channel for control messages like Capabilities and Stop.
+- now we can lose them, when Axon/Socket gets overflooded.
+- maybe simplest way to correct this is build simple Quality of Service (QoS),
+  where Sensations are transferred using firsts to internal queues classified by Sensation.MemoryType
+  and after that to wait queue, which is current original one, when soone reads that queue,
+  Reader is always Robot owning that Axon, writer one other Robot.
+
 Develop
 ------
 

@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 17.06.2021
+Updated on 22.10.2021
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -153,8 +153,8 @@ class Robot(Thread):
     IS_SOCKET_ERROR_TEST =      False
     SOCKET_ERROR_TEST_RATE =    10
     SOCKET_ERROR_TEST_NUMBER =  0
-    SOCKETCLIENT_MAX_QUEUE_LENGTH = 256
-    STOPWAIT = 5                    # Tryes to Stop subRobots and Wait Time
+    SOCKETCLIENT_MAX_QUEUE_LENGTH = 512
+    STOPWAIT = 5                    # Tries to Stop subRobots and Wait Time
     
     
     ACTIVITE_LOGGING_AVERAGE_PERIOD =       3000.0     # used as period in seconds
@@ -1075,7 +1075,8 @@ class Robot(Thread):
                 shutil.copyfile(image_path, sensation_filepath)
                 image = PIL_Image.open(sensation_filepath)
                 image.load()
-                imageSensation = self.createSensation( sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.LongTerm, robotType = Sensation.RobotType.Sense,\
+                # imageSensation memoryType = Sensation.MemoryType.Sensory, because it is needed to process it later, but this can change in future, so maybe it can be given as parameter
+                imageSensation = self.createSensation( sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,\
                                                        image=image)
                 imageSensations.append(imageSensation)
             # voices
@@ -1099,6 +1100,7 @@ class Robot(Thread):
                         if remainder != 0:
                             self.log("Did not succeed to fix!")
                             self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) )
+                    # voiceSensation memoryType = Sensation.MemoryType.LongTerm, because we wan't to remember voice and it is not needed to process it later, but this can change in future, so maybe it can be given as parameter
                     voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.LongTerm, robotType = Sensation.RobotType.Sense, data=data)
                     voiceSensations.append(voiceSensation)
                     
@@ -1675,9 +1677,11 @@ class Identity(Robot):
     '''
     get identity sensations
     this handles also exposures
+    
+    deprecated
     '''
 
-    def getIdentitySensations(self, name, exposures, feeling):
+    def getIdentityExposureSensations(self, name, exposures, feeling):
         from TensorFlowClassification.TensorFlowClassification import TensorFlowClassification
         
         tensorFlowClassification = TensorFlowClassification(mainRobot=self.getMainRobot(),
@@ -1924,12 +1928,51 @@ class Identity(Robot):
             tensorFlowClassification.start()
             self.getParent().itemSensations, self.getParent().itemImageSensations = self.getItemSensations(tensorFlowClassification=tensorFlowClassification, name = self.getParent().getName(), imageSensations = self.getParent().imageSensations)
             
-                
-            for exposure in self.getParent().getExposures():
-                pass
-                
 
-            self.getIdentitySensations(name=self.getParent().getName(), exposures=self.getParent().getExposures(), feeling = Sensation.Feeling.InLove)
+            # own identity 
+            for itemSensation in self.getParent().itemSensations:
+                for voiceSensation in self.getParent().voiceSensations:
+                    itemSensation.associate(sensation=voiceSensation,feeling = Sensation.Feeling.InLove)
+            # exposures               
+            for exposure in self.getParent().getExposures():
+                # what images ans voices exposure has
+                exposureImageSensations, exposureVoiceSensations = self.getIdentitySensations(name=exposure)
+                # what are Item.names and little images for those
+                exposureItemSensations, exposureItemImageSensations = self.getItemSensations(tensorFlowClassification=tensorFlowClassification, name = exposure, imageSensations = exposureImageSensations)
+                # now mimic situation, where this robot sees exposute Item.name and its littele image and hears its all Voices
+                # TODO Item now includes alsoi litle Image, so it is not needed to use little Images.
+                for itemSensation in self.getParent().itemSensations:
+                    for exposureItemSensation in exposureItemSensations:
+                        itemSensation.associate(sensation=exposureItemSensation,feeling = Sensation.Feeling.InLove)
+                        for exposureVoiceSensation in exposureVoiceSensations:
+                            # we hear the at once, assign them
+                            exposureItemSensation.associate(sensation=exposureVoiceSensation,feeling = Sensation.Feeling.InLove)
+                            itemSensation.associate(sensation=exposureVoiceSensation,feeling = Sensation.Feeling.InLove)
+                            # we answer with all our voices, meaning that we assign it to those
+                            for voiceSensation in self.getParent().voiceSensations:
+                                exposureItemSensation.associate(sensation=voiceSensation,feeling = Sensation.Feeling.InLove)
+                                exposureVoiceSensation.associate(sensation=voiceSensation,feeling = Sensation.Feeling.InLove)
+                # finally detach exposure sensations, because they are momories that can vanish
+                for exposureItemSensation  in exposureItemSensations:
+                    self.getMemory().setMemoryType(sensation=exposureItemSensation, memoryType=Sensation.MemoryType.LongTerm)
+                    exposureItemSensation .detach(robot=self)
+                for exposureVoiceSensation in exposureVoiceSensations:
+                    self.getMemory().setMemoryType(sensation=exposureVoiceSensation, memoryType=Sensation.MemoryType.LongTerm)
+                    exposureVoiceSensation.detach(robot=self)
+                for exposureImageSensation in exposureImageSensations:
+                    self.getMemory().setMemoryType(sensation=exposureImageSensation, memoryType=Sensation.MemoryType.LongTerm)
+                    exposureImageSensation.detach(robot=self)
+
+            # remember also this Robots identity
+            # We will not detach identity, but this robot remembers it for ever
+            for itemSensation  in self.getParent().itemSensations:
+                self.getMemory().setMemoryType(sensation=itemSensation, memoryType=Sensation.MemoryType.LongTerm)
+            for imageSensation in self.getParent().itemImageSensations:
+                self.getMemory().setMemoryType(sensation=imageSensation, memoryType=Sensation.MemoryType.LongTerm)
+               
+
+            #self.getIdentitySensations(name=self.getParent().getName(), exposures=self.getParent().getExposures(), feeling = Sensation.Feeling.InLove)
+            tensorFlowClassification.stop()
             
         # all done        
         self.running=False
@@ -2496,7 +2539,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
                 if ok:
                     try:
                         sock.sendall(bytes)                              # message data section
-                        self.log(logLevel=Robot.LogLevel.Detailed, logStr="SocketClient.sendSensation wrote sensation " + sensation.toDebugStr() + " to " + str(address))
+                        self.log(logLevel=Robot.LogLevel.Normal, logStr="SocketClient.sendSensation wrote sensation " + sensation.toDebugStr() + " to " + str(address))
                     except Exception as err:
                         self.log("SocketClient.sendSensation error writing Sensation to " + str(address) + " error " + str(err))
                         ok = False

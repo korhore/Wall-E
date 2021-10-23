@@ -657,7 +657,13 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
             self.logAbsents(current_present=current_present)  
         else:
             self.log(logLevel=Robot.LogLevel.Error, logStr='process: got sensation this robot can\'t process')
-
+            if sensation.getRobotType() != Sensation.RobotType.Sense:
+                self.log(logLevel=Robot.LogLevel.Error, logStr='process: got sensation this robot can\'t process because sensation.getRobotType() != Sensation.RobotType.Sense')
+            if sensation.getSensationType() != Sensation.SensationType.Image:
+                self.log(logLevel=Robot.LogLevel.Error, logStr='process: got sensation this robot can\'t process because sensation.getSensationType() != Sensation.SensationType.Image')
+            if sensation.getMemoryType() != Sensation.MemoryType.Sensory:
+                self.log(logLevel=Robot.LogLevel.Error, logStr='process: got sensation this robot can\'t process because sensation.getMemoryType() != Sensation.MemoryType.Sensory')
+ 
         sensation.detach(robot=self)    # detach processed sensation
            
     def LITEProcessImage(self, image):

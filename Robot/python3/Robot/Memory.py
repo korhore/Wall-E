@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 13.10.2021
+Edited on 22.10.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -37,11 +37,13 @@ except Exception as e:
 from ReadWriteLock import ReadWriteLock
 
 from Sensation import Sensation
+# TODO cannot import Robot or GLOBAL_LOCATION
+#from Robot import GLOBAL_LOCATION
  
     
 
 class Memory(object):
-         
+    GLOBAL_LOCATION = 'global'       
     MIN_CACHE_MEMORABILITY = 0.1                            # starting value of min memorability in sensation cache
     min_cache_memorability = MIN_CACHE_MEMORABILITY          # current value min memorability in sensation cache
     #MAX_MIN_CACHE_MEMORABILITY = 1.6                         # max value of min memorability in sensation cache we think application does something sensible
@@ -1600,22 +1602,22 @@ class Memory(object):
         if name in presentDict[location] and\
            sensation.getTime() > presentDict[location][name].getTime(): 
 
-            if sensation.getPresence() == Sensation.Presence.Entering or\
-               sensation.getPresence() == Sensation.Presence.Present or\
-               sensation.getPresence() == Sensation.Presence.Exiting:
+            if sensation.getPresence() in [ Sensation.Presence.Entering,\
+                                            Sensation.Presence.Present,\
+                                            Sensation.Presence.Exiting]:
                 presentDict[location][name] = sensation
-                self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="Entering, Present or Exiting " + name)
+                self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="update Entering, Present or Exiting " + name)
             else:
                 del presentDict[location][name]
                 self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="Absent " + name)
         # accept only sensation items that are not present, but not not in order ones
         # absent sensations don't have any mean at this case
         elif (name not in presentDict[location]) and\
-             (sensation.getPresence() == Sensation.Presence.Entering or\
-               sensation.getPresence() == Sensation.Presence.Present or\
-               sensation.getPresence() == Sensation.Presence.Exiting):
+             (sensation.getPresence() in [ Sensation.Presence.Entering,\
+                                           Sensation.Presence.Present,\
+                                           Sensation.Presence.Exiting]):
                 presentDict[location][name] = sensation
-                self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="Entering, Present or Exiting " + name)
+                self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="new Entering, Present or Exiting " + name)
                 
     '''
     have we Item presence in some locations
@@ -1633,16 +1635,36 @@ class Memory(object):
 
     '''
     have we presence in some locations
+    global location is ignored
     '''
 
     def hasPresence(self, presentDict, location=None):
         if location and location in presentDict:
             return len(presentDict[location].items()) > 0
         for location in presentDict.keys():
-            if len(presentDict[location].items()) > 0:
+            if (location != Memory.GLOBAL_LOCATION) and (len(presentDict[location].items()) > 0):
                 return True
         return False
 
+    '''
+    Do we have Item presence changes, that are pending,
+    meaning that they are in Entering or Exiting
+    in some locations
+    '''
+    def hasPendingPresentItemChanges(self, location=None):
+        if location is None:
+            locations = self._presentItemSensations.keys()
+        else:
+            locations = [location]
+            
+        for location in locations:
+            if location != Memory.GLOBAL_LOCATION:
+                for _, itemSensation in self._presentItemSensations[location].items():
+                    if itemSensation.getPresence() in [ Sensation.Presence.Entering,\
+                                                        Sensation.Presence.Exiting]:
+                        return True
+        return False
+   
     '''
     return human readable string of presence items in all locations
     '''
@@ -1723,12 +1745,13 @@ class Memory(object):
         itemSensations = []
         names=[]
         for location in self._presentItemSensations.keys():
-            for name, itemSensation in self._presentItemSensations[location].items():
-                if name not in names:
-                    names.append(name)
-                    itemSensations.append(itemSensation)
+            if location != Memory.GLOBAL_LOCATION:
+                for name, itemSensation in self._presentItemSensations[location].items():
+                    if name not in names:
+                        names.append(name)
+                        itemSensations.append(itemSensation)
         return itemSensations
-    
+ 
     '''
     get Robot presence sensations in a location
     '''
