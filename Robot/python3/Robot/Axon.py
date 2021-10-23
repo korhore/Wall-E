@@ -31,8 +31,11 @@ class Axon():
      
 
     def __init__(self, robot):
-        self.robot = robot      # owner robot of this axon
-        self.queue = Queue()
+        self.robot = robot              # owner robot of this axon
+        self.queue = Queue()            # wait queue, where reader gets it's Sensations
+        self.QualityOfServiceQueues={}  # queues, where Sensations that are got from writers
+                                        # will be put
+                                         
        
     def put(self, robot, transferDirection, sensation):
         self.robot.log(logLevel=Axon.AxonLogLevel.Detailed, logStr="Axon put from {} to {} with original queue length {} full {}".format(robot.getName(),self.robot.getName(), self.queue.qsize(), self.queue.full()))

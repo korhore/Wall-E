@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 22.10.2021
+Edited on 23.10.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -541,25 +541,23 @@ class Memory(object):
 
                      
     '''
+    TODO What we really wan't to share?
     Get sensations from sensation memory that are set in capabilities
     # or are common shared sensation (Sensationtype Robot, when we are present to others)
     
     Time window can be set separately min, max or both,
     from time min to time max, to get sensations that are happened at same moment.   
     '''  
-    def getSensations(self, capabilities, timemin=None, timemax=None):
+    def getSensations(self, capabilities, sensationtypes, timemin=None, timemax=None):
         self.memoryLock.acquireRead()                  # read thread_safe
         sensations=[]
         for sensation in self.sensationMemory:
             # accept sensations from all Locations #location='') and
             # also common sensations, that don't have capability (Sensationtype.Robot)
-            if (capabilities.hasCapability(robotType=sensation.getRobotType(),
+            if sensation.getSensationType() in sensationtypes and\
+              (capabilities.hasCapability(robotType=sensation.getRobotType(),
                                           memoryType=sensation.getMemoryType(),
-                                          sensationType=sensation.getSensationType()) or\
-                 (sensation.getSensationType() == Sensation.SensationType.Robot and\
-                  sensation.getRobotType() == Sensation.RobotType.Communication,
-                  sensation.getMemoryType() == Sensation.MemoryType.Working,
-                  sensation.getPresence() == Sensation.Presence.Present)) and\
+                                          sensationType=sensation.getSensationType())) and\
                 (timemin is None or sensation.getTime() > timemin) and\
                 (timemax is None or sensation.getTime() < timemax):
                 sensations.append(sensation)

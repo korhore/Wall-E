@@ -8,8 +8,22 @@ Eva stops to send images
 - SocketClient does not recover, maybe we don't send capabilitys
 - global location is sent, but normal not, meaning that Communication works
 - Axon skipped overloaded oldest Sensation, but will put asked one
-- getMasterLocations and getLocalMasterLocations are colled only once, but OK
-- main problem is that we should use comtroö channel for control messages like Capabilities and Stop.
+- getMasterLocations and getLocalMasterLocations are colled only once, but was in raspberry OK,
+  but now we have again situation where only glabal location sensations are transferred.
+  In raspberry SocketServer gives locations and capabilities to SocketClient, so check this.
+  Correct this first.
+  We don't also fron SocketServer other starts than first one.
+  More logging.
+  FOUND: raspberry gets Location Sensation 10 times
+  1. is correct
+  2. is with empty location
+  10. is with empty location
+  This must be saved sensations. Check shareSensations
+  SocketClient sends it after sending Capabilities,
+  but maybe sending Location Sensation is not needed at all, because Capabilitis-sensation has locations.
+  Try removing location sensations in next tests.
+   
+- main problem is that we should use control channel for control messages like Capabilities and Stop.
 - now we can lose them, when Axon/Socket gets overflooded.
 - maybe simplest way to correct this is build simple Quality of Service (QoS),
   where Sensations are transferred using firsts to internal queues classified by Sensation.MemoryType

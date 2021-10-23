@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 22.10.2021
+Updated on 23.10.2021
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -92,7 +92,7 @@ class Robot(Thread):
       with non LITE Tendorflow. But Tensorflow LITE is enough for deteecting objects like 'person'.
       Non LITE Tensorfloflow could be teached to lean detecting new kind objects like Voices, but Robot is not yet ready to do so.
       
-      So in out tests we use RsapberryPi and linux-device networked together and having common mind, meaning that all senses arfe shared by
+      So in out tests we use RsapberryPi and linux-device networked together and having common mind, meaning that all senses are shared by
       subRobot-Capability-principle across device border.
     - virtual servers. These can act as Sense-robot or Muscle-level, because they don't have real devices like cameras or microphones or playback-devices,
       but they can run Tensorflow and brain-level subRobots like Communication explained above.
@@ -282,7 +282,7 @@ class Robot(Thread):
 
 
         # create locationSensation
-        locationSensation = self.createSensation(log=False,
+        self.locationSensation = self.createSensation(log=False,
                                                  memoryType=Sensation.MemoryType.Sensory,
                                                  sensationType=Sensation.SensationType.Location,
                                                  robotType=Sensation.RobotType.Sense,
@@ -296,7 +296,7 @@ class Robot(Thread):
                 parent = parent.getParent()
             # TODO We ignore self.selfSensation.locationSensation to avoid infinite loop in logging.
         self.locations = self.config.getLocations()
-        self.selfSensation.associate(sensation=locationSensation)
+        self.selfSensation.associate(sensation=self.locationSensation)
         #self.setLocations(self.config.getLocations())
         self.sublocations = self.config.getSubLocations()
         self.uplocations = self.config.getUpLocations()
@@ -1224,13 +1224,18 @@ class Robot(Thread):
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: SensationSensationType.Stop')      
             sensation.detachAll()
             self.stop()
+            # TODO Robot.LogLevel.Detailed
         elif sensation.getSensationType() == Sensation.SensationType.Capability:
-            self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: sensation.getSensationType() == Sensation.SensationType.Capability')      
-            self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.setCapabilities(Capabilities(capabilities=sensation.getCapabilities() ' + sensation.getCapabilities().toDebugString(self.getName()))      
+#             self.log(logLevel=Robot.LogLevel.Detailed, logStr='process: sensation.getSensationType() == Sensation.SensationType.Capability')      
+#             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: self.setCapabilities(Capabilities(capabilities=sensation.getCapabilities() ' + sensation.getCapabilities().toDebugString(self.getName()))      
+            self.log(logLevel=Robot.LogLevel.Normal, logStr='process: sensation.getSensationType() == Sensation.SensationType.Capability')      
+            self.log(logLevel=Robot.LogLevel.Normal, logStr='process: self.setCapabilities(Capabilities(capabilities=sensation.getCapabilities() ' + sensation.getCapabilities().toDebugString(self.getName()))      
             self.setCapabilities(Capabilities(deepCopy=sensation.getCapabilities()))#, config=sensation.getCapabilities().config))
-            self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: capabilities: ' + self.getCapabilities().toDebugString('saved capabilities'))
+#             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: capabilities: ' + self.getCapabilities().toDebugString('saved capabilities'))
+            self.log(logLevel=Robot.LogLevel.Normal, logStr='process: setCapabilities: ' + self.getCapabilities().toDebugString('saved capabilities'))
             self.setLocations(locations=sensation.getLocations())
-            self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: locations: ' + self.getLocationsStr())
+#             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: setLocations: ' + self.getLocationsStr())
+            self.log(logLevel=Robot.LogLevel.Normal, logStr='process: setLocations: ' + self.getLocationsStr())
             sensation.detachAll()
             
             
@@ -1561,12 +1566,11 @@ class Robot(Thread):
             selfSensationByType.setY(sensation.getY())
             selfSensationByType.setZ(sensation.getZ())
         elif sensation.getSensationType() is Sensation.SensationType.Location:
-            selfSensationByType.setX(sensation.getX())
-            selfSensationByType.setY(sensation.getY())
-            selfSensationByType.setZ(sensation.getZ())
-            selfSensationByType.setRadius(sensation.getRadius())
+#             selfSensationByType.setX(sensation.getX())
+#             selfSensationByType.setY(sensation.getY())
+#             selfSensationByType.setZ(sensation.getZ())
+#             selfSensationByType.setRadius(sensation.getRadius())
             selfSensationByType.setLocations(sensation.getLocations())
-            name_size=len(self.name)
         elif sensation.getSensationType() is Sensation.SensationType.Observation:
             selfSensationByType.setObservationDirection(sensation.getObservationDirection())
             selfSensationByType.setObservationDistance(sensation.getObservationDistance())
@@ -1914,7 +1918,7 @@ class Identity(Robot):
         self.mode = Sensation.Mode.Normal
         if self.running:
             while self.getParent().imageSensations is None or self.getParent().voiceSensations is None:
-                self.log("run: Waiting Identity Robot main Robot\'s ainage and voice sensations")      
+                self.log("run: Waiting Identity Robot main Robot\'s imaage and voice sensations")      
                 time.sleep(self.sleeptime)
                 
             # start TensorFlowClassification so we can get Item sensations from imageSensations 
@@ -2334,12 +2338,13 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
                 self.log('run: self.getLocalMasterCapabilities() toDebugString '  + capabilities.toDebugString('SocketClient before send'))
                 locations = self.getLocalMasterLocations();
                 self.log('run: self.getLocalMasterLocations() ' + str(locations))
-                # send locations, where Capabilities are valid
-                sensation=self.getMainRobot().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Location,
-                                                                       locations=locations)
-                self.log('run: sendSensation(sensationType = Sensation.SensationType.Location, locations={}), sock=self.sock, {})'.format(locations, str(self.address)))
-                self.running = self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
-                sensation.detach(robot=self.getMainRobot())
+# location ios sent in capabilities sensation
+#                 # send locations, where Capabilities are valid
+#                 sensation=self.getMainRobot().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Location,
+#                                                                        locations=locations)
+#                 self.log('run: sendSensation(sensationType = Sensation.SensationType.Location, locations={}), sock=self.sock, {})'.format(locations, str(self.address)))
+#                 self.running = self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)
+#                 sensation.detach(robot=self.getMainRobot())
 
                 sensation=self.getMainRobot().createSensation(associations=[], robotType=Sensation.RobotType.Muscle, sensationType = Sensation.SensationType.Capability,
                                                                        capabilities=capabilities,
@@ -2473,15 +2478,21 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
 #             self.getMemory().sharedSensationHosts.append(self.getHost())
 
     '''
-    share Robot presense
-       
-    This is happening when SocketServer is calling it and we don't know if
-    SocketClient is running so best way can be just put all sensations into our Axon
+    share Robot knowledge about items, voices and images.
+    
+    This is used, when two Robots connect using tcp/ip
+    SocketServer asks SocketClient to share these Sensation to other mainRobot running in other computer.
+    When this is done at the beginning of connection, mainRobots share each other what is happening.
     '''
     def shareSensations(self, capabilities):
         if self.getHost() not in self.getMemory().sharedSensationHosts:
-            for sensation in self.getMemory().getSensations(capabilities):
-                 self.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
+            # choose what to share
+            sensationtypes = [Sensation.SensationType.Item,
+                              Sensation.SensationType.Image,
+                              Sensation.SensationType.Voice]
+            for sensation in self.getMemory().getSensations(capabilities = capabilities,
+                                                            sensationtypes = sensationtypes):
+                    self.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)
 
             self.getMemory().sharedSensationHosts.append(self.getHost())
     '''

@@ -1032,14 +1032,14 @@ class Sensation(object):
                         self.z = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                         i += Sensation.FLOAT_PACK_SIZE
                     elif self.sensationType is Sensation.SensationType.Location:
-                        self.x = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-                        i += Sensation.FLOAT_PACK_SIZE
-                        self.y = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-                        i += Sensation.FLOAT_PACK_SIZE
-                        self.z = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-                        i += Sensation.FLOAT_PACK_SIZE
-                        self.radius = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
-                        i += Sensation.FLOAT_PACK_SIZE
+#                         self.x = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+#                         i += Sensation.FLOAT_PACK_SIZE
+#                         self.y = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+#                         i += Sensation.FLOAT_PACK_SIZE
+#                         self.z = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+#                         i += Sensation.FLOAT_PACK_SIZE
+#                         self.radius = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
+#                         i += Sensation.FLOAT_PACK_SIZE
                         
                         name_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
                         i += Sensation.ID_SIZE
@@ -1653,7 +1653,8 @@ class Sensation(object):
         elif self.sensationType == Sensation.SensationType.Acceleration:
             s +=  ' ' + str(self.x)+ ' ' + str(self.y) + ' ' + str(self.z)
         elif self.sensationType == Sensation.SensationType.Location:
-            s +=  ' ' + str(self.x)+ ' ' + str(self.y) + ' ' + str(self.z) + ' ' + str(self.radius)
+#            s +=  ' ' + str(self.x)+ ' ' + str(self.y) + ' ' + str(self.z) + ' ' + str(self.radius)
+            s +=  ' ' + self.name
         elif self.sensationType == Sensation.SensationType.Observation:
             s += ' ' + str(self.observationDirection)+ ' ' + str(self.observationDistance)
         elif self.sensationType == Sensation.SensationType.Voice:
@@ -1774,7 +1775,7 @@ class Sensation(object):
         elif self.sensationType is Sensation.SensationType.Acceleration:
             b +=  Sensation.floatToBytes(self.x) + Sensation.floatToBytes(self.y) + Sensation.floatToBytes(self.z)
         elif self.sensationType is Sensation.SensationType.Location:
-            b +=  Sensation.floatToBytes(self.x) + Sensation.floatToBytes(self.y) + Sensation.floatToBytes(self.z) + Sensation.floatToBytes(self.radius)
+#             b +=  Sensation.floatToBytes(self.x) + Sensation.floatToBytes(self.y) + Sensation.floatToBytes(self.z) + Sensation.floatToBytes(self.radius)
             name_size=len(self.name)
             b +=  name_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
             b +=  Sensation.strToBytes(self.name)            

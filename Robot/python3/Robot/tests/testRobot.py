@@ -43,7 +43,9 @@ import os
 
 import unittest
 from Sensation import Sensation
-from Robot import Robot, TCPServer, HOST,PORT
+#from Robot import Robot, TCPServer, HOST,PORT
+#cannot import HOST,PORT
+from Robot import Robot, TCPServer
 from Axon import Axon
 
 class RobotTestCase(unittest.TestCase):
@@ -1566,7 +1568,7 @@ class RobotTestCase(unittest.TestCase):
                                            instanceName='remoteTCPServer',
                                            instanceType=Sensation.InstanceType.Remote,
                                            level=self.remoteMainRobot.level,
-                                           address=(HOST,PORT))
+                                           address=(Robot.HOST,Robot.PORT))
         
         # this is hard to test
         # we could also start self.remoteMainRobot 
@@ -1596,7 +1598,7 @@ class RobotTestCase(unittest.TestCase):
                                            instanceName='localTCPServer',
                                            instanceType=Sensation.InstanceType.Remote,
                                            level=self.mainRobot.level,
-                                           address=(HOST,RobotTestCase.FAKE_PORT)) # fake self.mainRobot server port, nobody will connect to it, we are connecting side
+                                           address=(Robot.HOST,RobotTestCase.FAKE_PORT)) # fake self.mainRobot server port, nobody will connect to it, we are connecting side
         # We try to connect running self.remoteMainRobot
 
         # added this to avoid other test setting failure

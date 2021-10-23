@@ -71,8 +71,8 @@ class Camera(Robot):
     
     DATADIR='data'
     COMPARE_SQUARES=20
-    CHANGE_RANGE=1500000
-    SLEEP_TIME=5
+    CHANGE_RANGE=1000000
+    SLEEP_TIME=10
   
     def __init__(self,
                  mainRobot,
