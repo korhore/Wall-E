@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 23.10.2021
+Updated on 25.10.2021
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -1488,7 +1488,8 @@ class Robot(Thread):
                  otherAssociateSensation = None,                             # associated Sensation other side
                  feeling = None,                                             # feeling of sensation or association
                  positiveFeeling = None,                                     # change association feeling to more positive robotType if possible
-                 negativeFeeling = None):                                    # change association feeling to more negative robotType if possible
+                 negativeFeeling = None,
+                 robotState = None):
 
 
         
@@ -1526,7 +1527,8 @@ class Robot(Thread):
                  otherAssociateSensation = otherAssociateSensation,
                  feeling = feeling,
                  positiveFeeling=positiveFeeling,
-                 negativeFeeling=negativeFeeling)
+                 negativeFeeling=negativeFeeling,
+                 robotState = robotState)
 
                         
     '''

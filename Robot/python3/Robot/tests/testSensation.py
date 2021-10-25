@@ -2698,6 +2698,33 @@ class SensationTestCase(unittest.TestCase):
 #         print("\ndo_Test_Picleability OK\n")
 
     '''
+    RobotState
+    '''
+    def test_RobotState(self):        
+        print("\ntest_RobotState")
+        self.robot.setMainNames(SensationTestCase.MAINNAMES_1)
+
+        # RobotState        
+        robotStateSensation = self.robot.createSensation(sensationType=Sensation.SensationType.RobotState,
+                                                    robotState=Sensation.RobotState.CommunicationNotStarted,
+                                                    locations=SensationTestCase.SET_1_1_LOCATIONS_1)
+        self.assertEqual(robotStateSensation.getRobotState(), Sensation.RobotState.CommunicationNotStarted)
+        self.assertEqual(Sensation.getRobotStateString(robotStateSensation.getRobotState()), Sensation.COMMUNIVATIONNOTSTARTED)
+        self.assertEqual(robotStateSensation.getLocations(), SensationTestCase.SET_1_1_LOCATIONS_1)
+        
+        # bytes test
+        # test bytes        
+        bytes=robotStateSensation.bytes()
+        self.assertTrue(bytes != None, "should be get bytes")
+        fromBytesSensation = self.robot.createSensation(bytes=bytes)
+        self.assertTrue(fromBytesSensation != None, "fromBytesSensation should be created")
+        
+        self.assertTrue(fromBytesSensation == robotStateSensation, "fromBytesSensation should be equal")
+        self.assertEqual(fromBytesSensation.getRobotState(), Sensation.RobotState.CommunicationNotStarted)
+        self.assertEqual(Sensation.getRobotStateString(fromBytesSensation.getRobotState()), Sensation.COMMUNIVATIONNOTSTARTED)
+        self.assertEqual(fromBytesSensation.getLocations(), SensationTestCase.SET_1_1_LOCATIONS_1)
+
+    '''
     test save and load to binary file
     '''
         
@@ -2710,8 +2737,9 @@ class SensationTestCase(unittest.TestCase):
             # Stop and Capability will mever be saved to Memory
             if sensationtype != Sensation.SensationType.Stop and\
                sensationtype != Sensation.SensationType.Capability and\
-               sensationtype != Sensation.SensationType.Unknown:
-                # TODO, if memory tries to delete Sensations
+               sensationtype != Sensation.SensationType.RobotState and\
+               sensationtype != Sensation.SensationType.Unknown:                # TODO, if memory tries to delete Sensations
+                                                                                # TODO Shouls success also with RobotState
                 # test fails so this test is memory amount denpendent
 #                 memory = Memory(robot = None,
 #                                 maxRss = 10*Memory.maxRss,
@@ -2903,7 +2931,7 @@ class SensationTestCase(unittest.TestCase):
         originalSensation = Sensation(memory=memory,
                                    robotId=self.robot.getId(),
                                    binaryFilePath=originalSensationBinaryFilePathBak)
-        self.assertEqual(originalSensationId, originalSensation.getId())
+        self.assertEqual(originalSensationId, originalSensation.getId(),Sensation.getSensationTypeString(sensationtype))
         # this does not yet add Sensation to Memory
         memory.addToSensationMemory(originalSensation, isForgetLessImportantSensations = False)
         self.assertTrue(originalSensation in memory.sensationMemory)

@@ -157,7 +157,8 @@ class Memory(object):
                  otherAssociateSensation = None,                             # associated Sensation other side
                  feeling = None,                                             # feeling of sensation or association
                  positiveFeeling = None,                                     # change association feeling to more positive robotType if possible
-                 negativeFeeling = None):                                    # change association feeling to more negative robotType if possible
+                 negativeFeeling = None,                                     # change association feeling to more negative robotType if possible
+                 robotState = None):  
 # commented out, we can get unfinite loop with log with getLocation, which uses Sensation.        
 #         if log:
 #             if sensation == None:             # not an update, create new one
@@ -202,7 +203,8 @@ class Memory(object):
                  otherAssociateSensation = otherAssociateSensation,
                  feeling = feeling,
                  positiveFeeling = positiveFeeling,
-                 negativeFeeling = negativeFeeling)
+                 negativeFeeling = negativeFeeling,
+                 robotState = robotState)
         # if bytes, then same Sensation can live in many memories
         # check if we have a copy and choose newer one and delete older one
         if bytes != None and binaryFilePath == None:
@@ -241,7 +243,8 @@ class Memory(object):
                                                otherAssociateSensation=otherAssociateSensation,             # associated Sensation other side
                                                feeling=feeling,                                             # feeling of sensation or association
                                                positiveFeeling=positiveFeeling,                             # change association feeling to more positive robotType if possible
-                                               negativeFeeling=negativeFeeling)                                       
+                                               negativeFeeling=negativeFeeling,
+                                               robotState = robotState)                                       
                                                
                     for associationIds in sensation.potentialAssociations:
                         associateSensation = self.getSensationFromSensationMemory(id=associationIds.getSensationId())

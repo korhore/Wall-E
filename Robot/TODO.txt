@@ -35,7 +35,10 @@ Eva stops to send images
   Reader is always Robot owning that Axon, writer one other Robot.
 
 Develop
-------
+-------
+
+Create CommunicationState Sensation. it is planned to be in RobotState
+
 
 Exposures
 - mimic real image -> Item.name seen, voice heard and we answer and get answer back etc

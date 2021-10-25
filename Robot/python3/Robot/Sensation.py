@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 13.10.2021
+Edited on 25.10.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -128,7 +128,6 @@ class Sensation(object):
                       CommunicationNoResponseToSay='m',
                       CommunicationEnded ='n',
                       CommunicationDelay = '0')
-
     
     # enum items as strings    
     ALL="All"
@@ -152,6 +151,7 @@ class Sensation(object):
     CAPABILITY="Capability"
     ITEM="Item"
     FEELING="Feeling"
+    ROBOTSTATE="RobotState"
     UNKNOWN="Unknown"
     KIND="Kind"
     WALLE="Wall-E"
@@ -171,6 +171,24 @@ class Sensation(object):
     PRESENT="Present"
     EXITING="Exiting"
     ABSENT="Absent"
+    # Activity 
+    ACTIVITYSPEEPING="Sleeping"
+    ATIVITYDREAMING="Dreaming"
+    ACTIVITYLAZY="Lazy"
+    ACTIVITYRELAXED="Relaxed"
+    ACTIVITYNORMAL="Normal"
+    ACTIVITYBUSY="Busy"
+    ACTIVITYHURRY="Hurry"
+    ACTIVITYTIRED="Tired"
+    ACTIVITYBEAKING="Breaking"
+    # Communication
+    COMMUNIVATIONNOTSTARTED="Not Started"
+    COMMUNICATIONWAITING="Waiting"
+    COMMUNICATIONON="On"
+    COMMUNICATIONNORESPONSETOSAY="No Response To Say"
+    COMMUNICATIONENDED="Ended"
+    COMMUNICATIONDELAY="Delay"
+
 
       
     RobotTypes={RobotType.Muscle: MUSCLE,
@@ -228,8 +246,30 @@ class Sensation(object):
                SensationType.Capability: CAPABILITY,
                SensationType.Item: ITEM,
                SensationType.Feeling: FEELING,             
+               SensationType.RobotState: ROBOTSTATE,             
                SensationType.Unknown: UNKNOWN,
                SensationType.All: ALL}
+    
+    RobotStates={
+              # Activity          
+               RobotState.ActivitySleeping: ACTIVITYSPEEPING,
+               RobotState.ActivityDreaming:ATIVITYDREAMING,
+               RobotState.ActivityLazy:ACTIVITYLAZY,
+               RobotState.ActivityRelaxed:ACTIVITYRELAXED,
+               RobotState.ActivityNormal:ACTIVITYNORMAL,
+               RobotState.ActivityBusy:ACTIVITYBUSY,
+               RobotState.ActivityHurry:ACTIVITYHURRY,
+               RobotState.ActivityTired:ACTIVITYTIRED,
+               RobotState.ActivityBreaking:ACTIVITYBEAKING,
+                      
+                # Communication
+               RobotState.CommunicationNotStarted:COMMUNIVATIONNOTSTARTED,
+               RobotState.CommunicatioWaiting:COMMUNICATIONWAITING,
+               RobotState.CommunicationOn:COMMUNICATIONON,
+               RobotState.CommunicationNoResponseToSay:COMMUNICATIONNORESPONSETOSAY,
+               RobotState.CommunicationEnded:COMMUNICATIONENDED,
+               RobotState.CommunicationDelay:COMMUNICATIONDELAY}
+    
     NormalSensationTypes={
                SensationType.Drive: DRIVE,
                SensationType.Stop: STOP,
@@ -245,6 +285,7 @@ class Sensation(object):
                SensationType.Capability: CAPABILITY,
                SensationType.Item: ITEM,
                SensationType.Feeling: FEELING,             
+               SensationType.RobotState: ROBOTSTATE,             
                SensationType.Unknown: UNKNOWN}
     SensationTypesOrdered=(
                SensationType.Drive,
@@ -261,6 +302,7 @@ class Sensation(object):
                SensationType.Capability,
                SensationType.Item,
                SensationType.Feeling,
+               SensationType.RobotState,
                SensationType.Unknown,
                SensationType.All)
     NormalSensationTypesOrdered=(
@@ -278,6 +320,7 @@ class Sensation(object):
                SensationType.Capability,
                SensationType.Item,
                SensationType.Feeling,
+               SensationType.RobotState,
                SensationType.Unknown)
     
     Kinds={Kind.WallE: WALLE,
@@ -286,7 +329,6 @@ class Sensation(object):
     InstanceTypes={InstanceType.Real: REAL,
                    InstanceType.SubInstance: SUBINSTANCE,
                    InstanceType.Virtual: VIRTUAL,
-#                   InstanceType.Exposure: EXPOSURE,
                    InstanceType.Remote: REMOTE}
 
     Modes={Mode.Normal: NORMAL,
@@ -442,6 +484,12 @@ class Sensation(object):
     
     #helpers
         
+    def getSensationTypeString(sensationType):
+        ret = Sensation.SensationTypes.get(sensationType)
+        return ret
+    def getSensationTypeStrings():
+        return Sensation.SensationTypes.values()
+          
     def getRobotTypeString(robotType):
         ret = Sensation.RobotTypes.get(robotType)
         return ret
@@ -475,6 +523,15 @@ class Sensation(object):
         return Sensation.Feelings.get(feeling)
     def getFeelingStrings():
         return Sensation.Feelings.values()
+        
+
+
+    def getRobotStateString(robotState):
+        if robotState == None:
+            return ""
+        return Sensation.RobotStates.get(robotState)
+    def getRobotStateStrings():
+        return Sensation.RobotStates.values()
         
 
     def getActivityLevelString(activityLevel):
@@ -654,7 +711,6 @@ class Sensation(object):
                     
             association.setTime()
 
-
         '''
         How important this association is.
         
@@ -708,7 +764,6 @@ class Sensation(object):
         def setFeeling(self, feeling):
             self.feeling = feeling
 
-        
 
     '''
     default constructor for Sensation
@@ -750,7 +805,8 @@ class Sensation(object):
                  otherAssociateSensation = None,                             # associated Sensation other side
                  feeling = None,                                             # feeling of sensation or association
                  positiveFeeling = None,                                     # change association feeling to more positive robotType if possible
-                 negativeFeeling = None):                                    # change association feeling to more negative robotType if possible
+                 negativeFeeling = None,                                     # change association feeling to more negative robotType if possible
+                 robotState = None):
                                        
         from Config import Capabilities
         self.time=time
@@ -826,7 +882,8 @@ class Sensation(object):
                                        otherAssociateSensation=otherAssociateSensation,             # associated Sensation other side
                                        feeling=feeling,                                             # feeling of sensation or association
                                        positiveFeeling=positiveFeeling,                             # change association feeling to more positive robotType if possible
-                                       negativeFeeling=negativeFeeling)                                       
+                                       negativeFeeling=negativeFeeling,
+                                       robotState = robotState)                                       
             for association in sensation.associations:
                 self.associate(sensation=association.sensation,
                                time=association.time,
@@ -882,7 +939,8 @@ class Sensation(object):
                                        otherAssociateSensation=otherAssociateSensation,             # associated Sensation other side
                                        feeling=feeling,                                             # feeling of sensation or association
                                        positiveFeeling=positiveFeeling,                             # change association feeling to more positive robotType if possible
-                                       negativeFeeling=negativeFeeling)                                       
+                                       negativeFeeling=negativeFeeling,
+                                       robotState=robotState)                                       
                           
 #             self.sensationType = sensationType
 #             if memoryType == None:
@@ -1159,6 +1217,9 @@ class Sensation(object):
                         
                         self.negativeFeeling = Sensation.intToBoolean(bytes[i])
                         i += Sensation.ENUM_SIZE
+                    elif self.sensationType is Sensation.SensationType.RobotState:
+                        self.robotState = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                        i += Sensation.ENUM_SIZE
                         
                     associationIdsLen = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
                     #print("associationIdsLen " + str(associationIdsLen))
@@ -1261,7 +1322,8 @@ class Sensation(object):
                       otherAssociateSensation,                          # associated Sensation other side
                       feeling,                                          # feeling of sensation or association
                       positiveFeeling,                                  # change association feeling to more positive robotType if possible
-                      negativeFeeling):                                 # change association feeling to more negative robotType if possible
+                      negativeFeeling,                                  # change association feeling to more negative robotType if possible
+                      robotState):
         if sensationType is not None:
             destination.sensationType = sensationType
         else:
@@ -1418,6 +1480,11 @@ class Sensation(object):
             destination.negativeFeeling = negativeFeeling
         else:
             destination.negativeFeeling = False
+            
+        if robotState is not None:
+            destination.robotState = robotState
+        else:
+            destination.robotState = None
 
 
     '''
@@ -1450,7 +1517,8 @@ class Sensation(object):
                         otherAssociateSensation,                             # associated Sensation other side
                         feeling,                                             # feeling of sensation or association
                         positiveFeeling,                                     # change association feeling to more positive robotType if possible
-                        negativeFeeling):                                    # change association feeling to more negative robotType if possible
+                        negativeFeeling,                                      # change association feeling to more negative robotType if possible
+                        robotState):                                   
 #         if originalSensationId is None:
 #             destination.originalSensationId = source.originalSensationId
 #         else:
@@ -1616,6 +1684,10 @@ class Sensation(object):
         else:
             destination.negativeFeeling = negativeFeeling
 
+        if robotState is None:
+            destination.robotState = source.robotState
+        else:
+            destination.robotState = robotState
 
     
     def __cmp__(self, other):
@@ -1677,6 +1749,8 @@ class Sensation(object):
             s +=  ' ' + self.name
             s +=  ' ' + str(self.score)
             s +=  ' ' + self.presence
+        elif self.sensationType == Sensation.SensationType.RobotState:
+            s +=  ' ' + self.robotState
            
 #         elif self.sensationType == Sensation.SensationType.Stop:
 #             pass
@@ -1734,6 +1808,8 @@ class Sensation(object):
                 s = s + ':positiveFeeling'
             if self.getNegativeFeeling():
                 s = s + ':negativeFeeling'
+        elif self.sensationType == Sensation.SensationType.RobotState:
+            s = s + ':' + Sensation.getRobotStateString(self.robotState)
             
         return s
 
@@ -1860,6 +1936,8 @@ class Sensation(object):
             b +=  Sensation.floatToBytes(id)
             b +=  Sensation.booleanToBytes(self.getPositiveFeeling())
             b +=  Sensation.booleanToBytes(self.getNegativeFeeling())
+        elif self.sensationType == Sensation.SensationType.RobotState:
+            b +=  Sensation.strToBytes(self.robotState)
            
         #  at the end associations (ids)
         associationIdsLen=len(self.associations)
@@ -2752,6 +2830,13 @@ class Sensation(object):
     def getNegativeFeeling(self):
         return self.negativeFeeling
     
+    def getRobotState(self):
+        return self.robotState
+    
+    def setRobotState(self, robotState):
+        self.robotState = robotState
+
+       
 
     '''
         Attach a Sensation to be used by a Robot so, that
