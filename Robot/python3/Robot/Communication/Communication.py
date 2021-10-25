@@ -343,8 +343,9 @@ class Communication(Robot):
     
             
         def clearConversation(self):
-            self.detachSpokedAssociations()  
-            del self.spokedDataIds[:]            # clear used spoked voices, communication is ended, so used voices are free to be used in next conversation.
+            self.detachSpokedAssociations()
+            # Try to use global spokedDataIds
+            #del self.spokedDataIds[:]            # clear used spoked voices, communication is ended, so used voices are free to be used in next conversation.
             del self.heardDataIds[:]             # clear used heard  voices, communication is ended, so used voices are free to be used in next conversation.
             
         def detachSpokedAssociations(self):     
@@ -862,10 +863,19 @@ class Communication(Robot):
 if __name__ == "__main__":
     from Robot import doMainRobot
     print ("Communication __main__: create Robot mainRobot = Communication(mainRobot=None)")
+    global mainRobot
     mainRobot = Communication(mainRobot=None, instanceName="Communication")
     print ("Communication __main__: create Robot doMainRobot(mainRobot=mainRobot, instanceName=\"Communication\")")
     doMainRobot(mainRobot=mainRobot)
     print ("Communication __main__: create Robot all done")
+# add this code to your main Robot code    
+# # Main Robot starting code
+# if __name__ == "__main__":
+#     print ("Communication __main__: create Robot mainRobot = Communication(mainRobot=None)")
+#     doMainRobot()
+#     global mainRobot
+#     mainRobot = Robot(mainRobot=None)
+#     mainRobot.doMainRobot()
 
         
         

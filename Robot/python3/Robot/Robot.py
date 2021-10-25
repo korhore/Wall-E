@@ -2891,7 +2891,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                 return
         except Exception as err: 
             print ("stop: socket error, cannot stop localhost , error " + str(err))
-            returnIdentity
+            returnIdentitymainRobot
     
         finally:
             print ('stop: sock.close()')

@@ -1,6 +1,8 @@
 Critical
 --------
 
+Seems Communication repeats always same Voices.
+Correction is global longer id-queue for used voices.
 father is not getting Image, sensory sense
 is main robot witing long enougn to get all subrobots started
 Eva stops to send images
@@ -22,6 +24,8 @@ Eva stops to send images
   SocketClient sends it after sending Capabilities,
   but maybe sending Location Sensation is not needed at all, because Capabilitis-sensation has locations.
   Try removing location sensations in next tests.
+  
+  Skipping
    
 - main problem is that we should use control channel for control messages like Capabilities and Stop.
 - now we can lose them, when Axon/Socket gets overflooded.

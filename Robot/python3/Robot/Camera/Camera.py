@@ -11,7 +11,8 @@ This works fine at least Windows-laptops with tiny cameras with 640x480 pixels
 with OpenCV-library (cv2)
 Linux/Ubuntu is not tested yet.
 
-It works also with raspberry with picamera-library
+It works also with raspberry with picamera-library.
+Robot detects installed libraries and that way chooses what library it uses.
 
 '''
 
@@ -50,7 +51,9 @@ if not IsPiCamera:
 
 
 class Camera(Robot):
-    '''    
+    '''
+    Raspberry-camera is supported for Raspberry and for Linuc and Windows
+    we support and 
     Process basic functionality is validate meaning level of the sensation.
     We should remember meaningful sensations and ignore (forget) less
     meaningful sensations. Implementation is dependent on memory level.
@@ -69,10 +72,11 @@ class Camera(Robot):
     '''
     
     
-    DATADIR='data'
-    COMPARE_SQUARES=20
-    CHANGE_RANGE=1000000
-    SLEEP_TIME=10
+    DATADIR =           'data'
+    COMPARE_SQUARES =   20
+    SLEEP_TIME =        10
+    COLORS =            3
+    CHANGE_RANGE =      2000000 #int(1500000/COLORS)
   
     def __init__(self,
                  mainRobot,
@@ -166,6 +170,7 @@ class Camera(Robot):
             self.camera.stop_preview()
             stream.seek(0)
             image = PIL_Image.open(stream)
+            self.log("sense image = PIL_Image.open(stream)")      
         else:
             self.log("sense self.camera.read()")      
             ret, frame = self.camera.read()
@@ -205,16 +210,29 @@ class Camera(Robot):
     def isChangedImage(self, image):
         if self.lastImage is None:
             self.lastImage = image
+            self.log("isChangedImage self.lastImage is None" )
             return True
         else:
+            self.log("isChangedImage")
             # calculate histogram change by squares color
             # we simply multiply color byt ins pixel count so we get roughly
             # how dark this square is
             y_size = image.size[1]/self.COMPARE_SQUARES
             x_size = image.size[0]/self.COMPARE_SQUARES
             change = 0
+#             self.log("isChangedImage 1")
+            changes = []
+#             self.log("isChangedImage 2")
+            for i in range(0,Camera.COLORS):
+#                 self.log("isChangedImage 3 {}".format(i))
+                changes.append(0)
+#                 self.log("isChangedImage 4 {}".format(i))
+                
+#             self.log("isChangedImage 5")
             for y in range(0,self.COMPARE_SQUARES):
+#                 self.log("isChangedImage for y {}".format(y))
                 for x in range(0,self.COMPARE_SQUARES):
+#                     self.log("isChangedImage for x {}".format(x))
                     box = (x*x_size, y*y_size, (x+1)*x_size, (y+1)*y_size)
                     region = image.crop(box)
                     histogram = region.histogram()
@@ -222,12 +240,38 @@ class Camera(Robot):
                     last_histogram = last_region.histogram()
                     sum=0
                     last_sum=0
-                    for i in range(0,len(histogram)):
-                        sum = sum+i*histogram[i]
-                        last_sum = last_sum+i*last_histogram[i]
-                    change = change + abs(sum-last_sum)
 
-            self.log("isChangedImage final change " + str(change) + ' change > self.CHANGE_RANGE '+ str(change > self.CHANGE_RANGE))
+                   # TODO Why we multiply with i?
+                    #    sum = sum+i*histogram[i]
+                    #    last_sum = last_sum+i*last_histogram[i]
+                    colorLen = int(len(histogram)/Camera.COLORS)
+#                    self.log("isChangedImage colorLen {}".format(colorLen))
+#                    self.log("isChangedImage for i in range(0,Camera.COLORS {})".format(Camera.COLORS))
+                    for i in range(0,Camera.COLORS):
+#                         self.log("isChangedImage 6")
+ #                       self.log("isChangedImage for i {}".format(i))
+#                        self.log("isChangedImage  for j in range(0,colorLen {})".format(colorLen))
+                        color_sum=0
+                        last_color_sum=0
+#                         self.log("isChangedImage 7")
+                        for j in range(0,colorLen):
+#                             self.log("isChangedImage 8")
+#                            self.log("isChangedImage for j {}".format(j))
+                            sum += j*histogram[i*colorLen +j]
+                            last_sum += j*last_histogram[i*colorLen +j]
+                            color_sum += j*histogram[i*colorLen +j]
+                            last_color_sum += j*last_histogram[i*colorLen +j]
+#                         self.log("isChangedImage 9")
+                        changes[i] += abs(color_sum - last_color_sum)
+#                         self.log("isChangedImage 10")
+#                     self.log("isChangedImage 11")
+                    change += abs(sum-last_sum)
+#                     self.log("isChangedImage 12")
+#                    self.log("isChangedImage change now {}".format(change ))
+
+            self.log("isChangedImage final change  {}  change > self.CHANGE_RANGE {}".format(change, change > self.CHANGE_RANGE))
+            for i in range(0,Camera.COLORS):
+                self.log("isChangedImage final change by color {}  change > self.CHANGE_RANGE/Camera.COLORS {}".format(changes[i], changes[i] > self.CHANGE_RANGE/Camera.COLORS))
             if change > self.CHANGE_RANGE:
                 self.lastImage = image
                 return True
