@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 20.10.2021
+Updated on 26.10.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -140,8 +140,14 @@ class Communication(Robot):
             self._isConversationDelay = False
             self._isNoResponseToSay = False
     
-            self.communicationState = Communication.CommunicationState.Waiting
-            
+            self.robotState = Sensation.RobotState.CommunicatioWaiting
+#             robotStateSensation = self.createSensation( associations=None,
+#                                                         sensationType=Sensation.SensationType.RobotState,
+#                                                         memoryType=Sensation.MemoryType.Sensory,
+#                                                         robotState=self.robotState,
+#                                                         locations=self.getLocations())
+#             self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=robotStateSensation)
+           
             self.spokedSensations = None                # Sensations that we last said to other side 
             self.spokedAssociations = None              # Associations that spoked Sensations were assigned to Item.name sensations
     
@@ -211,7 +217,8 @@ class Communication(Robot):
                  otherAssociateSensation = None,                             # associated Sensation other side
                  feeling = None,                                             # feeling of sensation or association
                  positiveFeeling = None,                                     # change association feeling to more positive robotType if possible
-                 negativeFeeling = None):                                    # change association feeling to more negative robotType if possible
+                 negativeFeeling = None,                                     # change association feeling to more negative robotType if possible
+                 robotState = None):
 
 
         
@@ -247,7 +254,8 @@ class Communication(Robot):
                  otherAssociateSensation = otherAssociateSensation,
                  feeling = feeling,
                  positiveFeeling=positiveFeeling,
-                 negativeFeeling=negativeFeeling)
+                 negativeFeeling=negativeFeeling,
+                 robotState=robotState)
         def getKind(self):
             return self.getRobot().getKind()
         def getLocations(self):
@@ -365,9 +373,15 @@ class Communication(Robot):
             self._isConversationEnded = True
             self._isConversationDelay = True
             if self.getMemory().hasItemsPresence(location=self.getLocation()):
-                self.communicationState = Communication.CommunicationState.Delay
+                self.robotState = Sensation.RobotState.CommunicationDelay
             else:
-                self.communicationState = Communication.CommunicationState.Ended
+                self.robotState = Sensation.RobotState.CommunicationEnded
+            robotStateSensation = self.createSensation(associations=None,
+                                                       sensationType=Sensation.SensationType.RobotState,
+                                                       memoryType=Sensation.MemoryType.Sensory,
+                                                       robotState=self.robotState,
+                                                       locations=self.getLocations())
+            self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=robotStateSensation)
 
     '''
     class ConversationWithItem implements conversation
@@ -413,7 +427,13 @@ class Communication(Robot):
                         self.log(logLevel=Robot.LogLevel.Detailed, logStr='ConversationWithItem process: got item ' + sensation.getName() + ' present now' + self.getMemory().itemsPresenceToStr())
                         self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: got item ' + sensation.getName() + ' joined to communication')
                         self._isConversationDelay = False   # ready to continue conversation with new Item.name
-                        self.communicationState = Communication.CommunicationState.Waiting
+                        self.robotState = Sensation.RobotState.CommunicatioWaiting
+                        robotStateSensation = self.createSensation(associations=None,
+                                                                   sensationType=Sensation.SensationType.RobotState,
+                                                                   memoryType=Sensation.MemoryType.Sensory,
+                                                                   robotState=self.robotState,
+                                                                   locations=self.getLocations())
+                        self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=robotStateSensation)
                         
                         # ask other Robots to say, what we should say to this Item.name
                         if self.getMemory().hasRobotsPresence():
@@ -446,7 +466,7 @@ class Communication(Robot):
 #                             # conversation is on and they have left us without responding
 #                             # We are disappointed
 #                             self._isConversationOn = False # present ones are disappeared even if we  head a voice.
-#                             self.communicationState = Communication.CommunicationState.Waiting
+#                             self.robotState = Sensation.RobotState.CommunicatioWaiting
 #     #                         self.robotResponses = 0
 #                             self.handleGotFeedback(positiveFeeling=False, negativeFeeling=True)
 #                             self.endConversation()
@@ -483,7 +503,13 @@ class Communication(Robot):
                             # We are disappointed
                             self.handleGotFeedback(positiveFeeling=False, negativeFeeling=True)
                             self._isConversationOn = False # present ones are disappeared even if we  head a voice.
-                            self.communicationState = Communication.CommunicationState.Waiting
+                            self.robotState = Sensation.RobotState.CommunicatioWaiting
+                            robotStateSensation = self.createSensation(associations=None,
+                                                                       sensationType=Sensation.SensationType.RobotState,
+                                                                       memoryType=Sensation.MemoryType.Sensory,
+                                                                       robotState=self.robotState,
+                                                                       locations=self.getLocations())
+                            self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=robotStateSensation)
     
                     # we have someone to talk with
                     # if time is elapsed, so we can start communicating again with present item.names
@@ -607,14 +633,26 @@ class Communication(Robot):
                             self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process speak: timer.start()')
                             self.timer.start()
                             self._isConversationOn = True
-                            self.communicationState = Communication.CommunicationState.On                                                                            
+                            self.robotState = Sensation.RobotState.CommunicationOn                                                                            
+                            robotStateSensation = self.createSensation(associations=None,
+                                                                       sensationType=Sensation.SensationType.RobotState,
+                                                                       memoryType=Sensation.MemoryType.Sensory,
+                                                                       robotState=self.robotState,
+                                                                       locations=self.getLocations())
+                            self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=robotStateSensation)
                         else:
                             # We did not find anything to say, but are ready to start new conversation, if someone speaks.
                             #self._isConversationDelay = True
                     
                             self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process speak: self.getMemory().getBestSensations did NOT find Sensation to speak')
                             self._isNoResponseToSay = True
-                            self.communicationState = Communication.CommunicationState.NoResponseToSay                                             
+                            self.robotState = Sensation.RobotState.CommunicationNoResponseToSay                                             
+                            robotStateSensation = self.createSensation(associations=None,
+                                                                       sensationType=Sensation.SensationType.RobotState,
+                                                                       memoryType=Sensation.MemoryType.Sensory,
+                                                                       robotState=self.robotState,
+                                                                       locations=self.getLocations())
+                            self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=robotStateSensation)
                             #self.clearConversation()
                                    
                     succeeded=True  # no exception,  self.getMemory().presentItemSensations did not changed   
@@ -672,7 +710,13 @@ class Communication(Robot):
                         self.speak()
                     elif sensation.getPresence() == Sensation.Presence.Absent and\
                          not self.getMemory().hasItemsPresence(location=self.getLocation()):
-                        self.communicationState = Communication.CommunicationState.Waiting
+                        self.robotState = Sensation.RobotState.CommunicatioWaiting
+                        robotStateSensation = self.createSensation( associations=None,
+                                                                    sensationType=Sensation.SensationType.RobotState,
+                                                                    memoryType=Sensation.MemoryType.Sensory,
+                                                                    robotState=self.robotState,
+                                                                    locations=self.getLocations())
+                        self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=robotStateSensation)
             else:
                 self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithRobot process: too old sensation, not present communication item or no present items ' + sensation.toDebugStr())
 
@@ -735,7 +779,13 @@ class Communication(Robot):
                         else:
                             # We did not find anything to say, but are ready to start new conversation, if someone speaks.
                             self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithRobot speak: self.getMemory().getBestSensations did NOT find Sensation to speak')
-                            self.communicationState = Communication.CommunicationState.NoResponseToSay                                             
+                            self.robotState = Sensation.RobotState.CommunicationNoResponseToSay                                             
+                            robotStateSensation = self.createSensation(associations=None,
+                                                                       sensationType=Sensation.SensationType.RobotState,
+                                                                       memoryType=Sensation.MemoryType.Sensory,
+                                                                       robotState=self.robotState,
+                                                                       locations=self.getLocations())
+                            self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=robotStateSensation)
                                    
                     succeeded=True  # no exception,  self.getMemory().presentItemSensations did not changed   
                 except AssertionError as e:
@@ -794,7 +844,13 @@ class Communication(Robot):
     '''
         
     def initRobot(self):
-        self.communicationState = Communication.CommunicationState.Waiting
+        self.robotState = Sensation.RobotState.CommunicatioWaiting
+        robotStateSensation = self.createSensation( associations=None,
+                                                    sensationType=Sensation.SensationType.RobotState,
+                                                    memoryType=Sensation.MemoryType.Sensory,
+                                                    robotState=self.robotState,
+                                                    locations=self.getLocations())
+        self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=robotStateSensation)
         itemSensation = self.createSensation(memoryType=Sensation.MemoryType.Sensory,
                                             sensationType=Sensation.SensationType.Item,
                                             robotType=Sensation.RobotType.Communication,
