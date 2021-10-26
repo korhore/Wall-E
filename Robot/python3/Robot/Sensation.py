@@ -287,6 +287,22 @@ class Sensation(object):
                SensationType.Feeling: FEELING,             
                SensationType.RobotState: ROBOTSTATE,             
                SensationType.Unknown: UNKNOWN}
+    # Sensation type, that can handle originality when copied. meaning
+    # that Sensations data is saved in original Sensation and possible copies
+    # have references to original data, but data is not copied to them and
+    # methods isOriginal tells if this is sensatuon vontain copy of data or not
+    # If SensationType is not within these types, then copy of SXensation is
+    # always a copy, so also copied Sensations are orginal ones even if in memory
+    # can be Sensations, the data is exactly same.
+    # OriginalitySensationTypes can be changes in future, if we decide originality information
+    # is valuable, but now originality is handled as technical information
+    # without logical information. But as said above, this planning idiea can be changed in future.
+    OriginalitySensationTypes={
+               SensationType.Location: LOCATION,
+               SensationType.Voice: VOICE,
+               SensationType.Image: IMAGE,
+               SensationType.Item: ITEM,
+               SensationType.Feeling: FEELING}
     SensationTypesOrdered=(
                SensationType.Drive,
                SensationType.Stop,
@@ -322,6 +338,12 @@ class Sensation(object):
                SensationType.Feeling,
                SensationType.RobotState,
                SensationType.Unknown)
+    OriginalitySensationTypesOrdered=(
+               SensationType.Location,
+               SensationType.Voice,
+               SensationType.Image,
+               SensationType.Item,
+               SensationType.Feeling)
     
     Kinds={Kind.WallE: WALLE,
            Kind.Eva: EVA,
@@ -2251,8 +2273,13 @@ class Sensation(object):
         self.originalSensationId = originalSensationId
     def getDataId(self):
         return self.originalSensationId
+    
+    def hasOriginality(self):
+        return self.getSensationType() in Sensation.OriginalitySensationTypes
     def isOriginal(self):
-        return self.originalSensationId == self.id
+        if self.hasOriginality():
+            return self.originalSensationId == self.id
+        return True
 
     def setRobotId(self, robotId):
         self.robotId = robotId

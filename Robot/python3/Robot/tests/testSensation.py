@@ -2318,7 +2318,7 @@ class SensationTestCase(unittest.TestCase):
         self.assertFalse(feelingSensation == fromFeelingSensation, "should not be equal")
         self.assertEqual(fromFeelingSensation.getDataId(), feelingSensation.getDataId(), "should be equal")
         self.assertTrue(feelingSensation.isOriginal(), "imageSensation should be original")
-        self.assertFalse(fromFeelingSensation.isOriginal(), "fromImageSensation should be copy")
+        self.assertFalse(fromFeelingSensation.isOriginal(), "fromFeelingSensation should be copy")
         
         self.assertTrue(feelingSensation.getFirstAssociateSensation() == fromFeelingSensation.getFirstAssociateSensation(), "should be equal")
         self.assertTrue(feelingSensation.getOtherAssociateSensation() == fromFeelingSensation.getOtherAssociateSensation(), "should be equal")
@@ -2737,8 +2737,9 @@ class SensationTestCase(unittest.TestCase):
             # Stop and Capability will mever be saved to Memory
             if sensationtype != Sensation.SensationType.Stop and\
                sensationtype != Sensation.SensationType.Capability and\
-               sensationtype != Sensation.SensationType.RobotState and\
-               sensationtype != Sensation.SensationType.Unknown:                # TODO, if memory tries to delete Sensations
+               sensationtype != Sensation.SensationType.Unknown:                
+               #sensationtype != Sensation.SensationType.RobotState and\
+               #sensationtype != Sensation.SensationType.Unknown:                # TODO, if memory tries to delete Sensations
                                                                                 # TODO Shouls success also with RobotState
                 # test fails so this test is memory amount denpendent
 #                 memory = Memory(robot = None,
@@ -2762,6 +2763,8 @@ class SensationTestCase(unittest.TestCase):
         data = b'\x01\x02'
         image = PIL_Image.new(size=(2,2), mode='RGB')
         name = "name"
+        robotState = Sensation.RobotState.CommunicationNotStarted
+        # TODO  Sensation.SensationType.FEELING is not handled OK, because we don't set originalSensation properly with Sensations
         
         # dont use self.robot.createSensation, because it can delete unused sensations from memory
         # but wse must use pure Sensation creation
@@ -2781,6 +2784,11 @@ class SensationTestCase(unittest.TestCase):
                                        robotId=self.robot.getId(),
                                        associations=None, sensationType=sensationtype, memoryType=Sensation.MemoryType.Sensory,
                                        name=name, locations=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva)
+        elif sensationtype == Sensation.SensationType.RobotState:
+            originalSensation = Sensation(memory=memory,
+                                       robotId=self.robot.getId(),
+                                       associations=None, sensationType=sensationtype, memoryType=Sensation.MemoryType.Sensory,
+                                       robotState = robotState, locations=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva)
         else:
              originalSensation = Sensation(memory=memory,
                                        robotId=self.robot.getId(),
@@ -2807,17 +2815,23 @@ class SensationTestCase(unittest.TestCase):
         self.assertEqual(originalSensation.getLocations(), copySensation1.getLocations(), "should be equal")
         self.assertEqual(copySensation1.getDataId(), originalSensation.getDataId(), "should be equal")
         self.assertTrue(originalSensation.isOriginal(), "originalSensation should be original")
-        self.assertFalse(copySensation1.isOriginal(), "copySensation1 should be copy")
+        self.assertNotEqual(copySensation1.isOriginal(), copySensation1.hasOriginality(),"copySensation1 with Originality should be copy")
         # test that Sensation.data is same instance
         if sensationtype == Sensation.SensationType.Voice:
+            self.assertTrue(originalSensation.hasOriginality())
             self.assertEqual(originalSensation.data, copySensation1.data)
             self.assertTrue(originalSensation.data is copySensation1.data)
         elif sensationtype == Sensation.SensationType.Image:
+            self.assertTrue(originalSensation.hasOriginality())
             self.assertEqual(originalSensation.image, copySensation1.image)
             self.assertTrue(originalSensation.image is copySensation1.image)
         elif sensationtype == Sensation.SensationType.Item:
+            self.assertTrue(originalSensation.hasOriginality())
             self.assertEqual(originalSensation.name, copySensation1.name)
             self.assertTrue(originalSensation.name is copySensation1.name)
+        elif sensationtype == Sensation.SensationType.RobotState:
+            self.assertFalse(originalSensation.hasOriginality())
+            self.assertEqual(originalSensation.robotState, copySensation1.robotState)
                
         # copy 2
         copySensation2 = Sensation(memory=memory,
@@ -2836,7 +2850,7 @@ class SensationTestCase(unittest.TestCase):
         self.assertEqual(originalSensation.getLocations(), copySensation2.getLocations(), "should be equal")
         self.assertEqual(copySensation2.getDataId(), originalSensation.getDataId(), "should be equal")
         self.assertTrue(originalSensation.isOriginal(), "originalSensation should be original")
-        self.assertFalse(copySensation2.isOriginal(), "copySensation2 should be copy")
+        self.assertNotEqual(copySensation2.isOriginal(), copySensation2.hasOriginality(), "copySensation2 should be copy if hasOriginality")
         # test that Sensation.data is same instance
         if sensationtype == Sensation.SensationType.Voice:
             self.assertEqual(originalSensation.data, copySensation2.data)
@@ -2847,7 +2861,9 @@ class SensationTestCase(unittest.TestCase):
         elif sensationtype == Sensation.SensationType.Item:
             self.assertEqual(originalSensation.name, copySensation2.name)
             self.assertTrue(originalSensation.name is copySensation2.name)
-        
+        elif sensationtype == Sensation.SensationType.RobotState:
+            self.assertEqual(originalSensation.robotState, copySensation2.robotState)
+       
         # save
         originalSensation.save()
         originalSensationBinaryFilePath = originalSensation.getFilePath(sensationType = Sensation.SensationType.All)
@@ -2872,11 +2888,13 @@ class SensationTestCase(unittest.TestCase):
         
         # now delete originalSensation and copySensation1 from memory
         # reverse order
-        
-        # copySensation2 is copy
+
+        #  copySensation1 and copySensation2 is copys
+            
+        self.assertTrue(copySensation1 in originalSensation.copySensations)
+        self.assertTrue(copySensation1.originalSensation is originalSensation)
         self.assertTrue(copySensation2 in originalSensation.copySensations)
         self.assertTrue(copySensation2.originalSensation is originalSensation)
-        self.assertTrue(copySensation2 in originalSensation.copySensations)
         self.assertEqual(len(originalSensation.copySensations), 2)
 
         copySensation2.delete()
@@ -2928,6 +2946,7 @@ class SensationTestCase(unittest.TestCase):
         # now create deleted Sensation fron files and test that there is only
         # one copy of data
         # original
+        print("do_Test_CopyBinaryFiles test {} {}".format(Sensation.getSensationTypeString(sensationtype), originalSensationBinaryFilePathBak))
         originalSensation = Sensation(memory=memory,
                                    robotId=self.robot.getId(),
                                    binaryFilePath=originalSensationBinaryFilePathBak)
@@ -2946,6 +2965,8 @@ class SensationTestCase(unittest.TestCase):
         elif sensationtype == Sensation.SensationType.Item:
             self.assertEqual(originalSensation.name, name)
             #self.assertFalse(originalSensation.name is name)
+        elif sensationtype == Sensation.SensationType.RobotState:
+            self.assertEqual(originalSensation.robotState, robotState)
         
         #copy 1
         copySensation1 = Sensation(memory=memory,
@@ -2966,6 +2987,8 @@ class SensationTestCase(unittest.TestCase):
         elif sensationtype == Sensation.SensationType.Item:
             self.assertEqual(copySensation1.name, name)
             #self.assertFalse(copySensation1.name is name)
+        elif sensationtype == Sensation.SensationType.RobotState:
+            self.assertEqual(copySensation1.robotState, robotState)
 
 
         
@@ -2976,6 +2999,8 @@ class SensationTestCase(unittest.TestCase):
             self.assertTrue(originalSensation.image is copySensation1.image)
         elif sensationtype == Sensation.SensationType.Item:
             self.assertTrue(originalSensation.name is copySensation1.name)
+        elif sensationtype == Sensation.SensationType.RobotState:
+            self.assertTrue(originalSensation.robotState is copySensation1.robotState)
 
         #copy 2
         copySensation2 = Sensation(memory=memory,
@@ -3077,6 +3102,8 @@ class SensationTestCase(unittest.TestCase):
         elif sensationtype == Sensation.SensationType.Item:
             self.assertEqual(copySensation1.name, name)
             #self.assertFalse(copySensation1.name is name)
+        elif sensationtype == Sensation.SensationType.RobotState:
+            self.assertEqual(copySensation1.robotState, robotState)
         
        
         # and load copy 2
@@ -3101,6 +3128,8 @@ class SensationTestCase(unittest.TestCase):
         elif sensationtype == Sensation.SensationType.Item:
             self.assertEqual(copySensation2.name, name)
             #self.assertFalse(copySensation2.name is name)
+        elif sensationtype == Sensation.SensationType.RobotState:
+            self.assertEqual(copySensation2.robotState, robotState)
 
         # then original
         originalSensation = Sensation(memory=memory,
@@ -3121,6 +3150,8 @@ class SensationTestCase(unittest.TestCase):
         elif sensationtype == Sensation.SensationType.Item:
             self.assertEqual(originalSensation.name, name)
             #self.assertFalse(originalSensation.name is name)
+        elif sensationtype == Sensation.SensationType.RobotState:
+            self.assertEqual(originalSensation.robotState, robotState)
                         
         self.assertEqual(len(originalSensation.copySensationIds), 0)
         self.assertEqual(len(originalSensation.copySensations), 2)
@@ -3141,7 +3172,11 @@ class SensationTestCase(unittest.TestCase):
             self.assertTrue(originalSensation.name is copySensation1.name)
             self.assertTrue(originalSensation.name is copySensation2.name)
             self.assertTrue(copySensation1.name is copySensation2.name)
-                
+        elif sensationtype == Sensation.SensationType.RobotState:
+            self.assertEqual(originalSensation.robotState,copySensation1.robotState)
+            self.assertEqual(originalSensation.robotState,copySensation2.robotState)
+            self.assertEqual(copySensation1.robotState,copySensation2.robotState)
+
         ######################################
         # load first copy and then original
         # now delete originalSensation and copySensation1 from memory
@@ -3164,8 +3199,14 @@ class SensationTestCase(unittest.TestCase):
         # should have new original now
         self.assertEqual(len(originalSensation.copySensations), 0)
         # copySensation1 is new original now
-        self.assertTrue(copySensation1.isOriginal())
-        self.assertFalse(copySensation2.isOriginal())
+        if copySensation2.hasOriginality():
+            self.assertTrue(copySensation1.isOriginal())
+            self.assertFalse(copySensation2.isOriginal())
+        else:
+            # if no originality, copies keep eeing original
+            self.assertTrue(copySensation1.isOriginal())
+            self.assertTrue(copySensation2.isOriginal())
+            
         self.assertTrue(copySensation2 in copySensation1.copySensations)
         self.assertTrue(copySensation2.originalSensation is copySensation1)
         self.assertEqual(len(copySensation1.copySensations), 1)
@@ -3232,6 +3273,8 @@ class SensationTestCase(unittest.TestCase):
         elif sensationtype == Sensation.SensationType.Item:
             self.assertEqual(copySensation1.name, name)
             #self.assertFalse(copySensation1.name is name)
+        elif sensationtype == Sensation.SensationType.RobotState:
+            self.assertEqual(copySensation1.robotState, robotState)
 
         
         # then original
@@ -3256,6 +3299,8 @@ class SensationTestCase(unittest.TestCase):
             self.assertEqual(originalSensation.name, name)
             #self.assertFalse(originalSensation.name is name)
             self.assertTrue(copySensation1.name is originalSensation.name)
+        elif sensationtype == Sensation.SensationType.RobotState:
+            self.assertEqual(originalSensation.robotState, robotState)
                                 
         self.assertEqual(len(originalSensation.copySensationIds), 1)
         self.assertEqual(len(originalSensation.copySensations), 1)
@@ -3302,6 +3347,8 @@ class SensationTestCase(unittest.TestCase):
             self.assertEqual(copySensation1.name, name)
             #self.assertFalse(copySensation1.name is name)
             self.assertTrue(copySensation1.name is originalSensation.name)
+        elif sensationtype == Sensation.SensationType.RobotState:
+            self.assertEqual(copySensation2.robotState, robotState)
                         
         self.assertEqual(len(originalSensation.copySensations), 2)
         self.assertTrue(copySensation1 in originalSensation.copySensations)
@@ -3332,7 +3379,7 @@ class SensationTestCase(unittest.TestCase):
         self.assertTrue(copySensation1 in originalSensation.copySensations)
         self.assertEqual(len(originalSensation.copySensations), 1)
         self.assertTrue(originalSensation.isOriginal())
-        self.assertFalse(copySensation1.isOriginal())
+        self.assertNotEqual(copySensation1.isOriginal(), copySensation1.hasOriginality())
         
         originalSensation.delete()
         #copySensation1 loses its original

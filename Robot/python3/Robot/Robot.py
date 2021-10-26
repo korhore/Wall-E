@@ -2136,6 +2136,8 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
             self.running = False
         
  
+        socketClient = None
+        socketServer = None
         while self.running:
             self.log('run: waiting self.sock.accept()')
             sock, address = self.sock.accept()
