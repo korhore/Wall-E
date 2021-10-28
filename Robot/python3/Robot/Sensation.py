@@ -123,7 +123,7 @@ class Sensation(object):
                       
                       # Communication
                       CommunicationNotStarted = 'j',
-                      CommunicatioWaiting = 'k',
+                      CommunicationWaiting = 'k',
                       CommunicationOn ='l',
                       CommunicationNoResponseToSay='m',
                       CommunicationEnded ='n',
@@ -264,7 +264,7 @@ class Sensation(object):
                       
                 # Communication
                RobotState.CommunicationNotStarted:COMMUNIVATIONNOTSTARTED,
-               RobotState.CommunicatioWaiting:COMMUNICATIONWAITING,
+               RobotState.CommunicationWaiting:COMMUNICATIONWAITING,
                RobotState.CommunicationOn:COMMUNICATIONON,
                RobotState.CommunicationNoResponseToSay:COMMUNICATIONNORESPONSETOSAY,
                RobotState.CommunicationEnded:COMMUNICATIONENDED,

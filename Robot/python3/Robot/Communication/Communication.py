@@ -44,12 +44,12 @@ if                Voice
 6) Feel Good      Best Voice from Other
 - This will be second best choice with Other
 
-else
+elsem
 7) Feel Sad Best Voice from Other
    - this way we would try next time other Voice
    
 TODO tests for
-- isConversationDelay
+- isConversationDelaym
 - isNoResponseToSay
 
 
@@ -140,7 +140,7 @@ class Communication(Robot):
             self._isConversationDelay = False
             self._isNoResponseToSay = False
     
-            self.robotState = Sensation.RobotState.CommunicatioWaiting
+            self.robotState = Sensation.RobotState.CommunicationWaiting
 #             robotStateSensation = self.createSensation( associations=None,
 #                                                         sensationType=Sensation.SensationType.RobotState,
 #                                                         memoryType=Sensation.MemoryType.Sensory,
@@ -179,7 +179,101 @@ class Communication(Robot):
             
         def getMemory(self):
             return self.getRobot().getMemory()
-        
+            '''
+        This method is used by Robot.Communication
+        it wants sensations and associations that
+        - have association to one or more SensationType.Itemss that name matches
+        - Sensation.SensationType matches
+        - RobotType martches with robotMainNames
+        - it's dataId is not in ignoredDataIds
+    
+        '''    
+        def getBestSensations(self,
+                              #allAssociations = False,
+                              itemSensations,
+                              sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
+                              robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
+                              robotMainNames = [],
+                              ignoredDataIds = [],
+                              searchLength = 10):
+            # result as dictionares, key sensationType
+            copied_ignoredDataIds = ignoredDataIds[:]   # deep copy, so original lict is not changed
+            sensations = {}
+            associations = {}
+            memorabilitys = {}
+    
+            # get Sensation.SensationType.Item name's We are seraching associations
+            names=[]       
+            for sensation in itemSensations:
+                if sensation.getSensationType() == Sensation.SensationType.Item:
+                    names.append(sensation.getName())
+                    
+            # check Sensation.SensationType.Item sensations where name matches        
+     #           if sensation.getDataId() not in copied_ignoredDataIds and\
+            searched = 0
+            for itemSensation in self.sensationMemory:
+                if itemSensation.getSensationType() == Sensation.SensationType.Item and\
+                   itemSensation.getName() in names:
+                    for associtionSensationtype in sensationTypes:
+                        for association in itemSensation.getAssociations():
+                            sensation = association.getSensation()
+                            if sensation.getSensationType() in sensationTypes and\
+                               sensation.getRobotType() in robotTypes and\
+                               sensation.getDataId() not in copied_ignoredDataIds:
+                                hasSensationType = True
+                                if sensation.getRobotType() == Sensation.RobotType.Communication:
+                                    isInMainNames = sensation.isInMainNames(mainNames=robotMainNames)
+                                    #print("isInMainNames {}".format(isInMainNames))
+                                    if sensation.getRobotType() == Sensation.RobotType.Communication and isInMainNames:
+                                        hasSensationType = False
+                                    #print("hasSensationType {}  isInMainNames {}".format(hasSensationType, isInMainNames))
+                                                 
+                                if hasSensationType: #sensation associated to itemSensation is right kind
+                                                     # sensation can heve many matching Item.bane associations
+    #                                                  #  we should accept then all
+    #                                 memorability = 0.0
+    #                                 for reverseAsoosiciation in sensation.getAssociations():
+    #                                     reverseSensation = reverseAsoosiciation.getSensation()
+    #                                     if reverseSensation.getSensationType() == Sensation.SensationType.Item and\
+    #                                         itemSensation.getName() in names
+    #                                                   # TODO we skip checking
+                                    # calculate sensationTypes memorability backward to
+                                    # SensationType.Iten where nmae matches
+                                    memorability, sensationAssociations = \
+                                                sensation.getMemorability(
+                                                        getAssociationsList = True,
+                                                        itemSensations = itemSensations,
+                                                        robotMainNames = robotMainNames,
+                                                        robotTypes = robotTypes,#[Sensation.RobotType.Sense, Sensation.RobotType.Communication],
+                                                        ignoredDataIds=copied_ignoredDataIds,
+                                                        positive = True,
+                                                        negative = False,
+                                                        absolute = False)
+                                    if sensation.getSensationType() not in memorabilitys or\
+                                       memorability > memorabilitys[sensation.getSensationType()]:
+                                        copied_ignoredDataIds.append(sensation.getDataId())    # We have checked this, so don't check again if found assigned 
+                                                                                               # with other Item
+                                        memorabilitys[sensation.getSensationType()] = memorability
+                                        sensations[sensation.getSensationType()] = sensation
+                                        associations[sensation.getSensationType()] = sensationAssociations
+                                        
+                                        searched = searched+1
+                                        if searched >= searchLength:
+                                            return sensations.values(), associations.values()
+                                        
+                            
+                         
+    #                 hasAssociations = and\
+    #                sensation.getRobotType() in robotTypes and\
+    #                sensation.hasAssociationSensationType(associationSensationType = Sensation.SensationType.Voice,
+    #                                                      associationDirections = robotTypes,
+    #                                                      ignoredDataIds = copied_ignoredDataIds,
+    #                                                      robotMainNames = robotMainNames):
+            
+            
+            return sensations.values(), associations.values()
+
+
         def getMainNames(self):
             return self.getRobot().getMainNames()
            
@@ -383,6 +477,100 @@ class Communication(Robot):
                                                        locations=self.getLocations())
             self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=robotStateSensation)
 
+        '''
+        This method is used by Robot.Communication
+        it wants sensations and associations that
+        - have association to one or more SensationType.Itemss that name matches
+        - Sensation.SensationType matches
+        - RobotType martches with robotMainNames
+        - it's dataId is not in ignoredDataIds
+    
+        '''    
+        def getBestSensations(self,
+                              #allAssociations = False,
+                              itemSensations,
+                              sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
+                              robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
+                              robotMainNames = [],
+                              ignoredDataIds = [],
+                              searchLength = 10):
+            # result as dictionares, key sensationType
+            copied_ignoredDataIds = ignoredDataIds[:]   # deep copy, so original lict is not changed
+            sensations = {}
+            associations = {}
+            memorabilitys = {}
+    
+            # get Sensation.SensationType.Item name's We are seraching associations
+            names=[]       
+            for sensation in itemSensations:
+                if sensation.getSensationType() == Sensation.SensationType.Item:
+                    names.append(sensation.getName())
+                    
+            # check Sensation.SensationType.Item sensations where name matches        
+     #           if sensation.getDataId() not in copied_ignoredDataIds and\
+            searched = 0
+            for itemSensation in self.getMemory().sensationMemory:
+                if itemSensation.getSensationType() == Sensation.SensationType.Item and\
+                   itemSensation.getName() in names:
+                    for associtionSensationtype in sensationTypes:
+                        for association in itemSensation.getAssociations():
+                            sensation = association.getSensation()
+                            if sensation.getSensationType() in sensationTypes and\
+                               sensation.getRobotType() in robotTypes and\
+                               sensation.getDataId() not in copied_ignoredDataIds:
+                                hasSensationType = True
+                                if sensation.getRobotType() == Sensation.RobotType.Communication:
+                                    isInMainNames = sensation.isInMainNames(mainNames=robotMainNames)
+                                    #print("isInMainNames {}".format(isInMainNames))
+                                    if sensation.getRobotType() == Sensation.RobotType.Communication and isInMainNames:
+                                        hasSensationType = False
+                                    #print("hasSensationType {}  isInMainNames {}".format(hasSensationType, isInMainNames))
+                                                 
+                                if hasSensationType: #sensation associated to itemSensation is right kind
+                                                     # sensation can heve many matching Item.bane associations
+    #                                                  #  we should accept then all
+    #                                 memorability = 0.0
+    #                                 for reverseAsoosiciation in sensation.getAssociations():
+    #                                     reverseSensation = reverseAsoosiciation.getSensation()
+    #                                     if reverseSensation.getSensationType() == Sensation.SensationType.Item and\
+    #                                         itemSensation.getName() in names
+    #                                                   # TODO we skip checking
+                                    # calculate sensationTypes memorability backward to
+                                    # SensationType.Iten where nmae matches
+                                    memorability, sensationAssociations = \
+                                                sensation.getMemorability(
+                                                        getAssociationsList = True,
+                                                        itemSensations = itemSensations,
+                                                        robotMainNames = robotMainNames,
+                                                        robotTypes = robotTypes,#[Sensation.RobotType.Sense, Sensation.RobotType.Communication],
+                                                        ignoredDataIds=copied_ignoredDataIds,
+                                                        positive = True,
+                                                        negative = False,
+                                                        absolute = False)
+                                    if sensation.getSensationType() not in memorabilitys or\
+                                       memorability > memorabilitys[sensation.getSensationType()]:
+                                        copied_ignoredDataIds.append(sensation.getDataId())    # We have checked this, so don't check again if found assigned 
+                                                                                               # with other Item
+                                        memorabilitys[sensation.getSensationType()] = memorability
+                                        sensations[sensation.getSensationType()] = sensation
+                                        associations[sensation.getSensationType()] = sensationAssociations
+                                        
+                                        searched = searched+1
+                                        if searched >= searchLength:
+                                            return sensations.values(), associations.values()
+                                        
+                            
+                         
+    #                 hasAssociations = and\
+    #                sensation.getRobotType() in robotTypes and\
+    #                sensation.hasAssociationSensationType(associationSensationType = Sensation.SensationType.Voice,
+    #                                                      associationDirections = robotTypes,
+    #                                                      ignoredDataIds = copied_ignoredDataIds,
+    #                                                      robotMainNames = robotMainNames):
+            
+            
+            return sensations.values(), associations.values()
+
     '''
     class ConversationWithItem implements conversation
     with a person
@@ -414,7 +602,7 @@ class Communication(Robot):
             # TODO enable line below, disabled for testing only
             
             if (systemTime.time() - sensation.getTime()) < Communication.COMMUNICATION_INTERVAL and\
-               self.isThisLocation(sensation.getLocations()) and\
+               self.isThisLocation(locations=sensation.getLocations()) and\
                sensation.getRobotType() == Sensation.RobotType.Sense:
                 #  entering to this location
                 if sensation.getSensationType() == Sensation.SensationType.Item and\
@@ -427,7 +615,7 @@ class Communication(Robot):
                         self.log(logLevel=Robot.LogLevel.Detailed, logStr='ConversationWithItem process: got item ' + sensation.getName() + ' present now' + self.getMemory().itemsPresenceToStr())
                         self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: got item ' + sensation.getName() + ' joined to communication')
                         self._isConversationDelay = False   # ready to continue conversation with new Item.name
-                        self.robotState = Sensation.RobotState.CommunicatioWaiting
+                        self.robotState = Sensation.RobotState.CommunicationWaiting
                         robotStateSensation = self.createSensation(associations=None,
                                                                    sensationType=Sensation.SensationType.RobotState,
                                                                    memoryType=Sensation.MemoryType.Sensory,
@@ -466,7 +654,7 @@ class Communication(Robot):
 #                             # conversation is on and they have left us without responding
 #                             # We are disappointed
 #                             self._isConversationOn = False # present ones are disappeared even if we  head a voice.
-#                             self.robotState = Sensation.RobotState.CommunicatioWaiting
+#                             self.robotState = Sensation.RobotState.CommunicationWaiting
 #     #                         self.robotResponses = 0
 #                             self.handleGotFeedback(positiveFeeling=False, negativeFeeling=True)
 #                             self.endConversation()
@@ -503,7 +691,7 @@ class Communication(Robot):
                             # We are disappointed
                             self.handleGotFeedback(positiveFeeling=False, negativeFeeling=True)
                             self._isConversationOn = False # present ones are disappeared even if we  head a voice.
-                            self.robotState = Sensation.RobotState.CommunicatioWaiting
+                            self.robotState = Sensation.RobotState.CommunicationWaiting
                             robotStateSensation = self.createSensation(associations=None,
                                                                        sensationType=Sensation.SensationType.RobotState,
                                                                        memoryType=Sensation.MemoryType.Sensory,
@@ -590,7 +778,8 @@ class Communication(Robot):
                         # Sensation.SensationType is Voice or Image
                         # RobotType is Sense of Communication which RoborMainNames does not match, meaning that it is from foreign Robot 'spoken'
                         # it is in ignoredDataIds dataId meaning that it is not spoken by us in this conversation
-                        sensations, associations  = self.getMemory().getBestSensations(
+                        #sensations, associations  = self.getMemory().getBestSensations(
+                        sensations, associations  = self.getBestSensations(
                                                             #allAssociations = False,
                                                             itemSensations = itemSensations,
                                                             sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
@@ -693,7 +882,7 @@ class Communication(Robot):
             #sensation.getMemoryType() == Sensation.MemoryType.Working and# No item is Working, voice is Sensory
             # TODO enable line below, disabled for testing only
             if (systemTime.time() - sensation.getTime()) < Communication.COMMUNICATION_INTERVAL and\
-               self.isThisLocation(sensation.getLocations()) and\
+               self.isThisLocation(locations=sensation.getLocations()) and\
                sensation.getRobotType() == Sensation.RobotType.Communication:
                 #  entering to this location
                 if sensation.getSensationType() == Sensation.SensationType.Item:
@@ -710,7 +899,7 @@ class Communication(Robot):
                         self.speak()
                     elif sensation.getPresence() == Sensation.Presence.Absent and\
                          not self.getMemory().hasItemsPresence(location=self.getLocation()):
-                        self.robotState = Sensation.RobotState.CommunicatioWaiting
+                        self.robotState = Sensation.RobotState.CommunicationWaiting
                         robotStateSensation = self.createSensation( associations=None,
                                                                     sensationType=Sensation.SensationType.RobotState,
                                                                     memoryType=Sensation.MemoryType.Sensory,
@@ -755,7 +944,8 @@ class Communication(Robot):
                         # Sensation.SensationType is Voice or Image
                         # RobotType is Sense of Communication which RoborMainNames does not match, meaning that it is from foreign Robot 'spoken'
                         # it is in ignoredDataIds dataId meaning that it is not spoken by us in this conversation
-                        sensations, associations  = self.getMemory().getBestSensations(
+                        #sensations, associations  = self.getMemory().getBestSensations(
+                        sensations, associations  = self.getBestSensations(
                                                             #allAssociations = False,
                                                             itemSensations = itemSensations,
                                                             sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
@@ -844,7 +1034,7 @@ class Communication(Robot):
     '''
         
     def initRobot(self):
-        self.robotState = Sensation.RobotState.CommunicatioWaiting
+        self.robotState = Sensation.RobotState.CommunicationWaiting
         robotStateSensation = self.createSensation( associations=None,
                                                     sensationType=Sensation.SensationType.RobotState,
                                                     memoryType=Sensation.MemoryType.Sensory,

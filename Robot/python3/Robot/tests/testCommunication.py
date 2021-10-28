@@ -1,6 +1,6 @@
 '''
 Created on 21.06.2019
-Updated on 20.10.2021
+Updated on 28.10.2021
 @author: reijo.korhonen@gmail.com
 
 test Association class
@@ -95,9 +95,11 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
     Sensations outside Robot are in other Robot.mainNames and robotType=Sensation.RobotType.Communication
     so this test result should  same than with test where robotType=Sensation.RobotType.Sense,
     because Communication should handle those sensation equally, when Robot.mainNames differ
+    
+    disabled until Communication Robot is planned again.
     '''
 
-    def test_3_Presense(self):
+    def re_test_3_Presense(self):
         print('\ntest_3_Presense\n')       
         self.doTest_3_Presense(robot=self.communication, communication=self.communication, isWait=False)
 

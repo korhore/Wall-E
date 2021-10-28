@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 23.10.2021
+Edited on 28.10.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -976,101 +976,6 @@ class Memory(object):
 
         self.memoryLock.releaseRead()                  # read thread_safe
         return itemSensation, voiceSensation, voiceAssociation, imageSensation, imageAssociation
-
-    '''
-    This method is used by Robot.Communication
-    it wants sensations and associations that
-    - have association to one or more SensationType.Itemss that name matches
-    - Sensation.SensationType matches
-    - RobotType martches with robotMainNames
-    - it's dataId is not in ignoredDataIds
-
-    '''    
-    def getBestSensations(self,
-                          #allAssociations = False,
-                          itemSensations,
-                          sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
-                          robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
-                          robotMainNames = [],
-                          ignoredDataIds = [],
-                          searchLength = 10):
-        # result as dictionares, key sensationType
-        copied_ignoredDataIds = ignoredDataIds[:]   # deep copy, so original lict is not changed
-        sensations = {}
-        associations = {}
-        memorabilitys = {}
-
-        # get Sensation.SensationType.Item name's We are seraching associations
-        names=[]       
-        for sensation in itemSensations:
-            if sensation.getSensationType() == Sensation.SensationType.Item:
-                names.append(sensation.getName())
-                
-        # check Sensation.SensationType.Item sensations where name matches        
- #           if sensation.getDataId() not in copied_ignoredDataIds and\
-        searched = 0
-        for itemSensation in self.sensationMemory:
-            if itemSensation.getSensationType() == Sensation.SensationType.Item and\
-               itemSensation.getName() in names:
-                for associtionSensationtype in sensationTypes:
-                    for association in itemSensation.getAssociations():
-                        sensation = association.getSensation()
-                        if sensation.getSensationType() in sensationTypes and\
-                           sensation.getRobotType() in robotTypes and\
-                           sensation.getDataId() not in copied_ignoredDataIds:
-                            hasSensationType = True
-                            if sensation.getRobotType() == Sensation.RobotType.Communication:
-                                isInMainNames = sensation.isInMainNames(mainNames=robotMainNames)
-                                #print("isInMainNames {}".format(isInMainNames))
-                                if sensation.getRobotType() == Sensation.RobotType.Communication and isInMainNames:
-                                    hasSensationType = False
-                                #print("hasSensationType {}  isInMainNames {}".format(hasSensationType, isInMainNames))
-                                             
-                            if hasSensationType: #sensation associated to itemSensation is right kind
-                                                 # sensation can heve many matching Item.bane associations
-#                                                  #  we should accept then all
-#                                 memorability = 0.0
-#                                 for reverseAsoosiciation in sensation.getAssociations():
-#                                     reverseSensation = reverseAsoosiciation.getSensation()
-#                                     if reverseSensation.getSensationType() == Sensation.SensationType.Item and\
-#                                         itemSensation.getName() in names
-#                                                   # TODO we skip checking
-                                # calculate sensationTypes memorability backward to
-                                # SensationType.Iten where nmae matches
-                                memorability, sensationAssociations = \
-                                            sensation.getMemorability(
-                                                    getAssociationsList = True,
-                                                    itemSensations = itemSensations,
-                                                    robotMainNames = robotMainNames,
-                                                    robotTypes = robotTypes,#[Sensation.RobotType.Sense, Sensation.RobotType.Communication],
-                                                    ignoredDataIds=copied_ignoredDataIds,
-                                                    positive = True,
-                                                    negative = False,
-                                                    absolute = False)
-                                if sensation.getSensationType() not in memorabilitys or\
-                                   memorability > memorabilitys[sensation.getSensationType()]:
-                                    copied_ignoredDataIds.append(sensation.getDataId())    # We have checked this, so don't check again if found assigned 
-                                                                                           # with other Item
-                                    memorabilitys[sensation.getSensationType()] = memorability
-                                    sensations[sensation.getSensationType()] = sensation
-                                    associations[sensation.getSensationType()] = sensationAssociations
-                                    
-                                    searched = searched+1
-                                    if searched >= searchLength:
-                                        return sensations.values(), associations.values()
-                                    
-                        
-                     
-#                 hasAssociations = and\
-#                sensation.getRobotType() in robotTypes and\
-#                sensation.hasAssociationSensationType(associationSensationType = Sensation.SensationType.Voice,
-#                                                      associationDirections = robotTypes,
-#                                                      ignoredDataIds = copied_ignoredDataIds,
-#                                                      robotMainNames = robotMainNames):
-        
-        
-        return sensations.values(), associations.values()
-
     
     
     '''

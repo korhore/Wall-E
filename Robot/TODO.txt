@@ -37,7 +37,39 @@ Eva stops to send images
 Develop
 -------
 
-Create CommunicationState Sensation. it is planned to be in RobotState
+Create CommunicationState Sensation. it is planned to be in RobotState.
+Seems global Communication is broken. It answers to a question, what this Robot would response,
+if it finds out, that these Item.names are present. This should be a Sensation fron MainRobot to MainRobot, i'm afraid,
+we don't have that Sensation, because Communication.ConversationWithRobot is planned to be global Conversation, which it is not.
+And we don't need global conversation, global presence etc, because it does not make sense. I will rdisable global communication tests now and
+they will be reabled again, when this is planned again.
+
+Robos Feeling is something, which goes to Normal by time, like RobotActivity,
+but to the middle Feeling, Normal, not to Sleeping like Activity
+
+- When something goes OK, then it goes up
+-- Item comes to a conversation
+-- Robots finds something to say and speaks
+-- Robots hears an answer
+. When something does not succeed as Robot ties, Feeling goes down
+-- Item disappears from conversation
+-- Robot does not find anything to say
+-- Item does not respond, when Robots has spoken
+Extend CommunicationState.CommunicationState so, that it can hold conversasion steps
+0) Wait
+1a) Item.person come
+   assigned
+   - Image
+   - Item
+2a) Item.person speaks
+3) Robot answers
+4) Item answers
+   5) Robots detects that Item likes Robots answers
+   - Go to 3)
+6) Item does not answer
+   7) Robots detects that Item does not Robots answers
+      Go to 0)
+  
 
 
 Exposures

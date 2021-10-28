@@ -299,7 +299,7 @@ class RobotTestCase():
         print('\n{}\n'.format(self.getSensationNameById(note=note, dataId=dataId, id=id)))
 
     '''
-    Clean data directory from bi9nary files files.
+    Clean data directory from image, voice, binary and bak -files.
     Test needs this so known sensations are only created
     '''  
     def CleanDataDirectory(self):
@@ -308,12 +308,13 @@ class RobotTestCase():
         if os.path.exists(Sensation.DATADIR):
             try:
                 for filename in os.listdir(Sensation.DATADIR):
-                    if filename.endswith('.'+Sensation.BINARY_FORMAT):
-                        filepath = os.path.join(Sensation.DATADIR, filename)
-                        try:
-                            os.remove(filepath)
-                        except Exception as e:
-                            print('os.remove(' + filepath + ') error ' + str(e), logLevel=Memory.MemoryLogLevel.Normal)
+                    for format in (Sensation.IMAGE_FORMAT, Sensation.VOICE_FORMAT, Sensation.BINARY_FORMAT,'bak'):
+                        if filename.endswith('.'+format):
+                            filepath = os.path.join(Sensation.DATADIR, filename)
+                            try:
+                                os.remove(filepath)
+                            except Exception as e:
+                                print('os.remove(' + filepath + ') error ' + str(e), logLevel=Memory.MemoryLogLevel.Normal)
             except Exception as e:
                     print('os.listdir error ' + str(e), logLevel=Memory.MemoryLogLevel.Normal)
         
@@ -349,12 +350,15 @@ class RobotTestCase():
                isImageFeeling=False,
                isPositiveFeeling=False, isNegativeFeeling=False,
                isItem=False,
-               isWait=False):
+               isWait=False,
+               robotStates=None):
         print("\nexpect {}".format(name))
         self.muscleVoice = None
         self.muscleImage = None
         self.communicationVoice  = None
         self.communicationImage = None
+        self.robotStates = None
+
         gotCommunicationItem = None
         errortext = '{}: Axon empty should not be {}'.format(name, str(self.getAxon().empty()))
         i=0  
@@ -396,6 +400,11 @@ class RobotTestCase():
             else:
                 isCommunicationItemStillExpected = False
                 isExactCommunicationItemStillExpected = False
+            if robotStates is not None:
+                isrobotStateStillExpected = True
+            else:
+                isrobotStateStillExpected = False
+                
             isVoiceFeelingStillExpected = isVoiceFeeling
             isImageFeelingStillExpected = isImageFeeling
             while (not isWait and not self.getAxon().empty()) or\
@@ -403,7 +412,7 @@ class RobotTestCase():
                    (isMuscleVoiceStillExpected or isCommunicationVoiceStillExpected or\
                     isMuscleImageStillExpected or isCommunicationImageStillExpected or\
                     isVoiceFeelingStillExpected or isImageFeelingStillExpected or
-                    isItemStillExpected))):
+                    isItemStillExpected or isrobotStateStillExpected))):
                 while isWait and self.getAxon().empty() and i < Communication.COMMUNICATION_INTERVAL:
                     systemTime.sleep(1)
                     i=i+1
@@ -522,6 +531,13 @@ class RobotTestCase():
                                 self.assertTrue(False,"got unexpected Communication Item")
                         else:
                             self.assertTrue(False, 'got unexpected Item RobotType')
+                    elif sensation.getSensationType() == Sensation.SensationType.RobotState:
+                        if robotStates is None:
+                            self.assertTrue(False,"got RobotState but it was not expected to get at all {}".format(Sensation.getRobotStateString(sensation.getRobotState())))
+                        if sensation.getRobotState() in robotStates:
+                            isRobotStateStillExpected = False
+                        else:
+                            self.assertTrue(False,"got unexpected RobotState {}".format(Sensation.getRobotStateString(sensation.getRobotState())))
                     
             self.assertFalse(isMuscleVoiceStillExpected,  'Did not get muscleVoice')
             if self.muscleVoice != None and muscleVoice != None:                   

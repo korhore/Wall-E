@@ -439,6 +439,9 @@ class Visual(Robot):
                 elif sensation.getSensationType() == Sensation.SensationType.Item:
                     self.gs.Insert(index=Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_DATA,
                                    window=wx.StaticText(self, label=self.getItemNamePresenceString(sensation)), proportion=0, flag=wx.EXPAND)
+                elif sensation.getSensationType() == Sensation.SensationType.RobotState:
+                    self.gs.Insert(index=Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_DATA,
+                                   window=wx.StaticText(self, label=Sensation.getRobotStateString(sensation.getRobotState())), proportion=0, flag=wx.EXPAND)
                 else:
                     self.gs.Insert(index=Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_DATA,
                                    window=wx.StaticText(self, label=''), proportion=0, flag=wx.EXPAND)
