@@ -130,7 +130,7 @@ class Communication(Robot):
     class Conversation(object):
         def __init__(self,
                      robot,
-                     location=None):
+                     location=''):
             self.robot=robot
             self.location=location    # local single location, NOT array
                                     
@@ -384,12 +384,14 @@ class Communication(Robot):
                                 
                         if positiveFeeling:
                             self.log(logLevel=Robot.LogLevel.Normal, logStr='process: good voice/image feeling with ' + firstAssociateSensation.getName())
-                            feelingSensation = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
+                            feelingSensation = self.createSensation(robotType = Sensation.RobotType.Sense,
+                                                                    associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                                     firstAssociateSensation=firstAssociateSensation, otherAssociateSensation=otherAssociateSensation,
                                                                     positiveFeeling=True, locations=self.getLocations())#self.getLocations()) # valid in this location, can be chosen other way
                         elif negativeFeeling:
                             self.log(logLevel=Robot.LogLevel.Normal, logStr='process: bad voice/image feeling with ' + firstAssociateSensation.getName())
-                            feelingSensation = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
+                            feelingSensation = self.createSensation(robotType = Sensation.RobotType.Sense,
+                                                                    associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                                     firstAssociateSensation=firstAssociateSensation, otherAssociateSensation=otherAssociateSensation,
                                                                     negativeFeeling=True, locations=self.getLocations())#self.getLocations()) # valid in this location, can be chosen other way
 
@@ -470,7 +472,8 @@ class Communication(Robot):
                 self.robotState = Sensation.RobotState.CommunicationDelay
             else:
                 self.robotState = Sensation.RobotState.CommunicationEnded
-            robotStateSensation = self.createSensation(associations=None,
+            robotStateSensation = self.createSensation(robotType = Sensation.RobotType.Sense,
+                                                       associations=None,
                                                        sensationType=Sensation.SensationType.RobotState,
                                                        memoryType=Sensation.MemoryType.Sensory,
                                                        robotState=self.robotState,
@@ -579,7 +582,7 @@ class Communication(Robot):
     class ConversationWithItem(Conversation):
         def __init__(self,
                      robot,
-                     location=None):
+                     location=''):
             super().__init__(
                      robot,
                      location)
@@ -616,7 +619,8 @@ class Communication(Robot):
                         self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: got item ' + sensation.getName() + ' joined to communication')
                         self._isConversationDelay = False   # ready to continue conversation with new Item.name
                         self.robotState = Sensation.RobotState.CommunicationWaiting
-                        robotStateSensation = self.createSensation(associations=None,
+                        robotStateSensation = self.createSensation(robotType = Sensation.RobotType.Sense,
+                                                                   associations=None,
                                                                    sensationType=Sensation.SensationType.RobotState,
                                                                    memoryType=Sensation.MemoryType.Sensory,
                                                                    robotState=self.robotState,
@@ -680,7 +684,7 @@ class Communication(Robot):
                         if self.spokedAssociations is not None:
                             self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: got response ' + sensation.toDebugStr())
                             self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: got response ' + sensation.getName() + ' present now' + self.getMemory().itemsPresenceToStr())
-                        # If we have still someone to talk, this is posivive beedback
+                        # If we have still someone to talk, this is positive feedback
                         if self.getMemory().hasItemsPresence(location=self.getLocation()):        
                             self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: ' + sensation.getName() + ' got voice and tries to speak with presents ones' + self.getMemory().itemsPresenceToStr(location=self.getLocation()))
                             self.getMemory().setMemoryType(sensation=sensation, memoryType=Sensation.MemoryType.Working)
@@ -692,7 +696,8 @@ class Communication(Robot):
                             self.handleGotFeedback(positiveFeeling=False, negativeFeeling=True)
                             self._isConversationOn = False # present ones are disappeared even if we  head a voice.
                             self.robotState = Sensation.RobotState.CommunicationWaiting
-                            robotStateSensation = self.createSensation(associations=None,
+                            robotStateSensation = self.createSensation(robotType = Sensation.RobotType.Sense,
+                                                                       associations=None,
                                                                        sensationType=Sensation.SensationType.RobotState,
                                                                        memoryType=Sensation.MemoryType.Sensory,
                                                                        robotState=self.robotState,
@@ -823,7 +828,8 @@ class Communication(Robot):
                             self.timer.start()
                             self._isConversationOn = True
                             self.robotState = Sensation.RobotState.CommunicationOn                                                                            
-                            robotStateSensation = self.createSensation(associations=None,
+                            robotStateSensation = self.createSensation(robotType = Sensation.RobotType.Sense,
+                                                                       associations=None,
                                                                        sensationType=Sensation.SensationType.RobotState,
                                                                        memoryType=Sensation.MemoryType.Sensory,
                                                                        robotState=self.robotState,
@@ -836,7 +842,8 @@ class Communication(Robot):
                             self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process speak: self.getMemory().getBestSensations did NOT find Sensation to speak')
                             self._isNoResponseToSay = True
                             self.robotState = Sensation.RobotState.CommunicationNoResponseToSay                                             
-                            robotStateSensation = self.createSensation(associations=None,
+                            robotStateSensation = self.createSensation(robotType = Sensation.RobotType.Sense,
+                                                                       associations=None,
                                                                        sensationType=Sensation.SensationType.RobotState,
                                                                        memoryType=Sensation.MemoryType.Sensory,
                                                                        robotState=self.robotState,
@@ -861,7 +868,7 @@ class Communication(Robot):
     class ConversationWithRobot(Conversation):
         def __init__(self,
                      robot,
-                     location=None):
+                     location=''):
             super().__init__(
                      robot,
                      location)
@@ -900,7 +907,8 @@ class Communication(Robot):
                     elif sensation.getPresence() == Sensation.Presence.Absent and\
                          not self.getMemory().hasItemsPresence(location=self.getLocation()):
                         self.robotState = Sensation.RobotState.CommunicationWaiting
-                        robotStateSensation = self.createSensation( associations=None,
+                        robotStateSensation = self.createSensation( robotType = Sensation.RobotType.Sense,
+                                                                    associations=None,
                                                                     sensationType=Sensation.SensationType.RobotState,
                                                                     memoryType=Sensation.MemoryType.Sensory,
                                                                     robotState=self.robotState,
@@ -970,7 +978,8 @@ class Communication(Robot):
                             # We did not find anything to say, but are ready to start new conversation, if someone speaks.
                             self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithRobot speak: self.getMemory().getBestSensations did NOT find Sensation to speak')
                             self.robotState = Sensation.RobotState.CommunicationNoResponseToSay                                             
-                            robotStateSensation = self.createSensation(associations=None,
+                            robotStateSensation = self.createSensation(robotType = Sensation.RobotType.Sense,
+                                                                       associations=None,
                                                                        sensationType=Sensation.SensationType.RobotState,
                                                                        memoryType=Sensation.MemoryType.Sensory,
                                                                        robotState=self.robotState,
@@ -996,7 +1005,7 @@ class Communication(Robot):
                  memory = None,
                  maxRss = Config.MAXRSS_DEFAULT,
                  minAvailMem = Config.MINAVAILMEM_DEFAULT,
-                 location=None,
+                 location='',
                  config=None):
         print("We are in Communication, not Robot")
         Robot.__init__(self,
@@ -1011,7 +1020,7 @@ class Communication(Robot):
                        location = location,
                        config = config)
                 
-        self.robotConversation = Communication.ConversationWithRobot(robot=self)
+        self.robotConversation = Communication.ConversationWithRobot(robot=self, location='')
         self.itemConversations = {}
 
         if len(self.getLocations()) > 0:
@@ -1035,7 +1044,8 @@ class Communication(Robot):
         
     def initRobot(self):
         self.robotState = Sensation.RobotState.CommunicationWaiting
-        robotStateSensation = self.createSensation( associations=None,
+        robotStateSensation = self.createSensation( robotType = Sensation.RobotType.Sense,
+                                                    associations=None,
                                                     sensationType=Sensation.SensationType.RobotState,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     robotState=self.robotState,

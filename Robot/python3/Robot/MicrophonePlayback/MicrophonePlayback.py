@@ -90,6 +90,7 @@ class MicrophonePlayback(Robot):
         self.microphone.mode = Sensation.Mode.Normal
 #         voice_data=None
 #         voice_l=0
+        self.microphone.informRobotState(robotState = Sensation.RobotState.MicrophoneSensing)
         while self.running:
             # as a leaf sensor robot default processing for sensation we have got
             # in practice we can get stop sensation
@@ -117,15 +118,18 @@ class MicrophonePlayback(Robot):
                         self.running=False
                     # Voice to playback
                     else:
-                        #self.playback.getAxon().put(robot=self, transferDirection=transferDirection, sensation=sensation, association=association)
-                        self.nextSenseTime = systemTime.time() + self.playback.getPlaybackTime(datalen=len(sensation.getData()))
+                        # TODO old code did not work, because self.nextSenseTim is never None, self.playback.getPlaybackTime return always time to 
+#                         self.nextSenseTime = systemTime.time() + self.playback.getPlaybackTime(datalen=len(sensation.getData()))
+                        self.informRobotState(robotState = Sensation.RobotState.MicrophoneDisabled)
                         self.playback.process(transferDirection=transferDirection, sensation=sensation)
-                        if  self.nextSenseTime is None:
-                            self.nextSenseTime = systemTime.time() + self.playback.getPlaybackTime(datalen=len(sensation.getData()))
-                        elif self.nextSenseTime > systemTime.time(): # there was pending wait time
-                            self.nextSenseTime = self.nextSenseTime - systemTime.time() + systemTime.time() + self.playback.getPlaybackTime(datalen=len(sensation.getData()))
-                        else:   # no pending wait time left, sleep normal time for this voice
-                            self.nextSenseTime = systemTime.time() + self.playback.getPlaybackTime(datalen=len(sensation.getData()))
+#                         if  self.nextSenseTime is None:
+#                             self.nextSenseTime = systemTime.time() + self.playback.getPlaybackTime(datalen=len(sensation.getData()))
+#                         elif self.nextSenseTime > systemTime.time(): # there was pending wait time
+#                         if self.nextSenseTime > systemTime.time(): # there was pending wait time
+#                             self.nextSenseTime = self.nextSenseTime - systemTime.time() + systemTime.time() + self.playback.getPlaybackTime(datalen=len(sensation.getData()))
+#                         else:   # no pending wait time left, sleep normal time for this voice
+#                             self.nextSenseTime = systemTime.time() + self.playback.getPlaybackTime(datalen=len(sensation.getData()))
+                        self.nextSenseTime = systemTime.time() + self.playback.getPlaybackTime(datalen=len(sensation.getData()))
                             
                     sensation.detach(robot=self) # all done, for this sensation remember to detach                 
                         # sleep voice playing length, so we don't sense spoken voices
@@ -135,8 +139,10 @@ class MicrophonePlayback(Robot):
                 # check, if playback is going on
                 if self.nextSenseTime is not None and\
                    systemTime.time() < self.nextSenseTime:
+                    self.informRobotState(robotState = Sensation.RobotState.MicrophoneDisabled)
                     systemTime.sleep(self.nextSenseTime - systemTime.time())
                     self.nextSenseTime = None
+                    self.microphone.informRobotState(robotState = Sensation.RobotState.MicrophoneSensing)
 
                 self.microphone.sense()
                     

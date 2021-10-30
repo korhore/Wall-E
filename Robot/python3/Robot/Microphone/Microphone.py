@@ -1,6 +1,6 @@
 '''
 Created on 21.09.2019
-Updated on 21.09.2020
+Updated on 30.10.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -55,7 +55,10 @@ class Microphone(Robot):
     
     DEBUG_INTERVAL=60.0
     SLEEP_TIME=3.0                     # if nothing to do, sleep
-    DURATION = 1.0                     # record 1.5 sec                   
+    DURATION = 1.0                     # record 1.5 sec
+    VOIVELENGTHMINIMUN = 2.0           # accept voices, that are at least this long, not just click/click etc. something that are propable something a person says,
+    SILENCEMAXIMUM = 1.0               # duration how long silence we should hear until a single sound stops
+    VOIVECONCATENATETRYES = 3          # accept voices, that are at least this long, not just click/click etc. something that are propable something a person says,
         
 
 
@@ -133,11 +136,17 @@ class Microphone(Robot):
         # buffer variables for voice        
         self.voice_data=None
         self.voice_l=0
+        # buffer variables for silence        
+        self.silence_data=None
+        self.silence_l=0
 
+        self.robotState = None
         
     def run(self):
-        self.log(" run robot robot " + self.getName() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))      
+        self.log(" run robot robot " + self.getName() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))
         
+        self.informRobotState(robotState = Sensation.RobotState.MicrophoneSensing)
+       
         # starting other threads/senders/capabilities
         
         self.running=True
@@ -162,8 +171,10 @@ class Microphone(Robot):
 #                    sensation.getRobotType(robotMainNames=self.getMainNames()) == Sensation.RobotType.Sense: 
 #                     self.tracePresents(sensation)
 #                 else:
+                self.informRobotState(robotState = Sensation.RobotState.MicrophoneDisabled)
                 self.process(transferDirection=transferDirection, sensation=sensation)
                 sensation.detach(robot=self)
+                self.informRobotState(robotState = Sensation.RobotState.MicrophoneSensing)
             else:
                 if self.getMemory().hasItemsPresence(): # listen is we have items that can speak
                     if not self.logged:
@@ -174,7 +185,7 @@ class Microphone(Robot):
                     self.logged = False
 #                     # TODO as a test we sense
                     #self.log(logLevel=Robot.LogLevel.Verbose, logStr=str(len(self.getMemory().presentItemSensations)) + " items NOT speaking, sense anyway")
-                    #self.sense()
+                    self.sense()
                     #self.log(logLevel=Robot.LogLevel.Normal, logStr="no items speaking, sleeping " + str(Microphone.SLEEP_TIME))
                     #time.sleep(Microphone.SLEEP_TIME)
                     
@@ -183,6 +194,7 @@ class Microphone(Robot):
         self.mode = Sensation.Mode.Stopping
         self.log(logLevel=Robot.LogLevel.Normal, logStr="self.config.setMicrophoneVoiceAvegageLevel(voiceLevelAverage=self.average)")
         self.config.setMicrophoneVoiceAvegageLevel(voiceLevelAverage=self.average)
+        self.informRobotState(robotState = Sensation.RobotState.MicrophoneDisabled)
         
         if not IsAlsaAudio:
             self.rawInputStream.stop()
@@ -213,16 +225,37 @@ class Microphone(Robot):
                         self.voice_data = data
                         self.voice_l = l
                     else:
+                        # if we have silence in the middle the sound add it to final sound
+                        if not self.silence_data is None:
+                            self.voice_data += self.silence_data
+                            self.voice_l += self.silence_l                            
+                            self.silence_data = None
+                            self.silence_l = 0
                         self.voice_data += data
                         self.voice_l += l
-                else:
-                    self.putVoiceToParent()
+                    self.silence_data = None
+                    self.silence_l = 0
+                # if we have a started voice and now a silence
+                elif not self.voice_data is None:
+                    if self.silence_data is None:
+                        self.silence_data = data
+                        self.silence_l = l
+                    else:
+                        self.silence_data += data
+                        self.silence_l += l
+                    # if silence is long enough to stop a voice
+                    if self.getPlaybackTime(self.getVoiceDataLength(self.silence_data)) >= self.SILENCEMAXIMUM:
+                        self.putVoiceToParent()
+                        self.silence_data = None
+                        self.silence_l = 0
+
         else:
+            # TODO Voice play length calculation mayh be broken, we need new methods for raw_data
             buf, overflowed  = self.rawInputStream.read(int(self.DURATION * sd.default.samplerate * self.channels))
             data = bytes(buf)
     
             if not overflowed and len(data) > 0:
-                 # collect voice data as long we hear a voice and send it then
+                 # collect silence data as long we hear a voice and send it then
                 if self.analyzeRawData(data):
                     if self.voice_data is None:
                         self.voice_data = data
@@ -230,24 +263,44 @@ class Microphone(Robot):
                     else:
                         self.voice_data += data
                         self.voice_l += len(data)
-                else:
-                    self.putVoiceToParent()
+                    self.silence_data = None
+                    self.silence_l = 0
+                # if we have a started voice and now a silence
+                elif not self.voice_data is None:
+                    if self.silence_data is None:
+                        self.silence_data = data
+                        self.silence_l = l
+                    else:
+                        self.silence_data += data
+                        self.silence_l += len(data)
+                    # if silence is long enough to stop a voice
+                    if self.getPlaybackTime(self.getVoiceDataLength(self.silence_data)) >= self.SILENCEMAXIMUM:
+                        self.putVoiceToParent()
+                        self.silence_data = None
+                        self.silence_l = 0
 
     def putVoiceToParent(self):
         if self.voice_data is not None:
-            # put robotType out (heard voice) to the parent Axon going up to main Robot
-            # connected to present Item.names
-            voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
-                                                   data=self.getVoiceData(data=self.voice_data, dtype=Settings.AUDIO_CONVERSION_FORMAT), locations=self.getLocations())
-            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: voice from " + self.getMemory().itemsPresenceToStr())
-            for itemSensation in self.getMemory().getAllPresentItemSensations():
-                itemSensation.associate(sensation=voiceSensation)
-#            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: self.getParent().getAxon().put(robot=self, sensation)")
-#             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)
-            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: route(transferDirection=Sensation.TransferDirection.Direct, sensation=voiceSensation")
-            self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=voiceSensation)
+            # If we have a voice that is longer than just a click etc.
+            if self.getPlaybackTime(self.getVoiceDataLength(self.voice_data)) >= self.VOIVELENGTHMINIMUN:
+                # put robotType out (heard voice) to the parent Axon going up to main Robot
+                # connected to present Item.names
+                voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
+                                                       data=self.getVoiceData(data=self.voice_data, dtype=Settings.AUDIO_CONVERSION_FORMAT), locations=self.getLocations())
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: voice from " + self.getMemory().itemsPresenceToStr())
+                for itemSensation in self.getMemory().getAllPresentItemSensations():
+                    itemSensation.associate(sensation=voiceSensation)
+    #            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: self.getParent().getAxon().put(robot=self, sensation)")
+    #             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: route(transferDirection=Sensation.TransferDirection.Direct, sensation=voiceSensation {}s voice".format(self.getPlaybackTime(self.getVoiceDataLength(self.voice_data))))
+                self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=voiceSensation)
+            else:
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: rejected too short {}s voice".format(self.getPlaybackTime(self.getVoiceDataLength(self.voice_data))))
+                
             self.voice_data=None
             self.voice_l=0
+            self.silence_data = None
+            self.silence_l = 0
         
         '''
         Analyze voice sample
@@ -257,7 +310,7 @@ class Microphone(Robot):
         long term average, we have a sound that has voice level higher
         than noise heard.
         
-        If we have voice on longer than half of this samplöe, then whole samle is voice
+        If we have voice on longer than half of this sample, then whole sample is voice
         and we return True, otherwise False
         
         We could also analyse sound volume and sound rate, but yet implemented
@@ -320,6 +373,9 @@ class Microphone(Robot):
         Analyze voice sample
 
         raw data version
+        
+        TODO Seems only difference with analyzeNumpyData is that we get fixed dtype=Settings.AUDIO_CONVERSION_FORMAT
+             but we get array of arrays
         '''
     def analyzeRawData(self, data):
 
@@ -327,7 +383,7 @@ class Microphone(Robot):
         try:
             aaa = numpy.fromstring(data, dtype=Settings.AUDIO_CONVERSION_FORMAT)
         except (ValueError):
-            self.log("analyzeRawData numpy.fromstring(data, dtype=dtype: ValueError")      
+            self.log("analyzeRawData numpy.fromstring(data, dtype=Settings.AUDIO_CONVERSION_FORMAT: ValueError")      
             return False
          
         minim=9999.0
@@ -363,7 +419,7 @@ class Microphone(Robot):
                     voice_items +=1
             else:
                 if self.short_average > self.sensitivity * self.average:
-                    self.start_time = time.time() - (float(len(aaa)-i)/self.rate)# arrays of arrays, so /self.channels # sound's start time is when we got sound data minus slots that are not in the sound
+                    self.start_time = time.time() - (float(len(aaa)-i)/self.rate) # arrays of arrays, so /self.channels # sound's start time is when we got sound data minus slots that are not in the sound
                     self.log(logLevel=Robot.LogLevel.Detailed, logStr="voice started at " + time.ctime() + ' ' + str(self.start_time) + ' ' + str(self.short_average) + ' ' + str(self.average))
                     self.voice = True
                     self.sum=self.short_average
@@ -379,7 +435,7 @@ class Microphone(Robot):
     We expect output to be PC; 2-channels,
     but we can have mono-microphones that produce 1-channels data,
     which is set in config file to be known,
-    so only conversion supported now i 1-channel to 2-channels
+    so only conversion supported now is 1-channel to 2-channels
     '''
     
     
@@ -403,9 +459,41 @@ class Microphone(Robot):
                 return None
         
         return data
+ 
+    '''
+    get read data length to expected voice format
+    We expect output to be PC; 2-channels,
+    but we can have mono-microphones that produce 1-channel getPlaybackTimes data,
+    which is set in config file to be known,
+    so only conversion supported now is 1-channel to 2-channels
+    '''
     
-  
-            
+    
+    def getVoiceDataLength(self, data):
+        if IsAlsaAudio and self.channels == 1 and Settings.AUDIO_CHANNELS == 2:
+            return 2*len(data)
+        
+        return len(data)
+
+    '''
+    Inform in what robotState this Robot is to other Robots
+    '''   
+    def informRobotState(self, robotState):
+        if self.robotState != robotState: 
+            self.robotState = robotState
+            robotStateSensation = self.createSensation(associations=None,
+                                                       sensationType=Sensation.SensationType.RobotState,
+                                                       memoryType=Sensation.MemoryType.Sensory,
+                                                       robotState=robotState,
+                                                       locations=self.getLocations())
+            self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=robotStateSensation)
+
+    '''
+    How long sound this is in seconds
+    '''
+    
+    def getPlaybackTime(self, datalen):
+        return float(datalen)/(float(Settings.AUDIO_RATE*Settings.AUDIO_CHANNELS))
 
 
 if __name__ == "__main__":

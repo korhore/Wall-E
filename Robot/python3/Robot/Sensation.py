@@ -127,7 +127,11 @@ class Sensation(object):
                       CommunicationOn ='l',
                       CommunicationNoResponseToSay='m',
                       CommunicationEnded ='n',
-                      CommunicationDelay = '0')
+                      CommunicationDelay = 'o',
+                      
+                      #Microphone
+                      MicrophoneSensing = 'p',
+                      MicrophoneDisabled = 'q')
     
     # enum items as strings    
     ALL="All"
@@ -182,12 +186,16 @@ class Sensation(object):
     ACTIVITYTIRED="Tired"
     ACTIVITYBEAKING="Breaking"
     # Communication
-    COMMUNIVATIONNOTSTARTED="Not Started"
-    COMMUNICATIONWAITING="Waiting"
-    COMMUNICATIONON="On"
-    COMMUNICATIONNORESPONSETOSAY="No Response To Say"
-    COMMUNICATIONENDED="Ended"
-    COMMUNICATIONDELAY="Delay"
+    COMMUNIVATIONNOTSTARTED="Communication Not Started"
+    COMMUNICATIONWAITING="Communication Waiting"
+    COMMUNICATIONON="Communication On"
+    COMMUNICATIONNORESPONSETOSAY="Communication No Response To Say"
+    COMMUNICATIONENDED="Communication Ended"
+    COMMUNICATIONDELAY="Communication Delay"
+    # Microphone
+    MICROPHONESENSING="Microphone Sensing"
+    MICROPHONEDISABLED="Microphone Disabled"
+
 
 
       
@@ -268,7 +276,11 @@ class Sensation(object):
                RobotState.CommunicationOn:COMMUNICATIONON,
                RobotState.CommunicationNoResponseToSay:COMMUNICATIONNORESPONSETOSAY,
                RobotState.CommunicationEnded:COMMUNICATIONENDED,
-               RobotState.CommunicationDelay:COMMUNICATIONDELAY}
+               RobotState.CommunicationDelay:COMMUNICATIONDELAY,
+               
+               # Microphone
+               RobotState.MicrophoneSensing:MICROPHONESENSING,
+               RobotState.MicrophoneDisabled:MICROPHONEDISABLED}
     
     NormalSensationTypes={
                SensationType.Drive: DRIVE,

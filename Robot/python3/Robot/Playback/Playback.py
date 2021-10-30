@@ -817,10 +817,10 @@ class Playback(Robot):
 #----------------------------------------------------------------------------
     
         
-    def getPlaybackTime(self, datalen=None):
-        if datalen == None:
-            datalen = self.last_datalen
-            
+    def getPlaybackTime(self, datalen):
+#         if datalen == None:
+#             datalen = self.last_datalen
+#             
         return float(datalen)/(float(Settings.AUDIO_RATE*Settings.AUDIO_CHANNELS))
     
     def getRandom(base, randomMin, randomMax):
