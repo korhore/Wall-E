@@ -1,6 +1,6 @@
 '''
 Created on 21.09.2020
-Updated on 14.05.2021
+Updated on 03.11.2021
 @author: reijo.korhonen@gmail.com
 
 test Microphone and SoundDevicePlaypack classes
@@ -29,8 +29,9 @@ class VoiceTestCase(unittest.TestCase, Robot):
         - voice
     '''
     
-    TEST_RUNS=4
-    TEST_TRIES=20
+    TEST_RUNS=5
+    TEST_TRIES=60
+    INITIAL_SILECE_SLEEP_TIME=30   # WE should hear silence at the beginning of the test
     SLEEP_TIME=3            # ?s when normal test
     SCORE= 0.1
     NAME='Wall-E'           # This should be real Robot name with real identity
@@ -96,10 +97,10 @@ class VoiceTestCase(unittest.TestCase, Robot):
             is_set = robotType in robotTypes    
             #sensory
             capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Voice, is_set=is_set)   
-            #Working
-            capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Working, sensationType=Sensation.SensationType.Voice, is_set=is_set)   
-            #LongTerm
-            capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.LongTerm, sensationType=Sensation.SensationType.Voice, is_set=is_set)   
+#             #Working
+#             capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Working, sensationType=Sensation.SensationType.Voice, is_set=is_set)   
+#             #LongTerm
+#             capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.LongTerm, sensationType=Sensation.SensationType.Voice, is_set=is_set)   
 
         robot.setCapabilities(capabilities)
     
@@ -115,6 +116,7 @@ class VoiceTestCase(unittest.TestCase, Robot):
                        instanceName='testVoice',
                        instanceType= Sensation.InstanceType.Real,
                        level=1)
+        self.axon = Axon(robot=self)
 #         self.mainRobot=self
 #         self.mainNames = self.MAINNAMES
 # #         self.axon = Axon(robot=self) # parent axon
@@ -176,7 +178,7 @@ class VoiceTestCase(unittest.TestCase, Robot):
 
 #         print("--- put stop-sensation for All")
 #         self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=self.stopSensation)
-#         
+#         3,70
 #         print("--- test sleeping " + str(VoiceTestCase.SLEEP_TIME) + " second until stop should be done")
 #         systemTime.sleep(VoiceTestCase.SLEEP_TIME) # let result UI be shown until cleared           
 
@@ -185,11 +187,13 @@ class VoiceTestCase(unittest.TestCase, Robot):
         #self.assertEqual(self.microphone.getAxon().empty(), False, 'Axon should not be empty after self.microphone.stop()')
         while(not self.getAxon().empty()):
             transferDirection, sensation = self.getAxon().get(robot=self)
-#             self.assertTrue(sensation.getSensationType() == Sensation.SensationType.Stop,
+#             self.assertTrue(sensation.getSens6ationType() == Sensation.SensationType.Stop,
 #                             'parent should get Stop sensation type after test and self.microphone.stop()')
         
         while self.microphone.running or self.playback.running:
             systemTime.sleep(VoiceTestCase.SLEEP_TIME)
+        # one sleep more
+        systemTime.sleep(VoiceTestCase.SLEEP_TIME)
          
         del self.stopSensation
         del self.Wall_E_item_sensation
@@ -204,8 +208,7 @@ class VoiceTestCase(unittest.TestCase, Robot):
         return float(datalen)/(float(Settings.AUDIO_RATE*Settings.AUDIO_CHANNELS))
     
     def test_2_SoundDevicePlayback(self):
-#         print("--- test_1_SoundDevicePlayback start")
-#         self.playback.start()
+        print("\n\n--- test_1_SoundDevicePlayback")
 
         self.assertEqual(self.playback.getAxon().empty(), True, 'self.playback Axon should be empty at the beginning of test_Visual\nCannot test properly this!')
 
@@ -264,18 +267,34 @@ class VoiceTestCase(unittest.TestCase, Robot):
         print("--- test sleeping {} seconds until playback is done".format(playbackTime))
         systemTime.sleep(playbackTime)   
 
-    def test_1_SoundDevices(self):
+    def test_1_SoundDeviceMicrophone(self):
         self.assertEqual(self.getAxon().empty(), True, 'Axon should be empty at the beginning of test_2_SoundDevices\nCannot test properly this!')
         
         test_runs = 0
         test_tries=0
         hearingDisabled = True
+        
+        # At first Microphone should hear silence to set its voice levels
+        self.microphone.getMemory()._presentItemSensations[VoiceTestCase.LOCATION][self.Wall_E_item_sensation.getName()] = self.Wall_E_item_sensation          
+        hearingDisabled = False
+        print("\n\n--- test sleeping {} seconds to let Microphone hear silence level\n\n".format(VoiceTestCase.INITIAL_SILECE_SLEEP_TIME))
+        systemTime.sleep(VoiceTestCase.INITIAL_SILECE_SLEEP_TIME) # let Microphone start before waiting it to stops
+        print("--- There should not be anything in out Axon, but we clear it to be sure")
+        while(not self.getAxon().empty()):
+            isHeardVoice = False
+            tranferDirection, sensation = self.getAxon().get(robot=self)
+            if sensation.getSensationType() == Sensation.SensationType.Voice:
+                if sensation.getRobotType() == Sensation.RobotType.Sense:
+                    print("--- got Sense Voice {}s".format(self.getPlaybackTime(len(sensation.getData()))))
+                else:
+                    print("--- got Other Voice {}s".format(self.getPlaybackTime(len(sensation.getData()))))
+            print("--- got Other Sensation")
 
         while test_runs < VoiceTestCase.TEST_RUNS and test_tries < VoiceTestCase.TEST_TRIES:
             # enable hearing, we claim that this one speaks
-            print("\n\n--- test {} try {}\n".format(test_runs, test_tries))
+            print("\n\n\n--- test {} try {} SPEAK NOW\n".format(test_runs, test_tries))
             if hearingDisabled:
-                print("\n\n--- test {} try {} Enable hearing\n".format(test_runs, test_tries))
+                print("\n\n--- test {} try {} Enable hearing, \n".format(test_runs, test_tries))
                 self.microphone.getMemory()._presentItemSensations[VoiceTestCase.LOCATION][self.Wall_E_item_sensation.getName()] = self.Wall_E_item_sensation          
                 hearingDisabled = False
             while self.getAxon().empty() and test_runs < VoiceTestCase.TEST_RUNS and test_tries < VoiceTestCase.TEST_TRIES:
@@ -284,14 +303,17 @@ class VoiceTestCase(unittest.TestCase, Robot):
                 test_tries = test_tries+1
                 
             gotHeardVoice = False
+            playbackTime = 0
+            voicenumber = 0
             while(not self.getAxon().empty()):
                 isHeardVoice = False
                 tranferDirection, sensation = self.getAxon().get(robot=self)
                 if sensation.getSensationType() == Sensation.SensationType.Voice:
                     if sensation.getRobotType() == Sensation.RobotType.Sense:
-                        print("--- got Sensations, was heard voice")
+                        print("--- got Sense Voice {}s".format(self.getPlaybackTime(len(sensation.getData()))))
+                        voicenumber +=1
                         if not gotHeardVoice:
-                            test_runs=test_runs+1
+                            test_runs += 1
                             gotHeardVoice = True  # got it
                         isHeardVoice = True
                         # TODO here we test speaking so we must disable hearing
@@ -300,21 +322,23 @@ class VoiceTestCase(unittest.TestCase, Robot):
                             del self.microphone.getMemory()._presentItemSensations[VoiceTestCase.LOCATION][self.Wall_E_item_sensation.getName()]
                             hearingDisabled = True
                                 #sleep as long as sound playing will take
-                        print("--- Playback heard voice test {} try {}".format(test_runs, test_tries))
-                        playbackTime = 1.5 * self.getPlaybackTime(datalen=len(sensation.getData()))
+                        print("--- BE SILENT Playback heard voice test {} try {}".format(test_runs, test_tries))
+                        playbackTime += 3.0 * self.getPlaybackTime(datalen=len(sensation.getData()))
                         playBackSensation = self.playback.createSensation(
                                                                 memoryType=Sensation.MemoryType.Sensory,
                                                                 sensationType=Sensation.SensationType.Voice,
                                                                 robotType=Sensation.RobotType.Muscle,
                                                                 data=sensation.getData(),
                                                                 kind = Sensation.Kind.Normal)
+                        playBackSensation.setKind(kind = Sensation.Kind.Normal)
 
 
                         self.playback.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=playBackSensation)
-                        print("--- test sleeping {} seconds until playback is done test {} try {} ".format(playbackTime, test_runs, test_tries))
-                        systemTime.sleep(playbackTime) # let Microphone start before waiting it to stops
-                if not isHeardVoice:
-                    print("--- got Sensations, but no heard voice, test continues")
+            if playbackTime > 0:
+                print("\n--- BE SILENT test sleeping {} seconds until playback is done test {} try {}\n    got {} Voices ".format(playbackTime, test_runs, test_tries, voicenumber))
+                systemTime.sleep(playbackTime) # let Microphone start before waiting it to stops
+            if not isHeardVoice:
+                print("\n--- got Sensations, but no heard voice, test continues")
     
         
     '''

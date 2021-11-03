@@ -1,6 +1,6 @@
 '''
 Created on Jan 19, 2014
-Updated on 23.10.2021
+Updated on 03.11.2021
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -48,8 +48,8 @@ class Axon():
 #             sensation.setLocations(self.robot.getLocations())   #
         sensation.detach(robot=robot)         # release from caller
         
-        # select QOS queue only if we have sensation in normal queue or MemoryType is not first ordered Sensory
-        # so we release reader, that was blocked
+#         # select QOS queue only if we have sensation in normal queue or MemoryType is not first ordered Sensory
+#         # so we release reader, that was blocked
         if self.queue.empty() or sensation.getMemoryType() not in Sensation.QoSMemoryTypesOrdered:
             queue = self.queue
         else:
@@ -80,15 +80,18 @@ class Axon():
                     break
 
         # if queues were all empty, we wait normal way
-        self.robot.log(logLevel=Axon.AxonLogLevel.Detailed, logStr="Axon get from {} original queue length {} empty {} full {}".format(self.robot.getName(), self.queue.qsize(), self.queue.empty(), self.queue.full()))
+        self.robot.log(logLevel=Axon.AxonLogLevel.Detailed, logStr="Axon get from {} original queue length {} empty {}".format(self.robot.getName(), self.length(), self.empty()))
         (transferDirection, sensation) = self.queue.get()
-        self.robot.log(logLevel=Axon.AxonLogLevel.Detailed, logStr="Axon done get from {} final queue length {} empty {} full {}".format(self.robot.getName(), self.queue.qsize(), self.queue.empty(), self.queue.full()))
+        self.robot.log(logLevel=Axon.AxonLogLevel.Detailed, logStr="Axon done get from {} final queue length {} empty {}".format(self.robot.getName(), self.length(), self.empty()))
         #sensation.detachAll() # TODO We should not need this, but without this now, we will get Not Forgottable robot Communications
                                # Meaning, that sensation.detach() is not done somewhere
         #sensation.attach(robot=robot) #attached already to robot=self.robot
         return transferDirection, sensation
         
     def empty(self):
+        for memorytype in Sensation.QoSMemoryTypesOrdered:
+            if not self.qualityOfServiceQueues[memorytype].empty():
+                return False
         return self.queue.empty()
     
     def length(self):

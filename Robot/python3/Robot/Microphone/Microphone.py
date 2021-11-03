@@ -1,11 +1,32 @@
 '''
 Created on 21.09.2019
-Updated on 30.10.2020
+Updated on 03.11.2020
 
 @author: reijo.korhonen@gmail.com
 
-This class is low level sensory for hearing,
-implemented by alsaaudio or by SoundDevice and need usb-microphone as hardware
+This class is low level sensory for hearing, producing Sensory MenoryType Sensations
+implemented by alsaaudio or by SoundDevice and need usb-microphone as hardware.
+
+As as SenspRy Memorytype Robot, this Robot should be fast and not to use too
+much resources. This shouns work also with MicprophonePlayBack-Robot-which implements
+canceling echo as program level, meaning that Microphone- and and Playback-Robots
+don't run same time. This Robot implements Sense-method, which implements requiremets described
+above.
+
+There are challenges with general-type computers like Linux and Wibdows-machines with
+realtime implementations. And that is what we need and what we can't get. It means,
+that we don't how often sense-method is called. Sense-method tries to combine short silences
+to a final Voice. Our target is get whole Voice-what a person talks. Starting to a talk is detected
+by higher short time volume than long time mean volume. This is how human hearing works.
+Hearing is adaptive that way, works fine when there are other noices and also, then there are not
+other noises in environment.
+
+With correct parameters we can get this working wall enough, but not perfect,
+when computer has a high load. So this implementation is best implementation we have tested
+to work, but because this implementation can make errors and produce many Voices even if
+person speaks continuous sentence, Communication-Robots has a duty to combine
+the Sense-type Voices to Working-Memory Voices, it delay with previous Voice stoptime and
+next Voice is short enough.
 
 '''
 import time
@@ -50,14 +71,14 @@ class Microphone(Robot):
     """
         
     SENSITIVITY=1.25
-    AVERAGE_PERIOD=100.0                # used as period in seconds
-    SHORT_AVERAGE_PERIOD=1.0            # used as period in seconds
+    AVERAGE_PERIOD=100.0                # used as voice volume mean calculation long-period in seconds
+    SHORT_AVERAGE_PERIOD=1.0            # used as voice volume mean calculation short-period in seconds
     
     DEBUG_INTERVAL=60.0
     SLEEP_TIME=3.0                     # if nothing to do, sleep
     DURATION = 1.0                     # record 1.5 sec
     VOIVELENGTHMINIMUN = 2.0           # accept voices, that are at least this long, not just click/click etc. something that are propable something a person says,
-    SILENCEMAXIMUM = 1.0               # duration how long silence we should hear until a single sound stops
+    SILENCEMAXIMUM = 0.5               # duration how long silence we should hear until a single sound stops
     VOIVECONCATENATETRYES = 3          # accept voices, that are at least this long, not just click/click etc. something that are propable something a person says,
         
 
@@ -185,7 +206,7 @@ class Microphone(Robot):
                     self.logged = False
 #                     # TODO as a test we sense
                     #self.log(logLevel=Robot.LogLevel.Verbose, logStr=str(len(self.getMemory().presentItemSensations)) + " items NOT speaking, sense anyway")
-                    self.sense()
+#                     self.sense()
                     #self.log(logLevel=Robot.LogLevel.Normal, logStr="no items speaking, sleeping " + str(Microphone.SLEEP_TIME))
                     #time.sleep(Microphone.SLEEP_TIME)
                     
@@ -212,72 +233,124 @@ class Microphone(Robot):
     '''
     We can sense
     We are Sense type Robot
+    
+    To be fast and use less resource, we don't log except if set as verbose.
     '''        
     def sense(self):
         # blocking read data from device
         #print "reading " + self.name
-        if IsAlsaAudio:
-            l, data = self.inp.read() # l int, data bytes
-            if l > 0:
-                # collect voice data as long we hear a voice and send it then
-                if self.analyzeNumpyData(l, data, Settings.AUDIO_CONVERSION_FORMAT):
-                    if self.voice_data is None:
-                        self.voice_data = data
-                        self.voice_l = l
+#        self.log(logLevel=Robot.LogLevel.Verbose, logStr="sense: start")
+        isHopeOfASound=True
+        self.voice_data=None
+        self.voice_l=0
+        self.silence_data = None
+        self.silence_l = 0
+        while isHopeOfASound:
+            if IsAlsaAudio:
+                l, data = self.inp.read() # l int, data bytes
+                if l > 0:
+                    # collect voice data as long we hear a voice and send it then
+                    if self.analyzeNumpyData(l, data, Settings.AUDIO_CONVERSION_FORMAT):
+                        if self.voice_data is None:
+                            self.log(logLevel=Robot.LogLevel.Verbose, logStr="sense: starting sound")
+                            self.voice_data = data
+                            self.voice_l = l
+                        else:
+                            # if we have had silence in the middle the sound add it to final sound
+                            if not self.silence_data is None:
+                                self.log(logLevel=Robot.LogLevel.Verbose, logStr="sense: add silence to a sound")
+                                self.voice_data += self.silence_data
+                                self.voice_l += self.silence_l
+                                self.silence_data = None
+                                self.silence_l = 0
+                            self.log(logLevel=Robot.LogLevel.Verbose, logStr="sense: add next piece to a sound")
+                            self.voice_data += data
+                            self.voice_l += l
+                    # if we have a started voice and now a silence
                     else:
-                        # if we have silence in the middle the sound add it to final sound
-                        if not self.silence_data is None:
-                            self.voice_data += self.silence_data
-                            self.voice_l += self.silence_l                            
-                            self.silence_data = None
-                            self.silence_l = 0
-                        self.voice_data += data
-                        self.voice_l += l
-                    self.silence_data = None
-                    self.silence_l = 0
-                # if we have a started voice and now a silence
-                elif not self.voice_data is None:
-                    if self.silence_data is None:
-                        self.silence_data = data
-                        self.silence_l = l
+                        # if we don't have starting voice, then there is no hope of sound yet
+                        if self.voice_data is None:
+                            isHopeOfASound=False
+                        else:
+                            if self.silence_data is None:
+                                self.log(logLevel=Robot.LogLevel.Verbose, logStr="sense: starting silence in the middle of potential sound")
+                                self.silence_data = data
+                                self.silence_l = l
+                            else:
+                                self.log(logLevel=Robot.LogLevel.Verbose, logStr="sense: add next piece to a silence")
+                                self.silence_data += data
+                                self.silence_l += l
+                            # if silence is long enough to stop a voice
+                            if self.getPlaybackTime(self.getVoiceDataLength(self.silence_data)) >= self.SILENCEMAXIMUM:
+                                # add silence to the final sound, because person can have said something even if whole piece is not a sound
+                                if not self.silence_data is None:
+                                    self.log(logLevel=Robot.LogLevel.Verbose, logStr="sense: add silence to a sound")
+                                    self.voice_data += self.silence_data
+                                self.log(logLevel=Robot.LogLevel.Verbose, logStr="sense: silence length {}s exceeded {}s is {}s sound".\
+                                         format(self.getPlaybackTime(self.getVoiceDataLength(self.silence_data)), self.SILENCEMAXIMUM,\
+                                                self.getPlaybackTime(self.getVoiceDataLength(self.voice_data))))
+                                self.putVoiceToParent()
+                                isHopeOfASound=False
+                               
+                                self.silence_data = None
+                                self.silence_l = 0
+#                         else:
+#                             # if we hear silence without started sound, we don't have hope that we here a Voice long enougn, so we stop reading for a while
+#                             isHopeOfASound = False
+            else: # TODO Not tested
+                # TODO Voice play length calculation may be broken, we need new methods for raw_data
+                buf, overflowed  = self.rawInputStream.read(int(self.DURATION * sd.default.samplerate * self.channels))
+                data = bytes(buf)
+                
+                if not overflowed and len(data) > 0:
+                         # collect silence data as long we hear a voice and send it then
+                    if self.analyzeRawData(data):
+                        if self.voice_data is None:
+                            self.log(logLevel=Robot.LogLevel.Verbose, logStr="sense: starting sound")
+                            self.voice_data = data
+                            self.voice_l = len(data)
+                        else:
+                            # if we have had silence in the middle the sound add it to final sound
+                            if not self.silence_data is None:
+                                self.log(logLevel=Robot.LogLevel.Verbose, logStr="sense: add silence to a sound")
+                                self.voice_data += self.silence_data
+                                self.voice_l += self.silence_l
+                                self.silence_data = None
+                                self.silence_l = 0
+                            self.log(logLevel=Robot.LogLevel.Verbose, logStr="sense: add next piece to a sound")
+                            self.voice_data += data
+                            self.voice_l += len(data)
+                    # if we have a started voice and now a silence
                     else:
-                        self.silence_data += data
-                        self.silence_l += l
-                    # if silence is long enough to stop a voice
-                    if self.getPlaybackTime(self.getVoiceDataLength(self.silence_data)) >= self.SILENCEMAXIMUM:
-                        self.putVoiceToParent()
-                        self.silence_data = None
-                        self.silence_l = 0
+                        # if we don't have starting voice, then there is no hope of sound yet
+                        if self.voice_data is None:
+                            isHopeOfASound=False
+                        else:
+                            if self.silence_data is None:
+                                self.log(logLevel=Robot.LogLevel.Verbose, logStr="sense: starting silence in the middle of potential sound")
+                                self.silence_data = data
+                                self.silence_l = len(data)
+                            else:
+                                self.log(logLevel=Robot.LogLevel.Verbose, logStr="sense: add next piece to a silence")
+                                self.silence_data += data
+                                self.silence_l += len(data)
+                            # if silence is long enough to stop a voice
+                            if self.getPlaybackTime(self.getVoiceDataLength(self.silence_data)) >= self.SILENCEMAXIMUM:
+                                # add silence to the final sound, because person can have said something even if whole piece is not a sound
+                                if not self.silence_data is None:
+                                    self.log(logLevel=Robot.LogLevel.Verbose, logStr="sense: add silence to a sound")
+                                    self.voice_data += self.silence_data
+                                self.log(logLevel=Robot.LogLevel.Verbose, logStr="sense: silence length {}s exceeded {}s is {}s sound".\
+                                         format(self.getPlaybackTime(self.getVoiceDataLength(self.silence_data)), self.SILENCEMAXIMUM,\
+                                                self.getPlaybackTime(self.getVoiceDataLength(self.voice_data))))
+                                self.putVoiceToParent()
+                                isHopeOfASound=False
+                               
+                                self.silence_data = None
+                                self.silence_l = 0
 
-        else:
-            # TODO Voice play length calculation mayh be broken, we need new methods for raw_data
-            buf, overflowed  = self.rawInputStream.read(int(self.DURATION * sd.default.samplerate * self.channels))
-            data = bytes(buf)
-    
-            if not overflowed and len(data) > 0:
-                 # collect silence data as long we hear a voice and send it then
-                if self.analyzeRawData(data):
-                    if self.voice_data is None:
-                        self.voice_data = data
-                        self.voice_l = len(data)
-                    else:
-                        self.voice_data += data
-                        self.voice_l += len(data)
-                    self.silence_data = None
-                    self.silence_l = 0
-                # if we have a started voice and now a silence
-                elif not self.voice_data is None:
-                    if self.silence_data is None:
-                        self.silence_data = data
-                        self.silence_l = l
-                    else:
-                        self.silence_data += data
-                        self.silence_l += len(data)
-                    # if silence is long enough to stop a voice
-                    if self.getPlaybackTime(self.getVoiceDataLength(self.silence_data)) >= self.SILENCEMAXIMUM:
-                        self.putVoiceToParent()
-                        self.silence_data = None
-                        self.silence_l = 0
+                            
+ #         self.log(logLevel=Robot.LogLevel.Verbose, logStr="sense: end")
 
     def putVoiceToParent(self):
         if self.voice_data is not None:
@@ -470,6 +543,8 @@ class Microphone(Robot):
     
     
     def getVoiceDataLength(self, data):
+        if data is None:
+            return 0
         if IsAlsaAudio and self.channels == 1 and Settings.AUDIO_CHANNELS == 2:
             return 2*len(data)
         

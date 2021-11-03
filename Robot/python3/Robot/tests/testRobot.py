@@ -103,7 +103,7 @@ class RobotTestCase(unittest.TestCase):
     FAKE_PORT = 2001
     
     SLEEPTIME=10.0
-    WAIT_STEP = 1.0
+    WAIT_STEP = 3.0
     
    
     '''
@@ -473,7 +473,8 @@ class RobotTestCase(unittest.TestCase):
         del self.virtualMuscle
         del self.virtualSense
         del self.virtualMainRobot
-       
+        
+    
     '''
     TODO is this test valid or not?
     '''
@@ -1262,39 +1263,64 @@ class RobotTestCase(unittest.TestCase):
                                                      score=RobotTestCase.SCORE_1,
                                                      presence=Sensation.Presence.Entering,
                                                      locations=locations)
-# TODO tested somewhere else and this test is not valid
-#         for location in Wall_E_item_sensation.getLocations():        
-#             self.assertEqual(len(self.sense.getMemory().getPresentItemSensations(location)), 1, 'len(self.sense.getMemory().getPresentItemSensations({}))'.format(location))
-#             print('len(self.sense.getMemory().getPresentItemSensations({})) == 1 OK'.format(location))
-            
         self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty before we test')
-        # test
-#        self.sense.process(transferDirection=transferDirection, sensation=Wall_E_item_sensation)
         self.sense.sense(transferDirection=transferDirection, sensation=Wall_E_item_sensation)
-
-#         self.sense.process(sensation=Wall_E_item_sensation, isRoutedToParent = False)
-        # old routing
-#         # should be routed to mainRobot
-#         self.assertFalse(self.mainRobot.getAxon().empty(),'mainRobot Axon should not be empty')
-#         tranferDirection, sensation = self.mainRobot.getAxon().get(robot=self)
-#         # test routing to muscle
-        # new star routing
-        # should be routed to mainRobot
+        # shouldnot  be routed to mainRobot
         self.assertTrue(self.mainRobot.getAxon().empty(),'mainRobot Axon should be empty')
-        # test routing to muscle
-        # should be routed to mainRobot
+        # should be routed to muscle
         if shouldBeRouted:
             self.assertFalse(self.muscle.getAxon().empty(),'muscle Axon should not be empty')
             tranferDirection, sensation = self.muscle.getAxon().get(robot=self)
-#             sensation, isRoutedToParent = self.muscle.getAxon().get(robot=self)
             self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty')
-# TODO tested elswhere and this test is not valid
-#             for location in sensation.getLocations():        
-#                 self.assertEqual(len(self.sense.getMemory().getPresentItemSensations(location)), 1, 'len(self.sense.getMemory().getPresentItemSensations({}))'.format(location))
-#                 self.assertEqual(len(self.muscle.getMemory().getPresentItemSensations(location)), 1, 'len(self.muscle.getMemory().getPresentItemSensations({}))'.format(location))
+            self.assertEqual(self.muscle.getAxon().length(),0,'muscle Axon should contain 0 sensations')
+            self.assertEqual(sensation,Wall_E_item_sensation,'received sensation should be same than transferred')
+            
+            #Test QOS
+            Wall_E_item_sensory_sensation = self.sense.createSensation(
+                                                         memoryType=Sensation.MemoryType.Sensory,
+                                                         sensationType=Sensation.SensationType.Item,
+                                                         robotType=robotType,
+                                                         name=RobotTestCase.NAME,
+                                                         score=RobotTestCase.SCORE_1,
+                                                         presence=Sensation.Presence.Entering,
+                                                         locations=locations)
+     
+            Wall_E_item_longTerm_sensation = self.sense.createSensation(
+                                                         memoryType=Sensation.MemoryType.LongTerm,
+                                                         sensationType=Sensation.SensationType.Item,
+                                                         robotType=robotType,
+                                                         name=RobotTestCase.NAME,
+                                                         score=RobotTestCase.SCORE_1,
+                                                         presence=Sensation.Presence.Entering,
+                                                         locations=locations)
+            
+            # put to axon in reverse order we should receive
+            self.sense.sense(transferDirection=transferDirection, sensation=Wall_E_item_longTerm_sensation)
+            self.assertEqual(self.muscle.getAxon().length(),1,'muscle Axon should contain 1 sensation')
+            self.sense.sense(transferDirection=transferDirection, sensation=Wall_E_item_sensation)
+            self.assertEqual(self.muscle.getAxon().length(),2,'muscle Axon should contain 2 sensations')
+            self.sense.sense(transferDirection=transferDirection, sensation=Wall_E_item_sensory_sensation)
+            self.assertEqual(self.muscle.getAxon().length(),3,'muscle Axon should contain 3 sensations')
+            # now we should get sensations in reverse order, meaning that sensory is first, working then and longterm last
+            # BUT Because QoS is working only if Axon queue is empty - to be sure no Robotss are blocked reading of Axon, when it is empty
+            # We wiil get fists put Sensations first even if it is LoingTerm
+            transferDirection, sensation = self.muscle.getAxon().get(robot=self)
+            self.assertEqual(sensation, Wall_E_item_longTerm_sensation,'should receive longTerm sensation first, because Axon was emyty, when thi was put')
+            self.assertEqual(self.muscle.getAxon().length(),2,'muscle Axon should contain 2 sensations')
+             
+            transferDirection, sensation = self.muscle.getAxon().get(robot=self)
+            self.assertEqual(sensation,Wall_E_item_sensory_sensation,'should receive sensory sensation as second, because QoS works, when Axon is not empty, when put')
+            self.assertEqual(self.muscle.getAxon().length(),1,'muscle Axon should contain 2 sensations')
+            
+            transferDirection, sensation = self.muscle.getAxon().get(robot=self)
+            self.assertEqual(sensation,Wall_E_item_sensation,'should receive working sensation last, because QoS works, when Axon is not empty, when put')
+            self.assertEqual(self.muscle.getAxon().length(),0,'muscle Axon should contain 1 sensations')
+            
+            self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty')
+           
         else:
             self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty')
-
+            
 
     '''
     deprecated
@@ -1572,7 +1598,9 @@ class RobotTestCase(unittest.TestCase):
         
         # this is hard to test
         # we could also start self.remoteMainRobot 
-        # but for test step by step, it is easier make only self.remoteMainRobot.tcpServer as running process 
+        # but for test step by step, it is easier make only self.remoteMainRobot.tcpServer as running process
+        
+        
 
         self.remoteMainRobot.tcpServer.start()        
         
