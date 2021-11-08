@@ -120,7 +120,7 @@ class MicrophonePlayback(Robot):
                     else:
                         # TODO old code did not work, because self.nextSenseTim is never None, self.playback.getPlaybackTime return always time to 
 #                         self.nextSenseTime = systemTime.time() + self.playback.getPlaybackTime(datalen=len(sensation.getData()))
-                        self.informRobotState(robotState = Sensation.RobotState.MicrophoneDisabled)
+                        self.microphone.informRobotState(robotState = Sensation.RobotState.MicrophoneDisabled)
                         self.playback.process(transferDirection=transferDirection, sensation=sensation)
 #                         if  self.nextSenseTime is None:
 #                             self.nextSenseTime = systemTime.time() + self.playback.getPlaybackTime(datalen=len(sensation.getData()))
@@ -139,7 +139,7 @@ class MicrophonePlayback(Robot):
                 # check, if playback is going on
                 if self.nextSenseTime is not None and\
                    systemTime.time() < self.nextSenseTime:
-                    self.informRobotState(robotState = Sensation.RobotState.MicrophoneDisabled)
+                    self.microphone.informRobotState(robotState = Sensation.RobotState.MicrophoneDisabled)
                     systemTime.sleep(self.nextSenseTime - systemTime.time())
                     self.nextSenseTime = None
                     self.microphone.informRobotState(robotState = Sensation.RobotState.MicrophoneSensing)
