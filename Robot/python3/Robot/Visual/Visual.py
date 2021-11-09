@@ -1,6 +1,6 @@
 '''
 Created on 12.03.2020
-Updated on 14.10.2021
+Updated on 09.11.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -204,7 +204,7 @@ class Visual(Robot):
             # just pass Sensation to wx-process
             # if we already got self.app and self.app.frame running
             # otherwise we just forget this sensation and wait new ones to come and to be shown
-            if self.app and self.app and self.app.frame: 
+            if self.app and self.app.frame: 
                 wx.PostEvent(self.app.frame, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
         # TODO should we release sensation, when we delete it from UI
         # that way we should attach also all sensations we get from associations
@@ -231,7 +231,7 @@ class Visual(Robot):
     Helpers
     '''
             
-    def PILTowx (image, size, setMask=False, square=False):
+    def PIL2wx (image, size, setMask=False, square=False):
         width, height = image.size
         bitmap = wx.Bitmap.FromBuffer(width, height, image.tobytes())
         if square:
@@ -429,7 +429,7 @@ class Visual(Robot):
                 if sensation.getSensationType() == Sensation.SensationType.Image:
                     image = sensation.getImage()
                     if image is not None:
-                        bitmap = Visual.PILTowx(image=image, size=Visual.IMAGE_SIZE)
+                        bitmap = Visual.PIL2wx(image=image, size=Visual.IMAGE_SIZE)
                         self.gs.Insert(index=Visual.LOG_PANEL_SENSATION_COLUMNS + Visual.LOG_PANEL_COLUMN_DATA,
                                        window=wx.StaticBitmap(parent=self, id=-1, size=(int(Visual.IMAGE_SIZE),int(Visual.IMAGE_SIZE)), bitmap=bitmap), proportion=0, flag=wx.EXPAND | wx.LEFT)
 #                                       window=wx.StaticBitmap(parent=self, id=-1, pos=(0, int(-Visual.IMAGE_SIZE/2)), size=(int(Visual.IMAGE_SIZE),int(Visual.IMAGE_SIZE)), bitmap=bitmap), proportion=0, flag=wx.EXPAND)
@@ -561,7 +561,7 @@ class Visual(Robot):
                 if sensation.getSensationType() == Sensation.SensationType.Image:
                     image = sensation.getImage()
                     if image is not None:
-                        bitmap = Visual.PILTowx(image=image, size=Visual.IMAGE_SIZE, square=True)
+                        bitmap = Visual.PIL2wx(image=image, size=Visual.IMAGE_SIZE, square=True)
                         imageInd = self.getImageInd(bitmap=bitmap)
                             
                 text=Sensation.getSensationTypeString(sensationType=sensation.getSensationType())
@@ -748,7 +748,7 @@ class Visual(Robot):
 #                                         parent=self, id=Visual.ID_POSITIVE, label=Visual.COMMUNICATION_COLUMN_POSITIVE_NAME), wx.EXPAND)
 #                     else:
 #                         self.gs.Add(wx.StaticText(self), 0, wx.EXPAND)
-#                 
+#
 #                 
 #             vbox.Add(self.gs, proportion=1, flag=wx.EXPAND)
 #             self.SetSizer(vbox)
@@ -760,7 +760,7 @@ class Visual(Robot):
                 communicationByLocationPanel = Visual.CommunicationByLocationPanel(parent=self.notebook, robot=self.getRobot(), location=location)
                 self.notebook.AddPage(communicationByLocationPanel, location)
                 self.communicationByLocationPanels[location]=communicationByLocationPanel
-            
+
             self.Fit()
             
             #Visual.setEventHandler(self, Visual.ID_POSITIVE, self.OnFeelingChange)
@@ -777,6 +777,7 @@ class Visual(Robot):
                 # Thread aborted (using our convention of None return)
                 sensation=event.data
                 self.getRobot().log(logLevel=Robot.LogLevel.Detailed, logStr='CommunicationPanel.OnSensation got sensation from event.data ' + sensation.toDebugStr() + ' len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) 
+#                self.getRobot().log(logLevel=Robot.LogLevel.Normal, logStr='CommunicationPanel.OnSensation got sensation from event.data ' + sensation.toDebugStr() + ' len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) 
                 #self.status.SetLabel('Got Sensation Event')
                 
                 if sensation.getLocations() == None or\
@@ -927,7 +928,7 @@ class Visual(Robot):
 #                         item_item.GetWindow().Show(show=False)
 #                         image = sensation.getImage()
 #                         if image is not None:
-#                             bitmap = Visual.PILTowx(image=image, size=Visual.IMAGE_SIZE)
+#                             bitmap = Visual.PIL2wx(image=image, size=Visual.IMAGE_SIZE)
 #                             image_item.GetWindow().SetBitmap(bitmap)
 #                             image_item.GetWindow().SetSize((Visual.IMAGE_SIZE,Visual.IMAGE_SIZE))
 #                             image_item.GetWindow().Show(show=True)
@@ -1060,6 +1061,15 @@ class Visual(Robot):
             vbox.Add(self.gs, proportion=1, flag=wx.EXPAND)
             self.SetSizer(vbox)
             
+            # Communication status by location           
+            statusHbox = wx.BoxSizer(wx.HORIZONTAL)
+            self.statusText = wx.StaticText(self, label="Empty")
+            
+            self.communicationStatusText ="Empty"
+            self.microphoneStatusText = "Empty"
+#             statusHbox .Add(self.communicationStatusText, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
+            statusHbox.Add(self.statusText, flag=wx.EXPAND, border=4)
+            vbox.Add(statusHbox, flag=wx.EXPAND)
 #             self.status = wx.StaticText(self, -1)   
 #             vbox.Add(self.status, flag=wx.EXPAND|wx.TOP|wx.BOTTOM, border=4)
             self.Fit()
@@ -1079,102 +1089,121 @@ class Visual(Robot):
                 #sensation=event.data
                 self.getRobot().log(logLevel=Robot.LogLevel.Detailed, logStr='CommunicationByLocationPanel.OnSensation got sensation from event.data ' + sensation.toDebugStr() + ' len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) 
 #                 self.status.SetLabel('Got Sensation Event')
-                
-                for i in range(Visual.COMMUNICATION_PANEL_SENSATION_LINES-1,0,-1):
-                    for j in range(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS):
-                        fromInd=(i*Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS) +j
-                        from_item = self.gs.GetItem(fromInd)
-                        toInd = ((i+1)*Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS) +j
-                        to_item = self.gs.GetItem(toInd)
-                        
-                        if from_item is not None and to_item is not None:
-                            if from_item.IsWindow() and to_item.IsWindow():
-                               to_item.GetWindow().SetLabel(from_item.GetWindow().GetLabel())
-                               # move feeling sensation down
-                               if j == Visual.COMMUNICATION_COLUMN_POSITIVE or j == Visual.COMMUNICATION_COLUMN_NEGATIVE:
-                                   to_item.GetWindow().setSensation(from_item.GetWindow().getSensation())                                   
-                            elif from_item.IsSizer() and to_item.IsSizer():
-                                from_data_gs = from_item.GetSizer()
-                                to_data_gs = to_item.GetSizer()
-                                
-                                # item
-                                from_item_item = from_data_gs.GetItem(Visual.COLUMN_DATA_TYPE_ITEM)
-                                label = from_item_item.GetWindow().GetLabel()
-                                to_item_item = to_data_gs.GetItem(Visual.COLUMN_DATA_TYPE_ITEM)
-                                to_item_item.GetWindow().SetLabel(from_item_item.GetWindow().GetLabel())
-                                to_item_item.GetWindow().Show(show=from_item_item.GetWindow().IsShown())
-                                # image
-                                from_image_item = from_data_gs.GetItem(Visual.COLUMN_DATA_TYPE_IMAGE)
-                                to_image_item = to_data_gs.GetItem(Visual.COLUMN_DATA_TYPE_IMAGE)                                
-                                bitmap = from_image_item.GetWindow().GetBitmap()
-                                to_image_item .GetWindow().SetBitmap(bitmap)
-                                to_image_item.GetWindow().Show(show=from_image_item.GetWindow().IsShown())
-                                    #self.getRobot().log(logLevel=Robot.LogLevel.Detailed, logStr="OnSensation image fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetBitmap Hide")
-                                #self.Refresh()
+                if sensation.getSensationType() == Sensation.SensationType.RobotState:
+                    self.traceRobotState(sensation = sensation)
+                else:
+                    for i in range(Visual.COMMUNICATION_PANEL_SENSATION_LINES-1,0,-1):
+                        for j in range(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS):
+                            fromInd=(i*Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS) +j
+                            from_item = self.gs.GetItem(fromInd)
+                            toInd = ((i+1)*Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS) +j
+                            to_item = self.gs.GetItem(toInd)
+                            
+                            if from_item is not None and to_item is not None:
+                                if from_item.IsWindow() and to_item.IsWindow():
+                                   to_item.GetWindow().SetLabel(from_item.GetWindow().GetLabel())
+                                   # move feeling sensation down
+                                   if j == Visual.COMMUNICATION_COLUMN_POSITIVE or j == Visual.COMMUNICATION_COLUMN_NEGATIVE:
+                                       to_item.GetWindow().setSensation(from_item.GetWindow().getSensation())                                   
+                                elif from_item.IsSizer() and to_item.IsSizer():
+                                    from_data_gs = from_item.GetSizer()
+                                    to_data_gs = to_item.GetSizer()
+                                    
+                                    # item
+                                    from_item_item = from_data_gs.GetItem(Visual.COLUMN_DATA_TYPE_ITEM)
+                                    label = from_item_item.GetWindow().GetLabel()
+                                    to_item_item = to_data_gs.GetItem(Visual.COLUMN_DATA_TYPE_ITEM)
+                                    to_item_item.GetWindow().SetLabel(from_item_item.GetWindow().GetLabel())
+                                    to_item_item.GetWindow().Show(show=from_item_item.GetWindow().IsShown())
+                                    # image
+                                    from_image_item = from_data_gs.GetItem(Visual.COLUMN_DATA_TYPE_IMAGE)
+                                    to_image_item = to_data_gs.GetItem(Visual.COLUMN_DATA_TYPE_IMAGE)                                
+                                    bitmap = from_image_item.GetWindow().GetBitmap()
+                                    to_image_item .GetWindow().SetBitmap(bitmap)
+                                    to_image_item.GetWindow().Show(show=from_image_item.GetWindow().IsShown())
+                                        #self.getRobot().log(logLevel=Robot.LogLevel.Detailed, logStr="OnSensation image fromInd " + str(fromInd) + " toInd "+ str(toInd) + " SetBitmap Hide")
+                                    #self.Refresh()
+                                else:
+                                    self.getRobot().log("OnSensation fromInd " + str(fromInd) + " toInd "+ str(toInd) + " error")
                             else:
-                                self.getRobot().log("OnSensation fromInd " + str(fromInd) + " toInd "+ str(toInd) + " error")
-                        else:
-                            self.getRobot().log("OnSensation fromInd " + str(fromInd) + " toInd "+ str(toInd) + " None error")
-               
-                item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_FIRST)
-                if item is not None and item.IsSizer():
-                    self.showSensation(data_gs = item.GetSizer(), sensation=sensation.getFirstAssociateSensation())
+                                self.getRobot().log("OnSensation fromInd " + str(fromInd) + " toInd "+ str(toInd) + " None error")
+                   
+                    item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_FIRST)
+                    if item is not None and item.IsSizer():
+                        self.showSensation(data_gs = item.GetSizer(), sensation=sensation.getFirstAssociateSensation())
+                        
+                    item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_OTHER)
+                    if item is not None and item.IsSizer():
+                        self.showSensation(data_gs = item.GetSizer(), sensation=sensation.getOtherAssociateSensation())
+    
+                    item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_FEELING)
+                    if item is not None and item.IsWindow():
+                        label=''
+                        item.GetWindow().SetLabel('')
+                        # associated feeling between Sensations
+                        if sensation.getFirstAssociateSensation() is not None and\
+                           sensation.getOtherAssociateSensation() is not None :
+                            association=sensation.getFirstAssociateSensation().getAssociation(sensation.getOtherAssociateSensation())
+                            if association is not None:
+                                label=Sensation.getFeelingString(association.getFeeling())
+                        # global feeling
+                        elif sensation.getFirstAssociateSensation() is None and\
+                             sensation.getOtherAssociateSensation() is None:
+                            label=Sensation.getFeelingString(sensation.getFeeling())
+                        item.GetWindow().SetLabel(label)
+                        
+                    item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_FEELING_DIRECTION)
+                    if item is not None and item.IsWindow():
+                        item.GetWindow().SetLabel(self.getFeelingDirectionString(sensation = sensation))
+    
+                    item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_POSITIVE)
+                    if item is not None and item.IsWindow():
+                        item.GetWindow().setSensation(sensation=sensation)
+                    item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_NEGATIVE)
+                    if item is not None and item.IsWindow():
+                        item.GetWindow().setSensation(sensation=sensation)
+                        
+                    item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_LOCATIONS)
+                    if item is not None and item.IsWindow():
+                        item.GetWindow().SetLabel(sensation.getLocationsStr())
+                        
+                    item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_RECEIVEDFROM)
+                    if item is not None and item.IsWindow():
+                        item.GetWindow().SetLabel(str(sensation.getReceivedFrom()))
+    
+                    item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_TIME)
+                    if item is not None and item.IsWindow():
+                        item.GetWindow().SetLabel(time.ctime(sensation.getTime()))
+                        
+                    #self.Refresh()
+                    # in raspberry data_gs rows are not updated both SetLevels, if we don't change main windows size so
+                    (x,y) = self.GetSize()
+                    self.SetSize((x-1,y-1))
+                    #self.Refresh()
+                    self.SetSize((x,y))
+                    #self.Refresh()
                     
-                item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_OTHER)
-                if item is not None and item.IsSizer():
-                    self.showSensation(data_gs = item.GetSizer(), sensation=sensation.getOtherAssociateSensation())
+    #                 self.status.SetLabel('Processed Sensation Event')
+    
+    #             else:
+    #                 self.status.SetLabel('Sensation is None in Sensation Event')
 
-                item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_FEELING)
-                if item is not None and item.IsWindow():
-                    label=''
-                    item.GetWindow().SetLabel('')
-                    # associated feeling between Sensations
-                    if sensation.getFirstAssociateSensation() is not None and\
-                       sensation.getOtherAssociateSensation() is not None :
-                        association=sensation.getFirstAssociateSensation().getAssociation(sensation.getOtherAssociateSensation())
-                        if association is not None:
-                            label=Sensation.getFeelingString(association.getFeeling())
-                    # global feeling
-                    elif sensation.getFirstAssociateSensation() is None and\
-                         sensation.getOtherAssociateSensation() is None:
-                        label=Sensation.getFeelingString(sensation.getFeeling())
-                    item.GetWindow().SetLabel(label)
+        '''
+        set Root status (communication and Microphone) to status line
+        '''    
+        def traceRobotState(self, sensation):
+            isChange = False
+            if sensation.getSensationType() == Sensation.SensationType.RobotState:
+                if sensation.getRobotState() in Sensation.CommunicationRobotStates:
+                    self.communicationStatusText = Sensation.getRobotStateString(robotState = sensation.getRobotState())
+                    isChange = True
+                elif sensation.getRobotState() in Sensation.MicrophoneRobotStates:
+                    self.microphoneStatusText = Sensation.getRobotStateString(robotState = sensation.getRobotState())
+                    isChange = True
                     
-                item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_FEELING_DIRECTION)
-                if item is not None and item.IsWindow():
-                    item.GetWindow().SetLabel(self.getFeelingDirectionString(sensation = sensation))
+                if isChange:
+                    self.statusText.SetLabel(label='{} | {}'.format(self.communicationStatusText, self.microphoneStatusText))
 
-                item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_POSITIVE)
-                if item is not None and item.IsWindow():
-                    item.GetWindow().setSensation(sensation=sensation)
-                item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_NEGATIVE)
-                if item is not None and item.IsWindow():
-                    item.GetWindow().setSensation(sensation=sensation)
-                    
-                item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_LOCATIONS)
-                if item is not None and item.IsWindow():
-                    item.GetWindow().SetLabel(sensation.getLocationsStr())
-                    
-                item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_RECEIVEDFROM)
-                if item is not None and item.IsWindow():
-                    item.GetWindow().SetLabel(str(sensation.getReceivedFrom()))
-
-                item = self.gs.GetItem(Visual.COMMUNICATION_PANEL_SENSATION_COLUMNS + Visual.COMMUNICATION_COLUMN_TIME)
-                if item is not None and item.IsWindow():
-                    item.GetWindow().SetLabel(time.ctime(sensation.getTime()))
-                    
-                #self.Refresh()
-                # in raspberry data_gs rows are not updated both SetLevels, if we don't change main windows size so
-                (x,y) = self.GetSize()
-                self.SetSize((x-1,y-1))
-                #self.Refresh()
-                self.SetSize((x,y))
-                #self.Refresh()
-                
-#                 self.status.SetLabel('Processed Sensation Event')
-
-#             else:
-#                 self.status.SetLabel('Sensation is None in Sensation Event')
                 
         def OnPositive(self, Event, sensation):
             self.OnFeeling(sensation=sensation, isPositive=True)
@@ -1203,7 +1232,7 @@ class Visual(Robot):
                         item_item.GetWindow().Show(show=False)
                         image = sensation.getImage()
                         if image is not None:
-                            bitmap = Visual.PILTowx(image=image, size=Visual.IMAGE_SIZE)
+                            bitmap = Visual.PIL2wx(image=image, size=Visual.IMAGE_SIZE)
                             image_item.GetWindow().SetBitmap(bitmap)
                             image_item.GetWindow().SetSize((Visual.IMAGE_SIZE,Visual.IMAGE_SIZE))
                             image_item.GetWindow().Show(show=True)
@@ -1274,7 +1303,7 @@ class Visual(Robot):
             
             
             if robot.getMemory().getRobot().selfImage:
-                bitmap = Visual.PILTowx(image=robot.getMemory().getRobot().selfImage, size=Visual.IDENTITY_SIZE, setMask=True)
+                bitmap = Visual.PIL2wx(image=robot.getMemory().getRobot().selfImage, size=Visual.IDENTITY_SIZE, setMask=True)
                 self.identityBitMap = wx.StaticBitmap(self, -1, bitmap, (10, 5), (bitmap.GetWidth(), bitmap.GetHeight()))
                 icon = wx.Icon()
                 icon.CopyFromBitmap(bitmap)
@@ -1349,6 +1378,8 @@ class Visual(Robot):
                 if sensation.getSensationType() == Sensation.SensationType.Feeling:
                     wx.PostEvent(self.communicationPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
                     self.feelingText.SetLabel(label = Sensation.getFeelingString(self.robot.getMemory().getRobot().getFeeling()))
+                elif sensation.getSensationType() == Sensation.SensationType.RobotState:
+                    wx.PostEvent(self.communicationPanel, Visual.Event(eventType=Visual.ID_SENSATION, data=sensation))
 
 
         '''

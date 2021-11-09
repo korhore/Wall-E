@@ -39,8 +39,8 @@ from Sensation import Sensation
 from AlsaAudio import Settings
 
 # prefer AlsaAidio before SoundDevice
-#IsAlsaAudio=True
-IsAlsaAudio=False
+IsAlsaAudio=True
+#IsAlsaAudio=False
 
 if IsAlsaAudio:
     try:
@@ -164,7 +164,7 @@ class Microphone(Robot):
     def run(self):
         self.log(" run robot robot " + self.getName() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))
         
-        self.informRobotState(robotState = Sensation.RobotState.MicrophoneSensing)
+        self.informRobotState(robotState = Sensation.RobotState.MicrophoneDisabled)
        
         # starting other threads/senders/capabilities
         
@@ -179,6 +179,7 @@ class Microphone(Robot):
             # as a leaf sensor robot default processing for sensation we have got
             # in practice we can get stop sensation
             if not self.getAxon().empty():
+                self.informRobotState(robotState = Sensation.RobotState.MicrophoneDisabled)
                 # interrupt voice and put it to parent for processing
                 self.putVoiceToParent()
 
@@ -188,17 +189,16 @@ class Microphone(Robot):
 #                    sensation.getRobotType(robotMainNames=self.getMainNames()) == Sensation.RobotType.Sense: 
 #                     self.tracePresents(sensation)
 #                 else:
-                self.informRobotState(robotState = Sensation.RobotState.MicrophoneDisabled)
                 self.process(transferDirection=transferDirection, sensation=sensation)
                 sensation.detach(robot=self)
-                self.informRobotState(robotState = Sensation.RobotState.MicrophoneSensing)
             else:
-                if self.getMemory().hasItemsPresence(): # listen is we have items that can speak
+                if self.getMemory().hasItemsPresence(locations=self.getLocations()): # listen is we have items that can speak
                     if not self.logged:
                         self.log(logLevel=Robot.LogLevel.Normal, logStr=self.getMemory().itemsPresenceToStr() + " items speaking, sense")
                         self.logged = True
                     self.sense()
                 else:
+                    self.informRobotState(robotState = Sensation.RobotState.MicrophoneDisabled)
                     self.logged = False
 #                     # TODO as a test we sense
                     #self.log(logLevel=Robot.LogLevel.Verbose, logStr=str(len(self.getMemory().presentItemSensations)) + " items NOT speaking, sense anyway")
@@ -233,6 +233,7 @@ class Microphone(Robot):
     To be fast and use less resource, we don't log except if set as verbose.
     '''        
     def sense(self):
+        self.informRobotState(robotState = Sensation.RobotState.MicrophoneSensing)
         # blocking read data from device
 #        self.log(logLevel=Robot.LogLevel.Verbose, logStr="sense: start")
         isHopeOfASound=True

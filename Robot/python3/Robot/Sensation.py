@@ -281,6 +281,30 @@ class Sensation(object):
                # Microphone
                RobotState.MicrophoneSensing:MICROPHONESENSING,
                RobotState.MicrophoneDisabled:MICROPHONEDISABLED}
+    ActivityRobotStates={
+              # Activity          
+               RobotState.ActivitySleeping: ACTIVITYSPEEPING,
+               RobotState.ActivityDreaming:ATIVITYDREAMING,
+               RobotState.ActivityLazy:ACTIVITYLAZY,
+               RobotState.ActivityRelaxed:ACTIVITYRELAXED,
+               RobotState.ActivityNormal:ACTIVITYNORMAL,
+               RobotState.ActivityBusy:ACTIVITYBUSY,
+               RobotState.ActivityHurry:ACTIVITYHURRY,
+               RobotState.ActivityTired:ACTIVITYTIRED,
+               RobotState.ActivityBreaking:ACTIVITYBEAKING}
+    CommunicationRobotStates={
+                # Communication
+               RobotState.CommunicationNotStarted:COMMUNIVATIONNOTSTARTED,
+               RobotState.CommunicationWaiting:COMMUNICATIONWAITING,
+               RobotState.CommunicationOn:COMMUNICATIONON,
+               RobotState.CommunicationNoResponseToSay:COMMUNICATIONNORESPONSETOSAY,
+               RobotState.CommunicationEnded:COMMUNICATIONENDED,
+               RobotState.CommunicationDelay:COMMUNICATIONDELAY}
+               
+    MicrophoneRobotStates={
+                # Microphone
+               RobotState.MicrophoneSensing:MICROPHONESENSING,
+               RobotState.MicrophoneDisabled:MICROPHONEDISABLED}
     
     NormalSensationTypes={
                SensationType.Drive: DRIVE,
@@ -547,6 +571,8 @@ class Sensation(object):
         return Sensation.Presences.values()
 
     def getKindString(kind):
+        if kind == None:
+            return ""
         return Sensation.Kinds.get(kind)
     def getKindStrings():
         return Sensation.Kinds.values()
@@ -1827,12 +1853,16 @@ class Sensation(object):
             Sensation.getRobotTypeString(self.robotType) + ':' + Sensation.getSensationTypeString(self.sensationType)+ ':' + self.getLocationsStr() + ':'
         ## OOPS Can be NoneType
         string = Sensation.getFeelingString(self.getFeeling())
-        if string :
+        if string:
             s = s + ':' + string 
         else:
             s = s + ':None'                 
         if self.sensationType == Sensation.SensationType.Voice:
-            s = s + ':' + Sensation.getKindString(self.kind)
+            string = Sensation.getKindString(self.kind)
+            if string:
+                s = s + ':' + string 
+            else:
+                s = s + ':None'                 
 #         elif self.sensationType == Sensation.SensationType.Image:
 #             s = s + ':' + self.getLocations()
         elif self.sensationType == Sensation.SensationType.Item:

@@ -32,7 +32,7 @@ class VisualTestCase(unittest.TestCase):
     #TEST_RUNS=1
     ASSOCIATION_INTERVAL=3.0
     #TEST_TIME=300 # 5 min, when debugging
-    TEST_TIME=60 # 30s when normal test
+    TEST_TIME=30 # 30s when normal test
 
     SCORE_1 = 0.1
     SCORE_2 = 0.2
@@ -230,6 +230,27 @@ class VisualTestCase(unittest.TestCase):
         self.Wall_E_voice_sensation_association_len = len(self.Wall_E_voice_sensation.getAssociations())
         
         # communication
+        self.communication_CommunicationNotStarted_sensation = self.visual.createSensation(
+                                                      memoryType=Sensation.MemoryType.Sensory,
+                                                      sensationType=Sensation.SensationType.RobotState,
+                                                      robotState=Sensation.RobotState.CommunicationNotStarted,
+                                                      locations=self.LOCATIONS_1_2)
+        self.communication_CommunicationOn_sensation = self.visual.createSensation(
+                                                      memoryType=Sensation.MemoryType.Sensory,
+                                                      sensationType=Sensation.SensationType.RobotState,
+                                                      robotState=Sensation.RobotState.CommunicationOn,
+                                                      locations=self.LOCATIONS_1_2)
+        self.communication_CommunicationWaiting_sensation = self.visual.createSensation(
+                                                      memoryType=Sensation.MemoryType.Sensory,
+                                                      sensationType=Sensation.SensationType.RobotState,
+                                                      robotState=Sensation.RobotState.CommunicationWaiting,
+                                                      locations=self.LOCATIONS_1_2)
+        self.communication_CommunicationEnded_sensation = self.visual.createSensation(
+                                                      memoryType=Sensation.MemoryType.Sensory,
+                                                      sensationType=Sensation.SensationType.RobotState,
+                                                      robotState=Sensation.RobotState.CommunicationEnded,
+                                                      locations=self.LOCATIONS_1_2)
+        
         self.communication_item_sensation = self.visual.createSensation(memoryType=Sensation.MemoryType.Sensory,
                                                       sensationType=Sensation.SensationType.Item,
                                                       robotType=Sensation.RobotType.Muscle,
@@ -256,7 +277,12 @@ class VisualTestCase(unittest.TestCase):
                                                        robotType=Sensation.RobotType.Muscle,
                                                        firstAssociateSensation=self.communication_item_sensation,
                                                        otherAssociateSensation=self.communication_voice_sensation,
-                                                       positiveFeeling=True,
+             #         self.communication_CommunicationNotStarted_sensation = self.visual.createSensation(
+#                                                       memoryType=Sensation.MemoryType.Sensory,
+#                                                       sensationType=Sensation.SensationType.RobotState,
+#                                                       robotState=Sensation.RobotState.RobotState.CommunicationNotStarted,
+#                                                       locations=self.LOCATIONS_1_2)
+                                          positiveFeeling=True,
                                                        locations=locations)
     '''
     helper method to return different kind locations
@@ -294,13 +320,17 @@ class VisualTestCase(unittest.TestCase):
         self.visual.start()
         
         sleeptime = Visual.SLEEPTIME+Visual.SLEEPTIMERANDOM
-        #sleeptime = Visual.SLEEPTIMERANDOM
         print("--- test sleeping " + str(sleeptime) + " second until starting to test")
         systemTime.sleep(sleeptime ) # let Visual start before waiting it to stops
         for i in range(VisualTestCase.TEST_RUNS):
             self.getSensations()
             
+            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_CommunicationNotStarted_sensation)
+            
             self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_item_sensation)
+            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_CommunicationOn_sensation)
+            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_CommunicationWaiting_sensation)
+
             self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_voice_sensation)
             self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_image_sensation)
             self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_image_sensation_2)
@@ -310,6 +340,7 @@ class VisualTestCase(unittest.TestCase):
             self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_voice_sensation)
  
             self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_positive_feeling_sensation)
+            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_CommunicationEnded_sensation)
                        
             sleeptime = 3
             print("--- test sleeping " + str(sleeptime) + " second until test results")

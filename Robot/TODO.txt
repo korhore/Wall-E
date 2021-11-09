@@ -37,7 +37,9 @@ Eva stops to send images
 Develop
 -------
 
-We have noe more Sensations, when RobotState is implemented. At least Visual has difficulties
+Add Communication status to Visual.Communication.
+
+We have now more Sensations, when RobotState is implemented. At least Visual has difficulties
 to show all. Microphone can have difficulties to detect voices from beginning to the end of Sound
 and little silences inside a Voice.
 SubRobots can be tired. How to implement what should be slower.

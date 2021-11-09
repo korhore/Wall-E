@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 28.10.2021
+Edited on 09.11.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -1526,30 +1526,33 @@ class Memory(object):
                 self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="new Entering, Present or Exiting " + name)
                 
     '''
-    have we Item presence in some locations
+    have we Item presence in some location or locations.
     '''
 
-    def hasItemsPresence(self, location=None):
-        return self.hasPresence(presentDict=self._presentItemSensations, location=location)
+    def hasItemsPresence(self, location=None, locations=None):
+        return self.hasPresence(presentDict=self._presentItemSensations, location=location, locations=locations)
 
     '''
-    have we Robot presence in some locations
+    have we Robot presence in some location
     '''
 
-    def hasRobotsPresence(self, location=None):
-        return self.hasPresence(presentDict=self._presentRobotSensations, location=location)
+    def hasRobotsPresence(self, location=None, locations=None):
+        return self.hasPresence(presentDict=self._presentRobotSensations, location=location, locations=locations)
 
     '''
-    have we presence in some locations
+    have we presence in some location
     global location is ignored
     '''
 
-    def hasPresence(self, presentDict, location=None):
-        if location and location in presentDict:
-            return len(presentDict[location].items()) > 0
-        for location in presentDict.keys():
-            if (location != Memory.GLOBAL_LOCATION) and (len(presentDict[location].items()) > 0):
-                return True
+    def hasPresence(self, presentDict, location=None, locations=None):
+        if location is None and locations is None:
+            locations = presentDict.keys()
+        elif location and locations is None:
+            locations = [location]
+        for location in locations:
+            if location and location in presentDict:
+                if (location != Memory.GLOBAL_LOCATION) and (len(presentDict[location].items()) > 0):
+                    return True
         return False
 
     '''
