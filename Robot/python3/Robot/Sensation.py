@@ -125,13 +125,14 @@ class Sensation(object):
                       CommunicationNotStarted = 'j',
                       CommunicationWaiting = 'k',
                       CommunicationOn ='l',
-                      CommunicationNoResponseToSay='m',
-                      CommunicationEnded ='n',
-                      CommunicationDelay = 'o',
+                      CommunicationWaitingResponse = 'm',
+                      CommunicationNoResponseToSay ='n',
+                      CommunicationEnded ='o',
+                      CommunicationDelay = 'p',
                       
                       #Microphone
-                      MicrophoneSensing = 'p',
-                      MicrophoneDisabled = 'q')
+                      MicrophoneSensing = 'q',
+                      MicrophoneDisabled = 'r')
     
     # enum items as strings    
     ALL="All"
@@ -189,6 +190,7 @@ class Sensation(object):
     COMMUNIVATIONNOTSTARTED="Communication Not Started"
     COMMUNICATIONWAITING="Communication Waiting"
     COMMUNICATIONON="Communication On"
+    COMMUNICATIONWAITINGRESPONSE="Communication Waiting Response"
     COMMUNICATIONNORESPONSETOSAY="Communication No Response To Say"
     COMMUNICATIONENDED="Communication Ended"
     COMMUNICATIONDELAY="Communication Delay"
@@ -274,6 +276,7 @@ class Sensation(object):
                RobotState.CommunicationNotStarted:COMMUNIVATIONNOTSTARTED,
                RobotState.CommunicationWaiting:COMMUNICATIONWAITING,
                RobotState.CommunicationOn:COMMUNICATIONON,
+               RobotState.CommunicationWaitingResponse:COMMUNICATIONWAITINGRESPONSE,
                RobotState.CommunicationNoResponseToSay:COMMUNICATIONNORESPONSETOSAY,
                RobotState.CommunicationEnded:COMMUNICATIONENDED,
                RobotState.CommunicationDelay:COMMUNICATIONDELAY,
@@ -297,6 +300,7 @@ class Sensation(object):
                RobotState.CommunicationNotStarted:COMMUNIVATIONNOTSTARTED,
                RobotState.CommunicationWaiting:COMMUNICATIONWAITING,
                RobotState.CommunicationOn:COMMUNICATIONON,
+               RobotState.CommunicationWaitingResponse:COMMUNICATIONWAITINGRESPONSE,
                RobotState.CommunicationNoResponseToSay:COMMUNICATIONNORESPONSETOSAY,
                RobotState.CommunicationEnded:COMMUNICATIONENDED,
                RobotState.CommunicationDelay:COMMUNICATIONDELAY}

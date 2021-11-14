@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 25.10.2021
+Updated on 13.11.2021
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -2105,7 +2105,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
             self.server_address = self.sock.getsockname()
             self.sock.listen(self.request_queue_size)
             
-            # TODO WE should cobbect to hostsnames that respond
+            # TODO WE should connect to hostsnames that respond
             
             self.log("TCPServer for hostName in self.hostNames")
             for hostName in self.hostNames:
@@ -2280,7 +2280,8 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
         print("We are in SocketClient, not Robot")
         #set first variables we may need, when we create Robot
         # because we overwrite some methods rhat need these variables
-        
+ 
+        self.isStoppedByRemote = False       
         self.tcpServer = tcpServer
         self.sock = sock
         self.address = address
@@ -2375,13 +2376,16 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
         # We can handle only sensation going down transfer-robotType
 #         if transferDirection == Sensation.TransferDirection.Down:
         self.activityNumber += 1
-        if True:
+        if not self.isStoppedByRemote:
             if self.getAxon().length() > Robot.SOCKETCLIENT_MAX_QUEUE_LENGTH:
                 self.log('process: skipping too long Axon queue Sensation')
             else:
                 self.running = self.sendSensation(sensation, self.sock, self.address)
                 # if we have got broken pipe -error, meaning that socket writing does not work any more
                 # then try to get new connection, meaning that ask TCPServer to give us a new open socket
+                # TODO When stopping by remote Robot Stop-sensation this logic is broken
+                # If we have got Remote Robots Stop-Sensation, then we should not try to connect again.
+                # But in practice we have problem in TCPServer
                 if not self.running and self.mode == Sensation.Mode.Interrupted:
                     self.log('process: interrupted')
                     connected = False
@@ -2779,6 +2783,11 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                                 self.setLocations(locations=sensation.getLocations())
                                 #self.setMainNames(mainNames=sensation.getMainNames())
                             else:
+                                # check if we have got Stop ans reject it to start again informing that remote has send us a stop
+                                # This is a hack and we should handle this in TCPServer, but works
+                                if sensation.getSensationType() == Sensation.SensationType.Stop:
+                                    if self.getSocketClient() is not None:
+                                        self.getSocketClient().isStoppedByRemote = True
                                 self.log("run: SocketServer got sensation " + sensation.toDebugStr())
 #                                 self.getParent().getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # write sensation to TCPServers Parent, because TCPServer does not read its Axon
                                 self.route(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # write sensation to TCPServers Parent, because TCPServer does not read its Axon

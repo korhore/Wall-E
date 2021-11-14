@@ -827,7 +827,7 @@ class Communication(Robot):
                             self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process speak: timer.start()')
                             self.timer.start()
                             self._isConversationOn = True
-                            self.robotState = Sensation.RobotState.CommunicationOn                                                                            
+                            self.robotState = Sensation.RobotState.CommunicationWaitingResponse
                             robotStateSensation = self.createSensation(robotType = Sensation.RobotType.Sense,
                                                                        associations=None,
                                                                        sensationType=Sensation.SensationType.RobotState,

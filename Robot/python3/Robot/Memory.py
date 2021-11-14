@@ -424,16 +424,16 @@ class Memory(object):
 
         # calibrate memorability        
         if self.isLowMemory():
-            # if lowmwmory and memorability is lower than max limit
-            # add Momorability a little
+            # if lowmemory and memorability is lower than max limit
+            # add Memorability a little
             if self.min_cache_memorability < self.maxMinCacheMemorability:
                 self.min_cache_memorability = self.min_cache_memorability + 0.1
-            # but if momorability is over max limit, it should be added soon to high
+            # but if memorability is over max limit, it should be added soon to high
             # before we run out of memory
             else:
                 self.min_cache_memorability = self.min_cache_memorability + 1.0
         else:
-            # if we are higher thN Max limit, we can make it fast lower
+            # if we are higher than Max limit, we can make it fast lower
             if self.min_cache_memorability > self.maxMinCacheMemorability:
                 self.min_cache_memorability = self.min_cache_memorability - 1.0
             # under max limit and over near min limit, lower it normal way
@@ -463,7 +463,8 @@ class Memory(object):
 #                    if self.sensationMemory[i].getMemorability(allAssociations=True) < self.min_cache_memorability:
                     if self.sensationMemory[i].getMemorability(allAssociations = self.min_cache_memorability < self.maxMinCacheMemorability) < self.min_cache_memorability:
                         triedToForget = True
-                        self.log(logStr='delete from sensation cache [{}] {}'.format(i, self.sensationMemory[i].toDebugStr()), logLevel=Memory.MemoryLogLevel.Normal)
+                        # We cannot log this often, because, when memory is low and we release sensation, This is logged very often.
+                        # self.log(logStr='delete from sensation cache [{}] {}'.format(i, self.sensationMemory[i].toDebugStr()), logLevel=Memory.MemoryLogLevel.Normal)
                         self.sensationMemory[i].delete()
                         del self.sensationMemory[i]
                         numOfForgetted = numOfForgetted+1
@@ -518,7 +519,7 @@ class Memory(object):
     Is Memory low
     '''
     def isLowMemory(self):
-        # We cannot lof this often, because, when momory is low and re release sensation, This is logged very often.
+        # We cannot log this often, because, when memory is low and we release sensation, This is logged very often.
         if Memory.getMemoryRssUsage() > self.getMaxRss():
             #self.log(logStr='Sensations cache for isLowMemory Memory.getMemoryRssUsage() {} > self.getMaxRss() {}'.format(Memory.getMemoryRssUsage(), self.getMaxRss()))
             return True

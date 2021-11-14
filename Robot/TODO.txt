@@ -37,6 +37,30 @@ Eva stops to send images
 Develop
 -------
 
+Communication
+Add RobotState WaitingResponse, ....
+SocketClient
+If it gets overloaded, it dooes not recover. Situation should be handled ame way as
+connection is broken. 
+
+Microphone
+With AlsaAudio, raspb erry can get -32 in read fron device.
+Seems, than setting periodicsize larger does not hel and if we set it to 4096, we get an exception, 1024 can be fine.
+Try to just sleeo, if we get periodic errors.
+Basix problen is too high load for a raspberry itself. If we can't hear, then we can't.
+Basic solution is detech this high load and implement slowing down mechanism for other Robots. Rot is tired.
+
+
+raspberry is running out of memory. Study it. Maybe logging is the proble. We can't
+lof, when menory is low.
+
+If we keep presence in Memory, there is problem with exposures.
+Exposures change presence, even if things don't happen in current time, but they have happened in past.
+- We cound correct that in TensorfrowClassification with one parameter more and keep thing as they are NO
+  or
+- set TensorfrowClassification to inform its main or private main Robot precense only YES
+- We should make presence as main Robot feature.
+
 Add Communication status to Visual.Communication.
 
 We have now more Sensations, when RobotState is implemented. At least Visual has difficulties
