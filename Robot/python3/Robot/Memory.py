@@ -353,6 +353,8 @@ class Memory(object):
     '''
     process Sensation
     We can handle Feeling-type sensation
+    
+    Deprecated. All functionality will be moved to Communication
     '''
     def process(self, sensation):
         self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='Memory process: sensation ' + systemTime.ctime(sensation.getTime()) +  ' ' + sensation.toDebugStr())

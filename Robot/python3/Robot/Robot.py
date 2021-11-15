@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 13.11.2021
+Updated on 15.11.2021
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -161,7 +161,7 @@ class Robot(Thread):
     ACTIVITE_LOGGING_SHORT_AVERAGE_PERIOD = 3.0       # used as period in seconds
     ACTIVITE_LOGGING_INTERVAL =             60
     
-    FEELING_LOGGING_SHORT_AVERAGE_PERIOD =  30.0      # used as period in seconds
+    FEELING_LOGGING_SHORT_AVERAGE_PERIOD =  30.0      # used as period in feeling times , this is not time dependent
     
     IMAGE_FILENAME_TYPE = ".jpg"
     VOICE_FILENAME_TYPE = ".wav"
@@ -515,6 +515,8 @@ class Robot(Thread):
     
     '''
     get Feeling of MainRobot
+    
+    Deprecated, Moving feeling handling To Communication
     '''   
     def getFeeling(self):
         if self.isMainRobot():
@@ -522,7 +524,7 @@ class Robot(Thread):
                 return Sensation.Feeling.InLove
             elif self.feelingLevel > (Sensation.Feeling.Happy + Sensation.Feeling.Good)/2.0:
                 return Sensation.Feeling.Happy
-            elif self.feelingLevel > (Sensation.Feeling.Good + Sensation.Feeling.Good)/2.0:
+            elif self.feelingLevel > (Sensation.Feeling.Good + Sensation.Feeling.Norma)/2.0:
                 return Sensation.Feeling.Good
             elif self.feelingLevel > (Sensation.Feeling.Normal + Sensation.Feeling.Neutral)/2.0:
                 return Sensation.Feeling.Normal
@@ -1076,7 +1078,9 @@ class Robot(Thread):
                 image = PIL_Image.open(sensation_filepath)
                 image.load()
                 # imageSensation memoryType = Sensation.MemoryType.Sensory, because it is needed to process it later, but this can change in future, so maybe it can be given as parameter
-                imageSensation = self.createSensation( sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,\
+                imageSensation = self.createSensation( sensationType = Sensation.SensationType.Image,
+                                                       memoryType = Sensation.MemoryType.Sensory,
+                                                       robotType = Sensation.RobotType.Sense,
                                                        image=image)
                 imageSensations.append(imageSensation)
             # voices
@@ -1101,7 +1105,11 @@ class Robot(Thread):
                             self.log("Did not succeed to fix!")
                             self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) )
                     # voiceSensation memoryType = Sensation.MemoryType.LongTerm, because we wan't to remember voice and it is not needed to process it later, but this can change in future, so maybe it can be given as parameter
-                    voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.LongTerm, robotType = Sensation.RobotType.Sense, data=data)
+                    voiceSensation = self.createSensation( associations=[],
+                                                           sensationType = Sensation.SensationType.Voice,
+                                                           memoryType = Sensation.MemoryType.LongTerm,
+                                                           robotType = Sensation.RobotType.Sense,
+                                                           data=data)
                     voiceSensations.append(voiceSensation)
                     
         return imageSensations, voiceSensations
@@ -1189,9 +1197,11 @@ class Robot(Thread):
         #if self.level == 1:
         self.activityNumber += 1
 
-         # MainRobot and Virtual robot has Memory
+         # MainRobot and Virtual robot have Memory
 #         if ((sensation.sensationType is Sensation.SensationType.Feeling) and (self.isMainRobot())) or\
 #              ((sensation.sensationType is Sensation.SensationType.Feeling) and (self.getInstanceType() == Sensation.InstanceType.Virtual)):
+
+        # TODO FeelingHandling is Deprecated hee and all functionality will be moved to Cpommuninication.
         if sensation.sensationType is Sensation.SensationType.Feeling:
             feeling = self.getMemory().process(sensation=sensation)# process locally
             if feeling is not None:
@@ -1201,7 +1211,7 @@ class Robot(Thread):
                 if newMainRobotFeeling != self.feeling:
                     self.feeling = newMainRobotFeeling
                     # create plain feeling to all others know this does not assigned to for instance certain Item.name
-                    # TODO Study, do we fins out, that we feel like something (Sense) or do we wan't to tell that feel something  (Muscle) or both
+                    # TODO Study, do we find out, that we feel like something (Sense) or do we wan't to tell that feel something  (Muscle) or both
                     # We choose both now
                     feelingSensation = self.createSensation(associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
                                                             robotType=Sensation.RobotType.Sense, feeling = self.feeling, locations=self.getUpLocations()) # valid in this location

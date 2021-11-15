@@ -1,10 +1,10 @@
 '''
 Created on 21.09.2020
-Updated on 08.11.2021
+Updated on 12.11.2021
 @author: reijo.korhonen@gmail.com
 
 test Microphone and Playpack classes
-python3 -m unittest tests/testoundDevice.py
+python3 -m unittest tests/testVoice.py
 
 
 '''

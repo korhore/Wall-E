@@ -38,9 +38,12 @@ Develop
 -------
 
 Communication
-Add RobotState WaitingResponse, ....
+- OK Add RobotState WaitingResponse, ....
+- Move all FeelingHandling fron Robot.py and  Memory.py to to Communication.
+  Only that way we can make it clear and testable.
+  
 SocketClient
-If it gets overloaded, it dooes not recover. Situation should be handled ame way as
+If it gets overloaded, it does not recover. Situation should be handled same way as
 connection is broken. 
 
 Microphone
