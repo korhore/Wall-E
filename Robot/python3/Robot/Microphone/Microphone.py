@@ -427,8 +427,10 @@ class Microphone(Robot):
         maxim=-9999
        
         try:
-#             aaa = numpy.fromstring(data, dtype=dtype)
-            aaa = numpy.frombuffer(data, dtype=dtype)
+            # numpy.fromstring deprecated, should use numpy.frombuffer
+            # but can cause application to be killed
+            aaa = numpy.fromstring(data, dtype=dtype)
+#            aaa = numpy.frombuffer(data, dtype=dtype)
         except (ValueError):
             self.log("analyzeNumpyData numpy.fromstring(data, dtype=dtype: ValueError")      
             return False

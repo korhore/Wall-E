@@ -170,7 +170,7 @@ class Visual(Robot):
             # or if we can sense, but there is something in our Axon, process it
             if not self.getAxon().empty() or not self.canSense():
                 transferDirection, sensation = self.getAxon().get(robot=self)
-                self.log(logLevel=Robot.LogLevel.Normal, logStr="got sensation from queue " + str(transferDirection) + ' ' + sensation.toDebugStr() + ' len(sensation.getAssociations()) '+ str(len(sensation.getAssociations())))      
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="got sensation from queue " + Sensation.getTransferDirectionString(transferDirection) + ' ' + sensation.toDebugStr() + ' len(sensation.getAssociations()) '+ str(len(sensation.getAssociations())))      
                 self.process(transferDirection=transferDirection, sensation=sensation)
             else:
                 self.sense()
@@ -188,7 +188,7 @@ class Visual(Robot):
         self.log(logLevel=Robot.LogLevel.Normal, logStr="run ALL SHUT DOWN")
         
     def process(self, transferDirection, sensation):
-        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr() + '  len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) #called
+        self.log(logLevel=Robot.LogLevel.Normal, logStr='process: ' + time.ctime(sensation.getTime()) + ' ' + Sensation.getTransferDirectionString(transferDirection) +  ' ' + sensation.toDebugStr() + '  len(sensation.getAssociations()) '+ str(len(sensation.getAssociations()))) #called
         self.activityNumber += 1
         if sensation.getSensationType() == Sensation.SensationType.Stop:
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process: SensationSensationType.Stop')      

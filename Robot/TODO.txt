@@ -39,9 +39,9 @@ Develop
 reijo@raspberrypi:~/Robot/python3/Robot$ python3 Communication/Communication.py  >t 2>t.err
 Killed
 
-If We won't have memory limit configuration right, then we have a problem.
-- CommunicationCommunication/etc/Robot.cfg was empty
--- Do we run out of disk space?
+Seems, problem is with np.frombuffer-method, which is an api to raw-memory and
+uses less memory and is faster. But it is unsure in raspberry.
+Changed back to np.fromstring-method and app keeps running without killings.
 
 - OK Add RobotState WaitingResponse, ....
 - Move all FeelingHandling fron Robot.py and  Memory.py to to Communication.

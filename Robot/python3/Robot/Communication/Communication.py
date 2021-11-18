@@ -693,6 +693,15 @@ class Communication(Robot):
                         if self.spokedAssociations is not None:
                             self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: got response ' + sensation.toDebugStr())
                             self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: got response ' + sensation.getName() + ' present now' + self.getMemory().itemsPresenceToStr())
+                            self.robotState = Sensation.RobotState.CommunicationResponseHeard
+                
+                            robotStateSensation = self.createSensation( robotType = Sensation.RobotType.Sense,
+                                                                        associations=None,
+                                                                        sensationType=Sensation.SensationType.RobotState,
+                                                                        memoryType=Sensation.MemoryType.Sensory,
+                                                                        robotState=self.robotState,
+                                                                        locations=self.getLocations())
+                            self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=robotStateSensation)
                         # If we have still someone to talk, this is positive feedback
                         if self.getMemory().hasItemsPresence(location=self.getLocation()):        
                             self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: ' + sensation.getName() + ' got voice and tries to speak with presents ones' + self.getMemory().itemsPresenceToStr(location=self.getLocation()))
@@ -727,6 +736,16 @@ class Communication(Robot):
      
                         # We want to remember this voice
                         self.getMemory().setMemoryType(sensation=sensation, memoryType=Sensation.MemoryType.Working)
+                        
+                        self.robotState = Sensation.RobotState.CommunicationOn
+                
+                        robotStateSensation = self.createSensation( robotType = Sensation.RobotType.Sense,
+                                                                    associations=None,
+                                                                    sensationType=Sensation.SensationType.RobotState,
+                                                                    memoryType=Sensation.MemoryType.Sensory,
+                                                                    robotState=self.robotState,
+                                                                    locations=self.getLocations())
+                        self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=robotStateSensation)
                     
                         self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: got voice as restarted conversation ' + sensation.getName() + ' got voice and tries to speak with presents ones ' + self.getMemory().itemsPresenceToStr())
                         self.speak(onStart=True)
@@ -881,6 +900,7 @@ class Communication(Robot):
             super().__init__(
                      robot,
                      location)
+            self.robotState = None
         '''
         implementation for this location
         
@@ -1002,6 +1022,18 @@ class Communication(Robot):
                 except Exception as e:
                     self.log(logLevel=Robot.LogLevel.Critical, logStr='ConversationWithRobot process speak: ignored exception ' + str(e) + ' ' + str(traceback.format_exc()))
     
+        '''
+        Inform in what robotState this Robot is to other Robots
+        '''   
+        def informRobotState(self, robotState):
+            if self.robotState != robotState: 
+                self.robotState = robotState
+                robotStateSensation = self.createSensation(associations=None,
+                                                           sensationType=Sensation.SensationType.RobotState,
+                                                       memoryType=Sensation.MemoryType.Sensory,
+                                                       robotState=robotState,
+                                                       locations=self.getLocations())
+                self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=robotStateSensation)
 
 
     # base class 

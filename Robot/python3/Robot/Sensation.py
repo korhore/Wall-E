@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 25.10.2021
+Edited on 18.11.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -126,23 +126,31 @@ class Sensation(object):
                       CommunicationWaiting = 'k',
                       CommunicationOn ='l',
                       CommunicationWaitingResponse = 'm',
-                      CommunicationNoResponseHeard ='n',
-                      CommunicationNoResponseToSay ='o',
-                      CommunicationEnded = 'p',
-                      CommunicationDelay = 'q',
+                      CommunicationResponseHeard ='n',
+                      CommunicationNoResponseHeard ='o',
+                      CommunicationNoResponseToSay ='p',
+                      CommunicationEnded = 'g',
+                      CommunicationDelay = 'r',
                       
                       #Microphone
-                      MicrophoneSensing = 'r',
-                      MicrophoneDisabled = 's')
+                      MicrophoneSensing = 's',
+                      MicrophoneDisabled = 't')
     
-    # enum items as strings    
+    # enum items as strings 
     ALL="All"
+    # Sensation Transfer direction
+    DIRECT="Direct"
+    UP="Up"
+    DOWN="Down"   
+    # Robot type
     MUSCLE="Muscle"
     SENSE="Sense"
     COMMUNICATION="Communication"
+    #Memoty type
     SENSORY="Sensory"
     WORKING="Working"
     LONG_TERM="LongTerm"
+    #Sensation type
     DRIVE="Drive"
     STOP="Stop"
     ROBOT="Robot"
@@ -159,20 +167,24 @@ class Sensation(object):
     FEELING="Feeling"
     ROBOTSTATE="RobotState"
     UNKNOWN="Unknown"
+    # Robot kind
     KIND="Kind"
     WALLE="Wall-E"
     EVA="Eva"
     NORMAL="Normal"
+    # Robot type
     REAL="Real"
     SUBINSTANCE="SubInstance"
     VIRTUAL="Virtual"
     REMOTE="Remote"
     NORMAL="Normal"
     STUDYOWNIDENTITY="StudyOwnIdentity"
+    # Robot phase
     SLEEPING="Sleeping"
     STARTING="Starting"
     STOPPING="Stopping"
     INTERRUPTED="Interrupted"
+    # Presence
     ENTERING="Entering"
     PRESENT="Present"
     EXITING="Exiting"
@@ -192,8 +204,9 @@ class Sensation(object):
     COMMUNICATIONWAITING="Communication Waiting"
     COMMUNICATIONON="Communication On"
     COMMUNICATIONWAITINGRESPONSE="Communication Waiting Response"
-    COMMUNICATIONNORESPONSEHEARD="Communication No Response Heard"
-    COMMUNICATIONNORESPONSETOSAY="Communication Find Nothing To Say"
+    COMMUNICATIONRESPONSEHEARD="Communication Response Heard"
+    COMMUNICATIONNORESPONSEHEARD="Communication NO Response Heard"
+    COMMUNICATIONNORESPONSETOSAY="Communication Find NOTHING To Say"
     COMMUNICATIONENDED="Communication Ended"
     COMMUNICATIONDELAY="Communication Delay"
     # Microphone
@@ -202,6 +215,10 @@ class Sensation(object):
 
 
 
+    TransferDirections={
+                TransferDirection.Direct: DIRECT,
+                TransferDirection.Up: UP,
+                TransferDirection.Down: DOWN}
       
     RobotTypes={RobotType.Muscle: MUSCLE,
                 RobotType.Sense: SENSE,
@@ -279,6 +296,7 @@ class Sensation(object):
                RobotState.CommunicationWaiting:COMMUNICATIONWAITING,
                RobotState.CommunicationOn:COMMUNICATIONON,
                RobotState.CommunicationWaitingResponse:COMMUNICATIONWAITINGRESPONSE,
+               RobotState.CommunicationoResponseHeard:COMMUNICATIONRESPONSEHEARD,
                RobotState.CommunicationNoResponseHeard:COMMUNICATIONNORESPONSEHEARD,
                RobotState.CommunicationNoResponseToSay:COMMUNICATIONNORESPONSETOSAY,
                RobotState.CommunicationEnded:COMMUNICATIONENDED,
@@ -304,6 +322,7 @@ class Sensation(object):
                RobotState.CommunicationWaiting:COMMUNICATIONWAITING,
                RobotState.CommunicationOn:COMMUNICATIONON,
                RobotState.CommunicationWaitingResponse:COMMUNICATIONWAITINGRESPONSE,
+               RobotState.CommunicationResponseHeard:COMMUNICATIONRESPONSEHEARD,
                RobotState.CommunicationNoResponseHeard:COMMUNICATIONNORESPONSEHEARD,
                RobotState.CommunicationNoResponseToSay:COMMUNICATIONNORESPONSETOSAY,
                RobotState.CommunicationEnded:COMMUNICATIONENDED,
@@ -549,7 +568,14 @@ class Sensation(object):
 
     
     #helpers
-        
+    
+    def getTransferDirectionString(transferDirection):
+        ret = Sensation.TransferDirections.get(transferDirection)
+        return ret
+    
+    def getSensationTypeStrings():
+        return Sensation.TransferDirections.values()
+                  
     def getSensationTypeString(sensationType):
         ret = Sensation.SensationTypes.get(sensationType)
         return ret
