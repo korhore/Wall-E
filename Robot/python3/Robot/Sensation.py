@@ -296,7 +296,7 @@ class Sensation(object):
                RobotState.CommunicationWaiting:COMMUNICATIONWAITING,
                RobotState.CommunicationOn:COMMUNICATIONON,
                RobotState.CommunicationWaitingResponse:COMMUNICATIONWAITINGRESPONSE,
-               RobotState.CommunicationoResponseHeard:COMMUNICATIONRESPONSEHEARD,
+               RobotState.CommunicationResponseHeard:COMMUNICATIONRESPONSEHEARD,
                RobotState.CommunicationNoResponseHeard:COMMUNICATIONNORESPONSEHEARD,
                RobotState.CommunicationNoResponseToSay:COMMUNICATIONNORESPONSETOSAY,
                RobotState.CommunicationEnded:COMMUNICATIONENDED,

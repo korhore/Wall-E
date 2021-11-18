@@ -1,6 +1,6 @@
 '''
 Created on 14.04.2021
-Updated on 28.10.2021
+Updated on 19.11.2021
 @author: reijo.korhonen@gmail.com
 
 test Communication or Visualommunication classes
@@ -22,6 +22,8 @@ import os
 
 
 from Sensation import Sensation
+from Memory import Memory
+from Config import Config
 # import Communication, but
 # set Communication.COMMUNICATION_INTERVAL smaller,
 # so test runs faster, when no waits normal time 30s, when we don't get
@@ -89,6 +91,18 @@ class CommunicationTest(RobotTestCase):
         else:
             self.communication.itemConversations['']=Communication.ConversationWithItem(robot=self.communication, location='')
             self.communication.robotConversations['']=Communication.ConversationWithRobot(robot=self.communication, location='')
+            
+        # reject mainRobot functionality
+        communication._isMainRobot = False
+        communication.level = 2
+        communication.subInstances = []
+        communication.tcpServer = None
+        communication.identity = None
+        # clean up memory
+        communication.memory = Memory(robot = self,
+                               maxRss = Config.MAXRSS_DEFAULT,
+                               minAvailMem = Config.MINAVAILMEM_DEFAULT)
+
 
     def doTearDown(self):
         print('\nCommunicationTest:doTearDown')       
@@ -251,7 +265,7 @@ class CommunicationTest(RobotTestCase):
                         muscleImage=image_sensation1, isExactMuscleImage=True,
                         muscleVoice=voice_sensation1, isExactMuscleVoice=True,
                         communicationItem=Wall_E_item_sensation_entering2, isExactCommunicationItem=True,
-                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationOn))
+                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))
             # To test other Communication Robots functionality we must make a trick and change this Sensation location
             # so this Robot think that Sensation comes from other Robot, not it self
             self.communicationItem.setMainNames(mainNames=self.OTHERMAINNAMES)
@@ -269,10 +283,10 @@ class CommunicationTest(RobotTestCase):
                         name='Entering, response 1', isEmpty=False, #isSpoken=True, isHeard=False, isVoiceFeeling=False,
                         muscleImage=image_sensation1, isExactMuscleImage=True,
                         muscleVoice=voice_sensation1, isExactMuscleVoice=True,
-                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationOn))
+                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))
 
         for location in self.getLocations():
-            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationOn)
+            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingResponse)
  
 
        
@@ -345,7 +359,7 @@ class CommunicationTest(RobotTestCase):
                         isImageFeeling=True,
                         isPositiveFeeling=True,
                         communicationItem=Wall_E_item_sensation_present, isExactCommunicationItem=True,
-                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationOn))
+                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))
             # To test other Communication Robots functionality we must make a trick and change this Sensation ocatio
             # so this Robot think that Sensation comes fromother Robot, not it self
             self.communicationItem.setMainNames(mainNames=self.OTHERMAINNAMES)
@@ -366,10 +380,10 @@ class CommunicationTest(RobotTestCase):
                         isVoiceFeeling=True,
                         isImageFeeling=True,
                         isPositiveFeeling=True,
-                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationOn))
+                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))
 
         for location in self.getLocations():
-            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationOn)
+            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingResponse)
 
 
         # We should remove remote Robot Item-presence to test this local Absent feature
@@ -481,7 +495,7 @@ class CommunicationTest(RobotTestCase):
                         muscleImage=image_sensation3, isExactMuscleImage=True,
                         muscleVoice=voice_sensation3, isExactMuscleVoice=True,
                         communicationItem=Wall_E_item_sensation_entering3, isExactCommunicationItem=True,
-                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationOn))
+                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))
             # To test other Communication Robots functionality we must make a trick and change this Sensation ocatio
             # so this Robot think that Sensation comes from other Robot, not it self
             self.communicationItem.setMainNames(mainNames=self.OTHERMAINNAMES)
@@ -499,10 +513,10 @@ class CommunicationTest(RobotTestCase):
                         name='Entering, response 3', isEmpty=False, #isSpoken=True, isHeard=False, isVoiceFeeling=False,
                         muscleImage=image_sensation3, isExactMuscleImage=True,
                         muscleVoice=voice_sensation3, isExactMuscleVoice=True,
-                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationOn))
+                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))
 
         for location in self.getLocations():
-            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationOn)
+            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingResponse)
             
 
         
@@ -576,7 +590,7 @@ class CommunicationTest(RobotTestCase):
                         isImageFeeling=True,
                         isPositiveFeeling=True,
                         communicationItem=Wall_E_item_sensation_entering4, isExactCommunicationItem=True,
-                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationOn))
+                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))
             # To test other Communication Robots functionality we must make a trick and change this Sensation ocatio
             # so this Robot think that Sensation comes fromother Robot, not it self
             self.communicationItem.setMainNames(mainNames=self.OTHERMAINNAMES)
@@ -597,10 +611,10 @@ class CommunicationTest(RobotTestCase):
                         isVoiceFeeling=True,
                         isImageFeeling=True,
                         isPositiveFeeling=True,
-                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationOn))
+                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))#Sensation.RobotState.CommunicationOn))
             
         for location in self.getLocations():
-            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationOn)
+            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingResponse)
 
         print('\n NAME2 current Present {}'.format(CommunicationTest.NAME2))
         # added make potential response
@@ -664,7 +678,7 @@ class CommunicationTest(RobotTestCase):
                         isImageFeeling=True,
                         isPositiveFeeling=True,
                         communicationItem=Wall_E_item_sensation_present2, isExactCommunicationItem=True,
-                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationOn))
+                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))
             # To test other Communication Robots functionality we must make a trick and change this Sensation ocatio
             # so this Robot think that Sensation comes fromother Robot, not it self
             self.communicationItem.setMainNames(mainNames=self.OTHERMAINNAMES)
@@ -685,10 +699,10 @@ class CommunicationTest(RobotTestCase):
                         isVoiceFeeling=True,
                         isImageFeeling=True,
                         isPositiveFeeling=True,
-                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationOn))
+                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))
            
         for location in self.getLocations():
-            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationOn)
+            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingResponse)
 
         print('\n NAME2 current Present again {}'.format(CommunicationTest.NAME2))
         # make potential response
@@ -761,7 +775,7 @@ class CommunicationTest(RobotTestCase):
                         isImageFeeling=True,
                         isPositiveFeeling=True,
                         communicationItem=Wall_E_item_sensation_present3, isExactCommunicationItem=True,
-                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationOn))
+                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))
             # To test other Communication Robots functionality we must make a trick and change this Sensation ocatio
             # so this Robot think that Sensation comes fromother Robot, not it self
             self.communicationItem.setMainNames(mainNames=self.OTHERMAINNAMES)
@@ -782,10 +796,10 @@ class CommunicationTest(RobotTestCase):
                         isVoiceFeeling=True,
                         isImageFeeling=True,
                         isPositiveFeeling=True,
-                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationOn))
+                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))
             
         for location in self.getLocations():
-            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationOn)
+            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingResponse)
             
             
 
@@ -817,9 +831,9 @@ class CommunicationTest(RobotTestCase):
                     isVoiceFeeling=True,
                     isImageFeeling=True,
                     isNegativeFeeling=True,
-                    robotStates = (Sensation.RobotState.CommunicationDelay))
+                    robotStates = (Sensation.RobotState.CommunicationDelay, Sensation.RobotState.CommunicationNoResponseHeard))
         for location in self.getLocations():
-            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationDelay)
+            self.assertTrue(self.communication.itemConversations[location].robotState in (Sensation.RobotState.CommunicationDelay, Sensation.RobotState.CommunicationNoResponseHeard))
     
 
         # last item.name will we be absent
@@ -1027,7 +1041,7 @@ class CommunicationTest(RobotTestCase):
             self.expect(isWait=isWait,
                         name='voice_sensation1, empty', isEmpty=False,
                         #robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationNoResponseToSay),
-                        robotStates = (Sensation.RobotState.CommunicationNoResponseToSay))
+                        robotStates = (Sensation.RobotState.CommunicationOn, Sensation.RobotState.CommunicationNoResponseToSay))
             self.assertEqual(len(robot.getMemory().getAllPresentItemSensations()), 1, 'len(robot.getMemory().getAllPresentItemSensations() should be 1')
             for location in self.getLocations():
                 self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationNoResponseToSay)
@@ -1049,8 +1063,8 @@ class CommunicationTest(RobotTestCase):
                                                 mainNames=mainNames,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='image_sensation1 test', dataId=image_sensation1.getDataId())
-        self.assertTrue(len(item_sensation1.getAssociations()) == 5 or\
-                         len(item_sensation1.getAssociations()) == 6)
+        print ("\n\n===== len(item_sensation1.getAssociations()) {}\n\n".format(len(item_sensation1.getAssociations())))
+        self.assertEqual(len(item_sensation1.getAssociations()), 7, "len(item_sensation1.getAssociations() should be 7, not {}".format(len(item_sensation1.getAssociations())))
         self.assertEqual(len(robot.getMemory().getAllPresentItemSensations()), 1, 'len(robot.getMemory().getAllPresentItemSensations() should be 1')
  
 #         robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=image_sensation1)
@@ -1122,11 +1136,8 @@ class CommunicationTest(RobotTestCase):
                                                 locations=self.getLocations())
         self.printSensationNameById(note='Wall_E_item_sensation2 test', dataId=Wall_E_item_sensation2.getDataId())
         self.assertEqual(len(Wall_E_item_sensation1.getAssociations()), 1)
-#         self.assertEqual(len(item_sensation1.getAssociations()), 3) # 1, 2, 3,4
-        #self.assertEqual(len(item_sensation1.getAssociations()), 8)
-        self.assertTrue(len(item_sensation1.getAssociations()) == 5 or\
-                        len(item_sensation1.getAssociations()) == 6 or\
-                        len(item_sensation1.getAssociations()) == 8 ) #3/5/7/11
+        print("\nitem_sensation1.getAssociations() {}\n".format(len(item_sensation1.getAssociations())))
+        self.assertEqual(len(item_sensation1.getAssociations()), 7, "len(item_sensation1.getAssociations()) should be 7, not {}".format(len(item_sensation1.getAssociations())))
         self.assertEqual(len(Wall_E_item_sensation2.getAssociations()), 1)
         
         for sensation in robot.getMemory().getAllPresentItemSensations():
@@ -1147,32 +1158,18 @@ class CommunicationTest(RobotTestCase):
         #  we will get response and 4 associations are created more
         self.assertEqual(len(Wall_E_item_sensation1.getAssociations()), 1)
         print("\nitem_sensation1.getAssociations() {}\n".format(len(item_sensation1.getAssociations())))
-        #self.assertEqual(len(item_sensation1.getAssociations()),22) #3/5/7/11
-        self.assertTrue(len(item_sensation1.getAssociations()) == 6 or\
-                        len(item_sensation1.getAssociations()) == 7 or\
-                        len(item_sensation1.getAssociations()) == 8 or\
-                        len(item_sensation1.getAssociations()) == 10 or\
-                        len(item_sensation1.getAssociations()) == 14 or\
-                        len(item_sensation1.getAssociations()) == 22) #3/5/7/11
-#         self.assertTrue(len(item_sensation1.getAssociations()) == 2 or\
-#                          len(item_sensation1.getAssociations()) == 3 or\
-#                          len(item_sensation1.getAssociations()) == 6 or\
-#                          len(item_sensation1.getAssociations()) == 10) #3/5/7/11
+        self.assertEqual(len(item_sensation1.getAssociations()), 9, "len(item_sensation1.getAssociations()) should be 9, not {}".format(len(item_sensation1.getAssociations())))
         print("len(Wall_E_item_sensation2.getAssociations() {}".format(len(Wall_E_item_sensation2.getAssociations())))
-        self.assertTrue(len(Wall_E_item_sensation2.getAssociations()) == 1 or\
-                        len(Wall_E_item_sensation2.getAssociations()) == 2 or\
-                        len(Wall_E_item_sensation2.getAssociations()) == 3 or\
-                        len(Wall_E_item_sensation2.getAssociations()) == 5 or\
-                        len(Wall_E_item_sensation2.getAssociations()) == 9) #1/3/5/9
-
+        self.assertEqual(len(Wall_E_item_sensation2.getAssociations()), 5, "len(Wall_E_item_sensation2.getAssociations()) should be 5, not {}".format(len(Wall_E_item_sensation2.getAssociations())))
+#
         # We can use   image_sensation1,   voice_sensation1 after Absent   
         self.expect(isWait=isWait,
                     name='Wall_E_item_sensation2, no feeling', isEmpty=False,
                     muscleImage=image_sensation1, isExactMuscleImage=True,
                     muscleVoice=voice_sensation1, isExactMuscleVoice=True,
-                    robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationOn))
+                    robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))
         for location in self.getLocations():
-            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationOn)
+            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingResponse)
         # Now we got answer and we will get feeling pending, good or bad, depending if Robot hears an answer from us
         # of if another item cones present
         
@@ -1196,15 +1193,11 @@ class CommunicationTest(RobotTestCase):
         self.printSensationNameById(note='Wall_E_item_sensation3 test', dataId=Wall_E_item_sensation3.getDataId())
 
         self.assertEqual(len(Wall_E_item_sensation1.getAssociations()), 1) # present in location ''
-        self.assertTrue(len(Wall_E_item_sensation2.getAssociations()) == 1 or\
-                        len(Wall_E_item_sensation2.getAssociations()) == 3 or\
-                        len(Wall_E_item_sensation2.getAssociations()) == 5)
+        self.assertEqual(len(Wall_E_item_sensation2.getAssociations()), 5, "len(Wall_E_item_sensation2.getAssociations()) should be 5, not {}".format(len(Wall_E_item_sensation2.getAssociations())))
         self.assertEqual(len(Wall_E_item_sensation3.getAssociations()), 1)
-        #self.assertEqual(len(item_sensation1.getAssociations()),7 )         # present in testlocation , added +1(2)
-        self.assertTrue(len(item_sensation1.getAssociations()) == 7 or\
-                        len(item_sensation1.getAssociations()) == 8 or\
-                        len(item_sensation1.getAssociations()) == 12 or\
-                        len(item_sensation1.getAssociations()) == 16 )         # present in testlocation , added +1(2)
+        print("len(item_sensation1.getAssociations()) {}".format(len(item_sensation1.getAssociations())))
+        self.assertEqual(len(item_sensation1.getAssociations()), 9, "len(item_sensation1.getAssociations()) should be 9, not {}".format(len(item_sensation1.getAssociations())))
+        
         self.assertEqual(len(image_sensation1.getAssociations()), 2)
         self.assertEqual(len(voice_sensation1.getAssociations()), 2)
        
@@ -1284,9 +1277,9 @@ class CommunicationTest(RobotTestCase):
                     isVoiceFeeling=True,
                     isImageFeeling=True,
                     isPositiveFeeling=True,
-                    robotStates = (Sensation.RobotState.CommunicationOn,Sensation.RobotState.CommunicationWaiting))
+                    robotStates = (Sensation.RobotState.CommunicationOn,Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))
         for location in self.getLocations():
-            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationOn)
+            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingResponse)
 
         
         print('\n current Absent {}'.format(CommunicationTest.NAME))        
@@ -1506,9 +1499,9 @@ class CommunicationTest(RobotTestCase):
                         #isVoiceFeeling=True,
                         #isImageFeeling=True,
                         #isPositiveFeeling=True,
-                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationOn))
+                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))
             for location in self.getLocations():
-                self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationOn)
+                self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingResponse)
             
             print('\n NAME2 current Present {}'.format(CommunicationTest.NAME2))
             # added make potential response
@@ -1572,9 +1565,9 @@ class CommunicationTest(RobotTestCase):
                         isVoiceFeeling=True,
                         isImageFeeling=True,
                         isPositiveFeeling=True,
-                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationOn))
+                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))
             for location in self.getLocations():
-                self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationOn)
+                self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingResponse)
     
             print('\n NAME2 current Present again {}'.format(CommunicationTest.NAME2))
             # make potential response to history
@@ -1648,9 +1641,9 @@ class CommunicationTest(RobotTestCase):
                         isVoiceFeeling=True,
                         isImageFeeling=True,
                         isPositiveFeeling=True,
-                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationOn))
+                        robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))
             for location in self.getLocations():
-                self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationOn)
+                self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingResponse)
             
             print('\n NAME2 current Absent {}'.format(CommunicationTest.NAME2))
             Wall_E_item_sensation9 = self.createSensation(
@@ -1682,9 +1675,9 @@ class CommunicationTest(RobotTestCase):
                         isVoiceFeeling=True,
                         isImageFeeling=True,
                         isNegativeFeeling=True,
-                        robotStates = (Sensation.RobotState.CommunicationDelay))
+                        robotStates = (Sensation.RobotState.CommunicationDelay, Sensation.RobotState.CommunicationNoResponseHeard))
             for location in self.getLocations():
-                self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationDelay)
+                self.assertTrue(self.communication.itemConversations[location].robotState in (Sensation.RobotState.CommunicationDelay, Sensation.RobotState.CommunicationNoResponseHeard))
         
     
             # last item.name will we be absent
@@ -2295,9 +2288,9 @@ class CommunicationTest(RobotTestCase):
                     isEmpty=False,
                     muscleImage=Wall_E_image_sensation_2, isExactMuscleImage=True,
                     muscleVoice=Wall_E_voice_sensation_2, isExactMuscleVoice=True,
-                    robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationOn))
+                    robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))
         for location in self.getLocations():
-            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationOn)
+            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingResponse)
                     # we don't have other side commicationg Robot
 #                     communicationImage=Wall_E_image_sensation_2, isExactCommunicationImage=True,
 #                     communicationVoice=Wall_E_voice_sensation_2, isExactCommunicationVoice=True)
@@ -2319,6 +2312,7 @@ class CommunicationTest(RobotTestCase):
         # process
         robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_sense_voice_response_sensation)
         # should get second best voice, image and positive feelings to 1. responses
+        # we resposend to personsvoice, so we first get CommunicationResponseHeard and then (Sensation.RobotState.CommunicationWaiting) or Sensation.RobotState.CommunicationWaitingResponse
         self.expect(isWait=isWait,
                     name='response, second best voice, image',
                     isEmpty=False,
@@ -2329,9 +2323,9 @@ class CommunicationTest(RobotTestCase):
                     isVoiceFeeling=True,
                     isImageFeeling=True,
                     isPositiveFeeling=True,
-                    robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationOn))
+                    robotStates = (Sensation.RobotState.CommunicationResponseHeard, Sensation.RobotState.CommunicationWaitingResponse))
         for location in self.getLocations():
-            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationOn)
+            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingResponse)
         
         # TODO enable and reimplement next line, because 
         # heardDataIds is location based now       
@@ -2360,9 +2354,9 @@ class CommunicationTest(RobotTestCase):
                     isVoiceFeeling=True,
                     isImageFeeling=True,
                     isPositiveFeeling=True,
-                    robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationOn))
+                    robotStates = (Sensation.RobotState.CommunicationResponseHeard, Sensation.RobotState.CommunicationWaitingResponse))
         for location in self.getLocations():
-            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationOn)
+            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingResponse)
         
 
         # response 3 from other side communication
@@ -2395,9 +2389,9 @@ class CommunicationTest(RobotTestCase):
                     isVoiceFeeling=True,
                     isImageFeeling=True,
                     isPositiveFeeling=True,
-                    robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationOn))
+                    robotStates = (Sensation.RobotState.CommunicationResponseHeard, Sensation.RobotState.CommunicationWaitingResponse))
         for location in self.getLocations():
-            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationOn)
+            self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingResponse)
         
         
         Wall_E_sense_voice_response_sensation_4 = self.createSensation(
@@ -2421,7 +2415,7 @@ class CommunicationTest(RobotTestCase):
                     isVoiceFeeling=True,
                     isImageFeeling=True,
                     isPositiveFeeling=True,
-                    robotStates = (Sensation.RobotState.CommunicationNoResponseToSay)
+                    robotStates = (Sensation.RobotState.CommunicationResponseHeard, Sensation.RobotState.CommunicationNoResponseToSay)
                     )
         for location in self.getLocations():
             self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationNoResponseToSay)

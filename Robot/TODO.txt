@@ -36,6 +36,11 @@ Eva stops to send images
 
 Develop
 -------
+
+Testing Communication is now a problem. because configuration for Communication
+is mainRobot, mening that it starts subRobots or/and Identity. We should reject
+mainRobot-functionality and test only Communication-functionality.
+
 reijo@raspberrypi:~/Robot/python3/Robot$ python3 Communication/Communication.py  >t 2>t.err
 Killed
 

@@ -328,7 +328,7 @@ class Memory(object):
     '''
     def assign(self, sensation, log=False):
         if log:
-            self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='assign: sensation ' + systemTime.ctime(sensation.getTime()) +  ' ' + sensation.toDebugStr())
+            self.log(logLevel=Memory.MemoryLogLevel.Detailed, logStr='assign: sensation ' + systemTime.ctime(sensation.getTime()) +  ' ' + sensation.toDebugStr())
         #self.getMemory().getRobot().presentItemSensations can be changed
         #TODO logic can lead to infinite loop
         succeeded = False
@@ -340,7 +340,7 @@ class Memory(object):
                            sensation.getTime() >=  itemSensation.getTime():
                             # and len(itemSensation.getAssociations()) < Sensation.ASSOCIATIONS_MAX_ASSOCIATIONS: #removed limitation
                             if log:
-                                self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='assign: location:' + location + ' itemSensation= ' +  itemSensation.toDebugStr() + ' sensation= ' + sensation.toDebugStr())
+                                self.log(logLevel=Memory.MemoryLogLevel.Detailed, logStr='assign: location:' + location + ' itemSensation= ' +  itemSensation.toDebugStr() + ' sensation= ' + sensation.toDebugStr())
                             itemSensation.associate(sensation=sensation)
                         else:
                             self.log(logLevel=Memory.MemoryLogLevel.Detailed, logStr='assign: location:' + location + ' sensation ignored not newer than present itemSensation or sensation is present itemSensation= ' + itemSensation.toDebugStr() + ' sensation= ' + sensation.toDebugStr())
