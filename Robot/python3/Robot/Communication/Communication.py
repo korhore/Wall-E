@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 26.10.2021
+Updated on 17.11.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -44,7 +44,7 @@ if                Voice
 6) Feel Good      Best Voice from Other
 - This will be second best choice with Other
 
-elsem
+else
 7) Feel Sad Best Voice from Other
    - this way we would try next time other Voice
    
@@ -100,7 +100,7 @@ class Communication(Robot):
     CommunicationLogLevel = enum(No=-1, Critical=0, Error=1, Normal=2, Detailed=3, Verbose=4)
 
 
-    COMMUNICATION_INTERVAL=30.0     # time window to history 
+    COMMUNICATION_INTERVAL=60.0     # time window to history 
                                     # for sensations we communicate
     CONVERSATION_INTERVAL=300.0     # if no change in present item.names and
                                     # last conversation is ended, how long
@@ -419,7 +419,7 @@ class Communication(Robot):
             
         def isConversationOn(self):
             return self._isConversationOn
-            # returnself.mostImportantItemSensation is not None      # when conversaing, we know most important item.name to cerversate with
+            # returnself.mostImportantItemSensation is not None      # when conversating, we know most important item.name to cerversate with
        
         def isConversationEnded(self):
             return self._isConversationEnded
@@ -439,11 +439,20 @@ class Communication(Robot):
 
             # We are disappointed            
             self.handleGotFeedback(positiveFeeling=False, negativeFeeling=True)
+            self.robotState = Sensation.RobotState.CommunicationNoResponseHeard
+
+            robotStateSensation = self.createSensation( robotType = Sensation.RobotType.Sense,
+                                                        associations=None,
+                                                        sensationType=Sensation.SensationType.RobotState,
+                                                        memoryType=Sensation.MemoryType.Sensory,
+                                                        robotState=self.robotState,
+                                                        locations=self.getLocations())
+            self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=robotStateSensation)
+
             # conversation is ended
             self.endConversation()
             self._isConversationDelay = True
-
-                            
+            
     
             
         def clearConversation(self):

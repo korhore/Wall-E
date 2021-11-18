@@ -36,12 +36,19 @@ Eva stops to send images
 
 Develop
 -------
+reijo@raspberrypi:~/Robot/python3/Robot$ python3 Communication/Communication.py  >t 2>t.err
+Killed
 
-Communication
+If We won't have memory limit configuration right, then we have a problem.
+- CommunicationCommunication/etc/Robot.cfg was empty
+-- Do we run out of disk space?
+
 - OK Add RobotState WaitingResponse, ....
 - Move all FeelingHandling fron Robot.py and  Memory.py to to Communication.
   Only that way we can make it clear and testable.
-  
+- Should we share Feelings to other Robots? This uses a lot of resources and it is not sure
+  if other Robos has same sensation.
+
 SocketClient
 If it gets overloaded, it does not recover. Situation should be handled same way as
 connection is broken. 

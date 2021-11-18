@@ -123,7 +123,7 @@ class Memory(object):
        
     def create(  self,
                  robot,                                                      # caller Robot, should be always given
-                 log=True,
+                 log=False,
                  associations = None,
                  sensation=None,
                  bytes=None,
@@ -326,7 +326,7 @@ class Memory(object):
     '''
     Assign just created sensation with other present Item sensations
     '''
-    def assign(self, sensation, log=True):
+    def assign(self, sensation, log=False):
         if log:
             self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr='assign: sensation ' + systemTime.ctime(sensation.getTime()) +  ' ' + sensation.toDebugStr())
         #self.getMemory().getRobot().presentItemSensations can be changed

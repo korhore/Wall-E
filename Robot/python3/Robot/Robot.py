@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 15.11.2021
+Updated on 17.11.2021
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -133,6 +133,9 @@ class Robot(Thread):
     
     GLOBAL_LOCATION =   'global'
     GLOBAL_LOCATIONS =  [GLOBAL_LOCATION]
+    PAST_LOCATION =   'past'
+    PAST_LOCATIONS =  [PAST_LOCATION]
+    
 
     LogLevels={LogLevel.No: NO,
                LogLevel.Critical: CRITICAL,
@@ -161,7 +164,7 @@ class Robot(Thread):
     ACTIVITE_LOGGING_SHORT_AVERAGE_PERIOD = 3.0       # used as period in seconds
     ACTIVITE_LOGGING_INTERVAL =             60
     
-    FEELING_LOGGING_SHORT_AVERAGE_PERIOD =  30.0      # used as period in feeling times , this is not time dependent
+    FEELING_LOGGING_SHORT_AVERAGE_PERIOD =  5.0      # used as period in feeling times , this is not time dependent
     
     IMAGE_FILENAME_TYPE = ".jpg"
     VOICE_FILENAME_TYPE = ".wav"
@@ -176,10 +179,10 @@ class Robot(Thread):
                  maxRss = Config.MAXRSS_DEFAULT,
                  minAvailMem = Config.MINAVAILMEM_DEFAULT,
                  location=None,             # TODO this is config section for configuration, NOT location
-                                            # terminology should be clarofied
+                                            # terminology should be clarified
                                             # and even if this is given, it is always
                                             # overridded first be default value and then by config value if found
-                                            # maybe oiinal idea was allow many instances of this Robot with many confugurations
+                                            # maybe original idea was allow many instances of this Robot with many configurations
                                             # or run same configuration in many locations (inside mainRobot)
                                             # but ideas are confused and mixed
                  config=None):
@@ -443,7 +446,11 @@ class Robot(Thread):
     def setLocations(self, locations):
 #         if self.getInstanceType() == Sensation.InstanceType.SubInstance:
         self.locations = locations
-        self.config.setLocations(locations = locations)
+        # TODOP test this
+        # seems, that there is no sense change locations, but in Robot Yes
+        # used in Identification to set TensorfloeClassification locations to past, so
+        # is does not set any real Item sensations in current time and placed, but in past
+        #self.config.setLocations(locations = locations)
     def getLocations(self):
         return self.locations
     def getLocationsStr(self):
@@ -524,7 +531,7 @@ class Robot(Thread):
                 return Sensation.Feeling.InLove
             elif self.feelingLevel > (Sensation.Feeling.Happy + Sensation.Feeling.Good)/2.0:
                 return Sensation.Feeling.Happy
-            elif self.feelingLevel > (Sensation.Feeling.Good + Sensation.Feeling.Norma)/2.0:
+            elif self.feelingLevel > (Sensation.Feeling.Good + Sensation.Feeling.Normal)/2.0:
                 return Sensation.Feeling.Good
             elif self.feelingLevel > (Sensation.Feeling.Normal + Sensation.Feeling.Neutral)/2.0:
                 return Sensation.Feeling.Normal
@@ -664,7 +671,7 @@ class Robot(Thread):
         if self.is_alive() and self.getCapabilities() is not None and\
            self.isInLocations(locations):
 #             testRobotType = self.getMainNamesRobotType(isCommunication=isCommunication, robotType=robotType, mainNames=mainNames)
-            self.log(logLevel=Robot.LogLevel.Normal, logStr="hasCapability isInLocations locations " + str(locations) + " self.getDownLocations " + str(self.getDownLocations()))      
+            self.log(logLevel=Robot.LogLevel.Detailed, logStr="hasCapability isInLocations locations " + str(locations) + " self.getDownLocations " + str(self.getDownLocations()))      
             hasCapalility = self.getCapabilities().hasCapability(robotType=robotType, memoryType=memoryType, sensationType=sensationType, acceptAll=self.getInstanceType() != Sensation.InstanceType.Remote)
             # If checked capability RobotType is Communication
             # is exists only if mainNames is nit this Robots MaionNanes
@@ -674,7 +681,7 @@ class Robot(Thread):
             else:
                 hasCapalility = self.getCapabilities().hasCapability(robotType=robotType, memoryType=memoryType, sensationType=sensationType, acceptAll=self.getInstanceType() != Sensation.InstanceType.Remote)                
             if hasCapalility:
-                self.log(logLevel=Robot.LogLevel.Normal, logStr="hasCapability robotType " + str(robotType) + " memoryType " + str(memoryType) + " sensationType " + str(sensationType) + " locations " + str(locations) + ' ' + str(hasCapalility))      
+                self.log(logLevel=Robot.LogLevel.Detailed, logStr="hasCapability robotType " + str(robotType) + " memoryType " + str(memoryType) + " sensationType " + str(sensationType) + " locations " + str(locations) + ' ' + str(hasCapalility))      
         return hasCapalility
     
     '''
@@ -1376,7 +1383,7 @@ class Robot(Thread):
     '''
             
     def route(self, transferDirection, sensation):
-        self.log(logLevel=Robot.LogLevel.Normal, logStr='route: ' + time.ctime(sensation.getTime()) + ' ' + sensation.toDebugStr())
+        self.log(logLevel=Robot.LogLevel.Detailed, logStr='route: ' + time.ctime(sensation.getTime()) + ' ' + sensation.toDebugStr())
         self.log(logLevel=Robot.LogLevel.Detailed, logStr='route: ' + time.ctime(sensation.getTime()) + ' ' + str(transferDirection) +  ' ' + sensation.toDebugStr())
         
         robots = []
@@ -1415,18 +1422,18 @@ class Robot(Thread):
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='process for ' + sensation.toDebugStr() + ' robots ' + str(robots))
                
             if len(robots) == 0:
-                self.log(logLevel=Robot.LogLevel.Normal, logStr='None robot has capability for this sensation= {})'.format(sensation.toDebugStr()))
+                self.log(logLevel=Robot.LogLevel.Detailed, logStr='None robot has capability for this sensation= {})'.format(sensation.toDebugStr()))
             for robot in robots:
                 if robot.getInstanceType() == Sensation.InstanceType.Remote:
                     # if this sensation comes from sockrServers host
                     if sensation.isReceivedFrom(robot.getHost()) or \
                         sensation.isReceivedFrom(robot.getSocketServer().getHost()):
-                        self.log(logLevel=Robot.LogLevel.Normal, logStr='Remote robot ' + robot.getName() + ' has capability for this, but sensation comes from it self. Don\'t recycle it {}'.format(sensation.toDebugStr()))
+                        self.log(logLevel=Robot.LogLevel.Detailed, logStr='Remote robot ' + robot.getName() + ' has capability for this, but sensation comes from it self. Don\'t recycle it {}'.format(sensation.toDebugStr()))
                     else:
-                        self.log(logLevel=Robot.LogLevel.Normal, logStr='Remote robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation= {})'.format(sensation.toDebugStr()))
+                        self.log(logLevel=Robot.LogLevel.Detailed, logStr='Remote robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation= {})'.format(sensation.toDebugStr()))
                         robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)#, detach=False) # keep ownerdhip untill sent to all sub Robots
                 else:
-                    self.log(logLevel=Robot.LogLevel.Normal, logStr='Local robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation= {})'.format(sensation.toDebugStr()))
+                    self.log(logLevel=Robot.LogLevel.Detailed, logStr='Local robot ' + robot.getName() + ' has capability for this, robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation= {})'.format(sensation.toDebugStr()))
                     # new instance or sensation for process
                     robot.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=sensation)#, detach=False) # keep ownerdhip untill sent to all sub Robots
    
@@ -1689,6 +1696,8 @@ class Identity(Robot):
         self.identitypath = self.config.getIdentityDirPath(self.getParent().getName()) # parent's location, parent's Identity
         self.sleeptime = Identity.SLEEPTIME
         
+        self.setLocations(locations=Robot.PAST_LOCATIONS)
+        
 
     '''
     get identity sensations
@@ -1706,6 +1715,7 @@ class Identity(Robot):
                                                             instanceName='TensorFlowClassification',
                                                             instanceType= Sensation.InstanceType.SubInstance,
                                                             level=self.level)
+        tensorFlowClassification.setLocations(Robot.PAST_LOCATIONS)
         tensorFlowClassification.start()
 
         # TODO this way both exposures and local identity are equal, making
@@ -1754,8 +1764,11 @@ class Identity(Robot):
                         shutil.copyfile(file_path, sensation_filepath)
                         image = PIL_Image.open(sensation_filepath)
                         image.load()
-                        imageSensation = self.createSensation( sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,\
-                                                               image=image)
+                        imageSensation = self.createSensation( sensationType = Sensation.SensationType.Image,
+                                                               memoryType = Sensation.MemoryType.Sensory,
+                                                               robotType = Sensation.RobotType.Sense,
+                                                               image = image,
+                                                               location = Robot.PAST_LOCATIONS)
                         imageSensations.append(imageSensation)
                         if fname == name + Robot.IMAGE_FILENAME_TYPE:
                            self.selfImageSensation = imageSensation
@@ -1782,7 +1795,12 @@ class Identity(Robot):
                                 if remainder != 0:
                                     self.log("Did not succeed to fix!")
                                     self.log(str(remainder) + " over periodic size " + str(AudioSettings.AUDIO_PERIOD_SIZE) )
-                            voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.LongTerm, robotType = Sensation.RobotType.Sense, data=data)
+                            voiceSensation = self.createSensation( associations=[],
+                                                                   sensationType = Sensation.SensationType.Voice,
+                                                                   memoryType = Sensation.MemoryType.LongTerm,
+                                                                   robotType = Sensation.RobotType.Sense,
+                                                                   data=data,
+                                                                   location = Robot.PAST_LOCATIONS)
                             identityVoiceSensations.append(voiceSensation)
                             
                             if fname == name + Robot.VOICE_FILENAME_TYPE:
@@ -1902,21 +1920,24 @@ class Identity(Robot):
 
     '''
     Always get  from parent
+    STUDY how Robot.PAST_LOCATIONS work
     '''        
     def getLocations(self):
-        return self.getParent().getLocations(self)
+#         return self.getParent().getLocations(self)
+        return Robot.PAST_LOCATIONS
 
     '''
     Always get  from parent
     '''        
     def getUpLocations(self):
-        return self.getParent().getUpLocations(self)
-
+#         return self.getParent().getUpLocations(self)
+        return Robot.PAST_LOCATIONS
     '''
     Always get  from parent
     '''        
     def getDownLocations(self):
-        return self.getParent().getDownLocations(self)
+#         return self.getParent().getDownLocations(self)
+        return Robot.PAST_LOCATIONS
 
     def run(self):
         self.running=True
@@ -1941,6 +1962,7 @@ class Identity(Robot):
                                                                 instanceName='TensorFlowClassification',
                                                                 instanceType= Sensation.InstanceType.SubInstance,
                                                                 level=self.level)
+            tensorFlowClassification.setLocations(Robot.PAST_LOCATIONS)
             tensorFlowClassification.start()
             self.getParent().itemSensations, self.getParent().itemImageSensations = self.getItemSensations(tensorFlowClassification=tensorFlowClassification, name = self.getParent().getName(), imageSensations = self.getParent().imageSensations)
             
