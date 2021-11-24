@@ -499,8 +499,7 @@ class Memory(object):
                         self.log(logStr='Sensations cache Not Forgottable robot {} SensationType {} number {}'.format(robotName, Sensation.getSensationTypeString(sensationType), len(notForgettablesByRobotBySensationType)), logLevel=Memory.MemoryLogLevel.Detailed)
         #self.log(logStr='Memory usage for {} Sensations {} after {} MB'.format(len(self.sensationMemory), Sensation.getMemoryTypeString(sensation.getMemoryType()), Sensation.getMemoryRssUsage()-Sensation.startSensationMemoryUsageLevel), logLevel=Memory.MemoryLogLevel.Normal)
         if triedToForget:
-            if Memory.getMemoryRssUsage() < self.lastMemoryRssUsage or\
-               Memory.getAvailableMemory() > self.lastAvailableMemory:
+            if not self.isLowMemory():
                 self.lastForgetSucceeded = True
                 self.forgetFailures = 0
             else:
@@ -1441,7 +1440,7 @@ class Memory(object):
                 sensation.getSensationType() == Sensation.SensationType.Voice:
                 if sensation.getFilePath() == filepath:
                     return True
-            if sensation.getFilePath(sensationType=ensation.SensationType.All) == filepath:
+            if sensation.getFilePath(sensationType=sensation.SensationType.All) == filepath:
                 return True
         return False
 
@@ -1491,10 +1490,11 @@ class Memory(object):
                                              name = name)
             if names != None:
                 for n in names:
-                    self.tracePresentsByLocation(sensation,
-                                                 location = location,
-                                                 presentDict = presentDict,
-                                                 name = n)
+                    if n != name:
+                        self.tracePresentsByLocation(sensation,
+                                                     location = location,
+                                                     presentDict = presentDict,
+                                                     name = n)
 
     '''
     Presence by location

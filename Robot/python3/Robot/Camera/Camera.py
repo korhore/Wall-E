@@ -127,7 +127,7 @@ class Camera(Robot):
         self.mode = Sensation.Mode.Normal
 
         if IsPiCamera:
-            self.camera.start_preview()
+            #self.camera.start_preview()
             # Camera warm-up time
             time.sleep(self.SLEEP_TIME)
 
@@ -167,7 +167,7 @@ class Camera(Robot):
         if IsPiCamera:
             stream = io.BytesIO()
             self.camera.capture(stream, format=Sensation.IMAGE_FORMAT)
-            self.camera.stop_preview()
+            #self.camera.stop_preview()
             stream.seek(0)
             image = PIL_Image.open(stream)
             self.log("sense image = PIL_Image.open(stream)")      
@@ -197,9 +197,9 @@ class Camera(Robot):
             self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=sensation)
         else:
              self.log("sense no change")
-        if IsPiCamera:
-            self.camera.start_preview()
-            # Camera warm-up time
+#         if IsPiCamera:
+#             self.camera.start_preview()
+#             # Camera warm-up time
         time.sleep(self.SLEEP_TIME)
 
 

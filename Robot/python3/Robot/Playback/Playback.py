@@ -225,8 +225,9 @@ class Playback(Robot):
                     
                     # process voice
                     try:
-#                         aaa = numpy.fromstring(data, dtype=Settings.AUDIO_CONVERSION_FORMAT)
-                        aaa = numpy.frombuffer(data, dtype=Settings.AUDIO_CONVERSION_FORMAT)
+                        # in raspberry, process will be killed if numpy.frombuffer is used
+                         aaa = numpy.fromstring(data, dtype=Settings.AUDIO_CONVERSION_FORMAT)
+#                        aaa = numpy.frombuffer(data, dtype=Settings.AUDIO_CONVERSION_FORMAT)
                     except (ValueError):
                         self.log("process numpy.fromstring(data, dtype=dtype: ValueError")      
                         return

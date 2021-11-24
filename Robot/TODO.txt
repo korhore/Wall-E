@@ -36,7 +36,125 @@ Eva stops to send images
 
 Develop
 -------
+WE get out of memory. Syslog
+Nov 23 02:04:33 raspberrypi kernel: [215403.052637] [<802afed4>] (oom_kill_process) from [<802b0be0>] (out_of_memory+0x2b8/0x390)
+Nov 23 02:04:33 raspberrypi kernel: [215403.052643]  r7:80e083c0 r6:80e05008 r5:a350ae80 r4:83683e00
+Nov 23 02:04:33 raspberrypi kernel: [215403.052655] [<802b0928>] (out_of_memory) from [<802ffe18>] (__alloc_pages_nodemask+0x7ec/0x1184)
+Nov 23 02:04:33 raspberrypi kernel: [215403.052662]  r7:80e05784 r6:00000000 r5:ffffe000 r4:00400040
+Nov 23 02:04:33 raspberrypi kernel: [215403.052673] [<802ff62c>] (__alloc_pages_nodemask) from [<802e41b8>] (__pte_alloc+0x34/0x17c)
+Nov 23 02:04:33 raspberrypi kernel: [215403.052681]  r10:83683fb0 r9:ffffe000 r8:00000040 r7:00000000 r6:459c3000 r5:8626d160
+Nov 23 02:04:33 raspberrypi kernel: [215403.052686]  r4:89d74c00
+Nov 23 02:04:33 raspberrypi kernel: [215403.052695] [<802e4184>] (__pte_alloc) from [<802e8720>] (handle_mm_fault+0xd30/0xe30)
+Nov 23 02:04:33 raspberrypi kernel: [215403.052703]  r9:ffffe000 r8:00000040 r7:00000000 r6:459c3000 r5:80e05008 r4:00000255
+Nov 23 02:04:33 raspberrypi kernel: [215403.052714] [<802e79f0>] (handle_mm_fault) from [<809ebad8>] (do_page_fault+0x144/0x314)
+Nov 23 02:04:33 raspberrypi kernel: [215403.052722]  r10:00000255 r9:00000800 r8:89d74c48 r7:89d74c00 r6:00000805 r5:459c3014
+Nov 23 02:04:33 raspberrypi kernel: [215403.052727]  r4:83683fb0
+Nov 23 02:04:33 raspberrypi kernel: [215403.052737] [<809eb994>] (do_page_fault) from [<809ebd64>] (do_translation_fault+0xbc/0xc0)
+Nov 23 02:04:33 raspberrypi kernel: [215403.052746]  r10:0000ffff r9:00433b2c r8:83683fb0 r7:459c3014 r6:809ebca8 r5:00000805
+Nov 23 02:04:33 raspberrypi kernel: [215403.052751]  r4:00000805
+Nov 23 02:04:33 raspberrypi kernel: [215403.052761] [<809ebca8>] (do_translation_fault) from [<80113f18>] (do_DataAbort+0x4c/0xcc)
+Nov 23 02:04:33 raspberrypi kernel: [215403.052768]  r7:459c3014 r6:809ebca8 r5:00000805 r4:80e0abd8
+Nov 23 02:04:33 raspberrypi kernel: [215403.052777] [<80113ecc>] (do_DataAbort) from [<80100da4>] (__dabt_usr+0x44/0x60)
+Nov 23 02:04:33 raspberrypi kernel: [215403.052782] Exception stack(0x83683fb0 to 0x83683ff8)
+Nov 23 02:04:33 raspberrypi kernel: [215403.053027] Free swap  = 0kB
+Nov 23 02:04:33 raspberrypi kernel: [215403.053033] Total swap = 0kB
+Nov 23 02:04:33 raspberrypi kernel: [215403.053039] 229376 pages RAM
+Nov 23 02:04:33 raspberrypi kernel: [215403.053045] 0 pages HighMem/MovableOnly
+Nov 23 02:04:33 raspberrypi kernel: [215403.053051] 5973 pages reserved
+Nov 23 02:04:33 raspberrypi kernel: [215403.053058] 16384 pages cma reserved
 
+swap?
+
+Nov 23 02:04:33 raspberrypi kernel: [215403.053071] [  pid  ]   uid  tgid total_vm      rss pgtables_bytes swapents oom_score_adj name
+Nov 23 02:04:33 raspberrypi kernel: [215403.053446] [   4663]  1001  4663   257997   194146   915456        0             0 python3
+257997*40896/1024/1024=1007 == Total memory
+Meaning, Robot is running out of memory and Robot memory handling can not solve situation
+
+
+
+
+
+
+
+
+
+When stopping, we can see
+father_MainName:father:1:Stopping:Ubuntu:MainRobot Stopping self.identity Identity
+father_MainName:TCPServer: ('', 2000):2:Stopping::run: STOPPED
+father_MainName:TCPServer: ('', 2000):2:Stopping::run: ENDED
+father_MainName:Identity:2:Stopping:past:Stopping robot
+Why Identity is not stopped already?
+
+When rapberry was killed, last logs
+main_Eva:SocketClient: ('192.168.117.248', 44860):3:Normal::got sensation from queue c Sat Nov 20 15:23:01 2021:1637412165.421258:1637414514.1128113:Sensory:Sense:Image:raspberry Ubuntu::Neutral
+main_Eva:SocketClient: ('192.168.117.248', 44860):3:Normal::process: Sat Nov 20 15:23:01 2021 c Sat Nov 20 15:23:01 2021:1637412165.421258:1637414514.1128113:Sensory:Sense:Image:raspberry Ubuntu::Neutral
+main_Eva:SocketClient: ('192.168.117.248', 44860):3:Normal::SocketClient.sendSensation wrote sensation Sat Nov 20 15:23:01 2021:1637412197.458233:1637414514.1128113:Sensory:Sense:Image:raspberry Ubuntu::Neutral to ('192.168.117.248', 44860)
+main_Eva:SocketClient: ('192.168.117.248', 44860):3:Normal::done sensation.detach(robot=self)
+main_Eva:TensorFlowClassification:2:Normal:raspberry:SEEN image FOR SURE className tv score 0.51171875 box [0.47887897 0.8377486  0.7028822  0.99885124]
+main_Eva:TensorFlowClassification:2:Normal:raspberry:Name tv Still Present
+main_Eva:TensorFlowClassification:2:Normal:raspberry:SEEN image FOR SURE className chair score 0.5 box [0.74605834 0.67364496 0.99626803 0.9053742 ]
+main_Eva:TensorFlowClassification:2:Normal:raspberry:Name chair Still Present
+main_Eva:Eva:1:Normal:raspberry:Sensations cache for 924 Total self.sensationMemory total rss usage 405.08984375 MB per sensation rss usage 433.4761904761905 KB available total 371.61328125 MB sensation usage 403.965367965368 KB with Sensation.min_cache_memorability 1.4
+-----
+Next
+main_Eva:Camera:2:Normal:raspberry Ubuntu:sense image = PIL_Image.open(stream)
+main_Eva:Camera:2:Normal:raspberry Ubuntu:isChangedImage
+main_Eva:Camera:2:Normal:raspberry Ubuntu:isChangedImage final change  95193  change > self.CHANGE_RANGE False
+main_Eva:Camera:2:Normal:raspberry Ubuntu:isChangedImage final change by color 144268  change > self.CHANGE_RANGE/Camera.COLORS False
+main_Eva:Camera:2:Normal:raspberry Ubuntu:isChangedImage final change by color 157985  change > self.CHANGE_RANGE/Camera.COLORS False
+main_Eva:Camera:2:Normal:raspberry Ubuntu:isChangedImage final change by color 30416  change > self.CHANGE_RANGE/Camera.COLORS False
+main_Eva:Camera:2:Normal:raspberry Ubuntu:sense no change
+main_Eva:Eva:1:Normal:raspberry:logActivity activityLevel 0.0 
+main_Eva:Eva:1:Normal:raspberry:logActivity activityAverage 0.9678157647500072 
+main_Eva:Eva:1:Normal:raspberry:logActivity shortActivityAverage 0.6452105098333382 
+main_Eva:Eva:1:Normal:raspberry:logActivity activityLevel 0.0 
+main_Eva:Eva:1:Normal:raspberry:logActivity activityAverage 0.9674931594950905 
+main_Eva:Eva:1:Normal:raspberry:logActivity shortActivityAverage 0.6449954396633937 
+----
+main_Eva:SocketClient: ('192.168.117.248', 47728):3:Normal::got sensation from queue c Sun Nov 21 13:50:54 2021:1637493669.663101:1637495374.995214:Sensory:Sense:Image:raspberry Ubuntu::Neutral
+main_Eva:SocketClient: ('192.168.117.248', 47728):3:Normal::process: Sun Nov 21 13:50:54 2021 c Sun Nov 21 13:50:54 2021:1637493669.663101:1637495374.995214:Sensory:Sense:Image:raspberry Ubuntu::Neutral
+main_Eva:TensorFlowClassification:2:Normal:raspberry:got sensation from queue c Sun Nov 21 13:50:54 2021:1637493656.041002:1637495374.995214:Sensory:Sense:Image:raspberry Ubuntu::Neutral
+main_Eva:TensorFlowClassification:2:Normal:raspberry:process: Sun Nov 21 13:50:54 2021 c Sun Nov 21 13:50:54 2021:1637493656.041002:1637495374.995214:Sensory:Sense:Image:raspberry Ubuntu::Neutral
+main_Eva:TensorFlowClassification:2:Normal:raspberry:run_inference_for_single_image_LITE
+main_Eva:SocketClient: ('192.168.117.248', 47728):3:Normal::SocketClient.sendSensation wrote sensation Sun Nov 21 13:50:54 2021:1637493656.041002:1637495374.995214:Sensory:Sense:Image:raspberry Ubuntu::Neutral to ('192.168.117.248', 47728)
+----
+main_Eva:Eva:1:Normal:raspberry:Sensations cache for 305 Total self.sensationMemory total rss usage 363.07421875 MB per sensation rss usage 1173.4163934426228 KB available total 384.76953125 MB sensation usage 1175.5803278688525 KB with Sensation.min_cache_memorability 0.9199999999999995
+----
+Do we run put of Memory? 384 is Available memory limit
+
+At least we have problems with Robot service. It is miss configuget. We should disable it.
+
+Some device can stop functiononing like microphone. How to detect situation and stop.
+We need command-channel and data-channel with Axons. With Command-channel we can sync
+situations in Communication
+1) Enable microphone for hearing
+2) Hear a person Voice
+   If this is responde for our voice 3), then feel good
+   Until 3) ingnore heard voices or combine them to firsts head voice
+3) Disable microphone
+   Route Robots response
+   Until 3) ingnore heard voices or combine them to firsts head voice
+4) Wait until Brodcast sends Voice spoked-sensation
+1) Enable microphone for hearing
+
+
+Raspberry had got Stop.sensation. Maybe it comes from Socket-Robots.
+Anyway Ubuntu can't send anything to raspberry even if connection is not broken.
+
+father_MainName:SocketClient: ('192.168.117.245', 2000):3:Normal::SocketClient: ('192.168.117.245', 2000) Axon skipped overloaded oldest Sensation, but will put asked one, before put queue length 512 empty False full False
+father_MainName:father:1:Normal:Ubuntu:process: Fri Nov 19 17:18:28 2021 c Fri Nov 19 17:18:28 2021:1637320473.976605:1637335117.3857775:Working:Sense:Voice:Ubuntu::Neutral:Normal
+father_MainName:Visual:2:Normal:Ubuntu:got sensation from queue Down Fri Nov 19 17:18:29 2021:1637320531.8121068:1637335088.4982688:Sensory:Sense:RobotState:Ubuntu::Neutral:Communication Find NOTHING To Say len(sensation.getAssociations()) 10
+
+8 2021 c Fri Nov 19 17:18:28 2021:1637320473.976605:1637335117.3857775:Working:S
+We need some kind syncronizing mechanism. Now Playback can play many
+voices from before they are heard by responser and responser don't know to what voice to respond.
+- Maybe capabilities based is best
+- Robot which is processing voices enables receiving. This cam mean and it enables hearing
+     after voice is played. So we need RobotState
+     PlayBackDone. It can be good ides to extend RobotSate with Playback states and make
+     Communucation to receice them. Maybe we need Sensation id to RobotState tp keep
+     track of processed Sensations.
+     
 Testing Communication is now a problem. because configuration for Communication
 is mainRobot, mening that it starts subRobots or/and Identity. We should reject
 mainRobot-functionality and test only Communication-functionality.
