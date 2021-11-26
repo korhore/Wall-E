@@ -1,6 +1,6 @@
 '''
 Created on 22.09.2020
-Updated on 23.10.2021
+Updated on 25.11.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -28,7 +28,7 @@ from Robot import  Robot
 from Config import Config, Capabilities
 from Sensation import Sensation
 
-# prefer AlsaAidio before SoundDevice
+# prefer picamera before cv2
 IsPiCamera=True
 #IsPiCamera=False
 
@@ -106,8 +106,9 @@ class Camera(Robot):
           
         # from settings
         if IsPiCamera:
-            self.camera = picamera.PiCamera()
-            self.camera.rotation = 180
+            pass
+#             self.camera = picamera.PiCamera()
+#             self.camera.rotation = 180
         else:
             self.camera = cv2.VideoCapture(0)   # we use default camera found
             
@@ -126,10 +127,10 @@ class Camera(Robot):
         # live until stopped
         self.mode = Sensation.Mode.Normal
 
-        if IsPiCamera:
-            #self.camera.start_preview()
-            # Camera warm-up time
-            time.sleep(self.SLEEP_TIME)
+#         if IsPiCamera:
+#             #self.camera.start_preview()
+#             # Camera warm-up time
+#             time.sleep(self.SLEEP_TIME)
 
         while self.running:
             # as a leaf sensor robot default processing for sensation we have got
@@ -144,7 +145,8 @@ class Camera(Robot):
         self.log("Stopping Camera")
         self.mode = Sensation.Mode.Stopping
         if IsPiCamera:
-            self.camera.close()
+            pass
+#             self.camera.close()
         else:
             self.camera.release() 
             
@@ -163,16 +165,37 @@ class Camera(Robot):
     We are Sense type Robot
     '''        
     def sense(self):
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="sense threadSafeForgetLessImportantSensations")
+        self.getMemory().threadSafeForgetLessImportantSensations()
         image = None
         if IsPiCamera:
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense camera = picamera.PiCamera()")
+            camera = picamera.PiCamera()
+            camera.rotation = 180
+            #camera warm-up time
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense time.sleep(self.SLEEP_TIME)")
+            time.sleep(self.SLEEP_TIME)
+            
             stream = io.BytesIO()
-            self.camera.capture(stream, format=Sensation.IMAGE_FORMAT)
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense camera.capture")
+            camera.capture(stream, format=Sensation.IMAGE_FORMAT)
             #self.camera.stop_preview()
             stream.seek(0)
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense image = PIL_Image.open(stream)")
             image = PIL_Image.open(stream)
-            self.log("sense image = PIL_Image.open(stream)")      
+            # if we don't close picamera, we will get out of memory ?   
+#             self.log(logLevel=Robot.LogLevel.Normal, logStr="sense camera.close()")
+#             camera.close()
+#             # Finally try to delete all memory we have used, even if it should not be needed
+#             del camera
+#             camera = None
+#             del stream
+#             stream = None
+#             del camera
+#             camera = None
+#             self.log(logLevel=Robot.LogLevel.Normal, logStr="sense camera = None")
         else:
-            self.log("sense self.camera.read()")      
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense self.camera.read()")      
             ret, frame = self.camera.read()
             if ret:
                 #cv2.IMREAD_COLOR
@@ -184,9 +207,13 @@ class Camera(Robot):
                 self.log("sense image = PIL_Image.fromarray(frame)")      
                 image = PIL_Image.fromarray(frame)
 
-        # if there are changes from previous image or if we have have item presences, that strt presence, we check this image for presence changes
+        # if there are changes from previous image or if we have have item presences, that start presence, we check this image for presence changes
         # giving it for analyse for a Robot that is dedicated for that, TensorfloeClassification now.          
-        if image and (self.isChangedImage(image) or self.getMemory().hasPendingPresentItemChanges()):
+#        if image and (self.isChangedImage(image) or self.getMemory().hasPendingPresentItemChanges()):
+        # Try without using Memory, can be locking problem
+        # anyway, line above caused weird and hardly detected and corrected out of memory problem in raspberry
+        if image and self.isChangedImage(image):
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense is change")
 #             self.log("sense self.getParent().getAxon().put(robot=self, sensation)")
             # put robotType out (seen image) to the parent Axon going up to main Robot
             sensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
@@ -196,11 +223,30 @@ class Camera(Robot):
             self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: route(transferDirection=Sensation.TransferDirection.Direct, sensation=sensation")
             self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=sensation)
         else:
-             self.log("sense no change")
+             self.log(logLevel=Robot.LogLevel.Normal, logStr="sense no change")
 #         if IsPiCamera:
 #             self.camera.start_preview()
 #             # Camera warm-up time
+        # Finally try to delete all memory we have used, even if it should not be needed
+        del image
+        image = None
+        
+        self.log(logLevel=Robot.LogLevel.Normal, logStr="sense time.sleep(self.SLEEP_TIME)")
         time.sleep(self.SLEEP_TIME)
+        if IsPiCamera:
+            # if we don't close picamera, we will get out of memory ?   
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense camera.close()")
+            camera.close()
+            # Finally try to delete all memory we have used, even if it should not be needed
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense del camera")
+            del camera
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense camera = None")
+            camera = None
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense del stream")
+            del stream
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense stream = None")
+            stream = None
+            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense end")
 
 
     '''

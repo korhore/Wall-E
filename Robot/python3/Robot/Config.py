@@ -85,7 +85,7 @@ class Config(ConfigParser):
     MINAVAILMEM =        'minavailmem'    # minimum available mem size in MB
     MINAVAILMEM_DEFAULT = 50        # This limit will be used first in small memoryType systems
                                     # like raspberry having often 1GB of Memory
-                                    # 50 NB works on little system dedicated for Robot
+                                    # 50 MB works on little system dedicated for Robot
     ROBOTID =             'robotid' # Robot id
     ROBOTID_DEFAULT =     0         # default Robot id is 0, but it should never be 0
                                     # this means that system set by default every Robot unique is, when started first time
@@ -910,14 +910,14 @@ class Config(ConfigParser):
         try:
             return self.getfloat(section=section, option=self.MAXRSS)
         except Exception as e:
-            print('self.getint(section=section, option=self.MAXRSS) ' + str(e))
+            print('self.getfloat(section=section, option=self.MAXRSS) ' + str(e))
             return None
 
     def getMinAvailMem(self, section=DEFAULT_LOCATION):
         try:
             return self.getfloat(section=section, option=self.MINAVAILMEM)
         except Exception as e:
-            print('self.getint(section=section, option=self.MINAVAILMEM) ' + str(e))
+            print('self.getfloat(section=section, option=self.MINAVAILMEM) ' + str(e))
             return None
 
     def getRobotId(self, section=DEFAULT_LOCATION):

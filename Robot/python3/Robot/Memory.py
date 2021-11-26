@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 09.11.2021
+Edited on 26.11.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -87,6 +87,9 @@ class Memory(object):
         self.forgetFailures = 0
         self.lastMemoryRssUsage = self.initialMemoryRssUsage
         self.lastAvailableMemory = self.initialAvailableMemory
+
+        # We don't have initiated Robot, so we can't log        
+        print('Memory __init__: maxRss {} minAvailMem {}'.format(self.maxRss, self.minAvailMem))
         
         
         
@@ -103,11 +106,13 @@ class Memory(object):
         return self.maxRss
     def setMaxRss(self, maxRss):
         self.maxRss = maxRss
-   
+        print('Memory __init__: setMaxRss {}'.format(self.maxRss))
+  
     def getMinAvailMem(self):
         return self.minAvailMem
     def setMinAvailMem(self, minAvailMem):
         self.minAvailMem = minAvailMem
+        print('Memory setMinAvailMem: minAvailMem {}'.format(self.minAvailMem))
 
 
     '''
@@ -397,7 +402,7 @@ class Memory(object):
     get available memory
     '''
     def getAvailableMemory():
-        return psutil.virtual_memory().available/(1024*1024)
+        return psutil.virtual_memory().available/1048576 #(1024*1024)
 
     '''
     get memory usage per Sensation calculated by available memory
@@ -484,7 +489,7 @@ class Memory(object):
                         notForgettablesByRobotBySensationType[robot.getName()][self.sensationMemory[i].getSensationType()].append(self.sensationMemory[i])
                     i=i+1
        
-        self.log(logStr='Sensations cache for {} Total self.sensationMemory total rss usage {} MB per sensation rss usage {} KB available total {} MB sensation usage {} KB with Sensation.min_cache_memorability {}'.\
+        self.log(logStr='Sensations cache for {} Total self.sensationMemory total rss usage {:6.0f} MB per sensation rss usage {:6.0f} KB available total {:6.0f} MB sensation usage {:6.0f} KB with Sensation.min_cache_memorability {:3.2f}'.\
               format(len(self.sensationMemory),\
                      Memory.getMemoryRssUsage(), self.getMemoryRssUsagePerSensation(), Memory.getAvailableMemory(), self.getUsedAvailableMemoryPerSensation(), self.min_cache_memorability), logLevel=Memory.MemoryLogLevel.Normal)
         if numNotForgettables > 0:
@@ -515,6 +520,17 @@ class Memory(object):
         else:
             self.lastForgetSucceeded = True
             self.forgetFailures = 0
+            
+    '''
+    Thread safe version of ForgetLessImportantSensations
+    mainly for studuing memory usage in situations, when we run out of memory
+    '''
+
+    def threadSafeForgetLessImportantSensations(self):
+             self.memoryLock.acquireWrite()                 # thread_safe                                     
+             self.forgetLessImportantSensations()
+             self.memoryLock.releaseWrite()                 # thread_safe
+
 
     '''
     Is Memory low

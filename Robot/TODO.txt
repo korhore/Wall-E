@@ -70,10 +70,136 @@ Nov 23 02:04:33 raspberrypi kernel: [215403.053446] [   4663]  1001  4663   2579
 257997*40896/1024/1024=1007 == Total memory
 Meaning, Robot is running out of memory and Robot memory handling can not solve situation
 
+We run out of memory, when reportin a lot of free memory
+
+available total 513.0859375 MB
+but is syslog
+Nov 24 23:49:58 raspberrypi kernel: [96938.224500] Out of memory: Killed process 28129 (python3) total-vm:1068636kB, anon-rss:782528kB, file-rss:0kB, shmem-rss:0kB, UID:1001 pgtables:906kB oom_score_adj:0
+ory total rss usage 269.45703125 MB per sensation rss usage 777.0207715133531 KB available total 513.40234375 MB sensation usage 675.4777448071217 KB with Sensa
+
+Nov 25 03:00:55 raspberrypi kernel: [108395.222062] [  31971]  1001 31971   265459   194044   915456        0             0 python3
+Nov 25 03:00:55 raspberrypi kernel: [108395.222180] Out of memory: Killed process 31971 (python3) total-vm:1061836kB, anon-rss:776176kB, file-rss:0kB, shmem-rss:0kB, UID:1001 pgtables:894kB oom_score_adj:0
+main_Eva:Eva:1:Normal:raspberry:Sensations cache for 54 Total self.sensationMemory total rss usage 120.87109375 MB per sensation rss usage 2037.7777777777778 KB available total 652.7265625 MB sensation usage 1583.9259259259259 KB with Sensation.min_cache_memorability 0.1
+
+Hmm... Memory is out, when we have done a lot of Camere captures even if not found an Item. This means, that we don't check memory usage for a long time!
+We chould ckange implementation so, that memory is relased in Romera-Robot. It must be Camera-object itself.
+Seems, that almost inraspberry, we should restrict mememoty usage with
+import os, psutil
+process = psutil.Process(os.getpid())
+print(process.memory_info().rss)  # in bytes 
 
 
+main_Eva:Eva:1:Normal:raspberry:Sensations cache for 328 Total self.sensationMemory total rss usage 657.2890625 MB per sensation rss usage 2009.439024390244 KB available total 100.48828125 MB sensation usage 1996.6707317073171 KB with Sensation.min_cache_memorability 2.1900000000000004
+main_Eva:Eva:1:Normal:raspberry:Sensations cache for 329 Total self.sensationMemory total rss usage 706.92578125 MB per sensation rss usage 2158.613981762918 KB available total 50.640625 MB sensation usage 2144.984802431611 KB with Sensation.min_cache_memorability 2.2900000000000005
+main_Eva:Eva:1:Normal:raspberry:Sensations cache for 222 Total self.sensationMemory total rss usage 753.2109375 MB per sensation rss usage 3415.873873873874 KB available total 0.05078125 MB sensation usage 3411.7297297297296 KB with Sensation.min_cache_memorability 2.4900000000000007
+main_Eva:Eva:1:Normal:raspberry:Sensations cache for 330 Total self.sensationMemory total rss usage 742.2890625 MB per sensation rss usage 2254.1454545454544 KB available total 14.4296875 MB sensation usage 2252.89696969697 KB with Sensation.min_cache_memorability 2.3900000000000006
+main_Eva:Eva:1:Normal:raspberry:Sensations cache for 222 Total self.sensationMemory total rss usage 753.2109375 MB per sensation rss usage 3415.873873873874 KB available total 0.05078125 MB sensation usage 3411.7297297297296 KB with Sensation.min_cache_memorability 2.4900000000000007
 
+Seems our memory handling does not react to available total lack
+But it does
 
+Nov 25 23:34:58 raspberrypi kernel: [10517.142829] Mem-Info:
+Nov 25 23:34:58 raspberrypi kernel: [10517.142844] active_anon:179 inactive_anon:208360 isolated_anon:0
+Nov 25 23:34:58 raspberrypi kernel: [10517.142844]  active_file:103 inactive_file:9 isolated_file:0
+Nov 25 23:34:58 raspberrypi kernel: [10517.142844]  unevictable:4 dirty:0 writeback:0
+Nov 25 23:34:58 raspberrypi kernel: [10517.142844]  slab_reclaimable:2543 slab_unreclaimable:3981
+Nov 25 23:34:58 raspberrypi kernel: [10517.142844]  mapped:328 shmem:1591 pagetables:826 bounce:0
+Nov 25 23:34:58 raspberrypi kernel: [10517.142844]  free:4107 free_pcp:62 free_cma:40
+Nov 25 23:34:58 raspberrypi kernel: [10517.142856] Node 0 active_anon:716kB inactive_anon:833440kB active_file:412kB inactive_file:36kB unevictable:16kB isolated(anon):0kB isolated(file):0kB mapped:1312kB dirty:0kB writeback:0kB shmem:6364kB writeback_tmp:0kB kernel_stack:1264kB all_unreclaimable? yes
+Nov 25 23:34:58 raspberrypi kernel: [10517.142856] Node 0 active_anon:716kB inactive_anon:833440kB active_file:412kB inactive_file:36kB unevictable:16kB isolated(anon):0kB isolated(file):0kB mapped:1312kB dirty:0kB writeback:0kB shmem:6364kB writeback_tmp:0kB kernel_stack:1264kB all_unreclaimable? yes
+Nov 25 23:34:58 raspberrypi kernel: [10517.142871] DMA free:16428kB min:20480kB low:24576kB high:28672kB reserved_highatomic:0KB active_anon:716kB inactive_anon:833292kB active_file:12kB inactive_file:196kB unevictable:16kB writepending:0kB present:917504kB managed:892584kB mlocked:16kB pagetables:3304kB bounce:0kB free_pcp:248kB local_pcp:248kB free_cma:160kB
+Nov 25 23:34:58 raspberrypi kernel: [10517.142877] lowmem_reserve[]: 0 0 0
+Nov 25 23:34:58 raspberrypi kernel: [10517.142903] DMA: 586*4kB (UME) 454*8kB (UME) 190*16kB (UME) 58*32kB (UME) 40*64kB (UME) 6*128kB (UME) 3*256kB (UM) 2*512kB (UM) 0*1024kB 0*2048kB 0*4096kB = 15992kB
+Nov 25 23:34:58 raspberrypi kernel: [10517.143012] 1758 total pagecache pages
+Nov 25 23:34:58 raspberrypi kernel: [10517.143019] 0 pages in swap cache
+Nov 25 23:34:58 raspberrypi kernel: [10517.143025] Swap cache stats: add 0, delete 0, find 0/0
+Nov 25 23:34:58 raspberrypi kernel: [10517.143031] Free swap  = 0kB
+Nov 25 23:34:58 raspberrypi kernel: [10517.143036] Total swap = 0kB
+Nov 25 23:34:58 raspberrypi kernel: [10517.143042] 229376 pages RAM
+Nov 25 23:34:58 raspberrypi kernel: [10517.143048] 0 pages HighMem/MovableOnly
+Nov 25 23:34:58 raspberrypi kernel: [10517.143054] 6230 pages reserved
+Nov 25 23:34:58 raspberrypi kernel: [10517.143060] 16384 pages cma reserved
+Nov 25 23:34:58 raspberrypi kernel: [10517.143065] Tasks state (memory values in pages):
+Nov 25 23:34:58 raspberrypi kernel: [10517.143071] [  pid  ]   uid  tgid total_vm      rss pgtables_bytes swapents oom_score_adj name
+Nov 25 23:34:58 raspberrypi kernel: [10517.143093] [    138]     0   138     4652      470    73728        0             0 systemd-journal
+Nov 25 23:34:58 raspberrypi kernel: [10517.143103] [    145]     0   145     1139       44    12288        0             0 blkmapd
+Nov 25 23:34:58 raspberrypi kernel: [10517.143112] [    160]     0   160     4573      223    20480        0         -1000 systemd-udevd
+Nov 25 23:34:58 raspberrypi kernel: [10517.143125] [    312]     0   312      699       40    10240        0             0 rpc.idmapd
+Nov 25 23:34:58 raspberrypi kernel: [10517.143135] [    319]   100   319     5595      163    24576        0             0 systemd-timesyn
+Nov 25 23:34:58 raspberrypi kernel: [10517.143144] [    353]     0   353     6378      193    20480        0             0 rsyslogd
+Nov 25 23:34:58 raspberrypi kernel: [10517.143154] [    354] 65534   354     1080       43    14336        0             0 thd
+Nov 25 23:34:58 raspberrypi kernel: [10517.143163] [    355]     0   355     3252      166    20480        0             0 systemd-logind
+Nov 25 23:34:58 raspberrypi kernel: [10517.143172] [    357]   104   357     1667      131    16384        0          -900 dbus-daemon
+Nov 25 23:34:58 raspberrypi kernel: [10517.143182] [    360]     0   360     2677      103    22528        0             0 wpa_supplicant
+Nov 25 23:34:58 raspberrypi kernel: [10517.143191] [    361]     0   361      923       55    14336        0             0 alsactl
+Nov 25 23:34:58 raspberrypi kernel: [10517.143200] [    362]   108   362     1474       79    14336        0             0 avahi-daemon
+Nov 25 23:34:58 raspberrypi kernel: [10517.143210] [    363]     0   363    13664      294    38912        0             0 ModemManager
+Nov 25 23:34:58 raspberrypi kernel: [10517.143220] [    384]   108   384     1442       63    14336        0             0 avahi-daemon
+Nov 25 23:34:58 raspberrypi kernel: [10517.143229] [    419]     0   419     9491      158    32768        0             0 polkitd
+Nov 25 23:34:58 raspberrypi kernel: [10517.143239] [    425]     0   425     2772      166    20480        0             0 wpa_supplicant
+Nov 25 23:34:58 raspberrypi kernel: [10517.143248] [    441]     0   441      535       32    10240        0             0 hciattach
+Nov 25 23:34:58 raspberrypi kernel: [10517.143258] [    456]     0   456     2384       71    18432        0             0 bluetoothd
+Nov 25 23:34:58 raspberrypi kernel: [10517.143267] [    467]     0   467      726      106    10240        0             0 dhcpcd
+Nov 25 23:34:58 raspberrypi kernel: [10517.143277] [    472]     0   472     2673      147    20480        0         -1000 sshd
+Nov 25 23:34:58 raspberrypi kernel: [10517.143288] [    473]   105   473     1644       81    14336        0             0 rpcbind
+Nov 25 23:34:58 raspberrypi kernel: [10517.143298] [    474]     0   474     7908     6245    38912        0             0 rpc.mountd
+Nov 25 23:34:58 raspberrypi kernel: [10517.143309] [    495]     0   495     1987       44    14336        0             0 cron
+Nov 25 23:34:58 raspberrypi kernel: [10517.143318] [    501]     0   501     6914       20    18432        0             0 rngd
+Nov 25 23:34:58 raspberrypi kernel: [10517.143327] [    505]     0   505     1077       22    14336        0             0 agetty
+Nov 25 23:34:58 raspberrypi kernel: [10517.143336] [    510]     0   510     3051      198    20480        0             0 sshd
+Nov 25 23:34:58 raspberrypi kernel: [10517.143346] [    513]  1001   513     3643      234    22528        0             0 systemd
+Nov 25 23:34:58 raspberrypi kernel: [10517.143356] [    514]  1001   514     4209      422    24576        0             0 (sd-pam)
+Nov 25 23:34:58 raspberrypi kernel: [10517.143366] [    528]  1001   528     3278      446    22528        0             0 sshd
+Nov 25 23:34:58 raspberrypi kernel: [10517.143403] [    691]  1001   691     2724      193    16384        0             0 bash
+Nov 25 23:34:58 raspberrypi kernel: [10517.143413] [   3674]  1001  3674   265399   195848   933888        0             0 python3
+Nov 25 23:34:58 raspberrypi kernel: [10517.143424] [   4207]  1001  4207     2256       13    18432        0             0 tail
+Nov 25 23:34:58 raspberrypi kernel: [10517.143433] [   4208]  1001  4208     2504       20    16384        0             0 grep
+Nov 25 23:34:58 raspberrypi kernel: [10517.143442] oom-kill:constraint=CONSTRAINT_NONE,nodemask=(null),cpuset=/,mems_allowed=0,global_oom,task_memcg=/,task=python3,pid=3674,uid=1001
+Nov 25 23:34:58 raspberrypi kernel: [10517.143539] Out of memory: Killed process 3674 (python3) total-vm:1061596kB, anon-rss:783092kB, file-rss:300kB, shmem-rss:0kB, UID:1001 pgtables:912kB oom_score_adj:0
+Nov 25 23:34:58 raspberrypi kernel: [10517.294899] oom_reaper: reaped process 3674 (python3), now anon-rss:0kB, file-rss:0kB, shmem-rss:0kB
+
+rss      195848*4KB = 783392KB
+total_vm 265399*4KB = 1061596KB
+
+Seems, Memory problem was very tiny syncronising problem with Memory using.
+We3 cant use method self.getMemory().hasPendingPresentItemChanges(), because
+it has no syncronising in Camera and anyway, seems that that method is not needed.
+
+Maybe other changes to Camera can be removed.
+
+Fri Nov 26 13:16:28 2021:main_Eva:Eva:1:Normal:raspberry:Sensations cache for 57
+Total self.sensationMemory total rss usage    226 MB per sensation rss usage   3813 KB available total    538 MB
+sensation usage   3494 KB with Sensation.min_cache_memorability 16.48
+
+After that we have only logs for Camera, which does not find changes in images and after that we run out of memory
+
+----------
+If problem is us, then it is Voice-sensation
+Fri Nov 26 15:58:02 2021:main_Eva:Eva:1:Normal:raspberry:Sensations cache for 130 Total self.sensationMemory total rss usage    232 MB per sensation rss usage   1721 KB
+ available total    534 MB sensation usage   1484 KB with Sensation.min_cache_memorability 8.65
+Fri Nov 26 15:58:02 2021:main_Eva:Eva:1:Normal:raspberry:Sensations cache deletion skipped 58 Not Forgottable Sensation
+Fri Nov 26 15:58:02 2021:father_MainName:SocketServer: ('192.168.117.248', 37166):3:Normal:Ubuntu:run: SocketServer got sensation Fri Nov 26 15:57:57 2021:1637930244.4170427:1637935171.082111:Sensory:Muscle:Voice:Ubuntu::Neutral:Wall-E
+Fri Nov 26 15:58:02 2021:father_MainName:SocketServer: ('192.168.117.248', 37166):3:Normal:Ubuntu:done sensation.detach(robot=self)
+Fri Nov 26 15:58:02 2021:main_Eva:Eva:1:Normal:raspberry:Sensations cache for 131 Total self.sensationMemory total rss usage    232 MB per sensation rss usage   1708 KB available total    534 MB sensation usage   1472 KB with Sensation.min_cache_memorability 8.75
+Fri Nov 26 15:58:02 2021:main_Eva:Eva:1:Normal:raspberry:Sensations cache deletion skipped 58 Not Forgottable Sensation
+Fri Nov 26 15:58:03 2021:main_Eva:Visual:2:Normal:raspberry:got sensation from queue Down Fri Nov 26 15:58:01 2021:1637930081.3056412:1637935074.0380843:Sensory:Muscle:Voice:raspberry::Neutral:Eva len(sensation.getAssociations()) 19
+Fri Nov 26 15:58:03 2021:main_Eva:Visual:2:Normal:raspberry:process: Fri Nov 26 15:58:01 2021 Down Fri Nov 26 15:58:01 2021:1637930081.3056412:1637935074.0380843:Sensory:Muscle:Voice:raspberry::Neutral:Eva  len(sensation.getAssociations()) 19
+Fri Nov 26 15:58:03 2021:main_Eva:Eva:1:Normal:raspberry:raspberry:ConversationWithItem process speak: self.getMemory().getBestSensations did find sensations, spoke Fri Nov 26 15:57:54 2021:1637930081.3056412:1637935127.43208:Working:Sense:Image:raspberry Ubuntu::Neutral
+Fri Nov 26 15:58:04 2021:main_Eva:Camera:2:Normal:raspberry Ubuntu:sense camera.close()
+Fri Nov 26 15:58:05 2021:main_Eva:Camera:2:Normal:raspberry Ubuntu:sense del camera
+Fri Nov 26 15:58:05 2021:main_Eva:Camera:2:Normal:raspberry Ubuntu:sense camera = None
+Fri Nov 26 15:58:05 2021:main_Eva:Camera:2:Normal:raspberry Ubuntu:sense del stream
+Fri Nov 26 15:58:05 2021:main_Eva:Camera:2:Normal:raspberry Ubuntu:sense stream = None
+Fri Nov 26 15:58:05 2021:main_Eva:Camera:2:Normal:raspberry Ubuntu:sense end
+Fri Nov 26 15:58:05 2021:main_Eva:Camera:2:Normal:raspberry Ubuntu:sense threadSafeForgetLessImportantSensations
+Fri Nov 26 15:58:05 2021:main_Eva:Eva:1:Normal:raspberry:Sensations cache for 132 Total self.sensationMemory total rss usage    670 MB per sensation rss usage   5090 KB
+ available total     84 MB sensation usage   4956 KB with Sensation.min_cache_memorability 8.85
+
+at 15:58:02 2021 we have normal                free  534 MB and  232 MB our used Memory
+at 15:58:05 2021 we have 2 sensation more and  free   84 MB and  670 MB our used Memory
+
+At least we should correct Microphone not to create too long sensations.
+We have made changes to Microphone to produce longer voices, but maybe we have forgotten limit.
 
 
 

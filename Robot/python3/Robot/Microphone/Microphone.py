@@ -1,6 +1,6 @@
 '''
 Created on 21.09.2019
-Updated on 11.11.2020
+Updated on 26.11.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -78,7 +78,8 @@ class Microphone(Robot):
     DEBUG_INTERVAL=60.0
     SLEEP_TIME=3.0                     # if nothing to do, sleep
     DURATION = 1.0                     # record 1.5 sec
-    VOIVELENGTHMINIMUN = 1.5           # accept voices, that are at least this long, not just click/click etc. something that are propable something a person says,
+    VOIVELENGTHMINIMUM = 1.5           # accept voices, that are at least this long, not just click/click etc. something that are propable something a person says,
+    VOIVELENGTHMAXIMUN = 1.5           # accept voices, that are at least this long, not just click/click etc. something that are propable something a person says,
     SILENCEMAXIMUM = 0.75              # duration how long silence we should hear until a single sound stops
     SLEEPTIME = 0.1                    # If we get read error, then sleep, we are in high load
 
@@ -264,7 +265,7 @@ class Microphone(Robot):
                                 self.voice_data = data
                                 self.voice_l = l
                             else:
-                                # if we have had silence in the middle the sound add it to final sound
+                                # if we have had silence in the middle the sound add it to fingetPlaybackTimeal sound
                                 if not self.silence_data is None:
                                     self.log(logLevel=Robot.LogLevel.Detailed, logStr="sense: add silence to a sound")
                                     self.voice_data += self.silence_data
@@ -290,14 +291,14 @@ class Microphone(Robot):
                                     self.silence_data += data
                                     self.silence_l += l
                                 # if silence is long enough to stop a voice
-                                if self.getPlaybackTime(self.getVoiceDataLength(self.silence_data)) >= self.SILENCEMAXIMUM:
+                                if self.getPlaybackTimeFromDataLength(self.getVoiceDataLength(self.silence_data)) >= self.SILENCEMAXIMUM:
                                    # add silence to the final sound, because person can have said something even if whole piece is not a sound
                                     if not self.silence_data is None:
                                         self.log(logLevel=Robot.LogLevel.Verbose, logStr="sense: add silence to a sound")
                                         self.voice_data += self.silence_data
                                     self.log(logLevel=Robot.LogLevel.Detailed, logStr="sense: silence length {}s exceeded {}s is {}s sound".\
-                                             format(self.getPlaybackTime(self.getVoiceDataLength(self.silence_data)), self.SILENCEMAXIMUM,\
-                                                    self.getPlaybackTime(self.getVoiceDataLength(self.voice_data))))
+                                             format(self.getPlaybackTimeFromDataLength(self.getVoiceDataLength(self.silence_data)), self.SILENCEMAXIMUM,\
+                                                    self.getPlaybackTimeFromDataLength(self.getVoiceDataLength(self.voice_data))))
                                     self.putVoiceToParent()
                                     isHopeOfASound=False
                                     self.sensitivity=Microphone.SENSITIVITY
@@ -364,14 +365,14 @@ class Microphone(Robot):
                                 self.silence_data += data
                                 self.silence_l += len(data)
                             # if silence is long enough to stop a voice
-                            if self.getPlaybackTime(self.getVoiceDataLength(self.silence_data)) >= self.SILENCEMAXIMUM:
+                            if self.getPlaybackTimeFromDataLength(self.getVoiceDataLength(self.silence_data)) >= self.SILENCEMAXIMUM:
                                 # add silence to the final sound, because person can have said something even if whole piece is not a sound
                                 if not self.silence_data is None:
                                     self.log(logLevel=Robot.LogLevel.Verbose, logStr="sense: add silence to a sound")
                                     self.voice_data += self.silence_data
                                 self.log(logLevel=Robot.LogLevel.Verbose, logStr="sense: silence length {}s exceeded {}s in {}s sound".\
-                                         format(self.getPlaybackTime(self.getVoiceDataLength(self.silence_data)), self.SILENCEMAXIMUM,\
-                                                self.getPlaybackTime(self.getVoiceDataLength(self.voice_data))))
+                                         format(self.getPlaybackTimeFromDataLength(self.getVoiceDataLength(self.silence_data)), self.SILENCEMAXIMUM,\
+                                                self.getPlaybackTimeFromDataLength(self.getVoiceDataLength(self.voice_data))))
                                 self.putVoiceToParent()
                                 isHopeOfASound=False
                                 self.sensitivity=Microphone.SENSITIVITY
@@ -385,7 +386,10 @@ class Microphone(Robot):
     def putVoiceToParent(self):
         if self.voice_data is not None:
             # If we have a voice that is longer than just a click etc.
-            if self.getPlaybackTime(self.getVoiceDataLength(self.voice_data)) >= self.VOIVELENGTHMINIMUN:
+            if self.getPlaybackTimeFromDataLength(self.getVoiceDataLength(self.voice_data)) >= self.VOIVELENGTHMINIMUM:
+                # too long voices are a problem. Accept only maximum length voice
+                if self.getPlaybackTimeFromDataLength(self.getVoiceDataLength(self.voice_data)) > self.VOIVELENGTHMAXIMUN:
+                    self.voice_data = self.voice_data[:self.getDataLengthFromPlaybackTime(playbackTime=self.VOIVELENGTHMAXIMUN)]
                 # put robotType out (heard voice) to the parent Axon going up to main Robot
                 # connected to present Item.names
                 voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
@@ -395,10 +399,10 @@ class Microphone(Robot):
                     itemSensation.associate(sensation=voiceSensation)
     #            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: self.getParent().getAxon().put(robot=self, sensation)")
     #             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)
-                self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: route(transferDirection=Sensation.TransferDirection.Direct, sensation=voiceSensation {}s voice".format(self.getPlaybackTime(self.getVoiceDataLength(self.voice_data))))
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: route(transferDirection=Sensation.TransferDirection.Direct, sensation=voiceSensation {}s voice".format(self.getPlaybackTimeFromDataLength(self.getVoiceDataLength(self.voice_data))))
                 self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=voiceSensation)
             else:
-                self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: rejected too short {}s voice".format(self.getPlaybackTime(self.getVoiceDataLength(self.voice_data))))
+                self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: rejected too short {}s voice".format(self.getPlaybackTimeFromDataLength(self.getVoiceDataLength(self.voice_data))))
                 
             self.voice_data=None
             self.voice_l=0
@@ -578,7 +582,6 @@ class Microphone(Robot):
             except (ValueError):
                 self.log("getVoiceData numpy.array(ret_data,Settings.AUDIO_CONVERSION_FORMAT).tobytes(): ValueError")      
                 return None
-        
         return data
  
     '''
@@ -615,9 +618,14 @@ class Microphone(Robot):
     How long sound this is in seconds
     '''
     
-    def getPlaybackTime(self, datalen):
+    def getPlaybackTimeFromDataLength(self, datalen):
         return float(datalen)/(float(Settings.AUDIO_RATE*Settings.AUDIO_CHANNELS))
 
+    '''
+    How long data length  produces this long (seconds) sound
+    '''    
+    def getDataLengthFromPlaybackTime(self, playbackTime):
+        return int(Settings.AUDIO_RATE*Settings.AUDIO_CHANNELS * playbackTime)
 
 if __name__ == "__main__":
     microphone = Microphone()

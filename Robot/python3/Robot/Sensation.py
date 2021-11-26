@@ -110,31 +110,36 @@ class Sensation(object):
     Mode = enum(Normal='n', StudyOwnIdentity='t',Sleeping='l',Starting='s', Stopping='p', Interrupted='i')
 
     # Robots states    
-    RobotState = enum(#Activity level
-                      ActivitySleeping='a',
-                      ActivityDreaming='b',
-                      ActivityLazy='c',
-                      ActivityRelaxed='d',
-                      ActivityNormal='e',
-                      ActivityBusy='f',
-                      ActivityHurry='g',
-                      ActivityTired='h',
-                      ActivityBreaking='i',
+    RobotState = enum(#RobotState
+                      RobotStateRunning='a',
+                      RobotStateStopped='b',
+        
+        
+                      #Activity level
+                      ActivitySleeping='c',
+                      ActivityDreaming='d',
+                      ActivityLazy='e',
+                      ActivityRelaxed='f',
+                      ActivityNormal='g',
+                      ActivityBusy='h',
+                      ActivityHurry='i',
+                      ActivityTired='j',
+                      ActivityBreaking='k',
                       
                       # Communication
-                      CommunicationNotStarted = 'j',
-                      CommunicationWaiting = 'k',
-                      CommunicationOn ='l',
-                      CommunicationWaitingResponse = 'm',
-                      CommunicationResponseHeard ='n',
-                      CommunicationNoResponseHeard ='o',
-                      CommunicationNoResponseToSay ='p',
-                      CommunicationEnded = 'g',
-                      CommunicationDelay = 'r',
+                      CommunicationNotStarted = 'l',
+                      CommunicationWaiting = 'm',
+                      CommunicationOn ='n',
+                      CommunicationWaitingResponse = 'o',
+                      CommunicationResponseHeard ='p',
+                      CommunicationNoResponseHeard ='q',
+                      CommunicationNoResponseToSay ='r',
+                      CommunicationEnded = 's',
+                      CommunicationDelay = 't',
                       
                       #Microphone
-                      MicrophoneSensing = 's',
-                      MicrophoneDisabled = 't')
+                      MicrophoneSensing = 'u',
+                      MicrophoneDisabled = 'v')
     
     # enum items as strings 
     ALL="All"

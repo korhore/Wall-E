@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 17.11.2021
+Updated on 25.11.2021
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -370,6 +370,14 @@ class Robot(Thread):
                                    instanceName='Identity',
                                    instanceType= Sensation.InstanceType.SubInstance,
                                    level=level)
+
+    '''
+    When subInstance is ens, its's last method is to call it's mainRobot this method.
+    We cam release its resources, when it is stopped
+    '''            
+    def subInstanceEnded(self, robot):
+        if robot in self.subInstances:
+            del self.subInstances[robot]
             
     def getMainRobot(self):
         return self.mainRobot
@@ -1007,7 +1015,7 @@ class Robot(Thread):
         
     def log(self, logStr, logLevel=LogLevel.Normal):
          if logLevel <= self.getLogLevel():
-             print("{}:{}:{}:{}:{}:{}".format(self.getMainNamesString(),self.getName(),self.config.level,Sensation.Modes[self.mode],self.getLocationsStr(),logStr))
+             print("{}:{}:{}:{}:{}:{}:{}".format(time.ctime(time.time()), self.getMainNamesString(),self.getName(),self.config.level,Sensation.Modes[self.mode],self.getLocationsStr(),logStr), flush=True)
 
     def stop(self):
         self.log(logLevel=Robot.LogLevel.Normal, logStr="Stopping robot")
@@ -1958,7 +1966,8 @@ class Identity(Robot):
             from TensorFlowClassification.TensorFlowClassification import TensorFlowClassification 
             tensorFlowClassification = TensorFlowClassification(mainRobot=self.getMainRobot(),
                                                                 parent=self,
-                                                                privateParent=self,     # note, this guides TensorFlowClassification to send sensations direcly to us instead route
+                                                                privateParent=self,         # note, this guides TensorFlowClassification to send sensations direcly to us instead route
+                                                                memory=self.getMemory(),    # use same memory
                                                                 instanceName='TensorFlowClassification',
                                                                 instanceType= Sensation.InstanceType.SubInstance,
                                                                 level=self.level)
@@ -2790,12 +2799,12 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                                         self.data = self.data+data
                                 sensation_length = sensation_length - len(data)
                             except Exception as err:
-                                self.log("run: self.sock.recv(sensation_length) Interrupted error " + str(self.address) + " " + str(err))
+                                self.log("run: self.sock.recv({}) Interrupted error {} {}".format(sensation_length,str(self.address),str(err)))
                                 self.running = False
                                 ok = False
-                                if self.mode != Sensation.Mode.Normal:  # interrupted (only if not stopping)
+                                if self.mode == Sensation.Mode.Normal:  # interrupted (only if not stopping)
                                     self.mode = Sensation.Mode.Interrupted
-                        if self.running and ok:
+                        if self.running and ok and sensation_length == 0:
                             sensation=self.createSensation(associations=[], bytes=self.data)
                             sensation.addReceived(self.getHost())  # remember route
                             if sensation.getSensationType() == Sensation.SensationType.Capability:
@@ -2825,6 +2834,11 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                                 self.route(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # write sensation to TCPServers Parent, because TCPServer does not read its Axon
                             sensation.detach(robot=self)
                             self.log("done sensation.detach(robot=self)")
+                        else:
+                            # TODO check logic
+                            self.mode = Sensation.Mode.Interrupted # if we could not read all, then we are interrupted
+                            synced = False
+                        
         try:
             self.sock.close()
         except Exception as err:
