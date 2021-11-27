@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 17.11.2021
+Updated on 27.11.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -89,14 +89,6 @@ def enum(*sequential, **named):
 
 class Communication(Robot):
 
-    # Communication is statefull,
-    # always in one of these states    
-    CommunicationState = enum(NotStarted = 'n',
-                              Waiting = 'w',
-                              On ='o',
-                              NoResponseToSay='r',
-                              Ended ='e',
-                              Delay = 'd')
     CommunicationLogLevel = enum(No=-1, Critical=0, Error=1, Normal=2, Detailed=3, Verbose=4)
 
 
@@ -673,7 +665,7 @@ class Communication(Robot):
 #                             self.endConversation()
                         else:
                             # no-one is present, no hope someone responses
-                            self.log(logLevel=Robot.LogLevel.Normal, logStr='no-one are now present, so we are diappointed')
+                            self.log(logLevel=Robot.LogLevel.Normal, logStr='no-one are now present, so we are disappointed')
                             self._isConversationOn = False # present ones are disappeared even if we  head a voice.
                             self.handleGotFeedback(positiveFeeling=False, negativeFeeling=True)
                             self.endConversation()

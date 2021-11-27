@@ -111,35 +111,37 @@ class Sensation(object):
 
     # Robots states    
     RobotState = enum(#RobotState
-                      RobotStateRunning='a',
-                      RobotStateStopped='b',
+                      RobotStateInitiating='a',
+                      RobotStateRunning='b',
+                      RobotStateStopping='c',
+                      RobotStateStopped='d',
         
         
                       #Activity level
-                      ActivitySleeping='c',
-                      ActivityDreaming='d',
-                      ActivityLazy='e',
-                      ActivityRelaxed='f',
-                      ActivityNormal='g',
-                      ActivityBusy='h',
-                      ActivityHurry='i',
-                      ActivityTired='j',
-                      ActivityBreaking='k',
+                      ActivitySleeping='e',
+                      ActivityDreaming='f',
+                      ActivityLazy='g',
+                      ActivityRelaxed='h',
+                      ActivityNormal='i',
+                      ActivityBusy='j',
+                      ActivityHurry='k',
+                      ActivityTired='l',
+                      ActivityBreaking='m',
                       
                       # Communication
-                      CommunicationNotStarted = 'l',
-                      CommunicationWaiting = 'm',
-                      CommunicationOn ='n',
-                      CommunicationWaitingResponse = 'o',
-                      CommunicationResponseHeard ='p',
-                      CommunicationNoResponseHeard ='q',
-                      CommunicationNoResponseToSay ='r',
-                      CommunicationEnded = 's',
-                      CommunicationDelay = 't',
+                      CommunicationNotStarted = 'n',
+                      CommunicationWaiting = 'o',
+                      CommunicationOn ='p',
+                      CommunicationWaitingResponse = 'q',
+                      CommunicationResponseHeard ='r',
+                      CommunicationNoResponseHeard ='s',
+                      CommunicationNoResponseToSay ='t',
+                      CommunicationEnded = 'u',
+                      CommunicationDelay = 'v',
                       
                       #Microphone
-                      MicrophoneSensing = 'u',
-                      MicrophoneDisabled = 'v')
+                      MicrophoneSensing = 'w',
+                      MicrophoneDisabled = 'x')
     
     # enum items as strings 
     ALL="All"
@@ -194,8 +196,13 @@ class Sensation(object):
     PRESENT="Present"
     EXITING="Exiting"
     ABSENT="Absent"
+    #RobotState
+    ROBOTSTATEINITIATING="Robot Initiating"
+    ROBOTSTATERUNNING="Robot Running"
+    ROBOTSTATESTOPPING="Robot Stopping"
+    ROBOTSTATESTOPPED="Robot Stopped"
     # Activity 
-    ACTIVITYSPEEPING="Sleeping"
+    ACTIVITYSLEEPING="Sleeping"
     ATIVITYDREAMING="Dreaming"
     ACTIVITYLAZY="Lazy"
     ACTIVITYRELAXED="Relaxed"
@@ -285,8 +292,14 @@ class Sensation(object):
                SensationType.All: ALL}
     
     RobotStates={
+             # RobotState
+               RobotState.RobotStateInitiating: ROBOTSTATEINITIATING,
+               RobotState.RobotStateRunning: ROBOTSTATERUNNING,
+               RobotState.RobotStateStopping: ROBOTSTATESTOPPING,
+               RobotState.RobotStateStopped: ROBOTSTATESTOPPED,
+               
               # Activity          
-               RobotState.ActivitySleeping: ACTIVITYSPEEPING,
+               RobotState.ActivitySleeping: ACTIVITYSLEEPING,
                RobotState.ActivityDreaming:ATIVITYDREAMING,
                RobotState.ActivityLazy:ACTIVITYLAZY,
                RobotState.ActivityRelaxed:ACTIVITYRELAXED,
@@ -310,9 +323,15 @@ class Sensation(object):
                # Microphone
                RobotState.MicrophoneSensing:MICROPHONESENSING,
                RobotState.MicrophoneDisabled:MICROPHONEDISABLED}
+    RobotStateRobotStates={
+              # RobotState          
+               RobotState.RobotStateInitiating: ROBOTSTATEINITIATING,
+               RobotState.RobotStateRunning: ROBOTSTATERUNNING,
+               RobotState.RobotStateStopping: ROBOTSTATESTOPPING,
+               RobotState.RobotStateStopped: ROBOTSTATESTOPPED}
     ActivityRobotStates={
               # Activity          
-               RobotState.ActivitySleeping: ACTIVITYSPEEPING,
+               RobotState.ActivitySleeping: ACTIVITYSLEEPING,
                RobotState.ActivityDreaming:ATIVITYDREAMING,
                RobotState.ActivityLazy:ACTIVITYLAZY,
                RobotState.ActivityRelaxed:ACTIVITYRELAXED,

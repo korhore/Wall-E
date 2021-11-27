@@ -1302,10 +1302,10 @@ class RobotTestCase(unittest.TestCase):
             self.sense.sense(transferDirection=transferDirection, sensation=Wall_E_item_sensory_sensation)
             self.assertEqual(self.muscle.getAxon().length(),3,'muscle Axon should contain 3 sensations')
             # now we should get sensations in reverse order, meaning that sensory is first, working then and longterm last
-            # BUT Because QoS is working only if Axon queue is empty - to be sure no Robotss are blocked reading of Axon, when it is empty
-            # We wiil get fists put Sensations first even if it is LoingTerm
+            # BUT Because QoS is working only if Axon queue is empty - to be sure no Robots are blocked reading of Axon, when it is empty
+            # We will get first put Sensations first even if it is LongTerm
             transferDirection, sensation = self.muscle.getAxon().get(robot=self)
-            self.assertEqual(sensation, Wall_E_item_longTerm_sensation,'should receive longTerm sensation first, because Axon was emyty, when thi was put')
+            self.assertEqual(sensation, Wall_E_item_longTerm_sensation,'should receive longTerm sensation first, because Axon was empty, when thi was put')
             self.assertEqual(self.muscle.getAxon().length(),2,'muscle Axon should contain 2 sensations')
              
             transferDirection, sensation = self.muscle.getAxon().get(robot=self)

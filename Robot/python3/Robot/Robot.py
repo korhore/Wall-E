@@ -189,6 +189,7 @@ class Robot(Thread):
         print("Robot 1")
         Thread.__init__(self)
         self.logLevel= Robot.LogLevel.No    # We can't log yet
+        self.robotState = Sensation.RobotState.RobotStateInitiating
         
         self.daemon = True      # if daemon, all sub Robots are killed, when this one dies.
         
@@ -782,6 +783,8 @@ class Robot(Thread):
 
     def run(self):
         self.running=True
+        self.robotState = Sensation.RobotState.RobotStateRunning
+
         self.log(logLevel=Robot.LogLevel.Normal, logStr="run: Starting robot name " + self.getName() + " kind " + self.getKind() + " instanceType " + self.getInstanceType())      
         
         # study own identity
@@ -840,6 +843,7 @@ class Robot(Thread):
         self.deInitRobot()
  
         self.mode = Sensation.Mode.Stopping
+        self.robotState = Sensation.RobotState.RobotStateStopping
         self.log(logLevel=Robot.LogLevel.Normal, logStr="Stopping robot")
         if self.isMainRobot() or self.getInstanceType() == Sensation.InstanceType.Virtual:
             self.timer.cancel()
@@ -899,6 +903,7 @@ class Robot(Thread):
 
         self.log("run ALL SHUT DOWN")      
         self.log(logLevel=Robot.LogLevel.Normal, logStr="run ALL SHUT DOWN")
+        self.robotState = Sensation.RobotState.RobotStateStopped
         
     '''
     Overridable method to be run just before
@@ -1019,6 +1024,8 @@ class Robot(Thread):
 
     def stop(self):
         self.log(logLevel=Robot.LogLevel.Normal, logStr="Stopping robot")
+        self.robotState = Sensation.RobotState.RobotStateStopping
+
         if self.running:
              # stop sub instances here, when main instance is not running any more
             for robot in self.subInstances:
@@ -1951,6 +1958,8 @@ class Identity(Robot):
     def run(self):
         self.running=True
         self.mode = Sensation.Mode.Starting
+        self.robotState = Sensation.RobotState.RobotStateRunning
+
         self.log("run: Starting Identity Robot for name " + self.getParent().getName() + " kind " + self.getKind() + " instanceType " + self.getInstanceType())      
                    
         # wait until started so all others can start first        
@@ -2018,19 +2027,21 @@ class Identity(Robot):
             for imageSensation in self.getParent().itemImageSensations:
                 self.getMemory().setMemoryType(sensation=imageSensation, memoryType=Sensation.MemoryType.LongTerm)
                
-
+            self.robotState = Sensation.RobotState.RobotStateStopping
             #self.getIdentitySensations(name=self.getParent().getName(), exposures=self.getParent().getExposures(), feeling = Sensation.Feeling.InLove)
             tensorFlowClassification.stop()
             
         # all done        
         self.running=False
         self.mode = Sensation.Mode.Stopping
+        self.robotState = Sensation.RobotState.RobotStateStopped
 
 
     def stopRunning(self):
         self.running = False   
         self.mode = Sensation.Mode.Stopping
-        
+        self.robotState = Sensation.RobotState.RobotStateStopping
+       
                  
     '''
     tell your identity
@@ -2140,6 +2151,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                
         self.running=True
         self.mode = Sensation.Mode.Normal
+        self.robotState = Sensation.RobotState.RobotStateRunning
           
         try:
             self.log('run: bind '+ str(self.address))
@@ -2202,6 +2214,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                     self.log('run: socketClient.start()')
                     socketClient.start()
                     time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
+        self.robotState = Sensation.RobotState.RobotStateStopping
         self.log('run: STOPPED')
         if socketClient and socketClient.running:
             self.log('run: socketClient.stop()')
@@ -2210,6 +2223,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
             self.log('run: socketServer.stop()')
             socketServer.stop()
         self.log('run: ENDED')
+        self.robotState = Sensation.RobotState.RobotStateStopped
         
     '''
     Connect to host by creating SocketClient and SocketServer
@@ -2252,6 +2266,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         self.log('stop')
         self.running = False
         self.mode = Sensation.Mode.Stopping
+        self.robotState = Sensation.RobotState.RobotStateStopping
         for socketServer in self.socketServers:
             if socketServer.running:
                 self.log('stop: socketServer.stop()')
@@ -2358,6 +2373,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
     def run(self):
         self.running=True
         self.mode = Sensation.Mode.Normal
+        self.robotState = Sensation.RobotState.RobotStateRunning
         self.log("run: Starting")
                  
         try:
@@ -2407,10 +2423,12 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
         # If there has been problem in connections
         # at this point new SocketClient is running and it should have all Sensations from out Axon to send
         # but to be sure that no Sensations will be as unForgettable state
-        # and momory can not be released, just try to empty out Axon
+        # and memory can not be released, just try to empty out Axon
+        self.robotState = Sensation.RobotState.RobotStateStopping
         while(not self.getAxon().empty()):        
             tranferDirection, sensation = self.getAxon().get(robot=self)
             sensation.detachAll()
+        self.robotState = Sensation.RobotState.RobotStateStopped
 
         
     def process(self, transferDirection, sensation):
@@ -2608,6 +2626,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
         self.log("stop")
         self.running = False
         self.mode = Sensation.Mode.Stopping
+        self.robotState = Sensation.RobotState.RobotStateStopping
         
         # socketserver can't close itself, just put it to closing mode
         self.getSocketServer().stop() # socketserver can't close itself, we must send a stop sensation to it
@@ -2722,6 +2741,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
     def run(self):
         self.running=True
         self.mode = Sensation.Mode.Normal
+        self.robotState = Sensation.RobotState.RobotStateRunning
         self.log("run: Starting")
         
         # starting other threads/senders/capabilities
@@ -2850,6 +2870,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
 #         self.getSocketClient().sendStop(sock = self.sock, address=self.address)
         self.running = False
         self.mode = Sensation.Mode.Stopping
+        self.robotState = Sensation.RobotState.RobotStateStopping
         
 
 
