@@ -1,6 +1,6 @@
 '''
 Created on 21.09.2019
-Updated on 26.11.2020
+Updated on 27.11.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -79,7 +79,7 @@ class Microphone(Robot):
     SLEEP_TIME=3.0                     # if nothing to do, sleep
     DURATION = 1.0                     # record 1.5 sec
     VOIVELENGTHMINIMUM = 1.5           # accept voices, that are at least this long, not just click/click etc. something that are propable something a person says,
-    VOIVELENGTHMAXIMUN = 1.5           # accept voices, that are at least this long, not just click/click etc. something that are propable something a person says,
+    VOIVELENGTHMAXIMUM = 60.0          # accept voices, that are at least this long, not just click/click etc. something that are propable something a person says,
     SILENCEMAXIMUM = 0.75              # duration how long silence we should hear until a single sound stops
     SLEEPTIME = 0.1                    # If we get read error, then sleep, we are in high load
 
@@ -108,7 +108,7 @@ class Microphone(Robot):
                        config = config)
 
         # from settings        
-        self.device= self.config.getMicrophone()
+        self.device = self.config.getMicrophone()
         if not IsAlsaAudio:
             if len(self.device) > 0:
                 sd.default.device = self.device
@@ -168,6 +168,26 @@ class Microphone(Robot):
 
         self.robotState = None
         
+        # voice data length minimum and maximum in bytes
+        self.voiceDataLengthMinimum = self.getDataLengthFromPlaybackTime(playbackTime=self.VOIVELENGTHMINIMUM)
+        self.voiceDataLengthMaximum = self.getDataLengthFromPlaybackTime(playbackTime=self.VOIVELENGTHMAXIMUM)
+        self.voiceDataLengthSilenceMaximum = self.getDataLengthFromPlaybackTime(playbackTime=self.SILENCEMAXIMUM)
+
+    '''
+    Actions we do at the start of run
+    
+    We should divide these action by audio library,
+    because methods are called also fron MicroPhpnePlayback robot, which
+    does not run Microphone directly, but uses Sense-method aldd all
+    should be ready for running in this phase.
+    '''        
+    def prepareRun(self):
+        if not IsAlsaAudio:
+            self.rawInputStream.start()
+        else:
+            pass
+        
+        
     def run(self):
         self.log(" run robot robot " + self.getName() + " kind " + self.config.getKind() + " instanceType " + str(self.config.getInstanceType()))
         
@@ -179,8 +199,7 @@ class Microphone(Robot):
                 
         # live until stopped
         self.mode = Sensation.Mode.Normal
-        if not IsAlsaAudio:
-            self.rawInputStream.start()
+        self.prepareRun()
 
         while self.running:
             # as a leaf sensor robot default processing for sensation we have got
@@ -291,7 +310,7 @@ class Microphone(Robot):
                                     self.silence_data += data
                                     self.silence_l += l
                                 # if silence is long enough to stop a voice
-                                if self.getPlaybackTimeFromDataLength(self.getVoiceDataLength(self.silence_data)) >= self.SILENCEMAXIMUM:
+                                if self.getVoiceDataLength(self.silence_data) >= self.voiceDataLengthSilenceMaximum:
                                    # add silence to the final sound, because person can have said something even if whole piece is not a sound
                                     if not self.silence_data is None:
                                         self.log(logLevel=Robot.LogLevel.Verbose, logStr="sense: add silence to a sound")
@@ -365,7 +384,7 @@ class Microphone(Robot):
                                 self.silence_data += data
                                 self.silence_l += len(data)
                             # if silence is long enough to stop a voice
-                            if self.getPlaybackTimeFromDataLength(self.getVoiceDataLength(self.silence_data)) >= self.SILENCEMAXIMUM:
+                            if self.getVoiceDataLength(self.silence_data) >= self.voiceDataLengthSilenceMaximum:
                                 # add silence to the final sound, because person can have said something even if whole piece is not a sound
                                 if not self.silence_data is None:
                                     self.log(logLevel=Robot.LogLevel.Verbose, logStr="sense: add silence to a sound")
@@ -386,10 +405,11 @@ class Microphone(Robot):
     def putVoiceToParent(self):
         if self.voice_data is not None:
             # If we have a voice that is longer than just a click etc.
-            if self.getPlaybackTimeFromDataLength(self.getVoiceDataLength(self.voice_data)) >= self.VOIVELENGTHMINIMUM:
+            if self.getVoiceDataLength(self.voice_data) >= self.voiceDataLengthMinimum:
                 # too long voices are a problem. Accept only maximum length voice
-                if self.getPlaybackTimeFromDataLength(self.getVoiceDataLength(self.voice_data)) > self.VOIVELENGTHMAXIMUN:
-                    self.voice_data = self.voice_data[:self.getDataLengthFromPlaybackTime(playbackTime=self.VOIVELENGTHMAXIMUN)]
+                if self.getVoiceDataLength(self.voice_data) > self.voiceDataLengthMaximum:
+                    self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: shortened too long {}s voice".format(self.getPlaybackTimeFromDataLength(self.getVoiceDataLength(self.voice_data))))
+                    self.voice_data = self.voice_data[:self.voiceDataLengthMaximum]
                 # put robotType out (heard voice) to the parent Axon going up to main Robot
                 # connected to present Item.names
                 voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
@@ -432,9 +452,8 @@ class Microphone(Robot):
        
         try:
             # numpy.fromstring deprecated, should use numpy.frombuffer
-            # but can cause application to be killed
-            aaa = numpy.fromstring(data, dtype=dtype)
-#            aaa = numpy.frombuffer(data, dtype=dtype)
+#            aaa = numpy.fromstring(data, dtype=dtype)
+            aaa = numpy.frombuffer(data, dtype=dtype)
         except (ValueError):
             self.log("analyzeNumpyData numpy.fromstring(data, dtype=dtype: ValueError")      
             return False

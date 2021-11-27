@@ -1,6 +1,6 @@
 '''
 Created on 23.09.2020
-Updated on 14.06.2020
+Updated on 27.11.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -91,6 +91,8 @@ class MicrophonePlayback(Robot):
 #         voice_data=None
 #         voice_l=0
         self.microphone.informRobotState(robotState = Sensation.RobotState.MicrophoneSensing)
+        
+        self.microphone.prepareRun()
         while self.running:
             # as a leaf sensor robot default processing for sensation we have got
             # in practice we can get stop sensation
