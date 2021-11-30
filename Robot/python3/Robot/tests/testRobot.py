@@ -1,6 +1,6 @@
 '''
 Created on 13.02.2020
-Updated on 14.05.2021
+Updated on 30.11.2021
 @author: reijo.korhonen@gmail.com
 
 test Robot class
@@ -443,14 +443,17 @@ class RobotTestCase(unittest.TestCase):
             capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Item, is_set=is_set)   
             capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Image, is_set=is_set)   
             capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Voice, is_set=is_set)   
+            capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.RobotState, is_set=is_set)   
             #Working
             capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Working, sensationType=Sensation.SensationType.Item, is_set=is_set)   
             capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Working, sensationType=Sensation.SensationType.Image, is_set=is_set)   
             capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Working, sensationType=Sensation.SensationType.Voice, is_set=is_set)   
+            capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Working, sensationType=Sensation.SensationType.RobotState, is_set=is_set)   
             #LongTerm
             capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.LongTerm, sensationType=Sensation.SensationType.Item, is_set=is_set)   
             capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.LongTerm, sensationType=Sensation.SensationType.Image, is_set=is_set)   
             capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.LongTerm, sensationType=Sensation.SensationType.Voice, is_set=is_set)   
+            capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.LongTerm, sensationType=Sensation.SensationType.RobotState, is_set=is_set)   
 
         robot.setCapabilities(capabilities)
         
@@ -476,7 +479,7 @@ class RobotTestCase(unittest.TestCase):
         
     
     '''
-    TODO is this test valid or not?
+    TODO is this test valid or not? Was Valid
     '''
         
     def test_Locations(self):
@@ -924,8 +927,8 @@ class RobotTestCase(unittest.TestCase):
                             shouldBeRouted=True)
        
        
-      # Many locations tests
         ###########################################################################################################
+        # Many locations tests
         # sense       have LOCATIONS_1_2 set
         # muscle      have LOCATIONS_1_2  set
         # sensation   have no locations set
@@ -961,8 +964,8 @@ class RobotTestCase(unittest.TestCase):
                             robotType=Sensation.RobotType.Communication,
                             shouldBeRouted=True)
 
-        # Many locations tests
         ###########################################################################################################
+        # Many locations tests
         # sense       have LOCATIONS_1_2 set
         # muscle      have LOCATIONS_1_2  set
         # sensation   have LOCATIONS_1_2  set
@@ -998,8 +1001,8 @@ class RobotTestCase(unittest.TestCase):
                             robotType=Sensation.RobotType.Communication,
                             shouldBeRouted=True)
 
-        # Many locations tests
         ###########################################################################################################
+        # Many locations tests
         # sense       have LOCATIONS_2_3 set
         # muscle      have LOCATIONS_2_3  set
         # sensation   have LOCATIONS_1_2  set
@@ -1035,8 +1038,8 @@ class RobotTestCase(unittest.TestCase):
                             robotType=Sensation.RobotType.Communication,
                             shouldBeRouted=True)
 
-        # Many locations tests
         ###########################################################################################################
+        # Many locations tests
         # sense       have LOCATIONS_3_4 set
         # muscle      have LOCATIONS_3_4  set
         # sensation   have LOCATIONS_1_2  set
@@ -1072,8 +1075,8 @@ class RobotTestCase(unittest.TestCase):
                             robotType=Sensation.RobotType.Communication,
                             shouldBeRouted=False)
 
-        # Many locations tests
         ###########################################################################################################
+        # Many locations tests
         # sense       have GLOBAL set
         # muscle      have LOCATIONS_3_4  set
         # sensation   have GLOBAL  set
@@ -1109,8 +1112,8 @@ class RobotTestCase(unittest.TestCase):
                             robotType=Sensation.RobotType.Communication,
                             shouldBeRouted=True)
         
-        # Many locations tests
         ###########################################################################################################
+        # Many locations tests
         # sense       have LOCATIONS_3_4 set
         # muscle      have LOCATIONS_3_4  set
         # sensation   have LOCATIONS_3_4  set
@@ -1146,8 +1149,8 @@ class RobotTestCase(unittest.TestCase):
                             robotType=Sensation.RobotType.Communication,
                             shouldBeRouted=True)
         
-        # Many locations tests
         ###########################################################################################################
+        # Many locations tests
         # sense       have LOCATIONS_3_4 set
         # muscle      have LOCATIONS_1_GLOBAL  set
         # sensation   have LOCATIONS_3_4  set
@@ -1183,8 +1186,8 @@ class RobotTestCase(unittest.TestCase):
                             robotType=Sensation.RobotType.Communication,
                             shouldBeRouted=True)
         
-        # Many locations tests
         ###########################################################################################################
+        # Many locations tests
         # sense       have LOCATIONS_1_GLOBAL set
         # muscle      have LOCATIONS_3_4  set
         # sensation   have LOCATIONS_1_GLOBAL  set
@@ -1285,7 +1288,16 @@ class RobotTestCase(unittest.TestCase):
                                                          presence=Sensation.Presence.Entering,
                                                          locations=locations)
      
-            Wall_E_item_longTerm_sensation = self.sense.createSensation(
+            Wall_E_item_working_sensation = self.sense.createSensation(
+                                                         memoryType=Sensation.MemoryType.Working,
+                                                         sensationType=Sensation.SensationType.Item,
+                                                         robotType=robotType,
+                                                         name=RobotTestCase.NAME,
+                                                         score=RobotTestCase.SCORE_1,
+                                                         presence=Sensation.Presence.Entering,
+                                                         locations=locations)
+
+            Wall_E_item_longTerm_sensation1 = self.sense.createSensation(
                                                          memoryType=Sensation.MemoryType.LongTerm,
                                                          sensationType=Sensation.SensationType.Item,
                                                          robotType=robotType,
@@ -1293,28 +1305,79 @@ class RobotTestCase(unittest.TestCase):
                                                          score=RobotTestCase.SCORE_1,
                                                          presence=Sensation.Presence.Entering,
                                                          locations=locations)
+            Wall_E_item_longTerm_sensation2 = self.sense.createSensation(
+                                                         sensation = Wall_E_item_longTerm_sensation1)
+            
+            robotStateSensation = self.sense.createSensation(
+                                                         memoryType=Sensation.MemoryType.Sensory,
+                                                         sensationType=Sensation.SensationType.RobotState,
+                                                         robotType=robotType,
+                                                         robotState = Sensation.RobotState.CommunicationVoicePlayed,
+                                                         locations=locations)
+            
             
             # put to axon in reverse order we should receive
-            self.sense.sense(transferDirection=transferDirection, sensation=Wall_E_item_longTerm_sensation)
+            self.sense.sense(transferDirection=transferDirection, sensation=Wall_E_item_longTerm_sensation1)
+            self.assertEqual(self.muscle.getAxon().queue.qsize(),1,'muscle Axon.queue should contain 1 sensation')
+            self.assertEqual(self.muscle.getAxon().qualityOfServiceQueues[Sensation.MemoryType.LongTerm].qsize(),0,'muscle Axon..qualityOfServiceQueues[Sensation.MemoryType.LongTerm] should contain 0 sensation')
+            self.assertEqual(self.muscle.getAxon().qualityOfServiceQueues[Sensation.MemoryType.Working].qsize(),0,'muscle Axon..qualityOfServiceQueues[Sensation.MemoryType.Working] should contain 0 sensation')
+            self.assertEqual(self.muscle.getAxon().qualityOfServiceQueues[Sensation.MemoryType.Sensory].qsize(),0,'muscle Axon..qualityOfServiceQueues[Sensation.MemoryType.Sensory] should contain 0 sensation')
             self.assertEqual(self.muscle.getAxon().length(),1,'muscle Axon should contain 1 sensation')
-            self.sense.sense(transferDirection=transferDirection, sensation=Wall_E_item_sensation)
-            self.assertEqual(self.muscle.getAxon().length(),2,'muscle Axon should contain 2 sensations')
-            self.sense.sense(transferDirection=transferDirection, sensation=Wall_E_item_sensory_sensation)
+
+            self.sense.sense(transferDirection=transferDirection, sensation=Wall_E_item_longTerm_sensation2)
+            self.assertEqual(self.muscle.getAxon().queue.qsize(),1,'muscle Axon.queue should contain 1 sensation')
+            self.assertEqual(self.muscle.getAxon().qualityOfServiceQueues[Sensation.MemoryType.LongTerm].qsize(),1,'muscle Axon..qualityOfServiceQueues[Sensation.MemoryType.LongTerm] should contain 1 sensation')
+            self.assertEqual(self.muscle.getAxon().qualityOfServiceQueues[Sensation.MemoryType.Working].qsize(),0,'muscle Axon..qualityOfServiceQueues[Sensation.MemoryType.Working] should contain 0 sensation')
+            self.assertEqual(self.muscle.getAxon().qualityOfServiceQueues[Sensation.MemoryType.Sensory].qsize(),0,'muscle Axon..qualityOfServiceQueues[Sensation.MemoryType.Sensory] should contain 0 sensation')
+            self.assertEqual(self.muscle.getAxon().length(),2,'muscle Axon should contain 2 sensation')
+            
+            self.sense.sense(transferDirection=transferDirection, sensation=Wall_E_item_working_sensation)
+            self.assertEqual(self.muscle.getAxon().queue.qsize(),1,'muscle Axon.queue should contain 1 sensation')
+            self.assertEqual(self.muscle.getAxon().qualityOfServiceQueues[Sensation.MemoryType.LongTerm].qsize(),1,'muscle Axon..qualityOfServiceQueues[Sensation.MemoryType.LongTerm] should contain 1 sensation')
+            self.assertEqual(self.muscle.getAxon().qualityOfServiceQueues[Sensation.MemoryType.Working].qsize(),1,'muscle Axon..qualityOfServiceQueues[Sensation.MemoryType.Working] should contain 1 sensation')
+            self.assertEqual(self.muscle.getAxon().qualityOfServiceQueues[Sensation.MemoryType.Sensory].qsize(),0,'muscle Axon..qualityOfServiceQueues[Sensation.MemoryType.Sensory] should contain 0 sensation')
             self.assertEqual(self.muscle.getAxon().length(),3,'muscle Axon should contain 3 sensations')
+ 
+            self.sense.sense(transferDirection=transferDirection, sensation=Wall_E_item_sensory_sensation)
+            self.assertEqual(self.muscle.getAxon().queue.qsize(),1,'muscle Axon.queue should contain 1 sensation')
+            self.assertEqual(self.muscle.getAxon().qualityOfServiceQueues[Sensation.MemoryType.LongTerm].qsize(),1,'muscle Axon..qualityOfServiceQueues[Sensation.MemoryType.LongTerm] should contain 1 sensation')
+            self.assertEqual(self.muscle.getAxon().qualityOfServiceQueues[Sensation.MemoryType.Working].qsize(),1,'muscle Axon..qualityOfServiceQueues[Sensation.MemoryType.Working] should contain 1 sensation')
+            self.assertEqual(self.muscle.getAxon().qualityOfServiceQueues[Sensation.MemoryType.Sensory].qsize(),1,'muscle Axon..qualityOfServiceQueues[Sensation.MemoryType.Sensory] should contain 1 sensation')
+            self.assertEqual(self.muscle.getAxon().length(),4,'muscle Axon should contain 4 sensations')
+
+            self.sense.sense(transferDirection=transferDirection, sensation=robotStateSensation)
+            self.assertEqual(self.muscle.getAxon().queue.qsize(),2,'muscle Axon.queue should contain 2 sensation')
+            self.assertEqual(self.muscle.getAxon().qualityOfServiceQueues[Sensation.MemoryType.LongTerm].qsize(),1,'muscle Axon..qualityOfServiceQueues[Sensation.MemoryType.LongTerm] should contain 1 sensation')
+            self.assertEqual(self.muscle.getAxon().qualityOfServiceQueues[Sensation.MemoryType.Working].qsize(),1,'muscle Axon..qualityOfServiceQueues[Sensation.MemoryType.Working] should contain 1 sensation')
+            self.assertEqual(self.muscle.getAxon().qualityOfServiceQueues[Sensation.MemoryType.Sensory].qsize(),1,'muscle Axon..qualityOfServiceQueues[Sensation.MemoryType.Sensory] should contain 1 sensation')
+            self.assertEqual(self.muscle.getAxon().length(),5,'muscle Axon should contain 5 sensations')
+
             # now we should get sensations in reverse order, meaning that sensory is first, working then and longterm last
             # BUT Because QoS is working only if Axon queue is empty - to be sure no Robots are blocked reading of Axon, when it is empty
             # We will get first put Sensations first even if it is LongTerm
             transferDirection, sensation = self.muscle.getAxon().get(robot=self)
-            self.assertEqual(sensation, Wall_E_item_longTerm_sensation,'should receive longTerm sensation first, because Axon was empty, when thi was put')
-            self.assertEqual(self.muscle.getAxon().length(),2,'muscle Axon should contain 2 sensations')
+            self.assertEqual(sensation, Wall_E_item_longTerm_sensation1,'should receive longTerm sensation first, because Axon was empty, when this was put')
+            self.assertEqual(self.muscle.getAxon().length(),4,'muscle Axon should contain 4 sensations')
+            self.assertEqual(self.muscle.getAxon().queue.qsize(),1,'muscle Axon.queue should contain 1 sensation')
+            self.assertEqual(self.muscle.getAxon().qualityOfServiceQueues[Sensation.MemoryType.LongTerm].qsize(),1,'muscle Axon..qualityOfServiceQueues[Sensation.MemoryType.LongTerm] should contain 1 sensation')
+            self.assertEqual(self.muscle.getAxon().qualityOfServiceQueues[Sensation.MemoryType.Working].qsize(),1,'muscle Axon..qualityOfServiceQueues[Sensation.MemoryType.Working] should contain 1 sensation')
+            self.assertEqual(self.muscle.getAxon().qualityOfServiceQueues[Sensation.MemoryType.Sensory].qsize(),1,'muscle Axon..qualityOfServiceQueues[Sensation.MemoryType.Sensory] should contain 1 sensation')
              
             transferDirection, sensation = self.muscle.getAxon().get(robot=self)
-            self.assertEqual(sensation,Wall_E_item_sensory_sensation,'should receive sensory sensation as second, because QoS works, when Axon is not empty, when put')
-            self.assertEqual(self.muscle.getAxon().length(),1,'muscle Axon should contain 2 sensations')
+            self.assertEqual(sensation,robotStateSensation,'should receive robotStateSensation as second, because QoS works, when Axon is not empty, when put')
+            self.assertEqual(self.muscle.getAxon().length(),3,'muscle Axon should contain 3 sensations')
+
+            transferDirection, sensation = self.muscle.getAxon().get(robot=self)
+            self.assertEqual(sensation,Wall_E_item_sensory_sensation,'should receive sensory sensation as third, because QoS works, when Axon is not empty, when put')
+            self.assertEqual(self.muscle.getAxon().length(),2,'muscle Axon should contain 2 sensations')
+
+            transferDirection, sensation = self.muscle.getAxon().get(robot=self)
+            self.assertEqual(sensation,Wall_E_item_working_sensation,'should receive working sensation as fourth, because QoS works, when Axon is not empty, when put')
+            self.assertEqual(self.muscle.getAxon().length(),1,'muscle Axon should contain 1 sensations')
             
             transferDirection, sensation = self.muscle.getAxon().get(robot=self)
-            self.assertEqual(sensation,Wall_E_item_sensation,'should receive working sensation last, because QoS works, when Axon is not empty, when put')
-            self.assertEqual(self.muscle.getAxon().length(),0,'muscle Axon should contain 1 sensations')
+            self.assertEqual(sensation,Wall_E_item_longTerm_sensation2,'should receive longterm sensation last, because QoS works, when Axon is not empty, when put')
+            self.assertEqual(self.muscle.getAxon().length(),0,'muscle Axon should contain 0 sensations')
             
             self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty')
            
@@ -1573,8 +1636,11 @@ class RobotTestCase(unittest.TestCase):
     '''
 
     # re-enable this, when all other works
-    # TODO if we run this test alone, it works, nut if we enable other test, we fail
-    # other test ler local mainrebot keep running
+    # TODO if we run this test alone, it works, but if we enable other test, we fail
+    # other test ler local mainRobot keep running
+    # this test can work or not, even when it is enabled. Problem is Configuration.
+    # We have same configuration using robots, because we mimic two site situation
+    # and in real run, we are running robots in one site
     def test_Tcp(self):
         print('\n--test_Sensation Routing with TCP SocketServer and SocketClient')
         

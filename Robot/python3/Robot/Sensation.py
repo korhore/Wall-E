@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 18.11.2021
+Edited on 30.11.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -217,8 +217,8 @@ class Sensation(object):
     COMMUNIVATIONNOTSTARTED="Communication Not Started"
     COMMUNICATIONWAITING="Communication Waiting"
     COMMUNICATIONON="Communication On"
-    COMMUNICATIONWAITINGVOICEPLAYED = "Communication Waiting Voice Played",
-    COMMUNICATIONVOICEPLAYED = "Communication Voice Played",
+    COMMUNICATIONWAITINGVOICEPLAYED = "Communication Waiting Voice Played"
+    COMMUNICATIONVOICEPLAYED = "Communication Voice Played"
     COMMUNICATIONWAITINGRESPONSE="Communication Waiting Response"
     COMMUNICATIONRESPONSEHEARD="Communication Response Heard"
     COMMUNICATIONNORESPONSEHEARD="Communication NO Response Heard"

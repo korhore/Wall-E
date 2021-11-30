@@ -51,8 +51,7 @@ class Axon():
 #         # SensationType.RobotState goes always to fastest queue
           # select QOS queue only if we have sensation in normal queue or MemoryType is not first ordered Sensory
 #         # so we release reader, that was blocked
-        if self.queue.empty() or sensation.getSensationType() == Sensation.SensationType.RobotState or\
-           sensation.getMemoryType() not in Sensation.QoSMemoryTypesOrdered:
+        if self.queue.empty() or sensation.getSensationType() == Sensation.SensationType.RobotState:
             queue = self.queue
         else:
             queue = self.qualityOfServiceQueues[sensation.getMemoryType()]
@@ -99,8 +98,8 @@ class Axon():
         return self.queue.empty()
     
     def length(self):
-        l=0
+        l=self.queue.qsize()
         for memorytype in Sensation.QoSMemoryTypesOrdered:
             l+= self.qualityOfServiceQueues[memorytype].qsize()
-        return l+self.queue.qsize()
+        return l
 
