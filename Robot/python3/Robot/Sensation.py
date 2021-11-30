@@ -132,16 +132,18 @@ class Sensation(object):
                       CommunicationNotStarted = 'n',
                       CommunicationWaiting = 'o',
                       CommunicationOn ='p',
-                      CommunicationWaitingResponse = 'q',
-                      CommunicationResponseHeard ='r',
-                      CommunicationNoResponseHeard ='s',
-                      CommunicationNoResponseToSay ='t',
-                      CommunicationEnded = 'u',
-                      CommunicationDelay = 'v',
+                      CommunicationWaitingVoicePlayed = 'q',
+                      CommunicationVoicePlayed = 'r',
+                      CommunicationWaitingResponse = 's',
+                      CommunicationResponseHeard ='t',
+                      CommunicationNoResponseHeard ='u',
+                      CommunicationNoResponseToSay ='v',
+                      CommunicationEnded = 'w',
+                      CommunicationDelay = 'x',
                       
                       #Microphone
-                      MicrophoneSensing = 'w',
-                      MicrophoneDisabled = 'x')
+                      MicrophoneSensing = 'y',
+                      MicrophoneDisabled = 'z')
     
     # enum items as strings 
     ALL="All"
@@ -215,6 +217,8 @@ class Sensation(object):
     COMMUNIVATIONNOTSTARTED="Communication Not Started"
     COMMUNICATIONWAITING="Communication Waiting"
     COMMUNICATIONON="Communication On"
+    COMMUNICATIONWAITINGVOICEPLAYED = "Communication Waiting Voice Played",
+    COMMUNICATIONVOICEPLAYED = "Communication Voice Played",
     COMMUNICATIONWAITINGRESPONSE="Communication Waiting Response"
     COMMUNICATIONRESPONSEHEARD="Communication Response Heard"
     COMMUNICATIONNORESPONSEHEARD="Communication NO Response Heard"
@@ -269,6 +273,7 @@ class Sensation(object):
                MemoryType.LongTerm)
     # QoSMemoryTypesOrdered is used in Axon
     QoSMemoryTypesOrdered = (
+               MemoryType.Sensory,
                MemoryType.Working,
                MemoryType.LongTerm)
     
@@ -313,6 +318,8 @@ class Sensation(object):
                RobotState.CommunicationNotStarted:COMMUNIVATIONNOTSTARTED,
                RobotState.CommunicationWaiting:COMMUNICATIONWAITING,
                RobotState.CommunicationOn:COMMUNICATIONON,
+               RobotState.CommunicationWaitingVoicePlayed:COMMUNICATIONWAITINGVOICEPLAYED,
+               RobotState.CommunicationVoicePlayed:COMMUNICATIONVOICEPLAYED,
                RobotState.CommunicationWaitingResponse:COMMUNICATIONWAITINGRESPONSE,
                RobotState.CommunicationResponseHeard:COMMUNICATIONRESPONSEHEARD,
                RobotState.CommunicationNoResponseHeard:COMMUNICATIONNORESPONSEHEARD,
@@ -345,6 +352,8 @@ class Sensation(object):
                RobotState.CommunicationNotStarted:COMMUNIVATIONNOTSTARTED,
                RobotState.CommunicationWaiting:COMMUNICATIONWAITING,
                RobotState.CommunicationOn:COMMUNICATIONON,
+               RobotState.CommunicationWaitingVoicePlayed:COMMUNICATIONWAITINGVOICEPLAYED,
+               RobotState.CommunicationVoicePlayed:COMMUNICATIONVOICEPLAYED,
                RobotState.CommunicationWaitingResponse:COMMUNICATIONWAITINGRESPONSE,
                RobotState.CommunicationResponseHeard:COMMUNICATIONRESPONSEHEARD,
                RobotState.CommunicationNoResponseHeard:COMMUNICATIONNORESPONSEHEARD,

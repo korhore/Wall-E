@@ -1,6 +1,6 @@
 '''
 Created on Jan 19, 2014
-Updated on 03.11.2021
+Updated on 29.11.2021
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -25,7 +25,7 @@ class Axon():
     capability (or subrobots subrobot has capability) to process this Sensation
     until Leaf Robot is reached.
     """
-    MAX_QUEUE_LENGTH = 512
+    MAX_QUEUE_LENGTH = 128
     # Robot settings"
     AxonLogLevel = enum(No=-1, Critical=0, Error=1, Normal=2, Detailed=3, Verbose=4)
      
@@ -48,15 +48,19 @@ class Axon():
 #             sensation.setLocations(self.robot.getLocations())   #
         sensation.detach(robot=robot)         # release from caller
         
-#         # select QOS queue only if we have sensation in normal queue or MemoryType is not first ordered Sensory
+#         # SensationType.RobotState goes always to fastest queue
+          # select QOS queue only if we have sensation in normal queue or MemoryType is not first ordered Sensory
 #         # so we release reader, that was blocked
-        if self.queue.empty() or sensation.getMemoryType() not in Sensation.QoSMemoryTypesOrdered:
+        if self.queue.empty() or sensation.getSensationType() == Sensation.SensationType.RobotState or\
+           sensation.getMemoryType() not in Sensation.QoSMemoryTypesOrdered:
             queue = self.queue
         else:
             queue = self.qualityOfServiceQueues[sensation.getMemoryType()]
+
         while queue.qsize() > Axon.MAX_QUEUE_LENGTH:
             (_, _) = queue.get()
             self.robot.log("{} Axon skipped overloaded oldest Sensation, but will put asked one, before put queue length {} empty {} full {}".format(self.robot.getName(),queue.qsize(), queue.empty(), queue.full()))
+ 
         #self.queue.put((transferDirection, sensation))
         queue.put((transferDirection, sensation))
         self.robot.log(logLevel=Axon.AxonLogLevel.Detailed, logStr="Axon put from {} to {} with final queue length {} full {}".format(robot.getName(),self.robot.getName(), queue.qsize(), queue.full()))
