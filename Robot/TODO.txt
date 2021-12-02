@@ -36,6 +36,10 @@ Eva stops to send images
 
 Develop
 -------
+Coontinuewith Sensation.RobotState.CommunicationVoicePlayed
+Remove CommunicationDelay -> CommunicationEnded
+and make Communication stateful by Sensation.RobotState.Communication
+
 We still have problem with SocketClient, when send fails. We still have reserved Sensations and we
 don't create new connection.
 

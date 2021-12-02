@@ -1,6 +1,6 @@
 '''
 Created on 21.09.2020
-Updated on 13.11.2021
+Updated on 30.11.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -313,6 +313,13 @@ class Playback(Robot):
             self.log(logLevel=Robot.LogLevel.Error, logStr='process: got sensation this robot can\'t process, NOT a Voice In or not running')
         self.log(logLevel=Robot.LogLevel.Detailed, logStr="self.running " + str(self.running))
         sensation.detach(robot=self) # finally release played sensation
+        # inform other Robots, that this voice is played or processed, so they can act in sync
+        robotStateSensation = self.createSensation( associations=None,
+                                                    sensationType=Sensation.SensationType.RobotState,
+                                                    memoryType=Sensation.MemoryType.Sensory,
+                                                    robotState=Sensation.RobotState.CommunicationVoicePlayed,
+                                                    locations=self.getLocations())
+        self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=robotStateSensation)
         
     def changeVoiceByKind(self, kind, aaa):
         if kind == Sensation.Kind.WallE:
