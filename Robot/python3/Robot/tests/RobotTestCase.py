@@ -1,6 +1,6 @@
 '''
 Created on 10.04.2021
-Updated on 20.10.2021
+Updated on 01.12.2021
 @author: reijo.korhonen@gmail.com
 
 Base class routines used to test-clersses for Robot-delivered classes.
@@ -110,6 +110,9 @@ class RobotTestCase():
         return self.mainNames
     def setRobotMainNames(self, robot, mainNames):
         robot.mainNames = mainNames
+    def setSubInstances(self, robot, subInstances):
+        robot.subInstances = subInstances
+
     def getParent(self):
         return None
     '''
@@ -224,7 +227,8 @@ class RobotTestCase():
                  otherAssociateSensation = None,                             # associated Sensation other side
                  feeling = None,                                             # feeling of sensation or association
                  positiveFeeling = None,                                     # change association feeling to more positive robotType if possible
-                 negativeFeeling = None):                                    # change association feeling to more negative robotType if possible
+                 negativeFeeling = None,
+                 robotState = None):
         
         sensation = robot.createSensation(
                  log=log,
@@ -259,7 +263,8 @@ class RobotTestCase():
                  otherAssociateSensation = otherAssociateSensation,
                  feeling = feeling,
                  positiveFeeling=positiveFeeling,
-                 negativeFeeling=negativeFeeling)
+                 negativeFeeling=negativeFeeling,
+                 robotState=robotState)
             
         # if we get mainNames. overwrite Robots given mainNames
         if mainNames != None and len(mainNames) > 0:

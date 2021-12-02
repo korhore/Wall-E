@@ -31,7 +31,22 @@ def enum(*sequential, **named):
 Sensation is something Robot senses
 '''
 
+        
+
 class Sensation(object):
+    '''
+    helper class used to define incrementable by call call
+    used in defining enums so, that always next value is one greater than current.
+    This can be used also with char enums thst can be changed in developing time
+    getting new enum values or they are putted away
+    '''
+    
+    class incrementor(object):
+        def __init__(self, base):
+            self.i=base
+        def next(self):
+            self.i = self.i+1
+            return(self.i-1)
     VERSION=23          # version number to check, if we picle or bytes same version
                         # instances. Otherwise we get odd errors, with old
                         # version code instances
@@ -109,41 +124,42 @@ class Sensation(object):
     InstanceType = enum(Real='r', SubInstance='s', Virtual='v', Remote='m')
     Mode = enum(Normal='n', StudyOwnIdentity='t',Sleeping='l',Starting='s', Stopping='p', Interrupted='i')
 
-    # Robots states    
+    # Robots states
+    iRobotState = incrementor(ord('a'))
     RobotState = enum(#RobotState
-                      RobotStateInitiating='a',
-                      RobotStateRunning='b',
-                      RobotStateStopping='c',
-                      RobotStateStopped='d',
+                      RobotStateInitiating=chr(iRobotState.next()),
+                      RobotStateRunning=chr(iRobotState.next()),
+                      RobotStateStopping=chr(iRobotState.next()),
+                      RobotStateStopped=chr(iRobotState.next()),
         
         
                       #Activity level
-                      ActivitySleeping='e',
-                      ActivityDreaming='f',
-                      ActivityLazy='g',
-                      ActivityRelaxed='h',
-                      ActivityNormal='i',
-                      ActivityBusy='j',
-                      ActivityHurry='k',
-                      ActivityTired='l',
-                      ActivityBreaking='m',
+                      ActivitySleeping=chr(iRobotState.next()),
+                      ActivityDreaming=chr(iRobotState.next()),
+                      ActivityLazy=chr(iRobotState.next()),
+                      ActivityRelaxed=chr(iRobotState.next()),
+                      ActivityNormal=chr(iRobotState.next()),
+                      ActivityBusy=chr(iRobotState.next()),
+                      ActivityHurry=chr(iRobotState.next()),
+                      ActivityTired=chr(iRobotState.next()),
+                      ActivityBreaking =chr(iRobotState.next()),
                       
                       # Communication
-                      CommunicationNotStarted = 'n',
-                      CommunicationWaiting = 'o',
-                      CommunicationOn ='p',
-                      CommunicationWaitingVoicePlayed = 'q',
-                      CommunicationVoicePlayed = 'r',
-                      CommunicationWaitingResponse = 's',
-                      CommunicationResponseHeard ='t',
-                      CommunicationNoResponseHeard ='u',
-                      CommunicationNoResponseToSay ='v',
-                      CommunicationEnded = 'w',
-                      CommunicationDelay = 'x',
+                      CommunicationNotStarted = chr(iRobotState.next()),
+                      CommunicationWaiting = chr(iRobotState.next()),
+                      CommunicationOn = chr(iRobotState.next()),
+                      CommunicationWaitingVoicePlayed = chr(iRobotState.next()),
+                      CommunicationVoicePlayed = chr(iRobotState.next()),
+                      CommunicationWaitingResponse = chr(iRobotState.next()),
+                      CommunicationResponseHeard = chr(iRobotState.next()),
+                      CommunicationNoResponseHeard = chr(iRobotState.next()),
+                      CommunicationNoResponseToSay = chr(iRobotState.next()),
+                      CommunicationEnded = chr(iRobotState.next()),
+                      CommunicationDelay = chr(iRobotState.next()),
                       
                       #Microphone
-                      MicrophoneSensing = 'y',
-                      MicrophoneDisabled = 'z')
+                      MicrophoneSensing = chr(iRobotState.next()),
+                      MicrophoneDisabled = chr(iRobotState.next()))
     
     # enum items as strings 
     ALL="All"

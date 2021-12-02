@@ -1,6 +1,6 @@
 '''
 Created on 21.06.2019
-Updated on 19.11.2021
+Updated on 02.12.2021
 @author: reijo.korhonen@gmail.com
 
 test Association class
@@ -45,7 +45,9 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
                                            level=2)
         self.setRobotMainNames(self.communication, self.MAINNAMES)
         self.setRobotLocations(self.communication, self.getLocations())
-            
+        # if communication is configured to be MainRobot, reject this configuration and test only Communication feature.
+        self.setSubInstances(self.communication, [])
+           
         # should get Identity for proper functionality. Use Wall-E Identity in test
         self.communication.imageSensations, self.communication.voiceSensations = \
             self.communication.getIdentitySensations(name=CommunicationTestCase.NAME)
@@ -66,7 +68,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
     Item.name Working Out    
     ''' 
            
-    def test_PresenseItemPresentRobot(self):
+    def re_test_PresenseItemPresentRobot(self):
         print('\ntest_PresenseItemPresentRobot\n')       
         self.doTest_PresenseItemPresentRobot(robot=self.communication, isWait=False)
        
@@ -75,7 +77,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
     TensorfloClöassafication produces
     Item.name Working Out
     '''    
-    def test_PresenseItemAbsentRobot(self):
+    def re_test_PresenseItemAbsentRobot(self):
         print('\ntest_PresenseItemAbsentRobot\n')       
         self.doTest_PresenseItemAbsentRobot(robot=self.communication, isWait=False)
         
@@ -109,7 +111,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
     Voice comes from this Robots Sense-Robot (Microphone)
     '''    
         
-    def test_ProcessItemImageVoiceFromSameRobotSenses(self):
+    def re_test_ProcessItemImageVoiceFromSameRobotSenses(self):
         print('\ntest_ProcessItemImageVoiceFromSameRobotSenses\n')
         self.doTest_ProcessItemImageVoiceFromSameRobotSenses(robot = self.communication, isWait = False)
         
@@ -118,13 +120,13 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
     Tests from testMemory
     because implementation is moved in Communication
     '''
-    def test_getBestSensationsSense(self):
+    def re_test_getBestSensationsSense(self):
         self.do_test_getBestSensations(robotType=Sensation.RobotType.Sense, robotMainNames=self.MAINNAMES, succeed=True)
         
-    def test_getBestSensationsCommunication(self):
+    def re_test_getBestSensationsCommunication(self):
         self.do_test_getBestSensations(robotType=Sensation.RobotType.Communication, robotMainNames=self.OTHERMAINNAMES, succeed=True)
 
-    def test_getBestSensationsCommunicationFail(self):
+    def re_test_getBestSensationsCommunicationFail(self):
         self.do_test_getBestSensations(robotType=Sensation.RobotType.Communication, robotMainNames=self.MAINNAMES, succeed=False)
 
     def do_test_getBestSensations(self, robotType, robotMainNames, succeed):
