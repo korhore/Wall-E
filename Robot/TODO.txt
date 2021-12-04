@@ -36,7 +36,14 @@ Eva stops to send images
 
 Develop
 -------
-Coontinuewith Sensation.RobotState.CommunicationVoicePlayed
+We need some framework-kinf mehods in Robot-class. Start with Axon-full -method,
+that is called when Axon get full, when there is no reader for it. That robot,
+that creates its subroot, should handle it.
+
+Microphone: raspberry can lose its devices, so microphone does not work any more until
+raspberry is rebooted. Correction try to call stiop-method. Test how it works.
+
+Coontinue with Sensation.RobotState.CommunicationVoicePlayed
 Remove CommunicationDelay -> CommunicationEnded
 and make Communication stateful by Sensation.RobotState.Communication
 

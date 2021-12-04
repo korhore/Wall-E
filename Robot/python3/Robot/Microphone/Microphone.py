@@ -145,6 +145,7 @@ class Microphone(Robot):
             self.periodsize = Settings.AUDIO_PERIOD_SIZE
             self.inp.setperiodsize(self.periodsize)
             self.inp_error = False
+            self.inp_exeption = False
             self.inp_succeed_number = 0
 
  
@@ -339,7 +340,13 @@ class Microphone(Robot):
 #                         self.inp.setperiodsize(self.periodsize)
                 except alsaaudio.ALSAAudioError as e:
                         self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: inp exception {}, data = self.inp.read(), periodsize {} repeating error {} succeeded before error {}".format(e, self.periodsize, self.inp_error, self.inp_succeed_number))
-                        self.inp_error = True
+                        self.inp_exeption = True
+                        # TODO if we get "No such device", then we don't recover and should stop
+                        if "No such device" in string(e):
+                            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: we should stop because No such device")
+                            self.stop()
+                        isHopeOfASound = False
+
 #                         if self.periodsize > Settings.AUDIO_PERIOD_SIZE:
 #                             self.periodsize = int(self.periodsize/2)
 #                             self.inp.setperiodsize(self.periodsize)
