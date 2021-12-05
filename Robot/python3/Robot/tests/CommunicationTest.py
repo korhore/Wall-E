@@ -1,6 +1,6 @@
 '''
 Created on 14.04.2021
-Updated on 02.12.2021
+Updated on 05.12.2021
 @author: reijo.korhonen@gmail.com
 
 test Communication or VisualCommunication classes
@@ -166,6 +166,19 @@ class CommunicationTest(RobotTestCase):
     def do_test_PresenseItemRobot(self, robot, isWait, isPresentRobot):
         print('\ntest_Presense')
                 
+        # make voice that should be ignored
+        # should be created before current items
+        voice_sensation_ignored  = self.createSensation(
+                                                sensationName='voice_sensation_ignored',
+                                                robot=robot,
+                                                memoryType=Sensation.MemoryType.Sensory,
+                                                sensationType=Sensation.SensationType.Voice,
+                                                robotType=Sensation.RobotType.Sense,
+                                                data=CommunicationTest.VOICEDATA_IGNORED,
+                                                locations=self.getLocations())
+        self.assertTrue(voice_sensation_ignored.isForgettable())
+        self.printSensationNameById(note='voice_sensation_ignored', dataId=voice_sensation_ignored.getDataId())
+
         history_sensationTime = systemTime.time() -2*max(CommunicationTest.ASSOCIATION_INTERVAL, Communication.COMMUNICATION_INTERVAL)
 
         self.assertEqual(self.getAxon().empty(), True, 'Axon should be empty at the beginning of test_Presense\nCannot test properly this!')
@@ -265,6 +278,24 @@ class CommunicationTest(RobotTestCase):
                         muscleVoice=voice_sensation1, isExactMuscleVoice=True,
                         communicationItem=Wall_E_item_sensation_entering2, isExactCommunicationItem=True,
                         robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingVoicePlayed))#(Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))
+
+            # test, that if we get new voice before getting Sensation.RobotState.CommunicationVoicePlayed, it is ignored
+            # make voice that should be ignored 
+            voice_sensation_ignored_isPresentRobotEntering  = self.createSensation(
+                                                    sensationName='voice_sensation_ignored_isPresentRobotEntering',
+                                                    robot=robot,
+                                                    memoryType=Sensation.MemoryType.Sensory,
+                                                    sensationType=Sensation.SensationType.Voice,
+                                                    robotType=Sensation.RobotType.Sense,
+                                                    data=CommunicationTest.VOICEDATA_IGNORED,
+                                                    locations=self.getLocations())
+            self.assertTrue(voice_sensation_ignored_isPresentRobotEntering.isForgettable())
+            self.printSensationNameById(note='voice_sensation_ignored_isPresentRobotEntering', dataId=voice_sensation_ignored_isPresentRobotEntering.getDataId())
+            robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=voice_sensation_ignored_isPresentRobotEntering)
+            self.expect(isWait=isWait,
+                        name='isPresentRobot Entering, response 1, voice_sensation_ignored_isPresentRobotEntering should be ignored',
+                        isEmpty=True)
+
             # simulate Playback
             self.doProcess(robot=robot, sensation=self.createSensation(
                                                     sensationName='voice_sensation1Played',
@@ -316,6 +347,7 @@ class CommunicationTest(RobotTestCase):
  
 
        
+
         print('\n current Present {}'.format(CommunicationTest.NAME))
         Wall_E_item_sensation_present = self.createSensation(
                                                 sensationName='Wall_E_item_sensation_present',
@@ -328,6 +360,8 @@ class CommunicationTest(RobotTestCase):
                                                 presence=Sensation.Presence.Present,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='Wall_E_item_sensation_present test', dataId=Wall_E_item_sensation_present.getDataId())
+
+
         # make potential response
         voice_sensation2 = self.createSensation(
                                                 sensationName='voice_sensation2',
@@ -386,6 +420,13 @@ class CommunicationTest(RobotTestCase):
                         isPositiveFeeling=True,
                         communicationItem=Wall_E_item_sensation_present, isExactCommunicationItem=True,
                         robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingVoicePlayed))#(Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))
+
+            # test, that if we get new voice before getting Sensation.RobotState.CommunicationVoicePlayed, it is ignored
+            robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=voice_sensation_ignored)
+            self.expect(isWait=isWait,
+                        name='isPresentRobot Present, voice_sensation_ignored should be ignored',
+                        isEmpty=True)
+                        
             # simulate Playback
             self.doProcess(robot=robot, sensation=self.createSensation(
                                                     sensationName='voice_sensation2Played',
@@ -399,7 +440,7 @@ class CommunicationTest(RobotTestCase):
                         name='isPresentRobot Present, response 2, CommunicationWaitingResponse', isEmpty=False,
                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
             # To test other Communication Robots functionality we must make a trick and change this Sensation ocatio
-            # so this Robot think that Sensation comes fromother Robot, not it self
+            # so this Robot think that Sensation comes from other Robot, not it self
             self.communicationItem.setMainNames(mainNames=self.OTHERMAINNAMES)
             
             # This sensation should be processed in foreign Robot, but is test we do it in directly in same Communication-Robot
@@ -423,6 +464,13 @@ class CommunicationTest(RobotTestCase):
             for location in self.getLocations():
                 self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingVoicePlayed,
                                  "got {}, expected {}".format(Sensation.getRobotStateString(self.communication.itemConversations[location].robotState), Sensation.getRobotStateString(Sensation.RobotState.CommunicationWaitingVoicePlayed)))
+
+            # test, that if we get new voice before getting Sensation.RobotState.CommunicationVoicePlayed, it is ignored
+            robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=voice_sensation_ignored)
+            self.expect(isWait=isWait,
+                        name='isPresentRobot Present, voice_sensation_ignored should be ignored',
+                        isEmpty=True)
+
             # simulate Playback
             self.doProcess(robot=robot, sensation=self.createSensation(
                                                     sensationName='voice_sensation2Played',
@@ -549,6 +597,13 @@ class CommunicationTest(RobotTestCase):
                         muscleVoice=voice_sensation3, isExactMuscleVoice=True,
                         communicationItem=Wall_E_item_sensation_entering3, isExactCommunicationItem=True,
                         robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingVoicePlayed))#(Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))
+
+            # test, that if we get new voice before getting Sensation.RobotState.CommunicationVoicePlayed, it is ignored
+            robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=voice_sensation_ignored_isPresentRobotEntering)
+            self.expect(isWait=isWait,
+                        name='isPresentRobot Entering, voice_sensation_ignored_isPresentRobotEntering should be ignored',
+                        isEmpty=True)
+
             # simulate Playback
             self.doProcess(robot=robot, sensation=self.createSensation(
                                                     sensationName='voice_sensation3Played',
@@ -583,6 +638,13 @@ class CommunicationTest(RobotTestCase):
             for location in self.getLocations():
                 self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingVoicePlayed,
                                  "got {}, expected {}".format(Sensation.getRobotStateString(self.communication.itemConversations[location].robotState), Sensation.getRobotStateString(Sensation.RobotState.CommunicationWaitingVoicePlayed)))
+
+            # test, that if we get new voice before getting Sensation.RobotState.CommunicationVoicePlayed, it is ignored
+            robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=voice_sensation_ignored)
+            self.expect(isWait=isWait,
+                        name='Entering, response 3, voice_sensation_ignored should be ignored',
+                        isEmpty=True)
+
             # simulate Playback
             self.doProcess(robot=robot, sensation=self.createSensation(
                                                     sensationName='voice_sensation3Played',
@@ -671,6 +733,13 @@ class CommunicationTest(RobotTestCase):
                         isPositiveFeeling=True,
                         communicationItem=Wall_E_item_sensation_entering4, isExactCommunicationItem=True,
                         robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingVoicePlayed))#(Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))
+
+            # test, that if we get new voice before getting Sensation.RobotState.CommunicationVoicePlayed, it is ignored
+            robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=voice_sensation_ignored_isPresentRobotEntering)
+            self.expect(isWait=isWait,
+                        name='isPresentRobot Name2 entering, voice_sensation_ignored_isPresentRobotEntering should be ignored',
+                        isEmpty=True)
+
             # simulate Playback
             self.doProcess(robot=robot, sensation=self.createSensation(
                                                     sensationName='voice_sensation4Played',
@@ -708,6 +777,13 @@ class CommunicationTest(RobotTestCase):
             for location in self.getLocations():
                 self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingVoicePlayed,
                                  "got {}, expected {}".format(Sensation.getRobotStateString(self.communication.itemConversations[location].robotState), Sensation.getRobotStateString(Sensation.RobotState.CommunicationWaitingVoicePlayed)))
+
+            # test, that if we get new voice before getting Sensation.RobotState.CommunicationVoicePlayed, it is ignored
+            robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=voice_sensation_ignored)
+            self.expect(isWait=isWait,
+                        name='Name2 entering, voice_sensation_ignored should be ignored',
+                        isEmpty=True)
+
             # simulate Playback
             self.doProcess(robot=robot, sensation=self.createSensation(
                                                     sensationName='voice_sensation4Played',
@@ -786,6 +862,13 @@ class CommunicationTest(RobotTestCase):
                         isPositiveFeeling=True,
                         communicationItem=Wall_E_item_sensation_present2, isExactCommunicationItem=True,
                         robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingVoicePlayed))#(Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))
+
+            # test, that if we get new voice before getting Sensation.RobotState.CommunicationVoicePlayed, it is ignored
+            robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=voice_sensation_ignored_isPresentRobotEntering)
+            self.expect(isWait=isWait,
+                        name='isPresentRobot Name2 present, voice_sensation_ignored should be ignored',
+                        isEmpty=True)
+
             # simulate Playback
             self.doProcess(robot=robot, sensation=self.createSensation(
                                                     sensationName='voice_sensation5Played',
@@ -1170,11 +1253,11 @@ class CommunicationTest(RobotTestCase):
         self.doProcess(robot=robot, sensation=item_sensation1)
         # We get Voice, if Communication can respond but it can't
         # TODO Check this, self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationNoResponseToSay but
-        # eobotStates = Sensation.RobotState.CommunicationWaiting
+        # robotStates = Sensation.RobotState.CommunicationWaiting
         self.expect(isWait=isWait,
                     name='current Entering, empty', isEmpty=False,
                     robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationNoResponseToSay))
-        self.assertEqual(len(robot.getMemory().getAllPresentItemSensations()), 1, 'len(robot.getMemory()..getAllPresentItemSensations() should be 1')
+        self.assertEqual(len(robot.getMemory().getAllPresentItemSensations()), 1, 'len(robot.getMemory().getAllPresentItemSensations() should be 1')
         for location in self.getLocations():
             self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationNoResponseToSay)
        
@@ -1226,7 +1309,7 @@ class CommunicationTest(RobotTestCase):
                                                 locations=self.getLocations())
         self.printSensationNameById(note='image_sensation1 test', dataId=image_sensation1.getDataId())
         print ("\n\n===== len(item_sensation1.getAssociations()) {}\n\n".format(len(item_sensation1.getAssociations())))
-        self.assertEqual(len(item_sensation1.getAssociations()), 6, "len(item_sensation1.getAssociations() should be 6, not {}".format(len(item_sensation1.getAssociations())))
+        self.assertTrue(len(item_sensation1.getAssociations()) in [5,6], "len(item_sensation1.getAssociations() should be 5 or 6, not {}".format(len(item_sensation1.getAssociations())))
         self.assertEqual(len(robot.getMemory().getAllPresentItemSensations()), 1, 'len(robot.getMemory().getAllPresentItemSensations() should be 1')
  
 #         robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=image_sensation1)
@@ -1299,7 +1382,7 @@ class CommunicationTest(RobotTestCase):
         self.printSensationNameById(note='Wall_E_item_sensation2 test', dataId=Wall_E_item_sensation2.getDataId())
         self.assertEqual(len(Wall_E_item_sensation1.getAssociations()), 1)
         print("\nitem_sensation1.getAssociations() {}\n".format(len(item_sensation1.getAssociations())))
-        self.assertTrue(len(item_sensation1.getAssociations()) in [6,7], "len(item_sensation1.getAssociations()) should be6 or 7, not {}".format(len(item_sensation1.getAssociations())))
+        self.assertTrue(len(item_sensation1.getAssociations()) in (5,6,7), "len(item_sensation1.getAssociations()) should be 5,6 or 7, not {}".format(len(item_sensation1.getAssociations())))
         self.assertEqual(len(Wall_E_item_sensation2.getAssociations()), 1)
         
         for sensation in robot.getMemory().getAllPresentItemSensations():
@@ -1320,7 +1403,7 @@ class CommunicationTest(RobotTestCase):
         #  we will get response and 4 associations are created more
         self.assertEqual(len(Wall_E_item_sensation1.getAssociations()), 1)
         print("\nitem_sensation1.getAssociations() {}\n".format(len(item_sensation1.getAssociations())))
-        self.assertTrue(len(item_sensation1.getAssociations())in [8, 9], "len(item_sensation1.getAssociations()) should be 8 or 9, not {}".format(len(item_sensation1.getAssociations())))
+        self.assertTrue(len(item_sensation1.getAssociations())in (7,8, 9), "len(item_sensation1.getAssociations()) should be 7, 8 or 9, not {}".format(len(item_sensation1.getAssociations())))
         print("len(Wall_E_item_sensation2.getAssociations() {}".format(len(Wall_E_item_sensation2.getAssociations())))
         self.assertTrue(len(Wall_E_item_sensation2.getAssociations()) in (5,6) , "len(Wall_E_item_sensation2.getAssociations()) should be 5 or 6, not {}".format(len(Wall_E_item_sensation2.getAssociations())))
 #
@@ -1334,6 +1417,23 @@ class CommunicationTest(RobotTestCase):
             self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingVoicePlayed,
                              "got {}, expected {}".format(Sensation.getRobotStateString(self.communication.itemConversations[location].robotState), Sensation.getRobotStateString(Sensation.RobotState.CommunicationWaitingVoicePlayed)))
             
+            # test, that if we get new voice before getting Sensation.RobotState.CommunicationVoicePlayed, it is ignored
+            # make voice that should be ignored 
+            voice_sensation_ignored_Wall_E_item_sensation2  = self.createSensation(
+                                                    sensationName='voice_sensation_ignored_Wall_E_item_sensation2',
+                                                    robot=robot,
+                                                    memoryType=Sensation.MemoryType.Sensory,
+                                                    sensationType=Sensation.SensationType.Voice,
+                                                    robotType=Sensation.RobotType.Sense,
+                                                    data=CommunicationTest.VOICEDATA_IGNORED,
+                                                    locations=self.getLocations())
+            self.assertTrue(voice_sensation_ignored_Wall_E_item_sensation2.isForgettable())
+            self.printSensationNameById(note='voice_sensation_ignored_Wall_E_item_sensation2', dataId=voice_sensation_ignored_Wall_E_item_sensation2.getDataId())
+            robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=voice_sensation_ignored_Wall_E_item_sensation2)
+            self.expect(isWait=isWait,
+                        name='Wall_E_item_sensation2, no feeling, voice_sensation_ignored_Wall_E_item_sensation2 should be ignored',
+                        isEmpty=True)
+
         # simulate Playback
         self.doProcess(robot=robot, sensation=self.createSensation(
                                                 sensationName='voice_sensation1Played',
@@ -1359,6 +1459,21 @@ class CommunicationTest(RobotTestCase):
         
         
         print('\n current Present {}'.format(CommunicationTest.NAME))
+
+        # voice_sensation_ignored_currentPresent before present item
+        voice_sensation_ignored_currentPresent = self.createSensation(
+                                                sensationName='voice_sensation_ignored_currentPresent',
+                                                robot=robot,
+                                                memoryType=Sensation.MemoryType.Sensory,
+                                                sensationType=Sensation.SensationType.Voice,
+                                                robotType=robotType,
+                                                mainNames=mainNames,
+                                                data=CommunicationTest.VOICEDATA_IGNORED,
+                                                locations=self.getLocations())
+        self.printSensationNameById(note='voice_sensation_ignored_currentPresent test', dataId=voice_sensation_ignored_currentPresent.getDataId())
+        self.assertEqual(len(voice_sensation_ignored_currentPresent.getAssociations()), 2)
+        self.assertEqual(len(voice_sensation_ignored_currentPresent.getAssociations()), 2)
+        
         Wall_E_item_sensation3 = self.createSensation(
                                                 sensationName='Wall_E_item_sensation3',
                                                 robot=robot,
@@ -1373,10 +1488,10 @@ class CommunicationTest(RobotTestCase):
         self.printSensationNameById(note='Wall_E_item_sensation3 test', dataId=Wall_E_item_sensation3.getDataId())
 
         self.assertEqual(len(Wall_E_item_sensation1.getAssociations()), 1) # present in location ''
-        self.assertEqual(len(Wall_E_item_sensation2.getAssociations()), 7, "len(Wall_E_item_sensation2.getAssociations()) should be 7, not {}".format(len(Wall_E_item_sensation2.getAssociations())))
+        self.assertTrue(len(Wall_E_item_sensation2.getAssociations()) in (7,8), "len(Wall_E_item_sensation2.getAssociations()) should be 7 or 8, not {}".format(len(Wall_E_item_sensation2.getAssociations())))
         self.assertEqual(len(Wall_E_item_sensation3.getAssociations()), 1)
         print("len(item_sensation1.getAssociations()) {}".format(len(item_sensation1.getAssociations())))
-        self.assertTrue(len(item_sensation1.getAssociations()) in [8, 9], "len(item_sensation1.getAssociations()) should be 8 or 9, not {}".format(len(item_sensation1.getAssociations())))
+        self.assertTrue(len(item_sensation1.getAssociations()) in (7, 8, 9), "len(item_sensation1.getAssociations()) should be 7, 8 or 9, not {}".format(len(item_sensation1.getAssociations())))
         
         self.assertEqual(len(image_sensation1.getAssociations()), 2)
         self.assertEqual(len(voice_sensation1.getAssociations()), 2)
@@ -1433,7 +1548,7 @@ class CommunicationTest(RobotTestCase):
                                                 locations=self.getLocations())
         self.printSensationNameById(note='image_sensation2 test', dataId=image_sensation2.getDataId())
         self.assertEqual(len(image_sensation2.getAssociations()), 2)
-        self.assertEqual(len(item_sensation2.getAssociations()), 3)
+        self.assertTrue(len(item_sensation2.getAssociations()) in [3,4])
         
 #         item_sensation2.associate(sensation=voice_sensation2)
 #         item_sensation2.associate(sensation=image_sensation2)
@@ -1460,6 +1575,18 @@ class CommunicationTest(RobotTestCase):
                     robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingVoicePlayed))
         for location in self.getLocations():
             self.assertEqual(self.communication.itemConversations[location].robotState,  Sensation.RobotState.CommunicationWaitingVoicePlayed)
+
+        # test, that if we get new voice before getting Sensation.RobotState.CommunicationVoicePlayed, it is ignored        
+        robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=voice_sensation_ignored_currentPresent)
+#         self.createSensation( sensation=voice_sensation2,
+#                                                                                                           sensationName='voice_sensation2_ignored',
+#                                                                                                           robot=robot,
+#                                                                                                           robotType=Sensation.RobotType.Sense,
+#                                                                                                           memoryType=Sensation.MemoryType.Sensory))
+
+        self.expect(isWait=isWait,
+                    name='response, Present, response, feeling, voice should be ignored',
+                    isEmpty=True)
 
         # simulate playback
         self.doProcess(robot=robot, sensation=self.createSensation(
@@ -2533,6 +2660,16 @@ class CommunicationTest(RobotTestCase):
                     robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingVoicePlayed))
         for location in self.getLocations():
             self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingVoicePlayed)
+            
+        # test, that if we get new voice before getting Sensation.RobotState.CommunicationVoicePlayed, it is ignored
+        robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=self.createSensation(sensation=Wall_E_voice_sensation_2,
+                                                                                                         sensationName='Wall_E_voice_sensation_2_ignored',
+                                                                                                         robot=robot,
+                                                                                                         time = systemTime.time() +5*max(CommunicationTest.ASSOCIATION_INTERVAL, Communication.COMMUNICATION_INTERVAL), # time to future do be sure, we can debug
+                                                                                                         robotType=Sensation.RobotType.Sense))
+        self.expect(isWait=isWait,
+                    name='Starting conversation, get best voice and imaget, voice should be ignored',
+                    isEmpty=True)
 
         # simulate playback
         self.doProcess(robot=robot, sensation=self.createSensation(
@@ -2584,6 +2721,17 @@ class CommunicationTest(RobotTestCase):
                     robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationResponseHeard, Sensation.RobotState.CommunicationWaitingVoicePlayed))
         for location in self.getLocations():
             self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingVoicePlayed)
+
+        # test, that if we get new voice before getting Sensation.RobotState.CommunicationVoicePlayed, it is ignored        
+        robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=self.createSensation( sensation=Wall_E_voice_sensation_2,
+                                                                                                          sensationName='Wall_E_voice_sensation_2_ignored',
+                                                                                                          robot=robot,
+                                                                                                          robotType=Sensation.RobotType.Sense,
+                                                                                                          memoryType=Sensation.MemoryType.Sensory))
+
+        self.expect(isWait=isWait,
+                    name='response, second best voice, image, voice should be ignored',
+                    isEmpty=True)
 
         # simulate playback
         self.doProcess(robot=robot, sensation=self.createSensation(

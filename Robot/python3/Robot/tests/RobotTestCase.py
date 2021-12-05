@@ -80,6 +80,7 @@ class RobotTestCase():
     VOICEDATA7=b'0x000x00x01x01x01x01x01x01'
     VOICEDATA8=b'0x000x00x01x01x01x01x01x01x01'
     VOICEDATA9=b'0x000x00x01x01x01x01x01x01x01x01'
+    VOICEDATA_IGNORED=b'0x000x00x01x01x01x01x01x01x01x01x01'
     BEST_FEELING = Sensation.Feeling.Happy
     BETTER_FEELING = Sensation.Feeling.Good
     NORMAL_FEELING = Sensation.Feeling.Normal

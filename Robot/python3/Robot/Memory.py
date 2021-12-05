@@ -316,6 +316,30 @@ class Memory(object):
             self.memoryLock.releaseWrite()  # thread_safe
         
     '''
+    delete Sensation from Sensation cache
+    use memory management to avoid too much memory using.
+
+    Called by Robots
+    
+    parameters
+    sensation                        removed sensation
+    isForgetLessImportantSensations  default True, but in some test we need to
+                                     set this feature False some all
+                                     Sensations will be kept in Memory
+                                     until implicitly deleted.
+    
+    '''
+    
+    def deleteFromSensationMemory(self, sensation, isForgetLessImportantSensations = True):
+        self.memoryLock.acquireWrite()  # thread_safe
+        sensation.delete()
+        if isForgetLessImportantSensations:
+            self.forgetLessImportantSensations()
+        self.sensationMemory.remove(sensation)
+        del sensation       
+        self.memoryLock.releaseWrite()  # thread_safe
+        
+    '''
     Change sensation's memory
     We need to remove internally this sensation from one cache list to another
     '''
