@@ -2145,6 +2145,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         self.socketServers = []
         self.socketClients = []
         self.running=False
+        self.isStoppedByRemote=False
        
     def run(self):
         self.log('run: Starting')
@@ -2192,13 +2193,13 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
  
         socketClient = None
         socketServer = None
-        while self.running:
+        while self.running and not self.isStoppedByRemote:
             self.log('run: waiting self.sock.accept()')
             sock, address = self.sock.accept()
             self.log('run: self.sock.accept() '+ str(address))
-            if self.running:
+            if self.running and not self.isStoppedByRemote:
                 self.log('run: as server socketServer = self.createSocketServer'+ str(address))
-                socketServer = self.createSocketServer(sock=sock, address=address, mainRobot=self.getMainRobot())
+                socketServer = self.createSocketServer(sock=sock, address=address, mainRobot=self.getMainRobot(), tcpServer=self)
                 self.log('run: as server socketClient = self.createSocketClient'+ str(address))
                 socketClient = self.createSocketClient(sock=sock, address=address, socketServer=socketServer, tcpServer=self)
                 self.log('run: socketServer.setSocketClient(socketClient)'+ str(address))
@@ -2206,11 +2207,11 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                 self.parent.subInstances.append(socketClient) # Note to parent subInstances
     
     
-                if self.running:
+                if self.running and not self.isStoppedByRemote:
                     self.log('run: socketServer.start()')
                     socketServer.start()
                     time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
-                if self.running:
+                if self.running and not self.isStoppedByRemote:
                     self.log('run: socketClient.start()')
                     socketClient.start()
                     time.sleep(5)        # sleep to get first request handled, it may wan't to stop everything
@@ -2248,7 +2249,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
             connected = False
     
         if connected:
-            socketServer = self.createSocketServer(sock=sock, address=address, mainRobot=self.getMainRobot())
+            socketServer = self.createSocketServer(sock=sock, address=address, mainRobot=self.getMainRobot(), tcpServer=self)
             socketClient = self.createSocketClient(sock=sock, address=address, socketServer=socketServer, tcpServer=self)
             socketServer.setSocketClient(socketClient)
             # add only socketClients to subInstances, because they give us capabilities
@@ -2290,7 +2291,7 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
             self.log("run: sock.connect(" + str(address) + ') exception ' + str(e))
  
                    
-    def createSocketServer(self, sock, address,  mainRobot, socketClient=None):
+    def createSocketServer(self, sock, address,  mainRobot, tcpServer, socketClient=None):
         self.log('createSocketServer: creating new SocketServer')
         socketServer = SocketServer(mainRobot=mainRobot,
                                     parent=self,
@@ -2300,7 +2301,8 @@ class TCPServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServer):
                                     level=self.level,
                                     address=address,
                                     sock=sock,
-                                    socketClient=socketClient)
+                                    socketClient=socketClient,
+                                    tcpServer=tcpServer)
         self.socketServers.append(socketServer)
         self.log('createSocketServer: return socketServer')
         return socketServer
@@ -2705,6 +2707,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                  sock, 
                  address,
                  mainRobot,
+                 tcpServer,
                  parent=None,
                  instanceName=None,
                  instanceType=Sensation.InstanceType.Remote,
@@ -2722,6 +2725,7 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
         print("We are in SocketServer, not Robot")
         self.sock=sock
         self.address=address
+        self.tcpServer=tcpServer
         self.socketClient = socketClient
         self.setName('SocketServer: ' + str(address))
     
@@ -2845,11 +2849,14 @@ class SocketServer(Robot): #, SocketServer.ThreadingMixIn, SocketServer.TCPServe
                                 self.setLocations(locations=sensation.getLocations())
                                 #self.setMainNames(mainNames=sensation.getMainNames())
                             else:
-                                # check if we have got Stop ans reject it to start again informing that remote has send us a stop
+                                # check if we have got Stop and reject it to start again informing that remote has send us a stop
                                 # This is a hack and we should handle this in TCPServer, but works
                                 if sensation.getSensationType() == Sensation.SensationType.Stop:
+                                    self.log("run: SocketServer got Stop sensation " + sensation.toDebugStr())
+                                    self.tcpServer.isStoppedByRemote = True
                                     if self.getSocketClient() is not None:
                                         self.getSocketClient().isStoppedByRemote = True
+                                    self.getMainRobot().stop()
                                 self.log("run: SocketServer got sensation " + sensation.toDebugStr())
 #                                 self.getParent().getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # write sensation to TCPServers Parent, because TCPServer does not read its Axon
                                 self.route(transferDirection=Sensation.TransferDirection.Up, sensation=sensation) # write sensation to TCPServers Parent, because TCPServer does not read its Axon

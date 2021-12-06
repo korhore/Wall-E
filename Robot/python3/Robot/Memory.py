@@ -333,10 +333,13 @@ class Memory(object):
     def deleteFromSensationMemory(self, sensation, isForgetLessImportantSensations = True):
         self.memoryLock.acquireWrite()  # thread_safe
         sensation.delete()
+        try:
+            self.sensationMemory.remove(sensation)
+        except ValueError:
+            self.log(logLevel=Memory.MemoryLogLevel.Detailed, logStr='deleteFromSensationMemory: sensation {} {} not in sensationMemory'.format(systemTime.ctime(sensation.getTime()),sensation.toDebugStr()))            
+        del sensation       
         if isForgetLessImportantSensations:
             self.forgetLessImportantSensations()
-        self.sensationMemory.remove(sensation)
-        del sensation       
         self.memoryLock.releaseWrite()  # thread_safe
         
     '''
