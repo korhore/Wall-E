@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 25.11.2021
+Updated on 06.12.2021
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -2572,9 +2572,12 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
         else:
             self.log(logLevel=Robot.LogLevel.Verbose, logStr='socketClient.sendSensation receivedFrom:' + str(sensation.receivedFrom) + ' self.getHost(): ' + self.getHost() + ': self.getSocketServer().getHost(): ' + self.getSocketServer().getHost())
             sensation.setRobotId(self.getMainRobot().getId()) # claim that
-                                                                  # all sensation come from Robot
+ 
+            # We need ead lock todiable some-one changes this sensation
+            self.getMemory().acquireRead()                                                                # all sensation come from Robot
             bytes = sensation.bytes()
-            length =len(bytes)
+            self.getMemory().releaseRead()                                                                # all sensation come from Robot
+            length =len (bytes)
             length_bytes = length.to_bytes(Sensation.ID_SIZE, byteorder=Sensation.BYTEORDER)
     
             try:

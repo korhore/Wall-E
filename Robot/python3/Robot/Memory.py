@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 26.11.2021
+Edited on 06.12.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -92,7 +92,20 @@ class Memory(object):
         print('Memory __init__: maxRss {} minAvailMem {}'.format(self.maxRss, self.minAvailMem))
         
         
-        
+
+    '''
+    thread_safe Sensation cache operations
+    '''
+    def acquireWrite(self):
+        self.memoryLock.acquireWrite()
+    def releaseWrite(self):
+        self.memoryLock.releaseWrite()
+
+    def acquireRead(self):
+        self.memoryLock.acquireRead()
+    def releaseRead(self):
+        self.memoryLock.releaseRead()
+               
     '''
     getters, setters
     '''
@@ -309,11 +322,11 @@ class Memory(object):
     
     def addToSensationMemory(self, sensation, isForgetLessImportantSensations = True):
         if sensation.getSensationType() != Sensation.SensationType.Stop:                                   
-            self.memoryLock.acquireWrite()  # thread_safe
+            self.acquireWrite()  # thread_safe
             if isForgetLessImportantSensations:
                 self.forgetLessImportantSensations()
             self.sensationMemory.append(sensation)        
-            self.memoryLock.releaseWrite()  # thread_safe
+            self.releaseWrite()  # thread_safe
         
     '''
     delete Sensation from Sensation cache
@@ -331,7 +344,7 @@ class Memory(object):
     '''
     
     def deleteFromSensationMemory(self, sensation, isForgetLessImportantSensations = True):
-        self.memoryLock.acquireWrite()  # thread_safe
+        self.acquireWrite()  # thread_safe
         sensation.delete()
         try:
             self.sensationMemory.remove(sensation)
@@ -340,7 +353,7 @@ class Memory(object):
         del sensation       
         if isForgetLessImportantSensations:
             self.forgetLessImportantSensations()
-        self.memoryLock.releaseWrite()  # thread_safe
+        self.releaseWrite()  # thread_safe
         
     '''
     Change sensation's memory
@@ -349,11 +362,11 @@ class Memory(object):
        
     def setMemoryType(self, sensation, memoryType):
         if sensation.getMemoryType() != memoryType:
-             self.memoryLock.acquireWrite()                 # thread_safe                                     
+             self.acquireWrite()                 # thread_safe                                     
              sensation.memoryType = memoryType
              sensation.time = systemTime.time()             # if we change memoryType, this is new Sensation, NO keep times, association handles if associated later
              self.forgetLessImportantSensations()           # must forget here. because if not created, this is only place for LongTerm-Sensations to be removed from cache
-             self.memoryLock.releaseWrite()  # thread_safe
+             self.releaseWrite()  # thread_safe
 
     '''
     Assign just created sensation with other present Item sensations
@@ -554,9 +567,9 @@ class Memory(object):
     '''
 
     def threadSafeForgetLessImportantSensations(self):
-             self.memoryLock.acquireWrite()                 # thread_safe                                     
+             self.acquireWrite()                 # thread_safe                                     
              self.forgetLessImportantSensations()
-             self.memoryLock.releaseWrite()                 # thread_safe
+             self.releaseWrite()                 # thread_safe
 
 
     '''
@@ -578,13 +591,13 @@ class Memory(object):
     '''
     def getSensationFromSensationMemory(self, id):
         if id > 0.0:
-            self.memoryLock.acquireRead()                  # read thread_safe
+            self.acquireRead()                  # read thread_safe
      
             for sensation in self.sensationMemory:
                 if sensation.getId() == id:
-                    self.memoryLock.releaseRead()  # read thread_safe
+                    self.releaseRead()  # read thread_safe
                     return sensation
-            self.memoryLock.releaseRead()                  # read thread_safe
+            self.releaseRead()                  # read thread_safe
         return None
 
                      
@@ -597,7 +610,7 @@ class Memory(object):
     from time min to time max, to get sensations that are happened at same moment.   
     '''  
     def getSensations(self, capabilities, sensationtypes, timemin=None, timemax=None):
-        self.memoryLock.acquireRead()                  # read thread_safe
+        self.acquireRead()                  # read thread_safe
         sensations=[]
         for sensation in self.sensationMemory:
             # accept sensations from all Locations #location='') and
@@ -609,7 +622,7 @@ class Memory(object):
                 (timemin is None or sensation.getTime() > timemin) and\
                 (timemax is None or sensation.getTime() < timemax):
                 sensations.append(sensation)
-        self.memoryLock.releaseRead()                  # read thread_safe
+        self.releaseRead()                  # read thread_safe
         return sensations
     
     '''
@@ -621,7 +634,7 @@ class Memory(object):
     def getPrevalence(self, name, sensationType):
         prevalence = 0.1
         
-        self.memoryLock.acquireRead()                  # read thread_safe
+        self.acquireRead()                  # read thread_safe
         for sensation in self.sensationMemory:
             if sensation.getSensationType() == Sensation.SensationType.Item and\
                sensation.getName() == name:
@@ -629,7 +642,7 @@ class Memory(object):
                     associatedSensation = association.getSensation()
                     if associatedSensation.getSensationType() == sensationType:
                          prevalence += 1.0/association.getAge() # Age from Association TODO Study Sensation.getAge()
-        self.memoryLock.releaseRead()                  # read thread_safe
+        self.releaseRead()                  # read thread_safe
         
         return prevalence
         
@@ -659,7 +672,7 @@ class Memory(object):
 #                           associationSensationType = None,
 #                           associationDirection = Sensation.RobotType.Sense,
 #                           ignoredVoiceLens=[]):
-#         self.memoryLock.acquireRead()                  # read thread_safe
+#         self.acquireRead()                  # read thread_safe
 #         bestSensation = None
 #             
 #         for sensation in self.sensationMemory:
@@ -678,7 +691,7 @@ class Memory(object):
 #                        sensation.getScore() > bestSensation.getScore():
 #                         bestSensation = sensation
 #                         self.log(logStr="getBestSensation " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getScore()), logLevel=Memory.MemoryLogLevel.Normal)
-#         self.memoryLock.releaseRead()                  # read thread_safe
+#         self.releaseRead()                  # read thread_safe
 #         return bestSensation
     
     '''
@@ -693,7 +706,7 @@ class Memory(object):
 #                                    sensation,
 #                                    sensationType,
 #                                    name = None):
-#         self.memoryLock.acquireRead()                  # read thread_safe
+#         self.acquireRead()                  # read thread_safe
 #         bestSensation = None
 #         for association in self.getAssociations():
 #             associatedSensation= association.getSensation()
@@ -703,7 +716,7 @@ class Memory(object):
 #                     if bestSensation is None or\
 #                        associatedSensation.getScore() > bestSensation.getScore():
 #                         bestSensation = associatedSensation
-#         self.memoryLock.releaseRead()                  # read thread_safe
+#         self.releaseRead()                  # read thread_safe
 #         return bestSensation
     
     
@@ -734,7 +747,7 @@ class Memory(object):
 #                                    ignoredVoiceLens = [],
 #                                    searchLength = 10):
 # #                                   searchLength = Sensation.SEARCH_LENGTH):
-#         self.memoryLock.acquireRead()                  # read thread_safe
+#         self.acquireRead()                  # read thread_safe
 #         bestSensation = None
 #         bestAssociation = None
 #         bestAssociationSensation = None
@@ -806,7 +819,7 @@ class Memory(object):
 # #         else:
 # #             self.log(logStr="getMostImportantSensation did not find any", logLevel=Memory.MemoryLogLevel.Normal)
 #             
-#         self.memoryLock.releaseRead()                  # read thread_safe
+#         self.releaseRead()                  # read thread_safe
 #         return bestSensation, bestAssociation, bestAssociationSensation
 
     '''
@@ -834,7 +847,7 @@ class Memory(object):
 #                           associationSensationType = None,
 #                           associationDirection = Sensation.RobotType.Sense,
 #                           ignoredVoiceLens=[]):
-#         self.memoryLock.acquireRead()                  # read thread_safe
+#         self.acquireRead()                  # read thread_safe
 #         bestSensation = None
 #             
 #         for sensation in self.sensationMemory:
@@ -853,7 +866,7 @@ class Memory(object):
 #                        sensation.getScore() > bestSensation.getScore():
 #                         bestSensation = sensation
 #                         self.log(logStr="getBestSensation " + bestSensation.toDebugStr() + ' ' + str(bestSensation.getScore()), logLevel=Memory.MemoryLogLevel.Normal)
-#         self.memoryLock.releaseRead()                  # read thread_safe
+#         self.releaseRead()                  # read thread_safe
 #         return bestSensation
     
     '''
@@ -868,7 +881,7 @@ class Memory(object):
 #                                    sensation,
 #                                    sensationType,
 #                                    name = None):
-#         self.memoryLock.acquireRead()                  # read thread_safe
+#         self.acquireRead()                  # read thread_safe
 #         bestSensation = None
 #         for association in self.getAssociations():
 #             associatedSensation= association.getSensation()
@@ -878,7 +891,7 @@ class Memory(object):
 #                     if bestSensation is None or\
 #                        associatedSensation.getScore() > bestSensation.getScore():
 #                         bestSensation = associatedSensation
-#         self.memoryLock.releaseRead()                  # read thread_safe
+#         self.releaseRead()                  # read thread_safe
 #         return bestSensation
 
     '''
@@ -921,7 +934,7 @@ class Memory(object):
                                    ignoredDataIds = [],
                                    searchLength = 10):
 #                                   searchLength = Sensation.SEARCH_LENGTH):
-        self.memoryLock.acquireRead()                  # read thread_safe
+        self.acquireRead()                  # read thread_safe
         Memory.Memory = None
         itemSensation = None
         voiceSensation = None
@@ -1019,7 +1032,7 @@ class Memory(object):
         if voiceSensation is not None:
             assert voiceSensation.getDataId() not in ignoredDataIds
 
-        self.memoryLock.releaseRead()                  # read thread_safe
+        self.releaseRead()                  # read thread_safe
         return itemSensation, voiceSensation, voiceAssociation, imageSensation, imageAssociation
     
     
@@ -1068,7 +1081,7 @@ class Memory(object):
 #                                    ignoredDataIds = [],
 #                                    searchLength = 10):
 # #                                   searchLength = Sensation.SEARCH_LENGTH):
-#         self.memoryLock.acquireRead()                  # read thread_safe
+#         self.acquireRead()                  # read thread_safe
 #         Memory.Memory = None
 #         itemSensation = None
 #         voiceSensation = None
@@ -1167,7 +1180,7 @@ class Memory(object):
 #         if voiceSensation is not None:
 #             assert voiceSensation.getDataId() not in ignoredDataIds
 # 
-#         self.memoryLock.releaseRead()                  # read thread_safe
+#         self.releaseRead()                  # read thread_safe
 #         return itemSensation, voiceSensation, voiceAssociation, imageSensation, imageAssociation
 
 # deprecated   
@@ -1207,7 +1220,7 @@ class Memory(object):
 #                                             sensation,
 #                                             sensationType,
 #                                             name = None):
-#         self.memoryLock.acquireRead()                  # read thread_safe
+#         self.acquireRead()                  # read thread_safe
 #         bestSensation = None
 #         for association in sensation.getAssociations():
 #             associatedSensation= association.getSensation()
@@ -1217,7 +1230,7 @@ class Memory(object):
 #                     if bestSensation is None or\
 #                        associatedSensation.getImportance() > bestSensation.getImportance():
 #                         bestSensation = associatedSensation
-#         self.memoryLock.releaseRead()                  # read thread_safe
+#         self.releaseRead()                  # read thread_safe
 #         return bestSensation
 
     '''
@@ -1232,7 +1245,7 @@ class Memory(object):
         if not os.path.exists(Sensation.DATADIR):
             os.makedirs(Sensation.DATADIR)
 
-        self.memoryLock.acquireRead()                  # read thread_safe
+        self.acquireRead()                  # read thread_safe
         i=0
         while i < len(self.sensationMemory):
             self.sensationMemory[i].attachedBy = []
@@ -1285,7 +1298,7 @@ class Memory(object):
 #                     file.close()
 #         except Exception as e:
 #                 self.log(logStr="saveLongTermMemory open(fileName, wb) as file error " + str(e), logLevel=Memory.MemoryLogLevel.Error)
-        self.memoryLock.releaseRead()                  # read thread_safe
+        self.releaseRead()                  # read thread_safe
 
     '''
     load LongTerm MemoryType sensation instances
@@ -1296,7 +1309,7 @@ class Memory(object):
 #             # find binary files
 #             
 #             
-#             self.memoryLock.acquireWrite()                  # write thread_safe
+#             self.acquireWrite()                  # write thread_safe
 #             try:
 #                 with open(Sensation.PATH_TO_PICLE_FILE, "rb") as file:
 #                     try:
@@ -1355,7 +1368,7 @@ class Memory(object):
 # 
 #                     except Exception as e:
 #                         self.log(logStr='with open(' + Sensation.PATH_TO_PICLE_FILE + ',"rb") as file error ' + str(e), logLevel=Memory.MemoryLogLevel.Error)
-#                         self.memoryLock.releaseWrite()                  # write thread_safe
+#                         self.releaseWrite()                  # write thread_safe
 
     '''  
     save all LongTerm Memory sensation instances and data permanently
@@ -1365,7 +1378,7 @@ class Memory(object):
         # save sensations that are memorable to a file
         # there can be LOngTerm sensations in Sensation.sensationMemorys[Sensation.MemoryType.Sensory]
         # because it is allowed to change memoryType rtpe after sensation is created
-        self.memoryLock.acquireRead()                  # read thread_safe
+        self.acquireRead()                  # read thread_safe
         i=0
         savedSensation = 0
         deletedSensations = 0
@@ -1412,7 +1425,7 @@ class Memory(object):
 #                     file.close()
 #         except Exception as e:
 #                 self.log(logStr="saveLongTermMemory open(fileName, wb) as file error " + str(e), logLevel=Memory.MemoryLogLevel.Error)
-        self.memoryLock.releaseRead()                  # read thread_safe
+        self.releaseRead()                  # read thread_safe
 
     '''
     load LongTerm MemoryType sensation instances
@@ -1420,7 +1433,7 @@ class Memory(object):
     def loadLongTermMemoryFromBinaryFiles(self):
         # load sensation data from files
         if os.path.exists(Sensation.DATADIR):
-            #self.memoryLock.acquireWrite()                  # write thread_safe
+            #self.acquireWrite()                  # write thread_safe
             try:
                 for filename in os.listdir(Sensation.DATADIR):
                     # There can be image or voice files not any more needed
@@ -1445,7 +1458,7 @@ class Memory(object):
                     i=i+1
             self.log(logStr='loadLongTermMemoryFromBinaryFiles after load and verification {}'.format(str(len(self.sensationMemory))), logLevel=Memory.MemoryLogLevel.Normal)
              #print ('{} after load and verification {}'.format(Sensation.getMemoryTypeString(self.sensationMemory), len(self.sensationMemory)))
-            #self.memoryLock.releaseWrite()                  # write thread_safe
+            #self.releaseWrite()                  # write thread_safe
  
     '''
     Clean data directory from data files, that are not connected to any sensation.
@@ -1454,7 +1467,7 @@ class Memory(object):
         # load sensation data from files
         self.log(logStr='CleanDataDirectory', logLevel=Memory.MemoryLogLevel.Normal)
         if os.path.exists(Sensation.DATADIR):
-            self.memoryLock.acquireRead()                  # read thread_safe
+            self.acquireRead()                  # read thread_safe
             try:
                 for filename in os.listdir(Sensation.DATADIR):
                     # There can be image or voice files not any more needed
@@ -1470,7 +1483,7 @@ class Memory(object):
                                 self.log(logStr='os.remove(' + filepath + ') error ' + str(e), logLevel=Memory.MemoryLogLevel.Normal)
             except Exception as e:
                     self.log(logStr='os.listdir error ' + str(e), logLevel=Memory.MemoryLogLevel.Normal)
-            self.memoryLock.releaseRead()                  # read thread_safe
+            self.releaseRead()                  # read thread_safe
             
     '''
     hasOwner is called from methos protected by semaphore
