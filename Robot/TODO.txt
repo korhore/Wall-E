@@ -76,6 +76,13 @@ Eva stops to send images
 
 Develop
 -------
+Still CommunicationVoicePlayed logic should be secured somehow, keep track what should be waited etc. or how long we wait.
+Maybe we should associate RobotState to Voices to be played, keep track what is played with responses.
+
+
+Finnish feeling processing from MainRobot,Memory to MainRobot/Communication only. Should Feeling-Sensation should be informative only.
+Microphpne should stop recording, if too long voices or if it is disabled.
+
 We need some framework-kind mehods in Robot-class. Start with Axon-full -method,
 that is called when Axon get full, when there is no reader for it. That robot,
 that creates its subroot, should handle it.

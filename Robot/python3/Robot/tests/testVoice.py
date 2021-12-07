@@ -1,6 +1,6 @@
 '''
 Created on 21.09.2020
-Updated on 12.11.2021
+Updated on 07.12.2021
 @author: reijo.korhonen@gmail.com
 
 test Microphone and Playpack classes
@@ -19,9 +19,10 @@ from Robot import Robot
 from Axon import Axon
 from AlsaAudio import Settings
 
-#MICROPHONEPLAYBACK=False
-MICROPHONEPLAYBACK=True
+MICROPHONEPLAYBACK=False
+#MICROPHONEPLAYBACK=True
 if MICROPHONEPLAYBACK:
+    from Microphone.Microphone import Microphone
     from MicrophonePlayback.MicrophonePlayback import MicrophonePlayback
 else:
     from Microphone.Microphone import Microphone
@@ -48,24 +49,13 @@ class VoiceTestCase(unittest.TestCase, Robot):
     
     MAINNAMES = ["VoiceTestCaseMainName"]
     OTHERMAINNAMES = ["OTHER_VoiceTestCaseMainName"]
+    
+    VOIVEPLAYEDMAXWAITTIME = 1.5 *Microphone.VOIVELENGTHMAXIMUM
         
     '''
     Robot modeling
     '''
-    
-#     def getAxon(self):
-#         return self.axon
-#     def getId(self):
-#         return 1.1
-#     def getName(self):
-#         return VoiceTestCase.NAME
-#     def getMainNames(self):
-#         return self.mainNames
-#     def setRobotMainNames(self, robot, mainNames):
-#         robot.mainNames = mainNames
-#     def getParent(self):
-#         return None
-    
+        
     '''
     Must fake is_alive to True, so we could test Sensation routing
     '''
@@ -104,6 +94,7 @@ class VoiceTestCase(unittest.TestCase, Robot):
             is_set = robotType in robotTypes    
             #sensory
             capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Voice, is_set=is_set)   
+            capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.RobotState, is_set=is_set)   
 #             #Working
 #             capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Working, sensationType=Sensation.SensationType.Voice, is_set=is_set)   
 #             #LongTerm
@@ -330,6 +321,7 @@ class VoiceTestCase(unittest.TestCase, Robot):
         test_runs = 0
         test_tries=0
         hearingDisabled = True
+        waitingRobotStateCommunicationVoicePlayed = False
         
         # At first Microphone should hear silence to set its voice levels
         if MICROPHONEPLAYBACK:
@@ -348,7 +340,13 @@ class VoiceTestCase(unittest.TestCase, Robot):
                     print("--- got Sense Voice {}s".format(self.getPlaybackTime(len(sensation.getData()))))
                 else:
                     print("--- got Other Voice {}s".format(self.getPlaybackTime(len(sensation.getData()))))
-            print("--- got Other Sensation")
+            elif sensation.getSensationType() == Sensation.SensationType.RobotState:
+                if sensation.getRobotType() == Sensation.RobotType.Sense:
+                    print("--- got Sense RobotState {}".format(Sensation.getRobotStateString(sensation.getRobotState())))
+                else:
+                    print("--- got Other RobotState {}".format(Sensation.getRobotStateString(sensation.getRobotState())))
+            else:
+                print("--- got Other Sensation")
 
         while test_runs < VoiceTestCase.TEST_RUNS and test_tries < VoiceTestCase.TEST_TRIES:
             # enable hearing, we claim that this one speaks
@@ -368,6 +366,9 @@ class VoiceTestCase(unittest.TestCase, Robot):
             gotHeardVoice = False
             playbackTime = 0
             voicenumber = 0
+            playedVoiceNumber = 0
+            toBePlayedVoiceNumber = 0
+            playBackSensations=[]
             isHeardVoice = False
             while(not self.getAxon().empty()):
                 isHeardVoice = False
@@ -393,25 +394,71 @@ class VoiceTestCase(unittest.TestCase, Robot):
                         playbackTime += 3.0 * self.getPlaybackTime(datalen=len(sensation.getData()))
                         if MICROPHONEPLAYBACK:
                             playBackSensation = self.microphonePlayback.createSensation(
-                                                                    memoryType=Sensation.MemoryType.Sensory,
-                                                                    sensationType=Sensation.SensationType.Voice,
-                                                                    robotType=Sensation.RobotType.Muscle,
-                                                                    data=sensation.getData(),
-                                                                    kind = Sensation.Kind.Normal)
+                                                                        memoryType=Sensation.MemoryType.Sensory,
+                                                                        sensationType=Sensation.SensationType.Voice,
+                                                                        robotType=Sensation.RobotType.Muscle,
+                                                                        data=sensation.getData(),
+                                                                        kind = Sensation.Kind.Normal)
                             playBackSensation.setKind(kind = Sensation.Kind.Normal)
                             self.microphonePlayback.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=playBackSensation)
                         else:
                             playBackSensation = self.playback.createSensation(
-                                                                    memoryType=Sensation.MemoryType.Sensory,
-                                                                    sensationType=Sensation.SensationType.Voice,
-                                                                    robotType=Sensation.RobotType.Muscle,
-                                                                    data=sensation.getData(),
-                                                                    kind = Sensation.Kind.Normal)
+                                                                        memoryType=Sensation.MemoryType.Sensory,
+                                                                        sensationType=Sensation.SensationType.Voice,
+                                                                        robotType=Sensation.RobotType.Muscle,
+                                                                        data=sensation.getData(),
+                                                                        kind = Sensation.Kind.Normal)
                             playBackSensation.setKind(kind = Sensation.Kind.Normal)
                             self.playback.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=playBackSensation)
-            if playbackTime > 0:
-                print("\n--- BE SILENT test sleeping {} seconds until playback is done test {} try {}\n    got {} Voices ".format(playbackTime, test_runs, test_tries, voicenumber))
-                systemTime.sleep(playbackTime) # let Microphone start before waiting it to stops
+                        toBePlayedVoiceNumber +=1
+                        playBackSensations.append(playBackSensation)
+                elif sensation.getSensationType() == Sensation.SensationType.RobotState:
+                    if sensation.getRobotType() == Sensation.RobotType.Sense:
+                        print("--- got Sense RobotState {}".format(Sensation.getRobotStateString(sensation.getRobotState())))
+                        if sensation.getRobotState() == Sensation.RobotState.CommunicationVoicePlayed:
+                            print("---Voice is played")
+                            playedVoiceNumber +=1
+                            for a in sensation.getAssiciations():
+                                if a.getSensation() in playBackSensations:
+                                    playBackSensations.remove(a.getSensation())
+                                    print("---1: OUR Voice is played")
+                    else:
+                        print("--- got Other RobotState {}".format(Sensation.getRobotStateString(sensation.getRobotState())))
+                else:
+                    print("--- got Other Sensation")
+            print ("toBePlayedVoiceNumber {} playedVoiceNumber {} should wait {}".format(toBePlayedVoiceNumber, playedVoiceNumber, toBePlayedVoiceNumber != playedVoiceNumber))
+
+            if toBePlayedVoiceNumber > playedVoiceNumber or len(playBackSensations) > 0:
+                print("Waiting max {}s until all voices are played".format((toBePlayedVoiceNumber - playedVoiceNumber) * VoiceTestCase.VOIVEPLAYEDMAXWAITTIME))
+                sleepedNumber = 0
+                while sleepedNumber < (toBePlayedVoiceNumber - playedVoiceNumber) * VoiceTestCase.VOIVEPLAYEDMAXWAITTIME and\
+                      toBePlayedVoiceNumber > playedVoiceNumber or len(playBackSensations) > 0:
+                    if self.getAxon().empty():
+                        systemTime.sleep(1)
+                        sleepedNumber +=1
+                    else:
+                        tranferDirection, sensation = self.getAxon().get(robot=self)
+                        if sensation.getSensationType() == Sensation.SensationType.Voice:
+                            if sensation.getRobotType() == Sensation.RobotType.Sense:
+                                print("--- waiting got Sense Voice {}s".format(self.getPlaybackTime(len(sensation.getData()))))
+                        elif sensation.getSensationType() == Sensation.SensationType.RobotState:
+                            if sensation.getRobotType() == Sensation.RobotType.Sense:
+                                print("---waiting  got Sense RobotState {}".format(Sensation.getRobotStateString(sensation.getRobotState())))
+                                if sensation.getRobotState() == Sensation.RobotState.CommunicationVoicePlayed:
+                                    print("---Voice is played")
+                                    playedVoiceNumber +=1
+                                    for a in sensation.getAssociations():
+                                        if a.getSensation() in playBackSensations:
+                                            playBackSensations.remove(a.getSensation())
+                                            print("---2: OUR Voice is played")
+                            else:
+                                print("--- got Other RobotState {}".format(Sensation.getRobotStateString(sensation.getRobotState())))
+                        else:
+                            print("--- got Other Sensation")
+                        
+#             if playbackTime > 0:
+#                 print("\n--- BE SILENT test sleeping {} seconds until playback is done test {} try {}\n    got {} Voices ".format(playbackTime, test_runs, test_tries, voicenumber))
+#                 systemTime.sleep(playbackTime) # let Microphone start before waiting it to stops
             if not isHeardVoice:
                 print("\n--- got Sensations, but no heard voice, test continues")
     

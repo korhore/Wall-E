@@ -488,14 +488,15 @@ class Communication(Robot):
                                        ]
        
         def isWaitingVoice(self):
-            return self.robotState in [Sensation.RobotState.CommunicationOn,
-                                       Sensation.RobotState.CommunicationWaiting,
-                                       Sensation.RobotState.CommunicationVoicePlayed,
-                                       Sensation.RobotState.CommunicationWaitingResponse,
-                                       Sensation.RobotState.CommunicationDelay,
-                                       Sensation.RobotState.CommunicationNoResponseHeard,
-                                       Sensation.RobotState.CommunicationNoResponseToSay,
-                                       ]
+#             return self.robotState in [Sensation.RobotState.CommunicationOn,
+#                                        Sensation.RobotState.CommunicationWaiting,
+#                                        Sensation.RobotState.CommunicationVoicePlayed,
+#                                        Sensation.RobotState.CommunicationWaitingResponse,
+#                                        Sensation.RobotState.CommunicationDelay,
+#                                        Sensation.RobotState.CommunicationNoResponseHeard,
+#                                        Sensation.RobotState.CommunicationNoResponseToSay,
+#                                        ]
+            return self.robotState != Sensation.RobotState.CommunicationWaitingVoicePlayed
         def isConversationEnded(self):
             return self.robotState in [Sensation.RobotState.CommunicationNotStarted,
                                        Sensation.RobotState.CommunicationWaiting,
