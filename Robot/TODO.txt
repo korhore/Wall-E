@@ -77,7 +77,8 @@ Eva stops to send images
 Develop
 -------
 Still CommunicationVoicePlayed logic should be secured somehow, keep track what should be waited etc. or how long we wait.
-Maybe we should associate RobotState to Voices to be played, keep track what is played with responses.
+ OK Maybe we should associate RobotState to Voices to be played, keep track what is played with responses.
+ Implemented in a test ansd should be implemented also in Communication.
 
 
 Finnish feeling processing from MainRobot,Memory to MainRobot/Communication only. Should Feeling-Sensation should be informative only.

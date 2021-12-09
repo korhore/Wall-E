@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 05.12.2021
+Updated on 09.12.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -206,7 +206,6 @@ class Communication(Robot):
 #                                                         locations=self.getLocations())
 #             self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=robotStateSensation)
            
-            self.spokedSensations = None                # Sensations that we last said to other side 
             self.spokedAssociations = None              # Associations that spoked Sensations were assigned to Item.name sensations
     
             self.mostImportantItemSensation = None      # current most important item in conversation
@@ -218,7 +217,7 @@ class Communication(Robot):
                                                         # but not in this conversation
             self.mostImportantImageSensation = None     # current most important image, item said in some previous conversation
                                                         # but not in this conversation    
-            self.timer=None
+            self.responseTimer=None
             self.spokedDataIds = []                     # Sensations dataIds we have said in this conversation 
             self.heardDataIds = []                      # Sensations dataIds  we have heard in this conversation
 #             self.robotResponses = 0
@@ -427,9 +426,9 @@ class Communication(Robot):
         '''
                     
         def handleGotFeedback(self, positiveFeeling, negativeFeeling):
-            if self.timer is not None:
-                self.timer.cancel()
-                self.timer = None
+            if self.responseTimer is not None:
+                self.responseTimer.cancel()
+                self.responseTimer = None
             if self.spokedAssociations != None:
                 for associations in self.spokedAssociations:
                     for association in associations:
@@ -517,7 +516,7 @@ class Communication(Robot):
         '''
         def stopWaitingResponse(self):
             self.log(logLevel=Robot.LogLevel.Normal, logStr="stopWaitingResponse: We did not get response")
-            self.timer = None
+            self.responseTimer = None
 
             # We are disappointed            
             self.handleGotFeedback(positiveFeeling=False, negativeFeeling=True)
@@ -545,7 +544,7 @@ class Communication(Robot):
             
         def endConversation(self):
             self.clearConversation()
-            self.timer = None
+            self.responseTimer = None
             self.lastConversationEndTime=systemTime.time()
             if self.getMemory().hasItemsPresence(location=self.getLocation()):
                 self.informRobotState(robotState = Sensation.RobotState.CommunicationDelay)
@@ -671,6 +670,7 @@ class Communication(Robot):
             super().__init__(
                      robot,
                      location)
+            self.spokedVoiceSensations=[]
         '''
         process
         
@@ -798,14 +798,35 @@ class Communication(Robot):
                         shouldDelete=True
                 elif sensation.getSensationType() == Sensation.SensationType.RobotState and sensation.getRobotState() == Sensation.RobotState.CommunicationVoicePlayed:
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: got CommunicationVoicePlayed')
-                    self.voicesToBePlayed -= 1
-                    if self.voicesToBePlayed == 0:
+#                     self.voicesToBePlayed -= 1
+                    for a in sensation.getAssociations():
+                        if  a.getSensation().getSensationType() ==  a.getSensation().SensationType.Voice and\
+                            a.getSensation().getMemoryType() == Sensation.MemoryType.Sensory and\
+                            a.getSensation().getRobotType() == Sensation.RobotType.Muscle:
+                            if a.getSensation() in self.spokedVoiceSensations:
+                                self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: got CommunicationVoicePlayed about OUR OWN Voice')
+                                self.spokedVoiceSensations.remove(a.getSensation())
+                                a.getSensation().detach(robot=self.getRobot()) # to be sure
+                                self.voicesToBePlayed -= 1
+#                                 if self.voicesToBePlayed == 0:
+#                                     self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: all Voices Played, can start to wait response')
+#                                     self.informRobotState(robotState=Sensation.RobotState.CommunicationWaitingResponse)
+#                                     # wait response
+#                                     self.responseTimer = threading.Timer(interval=Communication.COMMUNICATION_INTERVAL, function=self.stopWaitingResponse)
+#                                     self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process speak: timer.start()')
+#                                     self.responseTimer.start()
+                            else:
+                                self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: got CommunicationVoicePlayed about OTHER Voice {}'.format(a.getSensation().toDebugStr()))
+#                         else:
+#                             self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: got CommunicationVoicePlayed about OTHER Sensation {}'.format(a.getSensation().toDebugStr()))
+                    if self.voicesToBePlayed <= 0:
                         self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: all Voices Played, can start to wait response')
                         self.informRobotState(robotState=Sensation.RobotState.CommunicationWaitingResponse)
                         # wait response
-                        self.timer = threading.Timer(interval=Communication.COMMUNICATION_INTERVAL, function=self.stopWaitingResponse)
+                        self.responseTimer = threading.Timer(interval=Communication.COMMUNICATION_INTERVAL, function=self.stopWaitingResponse)
                         self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process speak: timer.start()')
-                        self.timer.start()
+                        self.responseTimer.start()
+
                 else:
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: not Item or RESPONSE Voice or Image in communication or too soon from last conversation ' + sensation.toDebugStr())
             else:
@@ -836,9 +857,9 @@ class Communication(Robot):
         '''
         def speak(self, onStart=False):
             # cancel timer, because we got response and try to speak again
-            if self.timer is not None:
-                self.timer.cancel()
-            self.timer = None
+            if self.responseTimer is not None:
+                self.responseTimer.cancel()
+            self.responseTimer = None
             self.robotState = None # we reset self.robotState to be sure, that we give feedback how we succeeded
             
             if self.spokedAssociations != None:
@@ -908,6 +929,9 @@ class Communication(Robot):
                                 if spokedSensation.getSensationType() == Sensation.SensationType.Voice and spokedSensation.getRobotType() == Sensation.RobotType.Muscle:
                                     self.voicesToBePlayed += 1
                                     self.informRobotState(robotState=Sensation.RobotState.CommunicationWaitingVoicePlayed)
+                                    self.spokedVoiceSensations.append(spokedSensation)
+                                else:
+                                    spokedSensation.detach(robot=self.getRobot()) # to be sure
                                     
                             self.spokedAssociations = associations
                             

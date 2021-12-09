@@ -1,6 +1,6 @@
 '''
 Created on 10.04.2021
-Updated on 01.12.2021
+Updated on 09.12.2021
 @author: reijo.korhonen@gmail.com
 
 Base class routines used to test-clersses for Robot-delivered classes.
@@ -610,6 +610,8 @@ class RobotTestCase():
         self.previousGotMuscleImage = self.muscleImage
         self.previousGotCommunicationVoice = self.communicationVoice 
         self.previousGotCommunicationImage = self.communicationImage
+
+        return self.muscleVoice
 
     '''
     Testing    

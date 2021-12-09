@@ -19,8 +19,8 @@ from Robot import Robot
 from Axon import Axon
 from AlsaAudio import Settings
 
-MICROPHONEPLAYBACK=False
-#MICROPHONEPLAYBACK=True
+#MICROPHONEPLAYBACK=False
+MICROPHONEPLAYBACK=True
 if MICROPHONEPLAYBACK:
     from Microphone.Microphone import Microphone
     from MicrophonePlayback.MicrophonePlayback import MicrophonePlayback
@@ -95,10 +95,6 @@ class VoiceTestCase(unittest.TestCase, Robot):
             #sensory
             capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.Voice, is_set=is_set)   
             capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Sensory, sensationType=Sensation.SensationType.RobotState, is_set=is_set)   
-#             #Working
-#             capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.Working, sensationType=Sensation.SensationType.Voice, is_set=is_set)   
-#             #LongTerm
-#             capabilities.setCapability(robotType=robotType, memoryType=Sensation.MemoryType.LongTerm, sensationType=Sensation.SensationType.Voice, is_set=is_set)   
 
         robot.setCapabilities(capabilities)
     
@@ -115,11 +111,6 @@ class VoiceTestCase(unittest.TestCase, Robot):
                        instanceType= Sensation.InstanceType.Real,
                        level=1)
         self.axon = Axon(robot=self)
-#         self.mainRobot=self
-#         self.mainNames = self.MAINNAMES
-# #         self.axon = Axon(robot=self) # parent axon
-#         self.setLocations(VoiceTestCase.LOCATIONS)
-#         self.setMainNames(VoiceTestCase.MAINNAMES)
         self.setRobotLocations(robot=self, locations=VoiceTestCase.LOCATIONS)
         self.setRobotMainNames(robot=self,mainNames=VoiceTestCase.MAINNAMES)        
         self.setRobotCapabilities(robot=self, robotTypes=[Sensation.RobotType.Sense])
@@ -204,18 +195,6 @@ class VoiceTestCase(unittest.TestCase, Robot):
         
 
     def tearDown(self):
-# TODO Re-enable stop       
-#         print("--- put stop-sensation for Microphone")
-#         self.microphone.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.stopSensation)
-#         print("--- put stop-sensation for Microphone")
-#         self.playback.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.stopSensation)
-
-#         print("--- put stop-sensation for All")
-#         self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=self.stopSensation)
-#         3,70
-#         print("--- test sleeping " + str(VoiceTestCase.SLEEP_TIME) + " second until stop should be done")
-#         systemTime.sleep(VoiceTestCase.SLEEP_TIME) # let result UI be shown until cleared           
-
         if MICROPHONEPLAYBACK:
             self.microphonePlayback.stop()
         else:
@@ -251,8 +230,10 @@ class VoiceTestCase(unittest.TestCase, Robot):
             
         return float(datalen)/(float(Settings.AUDIO_RATE*Settings.AUDIO_CHANNELS))
     
-    def re_test_2_Playback(self):
+    def test_2_Playback(self):
         print("\n\n--- test_1_Playback")
+        self.playBackSensations=[]
+        self.playBackWait=0.0
         if MICROPHONEPLAYBACK:
             playback = self.microphonePlayback
         else:
@@ -300,22 +281,70 @@ class VoiceTestCase(unittest.TestCase, Robot):
                                                                       robotType=Sensation.RobotType.Muscle,
                                                                       data=sensation.getData(),
                                                                       kind = Sensation.Kind.Eva)
-            
-            
+                        
             print("--- Playback identity Voice Eva")
             self.do_Playback(playback=playback, playBackSensation=playBackSensation)
+        self.wait_Playback()
 
         print("--- test_1_Playback is done")
         
     
     def do_Playback(self, playback, playBackSensation):
+        playBackSensation.setTime(systemTime.time())
+        self.playBackSensations.append(playBackSensation)
         playback.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=playBackSensation)
         
         playbackTime = 1.25 * self.getPlaybackTime(datalen=len(playBackSensation.getData()))
-        print("--- test sleeping {} seconds until playback is done".format(playbackTime))
-        systemTime.sleep(playbackTime)   
+        print("--- test waits {} seconds until this playback is done".format(playbackTime))
+        #systemTime.sleep(playbackTime)
+        self.playBackWait += playbackTime
+        print("--- test waits {} seconds until this all playbacks are done".format(self.playBackWait))
+        self.wait_Playback()
+#         while not self.getAxon().empty():
+#             tranferDirection, sensation = self.getAxon().get(robot=self)
+#             if sensation.getSensationType() == Sensation.SensationType.RobotState:
+#                 if sensation.getRobotType() == Sensation.RobotType.Sense:
+#                     print("--- Sense RobotState {}".format(Sensation.getRobotStateString(sensation.getRobotState())))
+#                     if sensation.getRobotState() == Sensation.RobotState.CommunicationVoicePlayed:
+#                         print("---1:Voice is played")
+#                         for a in sensation.getAssociations():
+#                             if a.getSensation() in self.playBackSensations:
+#                                 self.playBackSensations.remove(a.getSensation())
+#                                 print("---1:OUR Voice is played")
+#                                 playbackTime = 1.25 * self.getPlaybackTime(datalen=len(a.getSensation().getData()))
+#                                 self.playBackWait -= playbackTime
 
-    def test_1_Microphone(self):
+    def wait_Playback(self):
+        timeToStart = systemTime.time()
+        timeToEnd = systemTime.time() + self.playBackWait
+        waited=0.0
+        # Note if we have here 'or' test is more realistic for reality, but 'and' makes it testing throughput
+        while self.playBackWait > 0 or len(self.playBackSensations) > 0:
+#        while self.playBackWait > 0 and len(self.playBackSensations) > 0:
+            if self.getAxon().empty():
+                self.playBackWait -= 1.0
+                systemTime.sleep(1.0)
+                waited+=1.0
+            else:
+                tranferDirection, sensation = self.getAxon().get(robot=self)
+                if sensation.getSensationType() == Sensation.SensationType.RobotState:
+                    if sensation.getRobotType() == Sensation.RobotType.Sense:
+                        print("--- Sense RobotState {}".format(Sensation.getRobotStateString(sensation.getRobotState())))
+                        if sensation.getRobotState() == Sensation.RobotState.CommunicationVoicePlayed:
+                            print("---Voice is played")
+                            for a in sensation.getAssociations():
+                                if a.getSensation() in self.playBackSensations:
+                                    self.playBackSensations.remove(a.getSensation())
+                                    print("---OUR Voice is played")
+                                    playbackTime = 1.25 * self.getPlaybackTime(datalen=len(a.getSensation().getData()))
+                                    self.playBackWait -= playbackTime
+        self.playBackWait += waited
+#         systemTime.sleep(timeToEnd - systemTime.time())
+        print("--- wait_Playback playBackWait {} len(self.playBackSensations) {}".format(self.playBackWait, len(self.playBackSensations)))
+
+
+
+    def re_test_1_Microphone(self):
         self.assertEqual(self.getAxon().empty(), True, 'Axon should be empty at the beginning of test_1_Microphone\nCannot test properly this!')
         
         test_runs = 0

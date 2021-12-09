@@ -59,7 +59,7 @@ class Playback(Robot):
      using ALSA- or SoundDevice-library and speaker as hardware
     """
     
-    COMMUNICATION_INTERVAL=15.0     # time window to history 
+    COMMUNICATION_INTERVAL=60.0     # time window to history 
                                     # for sensations we communicate
     NORMAL_SPEAK_SPEED=1.0                                   
     WALLE_SPEAK_SPEED=1.25

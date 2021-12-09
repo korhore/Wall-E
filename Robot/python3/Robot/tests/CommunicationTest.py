@@ -272,7 +272,7 @@ class CommunicationTest(RobotTestCase):
 
         if isPresentRobot:
             # We expect to get communication to a Item.name and request to consult other robot what to say.
-            self.expect(isWait=isWait,
+            muscleVoice = self.expect(isWait=isWait,
                         name='isPresentRobot Entering, response 1', isEmpty=False, #isSpoken=True, isHeard=False, isVoiceFeeling=False,
                         muscleImage=image_sensation1, isExactMuscleImage=True,
                         muscleVoice=voice_sensation1, isExactMuscleVoice=True,
@@ -296,15 +296,25 @@ class CommunicationTest(RobotTestCase):
                         name='isPresentRobot Entering, response 1, voice_sensation_ignored_isPresentRobotEntering should be ignored',
                         isEmpty=True)
 
-            # simulate Playback
-            self.doProcess(robot=robot, sensation=self.createSensation(
+            # simulate Playback,
+            robotStateSensation=self.createSensation(
                                                     sensationName='voice_sensation1Played',
                                                     robot=robot,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     sensationType=Sensation.SensationType.RobotState,
                                                     robotType=Sensation.RobotType.Sense,
                                                     robotState = Sensation.RobotState.CommunicationVoicePlayed,
-                                                    locations=self.getLocations()))
+                                                    locations=self.getLocations())
+            robotStateSensation.associate(muscleVoice)
+            self.doProcess(robot=robot, sensation=robotStateSensation)
+#             self.doProcess(robot=robot, sensation=self.createSensation(
+#                                                     sensationName='voice_sensation1Played',
+#                                                     robot=robot,
+#                                                     memoryType=Sensation.MemoryType.Sensory,
+#                                                     sensationType=Sensation.SensationType.RobotState,
+#                                                     robotType=Sensation.RobotType.Sense,
+#                                                     robotState = Sensation.RobotState.CommunicationVoicePlayed,
+#                                                     locations=self.getLocations()))
             self.expect(isWait=isWait,
                         name='isPresentRobot Entering, response 1, CommunicationWaitingResponse', isEmpty=False,
                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
@@ -321,7 +331,7 @@ class CommunicationTest(RobotTestCase):
                         communicationVoice=voice_sensation1, isExactCommunicationVoice=True,
                         communicationItem=None)        # TODO remove this, it is not valid any more
         else:  
-            self.expect(isWait=isWait,
+            muscleVoice = self.expect(isWait=isWait,
                         name='Entering, response 1', isEmpty=False, #isSpoken=True, isHeard=False, isVoiceFeeling=False,
                         muscleImage=image_sensation1, isExactMuscleImage=True,
                         muscleVoice=voice_sensation1, isExactMuscleVoice=True,
@@ -331,14 +341,24 @@ class CommunicationTest(RobotTestCase):
                 self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingVoicePlayed,
                                  "got {}, expected {}".format(Sensation.getRobotStateString(self.communication.itemConversations[location].robotState), Sensation.getRobotStateString(Sensation.RobotState.CommunicationWaitingVoicePlayed)))
             # simulate Playback
-            self.doProcess(robot=robot, sensation=self.createSensation(
+            robotStateSensation=self.createSensation(
                                                     sensationName='voice_sensation1Played',
                                                     robot=robot,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     sensationType=Sensation.SensationType.RobotState,
                                                     robotType=Sensation.RobotType.Sense,
                                                     robotState = Sensation.RobotState.CommunicationVoicePlayed,
-                                                    locations=self.getLocations()))
+                                                    locations=self.getLocations())
+            robotStateSensation.associate(muscleVoice)
+            self.doProcess(robot=robot, sensation=robotStateSensation)
+#             self.doProcess(robot=robot, sensation=self.createSensation(
+#                                                     sensationName='voice_sensation1Played',
+#                                                     robot=robot,
+#                                                     memoryType=Sensation.MemoryType.Sensory,
+#                                                     sensationType=Sensation.SensationType.RobotState,
+#                                                     robotType=Sensation.RobotType.Sense,
+#                                                     robotState = Sensation.RobotState.CommunicationVoicePlayed,
+#                                                     locations=self.getLocations()))
             self.expect(isWait=isWait,
                         name='Entering, response 1, CommunicationWaitingResponse', isEmpty=False,
                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
@@ -411,7 +431,7 @@ class CommunicationTest(RobotTestCase):
 
         if isPresentRobot:
             # We expect to get communication to a Item.name and request to consult other robot what to say.
-            self.expect(isWait=isWait,
+            muscleVoice = self.expect(isWait=isWait,
                         name='isPresentRobot Present, response 2', isEmpty=False, #isSpoken=True, isHeard=False, isVoiceFeeling=False,
                         muscleImage=image_sensation2, isExactMuscleImage=True,
                         muscleVoice=voice_sensation2, isExactMuscleVoice=True,
@@ -428,17 +448,27 @@ class CommunicationTest(RobotTestCase):
                         isEmpty=True)
                         
             # simulate Playback
-            self.doProcess(robot=robot, sensation=self.createSensation(
+            robotStateSensation=self.createSensation(
                                                     sensationName='voice_sensation2Played',
                                                     robot=robot,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     sensationType=Sensation.SensationType.RobotState,
                                                     robotType=Sensation.RobotType.Sense,
                                                     robotState = Sensation.RobotState.CommunicationVoicePlayed,
-                                                    locations=self.getLocations()))
+                                                    locations=self.getLocations())
+            robotStateSensation.associate(muscleVoice)
+            self.doProcess(robot=robot, sensation=robotStateSensation)
+#             self.doProcess(robot=robot, sensation=self.createSensation(
+#                                                     sensationName='voice_sensation2Played',
+#                                                     robot=robot,
+#                                                     memoryType=Sensation.MemoryType.Sensory,
+#                                                     sensationType=Sensation.SensationType.RobotState,
+#                                                     robotType=Sensation.RobotType.Sense,
+#                                                     robotState = Sensation.RobotState.CommunicationVoicePlayed,
+#                                                     locations=self.getLocations()))
             self.expect(isWait=isWait,
-                        name='isPresentRobot Present, response 2, CommunicationWaitingResponse', isEmpty=False,
-                        robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
+                         name='isPresentRobot Present, response 2, CommunicationWaitingResponse', isEmpty=False,
+                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
             # To test other Communication Robots functionality we must make a trick and change this Sensation ocatio
             # so this Robot think that Sensation comes from other Robot, not it self
             self.communicationItem.setMainNames(mainNames=self.OTHERMAINNAMES)
@@ -452,7 +482,7 @@ class CommunicationTest(RobotTestCase):
                         communicationVoice=voice_sensation2, isExactCommunicationVoice=True,
                         communicationItem=None)        # TODO remove this, it is not valid any more
         else:  
-            self.expect(isWait=isWait,
+            muscleVoice = self.expect(isWait=isWait,
                         name='Present, response 2', isEmpty=False, #isSpoken=True, isHeard=False, isVoiceFeeling=False,
                         muscleImage=image_sensation2, isExactMuscleImage=True,
                         muscleVoice=voice_sensation2, isExactMuscleVoice=True,
@@ -472,14 +502,24 @@ class CommunicationTest(RobotTestCase):
                         isEmpty=True)
 
             # simulate Playback
-            self.doProcess(robot=robot, sensation=self.createSensation(
+            robotStateSensation=self.createSensation(
                                                     sensationName='voice_sensation2Played',
                                                     robot=robot,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     sensationType=Sensation.SensationType.RobotState,
                                                     robotType=Sensation.RobotType.Sense,
                                                     robotState = Sensation.RobotState.CommunicationVoicePlayed,
-                                                    locations=self.getLocations()))
+                                                    locations=self.getLocations())
+            robotStateSensation.associate(muscleVoice)
+            self.doProcess(robot=robot, sensation=robotStateSensation)
+#             self.doProcess(robot=robot, sensation=self.createSensation(
+#                                                     sensationName='voice_sensation2Played',
+#                                                     robot=robot,
+#                                                     memoryType=Sensation.MemoryType.Sensory,
+#                                                     sensationType=Sensation.SensationType.RobotState,
+#                                                     robotType=Sensation.RobotType.Sense,
+#                                                     robotState = Sensation.RobotState.CommunicationVoicePlayed,
+#                                                     locations=self.getLocations()))
             self.expect(isWait=isWait,
                         name='Present, response 2, CommunicationWaitingResponse', isEmpty=False,
                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
@@ -591,7 +631,7 @@ class CommunicationTest(RobotTestCase):
                         
         if isPresentRobot:
             # We expect to get communication to a Item.name and request to consult other robot what to say.
-            self.expect(isWait=isWait,
+            muscleVoice = self.expect(isWait=isWait,
                         name='isPresentRobot Entering, response 3', isEmpty=False, #isSpoken=True, isHeard=False, isVoiceFeeling=False,
                         muscleImage=image_sensation3, isExactMuscleImage=True,
                         muscleVoice=voice_sensation3, isExactMuscleVoice=True,
@@ -605,14 +645,24 @@ class CommunicationTest(RobotTestCase):
                         isEmpty=True)
 
             # simulate Playback
-            self.doProcess(robot=robot, sensation=self.createSensation(
+            robotStateSensation=self.createSensation(
                                                     sensationName='voice_sensation3Played',
                                                     robot=robot,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     sensationType=Sensation.SensationType.RobotState,
                                                     robotType=Sensation.RobotType.Sense,
                                                     robotState = Sensation.RobotState.CommunicationVoicePlayed,
-                                                    locations=self.getLocations()))
+                                                    locations=self.getLocations())
+            robotStateSensation.associate(muscleVoice)
+            self.doProcess(robot=robot, sensation=robotStateSensation)
+#             self.doProcess(robot=robot, sensation=self.createSensation(
+#                                                     sensationName='voice_sensation3Played',
+#                                                     robot=robot,
+#                                                     memoryType=Sensation.MemoryType.Sensory,
+#                                                     sensationType=Sensation.SensationType.RobotState,
+#                                                     robotType=Sensation.RobotType.Sense,
+#                                                     robotState = Sensation.RobotState.CommunicationVoicePlayed,
+#                                                     locations=self.getLocations()))
             self.expect(isWait=isWait,
                         name='isPresentRobot Entering, response 3, CommunicationWaitingResponse', isEmpty=False,
                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
@@ -629,7 +679,7 @@ class CommunicationTest(RobotTestCase):
                         communicationVoice=voice_sensation3, isExactCommunicationVoice=True,
                         communicationItem=None)        # TODO remove this, it is not valid any more
         else:  
-            self.expect(isWait=isWait,
+            muscleVoice = self.expect(isWait=isWait,
                         name='Entering, response 3', isEmpty=False, #isSpoken=True, isHeard=False, isVoiceFeeling=False,
                         muscleImage=image_sensation3, isExactMuscleImage=True,
                         muscleVoice=voice_sensation3, isExactMuscleVoice=True,
@@ -646,14 +696,16 @@ class CommunicationTest(RobotTestCase):
                         isEmpty=True)
 
             # simulate Playback
-            self.doProcess(robot=robot, sensation=self.createSensation(
+            robotStateSensation=self.createSensation(
                                                     sensationName='voice_sensation3Played',
                                                     robot=robot,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     sensationType=Sensation.SensationType.RobotState,
                                                     robotType=Sensation.RobotType.Sense,
                                                     robotState = Sensation.RobotState.CommunicationVoicePlayed,
-                                                    locations=self.getLocations()))
+                                                    locations=self.getLocations())
+            robotStateSensation.associate(muscleVoice)
+            self.doProcess(robot=robot, sensation=robotStateSensation)
             self.expect(isWait=isWait,
                         name='Entering, response 3, CommunicationWaitingResponse', isEmpty=False,
                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
@@ -724,7 +776,7 @@ class CommunicationTest(RobotTestCase):
         
         if isPresentRobot:
             # We expect to get communication to a Item.name and request to consult other robot what to say.
-            self.expect(isWait=isWait,
+            muscleVoice = self.expect(isWait=isWait,
                         name='isPresentRobot Name2 entering, response 4', isEmpty=False, #isSpoken=True, isHeard=False, isVoiceFeeling=False,
                         muscleImage=image_sensation4, isExactMuscleImage=True,
                         muscleVoice=voice_sensation4, isExactMuscleVoice=True,
@@ -741,14 +793,24 @@ class CommunicationTest(RobotTestCase):
                         isEmpty=True)
 
             # simulate Playback
-            self.doProcess(robot=robot, sensation=self.createSensation(
+            robotStateSensation=self.createSensation(
                                                     sensationName='voice_sensation4Played',
                                                     robot=robot,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     sensationType=Sensation.SensationType.RobotState,
                                                     robotType=Sensation.RobotType.Sense,
                                                     robotState = Sensation.RobotState.CommunicationVoicePlayed,
-                                                    locations=self.getLocations()))
+                                                    locations=self.getLocations())
+            robotStateSensation.associate(muscleVoice)
+            self.doProcess(robot=robot, sensation=robotStateSensation)
+#             self.doProcess(robot=robot, sensation=self.createSensation(
+#                                                     sensationName='voice_sensation4Played',
+#                                                     robot=robot,
+#                                                     memoryType=Sensation.MemoryType.Sensory,
+#                                                     sensationType=Sensation.SensationType.RobotState,
+#                                                     robotType=Sensation.RobotType.Sense,
+#                                                     robotState = Sensation.RobotState.CommunicationVoicePlayed,
+#                                                     locations=self.getLocations()))
             self.expect(isWait=isWait,
                         name='isPresentRobot Entering, response 4, CommunicationWaitingResponse', isEmpty=False,
                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
@@ -765,7 +827,7 @@ class CommunicationTest(RobotTestCase):
                         communicationVoice=voice_sensation4, isExactCommunicationVoice=True,
                         communicationItem=None)
         else:  
-            self.expect(isWait=isWait,
+            muscleVoice = self.expect(isWait=isWait,
                         name='Name2 entering , response 4', isEmpty=False, #isSpoken=True, isHeard=False, isVoiceFeeling=False,
                         muscleImage=image_sensation4, isExactMuscleImage=True,
                         muscleVoice=voice_sensation4, isExactMuscleVoice=True,
@@ -785,14 +847,24 @@ class CommunicationTest(RobotTestCase):
                         isEmpty=True)
 
             # simulate Playback
-            self.doProcess(robot=robot, sensation=self.createSensation(
+            robotStateSensation=self.createSensation(
                                                     sensationName='voice_sensation4Played',
                                                     robot=robot,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     sensationType=Sensation.SensationType.RobotState,
                                                     robotType=Sensation.RobotType.Sense,
                                                     robotState = Sensation.RobotState.CommunicationVoicePlayed,
-                                                    locations=self.getLocations()))
+                                                    locations=self.getLocations())
+            robotStateSensation.associate(muscleVoice)
+            self.doProcess(robot=robot, sensation=robotStateSensation)
+#             self.doProcess(robot=robot, sensation=self.createSensation(
+#                                                     sensationName='voice_sensation4Played',
+#                                                     robot=robot,
+#                                                     memoryType=Sensation.MemoryType.Sensory,
+#                                                     sensationType=Sensation.SensationType.RobotState,
+#                                                     robotType=Sensation.RobotType.Sense,
+#                                                     robotState = Sensation.RobotState.CommunicationVoicePlayed,
+#                                                     locations=self.getLocations()))
             self.expect(isWait=isWait,
                         name='Name2 entering , response 4, CommunicationWaitingResponse', isEmpty=False,
                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
@@ -853,7 +925,7 @@ class CommunicationTest(RobotTestCase):
 
         if isPresentRobot:
             # We expect to get communication to a Item.name and request to consult other robot what to say.
-            self.expect(isWait=isWait,
+            muscleVoice = self.expect(isWait=isWait,
                         name='isPresentRobot Name2 present, response 5', isEmpty=False, #isSpoken=True, isHeard=False, isVoiceFeeling=False,
                         muscleImage=image_sensation5, isExactMuscleImage=True,
                         muscleVoice=voice_sensation5, isExactMuscleVoice=True,
@@ -870,14 +942,24 @@ class CommunicationTest(RobotTestCase):
                         isEmpty=True)
 
             # simulate Playback
-            self.doProcess(robot=robot, sensation=self.createSensation(
+            robotStateSensation=self.createSensation(
                                                     sensationName='voice_sensation5Played',
                                                     robot=robot,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     sensationType=Sensation.SensationType.RobotState,
                                                     robotType=Sensation.RobotType.Sense,
                                                     robotState = Sensation.RobotState.CommunicationVoicePlayed,
-                                                    locations=self.getLocations()))
+                                                    locations=self.getLocations())
+            robotStateSensation.associate(muscleVoice)
+            self.doProcess(robot=robot, sensation=robotStateSensation)
+#             self.doProcess(robot=robot, sensation=self.createSensation(
+#                                                     sensationName='voice_sensation5Played',
+#                                                     robot=robot,
+#                                                     memoryType=Sensation.MemoryType.Sensory,
+#                                                     sensationType=Sensation.SensationType.RobotState,
+#                                                     robotType=Sensation.RobotType.Sense,
+#                                                     robotState = Sensation.RobotState.CommunicationVoicePlayed,
+#                                                     locations=self.getLocations()))
             self.expect(isWait=isWait,
                         name='isPresentRobot Entering, response 5, CommunicationWaitingResponse', isEmpty=False,
                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
@@ -894,7 +976,7 @@ class CommunicationTest(RobotTestCase):
                         communicationVoice=voice_sensation5, isExactCommunicationVoice=True,
                         communicationItem=None)
         else:  
-            self.expect(isWait=isWait,
+            muscleVoice = self.expect(isWait=isWait,
                         name= "Name2 present, response 5", isEmpty=False, #isSpoken=True, isHeard=False, isVoiceFeeling=False,
                         muscleImage=image_sensation5, isExactMuscleImage=True,
                         muscleVoice=voice_sensation5, isExactMuscleVoice=True,
@@ -907,14 +989,24 @@ class CommunicationTest(RobotTestCase):
                 self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingVoicePlayed,
                                  "got {}, expected {}".format(Sensation.getRobotStateString(self.communication.itemConversations[location].robotState), Sensation.getRobotStateString(Sensation.RobotState.CommunicationWaitingVoicePlayed)))
             # simulate Playback
-            self.doProcess(robot=robot, sensation=self.createSensation(
+            robotStateSensation=self.createSensation(
                                                     sensationName='voice_sensation5Played',
                                                     robot=robot,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     sensationType=Sensation.SensationType.RobotState,
                                                     robotType=Sensation.RobotType.Sense,
                                                     robotState = Sensation.RobotState.CommunicationVoicePlayed,
-                                                    locations=self.getLocations()))
+                                                    locations=self.getLocations())
+            robotStateSensation.associate(muscleVoice)
+            self.doProcess(robot=robot, sensation=robotStateSensation)
+#             self.doProcess(robot=robot, sensation=self.createSensation(
+#                                                     sensationName='voice_sensation5Played',
+#                                                     robot=robot,
+#                                                     memoryType=Sensation.MemoryType.Sensory,
+#                                                     sensationType=Sensation.SensationType.RobotState,
+#                                                     robotType=Sensation.RobotType.Sense,
+#                                                     robotState = Sensation.RobotState.CommunicationVoicePlayed,
+#                                                     locations=self.getLocations()))
             self.expect(isWait=isWait,
                         name='Name2 present, response 5, CommunicationWaitingResponse', isEmpty=False,
                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
@@ -985,7 +1077,7 @@ class CommunicationTest(RobotTestCase):
 
         if isPresentRobot:
             # We expect to get communication to a Item.name and request to consult other robot what to say.
-            self.expect(isWait=isWait,
+            muscleVoice = self.expect(isWait=isWait,
                         name='isPresentRobot Name2 present, response 6', isEmpty=False, #isSpoken=True, isHeard=False, isVoiceFeeling=False,
                         muscleImage=image_sensation6, isExactMuscleImage=True,
                         muscleVoice=voice_sensation6, isExactMuscleVoice=True,
@@ -995,14 +1087,24 @@ class CommunicationTest(RobotTestCase):
                         communicationItem=Wall_E_item_sensation_present3, isExactCommunicationItem=True,
                         robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingVoicePlayed))#(Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingResponse))
             # simulate Playback
-            self.doProcess(robot=robot, sensation=self.createSensation(
+            robotStateSensation=self.createSensation(
                                                     sensationName='voice_sensation6Played',
                                                     robot=robot,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     sensationType=Sensation.SensationType.RobotState,
                                                     robotType=Sensation.RobotType.Sense,
                                                     robotState = Sensation.RobotState.CommunicationVoicePlayed,
-                                                    locations=self.getLocations()))
+                                                    locations=self.getLocations())
+            robotStateSensation.associate(muscleVoice)
+            self.doProcess(robot=robot, sensation=robotStateSensation)
+#             self.doProcess(robot=robot, sensation=self.createSensation(
+#                                                     sensationName='voice_sensation6Played',
+#                                                     robot=robot,
+#                                                     memoryType=Sensation.MemoryType.Sensory,
+#                                                     sensationType=Sensation.SensationType.RobotState,
+#                                                     robotType=Sensation.RobotType.Sense,
+#                                                     robotState = Sensation.RobotState.CommunicationVoicePlayed,
+#                                                     locations=self.getLocations()))
             self.expect(isWait=isWait,
                         name='isPresentRobot Entering, response 6, CommunicationWaitingResponse', isEmpty=False,
                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
@@ -1019,7 +1121,7 @@ class CommunicationTest(RobotTestCase):
                         communicationVoice=voice_sensation6, isExactCommunicationVoice=True,
                         communicationItem=None)
         else:  
-            self.expect(isWait=isWait,
+            muscleVoice = self.expect(isWait=isWait,
                         name= "Name2 present, response 6", isEmpty=False, #isSpoken=True, isHeard=False, isVoiceFeeling=False,
                         muscleImage=image_sensation6, isExactMuscleImage=True,
                         muscleVoice=voice_sensation6, isExactMuscleVoice=True,
@@ -1032,14 +1134,24 @@ class CommunicationTest(RobotTestCase):
                 self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingVoicePlayed,
                                  "got {}, expected {}".format(Sensation.getRobotStateString(self.communication.itemConversations[location].robotState), Sensation.getRobotStateString(Sensation.RobotState.CommunicationWaitingVoicePlayed)))
             # simulate Playback
-            self.doProcess(robot=robot, sensation=self.createSensation(
+            robotStateSensation=self.createSensation(
                                                     sensationName='voice_sensation6Played',
                                                     robot=robot,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     sensationType=Sensation.SensationType.RobotState,
                                                     robotType=Sensation.RobotType.Sense,
                                                     robotState = Sensation.RobotState.CommunicationVoicePlayed,
-                                                    locations=self.getLocations()))
+                                                    locations=self.getLocations())
+            robotStateSensation.associate(muscleVoice)
+            self.doProcess(robot=robot, sensation=robotStateSensation)
+#             self.doProcess(robot=robot, sensation=self.createSensation(
+#                                                     sensationName='voice_sensation6Played',
+#                                                     robot=robot,
+#                                                     memoryType=Sensation.MemoryType.Sensory,
+#                                                     sensationType=Sensation.SensationType.RobotState,
+#                                                     robotType=Sensation.RobotType.Sense,
+#                                                     robotState = Sensation.RobotState.CommunicationVoicePlayed,
+#                                                     locations=self.getLocations()))
             self.expect(isWait=isWait,
                         name='Name2 present, response 6, CommunicationWaitingResponse', isEmpty=False,
                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
@@ -1123,6 +1235,9 @@ class CommunicationTest(RobotTestCase):
     Sensations outside Robot are in other Robot.mainNames and robotType=Sensation.RobotType.Communication
     so this test result should  same than with test where robotType=Sensation.RobotType.Sense,
     because Communication should handle those sensation equally, when Robot.mainNames differ
+    
+    Still there is difference with RoboState. If robotType==Sensation.RobotType.Communication
+    it means, that this robot is consult-robot
     '''    
     def doTest_3_Presense(self,  robot, communication, isWait):
         self.do_test_Presense(robot=robot, communication=communication, isWait=isWait, mainNames=self.OTHERMAINNAMES, robotType=Sensation.RobotType.Communication)
@@ -1408,7 +1523,7 @@ class CommunicationTest(RobotTestCase):
         self.assertTrue(len(Wall_E_item_sensation2.getAssociations()) in (5,6) , "len(Wall_E_item_sensation2.getAssociations()) should be 5 or 6, not {}".format(len(Wall_E_item_sensation2.getAssociations())))
 #
         # We can use   image_sensation1,   voice_sensation1 after Absent   
-        self.expect(isWait=isWait,
+        muscleVoice = self.expect(isWait=isWait,
                     name='Wall_E_item_sensation2, no feeling', isEmpty=False,
                     muscleImage=image_sensation1, isExactMuscleImage=True,
                     muscleVoice=voice_sensation1, isExactMuscleVoice=True,
@@ -1435,15 +1550,25 @@ class CommunicationTest(RobotTestCase):
                         isEmpty=True)
 
         # simulate Playback
-        self.doProcess(robot=robot, sensation=self.createSensation(
-                                                sensationName='voice_sensation1Played',
-                                                robot=robot,
-                                                memoryType=Sensation.MemoryType.Sensory,
-                                                sensationType=Sensation.SensationType.RobotState,
-                                                robotType=Sensation.RobotType.Sense,
-                                                mainNames=mainNames,
-                                                robotState = Sensation.RobotState.CommunicationVoicePlayed,
-                                                locations=self.getLocations()))
+        robotStateSensation=self.createSensation(
+                                                    sensationName='voice_sensation1Played',
+                                                    robot=robot,
+                                                    memoryType=Sensation.MemoryType.Sensory,
+                                                    sensationType=Sensation.SensationType.RobotState,
+                                                    robotType=Sensation.RobotType.Sense,
+                                                    robotState = Sensation.RobotState.CommunicationVoicePlayed,
+                                                    locations=self.getLocations())
+        robotStateSensation.associate(muscleVoice)
+        self.doProcess(robot=robot, sensation=robotStateSensation)
+#         self.doProcess(robot=robot, sensation=self.createSensation(
+#                                                 sensationName='voice_sensation1Played',
+#                                                 robot=robot,
+#                                                 memoryType=Sensation.MemoryType.Sensory,
+#                                                 sensationType=Sensation.SensationType.RobotState,
+#                                                 robotType=Sensation.RobotType.Sense,
+#                                                 mainNames=mainNames,
+#                                                 robotState = Sensation.RobotState.CommunicationVoicePlayed,
+#                                                 locations=self.getLocations()))
         self.expect(isWait=isWait,
                     name='Wall_E_item_sensation2, CommunicationWaitingResponse', isEmpty=False,
                     robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
@@ -1565,7 +1690,7 @@ class CommunicationTest(RobotTestCase):
 
         # pending feeling is got
         # next pending feeling
-        self.expect(isWait=isWait,
+        muscleVoice = self.expect(isWait=isWait,
                     name='Present, response, feeling', isEmpty=False,
                     muscleImage=image_sensation2, isExactMuscleImage=True,
                     muscleVoice=voice_sensation2, isExactMuscleVoice=True,
@@ -1589,14 +1714,24 @@ class CommunicationTest(RobotTestCase):
                     isEmpty=True)
 
         # simulate playback
-        self.doProcess(robot=robot, sensation=self.createSensation(
+        robotStateSensation=self.createSensation(
                                                     sensationName='voice_sensation2 Played',
                                                     robot=robot,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     sensationType=Sensation.SensationType.RobotState,
-                                                    robotState=Sensation.RobotState.CommunicationVoicePlayed,
-                                                    mainNames=mainNames,
-                                                    locations=self.getLocations())) 
+                                                    robotType=Sensation.RobotType.Sense,
+                                                    robotState = Sensation.RobotState.CommunicationVoicePlayed,
+                                                    locations=self.getLocations())
+        robotStateSensation.associate(muscleVoice)
+        self.doProcess(robot=robot, sensation=robotStateSensation)
+#         self.doProcess(robot=robot, sensation=self.createSensation(
+#                                                     sensationName='voice_sensation2 Played',
+#                                                     robot=robot,
+#                                                     memoryType=Sensation.MemoryType.Sensory,
+#                                                     sensationType=Sensation.SensationType.RobotState,
+#                                                     robotState=Sensation.RobotState.CommunicationVoicePlayed,
+#                                                     mainNames=mainNames,
+#                                                     locations=self.getLocations())) 
         self.expect(isWait=isWait,
                         name='Present, response CommunicationWaitingResponse', isEmpty=False,
                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
@@ -1814,7 +1949,7 @@ class CommunicationTest(RobotTestCase):
             self.doProcess(robot=robot, sensation=Wall_E_item_sensation6)
             # pending feeling is got
             # next pending feeling
-            self.expect(isWait=isWait,
+            muscleVoice = self.expect(isWait=isWait,
                         name='Entering Name2, change in presentation', isEmpty=False,
                         muscleImage=Eva_image_sensation, isExactMuscleImage=True,
                         muscleVoice=Eva_voice_sensation, isExactMuscleVoice=True,
@@ -1826,14 +1961,24 @@ class CommunicationTest(RobotTestCase):
                 self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingVoicePlayed)
                 
             # simulate playback
-            self.doProcess(robot=robot, sensation=self.createSensation(
-                                                    sensationName='Eva_voice_sensationPlayed',
-                                                    robot=robot,
-                                                    memoryType=Sensation.MemoryType.Sensory,
-                                                    sensationType=Sensation.SensationType.RobotState,
-                                                    robotState=Sensation.RobotState.CommunicationVoicePlayed,
-                                                    mainNames=mainNames,
-                                                    locations=self.getLocations())) 
+            robotStateSensation=self.createSensation(
+                                                        sensationName='Eva_voice_sensationPlayed',
+                                                        robot=robot,
+                                                        memoryType=Sensation.MemoryType.Sensory,
+                                                        sensationType=Sensation.SensationType.RobotState,
+                                                        robotType=Sensation.RobotType.Sense,
+                                                        robotState = Sensation.RobotState.CommunicationVoicePlayed,
+                                                        locations=self.getLocations())
+            robotStateSensation.associate(muscleVoice)
+            self.doProcess(robot=robot, sensation=robotStateSensation)
+#             self.doProcess(robot=robot, sensation=self.createSensation(
+#                                                     sensationName='Eva_voice_sensationPlayed',
+#                                                     robot=robot,
+#                                                     memoryType=Sensation.MemoryType.Sensory,
+#                                                     sensationType=Sensation.SensationType.RobotState,
+#                                                     robotState=Sensation.RobotState.CommunicationVoicePlayed,
+#                                                     mainNames=mainNames,
+#                                                     locations=self.getLocations())) 
             self.expect(isWait=isWait,
                         name='Entering Name2, change in presentation CommunicationWaitingResponse', isEmpty=False,
                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
@@ -1896,7 +2041,7 @@ class CommunicationTest(RobotTestCase):
             # pending feeling is got
             # next pending feeling
             self.assertEqual(len(robot.getMemory().getAllPresentItemSensations()), 2, 'len(robot.getMemory().getAllPresentItemSensations() should be 3')
-            self.expect(isWait=isWait,
+            muscleVoice = self.expect(isWait=isWait,
                         name='Present Name 2, change in presentation, feeling', isEmpty=False,
                         muscleImage=Eva_image_sensation, isExactMuscleImage=True,
                         muscleVoice=Eva_voice_sensation, isExactMuscleVoice=True,
@@ -1908,14 +2053,24 @@ class CommunicationTest(RobotTestCase):
                 self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingVoicePlayed)
 
             # simulate playback
-            self.doProcess(robot=robot, sensation=self.createSensation(
-                                                    sensationName='Eva_voice_sensationPlayed',
-                                                    robot=robot,
-                                                    memoryType=Sensation.MemoryType.Sensory,
-                                                    sensationType=Sensation.SensationType.RobotState,
-                                                    robotState=Sensation.RobotState.CommunicationVoicePlayed,
-                                                    mainNames=mainNames,
-                                                    locations=self.getLocations())) 
+            robotStateSensation=self.createSensation(
+                                                        sensationName='Eva_voice_sensationPlayed',
+                                                        robot=robot,
+                                                        memoryType=Sensation.MemoryType.Sensory,
+                                                        sensationType=Sensation.SensationType.RobotState,
+                                                        robotType=Sensation.RobotType.Sense,
+                                                        robotState = Sensation.RobotState.CommunicationVoicePlayed,
+                                                        locations=self.getLocations())
+            robotStateSensation.associate(muscleVoice)
+            self.doProcess(robot=robot, sensation=robotStateSensation)
+#             self.doProcess(robot=robot, sensation=self.createSensation(
+#                                                     sensationName='Eva_voice_sensationPlayed',
+#                                                     robot=robot,
+#                                                     memoryType=Sensation.MemoryType.Sensory,
+#                                                     sensationType=Sensation.SensationType.RobotState,
+#                                                     robotState=Sensation.RobotState.CommunicationVoicePlayed,
+#                                                     mainNames=mainNames,
+#                                                     locations=self.getLocations())) 
             self.expect(isWait=isWait,
                         name='Present Name 2, change in presentation CommunicationWaitingResponse', isEmpty=False,
                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
@@ -1986,7 +2141,7 @@ class CommunicationTest(RobotTestCase):
             # TODO Communication Sensation functionality will be changed
             # pending feeling is got
             # next pending feeling
-            self.expect(isWait=isWait,
+            muscleVoice = self.expect(isWait=isWait,
                         name='Present NAME2 again basic change in presentation, feeling', isEmpty=False,
                         muscleImage=Eva_image_sensation2, isExactMuscleImage=True,
                         muscleVoice=Eva_voice_sensation2, isExactMuscleVoice=True,
@@ -2000,14 +2155,24 @@ class CommunicationTest(RobotTestCase):
                 self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingVoicePlayed)
 
             # simulate playback
-            self.doProcess(robot=robot, sensation=self.createSensation(
-                                                    sensationName='Eva_voice_sensation2Played',
-                                                    robot=robot,
-                                                    memoryType=Sensation.MemoryType.Sensory,
-                                                    sensationType=Sensation.SensationType.RobotState,
-                                                    robotState=Sensation.RobotState.CommunicationVoicePlayed,
-                                                    mainNames=mainNames,
-                                                    locations=self.getLocations())) 
+            robotStateSensation=self.createSensation(
+                                                        sensationName='Eva_voice_sensation2Played',
+                                                        robot=robot,
+                                                        memoryType=Sensation.MemoryType.Sensory,
+                                                        sensationType=Sensation.SensationType.RobotState,
+                                                        robotType=Sensation.RobotType.Sense,
+                                                        robotState = Sensation.RobotState.CommunicationVoicePlayed,
+                                                        locations=self.getLocations())
+            robotStateSensation.associate(muscleVoice)
+            self.doProcess(robot=robot, sensation=robotStateSensation)
+#             self.doProcess(robot=robot, sensation=self.createSensation(
+#                                                     sensationName='Eva_voice_sensation2Played',
+#                                                     robot=robot,
+#                                                     memoryType=Sensation.MemoryType.Sensory,
+#                                                     sensationType=Sensation.SensationType.RobotState,
+#                                                     robotState=Sensation.RobotState.CommunicationVoicePlayed,
+#                                                     mainNames=mainNames,
+#                                                     locations=self.getLocations())) 
             self.expect(isWait=isWait,
                         name='Present NAME2 again basic change in presentation CommunicationWaitingResponse', isEmpty=False,
                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
@@ -2652,7 +2817,7 @@ class CommunicationTest(RobotTestCase):
         #Item is Present, process
         robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sense_sensation)
         # should get just best Voice and Image
-        self.expect(isWait=isWait,
+        muscleVoice = self.expect(isWait=isWait,
                     name='Starting conversation, get best voice and image',
                     isEmpty=False,
                     muscleImage=Wall_E_image_sensation_2, isExactMuscleImage=True,
@@ -2672,14 +2837,24 @@ class CommunicationTest(RobotTestCase):
                     isEmpty=True)
 
         # simulate playback
-        self.doProcess(robot=robot, sensation=self.createSensation(
-                                                    sensationName='Eva_voice_sensation2Played',
-                                                    robot=robot,
-                                                    memoryType=Sensation.MemoryType.Sensory,
-                                                    sensationType=Sensation.SensationType.RobotState,
-                                                    robotState=Sensation.RobotState.CommunicationVoicePlayed,
-                                                    mainNames=mainNames,
-                                                    locations=self.getLocations())) 
+        robotStateSensation=self.createSensation(
+                                                        sensationName='Wall_E_voice_sensation_2Played',
+                                                        robot=robot,
+                                                        memoryType=Sensation.MemoryType.Sensory,
+                                                        sensationType=Sensation.SensationType.RobotState,
+                                                        robotType=Sensation.RobotType.Sense,
+                                                        robotState = Sensation.RobotState.CommunicationVoicePlayed,
+                                                        locations=self.getLocations())
+        robotStateSensation.associate(muscleVoice)
+        self.doProcess(robot=robot, sensation=robotStateSensation)
+#         self.doProcess(robot=robot, sensation=self.createSensation(
+#                                                     sensationName='Eva_voice_sensation2Played',
+#                                                     robot=robot,
+#                                                     memoryType=Sensation.MemoryType.Sensory,
+#                                                     sensationType=Sensation.SensationType.RobotState,
+#                                                     robotState=Sensation.RobotState.CommunicationVoicePlayed,
+#                                                     mainNames=mainNames,
+#                                                     locations=self.getLocations())) 
         self.expect(isWait=isWait,
                         name='Present NAME2 again basic change in presentation CommunicationWaitingResponse', isEmpty=False,
                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
@@ -2708,7 +2883,7 @@ class CommunicationTest(RobotTestCase):
         robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_sense_voice_response_sensation)
         # should get second best voice, image and positive feelings to 1. responses
         # we resposend to personsvoice, so we first get CommunicationResponseHeard and then (Sensation.RobotState.CommunicationWaiting) or Sensation.RobotState.CommunicationWaitingResponse
-        self.expect(isWait=isWait,
+        muscleVoice = self.expect(isWait=isWait,
                     name='response, second best voice, image',
                     isEmpty=False,
                     muscleImage=Wall_E_image_sensation_1, isExactMuscleImage=True,
@@ -2734,14 +2909,24 @@ class CommunicationTest(RobotTestCase):
                     isEmpty=True)
 
         # simulate playback
-        self.doProcess(robot=robot, sensation=self.createSensation(
-                                                    sensationName='Wall_E_voice_sensation_1Played',
-                                                    robot=robot,
-                                                    memoryType=Sensation.MemoryType.Sensory,
-                                                    sensationType=Sensation.SensationType.RobotState,
-                                                    robotState=Sensation.RobotState.CommunicationVoicePlayed,
-                                                    mainNames=mainNames,
-                                                    locations=self.getLocations())) 
+        robotStateSensation=self.createSensation(
+                                                        sensationName='Wall_E_voice_sensation_1Played',
+                                                        robot=robot,
+                                                        memoryType=Sensation.MemoryType.Sensory,
+                                                        sensationType=Sensation.SensationType.RobotState,
+                                                        robotType=Sensation.RobotType.Sense,
+                                                        robotState = Sensation.RobotState.CommunicationVoicePlayed,
+                                                        locations=self.getLocations())
+        robotStateSensation.associate(muscleVoice)
+        self.doProcess(robot=robot, sensation=robotStateSensation)
+#         self.doProcess(robot=robot, sensation=self.createSensation(
+#                                                     sensationName='Wall_E_voice_sensation_1Played',
+#                                                     robot=robot,
+#                                                     memoryType=Sensation.MemoryType.Sensory,
+#                                                     sensationType=Sensation.SensationType.RobotState,
+#                                                     robotState=Sensation.RobotState.CommunicationVoicePlayed,
+#                                                     mainNames=mainNames,
+#                                                     locations=self.getLocations())) 
         self.expect(isWait=isWait,
                         name='response, second best voice, image CommunicationWaitingResponse', isEmpty=False,
                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
@@ -2765,7 +2950,7 @@ class CommunicationTest(RobotTestCase):
         #self.logCommunicationState(note='before process response, third best voice, image')
         # process, should get third best voice, image and positive feelings to previous responses   
         robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_sense_voice_response_sensation_2)
-        self.expect(isWait=isWait,
+        muscleVoice = self.expect(isWait=isWait,
                     name='response, third best voice, image',
                     isEmpty=False,
                     muscleImage=Wall_E_image_sensation_3, isExactMuscleImage=True,
@@ -2780,14 +2965,24 @@ class CommunicationTest(RobotTestCase):
             self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingVoicePlayed)
 
         # simulate playback
-        self.doProcess(robot=robot, sensation=self.createSensation(
-                                                    sensationName='Wall_E_voice_sensation_3Played',
-                                                    robot=robot,
-                                                    memoryType=Sensation.MemoryType.Sensory,
-                                                    sensationType=Sensation.SensationType.RobotState,
-                                                    robotState=Sensation.RobotState.CommunicationVoicePlayed,
-                                                    mainNames=mainNames,
-                                                    locations=self.getLocations())) 
+        robotStateSensation=self.createSensation(
+                                                        sensationName='Wall_E_voice_sensation_3Played',
+                                                        robot=robot,
+                                                        memoryType=Sensation.MemoryType.Sensory,
+                                                        sensationType=Sensation.SensationType.RobotState,
+                                                        robotType=Sensation.RobotType.Sense,
+                                                        robotState = Sensation.RobotState.CommunicationVoicePlayed,
+                                                        locations=self.getLocations())
+        robotStateSensation.associate(muscleVoice)
+        self.doProcess(robot=robot, sensation=robotStateSensation)
+#         self.doProcess(robot=robot, sensation=self.createSensation(
+#                                                     sensationName='Wall_E_voice_sensation_3Played',
+#                                                     robot=robot,
+#                                                     memoryType=Sensation.MemoryType.Sensory,
+#                                                     sensationType=Sensation.SensationType.RobotState,
+#                                                     robotState=Sensation.RobotState.CommunicationVoicePlayed,
+#                                                     mainNames=mainNames,
+#                                                     locations=self.getLocations())) 
         self.expect(isWait=isWait,
                         name='response, third best voice, image CommunicationWaitingResponse', isEmpty=False,
                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
@@ -2812,7 +3007,7 @@ class CommunicationTest(RobotTestCase):
         robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_sense_voice_response_sensation_3)
         # TODO WE will not get Communication Sensations, because limit is exceeded
         # But Communication implementation will be changed
-        self.expect(isWait=isWait,
+        muscleVoice = self.expect(isWait=isWait,
                     name='response, response voice, fourth best image, voice',
                     isEmpty=False,
                     muscleImage=Wall_E_image_sensation_4, isExactMuscleImage=True,
@@ -2829,14 +3024,24 @@ class CommunicationTest(RobotTestCase):
             self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingVoicePlayed)
 
         # simulate playback
-        self.doProcess(robot=robot, sensation=self.createSensation(
-                                                    sensationName='Wall_E_voice_sensation_4Played',
-                                                    robot=robot,
-                                                    memoryType=Sensation.MemoryType.Sensory,
-                                                    sensationType=Sensation.SensationType.RobotState,
-                                                    robotState=Sensation.RobotState.CommunicationVoicePlayed,
-                                                    mainNames=mainNames,
-                                                    locations=self.getLocations())) 
+        robotStateSensation=self.createSensation(
+                                                        sensationName='Wall_E_voice_sensation_4Played',
+                                                        robot=robot,
+                                                        memoryType=Sensation.MemoryType.Sensory,
+                                                        sensationType=Sensation.SensationType.RobotState,
+                                                        robotType=Sensation.RobotType.Sense,
+                                                        robotState = Sensation.RobotState.CommunicationVoicePlayed,
+                                                        locations=self.getLocations())
+        robotStateSensation.associate(muscleVoice)
+        self.doProcess(robot=robot, sensation=robotStateSensation)
+#         self.doProcess(robot=robot, sensation=self.createSensation(
+#                                                     sensationName='Wall_E_voice_sensation_4Played',
+#                                                     robot=robot,
+#                                                     memoryType=Sensation.MemoryType.Sensory,
+#                                                     sensationType=Sensation.SensationType.RobotState,
+#                                                     robotState=Sensation.RobotState.CommunicationVoicePlayed,
+#                                                     mainNames=mainNames,
+#                                                     locations=self.getLocations())) 
         self.expect(isWait=isWait,
                         name='response, response voice, fourth best image, voice CommunicationWaitingResponse', isEmpty=False,
                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
