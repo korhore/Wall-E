@@ -1,6 +1,6 @@
 '''
 Created on 21.06.2019
-Updated on 02.12.2021
+Updated on 09.12.2021
 @author: reijo.korhonen@gmail.com
 
 test Association class

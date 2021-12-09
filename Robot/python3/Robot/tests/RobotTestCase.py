@@ -342,6 +342,14 @@ class RobotTestCase():
     isWait                     do we wait rto get all responses or
                                start to study responses right a way
                                
+    return
+    muscleVoice                Returns got muclevoice, because this is for Playback
+                               and tests should simulate Playback functionality,
+                               when Playback itself is not tested. In practice
+                               tests use this voice to be assigned correct ly
+                               RoboStateCommunication sensations, that Playback
+                               produces, when it is working. 
+                               
     TODO Correct parameters muscle and communication responses are same
     but when we limit communication responseses, it can be so, that we don't get them
     '''
