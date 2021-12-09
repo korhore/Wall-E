@@ -1789,9 +1789,6 @@ class CommunicationTest(RobotTestCase):
                                                     mainNames=mainNames,
                                                     locations=self.getLocations())
             self.printSensationNameById(note='Eva_image_sensation test', dataId=Eva_image_sensation.getDataId())
-    #         Eva_item_sensation.associate(sensation=Eva_voice_sensation)
-    #         Eva_item_sensation.associate(sensation=Eva_image_sensation)
-    #         Eva_voice_sensation.associate(sensation=Eva_image_sensation)
             #simulate TensorFlowClassification send presence item to MainRobot
             self.assertEqual(len(robot.getMemory().getAllPresentItemSensations()), 2, 'len(robot.getMemory().getAllPresentItemSensations() after Entering Item Sensation should NAME2 be 3')
     
@@ -1819,9 +1816,6 @@ class CommunicationTest(RobotTestCase):
                         name='Entering Name2, change in presentation', isEmpty=False,
                         muscleImage=Eva_image_sensation, isExactMuscleImage=True,
                         muscleVoice=Eva_voice_sensation, isExactMuscleVoice=True,
-                        #isVoiceFeeling=True,
-                        #isImageFeeling=True,
-                        #isPositiveFeeling=True,
                         robotStates = (Sensation.RobotState.CommunicationWaiting, Sensation.RobotState.CommunicationWaitingVoicePlayed))
             for location in self.getLocations():
                 self.assertEqual(self.communication.itemConversations[location].robotState, Sensation.RobotState.CommunicationWaitingVoicePlayed)
@@ -1836,15 +1830,8 @@ class CommunicationTest(RobotTestCase):
                                                         robotState = Sensation.RobotState.CommunicationVoicePlayed,
                                                         locations=self.getLocations())
             robotStateSensation.associate(muscleVoice)
+
             self.doProcess(robot=robot, sensation=robotStateSensation)
-#             self.doProcess(robot=robot, sensation=self.createSensation(
-#                                                     sensationName='Eva_voice_sensationPlayed',
-#                                                     robot=robot,
-#                                                     memoryType=Sensation.MemoryType.Sensory,
-#                                                     sensationType=Sensation.SensationType.RobotState,
-#                                                     robotState=Sensation.RobotState.CommunicationVoicePlayed,
-#                                                     mainNames=mainNames,
-#                                                     locations=self.getLocations())) 
             self.expect(isWait=isWait,
                         name='Entering Name2, change in presentation CommunicationWaitingResponse', isEmpty=False,
                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
@@ -1901,8 +1888,8 @@ class CommunicationTest(RobotTestCase):
                                                     presence=Sensation.Presence.Present,
                                                     locations=self.getLocations())
             self.printSensationNameById(note='Wall_E_item_sensation7 test', dataId=Wall_E_item_sensation7.getDataId())
+
             #simulate TensorFlowClassification send presence item to MainRobot       
-    #         robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation7)
             self.doProcess(robot=robot, sensation=Wall_E_item_sensation7)
             # pending feeling is got
             # next pending feeling
@@ -1928,15 +1915,8 @@ class CommunicationTest(RobotTestCase):
                                                         robotState = Sensation.RobotState.CommunicationVoicePlayed,
                                                         locations=self.getLocations())
             robotStateSensation.associate(muscleVoice)
+
             self.doProcess(robot=robot, sensation=robotStateSensation)
-#             self.doProcess(robot=robot, sensation=self.createSensation(
-#                                                     sensationName='Eva_voice_sensationPlayed',
-#                                                     robot=robot,
-#                                                     memoryType=Sensation.MemoryType.Sensory,
-#                                                     sensationType=Sensation.SensationType.RobotState,
-#                                                     robotState=Sensation.RobotState.CommunicationVoicePlayed,
-#                                                     mainNames=mainNames,
-#                                                     locations=self.getLocations())) 
             self.expect(isWait=isWait,
                         name='Present Name 2, change in presentation CommunicationWaitingResponse', isEmpty=False,
                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
@@ -2000,7 +1980,6 @@ class CommunicationTest(RobotTestCase):
             self.printSensationNameById(note='Wall_E_item_sensation8 test', dataId=Wall_E_item_sensation8.getDataId())
             #simulate TensorFlowClassification send presence item to MainRobot
            
-    #         robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation8)
             self.doProcess(robot=robot, sensation=Wall_E_item_sensation8)
             self.assertEqual(len(robot.getMemory().getAllPresentItemSensations()), 2, 'len(robot.getMemory().getAllPresentItemSensations() should be 3')
             # We don't get any Communication Sensations, becuse response limit is expected
@@ -2030,15 +2009,8 @@ class CommunicationTest(RobotTestCase):
                                                         robotState = Sensation.RobotState.CommunicationVoicePlayed,
                                                         locations=self.getLocations())
             robotStateSensation.associate(muscleVoice)
+
             self.doProcess(robot=robot, sensation=robotStateSensation)
-#             self.doProcess(robot=robot, sensation=self.createSensation(
-#                                                     sensationName='Eva_voice_sensation2Played',
-#                                                     robot=robot,
-#                                                     memoryType=Sensation.MemoryType.Sensory,
-#                                                     sensationType=Sensation.SensationType.RobotState,
-#                                                     robotState=Sensation.RobotState.CommunicationVoicePlayed,
-#                                                     mainNames=mainNames,
-#                                                     locations=self.getLocations())) 
             self.expect(isWait=isWait,
                         name='Present NAME2 again basic change in presentation CommunicationWaitingResponse', isEmpty=False,
                         robotStates = (Sensation.RobotState.CommunicationWaitingResponse))
@@ -2061,7 +2033,6 @@ class CommunicationTest(RobotTestCase):
            
             #simulate TensorFlowClassification send presence item to MainRobot
     
-    #         robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation9)
             self.doProcess(robot=robot, sensation=Wall_E_item_sensation9)
             sleepTime = Communication.COMMUNICATION_INTERVAL+ 1.0
             print("test is sleeping " + str(sleepTime) + " until continuing")       
@@ -2095,7 +2066,6 @@ class CommunicationTest(RobotTestCase):
             self.printSensationNameById(note='Wall_E_item_sensation10 test', dataId=Wall_E_item_sensation10.getDataId())
            #simulate TensorFlowClassification send presence item to MainRobot
            
-    #         robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation10)
             self.doProcess(robot=robot, sensation=Wall_E_item_sensation10)
             self.assertEqual(len(robot.getMemory().getAllPresentItemSensations()), 0, 'len(robot.getMemory().getAllPresentItemSensations() should be 1')
             self.expect(isWait=isWait,
@@ -2150,9 +2120,6 @@ class CommunicationTest(RobotTestCase):
                                                     mainNames=mainNames,
                                                     locations=self.getLocations())
             self.printSensationNameById(note='Eva_image_sensation test', dataId=Eva_image_sensation.getDataId())
-    #         Eva_item_sensation.associate(sensation=Eva_voice_sensation)
-    #         Eva_item_sensation.associate(sensation=Eva_image_sensation)
-    #         Eva_voice_sensation.associate(sensation=Eva_image_sensation)
             #simulate TensorFlowClassification send presence item to MainRobot
             self.assertEqual(len(robot.getMemory().getAllPresentItemSensations()), 2, 'len(robot.getMemory().getAllPresentItemSensations() after Entering Item Sensation should NAME2 be 3')
     
@@ -2236,7 +2203,7 @@ class CommunicationTest(RobotTestCase):
                                                     locations=self.getLocations())
             self.printSensationNameById(note='Wall_E_item_sensation7 test', dataId=Wall_E_item_sensation7.getDataId())
             #simulate TensorFlowClassification send presence item to MainRobot       
-    #         robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation7)
+
             self.doProcess(robot=robot, sensation=Wall_E_item_sensation7)
             # pending feeling is got
             # next pending feeling
@@ -2307,7 +2274,6 @@ class CommunicationTest(RobotTestCase):
             self.printSensationNameById(note='Wall_E_item_sensation8 test', dataId=Wall_E_item_sensation8.getDataId())
             #simulate TensorFlowClassification send presence item to MainRobot
            
-    #         robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation8)
             self.doProcess(robot=robot, sensation=Wall_E_item_sensation8)
             self.assertEqual(len(robot.getMemory().getAllPresentItemSensations()), 2, 'len(robot.getMemory().getAllPresentItemSensations() should be 3')
             # We don't get any Communication Sensations, becuse response limit is expected
@@ -2342,7 +2308,6 @@ class CommunicationTest(RobotTestCase):
            
             #simulate TensorFlowClassification send presence item to MainRobot
     
-    #         robot.process(transferDirection=Sensation.TransferDirection.Down, sensation=Wall_E_item_sensation9)
             self.doProcess(robot=robot, sensation=Wall_E_item_sensation9)
             sleepTime = Communication.COMMUNICATION_INTERVAL+ 1.0
             print("test is sleeping " + str(sleepTime) + " until continuing")       
