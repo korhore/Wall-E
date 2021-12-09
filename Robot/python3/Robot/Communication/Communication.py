@@ -798,7 +798,6 @@ class Communication(Robot):
                         shouldDelete=True
                 elif sensation.getSensationType() == Sensation.SensationType.RobotState and sensation.getRobotState() == Sensation.RobotState.CommunicationVoicePlayed:
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: got CommunicationVoicePlayed')
-#                     self.voicesToBePlayed -= 1
                     for a in sensation.getAssociations():
                         if  a.getSensation().getSensationType() ==  a.getSensation().SensationType.Voice and\
                             a.getSensation().getMemoryType() == Sensation.MemoryType.Sensory and\
@@ -808,25 +807,13 @@ class Communication(Robot):
                                 self.spokedVoiceSensations.remove(a.getSensation())
                                 a.getSensation().detach(robot=self.getRobot()) # to be sure
                                 self.voicesToBePlayed -= 1
-#                                 if self.voicesToBePlayed == 0:
-#                                     self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: all Voices Played, can start to wait response')
-#                                     self.informRobotState(robotState=Sensation.RobotState.CommunicationWaitingResponse)
-#                                     # wait response
-#                                     self.responseTimer = threading.Timer(interval=Communication.COMMUNICATION_INTERVAL, function=self.stopWaitingResponse)
-#                                     self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process speak: timer.start()')
-#                                     self.responseTimer.start()
-                            else:
-                                self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: got CommunicationVoicePlayed about OTHER Voice {}'.format(a.getSensation().toDebugStr()))
-#                         else:
-#                             self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: got CommunicationVoicePlayed about OTHER Sensation {}'.format(a.getSensation().toDebugStr()))
-                    if self.voicesToBePlayed <= 0:
-                        self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: all Voices Played, can start to wait response')
-                        self.informRobotState(robotState=Sensation.RobotState.CommunicationWaitingResponse)
-                        # wait response
-                        self.responseTimer = threading.Timer(interval=Communication.COMMUNICATION_INTERVAL, function=self.stopWaitingResponse)
-                        self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process speak: timer.start()')
-                        self.responseTimer.start()
-
+                                if self.voicesToBePlayed == 0:
+                                    self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: all Voices Played, can start to wait response')
+                                    self.informRobotState(robotState=Sensation.RobotState.CommunicationWaitingResponse)
+                                    # wait response
+                                    self.responseTimer = threading.Timer(interval=Communication.COMMUNICATION_INTERVAL, function=self.stopWaitingResponse)
+                                    self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process speak: timer.start()')
+                                    self.responseTimer.start()
                 else:
                     self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: not Item or RESPONSE Voice or Image in communication or too soon from last conversation ' + sensation.toDebugStr())
             else:
