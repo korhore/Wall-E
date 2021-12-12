@@ -33,6 +33,7 @@ class VisualTestCase(unittest.TestCase):
     ASSOCIATION_INTERVAL=3.0
     #TEST_TIME=300 # 5 min, when debugging
     TEST_TIME=30 # 30s when normal test
+    TEST_COMMUNICATION_TIME = 2.5
 
     SCORE_1 = 0.1
     SCORE_2 = 0.2
@@ -132,29 +133,38 @@ class VisualTestCase(unittest.TestCase):
         self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 1)
         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 1)
         
-        #systemTime.sleep(0.1)  # wait to get really even id
-        self.Wall_E_voice_sensation = self.visual.createSensation(time=self.history_sensationTime,
+
+        # heard voice
+        self.Wall_E_voice_sense_sensation = self.visual.createSensation(time=self.history_sensationTime,
                                                        memoryType=Sensation.MemoryType.Sensory,
                                                        sensationType=Sensation.SensationType.Voice,
                                                        robotType=Sensation.RobotType.Sense,
                                                        data="1",
                                                        locations=self.LOCATIONS_1_2)
-        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_voice_sensation)
-        self.Wall_E_image_sensation.associate(sensation=self.Wall_E_voice_sensation)
+        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_voice_sense_sensation)
+        self.Wall_E_image_sensation.associate(sensation=self.Wall_E_voice_sense_sensation)
         # these connected each other
         self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 2)
         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 2)
-        self.assertEqual(len(self.Wall_E_voice_sensation.getAssociations()), 2)
+        self.assertEqual(len(self.Wall_E_voice_sense_sensation.getAssociations()), 2)
 
+        # spoken voice
+        self.Wall_E_voice_muscle_sensation = self.visual.createSensation(
+                                                       sensation=self.Wall_E_voice_sense_sensation,
+                                                       memoryType=Sensation.MemoryType.Sensory,
+                                                       robotType=Sensation.RobotType.Muscle,
+                                                       locations=self.LOCATIONS_1_2)
+
+       
        
          
 #         self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 2)
 #         self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 2)
-#         self.assertEqual(len(self.Wall_E_voice_sensation.getAssociations()), 2)
+#         self.assertEqual(len(self.Wall_E_voice_sense_sensation.getAssociations()), 2)
 #         
 #         self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
 #         self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
-#         self.Wall_E_voice_sensation_association_len = len(self.Wall_E_voice_sensation.getAssociations())
+#         self.Wall_E_voice_sense_sensation_association_len = len(self.Wall_E_voice_sense_sensation.getAssociations())
 
         # get identity for self.visual as MainRobot does it (for images only)        
         self.studyOwnIdentity(robot=self.visual)
@@ -209,26 +219,32 @@ class VisualTestCase(unittest.TestCase):
         self.assertTrue(len(self.Wall_E_image_sensation_2.getAssociations()) == 1 or len(self.Wall_E_image_sensation_2.getAssociations()) == 2)
         
         #systemTime.sleep(0.1)  # wait to get really even id
-        self.Wall_E_voice_sensation = self.visual.createSensation(memoryType=Sensation.MemoryType.Sensory,
+        self.Wall_E_voice_sense_sensation = self.visual.createSensation(memoryType=Sensation.MemoryType.Sensory,
                                                        sensationType=Sensation.SensationType.Voice,
                                                        robotType=Sensation.RobotType.Sense,
                                                        data="1",
                                                        locations=locations)
-        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_voice_sensation)
-        self.Wall_E_image_sensation.associate(sensation=self.Wall_E_voice_sensation)
+        self.Wall_E_item_sensation.associate(sensation=self.Wall_E_voice_sense_sensation)
+        self.Wall_E_image_sensation.associate(sensation=self.Wall_E_voice_sense_sensation)
         # these connected each other
         self.assertTrue(len(self.Wall_E_item_sensation.getAssociations()) == 4 or len(self.Wall_E_item_sensation.getAssociations()) ==  5)
         self.assertTrue(len(self.Wall_E_image_sensation.getAssociations()) == 2 or len(self.Wall_E_image_sensation.getAssociations()) == 3) 
-        self.assertTrue(len(self.Wall_E_voice_sensation.getAssociations()) == 2 or len(self.Wall_E_voice_sensation.getAssociations()) == 3)
+        self.assertTrue(len(self.Wall_E_voice_sense_sensation.getAssociations()) == 2 or len(self.Wall_E_voice_sense_sensation.getAssociations()) == 3)
 
         self.assertTrue(len(self.Wall_E_item_sensation.getAssociations()) == 4 or len(self.Wall_E_item_sensation.getAssociations()) == 5)
         self.assertTrue(len(self.Wall_E_image_sensation.getAssociations()) == 2 or len(self.Wall_E_image_sensation.getAssociations()) == 3)
-        self.assertTrue(len(self.Wall_E_voice_sensation.getAssociations()) == 2 or len(self.Wall_E_voice_sensation.getAssociations()) == 3)
+        self.assertTrue(len(self.Wall_E_voice_sense_sensation.getAssociations()) == 2 or len(self.Wall_E_voice_sense_sensation.getAssociations()) == 3)
         
         self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
         self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
-        self.Wall_E_voice_sensation_association_len = len(self.Wall_E_voice_sensation.getAssociations())
+        self.Wall_E_voice_sense_sensation_association_len = len(self.Wall_E_voice_sense_sensation.getAssociations())
         
+        self.Wall_E_voice_muscle_sensation = self.visual.createSensation(memoryType=Sensation.MemoryType.Sensory,
+                                                       sensation=self.Wall_E_voice_sense_sensation,              
+                                                       sensationType=Sensation.SensationType.Voice,
+                                                       robotType=Sensation.RobotType.Muscle,
+                                                       locations=locations)
+
         # communication
         self.communication_CommunicationNotStarted_sensation = self.visual.createSensation(
                                                       memoryType=Sensation.MemoryType.Sensory,
@@ -251,11 +267,59 @@ class VisualTestCase(unittest.TestCase):
                                                       robotState=Sensation.RobotState.CommunicationEnded,
                                                       locations=self.LOCATIONS_1_2)
         
+        self.communication_CommunicationWaitingVoicePlayed_sensation = self.visual.createSensation(
+                                                      memoryType=Sensation.MemoryType.Sensory,
+                                                      sensationType=Sensation.SensationType.RobotState,
+                                                      robotState=Sensation.RobotState.CommunicationWaitingVoicePlayed,
+                                                      locations=self.LOCATIONS_1_2)
+        
+        self.communication_CommunicationVoicePlayed_sensation = self.visual.createSensation(
+                                                      memoryType=Sensation.MemoryType.Sensory,
+                                                      sensationType=Sensation.SensationType.RobotState,
+                                                      robotState=Sensation.RobotState.CommunicationVoicePlayed,
+                                                      locations=self.LOCATIONS_1_2)
+        
+        self.communication_CommunicationWaitingResponse_sensation = self.visual.createSensation(
+                                                      memoryType=Sensation.MemoryType.Sensory,
+                                                      sensationType=Sensation.SensationType.RobotState,
+                                                      robotState=Sensation.RobotState.CommunicationWaitingResponse,
+                                                      locations=self.LOCATIONS_1_2)
+        
+        self.communication_CommunicationResponseHeard = self.visual.createSensation(
+                                                      memoryType=Sensation.MemoryType.Sensory,
+                                                      sensationType=Sensation.SensationType.RobotState,
+                                                      robotState=Sensation.RobotState.CommunicationResponseHeard,
+                                                      locations=self.LOCATIONS_1_2)
+        
+        self.communication_CommunicationNoResponseHeard = self.visual.createSensation(
+                                                      memoryType=Sensation.MemoryType.Sensory,
+                                                      sensationType=Sensation.SensationType.RobotState,
+                                                      robotState=Sensation.RobotState.CommunicationNoResponseHeard,
+                                                      locations=self.LOCATIONS_1_2)
+        
+        self.communication_CommunicationNoResponseToSay = self.visual.createSensation(
+                                                      memoryType=Sensation.MemoryType.Sensory,
+                                                      sensationType=Sensation.SensationType.RobotState,
+                                                      robotState=Sensation.RobotState.CommunicationNoResponseHeard,
+                                                      locations=self.LOCATIONS_1_2)
+        
         self.communication_item_sensation = self.visual.createSensation(memoryType=Sensation.MemoryType.Sensory,
                                                       sensationType=Sensation.SensationType.Item,
                                                       robotType=Sensation.RobotType.Muscle,
                                                       name=VisualTestCase.NAME,
                                                       presence = Sensation.Presence.Present,
+                                                      locations=self.LOCATIONS_1_2)
+        
+        self.communication_MicrophoneDisabled_sensation = self.visual.createSensation(
+                                                      memoryType=Sensation.MemoryType.Sensory,
+                                                      sensationType=Sensation.SensationType.RobotState,
+                                                      robotState=Sensation.RobotState.MicrophoneDisabled,
+                                                      locations=self.LOCATIONS_1_2)
+
+        self.communication_MicrophoneSensing_sensation = self.visual.createSensation(
+                                                      memoryType=Sensation.MemoryType.Sensory,
+                                                      sensationType=Sensation.SensationType.RobotState,
+                                                      robotState=Sensation.RobotState.MicrophoneSensing,
                                                       locations=self.LOCATIONS_1_2)
 
         image = self.visual.selfImage
@@ -309,7 +373,7 @@ class VisualTestCase(unittest.TestCase):
             systemTime.sleep(1)
          
         del self.visual
-        del self.Wall_E_voice_sensation
+        del self.Wall_E_voice_sense_sensation
         del self.Wall_E_image_sensation_2
         del self.Wall_E_image_sensation
         del self.Wall_E_item_sensation
@@ -320,36 +384,74 @@ class VisualTestCase(unittest.TestCase):
         self.visual.start()
         
         sleeptime = Visual.SLEEPTIME+Visual.SLEEPTIMERANDOM
-        print("--- test sleeping " + str(sleeptime) + " second until starting to test")
+        print("\n--- test sleeping {} seconds until starting to test\n".format(sleeptime))
         systemTime.sleep(sleeptime ) # let Visual start before waiting it to stops
+
+        self.getSensations()
+        self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_CommunicationNotStarted_sensation)
+        self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_MicrophoneDisabled_sensation)
+        systemTime.sleep(VisualTestCase.TEST_COMMUNICATION_TIME)
+        
+        self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_CommunicationNoResponseToSay)
+        self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_MicrophoneSensing_sensation)
+        systemTime.sleep(VisualTestCase.TEST_COMMUNICATION_TIME)
+
+        self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_item_sensation)
+        self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_image_sensation)
+        self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_CommunicationOn_sensation)
+        systemTime.sleep(VisualTestCase.TEST_COMMUNICATION_TIME)
+        self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_CommunicationWaiting_sensation)
+        systemTime.sleep(VisualTestCase.TEST_COMMUNICATION_TIME)
+        self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_CommunicationWaiting_sensation)
+        systemTime.sleep(VisualTestCase.TEST_COMMUNICATION_TIME)
+
+        isResponse=False
         for i in range(VisualTestCase.TEST_RUNS):
             self.getSensations()
-            
-            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_CommunicationNotStarted_sensation)
-            
-            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_item_sensation)
-            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_CommunicationOn_sensation)
             self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_CommunicationWaiting_sensation)
-
-            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_voice_sensation)
+            systemTime.sleep(VisualTestCase.TEST_COMMUNICATION_TIME)
+            
+            # We hear a Voice
+            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_voice_sense_sensation)
             self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_image_sensation)
             self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_image_sensation_2)
- 
-            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_item_sensation)
-            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_image_sensation)
-            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_voice_sensation)
- 
-            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_positive_feeling_sensation)
-            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_CommunicationEnded_sensation)
-                       
-            sleeptime = 3
-            print("--- test sleeping " + str(sleeptime) + " second until test results")
-            systemTime.sleep(sleeptime ) # let Visual start before waiting it to stops
-            # OOps assertEqual removed, study
-            self.assertEqual(self.visual.getAxon().empty(), True, 'Axon should be empty again at the end of test_Visual!')
-            #self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_voice_sensation)
+            if isResponse:
+                self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_CommunicationResponseHeard)
+                self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_positive_feeling_sensation)
+                systemTime.sleep(VisualTestCase.TEST_COMMUNICATION_TIME)
+            else:
+                isResponse = True
+                
+            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_voice_muscle_sensation)
+            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_MicrophoneDisabled_sensation)
+            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_CommunicationWaitingVoicePlayed_sensation)
+            systemTime.sleep(VisualTestCase.TEST_COMMUNICATION_TIME)
 
-# TODO Reenable stop       
+            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_MicrophoneSensing_sensation)
+            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_CommunicationVoicePlayed_sensation)
+            systemTime.sleep(VisualTestCase.TEST_COMMUNICATION_TIME)
+                
+            self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_CommunicationWaitingResponse_sensation)
+            systemTime.sleep(VisualTestCase.TEST_COMMUNICATION_TIME)
+            
+        self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_CommunicationNoResponseHeard)
+        self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_positive_feeling_sensation)
+        systemTime.sleep(VisualTestCase.TEST_COMMUNICATION_TIME)
+
+        self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_CommunicationNoResponseToSay)
+        systemTime.sleep(VisualTestCase.TEST_COMMUNICATION_TIME)
+
+        self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.communication_CommunicationEnded_sensation)
+        systemTime.sleep(VisualTestCase.TEST_COMMUNICATION_TIME)
+
+        # sleeptime = 3
+        # print("--- test sleeping " + str(sleeptime) + " second until test results")
+        # systemTime.sleep(sleeptime ) # let Visual start before waiting it to stops
+        # OOps assertEqual removed, study
+        self.assertEqual(self.visual.getAxon().empty(), True, 'Axon should be empty again at the end of test_Visual!')
+        #self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.Wall_E_voice_sense_sensation)
+
+# TODO Re-enable stop       
 #         print("--- put stop-sensation for Visual")
 #         self.visual.getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Down, sensation=self.stopSensation)
         
