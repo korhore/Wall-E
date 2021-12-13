@@ -379,7 +379,7 @@ class Memory(object):
         succeeded = False
         while not succeeded:
             try:
-                for location in sensation.getLocatiuon():
+                for location in sensation.getLocations():
                     if location in location in self._presentItemSensations.keys():
 #                for location in self._presentItemSensations.keys():
                         for itemSensation in self._presentItemSensations[location].values():
@@ -1692,7 +1692,13 @@ class Memory(object):
         if not location in presentDict:
             presentDict[location] = {}
             return []
-        return presentDict[location].items()
+        itemSensations = []
+        names=[]
+        for name, itemSensation in presentDict[location].items():
+            if name not in names:
+                names.append(name)
+                itemSensations.append(itemSensation)
+        return itemSensations
 
     '''
     get Item presence sensations in a location

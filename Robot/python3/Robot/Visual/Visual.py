@@ -1132,6 +1132,7 @@ class Visual(Robot):
             """Create the MainFrame."""
             wx.Panel.__init__(self, parent) #called
             self.robot = robot
+            self.location = location
      
             self.SetInitialSize((Visual.PANEL_WIDTH, Visual.PANEL_HEIGHT))
             
@@ -1171,6 +1172,9 @@ class Visual(Robot):
             self.Fit()
             
             #Visual.setEventHandler(self, Visual.ID_POSITIVE, self.OnFeelingChange)
+            
+        def getLocation(self):
+            return self.location
    
         def setRobot(self, robot):
             self.robot=robot #called
@@ -1214,11 +1218,18 @@ class Visual(Robot):
                     #self.Refresh()
                     self.SetSize((x,y))
                     #self.Refresh()
+                # finally update present items lines
+                line=1
+                for itemSensation in self.getRobot().getMemory().getPresentItemSensations(location=self.getLocation()):
+                    toInd = line*Visual.COMMUNICATE_PANEL_COLUMNS + Visual.COMMUNICATE_COLUMN_PARTNER
+                    to_item = self.gs.GetItem(toInd)
+                    to_item.GetWindow().SetLabel(itemSensation.getName())
+                    line +=1
+                for line in range(line, Visual.COMMUNICATE_PANEL_REASON_LINE):
+                    toInd = line*Visual.COMMUNICATE_PANEL_COLUMNS + Visual.COMMUNICATE_COLUMN_PARTNER
+                    to_item = self.gs.GetItem(toInd)
+                    to_item.GetWindow().SetLabel('')
                     
-    #                 self.status.SetLabel('Processed Sensation Event')
-    
-    #             else:
-    #                 self.status.SetLabel('Sensation is None in Sensation Event')
 
         '''
         set Root status (communicate and Microphone) to status line

@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 06.12.2021
+Updated on 13.12.2021
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -1103,7 +1103,8 @@ class Robot(Thread):
                 imageSensation = self.createSensation( sensationType = Sensation.SensationType.Image,
                                                        memoryType = Sensation.MemoryType.Sensory,
                                                        robotType = Sensation.RobotType.Sense,
-                                                       image=image)
+                                                       image=image,
+                                                       locations=Robot.PAST_LOCATIONS)
                 imageSensations.append(imageSensation)
             # voices
             for fname in voice_file_names:
@@ -1131,7 +1132,8 @@ class Robot(Thread):
                                                            sensationType = Sensation.SensationType.Voice,
                                                            memoryType = Sensation.MemoryType.LongTerm,
                                                            robotType = Sensation.RobotType.Sense,
-                                                           data=data)
+                                                           data=data,
+                                                           locations=Robot.PAST_LOCATIONS)
                     voiceSensations.append(voiceSensation)
                     
         return imageSensations, voiceSensations
@@ -1712,6 +1714,7 @@ class Identity(Robot):
         self.sleeptime = Identity.SLEEPTIME
         
         self.setLocations(locations=Robot.PAST_LOCATIONS)
+        self.setUpLocations(uplocations=Robot.PAST_LOCATIONS)
         
 
     '''
@@ -1982,6 +1985,7 @@ class Identity(Robot):
                                                                 instanceType= Sensation.InstanceType.SubInstance,
                                                                 level=self.level)
             tensorFlowClassification.setLocations(Robot.PAST_LOCATIONS)
+            tensorFlowClassification.setUpLocations(Robot.PAST_LOCATIONS)
             tensorFlowClassification.start()
             self.getParent().itemSensations, self.getParent().itemImageSensations = self.getItemSensations(tensorFlowClassification=tensorFlowClassification, name = self.getParent().getName(), imageSensations = self.getParent().imageSensations)
             
