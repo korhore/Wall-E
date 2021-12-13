@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 06.12.2021
+Edited on 13.12.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -379,16 +379,18 @@ class Memory(object):
         succeeded = False
         while not succeeded:
             try:
-                for location in self._presentItemSensations.keys():
-                    for itemSensation in self._presentItemSensations[location].values():
-                        if sensation is not itemSensation and\
-                           sensation.getTime() >=  itemSensation.getTime():
-                            # and len(itemSensation.getAssociations()) < Sensation.ASSOCIATIONS_MAX_ASSOCIATIONS: #removed limitation
-                            if log:
-                                self.log(logLevel=Memory.MemoryLogLevel.Detailed, logStr='assign: location:' + location + ' itemSensation= ' +  itemSensation.toDebugStr() + ' sensation= ' + sensation.toDebugStr())
-                            itemSensation.associate(sensation=sensation)
-                        else:
-                            self.log(logLevel=Memory.MemoryLogLevel.Detailed, logStr='assign: location:' + location + ' sensation ignored not newer than present itemSensation or sensation is present itemSensation= ' + itemSensation.toDebugStr() + ' sensation= ' + sensation.toDebugStr())
+                for location in sensation.getLocatiuon():
+                    if location in location in self._presentItemSensations.keys():
+#                for location in self._presentItemSensations.keys():
+                        for itemSensation in self._presentItemSensations[location].values():
+                            if sensation is not itemSensation and\
+                               sensation.getTime() >=  itemSensation.getTime():
+                                # and len(itemSensation.getAssociations()) < Sensation.ASSOCIATIONS_MAX_ASSOCIATIONS: #removed limitation
+                                if log:
+                                    self.log(logLevel=Memory.MemoryLogLevel.Detailed, logStr='assign: location:' + location + ' itemSensation= ' +  itemSensation.toDebugStr() + ' sensation= ' + sensation.toDebugStr())
+                                itemSensation.associate(sensation=sensation)
+                            else:
+                                self.log(logLevel=Memory.MemoryLogLevel.Detailed, logStr='assign: location:' + location + ' sensation ignored not newer than present itemSensation or sensation is present itemSensation= ' + itemSensation.toDebugStr() + ' sensation= ' + sensation.toDebugStr())
                 succeeded = True
             except Exception as e:
                 if log:
@@ -1708,6 +1710,7 @@ class Memory(object):
     but only one sensation per Item.name
     This is helper function to ne compatible with old implementation when we don't care about locations.
     This method can be removed
+    deprecated
     '''
     def getAllPresentItemSensations(self):
         itemSensations = []

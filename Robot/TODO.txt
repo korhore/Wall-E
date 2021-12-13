@@ -76,7 +76,12 @@ Eva stops to send images
 
 Develop
 -------
-Still CommunicationVoicePlayed logic should be secured somehow, keep track what should be waited etc. or how long we wait.
+
+Voice associations should be more on purpose than statistical by time. Hearing should assign hears Voices to present Items
+and all automatic assigns should be removed from Memory.
+
+
+OK Still CommunicationVoicePlayed logic should be secured somehow, keep track what should be waited etc. or how long we wait.
  OK Maybe we should associate RobotState to Voices to be played, keep track what is played with responses.
  Implemented in a test ansd should be implemented also in Communication.
 
@@ -1528,7 +1533,7 @@ Try same with Identification
 OK Implement flat Memory, no MemoryType divided any more
 
 OK Correct Communication configuration and accepting
-OK, Wotking is correct
+OK, Working is correct
 Make presentation changes as Sensory sensations, not Working,
 because they are Sensory level.
 -- OOps this was not good idea, because it leads to infinite loop in

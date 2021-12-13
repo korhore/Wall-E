@@ -1,6 +1,6 @@
 '''
 Created on 21.09.2019
-Updated on 07.12.2020
+Updated on 13.12.2020
 
 @author: reijo.korhonen@gmail.com
 
@@ -421,10 +421,10 @@ class Microphone(Robot):
                 voiceSensation = self.createSensation( associations=[], sensationType = Sensation.SensationType.Voice, memoryType = Sensation.MemoryType.Sensory, robotType = Sensation.RobotType.Sense,
                                                        data=self.getVoiceData(data=self.voice_data, dtype=Settings.AUDIO_CONVERSION_FORMAT), locations=self.getLocations())
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: voice from " + self.getMemory().itemsPresenceToStr())
-                for itemSensation in self.getMemory().getAllPresentItemSensations():
-                    itemSensation.associate(sensation=voiceSensation)
+                for location in self.getLocations():
+                    for itemSensation in self.getMemory().getPresentItemSensations(location=location):
+                        itemSensation.associate(sensation=voiceSensation)
     #            self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: self.getParent().getAxon().put(robot=self, sensation)")
-    #             self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=voiceSensation)
                 self.log(logLevel=Robot.LogLevel.Normal, logStr="sense: route(transferDirection=Sensation.TransferDirection.Direct, sensation=voiceSensation {}s voice".format(self.getPlaybackTimeFromDataLength(self.getVoiceDataLength(self.voice_data))))
                 self.route(transferDirection=Sensation.TransferDirection.Direct, sensation=voiceSensation)
             else:

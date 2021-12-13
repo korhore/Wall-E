@@ -200,6 +200,8 @@ class CommunicationTest(RobotTestCase):
         # We get Voice, Image, if Communication can respond but it can't
         self.expect(isWait=isWait,
                     name='Entering, Too old response', isEmpty=True)
+        # TODO Note getAllPresentItemSensations() and we should use getPresentItemSensations, which has location parameter, but it takes a lot time to change
+        # all these tests and in practice this test works as well.
         self.assertEqual(len(robot.getMemory().getAllPresentItemSensations()), 1, 'len(robot.getMemory()..getAllPresentItemSensations() should be 1')
         # test that we have conversation in locations given
         self.assertEqual(len(self.communication.itemConversations),len(self.getLocations()))
