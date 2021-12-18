@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 13.12.2021
+Updated on 14.12.2021
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -477,7 +477,6 @@ class Robot(Thread):
     def setUpLocations(self, uplocations):
         if self.getInstanceType() == Sensation.InstanceType.SubInstance:
             self.uplocations = uplocations
-            self.config.setUpLocations(uplocations = uplocations)
     def getUpLocations(self):
         return self.uplocations
     def getUpLocationsStr(self):
@@ -486,7 +485,6 @@ class Robot(Thread):
     def setDownLocations(self, downlocations):
         if self.getInstanceType() == Sensation.InstanceType.SubInstance:
             self.downlocations = downlocations
-            self.config.setDownLocations(downlocations = downlocations)
     def getDownLocations(self):
         if self.getInstanceType() == Sensation.InstanceType.Remote:
             return self.locations
@@ -1993,7 +1991,7 @@ class Identity(Robot):
             # own identity 
             for itemSensation in self.getParent().itemSensations:
                 for voiceSensation in self.getParent().voiceSensations:
-                    itemSensation.associate(sensation=voiceSensation,feeling = Sensation.Feeling.InLove)
+                    itemSensation.associate(sensation=voiceSensation,feeling = Sensation.Feeling.Neutral)
             # exposures               
             for exposure in self.getParent().getExposures():
                 # what images ans voices exposure has
@@ -2004,15 +2002,15 @@ class Identity(Robot):
                 # TODO Item now includes also litle Image, so it is not needed to use little Images.
                 for itemSensation in self.getParent().itemSensations:
                     for exposureItemSensation in exposureItemSensations:
-                        itemSensation.associate(sensation=exposureItemSensation,feeling = Sensation.Feeling.InLove)
+                        itemSensation.associate(sensation=exposureItemSensation,feeling = Sensation.Feeling.Neutral)
                         for exposureVoiceSensation in exposureVoiceSensations:
                             # we hear the at once, assign them
-                            exposureItemSensation.associate(sensation=exposureVoiceSensation,feeling = Sensation.Feeling.InLove)
-                            itemSensation.associate(sensation=exposureVoiceSensation,feeling = Sensation.Feeling.InLove)
+                            exposureItemSensation.associate(sensation=exposureVoiceSensation,feeling = Sensation.Feeling.Neutral)
+                            itemSensation.associate(sensation=exposureVoiceSensation,feeling = Sensation.Feeling.Neutral)
                             # we answer with all our voices, meaning that we assign it to those
                             for voiceSensation in self.getParent().voiceSensations:
-                                exposureItemSensation.associate(sensation=voiceSensation,feeling = Sensation.Feeling.InLove)
-                                exposureVoiceSensation.associate(sensation=voiceSensation,feeling = Sensation.Feeling.InLove)
+                                exposureItemSensation.associate(sensation=voiceSensation,feeling = Sensation.Feeling.Neutral)
+                                exposureVoiceSensation.associate(sensation=voiceSensation,feeling = Sensation.Feeling.Neutral)
                 # finally detach exposure sensations, because they are memories that can vanish
                 for exposureItemSensation  in exposureItemSensations:
                     self.getMemory().setMemoryType(sensation=exposureItemSensation, memoryType=Sensation.MemoryType.LongTerm)
@@ -2032,7 +2030,7 @@ class Identity(Robot):
                 self.getMemory().setMemoryType(sensation=imageSensation, memoryType=Sensation.MemoryType.LongTerm)
                
             self.robotState = Sensation.RobotState.RobotStateStopping
-            #self.getIdentitySensations(name=self.getParent().getName(), exposures=self.getParent().getExposures(), feeling = Sensation.Feeling.InLove)
+            #self.getIdentitySensations(name=self.getParent().getName(), exposures=self.getParent().getExposures(), feeling = Sensation.Feeling.Neutral)
             tensorFlowClassification.stop()
             
         # all done        

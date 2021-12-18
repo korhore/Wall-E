@@ -76,6 +76,7 @@ Eva stops to send images
 
 Develop
 -------
+Study masterItems. Items and Sensations assigned to then are all, what Robot knows about this world. Use library by name.
 
 Voice associations should be more on purpose than statistical by time. Hearing should assign hears Voices to present Items
 and all automatic assigns should be removed from Memory.
