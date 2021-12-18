@@ -139,33 +139,37 @@ class MemoryTestCase(unittest.TestCase):
         sensation.associate(sensation=self.Wall_E_item_sensation, feeling=feeling)
 
         # add sensation to directory, so we can find it's name by ids
-        self.addToSensationDirectory(name=sensationName, dataId=sensation.getDataId(), id=sensation.getId())
+        # deprecated
+        # self.addToSensationDirectory(name=sensationName, dataId=sensation.getDataId(), id=sensation.getId())
+        
         return sensation
         
 
 
-        
-    def addToSensationDirectory(self, name, dataId, id=None):
-        if id != None:
-            self.SensationDirectory.append((id, name))
-        self.SensationDataDirectory.append((dataId, name))
-       
-    def getSensationNameById(self, note, dataId=None,id=None):
-        assert(dataId is not None or id is not None)
-        if dataId is not None:
-            for did, name in self.SensationDataDirectory:
-                if did == dataId:
-                    return '{} | dataId {} | name: {}'.format(note, dataId, name)
-        if id is not None:
-            for iid, name in self.SensationDataDirectory:
-                if iid == id:
-                    return '{} | dataId {} | name: {}'.format(note, id, name)
-        if dataId is not None:
-            return'{} | dataId {} | was not found'.format(note, dataId)
-        return'{} | id {} | was not found'.format(note, id)
-        
-    def printSensationNameById(self, note, dataId=None,id=None):
-        print('\n{}\n'.format(self.getSensationNameById(note=note, dataId=dataId, id=id)))
+    '''
+    deprecated
+    '''    
+    # def addToSensationDirectory(self, name, dataId, id=None):
+    #     if id != None:
+    #         self.SensationDirectory.append((id, name))
+    #     self.SensationDataDirectory.append((dataId, name))
+    #
+    # def getSensationNameById(self, note, dataId=None,id=None):
+    #     assert(dataId is not None or id is not None)
+    #     if dataId is not None:
+    #         for did, name in self.SensationDataDirectory:
+    #             if did == dataId:
+    #                 return '{} | dataId {} | name: {}'.format(note, dataId, name)
+    #     if id is not None:
+    #         for iid, name in self.SensationDataDirectory:
+    #             if iid == id:
+    #                 return '{} | dataId {} | name: {}'.format(note, id, name)
+    #     if dataId is not None:
+    #         return'{} | dataId {} | was not found'.format(note, dataId)
+    #     return'{} | id {} | was not found'.format(note, id)
+    #
+    # def printSensationNameById(self, note, dataId=None,id=None):
+    #     print('\n{}\n'.format(self.getSensationNameById(note=note, dataId=dataId, id=id)))
 
     '''
     Clean data directory from bi9nary files files.
@@ -1203,617 +1207,6 @@ class MemoryTestCase(unittest.TestCase):
 
         print("\ntest_Bytes DONE")
         
-#     def test_getBestSensationsSense(self):
-#         self.do_test_getBestSensations(robotType=Sensation.RobotType.Sense, robotMainNames=self.MAINNAMES, succeed=True)
-#         
-#     def test_getBestSensationsCommunication(self):
-#         self.do_test_getBestSensations(robotType=Sensation.RobotType.Communication, robotMainNames=self.OTHERMAINNAMES, succeed=True)
-# 
-#     def test_getBestSensationsCommunicationFail(self):
-#         self.do_test_getBestSensations(robotType=Sensation.RobotType.Communication, robotMainNames=self.MAINNAMES, succeed=False)
-# 
-#     def do_test_getBestSensations(self, robotType, robotMainNames, succeed):
-#         # Memory is empty, We should get nothing
-#         print('\ntest_getBestSensationSense')
-#         name='test'
-#         ignoredDataIds=[]
-#         history_sensationTime = systemTime.time() -2*300.0
-# 
-#         # Item where all test created and self.robot seen Sensations are associated
-#         # WE can't use self.createSensation yet
-#         self.Wall_E_item_sensation = self.robot.createSensation(
-#                                                     robot = self.robot,
-#                                                     time = history_sensationTime,
-#                                                     memoryType=Sensation.MemoryType.Working,
-#                                                     sensationType=Sensation.SensationType.Item,
-#                                                     robotType=robotType,
-#                                                     name=self.NAME,
-#                                                     score=self.SCORE_1)
-#   
-#         # Memory is empty, We should get nothing
-# 
-#         sensations, sensationAssociations = self.memory.getBestSensations(itemSensations=[self.Wall_E_item_sensation],
-#                                                                 sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
-#                                                                 robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
-#                                                                 robotMainNames = robotMainNames,
-#                                                                 ignoredDataIds = ignoredDataIds)
-#         self.assertEqual(len(sensations), 0)
-#         self.assertEqual(len(sensationAssociations), 0)
-#         # Potential      
-#         # First item, voice and image
-#         
-#         voice_sensation1 = self.createSensation(
-#                                                 sensationName='voice_sensation1',
-#                                                 robot=self.robot,
-#                                                 time=history_sensationTime,
-#                                                 memoryType=Sensation.MemoryType.Sensory,
-#                                                 sensationType=Sensation.SensationType.Voice,
-#                                                 robotType=robotType,
-#                                                 mainNames=self.MAINNAMES
-#                                                 )
-#         self.printSensationNameById(note='voice_sensation1 test', dataId=voice_sensation1.getDataId())
-#         image_sensation1 = self.createSensation(
-#                                                 sensationName='image_sensation1',
-#                                                 robot=self.robot,
-#                                                 time=history_sensationTime,
-#                                                 memoryType=Sensation.MemoryType.Sensory,
-#                                                 sensationType=Sensation.SensationType.Image,
-#                                                 robotType=robotType,
-#                                                 mainNames=self.MAINNAMES)
-#         self.printSensationNameById(note='image_sensation1 test', dataId=image_sensation1.getDataId())
-#         
-#         item_sensation1 = self.createSensation(
-#                                                 sensationName='item_sensation1',
-#                                                 robot=self.robot,
-#                                                 time=history_sensationTime,
-#                                                 memoryType=Sensation.MemoryType.Working,
-#                                                 sensationType=Sensation.SensationType.Item,
-#                                                 robotType=robotType,
-#                                                 name=self.NAME,
-#                                                 score=self.SCORE_1,
-#                                                 presence=Sensation.Presence.Entering)
-#         self.printSensationNameById(note='item_sensation1 test', dataId=item_sensation1.getDataId())
-#         
-#         # Don't yet use Feelings associations, so they are neutral        
-#         item_sensation1.associate(sensation=voice_sensation1)
-#         item_sensation1.associate(sensation=image_sensation1)
-#         voice_sensation1.associate(sensation=image_sensation1)
-#         
-#         sensations, sensationAssociations = self.memory.getBestSensations( itemSensations = [item_sensation1],
-#                                                                   sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
-#                                                                   robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
-#                                                                   robotMainNames = robotMainNames,
-#                                                                   ignoredDataIds = ignoredDataIds,
-#                                                                   searchLength=self.SEARCH_LENGTH)
-#         if succeed:
-#             self.assertEqual(len(sensations), 2)
-#             self.assertEqual(len(sensationAssociations), 2)
-#             associationSensations=[]
-#             for associations in sensationAssociations:
-#                 for association in associations:
-#                     associationSensations.append(association.getSelfSensation())
-#                 
-#             self.assertTrue(voice_sensation1 in sensations)
-#             self.assertTrue(voice_sensation1 in associationSensations)
-#             
-#             self.assertTrue(image_sensation1 in sensations)
-#             #self.assertTrue(image_sensation1 in associationSensations)
-#         else:
-#             self.assertEqual(len(sensations), 0)
-#             self.assertEqual(len(sensationAssociations), 0)
-#        
-#         # second item, voice and image, better score and Feeling
-#         
-#         voice_sensation2 = self.createSensation(
-#                                                 sensationName='voice_sensation2',
-#                                                 robot=self.robot,
-#                                                 time=history_sensationTime,
-#                                                 memoryType=Sensation.MemoryType.Sensory,
-#                                                 sensationType=Sensation.SensationType.Voice,
-#                                                 robotType=robotType,
-#                                                 mainNames=self.MAINNAMES
-#                                                 )
-#         self.printSensationNameById(note='voice_sensation2 test', dataId=voice_sensation2.getDataId())
-#         image_sensation2 = self.createSensation(
-#                                                 sensationName='image_sensation2',
-#                                                 robot=self.robot,
-#                                                 time=history_sensationTime,
-#                                                 memoryType=Sensation.MemoryType.Sensory,
-#                                                 sensationType=Sensation.SensationType.Image,
-#                                                 robotType=robotType,
-#                                                 mainNames=self.MAINNAMES)
-#         self.printSensationNameById(note='image_sensation2 test', dataId=image_sensation2.getDataId())
-#         
-#         item_sensation2 = self.createSensation(
-#                                                 sensationName='item_sensation2',
-#                                                 robot=self.robot,
-#                                                 time=history_sensationTime,
-#                                                 memoryType=Sensation.MemoryType.Working,
-#                                                 sensationType=Sensation.SensationType.Item,
-#                                                 robotType=robotType,
-#                                                 name=self.NAME,
-#                                                 score=self.SCORE_2,
-#                                                 presence=Sensation.Presence.Entering)
-#         self.printSensationNameById(note='item_sensation2 test', dataId=item_sensation2.getDataId())
-#         
-#         item_sensation2.associate(sensation=voice_sensation2, feeling = Sensation.Feeling.Normal)
-#         item_sensation2.associate(sensation=image_sensation2, feeling = Sensation.Feeling.Normal)
-#         voice_sensation2.associate(sensation=image_sensation2)
-#         
-#         
-#         sensations, sensationAssociations = self.memory.getBestSensations( itemSensations = [item_sensation2],
-#                                                                   sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
-#                                                                   robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
-#                                                                   robotMainNames = robotMainNames,
-#                                                                   ignoredDataIds = ignoredDataIds,
-#                                                                   searchLength=self.SEARCH_LENGTH)
-#         if succeed:
-#             self.assertEqual(len(sensations), 2)
-#             self.assertEqual(len(associations), 2)
-#             associationSensations=[]
-#             sensationAssociations
-#             for associations in sensationAssociations:
-#                 for association in associations:
-#                     associationSensations.append(association.getSelfSensation())
-#                 
-#             self.assertTrue(voice_sensation2 in sensations)
-#             self.assertTrue(voice_sensation2 in associationSensations)
-#             
-#             self.assertTrue(image_sensation2 in sensations)
-#             #self.assertTrue(image_sensation2 in associationSensations)
-#             
-#             # Test again with ignoredDataIds for last results, so we should get 1. results again
-#             sensations, sensationAssociations = self.memory.getBestSensations( itemSensations = [item_sensation2],
-#                                                                       sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
-#                                                                       robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
-#                                                                       robotMainNames = robotMainNames,
-#                                                                       ignoredDataIds = [voice_sensation2.getDataId(), image_sensation2.getDataId()],
-#                                                                       searchLength=self.SEARCH_LENGTH)
-#             self.assertEqual(len(sensations), 2)
-#             self.assertEqual(len(sensationAssociations), 2)
-#             associationSensations=[]
-#             for associations in sensationAssociations:
-#                 for association in associations:
-#                     associationSensations.append(association.getSelfSensation())
-#                     
-#             self.assertTrue(voice_sensation1 in sensations)
-#             self.assertTrue(voice_sensation1 in associationSensations)
-#                 
-#             self.assertTrue(image_sensation1 in sensations)
-#             #self.assertTrue(image_sensation1 in associationSensations)
-# 
-#         # set first item core also higher as high as item3, set feeling same so we would its items
-#         # NOTE Feeling is much more meaningful than score, so this test works even if we let lower, SCORE_2
-#         
-#         item_sensation1.setScore(score=self.SCORE_2)
-#         item_sensation1.getAssociation(sensation=voice_sensation1).setFeeling(feeling = Sensation.Feeling.Good)
-#         item_sensation1.getAssociation(sensation=image_sensation1).setFeeling(feeling = Sensation.Feeling.Good)
-#         
-#         
-#         sensations, sensationAssociations = self.memory.getBestSensations( itemSensations = [item_sensation1],
-#                                                                   sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
-#                                                                   robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
-#                                                                   robotMainNames = robotMainNames,
-#                                                                   ignoredDataIds = ignoredDataIds,
-#                                                                   searchLength=self.SEARCH_LENGTH)
-#         if succeed:
-#             self.assertEqual(len(sensations), 2)
-#             self.assertEqual(len(associations), 2)
-#             associationSensations=[]
-#             for associations in sensationAssociations:
-#                 for association in associations:
-#                     associationSensations.append(association.getSelfSensation())
-#                     
-#             self.assertTrue(voice_sensation1 in sensations)
-#             self.assertTrue(voice_sensation1 in associationSensations)
-#             
-#             self.assertTrue(image_sensation1 in sensations)
-#             self.assertTrue(image_sensation1 in associationSensations)
-#             
-#             # Test again with ignoredDataIds for last results, so we should get 2. results again
-#             sensations, sensationAssociations = self.memory.getBestSensations( itemSensations = [item_sensation2],
-#                                                                       sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
-#                                                                       robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
-#                                                                       robotMainNames = robotMainNames,
-#                                                                       ignoredDataIds = [voice_sensation1.getDataId(), image_sensation1.getDataId()],
-#                                                                       searchLength=self.SEARCH_LENGTH)
-#             self.assertEqual(len(sensations), 2)
-#             self.assertEqual(len(sensationAssociations), 2)
-#             associationSensations=[]
-#             for associations in sensationAssociations:
-#                 for association in associations:
-#                     associationSensations.append(association.getSelfSensation())
-#                     
-#             self.assertTrue(voice_sensation2 in sensations)
-#             self.assertTrue(voice_sensation2 in associationSensations)
-#                 
-#             self.assertTrue(image_sensation2 in sensations)
-#             #self.assertTrue(image_sensation2 in associationSensations)
-#         else:
-#             self.assertEqual(len(sensations), 0)
-#             self.assertEqual(len(sensationAssociations), 0)
-#             
-#         # Finally test situation, where we have many Sensation.Item.Names present
-#         # with same Voice and Image assigned. This is situation, when certain
-#         # Voice/Image is heard/seen when these Iten.names are present together.
-#         # In this situation this Voice/Image is best.
-#         #
-#         # Now best Feeling/Score is is Sensation.Feeling.Good/Score2
-#         # Calculate how many Voices/Images wins this with
-#         # Sensation.Feeling.Normal/Score2
-#         
-#         new_voice_sensation = self.createSensation(
-#                                                     sensationName='new_voice_sensation',
-#                                                     robot=self.robot,
-#                                                     time=history_sensationTime,
-#                                                     memoryType=Sensation.MemoryType.Sensory,
-#                                                     sensationType=Sensation.SensationType.Voice,
-#                                                     robotType=robotType,
-#                                                     mainNames=self.MAINNAMES
-#                                                     )
-#         self.printSensationNameById(note='new_voice_sensation test', dataId=new_voice_sensation.getDataId())
-#         new_image_sensation = self.createSensation(
-#                                                     sensationName='new_image_sensation',
-#                                                     robot=self.robot,
-#                                                     time=history_sensationTime,
-#                                                     memoryType=Sensation.MemoryType.Sensory,
-#                                                     sensationType=Sensation.SensationType.Image,
-#                                                     robotType=robotType,
-#                                                     mainNames=self.MAINNAMES)
-#         self.printSensationNameById(note='new_image_sensation test', dataId=new_image_sensation.getDataId())
-#         
-#  
-#         itemSensations = []   
-#         for i in range(0,int(Sensation.Feeling.Good/Sensation.Feeling.Normal)+2):
-#                 name = '{}_{}'.format(self.NAME,i)
-#                 new_item_sensation = self.createSensation(
-#                                                         sensationName='item'+name,
-#                                                         robot=self.robot,
-#                                                         time=history_sensationTime,
-#                                                         memoryType=Sensation.MemoryType.Working,
-#                                                         sensationType=Sensation.SensationType.Item,
-#                                                         robotType=robotType,
-#                                                         name=name,
-#                                                         score=self.SCORE_2,
-#                                                         presence=Sensation.Presence.Present,
-#                                                         mainNames=self.MAINNAMES
-#                                                         )
-#                 self.printSensationNameById(note='item '+name+' test', dataId=new_item_sensation.getDataId())
-#     
-#                 itemSensations.append(new_item_sensation)            
-#                 new_item_sensation.associate(sensation=new_voice_sensation, feeling = Sensation.Feeling.Normal)
-#                 new_item_sensation.associate(sensation=new_image_sensation, feeling = Sensation.Feeling.Normal)
-#                 new_voice_sensation.associate(sensation=new_image_sensation)
-#                 
-#         # Test without ignoredDataIds
-#         sensations, sensationAssociations = self.memory.getBestSensations( itemSensations = itemSensations,
-#                                                                       sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
-#                                                                       robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
-#                                                                       robotMainNames = robotMainNames,
-#                                                                       ignoredDataIds = [],
-#                                                                       searchLength=self.SEARCH_LENGTH)
-#         if succeed:
-#             self.assertEqual(len(sensations), 2)
-#             self.assertEqual(len(sensationAssociations), 2)
-#             for associations in sensationAssociations:
-#                 self.assertEqual(len(associations), len(itemSensations))
-#                 for association in associations:
-#                     self.assertTrue(association.getSensation() in itemSensations)
-#                     self.assertTrue(association.getSelfSensation() in [new_voice_sensation, new_image_sensation])
-#         else:
-#             self.assertEqual(len(sensations), 0)
-#             self.assertEqual(len(sensationAssociations), 0)
-# #         associationSensations=[]
-# #         for association in associations:
-# #             associationSensations.append(association.getSensation())
-#            
-#        
-#     '''
-#     TODO What is difference of this and previous test
-#     This is valid Test, where source of candidates comes from other robot
-#     TODO combine with test above
-#     RobotType and MAINNAMES are at least valid
-#     '''       
-#     def retest_getBestSensationsCommunication(self):
-#         # Memory is empty, We should get nothing
-#         print('\ntest_getBestSensationsCommunication')
-#         name='test'
-#         ignoredDataIds=[]
-#         itemSensations=[]
-#         ignoredDataIds=[]
-#         history_sensationTime = systemTime.time() -2*300.0
-# 
-#         sensations, associations = self.memory.getBestSensations(itemSensations=itemSensations,
-#                                                                 sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
-#                                                                 robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
-#                                                                 robotMainNames = [],
-#                                                                 ignoredDataIds = ignoredDataIds)
-#         self.assertEqual(len(sensations), 0)
-#         self.assertEqual(len(associations), 0)
-#         
-#         # Create technical item where we assign all Sensations
-#         
-#         # WE can't use self.createSensation yet
-#         self.Wall_E_item_sensation = self.robot.createSensation(
-#                                                     robot = self.robot,
-#                                                     time = history_sensationTime,
-#                                                     memoryType=Sensation.MemoryType.Working,
-#                                                     sensationType=Sensation.SensationType.Item,
-#                                                     robotType=Sensation.RobotType.Sense,
-#                                                     name=self.NAME,
-#                                                     score=self.SCORE_1)
-#  
-#         # Create potential sensation to memory
-#         
-#         # Item 
-#         item_sensation1 = self.createSensation(
-#                                                 sensationName='item_sensation1',
-#                                                 robot=self.robot,
-#                                                 time=history_sensationTime,
-#                                                 memoryType=Sensation.MemoryType.Working,
-#                                                 sensationType=Sensation.SensationType.Item,
-#                                                 robotType=Sensation.RobotType.Sense,
-#                                                 name=self.NAME,
-#                                                 score=self.SCORE_1,
-#                                                 presence=Sensation.Presence.Entering)
-#         self.printSensationNameById(note='item_sensation1 test', dataId=item_sensation1.getDataId())
-#         itemSensations.append(item_sensation1)
-#         
-#         
-#         
-#         
-#  
-#         
-#         # Sense voice and image
-#         #
-#         voice_sense_sensation1 = self.createSensation(
-#                                                 sensationName='voice_sense_sensation1',
-#                                                 robot=self.robot,
-#                                                 time=history_sensationTime,
-#                                                 memoryType=Sensation.MemoryType.Sensory,
-#                                                 sensationType=Sensation.SensationType.Voice,
-#                                                 robotType=Sensation.RobotType.Communication,
-#                                                 mainNames=self.OTHERMAINNAMES
-#                                                 )
-#         self.printSensationNameById(note='voice_sense_sensation1 test', dataId=voice_sense_sensation1.getDataId())
-#         image_sense_sensation1 = self.createSensation(
-#                                                 sensationName='image_sense_sensation1',
-#                                                 robot=self.robot,
-#                                                 time=history_sensationTime,
-#                                                 memoryType=Sensation.MemoryType.Sensory,
-#                                                 sensationType=Sensation.SensationType.Image,
-#                                                 robotType=Sensation.RobotType.Communication,
-#                                                 mainNames=self.OTHERMAINNAMES)
-#         self.printSensationNameById(note='image_sense_sensation1 test', dataId=image_sense_sensation1.getDataId())
-#                 
-#         item_sensation1.associate(sensation=voice_sense_sensation1)
-#         item_sensation1.associate(sensation=image_sense_sensation1)
-#         image_sense_sensation1.associate(sensation=voice_sense_sensation1)
-#         
-#         sensations, associations = self.memory.getBestSensations(itemSensations = itemSensations,
-#                                                                 sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
-#                                                                 robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
-#                                                                 robotMainNames = self.MAINNAMES,
-#                                                                 ignoredDataIds = [])
-#         self.assertEqual(len(sensations), 2)
-#         self.assertEqual(len(associations), 2)
-#         self.assertTrue(voice_sense_sensation1 in sensations)        
-#         self.assertTrue(image_sense_sensation1 in sensations)
-#         
-#         # Communication voice and image
-#         # MAINnAMES
-#         voice_communication_sensation1 = self.createSensation(
-#                                                 sensationName='voice_communication_sensation1',
-#                                                 robot=self.robot,
-#                                                 time=history_sensationTime,
-#                                                 memoryType=Sensation.MemoryType.Sensory,
-#                                                 sensationType=Sensation.SensationType.Voice,
-#                                                 robotType=Sensation.RobotType.Communication,
-#                                                 mainNames=self.MAINNAMES
-#                                                 )
-#         self.assertEqual(self.MAINNAMES, voice_communication_sensation1.getMainNames())
-#         self.printSensationNameById(note='voice_communication_sensation1 test', dataId=voice_communication_sensation1.getDataId())
-#         image_communication_sensation1 = self.createSensation(
-#                                                 sensationName='image_communication_sensation1',
-#                                                 robot=self.robot,
-#                                                 time=history_sensationTime,
-#                                                 memoryType=Sensation.MemoryType.Sensory,
-#                                                 sensationType=Sensation.SensationType.Image,
-#                                                 robotType=Sensation.RobotType.Communication,
-#                                                 mainNames=self.MAINNAMES)
-#         self.assertEqual(self.MAINNAMES, image_communication_sensation1.getMainNames())
-#         self.printSensationNameById(note='image_communication_sensation1 test', dataId=image_communication_sensation1.getDataId())
-#                 
-#         item_sensation1.associate(sensation=voice_communication_sensation1)
-#         item_sensation1.associate(sensation=image_communication_sensation1)
-#         image_communication_sensation1.associate(sensation=voice_communication_sensation1)
-#         
-#         sensations, associations = self.memory.getBestSensations(itemSensations = itemSensations,
-#                                                                 sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
-#                                                                 robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
-#                                                                 robotMainNames = self.MAINNAMES,
-#                                                                 ignoredDataIds = [])
-#         self.assertEqual(len(sensations), 2)
-#         self.assertEqual(len(associations), 2)
-#         self.assertTrue(voice_sense_sensation1 in sensations)        
-#         self.assertTrue(image_sense_sensation1 in sensations)
-#         
-#         voice_sense_sensation1_memorability = voice_sense_sensation1.getMemorability(
-#                                                     itemSensations = itemSensations,
-#                                                     robotMainNames = self.MAINNAMES,
-#                                                     robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
-#                                                     ignoredDataIds=ignoredDataIds,
-#                                                     positive = True,
-#                                                     negative = False,
-#                                                     absolute = False)
-#  
-#         image_sense_sensation1_memorability = image_sense_sensation1.getMemorability(
-#                                                     itemSensations = itemSensations,
-#                                                     robotMainNames = self.MAINNAMES,
-#                                                     robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
-#                                                     ignoredDataIds=ignoredDataIds,
-#                                                     positive = True,
-#                                                     negative = False,
-#                                                     absolute = False)
-#  
-#         
-#         #set now communication sensation to different mainNames and we should get then best now
-#         # when we set now got best sensation to history
-#         history_sensationTime = systemTime.time() -2*300.0
-#         for sensation in sensations:
-#             sensation.setTime(time=history_sensationTime)
-#         for association in associations:
-#             association.setTime(time=history_sensationTime)
-#         history_voice_sense_sensation1_memorability = voice_sense_sensation1.getMemorability(
-#                                                     itemSensations = itemSensations,
-#                                                     robotMainNames = self.MAINNAMES,
-#                                                     robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
-#                                                     ignoredDataIds=ignoredDataIds,
-#                                                     positive = True,
-#                                                     negative = False,
-#                                                     absolute = False)
-#         # TODO Correct this, getMemorability does not use time
-#         self.assertTrue(history_voice_sense_sensation1_memorability < voice_sense_sensation1_memorability)
-#  
-#         history_image_sense_sensation1_memorability = image_sense_sensation1.getMemorability(
-#                                                     itemSensations = itemSensations,
-#                                                     robotMainNames = self.MAINNAMES,
-#                                                     robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
-#                                                     ignoredDataIds=ignoredDataIds,
-#                                                     positive = True,
-#                                                     negative = False,
-#                                                     absolute = False)
-#         self.assertTrue(history_image_sense_sensation1_memorability < image_sense_sensation1_memorability)
-#             
-#         voice_communication_sensation1.setMainNames(self.OTHERMAINNAMES)
-#         self.assertEqual(self.OTHERMAINNAMES, voice_communication_sensation1.getMainNames())
-#         self.assertFalse(voice_communication_sensation1.isInMainNames(self.MAINNAMES))
-#         image_communication_sensation1.setMainNames(self.OTHERMAINNAMES)
-#         self.assertEqual(self.OTHERMAINNAMES, image_communication_sensation1.getMainNames())
-#         self.assertFalse(image_communication_sensation1.isInMainNames(self.MAINNAMES))
-#         
-#         sensations, associations = self.memory.getBestSensations(itemSensations = itemSensations,
-#                                                                  sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
-#                                                                  robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
-#                                                                  #robotTypes = [Sensation.RobotType.Communication],
-#                                                                  robotMainNames = self.MAINNAMES,
-#                                                                  ignoredDataIds = [])
-#         self.assertEqual(len(sensations), 2)
-#         self.assertEqual(len(associations), 2)
-#         self.assertTrue(voice_communication_sensation1 in sensations)        
-#         self.assertTrue(image_communication_sensation1 in sensations)
-# 
-#         
-#         #self.assertEqual(candidate_for_communication_item, item_sensation1)
-# #         self.assertEqual(candidate_for_voice, voice_sensation1)
-# #         self.assertEqual(candidate_for_voice_association, item_sensation1.getAssociation(sensation=candidate_for_voice))
-# #         self.assertEqual(candidate_for_image, image_sensation1)
-# #         self.assertEqual(candidate_for_image_association, item_sensation1.getAssociation(sensation=image_sensation1))
-# #         
-#         
-#         # TODO Enable these
-#        
-# #         # second item, voice and image, better score
-# #         
-# #         voice_sensation2 = self.createSensation(
-# #                                                 sensationName='voice_sensation2',
-# #                                                 robot=self.robot,
-# #                                                 time=history_sensationTime,
-# #                                                 memoryType=Sensation.MemoryType.Sensory,
-# #                                                 sensationType=Sensation.SensationType.Voice,
-# #                                                 robotType=Sensation.RobotType.Sense,
-# #                                                 #data=self.VOICEDATA2
-# #                                                 )
-# #         self.printSensationNameById(note='voice_sensation2 test', dataId=voice_sensation2.getDataId())
-# #         image_sensation2 = self.createSensation(
-# #                                                 sensationName='image_sensation2',
-# #                                                 robot=self.robot,
-# #                                                 time=history_sensationTime,
-# #                                                 memoryType=Sensation.MemoryType.Sensory,
-# #                                                 sensationType=Sensation.SensationType.Image,
-# #                                                 robotType=Sensation.RobotType.Sense)
-# #         self.printSensationNameById(note='image_sensation2 test', dataId=image_sensation2.getDataId())
-# #         
-# #         item_sensation2 = self.createSensation(
-# #                                                 sensationName='item_sensation2',
-# #                                                 robot=self.robot,
-# #                                                 time=history_sensationTime,
-# #                                                 memoryType=Sensation.MemoryType.Working,
-# #                                                 sensationType=Sensation.SensationType.Item,
-# #                                                 robotType=Sensation.RobotType.Sense,
-# #                                                 name=self.NAME,
-# #                                                 score=self.SCORE_1,
-# #                                                 presence=Sensation.Presence.Entering)
-# #         self.printSensationNameById(note='item_sensation2 test', dataId=item_sensation2.getDataId())
-# #         
-# #         
-# #         
-# #         
-# #         
-# #         item_sensation2.associate(sensation=voice_sensation2)
-# #         item_sensation2.associate(sensation=image_sensation2)
-# #         voice_sensation2.associate(sensation=image_sensation2)
-# #         
-# #         candidate_for_communication_item, candidate_for_voice, candidate_for_voice_association,\
-# #         candidate_for_image, candidate_for_image_association = \
-# #             self.memory.getMostImportantCommunicationSensations( 
-# #                                                                      robotMainNames=self.MAINNAMES,
-# #                                                                      name = self.NAME,
-# #                                                                      timemin = None,
-# #                                                                      timemax = None,
-# #                                                                      ignoredDataIds = ignoredDataIds,
-# #                                                                      searchLength=self.SEARCH_LENGTH)
-# #         self.assertEqual(candidate_for_communication_item, item_sensation2)
-# #         self.assertEqual(candidate_for_voice, voice_sensation2)
-# #         self.assertEqual(candidate_for_voice_association, item_sensation2.getAssociation(sensation=candidate_for_voice))
-# #         self.assertEqual(candidate_for_image, image_sensation2)
-# #         self.assertEqual(candidate_for_image_association, item_sensation2.getAssociation(sensation=image_sensation2))
-# #         
-# #         # set first item core higher, so we would its items
-# #         
-# #         item_sensation1.setScore(score=self.SCORE_8)
-# #         candidate_for_communication_item, candidate_for_voice, candidate_for_voice_association,\
-# #         candidate_for_image, candidate_for_image_association = \
-# #             self.memory.getMostImportantCommunicationSensations( 
-# #                                                                      robotMainNames=self.MAINNAMES,
-# #                                                                      name = self.NAME,
-# #                                                                      timemin = None,
-# #                                                                      timemax = None,
-# #                                                                      ignoredDataIds = ignoredDataIds,
-# #                                                                      searchLength=self.SEARCH_LENGTH)
-# #         # TODO what we should get now
-# #         # TODO What we should get voice_sensation1 or voice_sensation2
-# #         # Hmm.. implementatiis broken
-# #         self.assertEqual(candidate_for_communication_item, item_sensation1)
-# #         self.assertEqual(candidate_for_voice, voice_sensation1)
-# #         self.assertEqual(candidate_for_voice_association, item_sensation1.getAssociation(sensation=candidate_for_voice))
-# #         self.assertEqual(candidate_for_image, image_sensation1)
-# #         self.assertEqual(candidate_for_image_association, item_sensation1.getAssociation(sensation=image_sensation1))
-# #         
-#        
-#     '''
-#     deprecated
-#     '''
-# #         
-# #     def re_test_Picleability(self):
-# #         print("\ntest_Picleability\n")
-# #         
-# #         originalSensations=[]
-# #         for sensation in self.memory.sensationMemory:
-# #             if sensation.getMemoryType() == Sensation.MemoryType.LongTerm and\
-# #                sensation.getMemorability() >  Sensation.MIN_CACHE_MEMORABILITY:
-# #                 originalSensations.append(sensation)
-# # 
-# #         self.memory.saveLongTermMemory()
-# #         del self.memory.sensationMemory[:]
-# #         
-# #         self.memory.loadLongTermMemory()
-# #         
-# #         self.assertEqual(len(self.memory.sensationMemory),len(originalSensations), "should load same amount Sensations")
-# #         i=0
-# #         while i < len(self.memory.sensationMemory):
-# #             self.assertEqual(self.memory.sensationMemory[i],originalSensations[i], "loaded sensation must be same than dumped one")
-# #             i=i+1
 #  
     def test_SaveLoadToBinaryFiles(self):
         print("\ntest_SaveLoadToBinaryFiles\n")
@@ -1845,7 +1238,103 @@ class MemoryTestCase(unittest.TestCase):
                     j = j+1
             self.assertTrue(found, "original sensation {} was not found in loaded ones".format(i))
             i=i+1
-             
+
+    '''
+    Test masterItems-functionality
+    
+    Note: Now, when we call sensation.delete(), it is not enough to remove fron sensation memory, so
+          we must explicitly call deleteFromMasterItems from memory.
+          Robots must use Memory.deleteFromSensationMemory, when they wan't to delete a Sensation
+    '''
+    def testMasterItems(self):
+        
+        ##################################
+        #
+        # direct inner implementation test
+        #
+        #=================================
+
+        # unique name        
+        name1 ='unique_name'
+        self.assertFalse(name1 in self.memory.masterItems)
+        sensation1 = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.LongTerm,
+                                                name=name1, score=MemoryTestCase.SCORE, presence=Sensation.Presence.Entering)
+        self.assertTrue(sensation1 in self.memory.sensationMemory)
+        self.assertTrue(name1 in self.memory.masterItems)
+        self.assertTrue(sensation1 in self.memory.masterItems[name1])
+        self.assertEqual(len(self.memory.masterItems[name1]), 1)
+
+        # name with many sensations
+        name2='test'
+        sensation2 = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.LongTerm,
+                                                name=name2, score=MemoryTestCase.SCORE, presence=Sensation.Presence.Entering)
+        self.assertTrue(name2 in self.memory.masterItems)
+        self.assertEqual(len(self.memory.masterItems[name2]), 1)
+                        
+        sensation3 = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.LongTerm,
+                                                name=name2, score=MemoryTestCase.SCORE, presence=Sensation.Presence.Entering)
+        self.assertTrue(sensation3 in self.memory.sensationMemory)
+        self.assertTrue(name2 in self.memory.masterItems)
+        self.assertTrue(sensation2 in self.memory.masterItems[name2])
+        self.assertTrue(sensation3 in self.memory.masterItems[name2])
+        self.assertEqual(len(self.memory.masterItems[name2]),2)
+
+        sensation3.delete()
+        self.memory.deleteFromMasterItems(sensation=sensation3)
+        self.assertEqual(len(self.memory.masterItems[name2]),1)
+        self.assertTrue(name2 in self.memory.masterItems)
+
+        sensation2.delete()
+        self.memory.deleteFromMasterItems(sensation=sensation2)
+        self.assertFalse(name2 in self.memory.masterItems)
+
+        sensation1.delete()
+        self.memory.deleteFromMasterItems(sensation=sensation1)
+        self.assertFalse(name1 in self.memory.masterItems)
+
+
+        ##################################
+        #
+        # test how Robots create ans delete Sensations
+        # We should get exactly same results
+        #
+        #=================================
+
+        # unique name        
+        name1 ='unique_name'
+        self.assertFalse(name1 in self.memory.masterItems)
+        sensation1 = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.LongTerm,
+                                                name=name1, score=MemoryTestCase.SCORE, presence=Sensation.Presence.Entering)
+        self.assertTrue(sensation1 in self.memory.sensationMemory)
+        self.assertTrue(name1 in self.memory.masterItems)
+        self.assertTrue(sensation1 in self.memory.masterItems[name1])
+        self.assertEqual(len(self.memory.masterItems[name1]), 1)
+
+        # name with many sensations
+        name2='test'
+        sensation2 = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.LongTerm,
+                                                name=name2, score=MemoryTestCase.SCORE, presence=Sensation.Presence.Entering)
+        self.assertTrue(name2 in self.memory.masterItems)
+        self.assertEqual(len(self.memory.masterItems[name2]), 1)
+                        
+        sensation3 = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.LongTerm,
+                                                name=name2, score=MemoryTestCase.SCORE, presence=Sensation.Presence.Entering)
+        self.assertTrue(sensation3 in self.memory.sensationMemory)
+        self.assertTrue(name2 in self.memory.masterItems)
+        self.assertTrue(sensation2 in self.memory.masterItems[name2])
+        self.assertTrue(sensation3 in self.memory.masterItems[name2])
+        self.assertEqual(len(self.memory.masterItems[name2]),2)
+
+        self.memory.deleteFromSensationMemory(sensation=sensation3)
+        self.assertEqual(len(self.memory.masterItems[name2]),1)
+        self.assertTrue(name2 in self.memory.masterItems)
+
+        self.memory.deleteFromSensationMemory(sensation=sensation2)
+        self.assertFalse(name2 in self.memory.masterItems)
+
+        self.memory.deleteFromSensationMemory(sensation=sensation1)
+        self.assertFalse(name1 in self.memory.masterItems)
+
         
 if __name__ == '__main__':
     unittest.main()

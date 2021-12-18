@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 13.12.2021
+Edited on 18.12.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -69,6 +69,7 @@ class Memory(object):
         self.maxRss = maxRss
         self.minAvailMem =  minAvailMem
         self.sensationMemory=[]                 # Sensation cache
+        self.masterItems={}                     # Sensation cache for SEnsationType.Item by name
         
         self._presentItemSensations={}          # present SensationType.Item.name sensations
         self._presentRobotSensations={}         # present SensationType.Robot.name sensations
@@ -326,6 +327,10 @@ class Memory(object):
             if isForgetLessImportantSensations:
                 self.forgetLessImportantSensations()
             self.sensationMemory.append(sensation)        
+            if sensation.getSensationType() == Sensation.SensationType.Item:
+                if sensation.getName() not in self.masterItems:
+                    self.masterItems[sensation.getName()] = []
+                self.masterItems[sensation.getName()].append(sensation)                                    
             self.releaseWrite()  # thread_safe
         
     '''
@@ -350,11 +355,28 @@ class Memory(object):
             self.sensationMemory.remove(sensation)
         except ValueError:
             self.log(logLevel=Memory.MemoryLogLevel.Detailed, logStr='deleteFromSensationMemory: sensation {} {} not in sensationMemory'.format(systemTime.ctime(sensation.getTime()),sensation.toDebugStr()))            
+        try:
+            self.deleteFromMasterItems(sensation=sensation)
+        except KeyError:
+            self.log(logLevel=Memory.MemoryLogLevel.Detailed, logStr='deleteFromSensationMemory KeyError : sensation {} {} not in masterItems'.format(systemTime.ctime(sensation.getTime()),sensation.toDebugStr()))            
+        except ValueError:
+            self.log(logLevel=Memory.MemoryLogLevel.Detailed, logStr='deleteFromSensationMemory ValueError: sensation {} {} not in masterItems'.format(systemTime.ctime(sensation.getTime()),sensation.toDebugStr()))            
         del sensation       
         if isForgetLessImportantSensations:
             self.forgetLessImportantSensations()
         self.releaseWrite()  # thread_safe
-        
+
+    '''
+    delete Item Sensation from masterItems
+    used internally  and thats why not thread_safe use
+    '''
+    
+    def deleteFromMasterItems(self, sensation):
+        if sensation.getSensationType() == Sensation.SensationType.Item:
+            self.masterItems[sensation.getName()].remove(sensation)
+            if len(self.masterItems[sensation.getName()]) == 0:
+                del self.masterItems[sensation.getName()]                                  
+         
     '''
     Change sensation's memory
     We need to remove internally this sensation from one cache list to another

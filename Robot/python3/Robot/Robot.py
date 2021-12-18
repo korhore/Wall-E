@@ -1855,7 +1855,7 @@ class Identity(Robot):
 #                             
 #             for imageSensation in imageSensations:
 #                 imageSensation.detach(robot=self)
-#                 imageSensation.delete()
+#                 imageSensation.delete() # NOTE this is not enough, if reimplemented
 #                 del imageSensation
 #        
 #             # now we have 

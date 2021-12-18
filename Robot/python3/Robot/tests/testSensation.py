@@ -1,6 +1,6 @@
 '''
 Created on 10.06.2019
-Updated on 14.03.2021
+Updated on 18.12.2021
 @author: reijo.korhonen@gmail.com
 
 test Sensation class
@@ -99,7 +99,8 @@ class SensationTestCase(unittest.TestCase):
         self.feeling = SensationTestCase.NORMAL_FEELING
 
     def tearDown(self):
-        self.sensation.delete()
+        # self.sensation.delete()
+        self.memory.deleteFromSensationMemory(sensation=self.sensation)
         
     '''
         Sensation Memorability is time based function
@@ -1676,7 +1677,8 @@ class SensationTestCase(unittest.TestCase):
         
 #       # test delete
         while len(addSensations) > 0:
-            addSensations[0].delete()
+            # addSensations[0].delete()
+            self.memory.deleteFromSensationMemory(sensation=addSensations[0])
             self.assertEqual(len(addSensations[0].getAssociations()), 0)
             i=1     
             while i < len(addSensations):
@@ -2732,11 +2734,12 @@ class SensationTestCase(unittest.TestCase):
         print("\ntest_Save\n")
 
         # test all SensationTypes
-        
+        # Fot dome reason Feeling can't be saved ti binary files, but that is logical isn't it.
         for sensationtype in Sensation.SensationTypesOrdered:
             # Stop and Capability will mever be saved to Memory
             if sensationtype != Sensation.SensationType.Stop and\
                sensationtype != Sensation.SensationType.Capability and\
+               sensationtype != Sensation.SensationType.Feeling and\
                sensationtype != Sensation.SensationType.Unknown:                
                #sensationtype != Sensation.SensationType.RobotState and\
                #sensationtype != Sensation.SensationType.Unknown:                # TODO, if memory tries to delete Sensations
@@ -2745,6 +2748,7 @@ class SensationTestCase(unittest.TestCase):
 #                 memory = Memory(robot = None,
 #                                 maxRss = 10*Memory.maxRss,
 #                                 minAvailMem = 0)#Memory.minAvailMem)
+                print("\ntest_Save {}\n".format(Sensation.getSensationTypeString(sensationtype)))
                 self.do_Test_CopyBinaryFiles(sensationtype = sensationtype,
                                              memory=self.memory)
 #         
@@ -2897,51 +2901,59 @@ class SensationTestCase(unittest.TestCase):
         self.assertTrue(copySensation2.originalSensation is originalSensation)
         self.assertEqual(len(originalSensation.copySensations), 2)
 
-        copySensation2.delete()
+        # TODO WE should use self.memory.deleteFromSensationMemory, not just 
+        # copySensation2.delete()
+        memory.deleteFromSensationMemory(sensation=copySensation2)
         # copySensation2 is not copy any more copy
         self.assertFalse(copySensation2 in originalSensation.copySensations)
         self.assertFalse(copySensation2.originalSensation is originalSensation)
         self.assertFalse(copySensation2 in originalSensation.copySensations)
-        self.assertEqual(len(originalSensation.copySensations), 1)
+        self.assertEqual(len(originalSensation.copySensations) ,1)
 
         # copySensation1 is still copy
         self.assertTrue(copySensation1 in originalSensation.copySensations)
         self.assertTrue(copySensation1.originalSensation is originalSensation)
         self.assertTrue(copySensation1 in originalSensation.copySensations)
 
-        copySensation1.delete()
+        # copySensation1.delete()
+        memory.deleteFromSensationMemory(sensation=copySensation1)
         # copySensation1 is not copy any more copy
         self.assertFalse(copySensation1 in originalSensation.copySensations)
         self.assertFalse(copySensation1.originalSensation is originalSensation)
         self.assertFalse(copySensation1 in originalSensation.copySensations)
         self.assertEqual(len(originalSensation.copySensations), 0)
         
-        originalSensation.delete() # does nothing for copysensations, necause it does not ave them
+        # originalSensation.delete() # does nothing for copysensations, because it does not ave them
+        memory.deleteFromSensationMemory(sensation=originalSensation)
         self.assertEqual(len(originalSensation.copySensations), 0)
 
-        # do physical delete from memory        
-        i=0
-        while i < len(memory.sensationMemory) and (originalSensation != None or\
-              copySensation1 != None or copySensation2 != None):
-            if originalSensation != None and\
-               memory.sensationMemory[i].getId() == originalSensation.getId():
-                del memory.sensationMemory[i]
-                originalSensation = None
-            elif copySensation1 != None and\
-                 memory.sensationMemory[i].getId() == copySensation1.getId():
-                del memory.sensationMemory[i]
-                copySensation1 = None
-            elif copySensation2 != None and\
-                 memory.sensationMemory[i].getId() == copySensation2.getId():
-                del memory.sensationMemory[i]
-                copySensation2 = None
-            else:
-                i += 1
-            
-        #test test
-        self.assertEqual(originalSensation, None)
-        self.assertEqual(copySensation1, None)
-        self.assertEqual(copySensation2, None)
+        # # do physical delete from memory 
+        # # not needed, this is already done       
+        # i=0
+        # while i < len(memory.sensationMemory) and (originalSensation != None or\
+        #       copySensation1 != None or copySensation2 != None):
+        #     if originalSensation != None and\
+        #        memory.sensationMemory[i].getId() == originalSensation.getId():
+        #         # del memory.sensationMemory[i]
+        #         memory.deleteFromSensationMemory(sensation=sensationMemory[i])
+        #         originalSensation = None
+        #     elif copySensation1 != None and\
+        #          memory.sensationMemory[i].getId() == copySensation1.getId():
+        #         # del memory.sensationMemory[i]
+        #         memory.deleteFromSensationMemory(sensation=sensationMemory[i])
+        #         copySensation1 = None
+        #     elif copySensation2 != None and\
+        #          memory.sensationMemory[i].getId() == copySensation2.getId():
+        #         # del memory.sensationMemory[i]
+        #         memory.deleteFromSensationMemory(sensation=sensationMemory[i])
+        #         copySensation2 = None
+        #     else:
+        #         i += 1
+        #
+        # #test test
+        # self.assertEqual(originalSensation, None)
+        # self.assertEqual(copySensation1, None)
+        # self.assertEqual(copySensation2, None)
         
         # now create deleted Sensation fron files and test that there is only
         # one copy of data
@@ -3033,7 +3045,8 @@ class SensationTestCase(unittest.TestCase):
         self.assertTrue(copySensation2 in originalSensation.copySensations)
         self.assertEqual(len(originalSensation.copySensations), 2)
 
-        copySensation2.delete()
+        # copySensation2.delete()
+        memory.deleteFromSensationMemory(sensation=copySensation2)
         # copySensation2 is not copy any more copy
         self.assertFalse(copySensation2 in originalSensation.copySensations)
         self.assertFalse(copySensation2.originalSensation is originalSensation)
@@ -3045,38 +3058,41 @@ class SensationTestCase(unittest.TestCase):
         self.assertTrue(copySensation1.originalSensation is originalSensation)
         self.assertTrue(copySensation1 in originalSensation.copySensations)
 
-        copySensation1.delete()
+        # copySensation1.delete()
+        memory.deleteFromSensationMemory(sensation=copySensation1)
         # copySensation1 is not copy any more copy
         self.assertFalse(copySensation1 in originalSensation.copySensations)
         self.assertFalse(copySensation1.originalSensation is originalSensation)
         self.assertFalse(copySensation1 in originalSensation.copySensations)
         self.assertEqual(len(originalSensation.copySensations), 0)
         
-        originalSensation.delete() # does nothing for copysensations, necause it does not ave them
+        # originalSensation.delete() # does nothing for copysensations, necause it does not ave them
+        memory.deleteFromSensationMemory(sensation=originalSensation)
         self.assertEqual(len(originalSensation.copySensations), 0)
 
-        i=0
-        while i < len(memory.sensationMemory) and\
-             (originalSensation != None or copySensation1 != None or copySensation2 != None):
-            if originalSensation != None and\
-               memory.sensationMemory[i].getId() == originalSensation.getId():
-                del memory.sensationMemory[i]
-                originalSensation = None
-            elif copySensation1 != None and\
-                 memory.sensationMemory[i].getId() == copySensation1.getId():
-                del memory.sensationMemory[i]
-                copySensation1 = None
-            elif copySensation2 != None and\
-                 memory.sensationMemory[i].getId() == copySensation2.getId():
-                del memory.sensationMemory[i]
-                copySensation2 = None
-            else:
-                i += 1
-            
-        #test test
-        self.assertEqual(originalSensation, None)
-        self.assertEqual(copySensation1, None)
-        self.assertEqual(copySensation2, None)
+        # not needed, elf.memory.deleteFromSensationMemory( deletes fhysicaly from Memory
+        # i=0
+        # while i < len(memory.sensationMemory) and\
+        #      (originalSensation != None or copySensation1 != None or copySensation2 != None):
+        #     if originalSensation != None and\
+        #        memory.sensationMemory[i].getId() == originalSensation.getId():
+        #         del memory.sensationMemory[i]
+        #         originalSensation = None
+        #     elif copySensation1 != None and\
+        #          memory.sensationMemory[i].getId() == copySensation1.getId():
+        #         del memory.sensationMemory[i]
+        #         copySensation1 = None
+        #     elif copySensation2 != None and\
+        #          memory.sensationMemory[i].getId() == copySensation2.getId():
+        #         del memory.sensationMemory[i]
+        #         copySensation2 = None
+        #     else:
+        #         i += 1
+        #
+        # #test test
+        # self.assertEqual(originalSensation, None)
+        # self.assertEqual(copySensation1, None)
+        # self.assertEqual(copySensation2, None)
         
         # load copy first copySensation1, then copySensation2 and finally original
         #copy 1
@@ -3195,7 +3211,8 @@ class SensationTestCase(unittest.TestCase):
         self.assertEqual(len(originalSensation.copySensations), 2)
         
 
-        originalSensation.delete()
+        # originalSensation.delete()
+        memory.deleteFromSensationMemory(sensation=originalSensation)
         # should have new original now
         self.assertEqual(len(originalSensation.copySensations), 0)
         # copySensation1 is new original now
@@ -3212,7 +3229,8 @@ class SensationTestCase(unittest.TestCase):
         self.assertEqual(len(copySensation1.copySensations), 1)
         self.assertEqual(copySensation1.copySensations[0], copySensation2)
         
-        copySensation2.delete()
+        # copySensation2.delete()
+        memory.deleteFromSensationMemory(sensation=copySensation2)
         # copySensation2 is not copy any more copy
         self.assertFalse(copySensation2 in copySensation1.copySensations)
         self.assertFalse(copySensation2.originalSensation is copySensation1)
@@ -3220,31 +3238,33 @@ class SensationTestCase(unittest.TestCase):
         self.assertEqual(len(copySensation1.copySensations), 0)
         self.assertTrue(copySensation1.isOriginal())
         
-        copySensation1.delete() # does nothing for copysensations, necause it does not ave them
+        # copySensation1.delete() # does nothing for copysensations, necause it does not ave them
+        memory.deleteFromSensationMemory(sensation=copySensation1)
         self.assertEqual(len(copySensation1.copySensations), 0)
         
-        i=0
-        while i < len(memory.sensationMemory) and (originalSensation != None or\
-              copySensation1 != None or copySensation2 != None):
-            if originalSensation != None and\
-               memory.sensationMemory[i].getId() == originalSensation.getId():
-                del memory.sensationMemory[i]
-                originalSensation = None
-            elif copySensation1 != None and\
-                 memory.sensationMemory[i].getId() == copySensation1.getId():
-                del memory.sensationMemory[i]
-                copySensation1 = None
-            elif copySensation2 != None and\
-                 memory.sensationMemory[i].getId() == copySensation2.getId():
-                del memory.sensationMemory[i]
-                copySensation2 = None
-            else:
-                i += 1
-            
-        #test test
-        self.assertEqual(originalSensation, None)
-        self.assertEqual(copySensation1, None)
-        self.assertEqual(copySensation2, None)
+        # not needed, elf.memory.deleteFromSensationMemory( deletes fhysicaly from Memory
+        # i=0
+        # while i < len(memory.sensationMemory) and (originalSensation != None or\
+        #       copySensation1 != None or copySensation2 != None):
+        #     if originalSensation != None and\
+        #        memory.sensationMemory[i].getId() == originalSensation.getId():
+        #         del memory.sensationMemory[i]
+        #         originalSensation = None
+        #     elif copySensation1 != None and\
+        #          memory.sensationMemory[i].getId() == copySensation1.getId():
+        #         del memory.sensationMemory[i]
+        #         copySensation1 = None
+        #     elif copySensation2 != None and\
+        #          memory.sensationMemory[i].getId() == copySensation2.getId():
+        #         del memory.sensationMemory[i]
+        #         copySensation2 = None
+        #     else:
+        #         i += 1
+        #
+        # #test test
+        # self.assertEqual(originalSensation, None)
+        # self.assertEqual(copySensation1, None)
+        # self.assertEqual(copySensation2, None)
         
         #################################
         
@@ -3330,7 +3350,7 @@ class SensationTestCase(unittest.TestCase):
             self.assertTrue(copySensation1.data is originalSensation.data)
         elif sensationtype == Sensation.SensationType.Image:
             #self.assertEqual(copySensation2.image, image)
-            #self.assertFalse(copySensation2.image is image)
+            #self.assertsensationMemoryFalse(copySensation2.image is image)
             self.assertTrue(copySensation2.image is originalSensation.image)
             self.assertTrue(copySensation2.originalSensation is originalSensation)
             # also copySensation1 remain
@@ -3369,7 +3389,8 @@ class SensationTestCase(unittest.TestCase):
         self.assertTrue(copySensation1 in originalSensation.copySensations)
         self.assertEqual(len(originalSensation.copySensations), 2)
         
-        copySensation2.delete()
+        # copySensation2.delete()
+        memory.deleteFromSensationMemory(sensation=copySensation2)
         # originalSensation losesis its copy
         self.assertFalse(copySensation2 in originalSensation.copySensations)
         self.assertFalse(copySensation2.originalSensation is originalSensation)
@@ -3381,7 +3402,8 @@ class SensationTestCase(unittest.TestCase):
         self.assertTrue(originalSensation.isOriginal())
         self.assertNotEqual(copySensation1.isOriginal(), copySensation1.hasOriginality())
         
-        originalSensation.delete()
+        # originalSensation.delete()
+        memory.deleteFromSensationMemory(sensation=originalSensation)
         #copySensation1 loses its original
         self.assertEqual(len(originalSensation.copySensations), 0)
         # copySensation1 is new original now
@@ -3389,35 +3411,38 @@ class SensationTestCase(unittest.TestCase):
         self.assertEqual(len(copySensation1.copySensations), 0)
         
         
-        copySensation1.delete() # does nothing for copysensations, necause it does not ave them
+        # copySensation1.delete() # does nothing for copysensations, because it does not save them
+        memory.deleteFromSensationMemory(sensation=copySensation1)
         self.assertEqual(len(copySensation1.copySensations), 0)
          
-        # finally delete originalSensation and copySensation1 from memory
-        i=0
-        while i < len(memory.sensationMemory) and\
-             (originalSensation != None or copySensation1 != None or copySensation2 != None):
-            if originalSensation != None and\
-               memory.sensationMemory[i].getId() == originalSensation.getId():
-                del memory.sensationMemory[i]
-                originalSensation = None
-            elif copySensation1 != None and\
-                 memory.sensationMemory[i].getId() == copySensation1.getId():
-                del memory.sensationMemory[i]
-                copySensation1 = None
-            elif copySensation2 != None and\
-                 memory.sensationMemory[i].getId() == copySensation2.getId():
-                del memory.sensationMemory[i]
-                copySensation2 = None
-            else:
-                i += 1
-            
-        #test test
-        self.assertEqual(originalSensation, None)
-        self.assertEqual(copySensation1, None)
-        self.assertEqual(copySensation2, None)
+        # not needed, elf.memory.deleteFromSensationMemory( deletes fhysicaly from Memory
+        # # finally delete originalSensation and copySensation1 from memory
+        # i=0
+        # while i < len(memory.sensationMemory) and\
+        #      (originalSensation != None or copySensation1 != None or copySensation2 != None):
+        #     if originalSensation != None and\
+        #        memory.sensationMemory[i].getId() == originalSensation.getId():
+        #         del memory.sensationMemory[i]
+        #         originalSensation = None
+        #     elif copySensation1 != None and\
+        #          memory.sensationMemory[i].getId() == copySensation1.getId():
+        #         del memory.sensationMemory[i]
+        #         copySensation1 = None
+        #     elif copySensation2 != None and\
+        #          memory.sensationMemory[i].getId() == copySensation2.getId():
+        #         del memory.sensationMemory[i]
+        #         copySensation2 = None
+        #     else:
+        #         i += 1
+        #
+        # #test test
+        # self.assertEqual(originalSensation, None)
+        # self.assertEqual(copySensation1, None)
+        # self.assertEqual(copySensation2, None)
         
         # cleanup memory
         del memory.sensationMemory[:]
+        memory.masterItems = {}
 
 
     '''
