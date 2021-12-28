@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 18.12.2021
+Edited on 28.12.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -58,7 +58,11 @@ class Memory(object):
     minAvailMem = 50.0                                       # how available momory must be left. MainRobot sets this from its Config
     psutilProcess = psutil.Process(os.getpid())              # get pid of current process, so we can calculate Process memory usage
     MAX_FORGETFAILURES = 256                                 # for test 2, set higher
-    # Robot settings"
+                                                             #duplicated from Communication because not yet guessed how to import this from
+                                                             # Communication.py
+    COMMUNICATION_INTERVAL=60.0                              # time window to history 
+                                                             # for sensations we communicate
+    # Robot settings
     MemoryLogLevel = enum(No=-1, Critical=0, Error=1, Normal=2, Detailed=3, Verbose=4)
    
     def __init__(self,
@@ -291,7 +295,7 @@ class Memory(object):
             self.addToSensationMemory(sensation) # pure new sensation must be added to memory
 
         if sensation.getSensationType() == Sensation.SensationType.Item and sensation.getMemoryType() == Sensation.MemoryType.Working and\
-           sensation.getRobotType() == Sensation.RobotType.Sense:
+           sensation.getRobotType() == Sensation.RobotType.Sense and sensation.getTime() >= (systemTime.time() - Memory.COMMUNICATION_INTERVAL):
                self.tracePresentItems(sensation=sensation, name = sensation.getName(), presentDict=self._presentItemSensations)
         elif sensation.getSensationType() == Sensation.SensationType.Robot and sensation.getMemoryType() == Sensation.MemoryType.Working and\
              sensation.getRobotType() == Sensation.RobotType.Communication: # and\

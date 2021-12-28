@@ -1,45 +1,16 @@
 Critical
 --------
 
-With deleting we have now thread-safe problem
 
-If microphone gets a Voive and it is processed by SocketClient and Communication
-and Communication finds out that voice is not valid, its is deleted, but same
-voice is processed be SocketClient and same Voice or its association is now missing
-Mon Dec  6 21:15:38 2021:main_Father:Microphone:3:Normal:Ubuntu:sense: route(transferDirection=Sensation.TransferDirection.Direct, sensation=voiceSensation 5.61922902494331s voice
-Mon Dec  6 21:15:38 2021:main_Father:father:1:Normal:Ubuntu:got sensation from queue c Mon Dec  6 21:15:38 2021:1638817915.6935654:1638818067.8558893:Sensory:Sense:Voice:Ubuntu::Neutral:Normal
-Mon Dec  6 21:15:38 2021:main_Father:father:1:Normal:Ubuntu:process: Mon Dec  6 21:15:38 2021 c
-Mon Dec  6 21:15:38 2021:main_Father:father:1:Normal:Ubuntu:process: 0.0072879791259765625 < 60.0
-Mon Dec  6 21:15:38 2021:main_Father:father:1:Normal:Ubuntu:Ubuntu:ConversationWithItem process: Mon Dec  6 21:15:38 2021 c Mon Dec  6 21:15:38 2021:1638817915.6935654:1638818067.8558893:Sensory:Sense:Voice:Ubuntu::Neutral:Normal
-Mon Dec  6 21:15:38 2021:main_Father:Visual:2:Normal:Ubuntu:got sensation from queue Down Mon Dec  6 21:15:38 2021:1638817915.6935654:1638818067.8558893:Sensory:Sense:Voice:Ubuntu::Neutral:Normal len(sensation.getAssociations()) 12
-Mon Dec  6 21:15:38 2021:main_Father:Visual:2:Normal:Ubuntu:process: Mon Dec  6 21:15:38 2021 Down Mon Dec  6 21:15:38 2021:1638817915.6935654:1638818067.8558893:Sensory:Sense:Voice:Ubuntu::Neutral:Normal  len(sensation.getAssociations()) 12
-Mon Dec  6 21:15:38 2021:main_Father:SocketClient: ('192.168.117.245', 2000):3:Normal::got sensation from queue c Mon Dec  6 21:15:38 2021:1638817915.6935654:1638818067.8558893:Sensory:Sense:Voice:Ubuntu::Neutral:Normal
-Mon Dec  6 21:15:38 2021:main_Father:father:1:Normal:Ubuntu:Ubuntu:ConversationWithItem process: 0.008131265640258789 < 60.0
-Mon Dec  6 21:15:38 2021:main_Father:father:1:Normal:Ubuntu:Ubuntu:ConversationWithItem process: got voice, which it can't  process, because its response is not yet played Mon Dec  6 21:15:38 2021:1638817915.6935654:1638818067.8558893:Sensory:Sense:Voice:Ubuntu::Neutral:Normal
-Mon Dec  6 21:15:38 2021:main_Father:father:1:Normal:Ubuntu:process: Mon Dec  6 21:15:38 2021 c Mon Dec  6 21:15:38 2021:1638817915.6935654:1638818067.8558893:Sensory:Sense:Voice:Ubuntu::Neutral:Normal
-Mon Dec  6 21:15:38 2021:main_Father:SocketClient: ('192.168.117.245', 2000):3:Normal::process: Mon Dec  6 21:15:38 2021 c Mon Dec  6 21:15:38 2021:1638817915.6935654:1638818067.8558893:Sensory:Sense:Voice:Ubuntu::Neutral:Normal
-Mon Dec  6 21:15:38 2021:main_Father:father:1:Normal:Ubuntu:process: deleting this sensation we can't save to Memory Mon Dec  6 21:15:38 2021:1638817915.6935654:1638818067.8558893:Sensory:Sense:Voice:Ubuntu::Neutral:Normal
-Mon Dec  6 21:15:38 2021:main_Father:father:1:Normal:Ubuntu:Sensations cache for 363 Total self.sensationMemory total rss usage    690 MB per sensation rss usage   1907 KB available total  12177 MB sensation usage   1756 KB with Sensation.min_cache_memorability 0.10
-Mon Dec  6 21:15:38 2021:main_Father:father:1:Normal:Ubuntu:done sensation.detach(robot=self)
-Exception in thread SocketClient: ('192.168.117.245', 2000):
-Traceback (most recent call last):
-  File "/usr/lib/python3.4/threading.py", line 920, in _bootstrap_inner
-    self.run()
-  File "/home/reijo/git/Wall-E/Robot/python3/Robot/Robot.py", line 2424, in run
-    super(SocketClient, self).run()
-  File "/home/reijo/git/Wall-E/Robot/python3/Robot/Robot.py", line 838, in run
-    self.process(transferDirection=transferDirection, sensation=sensation)
-  File "/home/reijo/git/Wall-E/Robot/python3/Robot/Robot.py", line 2445, in process
-    self.running = self.sendSensation(sensation, self.sock, self.address)
-  File "/home/reijo/git/Wall-E/Robot/python3/Robot/Robot.py", line 2576, in sendSensation
-    bytes = sensation.bytes()
-  File "/home/reijo/git/Wall-E/Robot/python3/Robot/Sensation.py", line 2094, in bytes
-    b +=  Sensation.floatToBytes(self.associations[j].getTime())
-IndexError: list index out of range
+CommunicationTest.py should be rewiten more simple with new methods that we repeat.
+Now same logic is repeated and it is hard to update tests.
+1) Justs create Robot Voices voice and Images
+2) present Items
+3) Item voices
+4) Absent Items
+This is enoungh to test all ceses.
 
-OK Maybe we could technically solve this with reader lock in bytes-method,
 
-but logical problem remains. If SocketClient sends this Sensation, it sends not valid data.
 
 Seems Communication repeats always same Voices.
 Correction is global longer id-queue for used voices.
@@ -76,7 +47,12 @@ Eva stops to send images
 
 Develop
 -------
+Study CommunicationState
+- We set waiting response too soon, because pålaying sounds can be slow. We should set in only wjen and if we have got Voice played
+state. Now sync is not correct and we can play many sounds until we get many Sonuds played states,
+
 Study masterItems. Items and Sensations assigned to then are all, what Robot knows about this world. Use library by name.
+- First step done
 
 Voice associations should be more on purpose than statistical by time. Hearing should assign hears Voices to present Items
 and all automatic assigns should be removed from Memory.

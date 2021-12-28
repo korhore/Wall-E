@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 30.11.2021
+Edited on 20.12.2021
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -156,6 +156,7 @@ class Sensation(object):
                       CommunicationNoResponseToSay = chr(iRobotState.next()),
                       CommunicationEnded = chr(iRobotState.next()),
                       CommunicationDelay = chr(iRobotState.next()),
+                      CommunicationSyncError = chr(iRobotState.next()),
                       
                       #Microphone
                       MicrophoneSensing = chr(iRobotState.next()),
@@ -241,6 +242,7 @@ class Sensation(object):
     COMMUNICATIONNORESPONSETOSAY="Communication Find NOTHING To Say"
     COMMUNICATIONENDED="Communication Ended"
     COMMUNICATIONDELAY="Communication Delay"
+    COMMUNICATIONSYNCERROR="Communication Sync ERROR"
     # Microphone
     MICROPHONESENSING="Microphone Sensing"
     MICROPHONEDISABLED="Microphone Disabled"
@@ -342,6 +344,7 @@ class Sensation(object):
                RobotState.CommunicationNoResponseToSay:COMMUNICATIONNORESPONSETOSAY,
                RobotState.CommunicationEnded:COMMUNICATIONENDED,
                RobotState.CommunicationDelay:COMMUNICATIONDELAY,
+               RobotState.CommunicationSyncError:COMMUNICATIONSYNCERROR,
                
                # Microphone
                RobotState.MicrophoneSensing:MICROPHONESENSING,
@@ -375,7 +378,8 @@ class Sensation(object):
                RobotState.CommunicationNoResponseHeard:COMMUNICATIONNORESPONSEHEARD,
                RobotState.CommunicationNoResponseToSay:COMMUNICATIONNORESPONSETOSAY,
                RobotState.CommunicationEnded:COMMUNICATIONENDED,
-               RobotState.CommunicationDelay:COMMUNICATIONDELAY}
+               RobotState.CommunicationDelay:COMMUNICATIONDELAY,
+               RobotState.CommunicationSyncError:COMMUNICATIONSYNCERROR}
                
     MicrophoneRobotStates={
                 # Microphone

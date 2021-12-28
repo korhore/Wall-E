@@ -1,6 +1,6 @@
 '''
 Created on 12.04.2020
-Updated on 13.12.2021
+Updated on 28.12.2021
 @author: reijo.korhonen@gmail.com
 
 test Memory class
@@ -13,7 +13,14 @@ import os
 import unittest
 from Sensation import Sensation
 from Robot import Robot
+from Communication import Communication
 from Memory import Memory
+
+#duplicated from Communication because not yet guessed how to import this from
+# Communication.py
+COMMUNICATION_INTERVAL=60.0     # time window to history 
+                                # for sensations we communicate
+
 
 class MemoryTestCase(unittest.TestCase):
     TEST_RUNS = 2
@@ -217,13 +224,16 @@ class MemoryTestCase(unittest.TestCase):
         del self.robot
         
     def testPresence(self):
-        # Item.name presence
+        history_sensationTime = systemTime.time() -2*COMMUNICATION_INTERVAL
+
         self.dotestPresence(sensationType=Sensation.SensationType.Item,
                             robotType=Sensation.RobotType.Sense,
                             presentDict=self.memory._presentItemSensations,
-                            name='test')
+                            name='test',
+                            time = history_sensationTime,
+                            shouldSucceed=False)
         # TOO implementation is missing.
-        # Robotr.name presence
+        # Robot.name presence
 #         for name in self.MAINNAMES:
 #             self.dotestPresence(sensationType=Sensation.SensationType.Robot,
 #                                 robotType=Sensation.RobotType.Communication,
@@ -242,11 +252,12 @@ class MemoryTestCase(unittest.TestCase):
         
       
         
-    def dotestPresence(self, sensationType, robotType, presentDict, name, mainNames=None):
+    def dotestPresence(self, sensationType, robotType, presentDict, name, mainNames=None, time=None, shouldSucceed=True):
         #del self.memory.sensationMemory[:]
         
         
-        enteringSensation = self.robot.createSensation(associations=None,
+        enteringSensation = self.robot.createSensation(time=time,
+                                                       associations=None,
                                                        sensationType=sensationType,
                                                        robotType=robotType,
                                                        memoryType=Sensation.MemoryType.Working,
@@ -266,9 +277,15 @@ class MemoryTestCase(unittest.TestCase):
         self.assertEqual(enteringSensation.getPresence(), Sensation.Presence.Entering, "should be entering")
         self.assertIsNot(enteringSensation, None)
         if name != None:
-            for location in self.LOCATIONS:        
-                self.assertTrue(location in presentDict)
-                self.assertTrue(name in presentDict[location])
+            if shouldSucceed:
+                for location in self.LOCATIONS:        
+                    self.assertTrue(location in presentDict)
+                    self.assertTrue(name in presentDict[location])
+            else:
+                for location in self.LOCATIONS:        
+                    if location in presentDict:
+                        self.assertFalse(name in presentDict[location])
+                
         else:
             # With local Robot presence, there is no presence, because local robot is not present for itself
             if mainNames == None:

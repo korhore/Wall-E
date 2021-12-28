@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 19.12.2021
+Updated on 20.12.2021
 
 @author: reijo.korhonen@gmail.com
 
@@ -197,7 +197,7 @@ class Communication(Robot):
                                     
             self.lastConversationEndTime = None
     
-            self.robotState = None
+            self.robotState = Sensation.RobotState.CommunicationNotStarted # None
 #            self.informRobotState(Sensation.RobotState.CommunicationWaiting)
 #             robotStateSensation = self.createSensation( associations=None,
 #                                                         sensationType=Sensation.SensationType.RobotState,
@@ -390,19 +390,14 @@ class Communication(Robot):
                                        Sensation.RobotState.CommunicationResponseHeard,
                                        Sensation.RobotState.CommunicationNoResponseHeard,
                                        Sensation.RobotState.CommunicationNoResponseToSay,
-                                       Sensation.RobotState. CommunicationWaitingVoicePlayed,
                                        ]
        
-        def isWaitingVoice(self):
-#             return self.robotState in [Sensation.RobotState.CommunicationOn,
-#                                        Sensation.RobotState.CommunicationWaiting,
-#                                        Sensation.RobotState.CommunicationVoicePlayed,
-#                                        Sensation.RobotState.CommunicationWaitingResponse,
-#                                        Sensation.RobotState.CommunicationDelay,
-#                                        Sensation.RobotState.CommunicationNoResponseHeard,
-#                                        Sensation.RobotState.CommunicationNoResponseToSay,
-#                                        ]
-            return self.robotState != Sensation.RobotState.CommunicationWaitingVoicePlayed
+        def isWaitingVoiceOrItem(self):
+            return not self.robotState in [Sensation.RobotState.CommunicationWaitingVoicePlayed
+                                           ]
+        def isWaitingWaitingResponse(self):
+            return self.robotState in [Sensation.RobotState.CommunicationWaitingResponse
+                                      ]
         def isConversationEnded(self):
             return self.robotState in [Sensation.RobotState.CommunicationNotStarted,
                                        Sensation.RobotState.CommunicationWaiting,
@@ -539,7 +534,55 @@ class Communication(Robot):
         Inform in what robotState this Robot is to other Robots
         '''   
         def informRobotState(self, robotState):
-            if self.robotState != robotState: 
+            if self.robotState != robotState:
+                # chech sommunication syncronizing
+                if robotState == Sensation.RobotState.CommunicationNotStarted:
+                    if self.robotState != None:
+                        self.log(logLevel=Robot.LogLevel.Error, logStr='ConversationWithItem informRobotState: Cannot change robotState from {} to {}'.format(Sensation.getRobotStateString(robotState=self.robotState),
+                                                                                                                                                              Sensation.getRobotStateString(robotState=robotState)))
+                        robotState = Sensation.RobotState.CommunicationSyncError
+                elif robotState == Sensation.RobotState.CommunicationWaiting:
+                    if self.robotState not in [None,
+                                               Sensation.RobotState.CommunicationNotStarted,
+                                               Sensation.RobotState.CommunicationEnded]:
+                        self.log(logLevel=Robot.LogLevel.Error, logStr='ConversationWithItem informRobotState: Cannot change robotState from {} to {}'.format(Sensation.getRobotStateString(robotState=self.robotState),
+                                                                                                                                                              Sensation.getRobotStateString(robotState=robotState)))
+                        robotState = Sensation.RobotState.CommunicationSyncError
+                elif robotState == Sensation.RobotState.CommunicationOn:
+                    if self.robotState not in [Sensation.RobotState.CommunicationWaiting]:
+                        self.log(logLevel=Robot.LogLevel.Error, logStr='ConversationWithItem informRobotState: Cannot change robotState from {} to {}'.format(Sensation.getRobotStateString(robotState=self.robotState),
+                                                                                                                                                              Sensation.getRobotStateString(robotState=robotState)))
+                        robotState = Sensation.RobotState.CommunicationSyncError
+                elif robotState == Sensation.RobotState.CommunicationResponseHeard:
+                    if self.robotState != Sensation.RobotState.CommunicationWaitingResponse:
+                        self.log(logLevel=Robot.LogLevel.Error, logStr='ConversationWithItem informRobotState: Cannot change robotState from {} to {}'.format(Sensation.getRobotStateString(robotState=self.robotState),
+                                                                                                                                                              Sensation.getRobotStateString(robotState=robotState)))
+                        robotState = Sensation.RobotState.CommunicationSyncError
+                elif robotState == Sensation.RobotState.CommunicationNoResponseHeard:
+                    if self.robotState != Sensation.RobotState.CommunicationWaitingResponse:
+                        self.log(logLevel=Robot.LogLevel.Error, logStr='ConversationWithItem informRobotState: Cannot change robotState from {} to {}'.format(Sensation.getRobotStateString(robotState=self.robotState),
+                                                                                                                                                              Sensation.getRobotStateString(robotState=robotState)))
+                        robotState = Sensation.RobotState.CommunicationSyncError                     
+                elif robotState == Sensation.RobotState.CommunicationVoicePlayed:
+                    if self.robotState != Sensation.RobotState.CommunicationWaitingVoicePlayed:
+                        self.log(logLevel=Robot.LogLevel.Error, logStr='ConversationWithItem informRobotState: Cannot change robotState from {} to {}'.format(Sensation.getRobotStateString(robotState=self.robotState),
+                                                                                                                                                              Sensation.getRobotStateString(robotState=robotState)))
+                        robotState = Sensation.RobotState.CommunicationSyncError
+                elif robotState == Sensation.RobotState.CommunicationWaitingVoicePlayed:
+                    if self.robotState not in [Sensation.RobotState.CommunicationOn,
+                                               Sensation.RobotState.CommunicationWaiting,
+                                               Sensation.RobotState.CommunicationResponseHeard]:
+                        self.log(logLevel=Robot.LogLevel.Error, logStr='ConversationWithItem informRobotState: Cannot change robotState from {} to {}'.format(Sensation.getRobotStateString(robotState=self.robotState),
+                                                                                                                                                              Sensation.getRobotStateString(robotState=robotState)))
+                        robotState = Sensation.RobotState.CommunicationSyncError
+                elif robotState == Sensation.RobotState.CommunicationNoResponseToSay:
+                    if self.robotState not in [Sensation.RobotState.CommunicationOn,
+                                               Sensation.RobotState.CommunicationWaiting,
+                                               Sensation.RobotState.CommunicationResponseHeard]:
+                        self.log(logLevel=Robot.LogLevel.Error, logStr='ConversationWithItem informRobotState: Cannot change robotState from {} to {}'.format(Sensation.getRobotStateString(robotState=self.robotState),
+                                                                                                                                                              Sensation.getRobotStateString(robotState=robotState)))
+                        robotState = Sensation.RobotState.CommunicationSyncError
+
                 self.robotState = robotState
                 robotStateSensation = self.createSensation(associations=None,
                                                            sensationType=Sensation.SensationType.RobotState,
@@ -600,30 +643,34 @@ class Communication(Robot):
                         self.log(logLevel=Robot.LogLevel.Detailed, logStr='ConversationWithItem process: got item ' + sensation.getName() + ' present now' + self.getMemory().itemsPresenceToStr())
                         self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: got item ' + sensation.getName() + ' joined to communication')
                         # ready to continue conversation with new Item.name
-                        self.informRobotState(robotState = Sensation.RobotState.CommunicationWaiting)
-                        
-                        # ask other Robots to say, what we should say to this Item.name
-                        if self.getMemory().hasRobotsPresence():
-                            askSensation = self.createSensation(sensation = sensation, locations=Robot.GLOBAL_LOCATIONS)
-                            # NOTE This is needed now, because Sensation.create parameters robotType and memoryType parameters are  overwritten by sensation parameters
-                            askSensation.setKind(self.getKind())
-                            askSensation.setRobotType(Sensation.RobotType.Communication)  # communication to other Robots       
-                            self.getMemory().setMemoryType(sensation=askSensation, memoryType=Sensation.MemoryType.Sensory)
-                            # speak                 
-                            self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=askSensation)
-                            askSensation.detach(robot=self.getRobot())
-    
-                        # now we can say something to the sensation.getName()
-                        # even if we have said something so other present ones
-                        # this means we need (again)
+                        # TODO is we are not already waiting a response#
+                        if self.isWaitingVoiceOrItem() and not self.isWaitingWaitingResponse():
+                        #if True:
+                            #comment?
+                            self.informRobotState(robotState = Sensation.RobotState.CommunicationWaiting)
+                            
+                            # ask other Robots to say, what we should say to this Item.name
+                            if self.getMemory().hasRobotsPresence():
+                                askSensation = self.createSensation(sensation = sensation, locations=Robot.GLOBAL_LOCATIONS)
+                                # NOTE This is needed now, because Sensation.create parameters robotType and memoryType parameters are  overwritten by sensation parameters
+                                askSensation.setKind(self.getKind())
+                                askSensation.setRobotType(Sensation.RobotType.Communication)  # communication to other Robots       
+                                self.getMemory().setMemoryType(sensation=askSensation, memoryType=Sensation.MemoryType.Sensory)
+                                # speak                 
+                                self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=askSensation)
+                                askSensation.detach(robot=self.getRobot())
         
-                        # if communication is going on item.name when comes
-                        # handle as a response to said voice
-                        # because it was as interesting that new iterm.name joins into conversation
-                        
-                        self.handleGotFeedback(positiveFeeling=True, negativeFeeling=False)
-                        
-                        self.speak(onStart=not self.isConversationOn())
+                            # now we can say something to the sensation.getName()
+                            # even if we have said something so other present ones
+                            # this means we need (again)
+            
+                            # if communication is going on item.name when comes
+                            # handle as a response to said voice
+                            # because it was as interesting that new iterm.name joins into conversation
+                            
+                            self.handleGotFeedback(positiveFeeling=True, negativeFeeling=False)
+                            
+                            self.speak(onStart=not self.isConversationOn())
                     elif sensation.getPresence() == Sensation.Presence.Absent:
                         # if someone is present
                         if self.getMemory().hasItemsPresence(location=self.getLocation()):
@@ -638,7 +685,7 @@ class Communication(Robot):
                 elif sensation.getSensationType() == Sensation.SensationType.Voice and\
                      sensation.getMemoryType() == Sensation.MemoryType.Sensory and\
                      sensation.getRobotType() == Sensation.RobotType.Sense:
-                    if self.isWaitingVoice():
+                    if self.isWaitingVoiceOrItem and self.isWaitingWaitingResponse():
                         # don't echo same voice in this conversation
                         self.heardDataIds.append(sensation.getDataId())
                         while len(self.heardDataIds) > Communication.IGNORE_LAST_HEARD_SENSATIONS_LENGTH:
@@ -646,7 +693,7 @@ class Communication(Robot):
         
                         # if response in a going on conversation
                         # This is positive feedback
-                        if self.isConversationOn():
+                        if self.isWaitingWaitingResponse():
                             if self.spokedAssociations is not None:
                                 self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: got response ' + sensation.toDebugStr())
                                 self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: got response ' + sensation.getName() + ' present now' + self.getMemory().itemsPresenceToStr())
@@ -736,7 +783,7 @@ class Communication(Robot):
             if self.responseTimer is not None:
                 self.responseTimer.cancel()
             self.responseTimer = None
-            self.robotState = None # we reset self.robotState to be sure, that we give feedback how we succeeded
+            #self.robotState = None # we reset self.robotState to be sure, that we give feedback how we succeeded
             
             if self.spokedAssociations != None:
                 for associations in self.spokedAssociations:
