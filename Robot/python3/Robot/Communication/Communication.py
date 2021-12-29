@@ -337,38 +337,41 @@ class Communication(Robot):
                 self.responseTimer.cancel()
                 self.responseTimer = None
             if self.spokedAssociations != None:
-                for associations in self.spokedAssociations:
-                    for association in associations:
-                        firstAssociateSensation = association.getSensation()
-                        otherAssociateSensation = association.getSelfSensation()
-                                        
-                        if positiveFeeling and firstAssociateSensation.getMemoryType() != Sensation.MemoryType.LongTerm:
-                            self.getMemory().setMemoryType(sensation=firstAssociateSensation, memoryType=Sensation.MemoryType.LongTerm)
-                        if positiveFeeling and otherAssociateSensation.getMemoryType() != Sensation.MemoryType.LongTerm:
-                            self.getMemory().setMemoryType(sensation=otherAssociateSensation, memoryType=Sensation.MemoryType.LongTerm)
-                                
-                        if positiveFeeling:
-                            self.log(logLevel=Robot.LogLevel.Normal, logStr='process: good voice/image feeling with ' + firstAssociateSensation.getName())
-                            feelingSensation = self.createSensation(robotType = Sensation.RobotType.Sense,
-                                                                    associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
-                                                                    firstAssociateSensation=firstAssociateSensation, otherAssociateSensation=otherAssociateSensation,
-                                                                    positiveFeeling=True, locations=self.getLocations())#self.getLocations()) # valid in this location, can be chosen other way
-                        elif negativeFeeling:
-                            self.log(logLevel=Robot.LogLevel.Normal, logStr='process: bad voice/image feeling with ' + firstAssociateSensation.getName())
-                            feelingSensation = self.createSensation(robotType = Sensation.RobotType.Sense,
-                                                                    associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
-                                                                    firstAssociateSensation=firstAssociateSensation, otherAssociateSensation=otherAssociateSensation,
-                                                                    negativeFeeling=True, locations=self.getLocations())#self.getLocations()) # valid in this location, can be chosen other way
-
-#                         self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
-#                         self.getParent().route(transferDirection=Sensation.TransferDirection.Direct, sensation=feelingSensation)
-                        self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=feelingSensation)
-
-                                        
-                        # detach
-                        firstAssociateSensation.detach(robot=self.getRobot())
-                        otherAssociateSensation.detach(robot=self.getRobot())
-                        feelingSensation.detach(robot=self.getRobot())
+                for sensationType in self.spokedAssociations:
+                    # for sensationTypeAssociations in self.spokedAssociations[sensationType]:
+                    #     for association in sensationTypeAssociations:
+                    for association in self.spokedAssociations[sensationType]:
+                        # for association in sensationTypeAssociations:
+                            firstAssociateSensation = association.getSensation()
+                            otherAssociateSensation = association.getSelfSensation()
+                                            
+                            if positiveFeeling and firstAssociateSensation.getMemoryType() != Sensation.MemoryType.LongTerm:
+                                self.getMemory().setMemoryType(sensation=firstAssociateSensation, memoryType=Sensation.MemoryType.LongTerm)
+                            if positiveFeeling and otherAssociateSensation.getMemoryType() != Sensation.MemoryType.LongTerm:
+                                self.getMemory().setMemoryType(sensation=otherAssociateSensation, memoryType=Sensation.MemoryType.LongTerm)
+                                    
+                            if positiveFeeling:
+                                self.log(logLevel=Robot.LogLevel.Normal, logStr='process: good voice/image feeling with ' + firstAssociateSensation.getName())
+                                feelingSensation = self.createSensation(robotType = Sensation.RobotType.Sense,
+                                                                        associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
+                                                                        firstAssociateSensation=firstAssociateSensation, otherAssociateSensation=otherAssociateSensation,
+                                                                        positiveFeeling=True, locations=self.getLocations())#self.getLocations()) # valid in this location, can be chosen other way
+                            elif negativeFeeling:
+                                self.log(logLevel=Robot.LogLevel.Normal, logStr='process: bad voice/image feeling with ' + firstAssociateSensation.getName())
+                                feelingSensation = self.createSensation(robotType = Sensation.RobotType.Sense,
+                                                                        associations=None, sensationType=Sensation.SensationType.Feeling, memoryType=Sensation.MemoryType.Sensory,
+                                                                        firstAssociateSensation=firstAssociateSensation, otherAssociateSensation=otherAssociateSensation,
+                                                                        negativeFeeling=True, locations=self.getLocations())#self.getLocations()) # valid in this location, can be chosen other way
+    
+    #                         self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=feelingSensation)
+    #                         self.getParent().route(transferDirection=Sensation.TransferDirection.Direct, sensation=feelingSensation)
+                            self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=feelingSensation)
+    
+                                            
+                            # detach
+                            firstAssociateSensation.detach(robot=self.getRobot())
+                            otherAssociateSensation.detach(robot=self.getRobot())
+                            feelingSensation.detach(robot=self.getRobot())
                         
             self.spokedAssociations = None 
                                        
@@ -528,7 +531,8 @@ class Communication(Robot):
                                             if searched >= searchLength:
                                                 return sensations.values(), associations.values()
             
-            return sensations.values(), associations.values()
+            # return sensations.values(), associations.values()
+            return sensations, associations
 
         '''
         Inform in what robotState this Robot is to other Robots
@@ -544,7 +548,8 @@ class Communication(Robot):
                 elif robotState == Sensation.RobotState.CommunicationWaiting:
                     if self.robotState not in [None,
                                                Sensation.RobotState.CommunicationNotStarted,
-                                               Sensation.RobotState.CommunicationEnded]:
+                                               Sensation.RobotState.CommunicationEnded,
+                                               Sensation.RobotState.CommunicationNoResponseToSay]:
                         self.log(logLevel=Robot.LogLevel.Error, logStr='ConversationWithItem informRobotState: Cannot change robotState from {} to {}'.format(Sensation.getRobotStateString(robotState=self.robotState),
                                                                                                                                                               Sensation.getRobotStateString(robotState=robotState)))
                         robotState = Sensation.RobotState.CommunicationSyncError
@@ -823,18 +828,19 @@ class Communication(Robot):
                                                             robotMainNames = self.getMainNames(),
                                                             ignoredDataIds=self.spokedDataIds+self.heardDataIds)
                                                             #ignoredVoiceLens=self.ignoredVoiceLens)
-                        if len(sensations) > 0 and len(associations) > 0:
+                        if len(sensations) > 0 and len(associations) > 0 and Sensation.SensationType.Voice in sensations:
                             self._isNoResponseToSay = False
-                            for sensation in sensations:
+                            for sensationType in sensations:#.keys():
+                                sensation = sensations[sensationType]
                                 #self.saidSensations.append(self.spokedVoiceMuscleSensation.getDataId())
                                 assert sensation.getDataId() not in self.spokedDataIds
                                 while len(self.spokedDataIds) > Communication.IGNORE_LAST_SAID_SENSATIONS_LENGTH:
                                     del self.spokedDataIds[0]
                                 self.spokedDataIds.append(sensation.getDataId())   
-    
+        
                                 sensation.save()     # for debug reasons save voices we have spoken as heard voices and images
                                 self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process speak: self.getBestSensations did find sensations, spoke {}'.format(sensation.toDebugStr()))
-    
+        
                                 #create normal Muscle sensation for persons to be heard
                                 spokedSensation = self.createSensation(sensation = sensation, kind=self.getKind(), locations=self.getLocations())
                                 # NOTE This is needed now, because Sensation.create parameters robotType and memoryType parameters are  overwritten by sensation parameters
@@ -843,11 +849,11 @@ class Communication(Robot):
                                 #association = self.mostImportantItemSensation.getAssociation(sensation = self.mostImportantVoiceSensation)
                                 self.getMemory().setMemoryType(sensation=spokedSensation, memoryType=Sensation.MemoryType.Sensory)
                                 # speak                 
-#                                 self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=spokedSensation)
-#                                 self.getParent().route(transferDirection=Sensation.TransferDirection.Direct, sensation=spokedSensation)
+    #                                 self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=spokedSensation)
+    #                                 self.getParent().route(transferDirection=Sensation.TransferDirection.Direct, sensation=spokedSensation)
                                 self.getRobot().route(transferDirection=Sensation.TransferDirection.Direct, sensation=spokedSensation)
                                 spokedSensation.detach(robot=self.getRobot()) # to be sure
-                                
+                                    
                                 # if voice, then we wait RobotState message from Playback, that voice is played
                                 if spokedSensation.getSensationType() == Sensation.SensationType.Voice and spokedSensation.getRobotType() == Sensation.RobotType.Muscle:
                                     self.voicesToBePlayed += 1
@@ -968,8 +974,9 @@ class Communication(Robot):
                                                             sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
                                                             robotTypes = [Sensation.RobotType.Sense, Sensation.RobotType.Communication],
                                                             robotMainNames = self.getMainNames())
-                        if len(sensations) > 0 and len(associations) > 0:
-                            for sensation in sensations:
+                        if len(sensations) > 0 and len(associations) > 0 and Sensation.SensationType.Voice in sensations:
+                            for sensationType in sensations:#.keys():
+                                sensation = sensations[sensationType]
                                 sensation.save()     # for debug reasons save voices we have spoken as heard voices and images
                                 self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithRobot speak: self.getBestSensations did find sensations, spoke {}'.format(sensation.toDebugStr()))
                                 # speak                                                     self.getParent().getAxon().put(robot=self.getRobot(), transferDirection=Sensation.TransferDirection.Up, sensation=spokedSensation)

@@ -1,6 +1,6 @@
 '''
 Created on 21.06.2019
-Updated on 09.12.2021
+Updated on 29.12.2021
 @author: reijo.korhonen@gmail.com
 
 test Association class
@@ -68,7 +68,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
     Item.name Working Out    
     ''' 
            
-    def re_test_PresenseItemPresentRobot(self):
+    def test_PresenseItemPresentRobot(self):
         print('\ntest_PresenseItemPresentRobot\n')       
         self.doTest_PresenseItemPresentRobot(robot=self.communication, isWait=False)
        
@@ -77,7 +77,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
     TensorfloClöassafication produces
     Item.name Working Out
     '''    
-    def re_test_PresenseItemAbsentRobot(self):
+    def test_PresenseItemAbsentRobot(self):
         print('\ntest_PresenseItemAbsentRobot\n')       
         self.doTest_PresenseItemAbsentRobot(robot=self.communication, isWait=False)
         
@@ -111,7 +111,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
     Voice comes from this Robots Sense-Robot (Microphone)
     '''    
         
-    def re_test_ProcessItemImageVoiceFromSameRobotSenses(self):
+    def test_ProcessItemImageVoiceFromSameRobotSenses(self):
         print('\ntest_ProcessItemImageVoiceFromSameRobotSenses\n')
         self.doTest_ProcessItemImageVoiceFromSameRobotSenses(robot = self.communication, isWait = False)
         
@@ -120,13 +120,13 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
     Tests from testMemory
     because implementation is moved in Communication
     '''
-    def re_test_getBestSensationsSense(self):
+    def test_getBestSensationsSense(self):
         self.do_test_getBestSensations(robotType=Sensation.RobotType.Sense, robotMainNames=self.MAINNAMES, succeed=True)
         
-    def re_test_getBestSensationsCommunication(self):
+    def test_getBestSensationsCommunication(self):
         self.do_test_getBestSensations(robotType=Sensation.RobotType.Communication, robotMainNames=self.OTHERMAINNAMES, succeed=True)
 
-    def re_test_getBestSensationsCommunicationFail(self):
+    def test_getBestSensationsCommunicationFail(self):
         self.do_test_getBestSensations(robotType=Sensation.RobotType.Communication, robotMainNames=self.MAINNAMES, succeed=False)
 
     def do_test_getBestSensations(self, robotType, robotMainNames, succeed):
@@ -137,10 +137,10 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         history_sensationTime = systemTime.time() -2*300.0
 
         # Item where all test created and self.robot seen Sensations are associated
-        # WE can't use self.createSensation yet
+        # We can't use self.createSensation yet
         self.Wall_E_item_sensation = self.robot.createSensation(
                                                     robot = self.robot,
-                                                    time = history_sensationTime,
+                                                    #time = history_sensationTime,
                                                     memoryType=Sensation.MemoryType.Working,
                                                     sensationType=Sensation.SensationType.Item,
                                                     robotType=robotType,
@@ -168,7 +168,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         voice_sensation1 = self.createSensation(
                                                 sensationName='voice_sensation1',
                                                 robot=self.robot,
-                                                time=history_sensationTime,
+                                                #time=history_sensationTime,
                                                 memoryType=Sensation.MemoryType.Sensory,
                                                 sensationType=Sensation.SensationType.Voice,
                                                 robotType=robotType,
@@ -178,7 +178,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         image_sensation1 = self.createSensation(
                                                 sensationName='image_sensation1',
                                                 robot=self.robot,
-                                                time=history_sensationTime,
+                                                #time=history_sensationTime,
                                                 memoryType=Sensation.MemoryType.Sensory,
                                                 sensationType=Sensation.SensationType.Image,
                                                 robotType=robotType,
@@ -188,7 +188,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         item_sensation1 = self.createSensation(
                                                 sensationName='item_sensation1',
                                                 robot=self.robot,
-                                                time=history_sensationTime,
+                                                #time=history_sensationTime,
                                                 memoryType=Sensation.MemoryType.Working,
                                                 sensationType=Sensation.SensationType.Item,
                                                 robotType=robotType,
@@ -212,15 +212,15 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
             self.assertEqual(len(sensations), 2)
             self.assertEqual(len(sensationAssociations), 2)
             associationSensations=[]
-            for associations in sensationAssociations:
-                for association in associations:
+            for sensationType in sensationAssociations:
+                for association in sensationAssociations[sensationType]:
                     associationSensations.append(association.getSelfSensation())
                 
-            self.assertTrue(voice_sensation1 in sensations)
+            self.assertTrue(voice_sensation1 is sensations[Sensation.SensationType.Voice])
             self.assertTrue(voice_sensation1 in associationSensations)
             
-            self.assertTrue(image_sensation1 in sensations)
-            #self.assertTrue(image_sensation1 in associationSensations)
+            self.assertTrue(image_sensation1 is sensations[Sensation.SensationType.Image])
+            self.assertTrue(image_sensation1 in associationSensations)
         else:
             self.assertEqual(len(sensations), 0)
             self.assertEqual(len(sensationAssociations), 0)
@@ -230,7 +230,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         voice_sensation2 = self.createSensation(
                                                 sensationName='voice_sensation2',
                                                 robot=self.robot,
-                                                time=history_sensationTime,
+                                                #time=history_sensationTime,
                                                 memoryType=Sensation.MemoryType.Sensory,
                                                 sensationType=Sensation.SensationType.Voice,
                                                 robotType=robotType,
@@ -240,7 +240,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         image_sensation2 = self.createSensation(
                                                 sensationName='image_sensation2',
                                                 robot=self.robot,
-                                                time=history_sensationTime,
+                                                #time=history_sensationTime,
                                                 memoryType=Sensation.MemoryType.Sensory,
                                                 sensationType=Sensation.SensationType.Image,
                                                 robotType=robotType,
@@ -250,7 +250,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         item_sensation2 = self.createSensation(
                                                 sensationName='item_sensation2',
                                                 robot=self.robot,
-                                                time=history_sensationTime,
+                                                #time=history_sensationTime,
                                                 memoryType=Sensation.MemoryType.Working,
                                                 sensationType=Sensation.SensationType.Item,
                                                 robotType=robotType,
@@ -274,16 +274,15 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
             self.assertEqual(len(sensations), 2)
             self.assertEqual(len(sensationAssociations), 2)
             associationSensations=[]
-            sensationAssociations
-            for associations in sensationAssociations:
-                for association in associations:
+            for sensationType in sensationAssociations:
+                for association in sensationAssociations[sensationType]:
                     associationSensations.append(association.getSelfSensation())
                 
-            self.assertTrue(voice_sensation2 in sensations)
+            self.assertTrue(voice_sensation2 is sensations[Sensation.SensationType.Voice])
             self.assertTrue(voice_sensation2 in associationSensations)
             
-            self.assertTrue(image_sensation2 in sensations)
-            #self.assertTrue(image_sensation2 in associationSensations)
+            self.assertTrue(image_sensation2 is sensations[Sensation.SensationType.Image])
+            self.assertTrue(image_sensation2 in associationSensations)
             
             # Test again with ignoredDataIds for last results, so we should get 1. results again
             sensations, sensationAssociations = itemConversation.getBestSensations( itemSensations = [item_sensation2],
@@ -295,15 +294,15 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
             self.assertEqual(len(sensations), 2)
             self.assertEqual(len(sensationAssociations), 2)
             associationSensations=[]
-            for associations in sensationAssociations:
-                for association in associations:
+            for sensationType in sensationAssociations:
+                for association in sensationAssociations[sensationType]:
                     associationSensations.append(association.getSelfSensation())
                     
-            self.assertTrue(voice_sensation1 in sensations)
+            self.assertTrue(voice_sensation1 is sensations[Sensation.SensationType.Voice])
             self.assertTrue(voice_sensation1 in associationSensations)
                 
-            self.assertTrue(image_sensation1 in sensations)
-            #self.assertTrue(image_sensation1 in associationSensations)
+            self.assertTrue(image_sensation1  is sensations[Sensation.SensationType.Image])
+            self.assertTrue(image_sensation1 in associationSensations)
 
         # set first item core also higher as high as item3, set feeling same so we would its items
         # NOTE Feeling is much more meaningful than score, so this test works even if we let lower, SCORE_2
@@ -323,14 +322,14 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
             self.assertEqual(len(sensations), 2)
             self.assertEqual(len(sensationAssociations), 2)
             associationSensations=[]
-            for associations in sensationAssociations:
-                for association in associations:
+            for sensationType in sensationAssociations:
+                for association in sensationAssociations[sensationType]:
                     associationSensations.append(association.getSelfSensation())
                     
-            self.assertTrue(voice_sensation1 in sensations)
+            self.assertTrue(voice_sensation1 is sensations[Sensation.SensationType.Voice])
             self.assertTrue(voice_sensation1 in associationSensations)
             
-            self.assertTrue(image_sensation1 in sensations)
+            self.assertTrue(image_sensation1 is sensations[Sensation.SensationType.Image])
             self.assertTrue(image_sensation1 in associationSensations)
             
             # Test again with ignoredDataIds for last results, so we should get 2. results again
@@ -343,22 +342,22 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
             self.assertEqual(len(sensations), 2)
             self.assertEqual(len(sensationAssociations), 2)
             associationSensations=[]
-            for associations in sensationAssociations:
-                for association in associations:
+            for sensationType in sensationAssociations:
+                for association in sensationAssociations[sensationType]:
                     associationSensations.append(association.getSelfSensation())
                     
-            self.assertTrue(voice_sensation2 in sensations)
+            self.assertTrue(voice_sensation2 is sensations[Sensation.SensationType.Voice])
             self.assertTrue(voice_sensation2 in associationSensations)
                 
-            self.assertTrue(image_sensation2 in sensations)
-            #self.assertTrue(image_sensation2 in associationSensations)
+            self.assertTrue(image_sensation2 is sensations[Sensation.SensationType.Image])
+            self.assertTrue(image_sensation2 in associationSensations)
         else:
             self.assertEqual(len(sensations), 0)
             self.assertEqual(len(sensationAssociations), 0)
             
         # Finally test situation, where we have many Sensation.Item.Names present
         # with same Voice and Image assigned. This is situation, when certain
-        # Voice/Image is heard/seen when these Iten.names are present together.
+        # Voice/Image is heard/seen when these Item.names are present together.
         # In this situation this Voice/Image is best.
         #
         # Now best Feeling/Score is is Sensation.Feeling.Good/Score2
@@ -368,7 +367,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         new_voice_sensation = self.createSensation(
                                                     sensationName='new_voice_sensation',
                                                     robot=self.robot,
-                                                    time=history_sensationTime,
+                                                    #time=history_sensationTime,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     sensationType=Sensation.SensationType.Voice,
                                                     robotType=robotType,
@@ -378,7 +377,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         new_image_sensation = self.createSensation(
                                                     sensationName='new_image_sensation',
                                                     robot=self.robot,
-                                                    time=history_sensationTime,
+                                                    #time=history_sensationTime,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     sensationType=Sensation.SensationType.Image,
                                                     robotType=robotType,
@@ -392,7 +391,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
                 new_item_sensation = self.createSensation(
                                                         sensationName='item'+name,
                                                         robot=self.robot,
-                                                        time=history_sensationTime,
+                                                        #time=history_sensationTime,
                                                         memoryType=Sensation.MemoryType.Working,
                                                         sensationType=Sensation.SensationType.Item,
                                                         robotType=robotType,
@@ -418,11 +417,23 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         if succeed:
             self.assertEqual(len(sensations), 2)
             self.assertEqual(len(sensationAssociations), 2)
-            for associations in sensationAssociations:
-                self.assertEqual(len(associations), len(itemSensations))
-                for association in associations:
-                    self.assertTrue(association.getSensation() in itemSensations)
-                    self.assertTrue(association.getSelfSensation() in [new_voice_sensation, new_image_sensation])
+            
+            associationSensations=[]
+            for sensationType in sensationAssociations:
+                for association in sensationAssociations[sensationType]:
+                    associationSensations.append(association.getSelfSensation())
+            
+            self.assertTrue(new_voice_sensation is sensations[Sensation.SensationType.Voice])
+            self.assertTrue(new_voice_sensation in associationSensations)
+                
+            self.assertTrue(new_image_sensation is sensations[Sensation.SensationType.Image])
+            self.assertTrue(new_image_sensation in associationSensations)
+            
+#             for associations in sensationAssociations:
+#                 self.assertEqual(len(associations), len(itemSensations))
+#                 for association in associations:
+#                     self.assertTrue(association.getSensation() in itemSensations)
+#                     self.assertTrue(association.getSelfSensation() in [new_voice_sensation, new_image_sensation])
         else:
             self.assertEqual(len(sensations), 0)
             self.assertEqual(len(sensationAssociations), 0)
@@ -456,7 +467,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         
         # Create technical item where we assign all Sensations
         
-        # WE can't use self.createSensation yet
+        # We can't use self.createSensation yet
         self.Wall_E_item_sensation = self.robot.createSensation(
                                                     robot = self.robot,
                                                     time = history_sensationTime,
