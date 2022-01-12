@@ -1598,6 +1598,10 @@ class Memory(object):
             if sensation.getPresence() in [ Sensation.Presence.Entering,\
                                             Sensation.Presence.Present,\
                                             Sensation.Presence.Exiting]:
+                # if we have old presence sensation, copy its association to this new one
+                if name in presentDict[location]:
+                    for associon in presentDict[location][name].getAssociations():
+                        sensation.associate(sensation=associon.getSensation())
                 presentDict[location][name] = sensation
                 self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="update Entering, Present or Exiting " + name)
             else:

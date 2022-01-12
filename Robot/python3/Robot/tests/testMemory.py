@@ -27,6 +27,7 @@ class MemoryTestCase(unittest.TestCase):
     SCORE=0.5
     SCORE2=0.8
     
+    NEUTRAL_FEELING = Sensation.Feeling.Neutral
     NORMAL_FEELING = Sensation.Feeling.Good
     BETTER_FEELING = Sensation.Feeling.Happy
     TERRIFIED_FEELING = Sensation.Feeling.Terrified
@@ -188,7 +189,9 @@ class MemoryTestCase(unittest.TestCase):
         if os.path.exists(Sensation.DATADIR):
             try:
                 for filename in os.listdir(Sensation.DATADIR):
-                    if filename.endswith('.'+Sensation.BINARY_FORMAT):
+                    if filename.endswith('.'+Sensation.BINARY_FORMAT) or\
+                       filename.endswith('.'+Sensation.VOICE_FORMAT) or\
+                       filename.endswith('.'+Sensation.IMAGE_FORMAT):
                         filepath = os.path.join(Sensation.DATADIR, filename)
                         try:
                             os.remove(filepath)
@@ -770,9 +773,12 @@ class MemoryTestCase(unittest.TestCase):
         self.assertEqual(len(sensation.getAssociations()), 0)
         Sensation.logAssociations(sensation)
         
-        
-        for i in range(MemoryTestCase.TEST_RUNS):
-            self.do_test_AddAssociation(sensation)
+
+        # We can run do_test_AddAssociation omce, because present items associations are copied from one present item no next item
+        #when presence will remain, but present state changes (entering,prenent, exiting)        
+        # for i in range(MemoryTestCase.TEST_RUNS):
+        #     self.do_test_AddAssociation(sensation)
+        self.do_test_AddAssociation(sensation)
 
         
     def do_test_AddAssociation(self, sensation):
@@ -827,6 +833,8 @@ class MemoryTestCase(unittest.TestCase):
 
         self.assertEqual(len(fromBytesSensation.getAssociations()), associationNumber+1)
         self.assertEqual(fromBytesSensation.getScore(), MemoryTestCase.SCORE)
+        # TODO if we copy present item connections from old renent item, then we can't test like this,
+        # But should feelings be transferred by bytes? 
         self.assertEqual(fromBytesSensation.getAssociationFeeling(sensation), MemoryTestCase.NORMAL_FEELING)
        
         # TODO rest if the test
@@ -858,6 +866,69 @@ class MemoryTestCase(unittest.TestCase):
         # and it should be changed in both way association in both ways
         self.assertEqual(sensation.getAssociationFeeling(addSensation), MemoryTestCase.BETTER_FEELING)
         self.assertEqual(addSensation.getAssociationFeeling(sensation), MemoryTestCase.BETTER_FEELING)
+        
+    '''
+    Test auto association
+    Test that when we have Item.name prfesent,
+    then Voice and IOmage sensations are associ9ated to it, when created in
+    short time window enough
+    '''
+        
+    def test_Autossociations(self):
+        name='test'
+        
+        # For a voice
+        itemSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
+                                                   name=name, score=MemoryTestCase.SCORE, presence=Sensation.Presence.Entering,
+                                                   locations=self.LOCATIONS)
+        self.assertIsNot(itemSensation, None)
+        self.assertEqual(itemSensation.getMainNames(), self.MAINNAMES)
+        self.assertEqual(itemSensation.getPresence(), Sensation.Presence.Entering, "should be entering")
+        self.assertEqual(len(itemSensation.getAssociations()), 0)
+        Sensation.logAssociations(itemSensation)
+        
+        locations = itemSensation.getLocations()
+        self.assertTrue(len(locations) > 0)
+        
+        for location in locations:
+            self.assertTrue(itemSensation is self.memory._presentItemSensations[location][name])
+        
+        voiceSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory,
+                                                    locations=self.LOCATIONS)
+        self.assertIsNot(voiceSensation, None)
+        self.assertEqual(voiceSensation.getMainNames(), self.MAINNAMES)
+        self.assertEqual(len(voiceSensation.getAssociations()), 1)
+        self.assertEqual(len(itemSensation.getAssociations()), 1)
+        Sensation.logAssociations(voiceSensation)
+        
+        # For a Image
+        itemSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
+                                                   name=name, score=MemoryTestCase.SCORE, presence=Sensation.Presence.Present,
+                                                   locations=self.LOCATIONS)
+        self.assertIsNot(itemSensation, None)
+        self.assertEqual(itemSensation.getMainNames(), self.MAINNAMES)
+        self.assertEqual(itemSensation.getPresence(), Sensation.Presence.Present, "should be present")
+        self.assertEqual(len(itemSensation.getAssociations()), 1)
+        Sensation.logAssociations(itemSensation)
+        
+        locations = itemSensation.getLocations()
+        self.assertTrue(len(locations) > 0)
+        
+        for location in locations:
+            self.assertTrue(itemSensation is self.memory._presentItemSensations[location][name])
+        # new itemSensation should nor contaim old itemSensation associations
+        self.assertEqual(len(itemSensation.getAssociations()), 1)
+        self.assertEqual(len(voiceSensation.getAssociations()), 2)
+
+        
+        imageSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Image, memoryType=Sensation.MemoryType.Sensory,
+                                                    locations=self.LOCATIONS)
+        self.assertIsNot(imageSensation, None)
+        self.assertEqual(imageSensation.getMainNames(), self.MAINNAMES)
+        self.assertEqual(len(imageSensation.getAssociations()), 1)
+        self.assertEqual(len(itemSensation.getAssociations()), 2)
+        Sensation.logAssociations(imageSensation)
+
 
     def test_Feeling(self):
         for i in range(MemoryTestCase.TEST_RUNS):
@@ -871,7 +942,7 @@ class MemoryTestCase(unittest.TestCase):
         self.assertEqual(sensation.getMainNames(), self.MAINNAMES)
         self.assertEqual(sensation.getPresence(), Sensation.Presence.Entering, "should be entering")
         self.assertIsNot(sensation, None)
-        self.assertEqual(len(sensation.getAssociations()), 0) # 0/1?
+        self.assertTrue(len(sensation.getAssociations()) in (0,1)) # 0/1?
         Sensation.logAssociations(sensation)
                 
         self.assertEqual(sensation.getScore(), MemoryTestCase.SCORE)

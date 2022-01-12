@@ -547,41 +547,49 @@ class Communication(Robot):
                         robotState = Sensation.RobotState.CommunicationSyncError
                 elif robotState == Sensation.RobotState.CommunicationWaiting:
                     if self.robotState not in [None,
+                                               Sensation.RobotState.CommunicationSyncError,
                                                Sensation.RobotState.CommunicationNotStarted,
                                                Sensation.RobotState.CommunicationEnded,
-                                               Sensation.RobotState.CommunicationNoResponseToSay]:
+                                               Sensation.RobotState.CommunicationNoResponseToSay,
+                                               Sensation.RobotState.CommunicationDelay]:
                         self.log(logLevel=Robot.LogLevel.Error, logStr='ConversationWithItem informRobotState: Cannot change robotState from {} to {}'.format(Sensation.getRobotStateString(robotState=self.robotState),
                                                                                                                                                               Sensation.getRobotStateString(robotState=robotState)))
                         robotState = Sensation.RobotState.CommunicationSyncError
                 elif robotState == Sensation.RobotState.CommunicationOn:
-                    if self.robotState not in [Sensation.RobotState.CommunicationWaiting]:
+                    if self.robotState not in [Sensation.RobotState.CommunicationSyncError,
+                                               Sensation.RobotState.CommunicationWaiting]:
                         self.log(logLevel=Robot.LogLevel.Error, logStr='ConversationWithItem informRobotState: Cannot change robotState from {} to {}'.format(Sensation.getRobotStateString(robotState=self.robotState),
                                                                                                                                                               Sensation.getRobotStateString(robotState=robotState)))
                         robotState = Sensation.RobotState.CommunicationSyncError
                 elif robotState == Sensation.RobotState.CommunicationResponseHeard:
-                    if self.robotState != Sensation.RobotState.CommunicationWaitingResponse:
+                    if self.robotState not in [Sensation.RobotState.CommunicationSyncError,
+                                               Sensation.RobotState.CommunicationWaitingResponse]:
                         self.log(logLevel=Robot.LogLevel.Error, logStr='ConversationWithItem informRobotState: Cannot change robotState from {} to {}'.format(Sensation.getRobotStateString(robotState=self.robotState),
                                                                                                                                                               Sensation.getRobotStateString(robotState=robotState)))
                         robotState = Sensation.RobotState.CommunicationSyncError
                 elif robotState == Sensation.RobotState.CommunicationNoResponseHeard:
-                    if self.robotState != Sensation.RobotState.CommunicationWaitingResponse:
+                    if self.robotState not in [Sensation.RobotState.CommunicationSyncError,
+                                               Sensation.RobotState.CommunicationWaitingResponse]:
                         self.log(logLevel=Robot.LogLevel.Error, logStr='ConversationWithItem informRobotState: Cannot change robotState from {} to {}'.format(Sensation.getRobotStateString(robotState=self.robotState),
                                                                                                                                                               Sensation.getRobotStateString(robotState=robotState)))
                         robotState = Sensation.RobotState.CommunicationSyncError                     
                 elif robotState == Sensation.RobotState.CommunicationVoicePlayed:
-                    if self.robotState != Sensation.RobotState.CommunicationWaitingVoicePlayed:
+                    if self.robotState not in [Sensation.RobotState.CommunicationSyncError,
+                                               Sensation.RobotState.CommunicationWaitingVoicePlayed]:
                         self.log(logLevel=Robot.LogLevel.Error, logStr='ConversationWithItem informRobotState: Cannot change robotState from {} to {}'.format(Sensation.getRobotStateString(robotState=self.robotState),
                                                                                                                                                               Sensation.getRobotStateString(robotState=robotState)))
                         robotState = Sensation.RobotState.CommunicationSyncError
                 elif robotState == Sensation.RobotState.CommunicationWaitingVoicePlayed:
-                    if self.robotState not in [Sensation.RobotState.CommunicationOn,
+                    if self.robotState not in [Sensation.RobotState.CommunicationSyncError,
+                                               Sensation.RobotState.CommunicationOn,
                                                Sensation.RobotState.CommunicationWaiting,
                                                Sensation.RobotState.CommunicationResponseHeard]:
                         self.log(logLevel=Robot.LogLevel.Error, logStr='ConversationWithItem informRobotState: Cannot change robotState from {} to {}'.format(Sensation.getRobotStateString(robotState=self.robotState),
                                                                                                                                                               Sensation.getRobotStateString(robotState=robotState)))
                         robotState = Sensation.RobotState.CommunicationSyncError
                 elif robotState == Sensation.RobotState.CommunicationNoResponseToSay:
-                    if self.robotState not in [Sensation.RobotState.CommunicationOn,
+                    if self.robotState not in [Sensation.RobotState.CommunicationSyncError,
+                                               Sensation.RobotState.CommunicationOn,
                                                Sensation.RobotState.CommunicationWaiting,
                                                Sensation.RobotState.CommunicationResponseHeard]:
                         self.log(logLevel=Robot.LogLevel.Error, logStr='ConversationWithItem informRobotState: Cannot change robotState from {} to {}'.format(Sensation.getRobotStateString(robotState=self.robotState),
