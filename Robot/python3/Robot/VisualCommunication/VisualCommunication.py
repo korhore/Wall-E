@@ -4,13 +4,19 @@ Updated on 18.04.2021
 
 @author: reijo.korhonen@gmail.com
 
-This class is pass through class for VisualCommunication and includes visual functionality neede.
+Deprecated class
+Seems, that this class was a bad idea, because it made testing Communication more complicated, not simpler
+and we have chosen to make Communication capable to be MainRobot-class.
+Also Robot.route-method routes Sensations directly to that Robot-instance, that has capability to get it,
+so there is no room for this class.
+
+This class is pass through class for VisualCommunication and includes visual functionality needed.
 Communication is independent class that can implement all communication functionality
 This class is places between MainRobot and Communication, but Communication
 can also be directly under MainRobot.
 
 Meaning of this class is
-- help to develope Communication giving clear pisture what Sensation go to Communication
+- help to develope Communication giving clear picture what Sensation go to Communication
   and what Sensations Communication produces
 - be a prototype for user i9nterface for UI of Communication, how Communication UI
   with UI capable devices should work. This feature is in very only start point.

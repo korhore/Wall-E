@@ -53,9 +53,8 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
             self.communication.getIdentitySensations(name=CommunicationTestCase.NAME)
         self.assertTrue(len(self.communication.getMemory().getRobot().voiceSensations) > 0, "should have identity for testing")
         
-        self.doSetUp(robot=self.communication)
-        self.doSetUpCommunication(communication=self.communication)
-        
+        self.doSetUp(communication=self.communication)
+         
 
     def tearDown(self):
         print('\ntearDown')       
@@ -136,10 +135,10 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         ignoredDataIds=[]
         history_sensationTime = systemTime.time() -2*300.0
 
-        # Item where all test created and self.robot seen Sensations are associated
+        # Item where all test created and self.communication seen Sensations are associated
         # We can't use self.createSensation yet
-        self.Wall_E_item_sensation = self.robot.createSensation(
-                                                    robot = self.robot,
+        self.Wall_E_item_sensation = self.communication.createSensation(
+                                                    robot = self.communication,
                                                     #time = history_sensationTime,
                                                     memoryType=Sensation.MemoryType.Working,
                                                     sensationType=Sensation.SensationType.Item,
@@ -167,7 +166,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         
         voice_sensation1 = self.createSensation(
                                                 sensationName='voice_sensation1',
-                                                robot=self.robot,
+                                                robot=self.communication,
                                                 #time=history_sensationTime,
                                                 memoryType=Sensation.MemoryType.Sensory,
                                                 sensationType=Sensation.SensationType.Voice,
@@ -177,7 +176,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         self.printSensationNameById(note='voice_sensation1 test', dataId=voice_sensation1.getDataId())
         image_sensation1 = self.createSensation(
                                                 sensationName='image_sensation1',
-                                                robot=self.robot,
+                                                robot=self.communication,
                                                 #time=history_sensationTime,
                                                 memoryType=Sensation.MemoryType.Sensory,
                                                 sensationType=Sensation.SensationType.Image,
@@ -187,7 +186,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         
         item_sensation1 = self.createSensation(
                                                 sensationName='item_sensation1',
-                                                robot=self.robot,
+                                                robot=self.communication,
                                                 #time=history_sensationTime,
                                                 memoryType=Sensation.MemoryType.Working,
                                                 sensationType=Sensation.SensationType.Item,
@@ -229,7 +228,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         
         voice_sensation2 = self.createSensation(
                                                 sensationName='voice_sensation2',
-                                                robot=self.robot,
+                                                robot=self.communication,
                                                 #time=history_sensationTime,
                                                 memoryType=Sensation.MemoryType.Sensory,
                                                 sensationType=Sensation.SensationType.Voice,
@@ -239,7 +238,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         self.printSensationNameById(note='voice_sensation2 test', dataId=voice_sensation2.getDataId())
         image_sensation2 = self.createSensation(
                                                 sensationName='image_sensation2',
-                                                robot=self.robot,
+                                                robot=self.communication,
                                                 #time=history_sensationTime,
                                                 memoryType=Sensation.MemoryType.Sensory,
                                                 sensationType=Sensation.SensationType.Image,
@@ -249,7 +248,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         
         item_sensation2 = self.createSensation(
                                                 sensationName='item_sensation2',
-                                                robot=self.robot,
+                                                robot=self.communication,
                                                 #time=history_sensationTime,
                                                 memoryType=Sensation.MemoryType.Working,
                                                 sensationType=Sensation.SensationType.Item,
@@ -366,7 +365,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         
         new_voice_sensation = self.createSensation(
                                                     sensationName='new_voice_sensation',
-                                                    robot=self.robot,
+                                                    robot=self.communication,
                                                     #time=history_sensationTime,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     sensationType=Sensation.SensationType.Voice,
@@ -376,7 +375,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         self.printSensationNameById(note='new_voice_sensation test', dataId=new_voice_sensation.getDataId())
         new_image_sensation = self.createSensation(
                                                     sensationName='new_image_sensation',
-                                                    robot=self.robot,
+                                                    robot=self.communication,
                                                     #time=history_sensationTime,
                                                     memoryType=Sensation.MemoryType.Sensory,
                                                     sensationType=Sensation.SensationType.Image,
@@ -390,7 +389,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
                 name = '{}_{}'.format(self.NAME,i)
                 new_item_sensation = self.createSensation(
                                                         sensationName='item'+name,
-                                                        robot=self.robot,
+                                                        robot=self.communication,
                                                         #time=history_sensationTime,
                                                         memoryType=Sensation.MemoryType.Working,
                                                         sensationType=Sensation.SensationType.Item,
@@ -468,8 +467,8 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         # Create technical item where we assign all Sensations
         
         # We can't use self.createSensation yet
-        self.Wall_E_item_sensation = self.robot.createSensation(
-                                                    robot = self.robot,
+        self.Wall_E_item_sensation = self.communication.createSensation(
+                                                    robot = self.communication,
                                                     time = history_sensationTime,
                                                     memoryType=Sensation.MemoryType.Working,
                                                     sensationType=Sensation.SensationType.Item,
@@ -482,7 +481,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         # Item 
         item_sensation1 = self.createSensation(
                                                 sensationName='item_sensation1',
-                                                robot=self.robot,
+                                                robot=self.communication,
                                                 time=history_sensationTime,
                                                 memoryType=Sensation.MemoryType.Working,
                                                 sensationType=Sensation.SensationType.Item,
@@ -502,7 +501,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         #
         voice_sense_sensation1 = self.createSensation(
                                                 sensationName='voice_sense_sensation1',
-                                                robot=self.robot,
+                                                robot=self.communication,
                                                 time=history_sensationTime,
                                                 memoryType=Sensation.MemoryType.Sensory,
                                                 sensationType=Sensation.SensationType.Voice,
@@ -512,7 +511,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         self.printSensationNameById(note='voice_sense_sensation1 test', dataId=voice_sense_sensation1.getDataId())
         image_sense_sensation1 = self.createSensation(
                                                 sensationName='image_sense_sensation1',
-                                                robot=self.robot,
+                                                robot=self.communication,
                                                 time=history_sensationTime,
                                                 memoryType=Sensation.MemoryType.Sensory,
                                                 sensationType=Sensation.SensationType.Image,
@@ -538,7 +537,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         # MAINnAMES
         voice_communication_sensation1 = self.createSensation(
                                                 sensationName='voice_communication_sensation1',
-                                                robot=self.robot,
+                                                robot=self.communication,
                                                 time=history_sensationTime,
                                                 memoryType=Sensation.MemoryType.Sensory,
                                                 sensationType=Sensation.SensationType.Voice,
@@ -549,7 +548,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         self.printSensationNameById(note='voice_communication_sensation1 test', dataId=voice_communication_sensation1.getDataId())
         image_communication_sensation1 = self.createSensation(
                                                 sensationName='image_communication_sensation1',
-                                                robot=self.robot,
+                                                robot=self.communication,
                                                 time=history_sensationTime,
                                                 memoryType=Sensation.MemoryType.Sensory,
                                                 sensationType=Sensation.SensationType.Image,
@@ -651,7 +650,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
 #         
 #         voice_sensation2 = self.createSensation(
 #                                                 sensationName='voice_sensation2',
-#                                                 robot=self.robot,
+#                                                 robot=self.communication,
 #                                                 time=history_sensationTime,
 #                                                 memoryType=Sensation.MemoryType.Sensory,
 #                                                 sensationType=Sensation.SensationType.Voice,
@@ -661,7 +660,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
 #         self.printSensationNameById(note='voice_sensation2 test', dataId=voice_sensation2.getDataId())
 #         image_sensation2 = self.createSensation(
 #                                                 sensationName='image_sensation2',
-#                                                 robot=self.robot,
+#                                                 robot=self.communication,
 #                                                 time=history_sensationTime,
 #                                                 memoryType=Sensation.MemoryType.Sensory,
 #                                                 sensationType=Sensation.SensationType.Image,
@@ -670,7 +669,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
 #         
 #         item_sensation2 = self.createSensation(
 #                                                 sensationName='item_sensation2',
-#                                                 robot=self.robot,
+#                                                 robot=self.communication,
 #                                                 time=history_sensationTime,
 #                                                 memoryType=Sensation.MemoryType.Working,
 #                                                 sensationType=Sensation.SensationType.Item,
