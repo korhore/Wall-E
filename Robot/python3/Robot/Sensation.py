@@ -2276,7 +2276,7 @@ class Sensation(object):
         return memorability
     
     '''
-    Helper metyhod to calculate Memorability
+    Helper method to calculate Memorability
     
     Memorability goes down by time. We use logarithm and Memory type
     Sensory Sensations have very high Memorability when Sensation has low age

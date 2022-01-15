@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 28.12.2021
+Edited on 14.01.2022
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -1600,9 +1600,13 @@ class Memory(object):
                                             Sensation.Presence.Exiting]:
                 # if we have old presence sensation, copy its association to this new one
                 if name in presentDict[location]:
-                    for associon in presentDict[location][name].getAssociations():
-                        sensation.associate(sensation=associon.getSensation())
-                presentDict[location][name] = sensation
+                    # for associon in presentDict[location][name].getAssociations():
+                    #     sensation.associate(sensation=associon.getSensation())
+                    # Try to update existing sensation, because other way association will bu doubled
+                    presentDict[location][name].setPresence(presence=sensation.getPresence())
+                    presentDict[location][name].setScore(score=sensation.getScore())
+                else:
+                    presentDict[location][name] = sensation
                 self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="update Entering, Present or Exiting " + name)
             else:
                 del presentDict[location][name]

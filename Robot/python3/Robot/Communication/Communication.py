@@ -521,7 +521,7 @@ class Communication(Robot):
                                                             absolute = False)
                                         if sensation.getSensationType() not in memorabilitys or\
                                            memorability > memorabilitys[sensation.getSensationType()]:
-                                            copied_ignoredDataIds.append(sensation.getDataId())    # We have checked this, so don't check again if found assigned 
+                                            #copied_ignoredDataIds.append(sensation.getDataId())    # We have checked this, so don't check again if found assigned 
                                                                                                    # with other Item
                                             memorabilitys[sensation.getSensationType()] = memorability
                                             sensations[sensation.getSensationType()] = sensation
@@ -529,8 +529,8 @@ class Communication(Robot):
                                             
                                             searched = searched+1
                                             if searched >= searchLength:
-                                                return sensations.values(), associations.values()
-            
+                                                return sensations, associations
+
             # return sensations.values(), associations.values()
             return sensations, associations
 
