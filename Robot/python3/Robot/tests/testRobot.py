@@ -1,6 +1,6 @@
 '''
 Created on 13.02.2020
-Updated on 30.11.2021
+Updated on 15.01.2022
 @author: reijo.korhonen@gmail.com
 
 test Robot class
@@ -183,7 +183,7 @@ class RobotTestCase(unittest.TestCase):
                                                           robotType=Sensation.RobotType.Sense,# We have found this
                                                           robot = self.mainRobot.getName(),
                                                           name = self.mainRobot.getName(),
-                                                          presence = Sensation.Presence.Present,
+                                                          present = True,
                                                           kind=self.mainRobot.getKind(),
                                                           feeling=self.mainRobot.getFeeling(),
                                                           locations=self.mainRobot.getLocations())
@@ -276,7 +276,7 @@ class RobotTestCase(unittest.TestCase):
                                                           robotType=Sensation.RobotType.Sense,# We have found this
                                                           robot = self.remoteMainRobot,
                                                           name = self.remoteMainRobot.getName(),
-                                                          presence = Sensation.Presence.Present,
+                                                          present = True,
                                                           kind=self.remoteMainRobot.getKind(),
                                                           feeling=self.remoteMainRobot.getFeeling(),
                                                           locations=self.remoteMainRobot.getLocations())
@@ -363,7 +363,7 @@ class RobotTestCase(unittest.TestCase):
                                                           robotType=Sensation.RobotType.Sense,# We have found this
                                                           robot = self.virtualMainRobot,
                                                           name = self.virtualMainRobot.getName(),
-                                                          presence = Sensation.Presence.Present,
+                                                          present = True,
                                                           kind=self.virtualMainRobot.getKind(),
                                                           feeling=self.virtualMainRobot.getFeeling(),
                                                           locations=self.virtualMainRobot.getLocations())
@@ -506,7 +506,7 @@ class RobotTestCase(unittest.TestCase):
                                                           robotType=Sensation.RobotType.Sense,# We have found this
                                                           robot = mainRobot.getName(),
                                                           name = mainRobot.getName(),
-                                                          presence = Sensation.Presence.Present,
+                                                          present = True,
                                                           kind=mainRobot.getKind(),
                                                           feeling=mainRobot.getFeeling(),
                                                           locations=mainRobot.getLocations())
@@ -1256,7 +1256,7 @@ class RobotTestCase(unittest.TestCase):
                                                      robotType=robotType,
                                                      name=RobotTestCase.NAME,
                                                      score=RobotTestCase.SCORE_1,
-                                                     presence=Sensation.Presence.Entering)
+                                                     present=True)
         else:
             Wall_E_item_sensation = self.sense.createSensation(
                                                      memoryType=Sensation.MemoryType.Working,
@@ -1264,7 +1264,7 @@ class RobotTestCase(unittest.TestCase):
                                                      robotType=robotType,
                                                      name=RobotTestCase.NAME,
                                                      score=RobotTestCase.SCORE_1,
-                                                     presence=Sensation.Presence.Entering,
+                                                     present=True,
                                                      locations=locations)
         self.assertTrue(self.muscle.getAxon().empty(),'muscle Axon should be empty before we test')
         self.sense.sense(transferDirection=transferDirection, sensation=Wall_E_item_sensation)
@@ -1285,7 +1285,7 @@ class RobotTestCase(unittest.TestCase):
                                                          robotType=robotType,
                                                          name=RobotTestCase.NAME,
                                                          score=RobotTestCase.SCORE_1,
-                                                         presence=Sensation.Presence.Entering,
+                                                         present=True,
                                                          locations=locations)
      
             Wall_E_item_working_sensation = self.sense.createSensation(
@@ -1294,7 +1294,7 @@ class RobotTestCase(unittest.TestCase):
                                                          robotType=robotType,
                                                          name=RobotTestCase.NAME,
                                                          score=RobotTestCase.SCORE_1,
-                                                         presence=Sensation.Presence.Entering,
+                                                         present=True,
                                                          locations=locations)
 
             Wall_E_item_longTerm_sensation1 = self.sense.createSensation(
@@ -1303,7 +1303,7 @@ class RobotTestCase(unittest.TestCase):
                                                          robotType=robotType,
                                                          name=RobotTestCase.NAME,
                                                          score=RobotTestCase.SCORE_1,
-                                                         presence=Sensation.Presence.Entering,
+                                                         present=True,
                                                          locations=locations)
             Wall_E_item_longTerm_sensation2 = self.sense.createSensation(
                                                          sensation = Wall_E_item_longTerm_sensation1)
@@ -2025,7 +2025,7 @@ class RobotTestCase(unittest.TestCase):
                                                  robotType=robotType,
                                                  name=RobotTestCase.NAME,
                                                  score=RobotTestCase.SCORE_1,
-                                                 presence=Sensation.Presence.Entering,
+                                                 present=True,
                                                  locations=self.sense.getLocations())
         self.assertEqual(Wall_E_item_sensation.getMainNames(), self.MAINNAMES_1, 'Sensation to send should be created with local mainnames')
         self.assertEqual(remoteMuscle.getMainNames(), self.MAINNAMES_2, 'remoteMuscle should be created with remote mainnames')
@@ -2045,7 +2045,7 @@ class RobotTestCase(unittest.TestCase):
                                                  robotType=robotType,
                                                  name=RobotTestCase.NAME,
                                                  score=RobotTestCase.SCORE_1,
-                                                 presence=Sensation.Presence.Entering,
+                                                 present=True,
                                                  locations=RobotTestCase.LOCATIONS_GLOBAL)
         self.do_remote_positive_case_sensation(remoteMainRobot = remoteMainRobot,
                                             remoteSense = remoteSense,
@@ -2063,7 +2063,7 @@ class RobotTestCase(unittest.TestCase):
                                                  robotType=robotType,
                                                  name=RobotTestCase.NAME,
                                                  score=RobotTestCase.SCORE_1,
-                                                 presence=Sensation.Presence.Entering,
+                                                 present=True,
                                                  locations=[])
         self.do_remote_positive_case_sensation(remoteMainRobot = remoteMainRobot,
                                                 remoteSense = remoteSense,
@@ -2182,7 +2182,9 @@ class RobotTestCase(unittest.TestCase):
     
             # test, that remote sensation transferred does contain  receicedFron information
             if isTcp:
-                self.assertEqual(sensation.getReceivedFrom(), [RobotTestCase.LOCALHOST], 'remote sensation should have receivedFrom information')
+                # TODO, NOTE, when real networking, we can get here also real ip is use, not localhost
+                # self.assertEqual(sensation.getReceivedFrom(), [RobotTestCase.LOCALHOST], 'remote sensation should have receivedFrom information')
+                self.assertTrue(len(sensation.getReceivedFrom()) > 0, 'remote sensation should have receivedFrom information')
     
             # now muscle should not have more sensations
             self.assertTrue(remoteMuscle.getAxon().empty(),'remote muscle Axon should be empty')
@@ -2265,7 +2267,7 @@ class RobotTestCase(unittest.TestCase):
                                                  robotType=robotType,
                                                  name=RobotTestCase.NAME,
                                                  score=RobotTestCase.SCORE_1,
-                                                 presence=Sensation.Presence.Entering,
+                                                 present=True,
                                                  locations=self.sense.getLocations())
         for location in Wall_E_item_sensation.getLocations():       
             self.assertEqual(len(self.sense.getMemory().getPresentItemSensations(location=location)), 1, 'len(self.sense.getMemory().getPresentItemSensations({}) should be 1'.format(location))
@@ -2278,7 +2280,7 @@ class RobotTestCase(unittest.TestCase):
                                                  robotType=robotType,
                                                  name=RobotTestCase.NAME,
                                                  score=RobotTestCase.SCORE_1,
-                                                 presence=Sensation.Presence.Entering,
+                                                 present=True,
                                                  locations=[])
 
         for location in Wall_E_item_sensation_no_location.getLocations():       
@@ -2789,7 +2791,7 @@ class RobotTestCase(unittest.TestCase):
                                                  robotType=Sensation.RobotType.Sense,
                                                  name=RobotTestCase.NAME,
                                                  score=RobotTestCase.SCORE_1,
-                                                 presence=Sensation.Presence.Entering)
+                                                 present=True)
         # test
 #         self.sense.process(transferDirection=transferDirection, sensation=Wall_E_item_sensation)
         self.sense.sense(transferDirection=transferDirection, sensation=Wall_E_item_sensation)
@@ -2909,7 +2911,7 @@ class RobotTestCase(unittest.TestCase):
                                                  robotType=Sensation.RobotType.Sense,
                                                  name=RobotTestCase.NAME,
                                                  score=RobotTestCase.SCORE_1,
-                                                 presence=Sensation.Presence.Entering)
+                                                 present=True)
        
         
         self.sense.setLocations(RobotTestCase.LOCATIONS_EMPTY)
@@ -2976,7 +2978,7 @@ class RobotTestCase(unittest.TestCase):
                                                  robotType=Sensation.RobotType.Sense,
                                                  name=RobotTestCase.NAME,
                                                  score=RobotTestCase.SCORE_1,
-                                                 presence=Sensation.Presence.Entering)
+                                                 present=True)
         
         self.sense.setLocations(RobotTestCase.LOCATIONS_EMPTY)
         #Wall_E_item_sensation.setLocations(RobotTestCase.LOCATIONS_EMPTY)
