@@ -1,6 +1,6 @@
 '''
 Created on Feb 25, 2013
-Edited on 20.12.2021
+Edited on 15.01.2022
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 '''
@@ -116,7 +116,7 @@ class Sensation(object):
     # RobotType of a sensation transferring, used with Axon. Up: going up like from AlsaMicroPhone to MainRobot, Down: going down from MainRobot to leaf Robots like AlsaPlayback
     TransferDirection = enum(Direct = 'a', Up = 'b', Down='c')
     # Presence of Item  
-    Presence = enum(Entering='a', Present='b', Exiting='c', Absent='d', Unknown='e')
+    #Presence = enum(Entering='a', Present='b', Exiting='c', Absent='d', Unknown='e')
 
     MemoryType = enum(Sensory='S', Working='W', LongTerm='L' , All='A')
     #MemoryType = enum(Sensory='S', LongTerm='L' )
@@ -476,12 +476,12 @@ class Sensation(object):
            Mode.Stopping: STOPPING,
            Mode.Interrupted: INTERRUPTED}
     
-    Presences = {
-           Presence.Entering: ENTERING,
-           Presence.Present:  PRESENT,
-           Presence.Exiting:  EXITING,
-           Presence.Absent:   ABSENT,
-           Presence.Unknown:  UNKNOWN}
+    # Presences = {
+    #        Presence.Entering: ENTERING,
+    #        Presence.Present:  PRESENT,
+    #        Presence.Exiting:  EXITING,
+    #        Presence.Absent:   ABSENT,
+    #        Presence.Unknown:  UNKNOWN}
 
      # Sensation cache times
     sensationMemoryLiveTimes={
@@ -652,10 +652,10 @@ class Sensation(object):
     def getSensationTypeStrings():
         return Sensation.SensationTypes.values()
     
-    def getPresenceString(presence):
-        return Sensation.Presences.get(presence)
-    def getPresenceStrings():
-        return Sensation.Presences.values()
+    # def getPresenceString(presence):
+    #     return Sensation.Presences.get(presence)
+    # def getPresenceStrings():
+    #     return Sensation.Presences.values()
 
     def getKindString(kind):
         if kind == None:
@@ -946,7 +946,7 @@ class Sensation(object):
                  capabilities = None,                                        # capabilitis of sensorys, robotType what way sensation go
                  name = None,                                                # name of Item
                  score = None,                                               # used at least with item to define how good was the detection 0.0 - 1.0
-                 presence = None,                                            # presence of Item
+                 present = None,                                             # presence of Item
                  kind = None,                                                # kind (for instance voice)
                  firstAssociateSensation = None,                             # associated sensation first side
                  otherAssociateSensation = None,                             # associated Sensation other side
@@ -1023,7 +1023,7 @@ class Sensation(object):
                                        capabilities=capabilities,                                   # capabilitis of sensorys, robotType what way sensation go
                                        name=name,                                                   # name of Item
                                        score=score,                                                 # used at least with item to define how good was the detection 0.0 - 1.0
-                                       presence=presence,                                           # presence of Item
+                                       present=present,                                             # presence of Item
                                        kind=kind,                                                   # kind (for instance voice)
                                        firstAssociateSensation=firstAssociateSensation,             # associated sensation first side
                                        otherAssociateSensation=otherAssociateSensation,             # associated Sensation other side
@@ -1080,7 +1080,7 @@ class Sensation(object):
                                        capabilities=capabilities,                                   # capabilitis of sensorys, robotType what way sensation go
                                        name=name,                                                   # name of Item
                                        score=score,                                                 # used at least with item to define how good was the detection 0.0 - 1.0
-                                       presence=presence,                                           # presence of Item
+                                       present=present,                                             # presence of Item
                                        kind=kind,                                                   # kind (for instance voice)
                                        firstAssociateSensation=firstAssociateSensation,             # associated sensation first side
                                        otherAssociateSensation=otherAssociateSensation,             # associated Sensation other side
@@ -1116,7 +1116,7 @@ class Sensation(object):
 #             self.capabilities = capabilities
 #             self.name = name
 #             self.score = score
-#             self.presence = presence
+#             self.present = present
 #             self.kind = kind
 #             self.firstAssociateSensation = firstAssociateSensation
 #             self.otherAssociateSensation = otherAssociateSensation
@@ -1317,9 +1317,11 @@ class Sensation(object):
                         self.score = Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
                         i += Sensation.FLOAT_PACK_SIZE
                         
-                        self.presence = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                        # self.presence = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                        # i += Sensation.ENUM_SIZE
+                        self.present =  Sensation.intToBoolean(bytes[i])
                         i += Sensation.ENUM_SIZE
-                        
+                         
                         # image part just as image # TODO filepath
                         filePath_size = int.from_bytes(bytes[i:i+Sensation.ID_SIZE-1], Sensation.BYTEORDER) 
                         i += Sensation.ID_SIZE
@@ -1348,7 +1350,9 @@ class Sensation(object):
                                 self.image = originalSensation.getImage()               
                                 self.idata = originalSensation.getData()               
                     elif self.sensationType is Sensation.SensationType.Robot:
-                        self.presence = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                        # self.presence = Sensation.bytesToStr(bytes[i:i+Sensation.ENUM_SIZE])
+                        # i += Sensation.ENUM_SIZE
+                        self.present =  Sensation.intToBoolean(bytes[i])
                         i += Sensation.ENUM_SIZE
                     elif self.sensationType is Sensation.SensationType.Feeling:
                         firstAssociateSensation_id=Sensation.bytesToFloat(bytes[i:i+Sensation.FLOAT_PACK_SIZE])
@@ -1463,7 +1467,7 @@ class Sensation(object):
                       capabilities,                                     # capabilities of sensorys, robotType what way sensation go
                       name,                                             # name of Item
                       score,                                            # used at least with item to define how good was the detection 0.0 - 1.0
-                      presence,                                         # presence of Item
+                      present,                                         # presence of Item
                       kind,                                             # kind (for instance voice)
                       firstAssociateSensation,                          # associated sensation first side
                       otherAssociateSensation,                          # associated Sensation other side
@@ -1593,10 +1597,10 @@ class Sensation(object):
         else:
             destination.score = 0.0
             
-        if presence is not None:
-            destination.presence = presence
+        if present is not None:
+            destination.present = present
         else:
-            destination.presence = Sensation.Presence.Unknown
+            destination.present = False #Sensation.Presence.Unknown
             
         if kind is not None:
             destination.kind = kind
@@ -1658,7 +1662,7 @@ class Sensation(object):
                         capabilities,                                        # capabilitis of sensorys, robotType what way sensation go
                         name,                                                # name of Item
                         score,                                               # used at least with item to define how good was the detection 0.0 - 1.0
-                        presence,                                            # presence of Item
+                        present,                                            # presence of Item
                         kind,                                                # kind (for instance voice)
                         firstAssociateSensation,                             # associated sensation first side
                         otherAssociateSensation,                             # associated Sensation other side
@@ -1796,10 +1800,10 @@ class Sensation(object):
         else:
             destination.score = score
             
-        if presence is None:
-            destination.presence = source.presence
+        if present is None:
+            destination.present = source.present
         else:
-            destination.presence = presence
+            destination.present = present
             
         if kind is None:
             destination.kind = source.kind
@@ -1895,7 +1899,7 @@ class Sensation(object):
         elif self.sensationType == Sensation.SensationType.Item:
             s +=  ' ' + self.name
             s +=  ' ' + str(self.score)
-            s +=  ' ' + self.presence
+            s +=  ' ' + str(self.present)
         elif self.sensationType == Sensation.SensationType.RobotState:
             s +=  ' ' + self.robotState
            
@@ -1953,7 +1957,7 @@ class Sensation(object):
 #         elif self.sensationType == Sensation.SensationType.Image:
 #             s = s + ':' + self.getLocations()
         elif self.sensationType == Sensation.SensationType.Item:
-            s = s + ':' + self.name + ':' + str(self.score) + ':' + Sensation.getPresenceString(self.presence)
+            s = s + ':' + self.name + ':' + str(self.score) + ':' + str(self.present)
         elif self.sensationType == Sensation.SensationType.Feeling:
             if self.getPositiveFeeling():
                 s = s + ':positiveFeeling'
@@ -2051,7 +2055,8 @@ class Sensation(object):
             b +=  name_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
             b +=  Sensation.strToBytes(self.name)
             b +=  Sensation.floatToBytes(self.score)
-            b +=  Sensation.strToBytes(self.presence)
+            # b +=  Sensation.strToBytes(self.presence)
+            b +=  Sensation.booleanToBytes(self.present)
             # just like Image
             filePath_size=len(self.filePath)
             b +=  filePath_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
@@ -2073,7 +2078,8 @@ class Sensation(object):
             b +=  data_size.to_bytes(Sensation.ID_SIZE, Sensation.BYTEORDER)
             b +=  self.data
         elif self.sensationType is Sensation.SensationType.Robot:
-            b +=  Sensation.strToBytes(self.presence)
+            # b +=  Sensation.strToBytes(self.presence)
+            b +=  Sensation.booleanToBytes(self.present)
         elif self.sensationType is Sensation.SensationType.Feeling:
             if self.getFirstAssociateSensation():
                 id = self.getFirstAssociateSensation().getId()
@@ -2946,10 +2952,14 @@ class Sensation(object):
 
         return score
 
-    def setPresence(self, presence):
-        self.presence = presence
-    def getPresence(self):
-        return self.presence
+    # def setPresence(self, presence):
+    #     self.presence = presence
+    # def getPresence(self):
+    #     return self.presence
+    def setPresent(self, present):
+        self.present = present
+    def isPresent(self):
+        return self.present
 
     def setKind(self, kind):
         self.kind = kind

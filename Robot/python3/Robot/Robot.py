@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 14.12.2021
+Updated on 15.01.2022
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -279,7 +279,7 @@ class Robot(Thread):
                                                 memoryType=Sensation.MemoryType.LongTerm,
                                                 robotType=Sensation.RobotType.Sense,# We have found this
                                                 name = self.getName(),
-                                                presence = Sensation.Presence.Present,
+                                                present = True,
                                                 kind=self.getKind(),
                                                 feeling=self.getFeeling(),
                                                 locations=self.config.getLocations())
@@ -1514,7 +1514,7 @@ class Robot(Thread):
                  capabilities = None,                                        # capabilitis of sensorys, robotType what way sensation go
                  name = None,                                                # name of Item
                  score = None,                                               # used at least with item to define how good was the detection 0.0 - 1.0
-                 presence = None,                                            # presence of Item
+                 present = None,                                             # presence of Item
                  kind = None,                                                # kind (for instance voice)
                  firstAssociateSensation = None,                             # associated sensation first side
                  otherAssociateSensation = None,                             # associated Sensation other side
@@ -1553,7 +1553,7 @@ class Robot(Thread):
                  capabilities = capabilities,
                  name = name,
                  score = score,
-                 presence = presence,
+                 present = present,
                  kind = kind,
                  firstAssociateSensation = firstAssociateSensation,
                  otherAssociateSensation = otherAssociateSensation,
@@ -2386,7 +2386,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
                                                           robotType=Sensation.RobotType.Communication,
                                                           sensationType = Sensation.SensationType.Robot,
                                                           memoryType = Sensation.MemoryType.Working,
-                                                          presence = Sensation.Presence.Present,
+                                                          present = True,
                                                           name = self.getName(),
                                                           locations = self.getLocations())
             self.log('run: sendSensation(sensation=Sensation(robot=self.getMainRobot(),sensationType = Sensation.SensationType.Robot), sock=self.sock,'  + str(self.address) + ')')
@@ -2644,7 +2644,7 @@ class SocketClient(Robot): #, SocketServer.ThreadingMixIn, TCPServer):
                                                       robotType=Sensation.RobotType.Communication,
                                                       sensationType = Sensation.SensationType.Robot,
                                                       memoryType = Sensation.MemoryType.Working,
-                                                      presence = Sensation.Presence.Absent,
+                                                      present = False,
                                                       name = self.getName(),
                                                       locations = self.getLocations())
         self.sendSensation(sensation=sensation, sock=self.sock, address=self.address)

@@ -89,8 +89,8 @@ class SensationTestCase(unittest.TestCase):
         # How to check if this makes difference to results
 
         self.sensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Sensory,
-                                                    name='test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Entering)
-        self.assertEqual(self.sensation.getPresence(), Sensation.Presence.Entering, "should be entering")
+                                                    name='test', score=SensationTestCase.SCORE, present=True)
+        self.assertTrue(self.sensation.isPresent(), "should be present")
         self.assertIsNot(self.sensation, None)
         #self.assertEqual(len(self.sensation.getAssociations()), self.initialMemoryLen) ## oops self.initialMemoryLen+1 or self.initialMemoryLen
         self.assertTrue(len(self.sensation.getAssociations()) == self.initialMemoryLen or len(self.sensation.getAssociations()) == self.initialMemoryLen+1)
@@ -631,20 +631,20 @@ class SensationTestCase(unittest.TestCase):
     def test_Sensation_Only_Memorybility(self):
         print('\ntest_Memorybility')
         sensorySensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Sensory,
-                                                      name='Working_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Absent)
-        self.assertEqual(sensorySensation.getPresence(), Sensation.Presence.Absent, "should be Absent")
+                                                      name='Working_test', score=SensationTestCase.SCORE, present=False)
+        self.assertFalse(sensorySensation.isPresent(), "should be Absent")
         self.assertIsNot(sensorySensation, None)
         #self.assertEqual(len(sensorySensation.getAssociations()), self.initialMemoryLen) # OOPS this depends
 
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
-                                                      name='Working_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Absent)
-        self.assertEqual(workingSensation.getPresence(), Sensation.Presence.Absent, "should be Absent")
+                                                      name='Working_test', score=SensationTestCase.SCORE, present=False)
+        self.assertFalse(workingSensation.isPresent(), "should be Absent")
         self.assertIsNot(workingSensation, None)
         #self.assertEqual(len(workingSensation.getAssociations()), self.initialMemoryLen) # OOPS This depends
 
         longTermSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.LongTerm,
-                                                       name='LongTerm', score=SensationTestCase.SCORE, presence=Sensation.Presence.Absent)
-        self.assertEqual(longTermSensation.getPresence(), Sensation.Presence.Absent, "should be Absent")
+                                                       name='LongTerm', score=SensationTestCase.SCORE, present=False)
+        self.assertFalse(longTermSensation.isPresent(), "should be Absent")
         self.assertIsNot(longTermSensation, None)
         #self.assertEqual(len(longTermSensation.getAssociations()), self.initialMemoryLen)
                                                                       # OOPS This depends
@@ -871,20 +871,20 @@ class SensationTestCase(unittest.TestCase):
         
         # create SensatyType-Item Sensations
         sensorySensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Sensory,
-                                                      name=self.NAME1, score=SensationTestCase.SCORE, presence=Sensation.Presence.Present)
-        self.assertEqual(sensorySensation.getPresence(), Sensation.Presence.Present, "should be Absent")
+                                                      name=self.NAME1, score=SensationTestCase.SCORE, present=False)
+        self.assertFalse(sensorySensation.isPresent(), "should be Absent")
         self.assertIsNot(sensorySensation, None)
         #self.assertEqual(len(sensorySensation.getAssociations()), self.initialMemoryLen+1)  # OOPS this depends
 
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
-                                                      name=self.NAME1, score=SensationTestCase.SCORE, presence=Sensation.Presence.Absent)
-        self.assertEqual(workingSensation.getPresence(), Sensation.Presence.Absent, "should be Absent")
+                                                      name=self.NAME1, score=SensationTestCase.SCORE, present=False)
+        self.assertFalse(workingSensation.isPresent(), "should be Absent")
         self.assertIsNot(workingSensation, None)
         #self.assertEqual(len(workingSensation.getAssociations()), self.initialMemoryLen) # OOPS this depends
 
         longTermSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.LongTerm,
-                                                       name=self.NAME1, score=SensationTestCase.SCORE, presence=Sensation.Presence.Absent)
-        self.assertEqual(longTermSensation.getPresence(), Sensation.Presence.Absent, "should be Absent")
+                                                       name=self.NAME1, score=SensationTestCase.SCORE, present=False)
+        self.assertFalse(longTermSensation.isPresent(), "should be Absent")
         self.assertIsNot(longTermSensation, None)
         #self.assertEqual(len(longTermSensation.getAssociations()), self.initialMemoryLen)# OOPS this depends
                                                                                            #2 sensations are associated each other if they are Exiting, changed to Absent
@@ -910,20 +910,20 @@ class SensationTestCase(unittest.TestCase):
         
         # create other SensatyType-Item Sensations
         sensorySensation2 = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Sensory,
-                                                      name=self.NAME2, score=SensationTestCase.SCORE, presence=Sensation.Presence.Present)
-        self.assertEqual(sensorySensation2.getPresence(), Sensation.Presence.Present, "should be Absent")
+                                                      name=self.NAME2, score=SensationTestCase.SCORE, present=False)
+        self.assertFalse(sensorySensation2.isPresent(), "should be Absent")
         self.assertIsNot(sensorySensation2, None)
         #self.assertEqual(len(sensorySensation2.getAssociations()), self.initialMemoryLen) # OOPS This depends
 
         workingSensation2 = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
-                                                      name=self.NAME2, score=SensationTestCase.SCORE, presence=Sensation.Presence.Absent)
-        self.assertEqual(workingSensation2.getPresence(), Sensation.Presence.Absent, "should be Absent")
+                                                      name=self.NAME2, score=SensationTestCase.SCORE, present=False)
+        self.assertFalse(workingSensation2.isPresent(), "should be Absent")
         self.assertIsNot(workingSensation2, None)
         #self.assertEqual(len(workingSensation2.getAssociations()), self.initialMemoryLen) # OOPS This depends
 
         longTermSensation2 = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.LongTerm,
-                                                       name=self.NAME2, score=SensationTestCase.SCORE, presence=Sensation.Presence.Absent)
-        self.assertEqual(longTermSensation2.getPresence(), Sensation.Presence.Absent, "should be Absent")
+                                                       name=self.NAME2, score=SensationTestCase.SCORE, present=False)
+        self.assertFalse(longTermSensation2.isPresent(), "should be Absent")
         self.assertIsNot(longTermSensation2, None)
         #self.assertEqual(len(longTermSensation2.getAssociations()), self.initialMemoryLen) # OOPS This depends # 2 sensations are associated each other if they are Exiting, changed to Absent
 
@@ -1224,20 +1224,20 @@ class SensationTestCase(unittest.TestCase):
     def test_MemorybilitySensationLocation(self):
         print('\ntest_MemorybilitySensationLocation')
         sensorySensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Sensory,
-                                                      name='Working_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Absent)
-        self.assertEqual(sensorySensation.getPresence(), Sensation.Presence.Absent, "should be Absent")
+                                                      name='Working_test', score=SensationTestCase.SCORE, present=False)
+        self.assertFalse(sensorySensation.isPresent(), "should be Absent")
         self.assertIsNot(sensorySensation, None)
         #self.assertEqual(len(sensorySensation.getAssociations()), self.initialMemoryLen+0)#1 ## Oops this depends 
 
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
-                                                      name='Working_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Absent)
-        self.assertEqual(workingSensation.getPresence(), Sensation.Presence.Absent, "should be Absent")
+                                                      name='Working_test', score=SensationTestCase.SCORE, present=False)
+        self.assertFalse(workingSensation.isPresent(), "should be Absent")
         self.assertIsNot(workingSensation, None)
         #self.assertEqual(len(workingSensation.getAssociations()), self.initialMemoryLen+0) # OOPS this depends
 
         longTermSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.LongTerm,
-                                                       name='LongTerm', score=SensationTestCase.SCORE, presence=Sensation.Presence.Absent)
-        self.assertEqual(longTermSensation.getPresence(), Sensation.Presence.Absent, "should be Absent")
+                                                       name='LongTerm', score=SensationTestCase.SCORE, present=False)
+        self.assertFalse(longTermSensation.isPresent(), "should be Absent")
         self.assertIsNot(longTermSensation, None)
         #self.assertEqual(len(longTermSensation.getAssociations()), self.initialMemoryLen+0) # OOPS This depends
 
@@ -1457,8 +1457,8 @@ class SensationTestCase(unittest.TestCase):
     def deprecated_test_Importance(self):        
         print("\ntest_Importance")
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
-                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present)
-        self.assertEqual(workingSensation.getPresence(), Sensation.Presence.Present, "should be present")
+                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, present=True)
+        self.assertTrue(workingSensation.isPresent(), "should be present")
         self.assertIsNot(workingSensation, None)
         self.assertEqual(len(workingSensation.getAssociations()), self.initialMemoryLen+1)
         workingSensation.associate(sensation=sensorySensation,
@@ -1527,8 +1527,10 @@ class SensationTestCase(unittest.TestCase):
         self.assertEqual(addSensation.getName(), 'connect_test', "should be \'connect_test\' ")
         self.robot.getMemory().setMemoryType(sensation=addSensation, memoryType=Sensation.MemoryType.Working)
         self.assertEqual(addSensation.getMemoryType(), Sensation.MemoryType.Working, "should be Sensation.MemoryType.Working")
-        addSensation.setPresence(presence=Sensation.Presence.Present)
-        self.assertEqual(addSensation.getPresence(), Sensation.Presence.Present, "should be present")
+        # addSensation.setPresence(present=True)
+        # self.assertEqual(addSensation.getPresence(), Sensation.Presence.Present, "should be present")
+        addSensation.setPresent(present=True)
+        self.assertTrue(addSensation.isPresent(), "should be present")
         
         addSensation.setName('connect_test')
         self.robot.getMemory().setMemoryType(sensation=addSensation, memoryType=Sensation.MemoryType.Working)
@@ -1630,8 +1632,8 @@ class SensationTestCase(unittest.TestCase):
         # We must set all Items absent
         
         absentensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Sensory,
-                                                    name='test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Absent)
-        self.assertEqual(absentensation.getPresence(), Sensation.Presence.Absent, "should be Absent")
+                                                    name='test', score=SensationTestCase.SCORE, present=False)
+        self.assertFalse(absentensation.isPresent(), "should be Absent")
         
         
         # when we create sensation=self.sensation, other parameters can't be used
@@ -1710,7 +1712,7 @@ class SensationTestCase(unittest.TestCase):
         self.robot.setMainNames(SensationTestCase.MAINNAMES_1)
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, image=image,
                                                       memoryType=Sensation.MemoryType.Working,
-                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=[],
+                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, present=True, receivedFrom=[],
                                                       locations = SensationTestCase.SET_1_2_LOCATIONS)
         self.assertTrue(workingSensation != None, "should be created")
         self.assertEqual(SensationTestCase.MAINNAMES_1, workingSensation.getMainNames(), "should be equal")
@@ -1759,7 +1761,7 @@ class SensationTestCase(unittest.TestCase):
         voiceSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Voice, memoryType=Sensation.MemoryType.Sensory, data=data, locations=SensationTestCase.SET_1_1_LOCATIONS_2, kind=Sensation.Kind.Eva)
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, data=data,
                                                       memoryType=Sensation.MemoryType.Working,
-                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=[],
+                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, present=True, receivedFrom=[],
                                                       locations = SensationTestCase.SET_1_2_LOCATIONS)
         self.assertTrue(workingSensation != None, "should be created")
         self.assertEqual(SensationTestCase.MAINNAMES_1, workingSensation.getMainNames(), "should be equal")
@@ -1840,7 +1842,7 @@ class SensationTestCase(unittest.TestCase):
         self.robot.setMainNames(SensationTestCase.MAINNAMES_1)
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, image=image,
                                                       memoryType=Sensation.MemoryType.Working,
-                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=[],
+                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, present=True, receivedFrom=[],
                                                       locations = SensationTestCase.SET_1_2_LOCATIONS)
         self.assertEqual(SensationTestCase.MAINNAMES_1, workingSensation.getMainNames(), "should be equal")
         self.assertTrue(workingSensation != None, "should be created")
@@ -1907,7 +1909,7 @@ class SensationTestCase(unittest.TestCase):
         
         # Working_Importance_test
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
-                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=SensationTestCase.RECEIVEDFROM)
+                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, present=True, receivedFrom=SensationTestCase.RECEIVEDFROM)
         self.assertTrue(workingSensation != None, "should be created")
         bytes=workingSensation.bytes()
         self.assertTrue(bytes != None, "should be get bytes")
@@ -2066,7 +2068,7 @@ class SensationTestCase(unittest.TestCase):
         
         # Feeling is property of every SensationType
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
-                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=[],
+                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, present=True, receivedFrom=[],
                                                       locations = SensationTestCase.SET_1_1_LOCATIONS_2,
                                                       feeling=SensationTestCase.NORMAL_FEELING)
         self.assertTrue(workingSensation != None, "should be created")
@@ -2221,7 +2223,7 @@ class SensationTestCase(unittest.TestCase):
     def test_Copy(self):        
         print("\ntest_Copy")
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
-                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=[],
+                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, present=True, receivedFrom=[],
                                                       locations = SensationTestCase.SET_1_2_LOCATIONS)
         self.assertTrue(workingSensation != None, "should be created")
         self.assertEqual(workingSensation.getLocations(), SensationTestCase.SET_1_2_LOCATIONS, "should be equal")
@@ -2248,7 +2250,7 @@ class SensationTestCase(unittest.TestCase):
         self.assertFalse(fromWorkingSensation.isOriginal(), "fromWorkingSensation should be copy")
        
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
-                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=SensationTestCase.RECEIVEDFROM)
+                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, present=True, receivedFrom=SensationTestCase.RECEIVEDFROM)
         self.assertTrue(workingSensation != None, "should be created")
         fromWorkingSensation = self.robot.createSensation(sensation=workingSensation)
         self.assertTrue(fromWorkingSensation != None, "should be created")
@@ -2381,7 +2383,7 @@ class SensationTestCase(unittest.TestCase):
         
         # Feeling is property of every SensationType
         workingSensation = self.robot.createSensation(associations=None, sensationType=Sensation.SensationType.Item, memoryType=Sensation.MemoryType.Working,
-                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, presence=Sensation.Presence.Present, receivedFrom=[],
+                                                      name='Working_Importance_test', score=SensationTestCase.SCORE, present=True, receivedFrom=[],
                                                       locations = SensationTestCase.SET_1_1_LOCATIONS_2,
                                                       feeling=SensationTestCase.NORMAL_FEELING)
         self.assertTrue(workingSensation != None, "should be created")

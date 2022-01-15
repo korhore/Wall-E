@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 14.01.2022
+Edited on 15.01.2022
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -174,7 +174,7 @@ class Memory(object):
                  capabilities = None,                                        # capabilitis of sensorys, robotType what way sensation go
                  name = None,                                                # name of Item
                  score = None,                                               # used at least with item to define how good was the detection 0.0 - 1.0
-                 presence = None,                                            # presence of Item
+                 present = None,                                             # presence of Item
                  kind = None,                                                # kind (for instance voice)
                  firstAssociateSensation = None,                             # associated sensation first side
                  otherAssociateSensation = None,                             # associated Sensation other side
@@ -220,7 +220,7 @@ class Memory(object):
                  capabilities = capabilities,
                  name = name,
                  score = score,
-                 presence = presence,
+                 present = present,
                  kind = kind,
                  firstAssociateSensation = firstAssociateSensation,
                  otherAssociateSensation = otherAssociateSensation,
@@ -260,7 +260,7 @@ class Memory(object):
                                                capabilities=capabilities,                                   # capabilitis of sensorys, robotType what way sensation go
                                                name=name,                                                   # name of Item
                                                score=score,                                                 # used at least with item to define how good was the detection 0.0 - 1.0
-                                               presence=presence,                                           # presence of Item
+                                               present=present,                                             # presence of Item
                                                kind=kind,                                                   # kind (for instance voice)
                                                firstAssociateSensation=firstAssociateSensation,             # associated sensation first side
                                                otherAssociateSensation=otherAssociateSensation,             # associated Sensation other side
@@ -1595,30 +1595,32 @@ class Memory(object):
         if name in presentDict[location] and\
            sensation.getTime() > presentDict[location][name].getTime(): 
 
-            if sensation.getPresence() in [ Sensation.Presence.Entering,\
-                                            Sensation.Presence.Present,\
-                                            Sensation.Presence.Exiting]:
+            # if sensation.getPresence() in [ Sensation.Presence.Entering,\
+            #                                 Sensation.Presence.Present,\
+            #                                 Sensation.Presence.Exiting]:
+            if sensation.isPresent():
                 # if we have old presence sensation, copy its association to this new one
                 if name in presentDict[location]:
                     # for associon in presentDict[location][name].getAssociations():
                     #     sensation.associate(sensation=associon.getSensation())
                     # Try to update existing sensation, because other way association will bu doubled
-                    presentDict[location][name].setPresence(presence=sensation.getPresence())
+                    presentDict[location][name].setPresent(present=True)
                     presentDict[location][name].setScore(score=sensation.getScore())
                 else:
                     presentDict[location][name] = sensation
-                self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="update Entering, Present or Exiting " + name)
+                self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="update Present SHOULD NOT BE POSSIBLE any more" + name)
             else:
                 del presentDict[location][name]
                 self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="Absent " + name)
         # accept only sensation items that are not present, but not not in order ones
         # absent sensations don't have any mean at this case
-        elif (name not in presentDict[location]) and\
-             (sensation.getPresence() in [ Sensation.Presence.Entering,\
-                                           Sensation.Presence.Present,\
-                                           Sensation.Presence.Exiting]):
+        elif name not in presentDict[location] and\
+             sensation.isPresent():
+             # (sensation.getPresence() in [ Sensation.Presence.Entering,\
+             #                               Sensation.Presence.Present,\
+             #                               Sensation.Presence.Exiting]):
                 presentDict[location][name] = sensation
-                self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="new Entering, Present or Exiting " + name)
+                self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="new present " + name)
                 
     '''
     have we Item presence in some location or locations.
