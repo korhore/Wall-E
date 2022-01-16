@@ -1,6 +1,6 @@
 '''
 Created on 30.04.2019
-Updated on 14.10.2021
+Updated on 16.01.2022
 
 @author: reijo.korhonen@gmail.com
 '''
@@ -174,22 +174,22 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
     presence of Item.name
     '''
     
-    class Item():
-        def __init__(self,
-                     name,
-                     presense):
-            self.name = name
-            self.presence = presence
-            
-        def getName(self):
-            return self.name
-        def setName(self, name):
-            self.name = name
-
-        def getPresence(self):
-            return self.presence
-        def setPresence(self, presence):
-            self.npresence= presence
+    # class Item():
+    #     def __init__(self,
+    #                  name,
+    #                  presense):
+    #         self.name = name
+    #         self.presence = presence
+    #
+    #     def getName(self):
+    #         return self.name
+    #     def setName(self, name):
+    #         self.name = name
+    #
+    #     def getPresence(self):
+    #         return self.presence
+    #     def setPresence(self, presence):
+    #         self.presence= presence
   
     def __init__(self,
                  mainRobot,
@@ -223,8 +223,9 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
         self.tflite_model=None
         self.detection_graph = None
         self.firstImage = True
-        self.present = {}       # which items are present
-        
+        # self.present = {}       # which items are present
+        self.present = []      # which items are present
+       
     '''
     overwrite Robot.route
     If self.privateParent is not None
@@ -594,7 +595,7 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                 #image=sensation.getImage()
                 # process image using big original picture, we see details that are far away
                 #names, current_present = self.LITEProcessImage(image=sensation.getImage(),names=names, current_present=current_present)
-                current_present = self.LITEProcessImage(image=sensation.getImage())
+                currentPresent = self.LITEProcessImage(image=sensation.getImage())
                 # process image using smaller picture resized from original one, we see details that are near is
 #                 size = ( int(image.width/3), int(image.height/3))
 #                 image = image.resize(size)
@@ -611,7 +612,8 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                 output_dict = self.run_inference_for_single_image(image=image_np_expanded, graph=self.detection_graph)
             
                 i=0
-                names=[]
+                # names=[]
+                currentPresent=[]
                 for classInd in output_dict[self.DETECTION_CLASSES]:
                     if output_dict[self.DETECTION_SCORES][i] > TensorFlowClassification.DETECTION_SCORE_LIMIT:
                         # create new sensation of detected area and category
@@ -625,36 +627,72 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                                  ' box ' + str(output_dict[self.DETECTION_BOXES][i]) + ' size ' + str(size))
                         # Item
                         name = self.category_index[classInd][self.NAME]
-                        is_first_presence, is_change, precence, names = self.getPresence(name=name, names=names)
-                        if is_first_presence: # if this name's presence is not yet handled, not duplicate name
-                            current_present[name] = precence
-                            if is_change:
-                                subimage = sensation.getImage().crop(size)
-                                subsensation = self.createSensation( sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense,\
+                        if name not in currentPresent:   # we don't calculate detected names count
+                            currentPresent.append(name)
+                        if name not in self.present:
+                            self.present.append(name)
+                            subimage = sensation.getImage().crop(size)
+                            subsensation = self.createSensation( sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense,\
                                                                      image=subimage, locations=self.getUpLocations())
-                                self.log("process created subimage sensation " + subsensation.toDebugStr())
-                                # don't associate to original image sensation
-                                # we wan't to save memory and subimage is important, not whore image
-                                #subsensation.associate(sensation=sensation, score=score)
-                                subsensation.save()
+                            self.log("process created subimage sensation " + subsensation.toDebugStr())
+                            # don't associate to original image sensation
+                            # we wan't to save memory and subimage is important, not whore image
+                            #subsensation.associate(sensation=sensation, score=score)
+                            subsensation.save()
                                 
-                                itemsensation = self.createSensation( sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense,
-                                                                      name = name, image=subimage, score = score, presence = precence, locations=self.getUpLocations())
-                                itemsensation.associate(sensation=subsensation)
-                                self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
-                                # TODO Here we used association. Study if this has some effect and use Feeling sensation if needed. Seems that no effect-
-                                #self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
-                                #self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
-#                                 self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
-                                self.route(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
-                                subsensation.detach(robot=self) # detach processed sensation
+                            itemsensation = self.createSensation( sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense,
+                                                                      name = name, image=subimage, score = score, present = True, locations=self.getUpLocations())
+                            itemsensation.associate(sensation=subsensation)
+                            self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
+                            # TODO Here we used association. Study if this has some effect and use Feeling sensation if needed. Seems that no effect-
+                            #self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
+                            #self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
+#                            self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
+                            self.route(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
+                            subsensation.detach(robot=self) # detach processed sensation
 #                                 self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
-                                self.route(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
-                                itemsensation.detach(robot=self) # detach processed sensation
-                                self.log("Created Working subImage and item sensation for this")
+                            self.route(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+                            itemsensation.detach(robot=self) # detach processed sensation
+                            self.log("Created Working subImage and item sensation for this")
+#                         is_first_presence, is_change, precence, names = self.getPresence(name=name, names=names)
+#
+#                         if is_first_presence: # if this name's presence is not yet handled, not duplicate name
+#                             current_present[name] = precence
+#                             if is_change:
+#                                 subimage = sensation.getImage().crop(size)
+#                                 subsensation = self.createSensation( sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense,\
+#                                                                      image=subimage, locations=self.getUpLocations())
+#                                 self.log("process created subimage sensation " + subsensation.toDebugStr())
+#                                 # don't associate to original image sensation
+#                                 # we wan't to save memory and subimage is important, not whore image
+#                                 #subsensation.associate(sensation=sensation, score=score)
+#                                 subsensation.save()
+#
+#                                 itemsensation = self.createSensation( sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense,
+#                                                                       name = name, image=subimage, score = score, presence = precence, locations=self.getUpLocations())
+#                                 itemsensation.associate(sensation=subsensation)
+#                                 self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(score))
+#                                 # TODO Here we used association. Study if this has some effect and use Feeling sensation if needed. Seems that no effect-
+#                                 #self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
+#                                 #self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
+# #                                 self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
+#                                 self.route(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
+#                                 subsensation.detach(robot=self) # detach processed sensation
+# #                                 self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+#                                 self.route(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+#                                 itemsensation.detach(robot=self) # detach processed sensation
+#                                 self.log("Created Working subImage and item sensation for this")
                         # TODO WE should classify this item also by className to detect separate item inside a class like 'Martha' in 'person'
                     i = i+1
-            self.logAbsents(current_present=current_present)  
+            for name in self.present:
+                if name not in currentPresent:
+                    itemsensation = self.createSensation( sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense, name=name,\
+                                                     present = False, locations=self.getUpLocations())
+                    self.route(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+                    itemsensation.detach(robot=self) # detach processed sensation
+                    self.log("process created exiting/absent itemsensation " + itemsensation.toDebugStr())
+            self.present = currentPresent
+            # self.logAbsents(current_present=current_present)  
         else:
             self.log(logLevel=Robot.LogLevel.Error, logStr='process: got sensation this robot can\'t process')
             if sensation.getRobotType() != Sensation.RobotType.Sense:
@@ -684,48 +722,77 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
 #             else:
 #                 subimage = image.resize((int(image.size[1]*self.heigh/image.size[0]), self.heigh))
 #         # hope we get an image that is valid for model, try
-        names = []
-        current_present = {}
+
+        # names = []
+        # current_present = {}
+        currentPresent=[]
         subimage, boxes, classes, scores = self.run_inference_for_single_image_LITE(image=image, top_k=3)
         for i in range(len(scores)):
             if scores[i] > TensorFlowClassification.DETECTION_SCORE_LIMIT:
                 # create new sensation of detected area and category
                 name = self.labels[int(classes[i])+1]
                 self.log('SEEN image FOR SURE className ' + name + ' score ' + str(scores[i]) + ' box ' + str(boxes[i]))
-                is_first_presence, is_change, precence, names  = self.getPresence(name=name, names=names)
-                if is_first_presence: # if this name's presence is not yet handled, not duplicate name
-                    current_present[name] = precence
-                    if is_change:
-                        current_present[name] = precence
-                                  
-                        im_width, im_height = subimage.size
-                        ymin, xmin, ymax, xmax = boxes[i]
-                        size = (xmin * im_width, ymin * im_height,
-                                xmax * im_width, ymax * im_height)
-                        subsubimage = subimage.crop(size)
-                                  
-                        subsensation = self.createSensation( sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense,\
-                                                             image=subsubimage, locations=self.getUpLocations())
-                        self.log("process created subimage sensation " + subsensation.toDebugStr())
-                        # don't associate to original image sensation
-                        # we wan't to save memory and subimage is important, not whore image
-                        #subsensation.associate(sensation=sensation, score=score)
-                        subsensation.save()
-                                          
-                        itemsensation = self.createSensation( sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense,
-                                                              name=name, image=subsubimage, score=scores[i], presence = precence, locations=self.getUpLocations())
-                        itemsensation.associate(sensation=subsensation)
-                        self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(scores[i]))
-                        # TODO study if paramameter association has some effect and use Feeling sensation, if it had
-                        #self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
-                        #self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
-#                         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
-                        self.route(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
-                        itemsensation.detach(robot=self) # detach processed sensation
-#                         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
-                        self.route(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
-                        subsensation.detach(robot=self) # detach processed sensation
-        return current_present
+                if name not in currentPresent:   # we don't calculate detected names count
+                    currentPresent.append(name)
+                if name not in self.present:
+                    self.present.append(name)
+                    subsensation = self.createSensation( sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense,\
+                                                        image=subimage, locations=self.getUpLocations())
+                    self.log("process created subimage sensation " + subsensation.toDebugStr())
+                    # don't associate to original image sensation
+                    # we wan't to save memory and subimage is important, not whore image
+                    #subsensation.associate(sensation=sensation, score=score)
+                    subsensation.save()
+                                
+                    itemsensation = self.createSensation( sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense,
+                                                                      name = name, image=subimage, score = scores[i], present = True, locations=self.getUpLocations())
+                    itemsensation.associate(sensation=subsensation)
+                    self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(scores[i]))
+                    # TODO Here we used association. Study if this has some effect and use Feeling sensation if needed. Seems that no effect-
+                     #self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
+                    #self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
+#                   self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
+                    self.route(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
+                    subsensation.detach(robot=self) # detach processed sensation
+#                   self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+                    self.route(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+                    itemsensation.detach(robot=self) # detach processed sensation
+                    self.log("Created Working subImage and item sensation for this")
+                
+#                 is_first_presence, is_change, precence, names  = self.getPresence(name=name, names=names)
+#                 if is_first_presence: # if this name's presence is not yet handled, not duplicate name
+#                     current_present[name] = precence
+#                     if is_change:
+#                         current_present[name] = precence
+#
+#                         im_width, im_height = subimage.size
+#                         ymin, xmin, ymax, xmax = boxes[i]
+#                         size = (xmin * im_width, ymin * im_height,
+#                                 xmax * im_width, ymax * im_height)
+#                         subsubimage = subimage.crop(size)
+#
+#                         subsensation = self.createSensation( sensationType = Sensation.SensationType.Image, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense,\
+#                                                              image=subsubimage, locations=self.getUpLocations())
+#                         self.log("process created subimage sensation " + subsensation.toDebugStr())
+#                         # don't associate to original image sensation
+#                         # we wan't to save memory and subimage is important, not whore image
+#                         #subsensation.associate(sensation=sensation, score=score)
+#                         subsensation.save()
+#
+#                         itemsensation = self.createSensation( sensationType = Sensation.SensationType.Item, memoryType = Sensation.MemoryType.Working, robotType = Sensation.RobotType.Sense,
+#                                                               name=name, image=subsubimage, score=scores[i], presence = precence, locations=self.getUpLocations())
+#                         itemsensation.associate(sensation=subsensation)
+#                         self.log("process created present itemsensation " + itemsensation.toDebugStr() + ' score ' + str(scores[i]))
+#                         # TODO study if paramameter association has some effect and use Feeling sensation, if it had
+#                         #self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation, association=subsensation.getAssociation(sensation=subsensation))
+#                         #self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation, association=subsensation.getAssociation(sensation=itemsensation))
+# #                         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+#                         self.route(transferDirection=Sensation.TransferDirection.Up, sensation=itemsensation)
+#                         itemsensation.detach(robot=self) # detach processed sensation
+# #                         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
+#                         self.route(transferDirection=Sensation.TransferDirection.Up, sensation=subsensation)
+#                         subsensation.detach(robot=self) # detach processed sensation
+        return currentPresent #current_present
     
 # old version            
 #     def LITEProcessImage(self, image, names, current_present):
@@ -778,14 +845,15 @@ curl -O https://storage.googleapis.com/download.tensorflow.org/models/tflite/mob
                                     # or try to identify name yet
                 names.append(name)
                 if name not in self.present:
-                    self.log("Name " + name + " Entering")
-                    self.present[name] = Sensation.Presence.Entering
-                    return True, True, Sensation.Presence.Entering, names
-                elif self.present[name] == Sensation.Presence.Entering:
-                    self.present[name] = Sensation.Presence.Present
-                    self.log("Name " + name + " Entering to Present")
-                    return True, True, Sensation.Presence.Present, names 
-                self.log("Name " + name + " Still Present")
+                #     self.log("Name " + name + " Entering")
+                #     self.present[name] = Sensation.Presence.Entering
+                #     return True, True, Sensation.Presence.Entering, names
+                # elif self.present[name] == Sensation.Presence.Entering:
+                #     self.present[name] = Sensation.Presence.Present
+                #     self.log("Name " + name + " Entering to Present")
+                #     return True, True, Sensation.Presence.Present, names 
+                # self.log("Name " + name + " Still Present")
+                    self.present.append(name)
                 return True, False, Sensation.Presence.Present, names
             else:
                 self.log("Name " + name + " another instance, ignored")
