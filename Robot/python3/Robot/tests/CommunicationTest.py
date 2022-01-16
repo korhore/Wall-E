@@ -1,6 +1,6 @@
 '''
 Created on 14.04.2021
-Updated on 13.01.2022
+Updated on 16.01.2022
 @author: reijo.korhonen@gmail.com
 
 test Communication class
@@ -130,7 +130,7 @@ class CommunicationTest(RobotTestCase):
                                            sensationType = Sensation.SensationType.Robot,
                                            memoryType = Sensation.MemoryType.Working,
                                            name = communication.getName(),
-                                           presence = Sensation.Presence.Present,
+                                           present = True,
                                            locations = self.getLocations(),
                                            mainNames=self.OTHERMAINNAMES), # Should haver other mainnames than this Robot to get robot presence
         
@@ -154,7 +154,7 @@ class CommunicationTest(RobotTestCase):
                                            sensationType = Sensation.SensationType.Robot,
                                            memoryType = Sensation.MemoryType.Working,
                                            name = communication.getName(),
-                                           presence = Sensation.Presence.Absent,
+                                           present = False,
                                            locations = self.getLocations())
         
         self.assertFalse(len(communication.getMemory().getAllPresentRobotSensations()) > 0)
@@ -197,7 +197,7 @@ class CommunicationTest(RobotTestCase):
                                                  robotType=Sensation.RobotType.Sense,
                                                  name=CommunicationTest.NAME,
                                                  score=CommunicationTest.SCORE_1,
-                                                 presence=Sensation.Presence.Entering,
+                                                 present = True,
                                                  locations=self.getLocations())
         self.assertTrue(Wall_E_item_sensation_entering.isForgettable())
         self.printSensationNameById(note='Wall_E_item_sensation_entering test', dataId= Wall_E_item_sensation_entering.getDataId())
@@ -246,7 +246,7 @@ class CommunicationTest(RobotTestCase):
                                                 robotType=Sensation.RobotType.Sense,
                                                 name=CommunicationTest.NAME,
                                                 score=CommunicationTest.SCORE_1,
-                                                presence=Sensation.Presence.Entering,
+                                                present = True,
                                                 locations=self.getLocations())
         self.assertTrue(item_sensation1.isForgettable())
         self.printSensationNameById(note='item_sensation1 test', dataId=item_sensation1.getDataId())
@@ -262,7 +262,7 @@ class CommunicationTest(RobotTestCase):
                                                 robotType=Sensation.RobotType.Sense,
                                                 name=CommunicationTest.NAME,
                                                 score=CommunicationTest.SCORE_1,
-                                                presence=Sensation.Presence.Entering,
+                                                present = True,
                                                 locations=self.getLocations())
         self.assertTrue(systemTime.time() - Wall_E_item_sensation_entering2.getTime() < Communication.COMMUNICATION_INTERVAL)
        
@@ -367,7 +367,7 @@ class CommunicationTest(RobotTestCase):
                                                 robotType=Sensation.RobotType.Sense,
                                                 name=CommunicationTest.NAME,
                                                 score=CommunicationTest.SCORE_1,
-                                                presence=Sensation.Presence.Present,
+                                                present = True,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='Wall_E_item_sensation_present test', dataId=Wall_E_item_sensation_present.getDataId())
 
@@ -405,7 +405,7 @@ class CommunicationTest(RobotTestCase):
                                                 robotType=Sensation.RobotType.Sense,
                                                 name=CommunicationTest.NAME,
                                                 score=CommunicationTest.SCORE_1,
-                                                presence=Sensation.Presence.Entering,
+                                                present = True,
                                                 locations=self.getLocations())
         self.assertTrue(item_sensation2.isForgettable())
         self.printSensationNameById(note='image_sensation2 test', dataId=image_sensation2.getDataId())
@@ -520,7 +520,7 @@ class CommunicationTest(RobotTestCase):
                                                 robotType=Sensation.RobotType.Sense,
                                                 name=CommunicationTest.NAME,
                                                 score=CommunicationTest.SCORE_1,
-                                                presence=Sensation.Presence.Absent,
+                                                present = False,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='Wall_E_item_sensation_absent test', dataId=Wall_E_item_sensation_absent.getDataId())
         self.assertEqual(len(communication.getMemory().getAllPresentItemSensations()), 0, 'len(communication.getMemory().getAllPresentItemSensations() after Absent Item Sensation should be 0')
@@ -576,7 +576,7 @@ class CommunicationTest(RobotTestCase):
                                                 robotType=Sensation.RobotType.Sense,
                                                 name=CommunicationTest.NAME,
                                                 score=CommunicationTest.SCORE_1,
-                                                presence=Sensation.Presence.Entering,
+                                                present = True,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='item_sensation3 test', dataId=item_sensation3.getDataId())
         item_sensation3.associate(sensation=voice_sensation3)
@@ -592,7 +592,7 @@ class CommunicationTest(RobotTestCase):
                                                 robotType=Sensation.RobotType.Sense,
                                                 name=CommunicationTest.NAME,
                                                 score=CommunicationTest.SCORE_1,
-                                                presence=Sensation.Presence.Entering,
+                                                present = True,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='Wall_E_item_sensation_entering3 test', dataId=Wall_E_item_sensation_entering3.getDataId())
         #simulate TensorFlowClassification send presence item to MainRobot
@@ -709,7 +709,7 @@ class CommunicationTest(RobotTestCase):
                                                 robotType=Sensation.RobotType.Sense,
                                                 name=CommunicationTest.NAME2,
                                                 score=CommunicationTest.SCORE_2,
-                                                presence=Sensation.Presence.Entering,
+                                                present = True,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='item_sensation4 test', dataId=item_sensation4.getDataId())
         item_sensation4.associate(sensation=voice_sensation4)
@@ -728,7 +728,7 @@ class CommunicationTest(RobotTestCase):
                                                 robotType=Sensation.RobotType.Sense,
                                                 name=CommunicationTest.NAME2,
                                                 score=CommunicationTest.SCORE_2,
-                                                presence=Sensation.Presence.Entering,
+                                                present = True,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='Wall_E_item_sensation_entering4 test', dataId=Wall_E_item_sensation_entering4.getDataId())
         #simulate TensorFlowClassification send presence item to MainRobot
@@ -853,7 +853,7 @@ class CommunicationTest(RobotTestCase):
                                                 robotType=Sensation.RobotType.Sense,
                                                 name=CommunicationTest.NAME2,
                                                 score=CommunicationTest.SCORE_2,
-                                                presence=Sensation.Presence.Entering,
+                                                present = True,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='item_sensation5 test', dataId=item_sensation5.getDataId())
         item_sensation5.associate(sensation=voice_sensation5)
@@ -868,7 +868,7 @@ class CommunicationTest(RobotTestCase):
                                                 robotType=Sensation.RobotType.Sense,
                                                 name=CommunicationTest.NAME2,
                                                 score=CommunicationTest.SCORE_1,
-                                                presence=Sensation.Presence.Present,
+                                                present = True,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='Wall_E_item_sensation_present2 test', dataId=Wall_E_item_sensation_present2.getDataId())
 
@@ -984,7 +984,7 @@ class CommunicationTest(RobotTestCase):
                                                 robotType=Sensation.RobotType.Sense,
                                                 name=CommunicationTest.NAME2,
                                                 score=CommunicationTest.SCORE_2,
-                                                presence=Sensation.Presence.Entering,
+                                                present = True,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='item_sensation6 test', dataId=item_sensation6.getDataId())
         item_sensation6.associate(sensation=voice_sensation6)
@@ -999,7 +999,7 @@ class CommunicationTest(RobotTestCase):
                                                 robotType=Sensation.RobotType.Sense,
                                                 name=CommunicationTest.NAME2,
                                                 score=CommunicationTest.SCORE_1,
-                                                presence=Sensation.Presence.Present,
+                                                present = True,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='Wall_E_item_sensation_present3 test', dataId=Wall_E_item_sensation_present3.getDataId())
         #simulate TensorFlowClassification send presence item to MainRobot
@@ -1101,7 +1101,7 @@ class CommunicationTest(RobotTestCase):
                                                 robotType=Sensation.RobotType.Sense,
                                                 name=CommunicationTest.NAME2,
                                                 score=CommunicationTest.SCORE_1,
-                                                presence=Sensation.Presence.Absent,
+                                                present = False,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='Wall_E_item_sensation_absent2 test', dataId=Wall_E_item_sensation_absent2.getDataId())
         #simulate TensorFlowClassification send presence item to MainRobot
@@ -1131,7 +1131,7 @@ class CommunicationTest(RobotTestCase):
                                                 robotType=Sensation.RobotType.Sense,
                                                 name=CommunicationTest.NAME,
                                                 score=CommunicationTest.SCORE_1,
-                                                presence=Sensation.Presence.Absent,
+                                                present = False,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='Wall_E_item_sensation_absent3 test', dataId=Wall_E_item_sensation_absent3.getDataId())
         #simulate TensorFlowClassification send presence item to MainRobot       
@@ -1210,7 +1210,7 @@ class CommunicationTest(RobotTestCase):
                                                 mainNames=mainNames,
                                                 name=CommunicationTest.NAME,
                                                 score=CommunicationTest.SCORE_1,
-                                                presence=Sensation.Presence.Entering,
+                                                present = True,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='Wall_E_item_sensation1 test', dataId=Wall_E_item_sensation1.getDataId())
         self.doProcess(robot=communication, sensation=Wall_E_item_sensation1)
@@ -1243,7 +1243,7 @@ class CommunicationTest(RobotTestCase):
                                                 mainNames=mainNames,
                                                 name=CommunicationTest.NAME,
                                                 score=CommunicationTest.SCORE_1,
-                                                presence=Sensation.Presence.Entering,
+                                                present = True,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='current Wall_E_item_sensation1 test', dataId=Wall_E_item_sensation1.getDataId())
         self.doProcess(robot=communication, sensation=Wall_E_item_sensation1)
@@ -1276,7 +1276,7 @@ class CommunicationTest(RobotTestCase):
                                                 mainNames=mainNames,
                                                 name=CommunicationTest.NAME,
                                                 score=CommunicationTest.SCORE_1,
-                                                presence=Sensation.Presence.Absent,
+                                                present = False,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='absent_item_sensation1 test', dataId=absent_item_sensation1.getDataId())
 
@@ -1311,7 +1311,7 @@ class CommunicationTest(RobotTestCase):
                                                 mainNames=mainNames,
                                                 name=CommunicationTest.NAME,
                                                 score=CommunicationTest.SCORE_1,
-                                                presence=Sensation.Presence.Entering,
+                                                present = True,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='item_sensation1 test', dataId=item_sensation1.getDataId())
         
@@ -1403,7 +1403,7 @@ class CommunicationTest(RobotTestCase):
                                                 mainNames=mainNames,
                                                 name=CommunicationTest.NAME,
                                                 score=CommunicationTest.SCORE_1,
-                                                presence=Sensation.Presence.Absent,
+                                                present = False,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='absent_item_sensation2 test', dataId=absent_item_sensation2.getDataId())
 
@@ -1436,7 +1436,7 @@ class CommunicationTest(RobotTestCase):
                                                 mainNames=mainNames,
                                                 name=CommunicationTest.NAME,
                                                 score=CommunicationTest.SCORE_1,
-                                                presence=Sensation.Presence.Entering,
+                                                present = True,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='Wall_E_item_sensation2 test', dataId=Wall_E_item_sensation2.getDataId())
         self.assertTrue(len(Wall_E_item_sensation1.getAssociations()) in  (1,2,3))
@@ -1549,7 +1549,7 @@ class CommunicationTest(RobotTestCase):
                                                 mainNames=mainNames,
                                                 name=CommunicationTest.NAME,
                                                 score=CommunicationTest.SCORE_1,
-                                                presence=Sensation.Presence.Present,
+                                                present = True,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='Wall_E_item_sensation3 test', dataId=Wall_E_item_sensation3.getDataId())
 
@@ -1585,7 +1585,7 @@ class CommunicationTest(RobotTestCase):
                                                 mainNames=mainNames,
                                                 name=CommunicationTest.NAME,
                                                 score=CommunicationTest.SCORE_1,
-                                                presence=Sensation.Presence.Entering,
+                                                present = True,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='item_sensation2 test', dataId=item_sensation2.getDataId())
         self.assertTrue(len(item_sensation2.getAssociations()) in (1,2,3,4))
@@ -1695,7 +1695,7 @@ class CommunicationTest(RobotTestCase):
                                                 mainNames=mainNames,
                                                 name=CommunicationTest.NAME,
                                                 score=CommunicationTest.SCORE_1,
-                                                presence=Sensation.Presence.Absent,
+                                                present = False,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='Wall_E_item_sensation4 test', dataId=Wall_E_item_sensation4.getDataId())
         #simulate TensorFlowClassification send presence item to MainRobot
@@ -1768,7 +1768,7 @@ class CommunicationTest(RobotTestCase):
                                                 mainNames=mainNames,                                                
                                                 name=CommunicationTest.NAME,
                                                 score=CommunicationTest.SCORE_1,
-                                                presence=Sensation.Presence.Entering,
+                                                present = True,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='item_sensation3 test', dataId=item_sensation3.getDataId())
         
@@ -1783,7 +1783,7 @@ class CommunicationTest(RobotTestCase):
                                                 mainNames=mainNames,
                                                 name=CommunicationTest.NAME,
                                                 score=CommunicationTest.SCORE_1,
-                                                presence=Sensation.Presence.Entering,
+                                                present = True,
                                                 locations=self.getLocations())
         self.printSensationNameById(note='Wall_E_item_sensation5 test', dataId=Wall_E_item_sensation5.getDataId())
         #simulate TensorFlowClassification send presence item to MainRobot
@@ -1856,7 +1856,7 @@ class CommunicationTest(RobotTestCase):
                                                     mainNames=mainNames,
                                                     name=CommunicationTest.NAME2,
                                                     score=CommunicationTest.SCORE_2,
-                                                    presence=Sensation.Presence.Entering,
+                                                    present = True,
                                                     locations=self.getLocations())
             self.printSensationNameById(note='Eva_item_sensation test', dataId=Eva_item_sensation.getDataId())
             
@@ -1894,7 +1894,7 @@ class CommunicationTest(RobotTestCase):
                                                     mainNames=mainNames,
                                                     name=CommunicationTest.NAME2,
                                                     score=CommunicationTest.SCORE_2,
-                                                    presence=Sensation.Presence.Entering,
+                                                    present = True,
                                                     locations=self.getLocations())
             self.printSensationNameById(note='Wall_E_item_sensation6 test', dataId=Wall_E_item_sensation6.getDataId())
             #simulate TensorFlowClassification send presence item to MainRobot
@@ -1944,7 +1944,7 @@ class CommunicationTest(RobotTestCase):
                                                     mainNames=mainNames,                                                
                                                     name=CommunicationTest.NAME2,
                                                     score=CommunicationTest.SCORE_2,
-                                                    presence=Sensation.Presence.Entering,
+                                                    present = True,
                                                     locations=self.getLocations())
             self.printSensationNameById(note='Eva_item_sensation test', dataId=Eva_item_sensation.getDataId())
             Eva_voice_sensation2 = self.createSensation(
@@ -1978,7 +1978,7 @@ class CommunicationTest(RobotTestCase):
                                                     mainNames=mainNames,                                                
                                                     name=CommunicationTest.NAME2,
                                                     score=CommunicationTest.SCORE_1,
-                                                    presence=Sensation.Presence.Present,
+                                                    present = True,
                                                     locations=self.getLocations())
             self.printSensationNameById(note='Wall_E_item_sensation7 test', dataId=Wall_E_item_sensation7.getDataId())
 
@@ -2055,7 +2055,7 @@ class CommunicationTest(RobotTestCase):
             #                                         mainNames=mainNames,
             #                                         name=CommunicationTest.NAME2,
             #                                         score=CommunicationTest.SCORE_3,
-            #                                         presence=Sensation.Presence.Entering,
+            #                                         present = True,
             #                                         locations=self.getLocations())
             # self.printSensationNameById(note='Eva_item_sensation test', dataId=Eva_item_sensation.getDataId())
             # Eva_item_sensation.associate(sensation=Eva_voice_sensation2, feeling = Sensation.Feeling.Good)
@@ -2071,7 +2071,7 @@ class CommunicationTest(RobotTestCase):
             #                                         mainNames=mainNames,
             #                                         name=CommunicationTest.NAME2,
             #                                         score=CommunicationTest.SCORE_1,
-            #                                         presence=Sensation.Presence.Present,
+            #                                         present = True,
             #                                         locations=self.getLocations())
             # self.printSensationNameById(note='Wall_E_item_sensation8 test', dataId=Wall_E_item_sensation8.getDataId())
             # #simulate TensorFlowClassification send presence item to MainRobot
@@ -2123,7 +2123,7 @@ class CommunicationTest(RobotTestCase):
                                                     mainNames=mainNames,
                                                     name=CommunicationTest.NAME2,
                                                     score=CommunicationTest.SCORE_1,
-                                                    presence=Sensation.Presence.Absent,
+                                                    present = False,
                                                     locations=self.getLocations())
             self.printSensationNameById(note='Wall_E_item_sensation9 test', dataId=Wall_E_item_sensation9.getDataId())
            
@@ -2157,7 +2157,7 @@ class CommunicationTest(RobotTestCase):
                                                     robotType=Sensation.RobotType.Sense,
                                                     name=CommunicationTest.NAME,
                                                     score=CommunicationTest.SCORE_1,
-                                                    presence=Sensation.Presence.Absent,
+                                                    present = False,
                                                     locations=self.getLocations())
             self.printSensationNameById(note='Wall_E_item_sensation10 test', dataId=Wall_E_item_sensation10.getDataId())
            #simulate TensorFlowClassification send presence item to MainRobot
@@ -2191,7 +2191,7 @@ class CommunicationTest(RobotTestCase):
                                                     mainNames=mainNames,
                                                     name=CommunicationTest.NAME2,
                                                     score=CommunicationTest.SCORE_2,
-                                                    presence=Sensation.Presence.Entering,
+                                                    present = True,
                                                     locations=self.getLocations())
             self.printSensationNameById(note='Eva_item_sensation test', dataId=Eva_item_sensation.getDataId())
             
@@ -2229,7 +2229,7 @@ class CommunicationTest(RobotTestCase):
                                                     mainNames=mainNames,
                                                     name=CommunicationTest.NAME2,
                                                     score=CommunicationTest.SCORE_2,
-                                                    presence=Sensation.Presence.Entering,
+                                                    present = True,
                                                     locations=self.getLocations())
             self.printSensationNameById(note='Wall_E_item_sensation6 test', dataId=Wall_E_item_sensation6.getDataId())
             #simulate TensorFlowClassification send presence item to MainRobot
@@ -2261,7 +2261,7 @@ class CommunicationTest(RobotTestCase):
                                                     mainNames=mainNames,                                                
                                                     name=CommunicationTest.NAME2,
                                                     score=CommunicationTest.SCORE_2,
-                                                    presence=Sensation.Presence.Entering,
+                                                    present = True,
                                                     locations=self.getLocations())
             self.printSensationNameById(note='Eva_item_sensation test', dataId=Eva_item_sensation.getDataId())
             Eva_voice_sensation = self.createSensation(
@@ -2295,7 +2295,7 @@ class CommunicationTest(RobotTestCase):
                                                     mainNames=mainNames,                                                
                                                     name=CommunicationTest.NAME2,
                                                     score=CommunicationTest.SCORE_1,
-                                                    presence=Sensation.Presence.Present,
+                                                    present = True,
                                                     locations=self.getLocations())
             self.printSensationNameById(note='Wall_E_item_sensation7 test', dataId=Wall_E_item_sensation7.getDataId())
             #simulate TensorFlowClassification send presence item to MainRobot       
@@ -2349,7 +2349,7 @@ class CommunicationTest(RobotTestCase):
                                                     mainNames=mainNames,
                                                     name=CommunicationTest.NAME2,
                                                     score=CommunicationTest.SCORE_3,
-                                                    presence=Sensation.Presence.Entering,
+                                                    present = True,
                                                     locations=self.getLocations())
             self.printSensationNameById(note='Eva_item_sensation test', dataId=Eva_item_sensation.getDataId())
             Eva_item_sensation.associate(sensation=Eva_voice_sensation2, feeling = Sensation.Feeling.Good)
@@ -2365,7 +2365,7 @@ class CommunicationTest(RobotTestCase):
                                                     mainNames=mainNames,
                                                     name=CommunicationTest.NAME2,
                                                     score=CommunicationTest.SCORE_1,
-                                                    presence=Sensation.Presence.Present,
+                                                    present = True,
                                                     locations=self.getLocations())
             self.printSensationNameById(note='Wall_E_item_sensation8 test', dataId=Wall_E_item_sensation8.getDataId())
             #simulate TensorFlowClassification send presence item to MainRobot
@@ -2398,7 +2398,7 @@ class CommunicationTest(RobotTestCase):
                                                     mainNames=mainNames,
                                                     name=CommunicationTest.NAME2,
                                                     score=CommunicationTest.SCORE_1,
-                                                    presence=Sensation.Presence.Absent,
+                                                    present = False,
                                                     locations=self.getLocations())
             self.printSensationNameById(note='Wall_E_item_sensation9 test', dataId=Wall_E_item_sensation9.getDataId())
            
@@ -2431,7 +2431,7 @@ class CommunicationTest(RobotTestCase):
                                                     robotType=Sensation.RobotType.Sense,
                                                     name=CommunicationTest.NAME,
                                                     score=CommunicationTest.SCORE_1,
-                                                    presence=Sensation.Presence.Absent,
+                                                    present = False,
                                                     locations=self.getLocations())
             self.printSensationNameById(note='Wall_E_item_sensation10 test', dataId=Wall_E_item_sensation10.getDataId())
            #simulate TensorFlowClassification send presence item to MainRobot
@@ -2591,7 +2591,7 @@ class CommunicationTest(RobotTestCase):
                                                      robotType=Sensation.RobotType.Sense,
                                                      name=CommunicationTest.NAME,
                                                      score=CommunicationTest.SCORE_1,
-                                                     presence=Sensation.Presence.Present,
+                                                     present = True,
                                                      locations=self.getLocations())
 
         allPresentItemSensations = communication.getMemory().getAllPresentItemSensations()
@@ -2736,7 +2736,7 @@ class CommunicationTest(RobotTestCase):
                                                  robotType=Sensation.RobotType.Sense,
                                                  name=CommunicationTest.NAME,
                                                  associations=[],
-                                                 presence=Sensation.Presence.Present,
+                                                 present = True,
                                                  mainNames=mainNames,
                                                  locations=self.getLocations())
 
@@ -3018,7 +3018,7 @@ class CommunicationTest(RobotTestCase):
                                                  robotType=Sensation.RobotType.Sense,
                                                  name=CommunicationTest.NAME,
                                                  associations=[],
-                                                 presence=Sensation.Presence.Absent,
+                                                 present = False,
                                                  mainNames=mainNames,
                                                  locations=self.getLocations())
         self.printSensationNameById(note='Wall_E_item_sense_sensation2 test', dataId=Wall_E_item_sense_sensation2.getDataId())

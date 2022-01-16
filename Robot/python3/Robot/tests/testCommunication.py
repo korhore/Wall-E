@@ -1,6 +1,6 @@
 '''
 Created on 21.06.2019
-Updated on 13.01.2022
+Updated on 16.01.2022
 @author: reijo.korhonen@gmail.com
 
 test Association class
@@ -67,7 +67,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
     Item.name Working Out    
     ''' 
            
-    def re_test_PresenseItemPresentRobot(self):
+    def test_PresenseItemPresentRobot(self):
         print('\ntest_PresenseItemPresentRobot\n')       
         self.doTest_PresenseItemPresentRobot(communication=self.communication, isWait=False)
        
@@ -183,7 +183,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
                                                 robotType=robotType,
                                                 name=self.NAME,
                                                 score=self.SCORE_1,
-                                                presence=Sensation.Presence.Entering,
+                                                present = True,
                                                 locations = locations,
                                                 mainNames=mainNames)
         self.printSensationNameById(note='item_sensation1 test', dataId=item_sensation1.getDataId())
@@ -267,7 +267,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
                                                 robotType=robotType,
                                                 name=self.NAME,
                                                 score=self.SCORE_1,
-                                                presence=Sensation.Presence.Present,
+                                                present = True,
                                                 locations = locations,
                                                 mainNames=mainNames)
         self.printSensationNameById(note='item_sensation2 test', dataId=item_sensation2.getDataId())
@@ -496,7 +496,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
                                                         robotType=robotType,
                                                         name=name,
                                                         score=self.SCORE_2,
-                                                        presence=Sensation.Presence.Present,
+                                                        present = True,
                                                         locations = locations,
                                                         mainNames=mainNames)
                 self.printSensationNameById(note='item '+name+' test', dataId=new_item_sensation.getDataId())
@@ -506,6 +506,14 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
                 new_item_sensation.associate(sensation=new_image_sensation, feeling = Sensation.Feeling.Normal)
                 new_voice_sensation.associate(sensation=new_image_sensation)
                 
+        itemConversation = None
+        if len(self.communication.getLocations()) > 0:
+            for location in self.communication.getLocations():
+                itemConversation = self.communication.itemConversations[location]
+                break;
+        else:
+            itemConversation = self.communication.itemConversations['']
+
         # Test without ignoredDataIds
         sensations, sensationAssociations = itemConversation.getBestSensations( itemSensations = itemSensations,
                                                                       sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
@@ -546,8 +554,9 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
     This is valid Test, where source of candidates comes from other robot
     TODO combine with test above
     RobotType and MAINNAMES are at least valid
+    Test implementation is broken
     '''       
-    def retest_getBestSensationsCommunication(self):
+    def re_test_getBestSensationsCommunication(self):
         # Memory is empty, We should get nothing
         print('\ntest_getBestSensationsCommunication')
         name='test'
@@ -555,6 +564,14 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
         itemSensations=[]
         ignoredDataIds=[]
         history_sensationTime = systemTime.time() -2*300.0
+
+        itemConversation = None
+        if len(self.communication.getLocations()) > 0:
+            for location in self.communication.getLocations():
+                itemConversation = self.communication.itemConversations[location]
+                break;
+        else:
+            itemConversation = self.communication.itemConversations['']
 
         sensations, associations = itemConversation.getBestSensations(itemSensations=itemSensations,
                                                                 sensationTypes = [Sensation.SensationType.Voice, Sensation.SensationType.Image],
@@ -588,7 +605,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
                                                 robotType=Sensation.RobotType.Sense,
                                                 name=self.NAME,
                                                 score=self.SCORE_1,
-                                                presence=Sensation.Presence.Entering)
+                                                present = True)
         self.printSensationNameById(note='item_sensation1 test', dataId=item_sensation1.getDataId())
         itemSensations.append(item_sensation1)
         
@@ -776,7 +793,7 @@ class CommunicationTestCase(unittest.TestCase, CommunicationTest):
 #                                                 robotType=Sensation.RobotType.Sense,
 #                                                 name=self.NAME,
 #                                                 score=self.SCORE_1,
-#                                                 presence=Sensation.Presence.Entering)
+#                                                 present = True)
 #         self.printSensationNameById(note='item_sensation2 test', dataId=item_sensation2.getDataId())
 #         
 #         

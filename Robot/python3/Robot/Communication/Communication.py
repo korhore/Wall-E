@@ -1,6 +1,6 @@
 '''
 Created on 06.06.2019
-Updated on 20.12.2021
+Updated on 16.01.2022
 
 @author: reijo.korhonen@gmail.com
 
@@ -270,7 +270,7 @@ class Communication(Robot):
                  capabilities = None,                                        # capabilitis of sensorys, robotType what way sensation go
                  name = None,                                                # name of Item
                  score = None,                                               # used at least with item to define how good was the detection 0.0 - 1.0
-                 presence = None,                                            # presence of Item
+                 present = None,                                            # presence of Item
                  kind = None,                                                # kind (for instance voice)
                  firstAssociateSensation = None,                             # associated sensation first side
                  otherAssociateSensation = None,                             # associated Sensation other side
@@ -307,7 +307,7 @@ class Communication(Robot):
                  capabilities = capabilities,
                  name = name,
                  score = score,
-                 presence = presence,
+                 present = present,
                  kind = kind,
                  firstAssociateSensation = firstAssociateSensation,
                  otherAssociateSensation = otherAssociateSensation,
@@ -648,8 +648,7 @@ class Communication(Robot):
                 #  entering to this location
                 if sensation.getSensationType() == Sensation.SensationType.Item and\
                    sensation.getMemoryType() == Sensation.MemoryType.Working  :
-                    if sensation.getPresence() == Sensation.Presence.Entering or\
-                       sensation.getPresence() == Sensation.Presence.Present:
+                    if sensation.isPresent():
                         # or sensation.getPresence() == Sensation.Presence.Exiting):
                         # presence is tracked in MainRobot for all Robots
                         self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithItem process: got item ' + sensation.toDebugStr())
@@ -684,7 +683,7 @@ class Communication(Robot):
                             self.handleGotFeedback(positiveFeeling=True, negativeFeeling=False)
                             
                             self.speak(onStart=not self.isConversationOn())
-                    elif sensation.getPresence() == Sensation.Presence.Absent:
+                    else:
                         # if someone is present
                         if self.getMemory().hasItemsPresence(location=self.getLocation()):
                             self.log(logLevel=Robot.LogLevel.Normal, logStr='{} is now absent, but there are others we wait answer'.format(sensation.getName()))
@@ -923,8 +922,7 @@ class Communication(Robot):
                sensation.getRobotType() == Sensation.RobotType.Communication:
                 #  entering to this location
                 if sensation.getSensationType() == Sensation.SensationType.Item:
-                    if sensation.getPresence() == Sensation.Presence.Entering or\
-                       sensation.getPresence() == Sensation.Presence.Present:
+                    if sensation.isPresent():
                         # or sensation.getPresence() == Sensation.Presence.Exiting):
                         # presence is tracked in MainRobot for all Robots
                         self.log(logLevel=Robot.LogLevel.Normal, logStr='ConversationWithRobot process: got item ' + sensation.toDebugStr())
@@ -934,7 +932,7 @@ class Communication(Robot):
                         # consult other robot what we would say in this situation                       
                         
                         self.speak()
-                    elif sensation.getPresence() == Sensation.Presence.Absent and\
+                    elif not isPresent() and\
                          not self.getMemory().hasItemsPresence(location=self.getLocation()):
                         self.informRobotState(robotState = Sensation.RobotState.CommunicationWaiting)
             else:
@@ -1083,7 +1081,7 @@ class Communication(Robot):
                                             sensationType=Sensation.SensationType.Item,
                                             robotType=Sensation.RobotType.Communication,
                                             name=self.getMainRobot().getName(),
-                                            presence=Sensation.Presence.Present,
+                                            present = True,
                                             locations=self.getLocations())    
         # speak                 
 #         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemSensation)
@@ -1104,7 +1102,7 @@ class Communication(Robot):
                                             sensationType=Sensation.SensationType.Item,
                                             robotType=Sensation.RobotType.Communication,
                                             name=self.getMainRobot().getName(),
-                                            presence=Sensation.Presence.Absent,
+                                            present = False,
                                             locations=self.getLocations())
         # speak                 
 #         self.getParent().getAxon().put(robot=self, transferDirection=Sensation.TransferDirection.Up, sensation=itemSensation)
