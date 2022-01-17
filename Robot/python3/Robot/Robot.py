@@ -1,6 +1,6 @@
 '''
 Created on Feb 24, 2013
-Updated on 15.01.2022
+Updated on 16.01.2022
 @author: reijo.korhonen@gmail.com
 '''
 
@@ -1926,7 +1926,7 @@ class Identity(Robot):
                     self.log('{} Identity get Image from tensorFlowClassification'.format(name))
                     itemImageSensations.append(sensation)
                 elif sensation.getSensationType() == Sensation.SensationType.Item and\
-                    sensation.getPresence() == Sensation.Presence.Entering:
+                    sensation.isPresent():
                     self.log('{} Identity get Item from tensorFlowClassification {}'.format (name,sensation.getName()))
                     if sensation.getName() not in names:
                         names.append(sensation.getName())

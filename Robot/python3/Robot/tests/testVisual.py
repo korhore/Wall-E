@@ -1,6 +1,6 @@
 '''
 Created on 12.03.2020
-Updated on 25.03.2021
+Updated on 16.01.2022
 @author: reijo.korhonen@gmail.com
 
 test Visual class
@@ -116,7 +116,7 @@ class VisualTestCase(unittest.TestCase):
                                                       robotType=Sensation.RobotType.Sense,
                                                       name=VisualTestCase.NAME,
                                                       score=VisualTestCase.SCORE_1,
-                                                      presence = Sensation.Presence.Present,
+                                                      present = True,
                                                       locations=self.LOCATIONS_1_2)
         # Image is in LongTerm memoryType, it comes from TensorFlowClassification and is crop of original big image
         #systemTime.sleep(0.1)  # wait to get really even id
@@ -180,7 +180,7 @@ class VisualTestCase(unittest.TestCase):
                                                       robotType=Sensation.RobotType.Sense,
                                                       name=VisualTestCase.NAME,
                                                       score=VisualTestCase.SCORE_1,
-                                                      presence = Sensation.Presence.Present,
+                                                      present = True,
                                                       locations=locations)
         self.Wall_E_item_sensation.associate(sensation=self.Wall_E_image_sensation)
         image = self.visual.selfImage
@@ -213,10 +213,10 @@ class VisualTestCase(unittest.TestCase):
         
         # these connected each other
         #self.assertEqual(len(self.Wall_E_item_sensation.getAssociations()), 4)# 4/3
-        self.assertTrue(len(self.Wall_E_item_sensation.getAssociations()) == 3 or len(self.Wall_E_item_sensation.getAssociations()) == 4)# 3/4
+        self.assertTrue(len(self.Wall_E_item_sensation.getAssociations()) in (3,4,5), "len(self.Wall_E_item_sensation.getAssociations() should be (3,4,5), not {}".format(len(self.Wall_E_item_sensation.getAssociations())))# 3/4
         #self.assertEqual(len(self.Wall_E_image_sensation.getAssociations()), 2)#/1/2
-        self.assertTrue(len(self.Wall_E_image_sensation.getAssociations()) == 1 or len(self.Wall_E_image_sensation.getAssociations()) == 2)#/1/2
-        self.assertTrue(len(self.Wall_E_image_sensation_2.getAssociations()) == 1 or len(self.Wall_E_image_sensation_2.getAssociations()) == 2)
+        self.assertTrue(len(self.Wall_E_image_sensation.getAssociations()) in (1,2,3),"len(self.Wall_E_image_sensation.getAssociations()) should be (1,2,3), not {}".format(len(self.Wall_E_image_sensation.getAssociations())))
+        self.assertTrue(len(self.Wall_E_image_sensation_2.getAssociations()) in (1,2,3),"len(self.Wall_E_image_sensation_2.getAssociations()) should be (1,2,3), not {}".format(len(self.Wall_E_image_sensation_2.getAssociations())))
         
         #systemTime.sleep(0.1)  # wait to get really even id
         self.Wall_E_voice_sense_sensation = self.visual.createSensation(memoryType=Sensation.MemoryType.Sensory,
@@ -227,13 +227,13 @@ class VisualTestCase(unittest.TestCase):
         self.Wall_E_item_sensation.associate(sensation=self.Wall_E_voice_sense_sensation)
         self.Wall_E_image_sensation.associate(sensation=self.Wall_E_voice_sense_sensation)
         # these connected each other
-        self.assertTrue(len(self.Wall_E_item_sensation.getAssociations()) == 4 or len(self.Wall_E_item_sensation.getAssociations()) ==  5)
-        self.assertTrue(len(self.Wall_E_image_sensation.getAssociations()) == 2 or len(self.Wall_E_image_sensation.getAssociations()) == 3) 
-        self.assertTrue(len(self.Wall_E_voice_sense_sensation.getAssociations()) == 2 or len(self.Wall_E_voice_sense_sensation.getAssociations()) == 3)
+        self.assertTrue(len(self.Wall_E_item_sensation.getAssociations()) in (4,5,6), "len(self.Wall_E_item_sensation.getAssociations()) should be (4,5,6), not {}".format(len(self.Wall_E_item_sensation.getAssociations())))
+        self.assertTrue(len(self.Wall_E_image_sensation.getAssociations()) in (2,3,4), "len(self.Wall_E_image_sensation.getAssociations()) should be (2,3,4), not {}".format(len(self.Wall_E_image_sensation.getAssociations())))
+        self.assertTrue(len(self.Wall_E_voice_sense_sensation.getAssociations()) in (2,3,4), "len(self.Wall_E_voice_sense_sensation.getAssociations()) should be (2,3,4), not {}".format(len(self.Wall_E_voice_sense_sensation.getAssociations())))
 
-        self.assertTrue(len(self.Wall_E_item_sensation.getAssociations()) == 4 or len(self.Wall_E_item_sensation.getAssociations()) == 5)
-        self.assertTrue(len(self.Wall_E_image_sensation.getAssociations()) == 2 or len(self.Wall_E_image_sensation.getAssociations()) == 3)
-        self.assertTrue(len(self.Wall_E_voice_sense_sensation.getAssociations()) == 2 or len(self.Wall_E_voice_sense_sensation.getAssociations()) == 3)
+        self.assertTrue(len(self.Wall_E_item_sensation.getAssociations()) in (4,5,6), "len(self.Wall_E_item_sensation.getAssociations()) should be (4,5,6), not {}".format(len(self.Wall_E_item_sensation.getAssociations())))
+        self.assertTrue(len(self.Wall_E_image_sensation.getAssociations()) in (2,3,4), "self.Wall_E_image_sensation.getAssociations())  should be (2,3.4), not {}".format(len(self.Wall_E_image_sensation.getAssociations())))
+        self.assertTrue(len(self.Wall_E_voice_sense_sensation.getAssociations()) in (2,3,4), "len(self.Wall_E_voice_sense_sensation.getAssociations()) should be (2,3,4), not {}".format(len(self.Wall_E_voice_sense_sensation.getAssociations())))
         
         self.Wall_E_item_sensation_association_len = len(self.Wall_E_item_sensation.getAssociations())
         self.Wall_E_image_sensation_association_len = len(self.Wall_E_image_sensation.getAssociations())
@@ -307,7 +307,7 @@ class VisualTestCase(unittest.TestCase):
                                                       sensationType=Sensation.SensationType.Item,
                                                       robotType=Sensation.RobotType.Muscle,
                                                       name=VisualTestCase.NAME,
-                                                      presence = Sensation.Presence.Present,
+                                                      present = True,
                                                       locations=self.LOCATIONS_1_2)
         
         self.communication_MicrophoneDisabled_sensation = self.visual.createSensation(
@@ -471,7 +471,7 @@ class VisualTestCase(unittest.TestCase):
                                                 robotType=Sensation.RobotType.Sense,# We have found this
                                                 robot = robot.getName(),
                                                 name = robot.getName(),
-                                                presence = Sensation.Presence.Present,
+                                                present = True,
                                                 kind=robot.getKind(),
                                                 locations=self.LOCATIONS_1_2)
         robot.imageSensations, robot.voiceSensations = robot.getIdentitySensations(name=robot.getName())

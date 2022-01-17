@@ -1,6 +1,6 @@
 '''
 Created on 11.04.2020
-Edited on 15.01.2022
+Edited on 16.01.2022
 
 @author: Reijo Korhonen, reijo.korhonen@gmail.com
 
@@ -1608,7 +1608,7 @@ class Memory(object):
                     presentDict[location][name].setScore(score=sensation.getScore())
                 else:
                     presentDict[location][name] = sensation
-                self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="update Present SHOULD NOT BE POSSIBLE any more" + name)
+                    self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="update Present SHOULD NOT BE POSSIBLE any more " + name)
             else:
                 del presentDict[location][name]
                 self.log(logLevel=Memory.MemoryLogLevel.Normal, logStr="Absent " + name)
